@@ -15,7 +15,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
     "status",
-    "finished"
+    "finished",
+    "message",
+    "code"
 })
 public class State {
 
@@ -23,6 +25,10 @@ public class State {
     private String status;
     @JsonProperty("finished")
     private Boolean finished;
+    @JsonProperty("message")
+    private String message;
+    @JsonProperty("code")
+    private String code;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -64,6 +70,46 @@ public class State {
     @JsonProperty("finished")
     public void setFinished(Boolean finished) {
         this.finished = finished;
+    }
+
+    /**
+     * 
+     * @return
+     *     The message
+     */
+    @JsonProperty("message")
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * 
+     * @param message
+     *     The message
+     */
+    @JsonProperty("message")
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    /**
+     * 
+     * @return
+     *     The code
+     */
+    @JsonProperty("code")
+    public String getCode() {
+        return code;
+    }
+
+    /**
+     * 
+     * @param code
+     *     The code
+     */
+    @JsonProperty("code")
+    public void setCode(String code) {
+        this.code = code;
     }
 
     @JsonAnyGetter

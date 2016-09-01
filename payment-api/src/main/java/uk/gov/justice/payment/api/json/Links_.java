@@ -15,20 +15,17 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
     "self",
-    "cancel",
-    "events",
-    "refunds"
+    "last_page",
+    "first_page"
 })
-public class Links {
+public class Links_ {
 
     @JsonProperty("self")
-    private Self self;
-    @JsonProperty("cancel")
-    private Object cancel;
-    @JsonProperty("events")
-    private Events events;
-    @JsonProperty("refunds")
-    private Refunds refunds;
+    private Self_ self;
+    @JsonProperty("last_page")
+    private LastPage lastPage;
+    @JsonProperty("first_page")
+    private FirstPage firstPage;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -38,7 +35,7 @@ public class Links {
      *     The self
      */
     @JsonProperty("self")
-    public Self getSelf() {
+    public Self_ getSelf() {
         return self;
     }
 
@@ -48,68 +45,48 @@ public class Links {
      *     The self
      */
     @JsonProperty("self")
-    public void setSelf(Self self) {
+    public void setSelf(Self_ self) {
         this.self = self;
     }
 
     /**
      * 
      * @return
-     *     The cancel
+     *     The lastPage
      */
-    @JsonProperty("cancel")
-    public Object getCancel() {
-        return cancel;
+    @JsonProperty("last_page")
+    public LastPage getLastPage() {
+        return lastPage;
     }
 
     /**
      * 
-     * @param cancel
-     *     The cancel
+     * @param lastPage
+     *     The last_page
      */
-    @JsonProperty("cancel")
-    public void setCancel(Object cancel) {
-        this.cancel = cancel;
-    }
-
-    /**
-     * 
-     * @return
-     *     The events
-     */
-    @JsonProperty("events")
-    public Events getEvents() {
-        return events;
-    }
-
-    /**
-     * 
-     * @param events
-     *     The events
-     */
-    @JsonProperty("events")
-    public void setEvents(Events events) {
-        this.events = events;
+    @JsonProperty("last_page")
+    public void setLastPage(LastPage lastPage) {
+        this.lastPage = lastPage;
     }
 
     /**
      * 
      * @return
-     *     The refunds
+     *     The firstPage
      */
-    @JsonProperty("refunds")
-    public Refunds getRefunds() {
-        return refunds;
+    @JsonProperty("first_page")
+    public FirstPage getFirstPage() {
+        return firstPage;
     }
 
     /**
      * 
-     * @param refunds
-     *     The refunds
+     * @param firstPage
+     *     The first_page
      */
-    @JsonProperty("refunds")
-    public void setRefunds(Refunds refunds) {
-        this.refunds = refunds;
+    @JsonProperty("first_page")
+    public void setFirstPage(FirstPage firstPage) {
+        this.firstPage = firstPage;
     }
 
     @JsonAnyGetter
