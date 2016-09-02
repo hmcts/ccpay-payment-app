@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Controller
 public class PaymentController {
-    Map<String,String> tempStorage = new HashMap<>();
+    private static Map<String,String> tempStorage = new HashMap<>();
 
 
     @Value("${url}")
