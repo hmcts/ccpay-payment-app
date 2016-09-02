@@ -15,10 +15,7 @@ import com.sun.net.httpserver.HttpsParameters;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.CreatePaymentResponse;
@@ -36,7 +33,15 @@ public class PaymentController {
     private String BEARER = "Bearer ";;
 
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
-    public CreatePaymentResponse createPayment() {
+    public CreatePaymentResponse createPayment(@RequestBody CreatePaymentRequest createPaymentRequest) {
+
+
+
+        System.out.println("API--------------------------------------");
+        System.out.println("API:"+createPaymentRequest.getAmount());
+        System.out.println("API:"+createPaymentRequest.getDescription());
+        System.out.println("API:"+createPaymentRequest.getReturnUrl());
+        System.out.println("API:"+createPaymentRequest.getReference());
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         HttpHeaders headers = new HttpHeaders();
@@ -47,7 +52,17 @@ public class PaymentController {
         paymentRequest.setDescription("Test payment description.");
         paymentRequest.setReference("XXX-XXX-XXX-XXX");
         paymentRequest.setReturnUrl("https://www.google.com");
-        HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(paymentRequest,headers);
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            System.out.println("API:"+mapper.writeValueAsString(createPaymentRequest));
+            System.out.println("API:"+mapper.writeValueAsString(paymentRequest));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+
+        HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(createPaymentRequest,headers);
         CreatePaymentResponse response = restTemplate.postForObject(url, entity, CreatePaymentResponse.class);
         return response;
     }

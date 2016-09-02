@@ -7,7 +7,16 @@
 </head>
 <body>
 
-        <a th:href="@{/payment-intiate}">Initiate payment</a>
+        <!--a th:href="@{/payment-intiate}">Initiate payment</a-->
+        <form id="intiatePaymentForm" action="/payment-intiate" method="post" >
+            <label>Amount</label><input type="text"  name="amount"/>
+            <br/>
+            <label>Description</label><input type="text"  name="description"/>
+            <br/>
+            <label>Reference</label><input type="text"  name="reference"/>
+            <br/>
+            <input type="submit" value="submit" />
+        </form>
 
 </body>
 </html>
