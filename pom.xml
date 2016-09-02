@@ -12,7 +12,9 @@
 
     <modules>
         <module>payment-api</module>
-        
+        <module>payment-web</module>
+        <module>payment-model</module>
+
     </modules>
 
     <build>

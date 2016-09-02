@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Display Payment Page</title>
+
+</head>
+<body>
+    Payment Id: <div th:utext="${paymentId}">
+
+
+
+    </div>
+    <div>
+        <a th:href="${nextUrl}">Proceed to payment</a>
+    </div>
+</body>
+</html>

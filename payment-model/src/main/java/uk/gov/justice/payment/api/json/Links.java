@@ -14,26 +14,32 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
-    "self",
-    "cancel",
-    "events",
-    "refunds"
+        "self",
+        "next_url",
+        "next_url_post",
+        "events",
+        "refunds",
+        "cancel"
 })
 public class Links {
 
     @JsonProperty("self")
     private Self self;
-    @JsonProperty("cancel")
-    private Object cancel;
+    @JsonProperty("next_url")
+    private NextUrl nextUrl;
+    @JsonProperty("next_url_post")
+    private NextUrlPost nextUrlPost;
     @JsonProperty("events")
     private Events events;
     @JsonProperty("refunds")
     private Refunds refunds;
+    @JsonProperty("cancel")
+    private Cancel cancel;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     /**
-     * 
+     *
      * @return
      *     The self
      */
@@ -43,7 +49,7 @@ public class Links {
     }
 
     /**
-     * 
+     *
      * @param self
      *     The self
      */
@@ -53,27 +59,47 @@ public class Links {
     }
 
     /**
-     * 
+     *
      * @return
-     *     The cancel
+     *     The nextUrl
      */
-    @JsonProperty("cancel")
-    public Object getCancel() {
-        return cancel;
+    @JsonProperty("next_url")
+    public NextUrl getNextUrl() {
+        return nextUrl;
     }
 
     /**
-     * 
-     * @param cancel
-     *     The cancel
+     *
+     * @param nextUrl
+     *     The next_url
      */
-    @JsonProperty("cancel")
-    public void setCancel(Object cancel) {
-        this.cancel = cancel;
+    @JsonProperty("next_url")
+    public void setNextUrl(NextUrl nextUrl) {
+        this.nextUrl = nextUrl;
     }
 
     /**
-     * 
+     *
+     * @return
+     *     The nextUrlPost
+     */
+    @JsonProperty("next_url_post")
+    public NextUrlPost getNextUrlPost() {
+        return nextUrlPost;
+    }
+
+    /**
+     *
+     * @param nextUrlPost
+     *     The next_url_post
+     */
+    @JsonProperty("next_url_post")
+    public void setNextUrlPost(NextUrlPost nextUrlPost) {
+        this.nextUrlPost = nextUrlPost;
+    }
+
+    /**
+     *
      * @return
      *     The events
      */
@@ -83,7 +109,7 @@ public class Links {
     }
 
     /**
-     * 
+     *
      * @param events
      *     The events
      */
@@ -93,7 +119,7 @@ public class Links {
     }
 
     /**
-     * 
+     *
      * @return
      *     The refunds
      */
@@ -103,13 +129,33 @@ public class Links {
     }
 
     /**
-     * 
+     *
      * @param refunds
      *     The refunds
      */
     @JsonProperty("refunds")
     public void setRefunds(Refunds refunds) {
         this.refunds = refunds;
+    }
+
+    /**
+     *
+     * @return
+     *     The cancel
+     */
+    @JsonProperty("cancel")
+    public Cancel getCancel() {
+        return cancel;
+    }
+
+    /**
+     *
+     * @param cancel
+     *     The cancel
+     */
+    @JsonProperty("cancel")
+    public void setCancel(Cancel cancel) {
+        this.cancel = cancel;
     }
 
     @JsonAnyGetter
