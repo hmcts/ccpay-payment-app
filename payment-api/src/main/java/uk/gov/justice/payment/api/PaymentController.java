@@ -30,6 +30,8 @@ public class PaymentController {
     private static final Logger logger = LoggerFactory
             .getLogger(PaymentController.class);
 
+
+
     @Value("${auth.key}")
     private String authKey;
 
@@ -40,18 +42,17 @@ public class PaymentController {
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
     public CreatePaymentResponse createPayment(@RequestBody CreatePaymentRequest createPaymentRequest) {
 
-
         logger.debug("Request : " + getJson(createPaymentRequest));
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
-        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
-        paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test payment description.");
-        paymentRequest.setReference("XXX-XXX-XXX-XXX");
-        paymentRequest.setReturnUrl("https://www.google.com");
+//        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+//        paymentRequest.setAmount(10);
+//        paymentRequest.setDescription("Test payment description.");
+//        paymentRequest.setReference("XXX-XXX-XXX-XXX");
+//        paymentRequest.setReturnUrl("https://www.google.com");
         HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(createPaymentRequest,headers);
         CreatePaymentResponse response = restTemplate.postForObject(url, entity, CreatePaymentResponse.class);
         logger.debug("Response : " + getJson(response));
