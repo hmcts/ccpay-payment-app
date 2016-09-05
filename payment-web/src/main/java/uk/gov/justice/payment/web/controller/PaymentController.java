@@ -68,6 +68,23 @@ public class PaymentController {
     String processPaymentResult(@RequestParam("reference") String reference,
                                 Model model) {
         String paymentId = tempStorage.get(reference);
+
+        //-------------------------
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity entity = new HttpEntity( headers);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("paymentId", paymentId);
+
+        ViewPaymentResponse response = restTemplate.exchange(url, HttpMethod.GET ,entity, ViewPaymentResponse.class,params).getBody();
+        //String response = restTemplate.exchange(url, HttpMethod.GET ,entity, String.class,params).getBody();
+        //-------------------------
+
+
+
+        model.addAttribute("paymentStatus",response.getResults().get(0).getState().getStatus());
+        model.addAttribute("isFinished",response.getResults().get(0).getState().getFinished());
         model.addAttribute("reference",reference);
         model.addAttribute("paymentId",paymentId);
         return "payment-result";

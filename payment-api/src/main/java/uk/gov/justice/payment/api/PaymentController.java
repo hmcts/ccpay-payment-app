@@ -20,10 +20,15 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.CreatePaymentResponse;
 import uk.gov.justice.payment.api.json.ViewPaymentResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @RestController
 public class PaymentController {
+
+    private static final Logger logger = LoggerFactory
+            .getLogger(PaymentController.class);
 
     @Value("${auth.key}")
     private String authKey;
@@ -36,12 +41,7 @@ public class PaymentController {
     public CreatePaymentResponse createPayment(@RequestBody CreatePaymentRequest createPaymentRequest) {
 
 
-
-        System.out.println("API--------------------------------------");
-        System.out.println("API:"+createPaymentRequest.getAmount());
-        System.out.println("API:"+createPaymentRequest.getDescription());
-        System.out.println("API:"+createPaymentRequest.getReturnUrl());
-        System.out.println("API:"+createPaymentRequest.getReference());
+        logger.debug("Request : " + getJson(createPaymentRequest));
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         HttpHeaders headers = new HttpHeaders();
@@ -52,18 +52,9 @@ public class PaymentController {
         paymentRequest.setDescription("Test payment description.");
         paymentRequest.setReference("XXX-XXX-XXX-XXX");
         paymentRequest.setReturnUrl("https://www.google.com");
-
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            System.out.println("API:"+mapper.writeValueAsString(createPaymentRequest));
-            System.out.println("API:"+mapper.writeValueAsString(paymentRequest));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-
         HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(createPaymentRequest,headers);
         CreatePaymentResponse response = restTemplate.postForObject(url, entity, CreatePaymentResponse.class);
+        logger.debug("Response : " + getJson(response));
         return response;
     }
     @RequestMapping(value="/payments", method=RequestMethod.GET)
@@ -78,7 +69,17 @@ public class PaymentController {
         params.put("paymentId", "n657stl3mlh7ne6joij3jk7fau");
         HttpEntity entity = new HttpEntity(headers);
         ResponseEntity<ViewPaymentResponse> response = restTemplate.exchange(url, HttpMethod.GET ,entity, ViewPaymentResponse.class,params);
-        System.out.println("status="+response.getBody().getResults().get(0).getState().getStatus());
+        logger.debug("status="+response.getBody().getResults().get(0).getState().getStatus());
         return response;
+    }
+
+    private String getJson(Object obj) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }
