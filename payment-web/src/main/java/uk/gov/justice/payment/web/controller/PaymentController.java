@@ -83,8 +83,8 @@ public class PaymentController {
 
 
 
-        model.addAttribute("paymentStatus",response.getResults().get(0).getState().getStatus());
-        model.addAttribute("isFinished",response.getResults().get(0).getState().getFinished());
+        model.addAttribute("paymentStatus",response.getState().getStatus());
+        model.addAttribute("isFinished",response.getState().getFinished());
         model.addAttribute("reference",reference);
         model.addAttribute("paymentId",paymentId);
         return "payment-result";

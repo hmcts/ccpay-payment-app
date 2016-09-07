@@ -1,9 +1,7 @@
 
 package uk.gov.justice.payment.api.json;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -16,124 +14,239 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
-    "total",
-    "count",
-    "page",
-    "results",
-    "_links"
+        "amount",
+        "state",
+        "description",
+        "reference",
+        "payment_id",
+        "payment_provider",
+        "return_url",
+        "created_date",
+        "refund_summary",
+        "_links"
 })
 public class ViewPaymentResponse {
 
-    @JsonProperty("total")
-    private Integer total;
-    @JsonProperty("count")
-    private Integer count;
-    @JsonProperty("page")
-    private Integer page;
-    @JsonProperty("results")
-    private List<Result> results = new ArrayList<Result>();
+    @JsonProperty("amount")
+    private Integer amount;
+    @JsonProperty("state")
+    private State state;
+    @JsonProperty("description")
+    private String description;
+    @JsonProperty("reference")
+    private String reference;
+    @JsonProperty("payment_id")
+    private String paymentId;
+    @JsonProperty("payment_provider")
+    private String paymentProvider;
+    @JsonProperty("return_url")
+    private String returnUrl;
+    @JsonProperty("created_date")
+    private String createdDate;
+    @JsonProperty("refund_summary")
+    private RefundSummary refundSummary;
     @JsonProperty("_links")
-    private Links_ links;
+    private Links links;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     /**
-     * 
+     *
      * @return
-     *     The total
+     *     The amount
      */
-    @JsonProperty("total")
-    public Integer getTotal() {
-        return total;
+    @JsonProperty("amount")
+    public Integer getAmount() {
+        return amount;
     }
 
     /**
-     * 
-     * @param total
-     *     The total
+     *
+     * @param amount
+     *     The amount
      */
-    @JsonProperty("total")
-    public void setTotal(Integer total) {
-        this.total = total;
+    @JsonProperty("amount")
+    public void setAmount(Integer amount) {
+        this.amount = amount;
     }
 
     /**
-     * 
+     *
      * @return
-     *     The count
+     *     The state
      */
-    @JsonProperty("count")
-    public Integer getCount() {
-        return count;
+    @JsonProperty("state")
+    public State getState() {
+        return state;
     }
 
     /**
-     * 
-     * @param count
-     *     The count
+     *
+     * @param state
+     *     The state
      */
-    @JsonProperty("count")
-    public void setCount(Integer count) {
-        this.count = count;
+    @JsonProperty("state")
+    public void setState(State state) {
+        this.state = state;
     }
 
     /**
-     * 
+     *
      * @return
-     *     The page
+     *     The description
      */
-    @JsonProperty("page")
-    public Integer getPage() {
-        return page;
+    @JsonProperty("description")
+    public String getDescription() {
+        return description;
     }
 
     /**
-     * 
-     * @param page
-     *     The page
+     *
+     * @param description
+     *     The description
      */
-    @JsonProperty("page")
-    public void setPage(Integer page) {
-        this.page = page;
+    @JsonProperty("description")
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     /**
-     * 
+     *
      * @return
-     *     The results
+     *     The reference
      */
-    @JsonProperty("results")
-    public List<Result> getResults() {
-        return results;
+    @JsonProperty("reference")
+    public String getReference() {
+        return reference;
     }
 
     /**
-     * 
-     * @param results
-     *     The results
+     *
+     * @param reference
+     *     The reference
      */
-    @JsonProperty("results")
-    public void setResults(List<Result> results) {
-        this.results = results;
+    @JsonProperty("reference")
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 
     /**
-     * 
+     *
+     * @return
+     *     The paymentId
+     */
+    @JsonProperty("payment_id")
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    /**
+     *
+     * @param paymentId
+     *     The payment_id
+     */
+    @JsonProperty("payment_id")
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
+    }
+
+    /**
+     *
+     * @return
+     *     The paymentProvider
+     */
+    @JsonProperty("payment_provider")
+    public String getPaymentProvider() {
+        return paymentProvider;
+    }
+
+    /**
+     *
+     * @param paymentProvider
+     *     The payment_provider
+     */
+    @JsonProperty("payment_provider")
+    public void setPaymentProvider(String paymentProvider) {
+        this.paymentProvider = paymentProvider;
+    }
+
+    /**
+     *
+     * @return
+     *     The returnUrl
+     */
+    @JsonProperty("return_url")
+    public String getReturnUrl() {
+        return returnUrl;
+    }
+
+    /**
+     *
+     * @param returnUrl
+     *     The return_url
+     */
+    @JsonProperty("return_url")
+    public void setReturnUrl(String returnUrl) {
+        this.returnUrl = returnUrl;
+    }
+
+    /**
+     *
+     * @return
+     *     The createdDate
+     */
+    @JsonProperty("created_date")
+    public String getCreatedDate() {
+        return createdDate;
+    }
+
+    /**
+     *
+     * @param createdDate
+     *     The created_date
+     */
+    @JsonProperty("created_date")
+    public void setCreatedDate(String createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    /**
+     *
+     * @return
+     *     The refundSummary
+     */
+    @JsonProperty("refund_summary")
+    public RefundSummary getRefundSummary() {
+        return refundSummary;
+    }
+
+    /**
+     *
+     * @param refundSummary
+     *     The refund_summary
+     */
+    @JsonProperty("refund_summary")
+    public void setRefundSummary(RefundSummary refundSummary) {
+        this.refundSummary = refundSummary;
+    }
+
+    /**
+     *
      * @return
      *     The links
      */
     @JsonProperty("_links")
-    public Links_ getLinks() {
+    public Links getLinks() {
         return links;
     }
 
     /**
-     * 
+     *
      * @param links
      *     The _links
      */
     @JsonProperty("_links")
-    public void setLinks(Links_ links) {
+    public void setLinks(Links links) {
         this.links = links;
     }
 

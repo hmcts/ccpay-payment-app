@@ -60,17 +60,18 @@ public class PaymentController {
     }
     @RequestMapping(value="/payments", method=RequestMethod.GET)
 
-    public ResponseEntity<ViewPaymentResponse> viewPayment()  {
+    public ResponseEntity<ViewPaymentResponse> viewPayment(@RequestParam("paymentId") String paymentId)  {
+
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
         Map<String, String> params = new HashMap<String, String>();
-        params.put("paymentId", "n657stl3mlh7ne6joij3jk7fau");
+        params.put("paymentId", paymentId);
         HttpEntity entity = new HttpEntity(headers);
         ResponseEntity<ViewPaymentResponse> response = restTemplate.exchange(url, HttpMethod.GET ,entity, ViewPaymentResponse.class,params);
-        logger.debug("status="+response.getBody().getResults().get(0).getState().getStatus());
+        //logger.debug("status="+response.getBody().getResults().get(0).getState().getStatus());
         return response;
     }
 
