@@ -32,10 +32,10 @@ public class PaymentController {
 
 
 
-    @Value("${auth.key}")
+    @Value("${gov.pay.auth.key}")
     private String authKey;
 
-    @Value("${url}")
+    @Value("${gov.pay.url}")
     private String url;
     private String BEARER = "Bearer ";;
 
