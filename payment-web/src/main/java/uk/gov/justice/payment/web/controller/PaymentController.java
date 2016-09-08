@@ -8,22 +8,21 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.CreatePaymentResponse;
 import uk.gov.justice.payment.api.json.ViewPaymentResponse;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
 
 @Controller
 public class PaymentController {
-    private static Map<String,String> tempStorage = new HashMap<>();
+    //private static Map<String,String> tempStorage = new HashMap<>();
 
 
     @Value("${url}")
@@ -38,6 +37,7 @@ public class PaymentController {
     String intiatePayment(@RequestParam("amount") Integer amount,
                           @RequestParam("description") String description,
                           @RequestParam("reference") String reference,
+                          HttpServletResponse httpServletResponse,
                           Model model) {
         System.out.println("amount="+amount);
         CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
@@ -54,20 +54,22 @@ public class PaymentController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity entity = new HttpEntity(paymentRequest, headers);
-        CreatePaymentResponse response = restTemplate.exchange(url, HttpMethod.POST ,entity, CreatePaymentResponse.class).getBody();
-        System.out.println("next url "+response.getLinks().getNextUrl().getHref());
-        String paymentId = response.getPaymentId();
+        CreatePaymentResponse paymentResponse = restTemplate.exchange(url, HttpMethod.POST ,entity, CreatePaymentResponse.class).getBody();
+        System.out.println("next url "+paymentResponse.getLinks().getNextUrl().getHref());
+        String paymentId = paymentResponse.getPaymentId();
         System.out.println("payment id "+paymentId);
         model.addAttribute("paymentId",paymentId);
-        model.addAttribute("nextUrl",response.getLinks().getNextUrl().getHref());
-        tempStorage.put(reference,paymentId);
+        model.addAttribute("nextUrl",paymentResponse.getLinks().getNextUrl().getHref());
+        //tempStorage.put(reference,paymentId);
+        httpServletResponse.addCookie(new Cookie("paymentId",paymentId));
         return "payment-display";
     }
 
     @RequestMapping("/payment-result")
     String processPaymentResult(@RequestParam("reference") String reference,
+                                @CookieValue("paymentId") String paymentId,
                                 Model model) {
-        String paymentId = tempStorage.get(reference);
+        //String paymentId = tempStorage.get(reference);
 
         //-------------------------
         RestTemplate restTemplate = new RestTemplate();
