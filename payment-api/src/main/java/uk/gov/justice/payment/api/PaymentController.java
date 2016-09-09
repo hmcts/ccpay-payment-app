@@ -17,6 +17,8 @@ import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.justice.payment.api.json.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.CreatePaymentResponse;
 import uk.gov.justice.payment.api.json.ViewPaymentResponse;
@@ -41,37 +43,28 @@ public class PaymentController {
 
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
     public CreatePaymentResponse createPayment(@RequestBody CreatePaymentRequest createPaymentRequest) {
-
         logger.debug("Request : " + getJson(createPaymentRequest));
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
-//        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
-//        paymentRequest.setAmount(10);
-//        paymentRequest.setDescription("Test payment description.");
-//        paymentRequest.setReference("XXX-XXX-XXX-XXX");
-//        paymentRequest.setReturnUrl("https://www.google.com");
         HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(createPaymentRequest,headers);
         CreatePaymentResponse response = restTemplate.postForObject(url, entity, CreatePaymentResponse.class);
         logger.debug("Response : " + getJson(response));
         return response;
     }
-    @RequestMapping(value="/payments", method=RequestMethod.GET)
 
-    public ResponseEntity<ViewPaymentResponse> viewPayment(@RequestParam("paymentId") String paymentId)  {
-
+    @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
+    public ResponseEntity<ViewPaymentResponse> viewPayment(@PathVariable("paymentId") String paymentId)  {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("paymentId", paymentId);
         HttpEntity entity = new HttpEntity(headers);
-        ResponseEntity<ViewPaymentResponse> response = restTemplate.exchange(url, HttpMethod.GET ,entity, ViewPaymentResponse.class,params);
-        //logger.debug("status="+response.getBody().getResults().get(0).getState().getStatus());
+        ResponseEntity<ViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, ViewPaymentResponse.class);
+        logger.debug("Response : " + getJson(response));
         return response;
     }
 

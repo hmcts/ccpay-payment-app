@@ -61,35 +61,27 @@ public class PaymentController {
         model.addAttribute("paymentId",paymentId);
         model.addAttribute("nextUrl",paymentResponse.getLinks().getNextUrl().getHref());
         //tempStorage.put(reference,paymentId);
-        httpServletResponse.addCookie(new Cookie("paymentId",paymentId));
+        Cookie  cookie = new Cookie("paymentId",paymentId);
+        cookie.setMaxAge(60*60*24);
+        cookie.setSecure(true);
+        httpServletResponse.addCookie(cookie);
         return "payment-display";
     }
 
+
+
     @RequestMapping("/payment-result")
-    String processPaymentResult(@RequestParam("reference") String reference,
+    String viewPaymentResult(
                                 @CookieValue("paymentId") String paymentId,
                                 Model model) {
-        //String paymentId = tempStorage.get(reference);
-
-        //-------------------------
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity entity = new HttpEntity( headers);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("paymentId", paymentId);
-
-        ViewPaymentResponse response = restTemplate.exchange(url, HttpMethod.GET ,entity, ViewPaymentResponse.class,params).getBody();
-        //String response = restTemplate.exchange(url, HttpMethod.GET ,entity, String.class,params).getBody();
-        //-------------------------
-
-
-
+        HttpEntity entity = new HttpEntity(headers);
+        ViewPaymentResponse response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET , entity, ViewPaymentResponse.class).getBody();
         model.addAttribute("paymentStatus",response.getState().getStatus());
         model.addAttribute("isFinished",response.getState().getFinished());
-        model.addAttribute("reference",reference);
         model.addAttribute("paymentId",paymentId);
         return "payment-result";
     }
-
 }

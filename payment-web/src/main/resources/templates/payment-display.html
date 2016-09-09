@@ -6,11 +6,12 @@
 
 </head>
 <body>
-    Payment Id: <div th:utext="${paymentId}">
+    <div th:utext="'Payment Id: '+${paymentId}">
 
 
 
     </div>
+
     <div>
         <a th:href="${nextUrl}">Proceed to payment</a>
     </div>

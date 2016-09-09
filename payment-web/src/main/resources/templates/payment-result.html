@@ -6,11 +6,10 @@
 
 </head>
 <body>
-        <div>Payment process complete.</div>
-        <div>Payment Id: <div th:utext="${paymentId}"/></div>
-        <div>Reference: <div th:utext="${reference}"/></div>
-        <div>Payment Status: <div th:utext="${paymentStatus}"/></div>
-        <div>is Finished: <div th:utext="${isFinished}"/></div>
+<div>Payment process complete.</div>
+<div th:utext="'Payment Id: '+${paymentId}"/>
+<div th:utext="'Payment Status: '+${paymentStatus}"/>
+<div th:utext="'Finished: '+${isFinished}"/>
 
 </body>
 </html>
