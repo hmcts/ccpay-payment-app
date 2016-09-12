@@ -28,7 +28,7 @@ public class PaymentController {
     @Value("${url}")
     private String url;
 
-    @RequestMapping("/")
+    @RequestMapping("/index.html")
     String home() {
 
         return "index";

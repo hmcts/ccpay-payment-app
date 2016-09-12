@@ -1,22 +1,50 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <title>Initiate Payment Page</title>
+<html lang="" xmlns:th="http://www.w3.org/1999/xhtml"><!--<![endif]-->
+<head th:include="head :: head" />
 
-</head>
-<body>
+<body class="js-enabled">
+<div th:include="header :: header"/>
+<main id="content" class="content-wrapper charge-new">
 
-        <!--a th:href="@{/payment-intiate}">Initiate payment</a-->
-        <form id="intiatePaymentForm" action="/payment-intiate" method="post" >
-            <label>Amount</label><input type="text"  name="amount"/>
-            <br/>
-            <label>Description</label><input type="text"  name="description"/>
-            <br/>
-            <label>Reference</label><input type="text"  name="reference"/>
-            <br/>
-            <input type="submit" value="submit" />
-        </form>
 
-</body>
-</html>
+    <h1 class="form-title">Enter payment details</h1>
+    <!-- Payment content start here -->
+    <form id="intiatePaymentForm" action="/payment-intiate" method="post"  class="form">
+
+        <div class="form-group card-no-group" data-validation="cardNo">
+        <label id="card-no-lbl" for="card-no" class="form-label-bold">
+              <span class="card-no-label" data-label-replace="cardNo" data-original-label="Card number">
+              Amount
+              </span>
+            <input id="card-no" type="tel" name="amount" maxlength="26" class="form-control-1-2" autocomplete="off" val=""/>
+        </label>
+        </div>
+
+        <div class="form-group card-no-group" data-validation="cardNo">
+        <label id="card-no-lbl" for="card-no" class="form-label-bold">
+              <span class="card-no-label" data-label-replace="cardNo" data-original-label="Card number">
+              Description
+              </span>
+            <input id="card-no" type="tel" name="description" maxlength="26" class="form-control-1-2" autocomplete="off" val=""/>
+        </label>
+        </div>
+
+        <div class="form-group card-no-group" data-validation="cardNo">
+        <label id="card-no-lbl" for="card-no" class="form-label-bold">
+              <span class="card-no-label" data-label-replace="cardNo" data-original-label="Card number">
+              Reference
+              </span>
+            <input id="card-no" type="tel" name="reference" maxlength="26" class="form-control-1-2" autocomplete="off" val=""/>
+        </label>
+        </div>
+
+
+        <div>
+            <input id="submit-card-details" type="submit" class="button" value="Continue" name="submitCardDetails"/>
+        </div>
+    </form>
+    <!-- Payment content end here -->
+
+</main>
+    <div th:include="footer :: footer" class="footer-wrapper"/>
+</body></html>

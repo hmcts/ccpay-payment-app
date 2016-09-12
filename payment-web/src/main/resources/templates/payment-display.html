@@ -1,19 +1,18 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <title>Display Payment Page</title>
+<html lang="" xmlns:th="http://www.w3.org/1999/xhtml"><!--<![endif]-->
+<head th:include="head :: head" />
 
-</head>
-<body>
-    <div th:utext="'Payment Id: '+${paymentId}">
-
-
-
+<body class="js-enabled">
+<div th:include="header :: header"/>
+<main id="content" class="content-wrapper charge-new">
+    <h1 class="form-title">Payment Created. </h1>
+    <br/> <br/> <br/>
+    <div th:utext="'Payment Id: '+${paymentId}" class="form-label-bold">
     </div>
-
     <div>
-        <a th:href="${nextUrl}">Proceed to payment</a>
+        <a th:href="${nextUrl}" class="link">Proceed to payment</a>
     </div>
-</body>
-</html>
+
+</main>
+<div th:include="footer :: footer" class="footer-wrapper"/>
+</body></html>
