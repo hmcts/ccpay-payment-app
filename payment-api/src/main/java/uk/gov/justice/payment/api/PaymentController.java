@@ -52,7 +52,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
     public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
-        logger.debug("Request : " + getJson(payload));
+        logger.debug("createPaymentRequest : " + getJson(payload));
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         HttpHeaders headers = new HttpHeaders();
@@ -60,7 +60,7 @@ public class PaymentController {
         headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
         HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(payload,headers);
         ResponseEntity<CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, CreatePaymentResponse.class);
-        logger.debug("Response : " + getJson(response));
+        logger.debug("createPaymentResponse : " + getJson(response));
         if(HttpStatus.CREATED.equals(response.getStatusCode())) {
             return response;
         } else {
@@ -84,7 +84,7 @@ public class PaymentController {
         headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
         HttpEntity entity = new HttpEntity(headers);
         ResponseEntity<ViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, ViewPaymentResponse.class);
-        logger.debug("Response : " + getJson(response));
+        logger.debug("viewPaymentResponse : " + getJson(response));
         if(HttpStatus.OK.equals(response.getStatusCode())) {
             return response;
         } else {
