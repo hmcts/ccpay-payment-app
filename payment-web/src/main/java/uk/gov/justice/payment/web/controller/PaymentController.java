@@ -74,8 +74,7 @@ public class PaymentController {
 
 
     @RequestMapping("/payment-result")
-    String viewPaymentResult(
-                                @CookieValue("paymentId") String paymentId,
+    String viewPaymentResult(@CookieValue("paymentId") String paymentId,
                                 Model model) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
