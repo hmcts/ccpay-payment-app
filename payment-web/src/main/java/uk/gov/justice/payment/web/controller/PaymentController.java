@@ -34,14 +34,16 @@ public class PaymentController {
         return "index";
     }
     @RequestMapping( value="/payment-intiate" , method = RequestMethod.POST )
-    String intiatePayment(@RequestParam("amount") Integer amount,
+    String intiatePayment(@RequestParam("amount") Double amount,
                           @RequestParam("description") String description,
                           @RequestParam("reference") String reference,
                           HttpServletResponse httpServletResponse,
                           Model model) {
         System.out.println("amount="+amount);
+        amount*=100;
+
         CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
-        paymentRequest.setAmount(amount);
+        paymentRequest.setAmount(amount.intValue());
         paymentRequest.setDescription(description);
         paymentRequest.setReference(reference);
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result?reference="+reference);
@@ -65,7 +67,8 @@ public class PaymentController {
         cookie.setMaxAge(60*60*24);
         cookie.setSecure(true);
         httpServletResponse.addCookie(cookie);
-        return "payment-display";
+        //return "payment-display";
+        return "redirect:"+paymentResponse.getLinks().getNextUrl().getHref();
     }
 
 
