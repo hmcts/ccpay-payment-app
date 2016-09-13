@@ -46,7 +46,7 @@ public class PaymentController {
         paymentRequest.setAmount(amount.intValue());
         paymentRequest.setDescription(description);
         paymentRequest.setReference(reference);
-        paymentRequest.setReturnUrl("https://localhost:8443/payment-result?reference="+reference);
+        paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
 
 
 
