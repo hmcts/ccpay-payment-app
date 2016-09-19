@@ -58,9 +58,11 @@ public class PaymentController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
+        System.out.println("authKey="+authKey);
         HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(payload,headers);
         ResponseEntity<CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, CreatePaymentResponse.class);
         logger.debug("createPaymentResponse : " + getJson(response));
+        System.out.println("createPaymentResponse : " + getJson(response));
         if(HttpStatus.CREATED.equals(response.getStatusCode())) {
             return response;
         } else {
