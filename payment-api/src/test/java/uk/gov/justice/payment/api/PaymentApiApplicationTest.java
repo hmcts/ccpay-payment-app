@@ -25,17 +25,13 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 @Configuration
 
 
-public class PaymnetApiApplicationTest {
-
-	//WireMockServer wm = new WireMockServer(options().bindAddress("publicapi.integration.pymnt.uk").port(80));
-
-	@Test
-	public void exampleTest() {
-		System.out.println("Hello World!  Test");
-	}
+public class PaymentApiApplicationTest {
 
 	@Test
 	public void createPayment() {
+
+
+		RestAssured.port = 8181;
 
 		CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
 		paymentRequest.setAmount(10);
@@ -43,12 +39,11 @@ public class PaymnetApiApplicationTest {
 		paymentRequest.setReference("TestRef");
 		paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
 
-		RestAssured.port = 8181;
+
 		given().contentType("application/json").
-				queryParam("name", "James").body(getJson(paymentRequest)).
+				body(getJson(paymentRequest)).
 				when().post("/payments").
-				then().statusCode(201)
-				;
+				then().statusCode(201);
 	}
 
 	private String getJson(Object obj) {

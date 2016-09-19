@@ -15,6 +15,7 @@ import com.sun.net.httpserver.HttpsParameters;
 import io.swagger.annotations.*;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponses;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -35,20 +36,25 @@ public class PaymentController {
     private static final Logger logger = LoggerFactory
             .getLogger(PaymentController.class);
 
-
-
     @Value("${gov.pay.auth.key}")
     private String authKey;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
 
     @Value("${gov.pay.url}")
     private String url;
     private String BEARER = "Bearer ";;
 
     @ApiOperation(value = "Create payment", notes = "Create payment")
-
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully created payment"),
-            @ApiResponse(code = 500, message = "Internal server error", response = java.lang.String.class)
+
+            @ApiResponse(code = 201, message = "Payment has been created"),
+            @ApiResponse(code = 400, message = "The server cannot process the request due to a client error, eg missing details in the request or a failed payment cancellation"),
+            @ApiResponse(code = 401, message = "Required authentication has failed or not been provided"),
+            @ApiResponse(code = 422, message = "Invalid attribute value: description. Must be less than or equal to 255 characters length"),
+            @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
     public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
@@ -58,24 +64,22 @@ public class PaymentController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
-        System.out.println("authKey="+authKey);
         HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(payload,headers);
         ResponseEntity<CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, CreatePaymentResponse.class);
         logger.debug("createPaymentResponse : " + getJson(response));
-        System.out.println("createPaymentResponse : " + getJson(response));
         if(HttpStatus.CREATED.equals(response.getStatusCode())) {
             return response;
         } else {
-            return new ResponseEntity(null,HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(null,response.getStatusCode());
         }
-
     }
 
     @ApiOperation(value = "Get payment details by id", notes = "Get payment details for supplied payment id")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully retrieved payment details"),
-            @ApiResponse(code = 404, message = "Payment not found"),
-            @ApiResponse(code = 500, message = "Internal server error", response = java.lang.String.class)
+            @ApiResponse(code = 200, message = "Payment information request succeeded"),
+            @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
+            @ApiResponse(code = 404, message = "The resource you want cannot be found"),
+            @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
     public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
@@ -90,7 +94,7 @@ public class PaymentController {
         if(HttpStatus.OK.equals(response.getStatusCode())) {
             return response;
         } else {
-            return new ResponseEntity(null,HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(null,response.getStatusCode());
         }
     }
 
