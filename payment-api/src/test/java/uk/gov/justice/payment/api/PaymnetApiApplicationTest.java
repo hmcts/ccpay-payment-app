@@ -35,12 +35,7 @@ public class PaymnetApiApplicationTest {
 	}
 
 	@Test
-	public void contextLoads() {
-		//WireMock.configureFor("publicapi.integration.pymnt.uk", 80);
-//		stubFor(post(urlEqualTo("https://publicapi.integration.pymnt.uk/v1/payments"))
-//				.willReturn(aResponse()
-//						.withHeader("Content-Type", "text/plain")
-//						.withBody("Hello world!")));
+	public void createPayment() {
 
 		CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
 		paymentRequest.setAmount(10);
