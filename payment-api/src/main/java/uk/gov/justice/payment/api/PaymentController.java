@@ -38,7 +38,7 @@ public class PaymentController {
 
 
     @Value("${gov.pay.url}")
-    private String url;
+    String url;
     private String BEARER = "Bearer ";;
 
     @ApiOperation(value = "Create payment", notes = "Create payment")
@@ -52,6 +52,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
     public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
+
         logger.debug("createPaymentRequest : " + getJson(payload));
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
