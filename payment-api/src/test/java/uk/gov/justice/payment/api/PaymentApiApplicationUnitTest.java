@@ -46,7 +46,7 @@ public class PaymentApiApplicationUnitTest {
 
 		PaymentController paymentController = new PaymentController();
 		paymentController.url = "http://localhost:8089/payments/create";
-		assertEquals(paymentController.createPayment(null).getStatusCode().value(), 201);
+		assertEquals(paymentController.createPayment(null,null).getStatusCode().value(), 201);
 
 
 
@@ -65,7 +65,7 @@ public class PaymentApiApplicationUnitTest {
 
 		PaymentController paymentController = new PaymentController();
 		paymentController.url = "http://localhost:8089/payments/view";
-		assertEquals(paymentController.viewPayment(null).getStatusCode().value(), 200);
+		assertEquals(paymentController.viewPayment(null,null).getStatusCode().value(), 200);
 
 
 

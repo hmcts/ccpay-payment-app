@@ -51,7 +51,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
+    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "service reference") @RequestHeader String serviceReference, @ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
 
         logger.debug("createPaymentRequest : " + getJson(payload));
         RestTemplate restTemplate = new RestTemplate();
@@ -77,7 +77,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
-    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
+    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "service reference") @RequestHeader String serviceReference, @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         HttpHeaders headers = new HttpHeaders();
