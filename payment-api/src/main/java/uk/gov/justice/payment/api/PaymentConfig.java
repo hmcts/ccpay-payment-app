@@ -16,7 +16,7 @@ public class PaymentConfig {
     Environment environment;
 
     @Bean
-    RestTemplate restTemplate() {
+    public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 

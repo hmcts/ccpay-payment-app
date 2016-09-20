@@ -22,7 +22,7 @@ public class PaymentApiApplicationTest {
         RestAssured.port = 8181;
         CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("TestDesc");
+        paymentRequest.setDescription("Test Desc");
         paymentRequest.setReference("TestRef");
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
         given().contentType("application/json").

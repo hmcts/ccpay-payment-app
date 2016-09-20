@@ -34,19 +34,18 @@ public class PaymentController {
     @Value("${gov.pay.auth.key}")
     private String authKey;
 
-
+    @Autowired
     private RestTemplate restTemplate;
 
 
+
+
     @Value("${gov.pay.url}")
-    String url;
+    private String url;
 
     private String BEARER = "Bearer ";;
 
-    @Autowired
-    public PaymentController(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+
 
     @ApiOperation(value = "Create payment", notes = "Create payment")
     @ApiResponses(value = {
@@ -58,8 +57,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "service reference") @RequestHeader String serviceReference, @ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
-
+    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "service reference") @RequestHeader(value = "serviceReference", required = false) String serviceReference, @ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
         try {
             logger.debug("createPaymentRequest : " + getJson(payload));
 
@@ -85,7 +83,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
-    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "service reference") @RequestHeader String serviceReference, @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
+    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "service reference") @RequestHeader(value = "serviceReference", required = false) String serviceReference, @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
         try {
             RestTemplate restTemplate = new RestTemplate();
             restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());

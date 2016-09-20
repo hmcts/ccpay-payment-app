@@ -1,6 +1,7 @@
 package uk.gov.justice.payment.api;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,10 +10,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 @RunWith(SpringRunner.class)
@@ -24,9 +28,12 @@ public class PaymentApiApplicationUnitTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8089);
-    PaymentController paymentController = new PaymentController(new RestTemplate());
+    //PaymentController paymentController = new PaymentController(new RestTemplate());
+    PaymentController paymentController = new PaymentController();
+    RestTemplate restTemplate = new RestTemplate();
     private static String createPaymentExpected = "{  \"amount\":10,  \"state\":{    \"status\":\"created\",    \"finished\":false }}";
     private static String viewPaymentExpected = "{   \"amount\":3650,    \"state\":{         \"status\":\"success\",       \"finished\":true    }     }";
+
 
     @Test
     public void createPaymentSuccess() {
@@ -36,7 +43,9 @@ public class PaymentApiApplicationUnitTest {
                         .withBody(createPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
-        paymentController.url = "http://localhost:8089/payments/create";
+
+        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
+        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/create");
         assertEquals(paymentController.createPayment(null, null).getStatusCode().value(), 201);
     }
 
@@ -47,7 +56,8 @@ public class PaymentApiApplicationUnitTest {
                         .withStatus(401)
 
                 ));
-        paymentController.url = "http://localhost:8089/payments/create";
+        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
+        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/create");
         assertEquals(paymentController.createPayment(null, null).getStatusCode().value(), 401);
     }
 
@@ -60,8 +70,8 @@ public class PaymentApiApplicationUnitTest {
                         .withBody(viewPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
-
-        paymentController.url = "http://localhost:8089/payments/view";
+        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
+        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/view");
         assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 200);
    }
 
@@ -73,8 +83,8 @@ public class PaymentApiApplicationUnitTest {
                         .withBody(viewPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
-
-        paymentController.url = "http://localhost:8089/payments/view";
+        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
+        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/view");
         assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 404);
     }
 }

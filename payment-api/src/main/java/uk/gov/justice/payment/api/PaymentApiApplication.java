@@ -23,7 +23,6 @@ public class PaymentApiApplication {
 
 
 	public static void main(String[] args) {
-		logger.debug("Payment API Started");
         SpringApplication.run(PaymentApiApplication.class, args);
 	}
 
