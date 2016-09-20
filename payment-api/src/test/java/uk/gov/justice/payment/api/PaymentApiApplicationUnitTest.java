@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
@@ -23,43 +24,57 @@ public class PaymentApiApplicationUnitTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8089);
-    @Value("${gov.pay.url}")
-    private String url;
+    PaymentController paymentController = new PaymentController(new RestTemplate());
+    private static String createPaymentExpected = "{  \"amount\":10,  \"state\":{    \"status\":\"created\",    \"finished\":false }}";
+    private static String viewPaymentExpected = "{   \"amount\":3650,    \"state\":{         \"status\":\"success\",       \"finished\":true    }     }";
 
     @Test
-    public void createPayment() {
-        String expected = "{  \"amount\":10,  \"state\":{    \"status\":\"created\",    \"finished\":false }}";
+    public void createPaymentSuccess() {
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()
                         .withStatus(201)
-                        .withBody(expected)
+                        .withBody(createPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
-
-        PaymentController paymentController = new PaymentController();
         paymentController.url = "http://localhost:8089/payments/create";
         assertEquals(paymentController.createPayment(null, null).getStatusCode().value(), 201);
+    }
 
+    @Test
+    public void createPaymentAuthenticationFailure() {
+        stubFor(post(urlPathMatching("/payments/create"))
+                .willReturn(aResponse()
+                        .withStatus(401)
 
+                ));
+        paymentController.url = "http://localhost:8089/payments/create";
+        assertEquals(paymentController.createPayment(null, null).getStatusCode().value(), 401);
     }
 
 
     @Test
     public void viewPayment() {
-        String expected = "{   \"amount\":3650,    \"state\":{         \"status\":\"success\",       \"finished\":true    }     }";
         stubFor(get(urlPathMatching("/payments/view/.*"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withBody(expected)
+                        .withBody(viewPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        PaymentController paymentController = new PaymentController();
         paymentController.url = "http://localhost:8089/payments/view";
         assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 200);
+   }
 
+    @Test
+    public void paymentNotFound() {
+        stubFor(get(urlPathMatching("/payments/view/.*"))
+                .willReturn(aResponse()
+                        .withStatus(404)
+                        .withBody(viewPaymentExpected)
+                        .withHeader("Content-Type", "application/json")
+                ));
 
+        paymentController.url = "http://localhost:8089/payments/view";
+        assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 404);
     }
-
-
 }

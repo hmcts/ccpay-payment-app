@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.CreatePaymentResponse;
@@ -33,13 +34,19 @@ public class PaymentController {
     @Value("${gov.pay.auth.key}")
     private String authKey;
 
-    @Autowired
+
     private RestTemplate restTemplate;
 
 
     @Value("${gov.pay.url}")
     String url;
+
     private String BEARER = "Bearer ";;
+
+    @Autowired
+    public PaymentController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @ApiOperation(value = "Create payment", notes = "Create payment")
     @ApiResponses(value = {
@@ -53,19 +60,20 @@ public class PaymentController {
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
     public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "service reference") @RequestHeader String serviceReference, @ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
 
-        logger.debug("createPaymentRequest : " + getJson(payload));
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
-        HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(payload,headers);
-        ResponseEntity<CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, CreatePaymentResponse.class);
-        logger.debug("createPaymentResponse : " + getJson(response));
-        if(HttpStatus.CREATED.equals(response.getStatusCode())) {
+        try {
+            logger.debug("createPaymentRequest : " + getJson(payload));
+
+            restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
+            HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(payload, headers);
+            ResponseEntity<CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, CreatePaymentResponse.class);
+            logger.debug("createPaymentResponse : " + getJson(response));
             return response;
-        } else {
-            return new ResponseEntity(null,response.getStatusCode());
+        } catch (HttpClientErrorException e) {
+            logger.debug("createPaymentResponse : Error " + e.getMessage());
+            return new ResponseEntity(e.getStatusCode());
         }
     }
 
@@ -78,18 +86,19 @@ public class PaymentController {
     })
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
     public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "service reference") @RequestHeader String serviceReference, @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
-        HttpEntity entity = new HttpEntity(headers);
-        ResponseEntity<ViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, ViewPaymentResponse.class);
-        logger.debug("viewPaymentResponse : " + getJson(response));
-        if(HttpStatus.OK.equals(response.getStatusCode())) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
+            HttpEntity entity = new HttpEntity(headers);
+            ResponseEntity<ViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, ViewPaymentResponse.class);
+            logger.debug("viewPaymentResponse : " + getJson(response));
             return response;
-        } else {
-            return new ResponseEntity(null,response.getStatusCode());
+        } catch (HttpClientErrorException e) {
+            logger.debug("viewPaymentResponse : Error " + e.getMessage());
+            return new ResponseEntity(e.getStatusCode());
         }
     }
 
