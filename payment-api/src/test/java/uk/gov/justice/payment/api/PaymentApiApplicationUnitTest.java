@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Configuration
-@TestPropertySource(properties = "gov.pay.url=https://publicapi.integration.pymnt.uk/v1/payments")
+//@TestPropertySource(properties = "gov.pay.url=https://publicapi.integration.pymnt.uk/v1/payments")
 
 public class PaymentApiApplicationUnitTest {
 
