@@ -1,0 +1,38 @@
+{
+  "amount": 12000,
+  "state": {
+    "status": "failed",
+    "finished": true,
+    "message": "Payment expired",
+    "code": "P0020"
+  },
+  "description": "New passport application",
+  "reference": "12345",
+  "payment_id": "nvbblu5hp5r4d37mjg98687mui",
+  "payment_provider": "sandbox",
+  "card_brand": "",
+  "return_url": "https://service-name.gov.uk/transactions/12345",
+  "created_date": "2016-09-21T10:50:19.518Z",
+  "refund_summary": {
+    "status": "unavailable",
+    "amount_available": 12000,
+    "amount_submitted": 0
+  },
+  "_links": {
+    "self": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/nvbblu5hp5r4d37mjg98687mui",
+      "method": "GET"
+    },
+    "next_url": null,
+    "next_url_post": null,
+    "events": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/nvbblu5hp5r4d37mjg98687mui/events",
+      "method": "GET"
+    },
+    "refunds": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/nvbblu5hp5r4d37mjg98687mui/refunds",
+      "method": "GET"
+    },
+    "cancel": null
+  }
+}
