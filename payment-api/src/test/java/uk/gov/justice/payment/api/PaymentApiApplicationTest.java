@@ -31,6 +31,27 @@ public class PaymentApiApplicationTest {
                 then().statusCode(201);
     }
 
+
+    @Test
+    public void viewPayment() {
+        RestAssured.port = 8181;
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+        paymentRequest.setAmount(10);
+        paymentRequest.setDescription("Test Desc");
+        paymentRequest.setReference("TestRef");
+        paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
+        String paymentId = given().contentType("application/json").
+                body(getJson(paymentRequest)).
+                when().post("/payments").
+                then().statusCode(201).extract().path("payment_id");
+        given().contentType("application/json").
+                when().get("/payments/"+paymentId).
+                then().statusCode(200).extract().path("state.status").equals("created");
+
+    }
+
+
+
     private String getJson(Object obj) {
         try {
             ObjectMapper mapper = new ObjectMapper();

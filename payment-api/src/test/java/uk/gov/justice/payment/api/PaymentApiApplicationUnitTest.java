@@ -1,5 +1,6 @@
 package uk.gov.justice.payment.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,11 +31,16 @@ public class PaymentApiApplicationUnitTest {
     public WireMockRule wireMockRule = new WireMockRule(8089);
     //PaymentController paymentController = new PaymentController(new RestTemplate());
     PaymentController paymentController = new PaymentController();
+    ObjectMapper mapper = new ObjectMapper();
     RestTemplate restTemplate = new RestTemplate();
     private static String createPaymentExpected = "{  \"amount\":10,  \"state\":{    \"status\":\"created\",    \"finished\":false }}";
     private static String viewPaymentExpected = "{   \"amount\":3650,    \"state\":{         \"status\":\"success\",       \"finished\":true    }     }";
 
-
+    @Before
+    public void setUp() {
+        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
+        ReflectionTestUtils.setField(paymentController,"mapper",mapper);
+    }
     @Test
     public void createPaymentSuccess() {
         stubFor(post(urlPathMatching("/payments/create"))
@@ -44,7 +50,6 @@ public class PaymentApiApplicationUnitTest {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/create");
         assertEquals(paymentController.createPayment(null, null).getStatusCode().value(), 201);
     }
@@ -56,7 +61,6 @@ public class PaymentApiApplicationUnitTest {
                         .withStatus(401)
 
                 ));
-        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/create");
         assertEquals(paymentController.createPayment(null, null).getStatusCode().value(), 401);
     }
@@ -70,10 +74,21 @@ public class PaymentApiApplicationUnitTest {
                         .withBody(viewPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
-        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/view");
         assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 200);
    }
+
+//    @Test
+//    public void viewPaymentNoResponse() {
+//        stubFor(get(urlPathMatching("/payments/view/.*"))
+//                .willReturn(aResponse()
+//                        .withStatus(200)
+//                        .withBody("bad data")
+//                        .withHeader("Content-Type", "application/json")
+//                ));
+//        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/view");
+//        assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 200);
+//    }
 
     @Test
     public void paymentNotFound() {
@@ -83,7 +98,6 @@ public class PaymentApiApplicationUnitTest {
                         .withBody(viewPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
-        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/view");
         assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 404);
     }

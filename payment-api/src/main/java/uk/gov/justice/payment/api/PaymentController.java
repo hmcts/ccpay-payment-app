@@ -38,6 +38,8 @@ public class PaymentController {
     private RestTemplate restTemplate;
 
 
+    @Autowired
+    ObjectMapper mapper;
 
 
     @Value("${gov.pay.url}")
@@ -102,11 +104,10 @@ public class PaymentController {
 
     private String getJson(Object obj) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
             return mapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            return "";
         }
-        return "";
+
     }
 }
