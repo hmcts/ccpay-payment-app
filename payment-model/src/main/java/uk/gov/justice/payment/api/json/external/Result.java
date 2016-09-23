@@ -1,5 +1,5 @@
 
-package uk.gov.justice.payment.api.json;
+package uk.gov.justice.payment.api.json.external;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "refund_summary",
     "_links"
 })
-public class CreatePaymentResponse {
+public class Result {
 
     @JsonProperty("amount")
     private Integer amount;

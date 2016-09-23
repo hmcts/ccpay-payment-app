@@ -1,5 +1,5 @@
 
-package uk.gov.justice.payment.api.json;
+package uk.gov.justice.payment.api.json.external;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,12 +14,15 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
-    "href"
+    "href",
+    "method"
 })
-public class FirstPage {
+public class Self {
 
     @JsonProperty("href")
     private String href;
+    @JsonProperty("method")
+    private String method;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -41,6 +44,26 @@ public class FirstPage {
     @JsonProperty("href")
     public void setHref(String href) {
         this.href = href;
+    }
+
+    /**
+     * 
+     * @return
+     *     The method
+     */
+    @JsonProperty("method")
+    public String getMethod() {
+        return method;
+    }
+
+    /**
+     * 
+     * @param method
+     *     The method
+     */
+    @JsonProperty("method")
+    public void setMethod(String method) {
+        this.method = method;
     }
 
     @JsonAnyGetter

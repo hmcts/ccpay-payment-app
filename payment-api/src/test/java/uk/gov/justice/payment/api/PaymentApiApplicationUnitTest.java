@@ -6,19 +6,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.json.CreatePaymentRequestInternal;
+import uk.gov.justice.payment.api.json.internal.CreatePaymentRequest;
+
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 @RunWith(SpringRunner.class)
@@ -36,12 +34,12 @@ public class PaymentApiApplicationUnitTest {
     RestTemplate restTemplate = new RestTemplate();
     private static String createPaymentExpected = "{       \"amount\":2000,     \"state\":{          \"status\":\"created\",        \"finished\":false     },     \"description\":\"Fee for test\",     \"reference\":\"REFTEST\",     \"payment_id\":\"j45g29fhr75s134jv7upob95jm\",     \"payment_provider\":\"sandbox\",     \"return_url\":\"https://localhost:8443/payment-result\",     \"created_date\":\"2016-09-21T15:08:48.148Z\",     \"refund_summary\":{          \"status\":\"pending\",        \"amount_available\":2000,        \"amount_submitted\":0     },     \"_links\":{          \"self\":{             \"href\":\"https://publicapi.integration.pymnt.uk/v1/payments/j45g29fhr75s134jv7upob95jm\",           \"method\":\"GET\"        },        \"next_url\":{             \"href\":\"https://www.integration.pymnt.uk/secure/a663dae7-d00e-4c02-885a-71d1e022192c\",           \"method\":\"GET\"        },        \"next_url_post\":{             \"type\":\"application/x-www-form-urlencoded\",           \"params\":{                \"chargeTokenId\":\"a663dae7-d00e-4c02-885a-71d1e022192c\"           },           \"href\":\"https://www.integration.pymnt.uk/secure\",           \"method\":\"POST\"        },        \"events\":{             \"href\":\"https://publicapi.integration.pymnt.uk/v1/payments/j45g29fhr75s134jv7upob95jm/events\",           \"method\":\"GET\"        },        \"refunds\":{             \"href\":\"https://publicapi.integration.pymnt.uk/v1/payments/j45g29fhr75s134jv7upob95jm/refunds\",           \"method\":\"GET\"        },        \"cancel\":{             \"href\":\"https://publicapi.integration.pymnt.uk/v1/payments/j45g29fhr75s134jv7upob95jm/cancel\",           \"method\":\"POST\"        }     },     \"card_brand\":\"\"  }";
     private static String viewPaymentExpected = "{   \"amount\":3650,    \"state\":{         \"status\":\"success\",       \"finished\":true    }     }";
-    private CreatePaymentRequestInternal paymentRequest;
+    private CreatePaymentRequest paymentRequest;
     @Before
     public void setUp() {
         ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"mapper",mapper);
-        paymentRequest = new CreatePaymentRequestInternal();
+        paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
         paymentRequest.setDescription("Test Desc");
         paymentRequest.setPaymentReference("TestRef");

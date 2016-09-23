@@ -10,12 +10,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.json.*;
+import uk.gov.justice.payment.api.json.external.CreatePaymentRequestInternal;
+import uk.gov.justice.payment.api.json.internal.CreatePaymentResponse;
+import uk.gov.justice.payment.api.json.external.ViewPaymentResponse;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
-import java.util.Map;
 
 
 @Controller
@@ -55,7 +55,7 @@ public class PaymentController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity entity = new HttpEntity(paymentRequest, headers);
-        CreatePaymentResponseInternal paymentResponse = restTemplate.exchange(url, HttpMethod.POST ,entity, CreatePaymentResponseInternal.class).getBody();
+        CreatePaymentResponse paymentResponse = restTemplate.exchange(url, HttpMethod.POST ,entity, CreatePaymentResponse.class).getBody();
         System.out.println("next url "+paymentResponse.getLinks().getNextUrl().getHref());
         String paymentId = paymentResponse.getPaymentId();
         System.out.println("payment id "+paymentId);

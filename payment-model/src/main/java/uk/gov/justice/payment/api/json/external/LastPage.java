@@ -1,5 +1,5 @@
 
-package uk.gov.justice.payment.api.json;
+package uk.gov.justice.payment.api.json.external;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "href"
 })
-public class Self_ {
+public class LastPage {
 
     @JsonProperty("href")
     private String href;

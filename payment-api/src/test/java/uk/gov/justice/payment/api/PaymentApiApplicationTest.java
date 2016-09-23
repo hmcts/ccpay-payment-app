@@ -8,8 +8,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.justice.payment.api.json.CreatePaymentRequest;
-import uk.gov.justice.payment.api.json.CreatePaymentRequestInternal;
+import uk.gov.justice.payment.api.json.internal.CreatePaymentRequest;
 
 import static com.jayway.restassured.RestAssured.given;
 
@@ -22,7 +21,7 @@ public class PaymentApiApplicationTest {
     @Test
     public void createPayment() {
         RestAssured.port = 8181;
-        CreatePaymentRequestInternal paymentRequest = new CreatePaymentRequestInternal();
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
         paymentRequest.setDescription("Test Desc");
         paymentRequest.setPaymentReference("TestRef");
@@ -38,7 +37,7 @@ public class PaymentApiApplicationTest {
     @Test
     public void viewPayment() {
         RestAssured.port = 8181;
-        CreatePaymentRequestInternal paymentRequest = new CreatePaymentRequestInternal();
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
         paymentRequest.setDescription("Test Desc");
         paymentRequest.setPaymentReference("TestRef");

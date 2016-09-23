@@ -1,11 +1,9 @@
 
-package uk.gov.justice.payment.api.json;
+package uk.gov.justice.payment.api.json.external;
 
 import com.fasterxml.jackson.annotation.*;
 
 import javax.annotation.Generated;
-import java.util.HashMap;
-import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")

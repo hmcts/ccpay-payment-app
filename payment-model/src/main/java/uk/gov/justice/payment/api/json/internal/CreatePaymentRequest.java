@@ -1,6 +1,6 @@
 
 
-        package uk.gov.justice.payment.api.json;
+        package uk.gov.justice.payment.api.json.internal;
 
         import com.fasterxml.jackson.annotation.*;
 
@@ -17,7 +17,7 @@
                 "description",
                 "return_url"
         })
-        public class CreatePaymentRequestInternal {
+        public class CreatePaymentRequest {
 
             @JsonProperty("amount")
             private Integer amount;

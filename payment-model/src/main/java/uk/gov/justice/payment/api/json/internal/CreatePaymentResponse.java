@@ -1,11 +1,10 @@
 
-package uk.gov.justice.payment.api.json;
+package uk.gov.justice.payment.api.json.internal;
 
 import com.fasterxml.jackson.annotation.*;
+import uk.gov.justice.payment.api.json.external.LinksInternal;
 
 import javax.annotation.Generated;
-import java.util.HashMap;
-import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
@@ -14,7 +13,7 @@ import java.util.Map;
     "payment_id",
         "_links"
 })
-public class CreatePaymentResponseInternal {
+public class CreatePaymentResponse {
 
 
     @JsonProperty("payment_id")

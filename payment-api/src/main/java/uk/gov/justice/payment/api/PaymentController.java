@@ -20,7 +20,9 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.json.*;
+import uk.gov.justice.payment.api.json.external.*;
+import uk.gov.justice.payment.api.json.internal.CreatePaymentRequest;
+import uk.gov.justice.payment.api.json.internal.CreatePaymentResponse;
 
 
 @RestController
@@ -57,11 +59,11 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponseInternal> createPayment( @ApiParam(value = "payment request body") @RequestBody CreatePaymentRequestInternal payload) {
+    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
         try {
             logger.debug("createPaymentRequest : " + getJson(payload));
 
-            CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+            uk.gov.justice.payment.api.json.external.CreatePaymentRequest paymentRequest = new uk.gov.justice.payment.api.json.external.CreatePaymentRequest();
             paymentRequest.setAmount(payload.getAmount());
             paymentRequest.setReference(payload.getPaymentReference());
             paymentRequest.setDescription(payload.getDescription());
@@ -71,23 +73,22 @@ public class PaymentController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
-            HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(paymentRequest, headers);
+            HttpEntity<uk.gov.justice.payment.api.json.external.CreatePaymentRequest> entity = new HttpEntity<uk.gov.justice.payment.api.json.external.CreatePaymentRequest>(paymentRequest, headers);
 
+            ResponseEntity<uk.gov.justice.payment.api.json.external.CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, uk.gov.justice.payment.api.json.external.CreatePaymentResponse.class);
 
-            ResponseEntity<CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, CreatePaymentResponse.class);
-
-
-            CreatePaymentResponseInternal createPaymentResponseInternal = new CreatePaymentResponseInternal();
-            createPaymentResponseInternal.setPaymentId(response.getBody().getPaymentId());
+            CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse();
+            createPaymentResponse.setPaymentId(response.getBody().getPaymentId());
             LinksInternal linksInternal = new LinksInternal();
             linksInternal.setNextUrl(response.getBody().getLinks().getNextUrl());
             linksInternal.setNextUrlPost(response.getBody().getLinks().getNextUrlPost());
-            createPaymentResponseInternal.setLinks(linksInternal);
-            logger.debug("createPaymentResponse : " + getJson(createPaymentResponseInternal));
-            ResponseEntity<CreatePaymentResponseInternal> responseEntity =  new ResponseEntity<CreatePaymentResponseInternal>(createPaymentResponseInternal,
+            createPaymentResponse.setLinks(linksInternal);
+            logger.debug("createPaymentResponse : " + getJson(createPaymentResponse));
+            ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,
                     response.getStatusCode());
             return responseEntity;
         } catch (HttpClientErrorException e) {
+            e.printStackTrace();
             logger.debug("createPaymentResponse : Error " + e.getMessage());
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }

@@ -1,5 +1,5 @@
 
-package uk.gov.justice.payment.api.json;
+package uk.gov.justice.payment.api.json.external;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,63 +14,17 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
-    "type",
-    "params",
     "href",
     "method"
 })
-public class NextUrlPost {
+public class Refunds {
 
-    @JsonProperty("type")
-    private String type;
-    @JsonProperty("params")
-    private Params params;
     @JsonProperty("href")
     private String href;
     @JsonProperty("method")
     private String method;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-
-    /**
-     * 
-     * @return
-     *     The type
-     */
-    @JsonProperty("type")
-    public String getType() {
-        return type;
-    }
-
-    /**
-     * 
-     * @param type
-     *     The type
-     */
-    @JsonProperty("type")
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    /**
-     * 
-     * @return
-     *     The params
-     */
-    @JsonProperty("params")
-    public Params getParams() {
-        return params;
-    }
-
-    /**
-     * 
-     * @param params
-     *     The params
-     */
-    @JsonProperty("params")
-    public void setParams(Params params) {
-        this.params = params;
-    }
 
     /**
      * 

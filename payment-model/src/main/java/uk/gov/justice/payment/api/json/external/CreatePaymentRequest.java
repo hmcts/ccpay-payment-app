@@ -1,6 +1,6 @@
 
 
-        package uk.gov.justice.payment.api.json;
+        package uk.gov.justice.payment.api.json.external;
 
         import java.util.HashMap;
         import java.util.Map;
@@ -127,4 +127,6 @@ public class CreatePaymentRequest {
     public String toString() {
         return super.toString();
     }
+
+
 }
