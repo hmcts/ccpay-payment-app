@@ -89,7 +89,7 @@ public class PaymentController {
             return responseEntity;
         } catch (HttpClientErrorException e) {
             logger.debug("createPaymentResponse : Error " + e.getMessage());
-            return new ResponseEntity(e.getStatusCode());
+            return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
 
@@ -114,7 +114,7 @@ public class PaymentController {
             return response;
         } catch (HttpClientErrorException e) {
             logger.debug("viewPaymentResponse : Error " + e.getMessage());
-            return new ResponseEntity(e.getStatusCode());
+            return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
 
