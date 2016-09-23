@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.CreatePaymentResponse;
+import uk.gov.justice.payment.api.json.CreatePaymentResponseInternal;
 import uk.gov.justice.payment.api.json.ViewPaymentResponse;
 
 import javax.servlet.http.Cookie;
@@ -56,7 +57,7 @@ public class PaymentController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity entity = new HttpEntity(paymentRequest, headers);
-        CreatePaymentResponse paymentResponse = restTemplate.exchange(url, HttpMethod.POST ,entity, CreatePaymentResponse.class).getBody();
+        CreatePaymentResponseInternal paymentResponse = restTemplate.exchange(url, HttpMethod.POST ,entity, CreatePaymentResponseInternal.class).getBody();
         System.out.println("next url "+paymentResponse.getLinks().getNextUrl().getHref());
         String paymentId = paymentResponse.getPaymentId();
         System.out.println("payment id "+paymentId);

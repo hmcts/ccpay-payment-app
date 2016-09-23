@@ -44,6 +44,7 @@ public class PaymentApiApplicationTest {
                 body(getJson(paymentRequest)).
                 when().post("/payments").
                 then().statusCode(201).extract().path("payment_id");
+
         given().contentType("application/json").
                 when().get("/payments/"+paymentId).
                 then().statusCode(200).extract().path("state.status").equals("created");
