@@ -10,10 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.json.CreatePaymentRequest;
-import uk.gov.justice.payment.api.json.CreatePaymentResponse;
-import uk.gov.justice.payment.api.json.CreatePaymentResponseInternal;
-import uk.gov.justice.payment.api.json.ViewPaymentResponse;
+import uk.gov.justice.payment.api.json.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -43,11 +40,12 @@ public class PaymentController {
         System.out.println("amount="+amount);
         amount*=100;
 
-        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+        CreatePaymentRequestInternal paymentRequest = new CreatePaymentRequestInternal();
         paymentRequest.setAmount(amount.intValue());
         paymentRequest.setDescription(description);
-        paymentRequest.setReference(reference);
+        paymentRequest.setPaymentReference(reference);
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
+        paymentRequest.setApplicationReference("TEST_SERVICE");
 
 
 

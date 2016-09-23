@@ -9,6 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.justice.payment.api.json.CreatePaymentRequest;
+import uk.gov.justice.payment.api.json.CreatePaymentRequestInternal;
+
 import static com.jayway.restassured.RestAssured.given;
 
 
@@ -20,10 +22,11 @@ public class PaymentApiApplicationTest {
     @Test
     public void createPayment() {
         RestAssured.port = 8181;
-        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+        CreatePaymentRequestInternal paymentRequest = new CreatePaymentRequestInternal();
         paymentRequest.setAmount(10);
         paymentRequest.setDescription("Test Desc");
-        paymentRequest.setReference("TestRef");
+        paymentRequest.setPaymentReference("TestRef");
+        paymentRequest.setApplicationReference("TEST_SERVICE");
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
         given().contentType("application/json").
                 body(getJson(paymentRequest)).
@@ -35,11 +38,13 @@ public class PaymentApiApplicationTest {
     @Test
     public void viewPayment() {
         RestAssured.port = 8181;
-        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+        CreatePaymentRequestInternal paymentRequest = new CreatePaymentRequestInternal();
         paymentRequest.setAmount(10);
         paymentRequest.setDescription("Test Desc");
-        paymentRequest.setReference("TestRef");
+        paymentRequest.setPaymentReference("TestRef");
+        paymentRequest.setApplicationReference("TEST_SERVICE");
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
+
         String paymentId = given().contentType("application/json").
                 body(getJson(paymentRequest)).
                 when().post("/payments").

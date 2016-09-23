@@ -57,17 +57,26 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponseInternal> createPayment(@ApiParam(value = "service reference") @RequestHeader(value = "serviceReference", required = false) String serviceReference, @ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
+    public ResponseEntity<CreatePaymentResponseInternal> createPayment( @ApiParam(value = "payment request body") @RequestBody CreatePaymentRequestInternal payload) {
         try {
             logger.debug("createPaymentRequest : " + getJson(payload));
+
+            CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+            paymentRequest.setAmount(payload.getAmount());
+            paymentRequest.setReference(payload.getPaymentReference());
+            paymentRequest.setDescription(payload.getDescription());
+            paymentRequest.setReturnUrl(payload.getReturnUrl());
 
             restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
-            HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(payload, headers);
-            //ResponseEntity<CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, CreatePaymentResponse.class);
+            HttpEntity<CreatePaymentRequest> entity = new HttpEntity<CreatePaymentRequest>(paymentRequest, headers);
+
+
             ResponseEntity<CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, CreatePaymentResponse.class);
+
+
             CreatePaymentResponseInternal createPaymentResponseInternal = new CreatePaymentResponseInternal();
             createPaymentResponseInternal.setPaymentId(response.getBody().getPaymentId());
             LinksInternal linksInternal = new LinksInternal();
@@ -92,7 +101,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
-    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "service reference") @RequestHeader(value = "serviceReference", required = false) String serviceReference, @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
+    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
         try {
             RestTemplate restTemplate = new RestTemplate();
             restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
