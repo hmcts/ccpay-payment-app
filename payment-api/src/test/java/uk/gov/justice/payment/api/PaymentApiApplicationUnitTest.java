@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.json.internal.CreatePaymentRequest;
+import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -26,8 +26,10 @@ import static org.mockito.Mockito.mock;
 
 public class PaymentApiApplicationUnitTest {
 
+    public static final int PORT = 8090;
+    public static final String URL = "http://localhost:"+PORT+"/payments";
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(8089);
+    public WireMockRule wireMockRule = new WireMockRule(PORT);
     //PaymentController paymentController = new PaymentController(new RestTemplate());
     PaymentController paymentController = new PaymentController();
     ObjectMapper mapper = new ObjectMapper();
@@ -54,18 +56,18 @@ public class PaymentApiApplicationUnitTest {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/create");
+        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
         assertEquals(paymentController.createPayment(paymentRequest).getStatusCode().value(), 201);
     }
 
     @Test
     public void createPaymentAuthenticationFailure() {
-        stubFor(post(urlPathMatching("/payments/create"))
+        stubFor(post(urlPathMatching("/payments/create_fail"))
                 .willReturn(aResponse()
                         .withStatus(401)
 
                 ));
-        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/create");
+        ReflectionTestUtils.setField(paymentController,"url",URL+"/create_fail");
         assertEquals(paymentController.createPayment(paymentRequest).getStatusCode().value(), 401);
     }
 
@@ -78,7 +80,7 @@ public class PaymentApiApplicationUnitTest {
                         .withBody(viewPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
-        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/view");
+        ReflectionTestUtils.setField(paymentController,"url",URL+"/view");
         assertEquals(paymentController.viewPayment(null).getStatusCode().value(), 200);
    }
 
@@ -96,13 +98,13 @@ public class PaymentApiApplicationUnitTest {
 
     @Test
     public void paymentNotFound() {
-        stubFor(get(urlPathMatching("/payments/view/.*"))
+        stubFor(get(urlPathMatching("/payments/view_not_found/.*"))
                 .willReturn(aResponse()
                         .withStatus(404)
                         .withBody(viewPaymentExpected)
                         .withHeader("Content-Type", "application/json")
                 ));
-        ReflectionTestUtils.setField(paymentController,"url","http://localhost:8089/payments/view");
+        ReflectionTestUtils.setField(paymentController,"url",URL+"/view_not_found");
         assertEquals(paymentController.viewPayment(null).getStatusCode().value(), 404);
     }
 }

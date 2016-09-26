@@ -20,7 +20,7 @@
         "description",
         "return_url"
 })
-public class CreatePaymentRequest {
+public class GDSCreatePaymentRequest {
 
     @JsonProperty("amount")
     private Integer amount;

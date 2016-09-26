@@ -14,18 +14,18 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
-    "amount",
-    "state",
-    "description",
-    "reference",
-    "payment_id",
-    "payment_provider",
-    "return_url",
-    "created_date",
-    "refund_summary",
-    "_links"
+        "amount",
+        "state",
+        "description",
+        "reference",
+        "payment_id",
+        "payment_provider",
+        "return_url",
+        "created_date",
+        "refund_summary",
+        "_links"
 })
-public class CreatePaymentResponse {
+public class GDSViewPaymentResponse {
 
     @JsonProperty("amount")
     private Integer amount;
@@ -51,7 +51,7 @@ public class CreatePaymentResponse {
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     /**
-     * 
+     *
      * @return
      *     The amount
      */
@@ -61,7 +61,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param amount
      *     The amount
      */
@@ -71,7 +71,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The state
      */
@@ -81,7 +81,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param state
      *     The state
      */
@@ -91,7 +91,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The description
      */
@@ -101,7 +101,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param description
      *     The description
      */
@@ -111,7 +111,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The reference
      */
@@ -121,7 +121,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param reference
      *     The reference
      */
@@ -131,7 +131,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The paymentId
      */
@@ -141,7 +141,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param paymentId
      *     The payment_id
      */
@@ -151,7 +151,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The paymentProvider
      */
@@ -161,7 +161,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param paymentProvider
      *     The payment_provider
      */
@@ -171,7 +171,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The returnUrl
      */
@@ -181,7 +181,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param returnUrl
      *     The return_url
      */
@@ -191,7 +191,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The createdDate
      */
@@ -201,7 +201,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param createdDate
      *     The created_date
      */
@@ -211,7 +211,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The refundSummary
      */
@@ -221,7 +221,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param refundSummary
      *     The refund_summary
      */
@@ -231,7 +231,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @return
      *     The links
      */
@@ -241,7 +241,7 @@ public class CreatePaymentResponse {
     }
 
     /**
-     * 
+     *
      * @param links
      *     The _links
      */

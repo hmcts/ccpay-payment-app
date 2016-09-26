@@ -27,7 +27,7 @@ public class PaymentObjectsUnitTest {
 
         File file = new File(classLoader.getResource("createPaymentResponse.json").getFile());
         ObjectMapper mapper = new ObjectMapper();
-        CreatePaymentResponse obj = mapper.readValue(file, CreatePaymentResponse.class);
+        GDSCreatePaymentResponse obj = mapper.readValue(file, GDSCreatePaymentResponse.class);
         assertEquals(obj.getReference(), "TestRef");
     }
 
@@ -35,7 +35,7 @@ public class PaymentObjectsUnitTest {
     public void createPaymentRequestJsonToObjectMapping() throws Exception {
         File file = new File(classLoader.getResource("createPaymentRequest.json").getFile());
         ObjectMapper mapper = new ObjectMapper();
-        CreatePaymentRequest obj = mapper.readValue(file, CreatePaymentRequest.class);
+        GDSCreatePaymentRequest obj = mapper.readValue(file, GDSCreatePaymentRequest.class);
         assertEquals(obj.getReference(), "12345");
     }
 
@@ -43,7 +43,7 @@ public class PaymentObjectsUnitTest {
     public void viewPaymentSuccessJsonToObjectMapping() throws Exception {
         File file = new File(classLoader.getResource("viewPaymentResponse.json").getFile());
         ObjectMapper mapper = new ObjectMapper();
-        ViewPaymentResponse obj = mapper.readValue(file, ViewPaymentResponse.class);
+        GDSViewPaymentResponse obj = mapper.readValue(file, GDSViewPaymentResponse.class);
         assertEquals(obj.getPaymentId(), "nvbblu5hp5r4d37mjg98687mui");
     }
 }

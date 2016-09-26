@@ -10,9 +10,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.json.external.CreatePaymentRequestInternal;
-import uk.gov.justice.payment.api.json.internal.CreatePaymentResponse;
-import uk.gov.justice.payment.api.json.external.ViewPaymentResponse;
+import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
+import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
+import uk.gov.justice.payment.api.json.external.GDSViewPaymentResponse;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -40,7 +40,7 @@ public class PaymentController {
         System.out.println("amount="+amount);
         amount*=100;
 
-        CreatePaymentRequestInternal paymentRequest = new CreatePaymentRequestInternal();
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(amount.intValue());
         paymentRequest.setDescription(description);
         paymentRequest.setPaymentReference(reference);
@@ -79,7 +79,7 @@ public class PaymentController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity entity = new HttpEntity(headers);
-        ViewPaymentResponse response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET , entity, ViewPaymentResponse.class).getBody();
+        GDSViewPaymentResponse response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET , entity, GDSViewPaymentResponse.class).getBody();
         model.addAttribute("paymentStatus",response.getState().getStatus());
         model.addAttribute("isFinished",response.getState().getFinished());
         model.addAttribute("paymentId",paymentId);

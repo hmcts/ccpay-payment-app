@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.justice.payment.api.json.internal.CreatePaymentRequest;
+import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 
 import static com.jayway.restassured.RestAssured.given;
 
@@ -16,7 +16,7 @@ import static com.jayway.restassured.RestAssured.given;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Configuration
-public class PaymentApiApplicationTest {
+public class PaymentApiApplicationIT {
 
     @Test
     public void createPayment() {
@@ -54,6 +54,9 @@ public class PaymentApiApplicationTest {
                 then().statusCode(200).extract().path("state.status").equals("created");
 
     }
+
+
+
 
 
 

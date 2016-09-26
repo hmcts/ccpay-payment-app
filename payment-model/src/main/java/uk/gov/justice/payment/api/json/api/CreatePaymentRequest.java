@@ -1,6 +1,6 @@
 
 
-        package uk.gov.justice.payment.api.json.internal;
+        package uk.gov.justice.payment.api.json.api;
 
         import com.fasterxml.jackson.annotation.*;
 

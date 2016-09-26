@@ -4,9 +4,10 @@
 
 <body class="js-enabled">
 <div th:include="header :: header"/>
-<main id="content" class="content-wrapper charge-new">
+<main id="content" role="main" class="content-wrapper">
 
     <h1 class="form-title">Payment summary</h1>
+
 
 <div th:utext="'Payment Id: '+${paymentId}" class="form-label-bold"/>
 <div th:utext="'Payment Status: '+${paymentStatus}" class="form-label-bold"/>

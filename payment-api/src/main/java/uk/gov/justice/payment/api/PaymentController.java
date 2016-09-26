@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.external.*;
-import uk.gov.justice.payment.api.json.internal.CreatePaymentRequest;
-import uk.gov.justice.payment.api.json.internal.CreatePaymentResponse;
+import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
+import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
 
 
 @RestController
@@ -63,7 +63,7 @@ public class PaymentController {
         try {
             logger.debug("createPaymentRequest : " + getJson(payload));
 
-            uk.gov.justice.payment.api.json.external.CreatePaymentRequest paymentRequest = new uk.gov.justice.payment.api.json.external.CreatePaymentRequest();
+            GDSCreatePaymentRequest paymentRequest = new GDSCreatePaymentRequest();
             paymentRequest.setAmount(payload.getAmount());
             paymentRequest.setReference(payload.getPaymentReference());
             paymentRequest.setDescription(payload.getDescription());
@@ -73,9 +73,10 @@ public class PaymentController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
-            HttpEntity<uk.gov.justice.payment.api.json.external.CreatePaymentRequest> entity = new HttpEntity<uk.gov.justice.payment.api.json.external.CreatePaymentRequest>(paymentRequest, headers);
+            HttpEntity<GDSCreatePaymentRequest> entity = new HttpEntity<GDSCreatePaymentRequest>(paymentRequest, headers);
 
-            ResponseEntity<uk.gov.justice.payment.api.json.external.CreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, uk.gov.justice.payment.api.json.external.CreatePaymentResponse.class);
+            logger.debug("GDS : createPaymentRequest : " + getJson(paymentRequest));
+            ResponseEntity<GDSCreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, GDSCreatePaymentResponse.class);
 
             CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse();
             createPaymentResponse.setPaymentId(response.getBody().getPaymentId());
@@ -83,7 +84,8 @@ public class PaymentController {
             linksInternal.setNextUrl(response.getBody().getLinks().getNextUrl());
             linksInternal.setNextUrlPost(response.getBody().getLinks().getNextUrlPost());
             createPaymentResponse.setLinks(linksInternal);
-            logger.debug("createPaymentResponse : " + getJson(createPaymentResponse));
+
+            logger.debug("GDS : createPaymentResponse : " + getJson(createPaymentResponse));
             ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,
                     response.getStatusCode());
             return responseEntity;
@@ -102,7 +104,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
-    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
+    public ResponseEntity<GDSViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
         try {
             RestTemplate restTemplate = new RestTemplate();
             restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
@@ -110,8 +112,8 @@ public class PaymentController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
             HttpEntity entity = new HttpEntity(headers);
-            ResponseEntity<ViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, ViewPaymentResponse.class);
-            logger.debug("viewPaymentResponse : " + getJson(response));
+            ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, GDSViewPaymentResponse.class);
+            logger.debug("GDS : viewPaymentResponse : " + getJson(response));
             return response;
         } catch (HttpClientErrorException e) {
             logger.debug("viewPaymentResponse : Error " + e.getMessage());
