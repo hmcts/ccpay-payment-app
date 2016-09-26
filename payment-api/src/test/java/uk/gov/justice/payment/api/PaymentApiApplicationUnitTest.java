@@ -26,7 +26,7 @@ import static org.mockito.Mockito.mock;
 
 public class PaymentApiApplicationUnitTest {
 
-    public static final int PORT = 8090;
+    public static final int PORT = 8091;
     public static final String URL = "http://localhost:"+PORT+"/payments";
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(PORT);
@@ -107,4 +107,18 @@ public class PaymentApiApplicationUnitTest {
         ReflectionTestUtils.setField(paymentController,"url",URL+"/view_not_found");
         assertEquals(paymentController.viewPayment(null).getStatusCode().value(), 404);
     }
+
+
+    @Test
+    public void cancelPayment() {
+        stubFor(post(urlPathMatching("/payments/cancel/.*"))
+                .willReturn(aResponse()
+                        .withStatus(204)
+                        .withBody(viewPaymentExpected)
+                        .withHeader("Content-Type", "application/json")
+                ));
+        ReflectionTestUtils.setField(paymentController,"url",URL+"/cancel");
+        assertEquals(paymentController.cancelPayment(null).getStatusCode().value(), 204);
+    }
+
 }

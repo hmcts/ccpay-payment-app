@@ -56,6 +56,26 @@ public class PaymentApiApplicationIT {
     }
 
 
+    @Test
+    public void cancelPayment() {
+        RestAssured.port = 8181;
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+        paymentRequest.setAmount(10);
+        paymentRequest.setDescription("Test Desc");
+        paymentRequest.setPaymentReference("TestRef");
+        paymentRequest.setApplicationReference("TEST_SERVICE");
+        paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
+
+        String paymentId = given().contentType("application/json").
+                body(getJson(paymentRequest)).
+                when().post("/payments").
+                then().statusCode(201).extract().path("payment_id");
+        System.out.print("paymentId=="+paymentId);
+        given().contentType("application/json").
+                when().post("/payments/"+paymentId+"/cancel").
+                then().statusCode(204);
+
+    }
 
 
 

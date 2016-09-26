@@ -121,6 +121,30 @@ public class PaymentController {
         }
     }
 
+
+    @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Payment cancel request succeeded"),
+    })
+    @RequestMapping(value="/payments/{paymentId}/cancel", method=RequestMethod.POST)
+    public ResponseEntity<String> cancelPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
+        try {
+            logger.debug("GDS : cancelPayment : paymentId=" + paymentId);
+            RestTemplate restTemplate = new RestTemplate();
+            restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
+            HttpEntity entity = new HttpEntity(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url+"/"+paymentId+"/cancel", HttpMethod.POST ,entity, String.class);
+            logger.debug("GDS : cancelPaymentResponse : " + response);
+            return response;
+        } catch (HttpClientErrorException e) {
+            logger.debug("viewPaymentResponse : Error " + e.getMessage());
+            return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
+        }
+    }
+
     private String getJson(Object obj) {
         try {
             return mapper.writeValueAsString(obj);
