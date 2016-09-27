@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.external.*;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
+import uk.gov.justice.payment.api.services.PaymentService;
 
 
 @RestController
@@ -41,6 +42,8 @@ public class PaymentController {
     @Autowired
     ObjectMapper mapper;
 
+    @Autowired
+    PaymentService paymentService;
 
     @Value("${gov.pay.url}")
     private String url;
@@ -84,7 +87,7 @@ public class PaymentController {
             linksInternal.setNextUrl(response.getBody().getLinks().getNextUrl());
             linksInternal.setNextUrlPost(response.getBody().getLinks().getNextUrlPost());
             createPaymentResponse.setLinks(linksInternal);
-
+            paymentService.storePayment(payload,createPaymentResponse);
             logger.debug("GDS : createPaymentResponse : " + getJson(createPaymentResponse));
             ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,
                     response.getStatusCode());
