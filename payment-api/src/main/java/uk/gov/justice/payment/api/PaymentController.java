@@ -20,6 +20,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.justice.payment.api.json.api.ViewPaymentResponse;
 import uk.gov.justice.payment.api.json.external.*;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
@@ -107,7 +108,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
-    public ResponseEntity<GDSViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
+    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
         try {
             RestTemplate restTemplate = new RestTemplate();
             restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
@@ -117,7 +118,9 @@ public class PaymentController {
             HttpEntity entity = new HttpEntity(headers);
             ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, GDSViewPaymentResponse.class);
             logger.debug("GDS : viewPaymentResponse : " + getJson(response));
-            return response;
+            ViewPaymentResponse viewPaymentResponse = new ViewPaymentResponse(response.getBody());
+            ResponseEntity<ViewPaymentResponse> responseEntity =  new ResponseEntity<ViewPaymentResponse>(viewPaymentResponse , response.getStatusCode());
+            return responseEntity;
         } catch (HttpClientErrorException e) {
             logger.debug("viewPaymentResponse : Error " + e.getMessage());
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());

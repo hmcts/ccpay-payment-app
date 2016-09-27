@@ -12,6 +12,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
+import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
+import uk.gov.justice.payment.api.services.PaymentService;
 
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -26,7 +28,7 @@ import static org.mockito.Mockito.mock;
 
 public class PaymentApiApplicationUnitTest {
 
-    public static final int PORT = 8091;
+    public static final int PORT = 9092;
     public static final String URL = "http://localhost:"+PORT+"/payments";
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(PORT);
@@ -57,6 +59,9 @@ public class PaymentApiApplicationUnitTest {
                 ));
 
         ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "paymentService", new PaymentService() {
+            public void storePayment(CreatePaymentRequest request, CreatePaymentResponse response) {}
+        });
         assertEquals(paymentController.createPayment(paymentRequest).getStatusCode().value(), 201);
     }
 

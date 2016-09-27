@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
+import uk.gov.justice.payment.api.json.api.ViewPaymentResponse;
 import uk.gov.justice.payment.api.json.external.GDSViewPaymentResponse;
 
 import javax.servlet.http.Cookie;
@@ -79,7 +80,7 @@ public class PaymentController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity entity = new HttpEntity(headers);
-        GDSViewPaymentResponse response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET , entity, GDSViewPaymentResponse.class).getBody();
+        ViewPaymentResponse response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET , entity, ViewPaymentResponse.class).getBody();
         model.addAttribute("paymentStatus",response.getState().getStatus());
         model.addAttribute("isFinished",response.getState().getFinished());
         model.addAttribute("paymentId",paymentId);
