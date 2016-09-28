@@ -7,10 +7,7 @@ package uk.gov.justice.payment.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +25,7 @@ import uk.gov.justice.payment.api.services.PaymentService;
 
 
 @RestController
+@Api(value = "/payment", description = "Payment REST API")
 public class PaymentController {
 
     private static final Logger logger = LoggerFactory

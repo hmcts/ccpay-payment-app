@@ -14,19 +14,27 @@
                 "amount",
                 "application_reference",
                 "service_reference",
+                "payment_reference",
                 "description",
                 "return_url"
         })
         public class CreatePaymentRequest {
 
-            @JsonProperty("amount")
+            @JsonProperty(value = "amount",required=true)
             private Integer amount;
-            @JsonProperty("payment_reference")
-            private String paymentReference;
+
             @JsonProperty("application_reference")
             private String applicationReference;
+
+            @JsonProperty("service_reference")
+            private String serviceReference;
+
+            @JsonProperty("payment_reference")
+            private String paymentReference;
+
             @JsonProperty("description")
             private String description;
+
             @JsonProperty("return_url")
             private String returnUrl;
             @JsonIgnore
@@ -37,7 +45,7 @@
              * @return
              * The amount
              */
-            @JsonProperty("amount")
+            @JsonProperty(value = "amount",required=true)
             public Integer getAmount() {
                 return amount;
             }
@@ -47,7 +55,7 @@
              * @param amount
              * The amount
              */
-            @JsonProperty("amount")
+            @JsonProperty(value = "amount",required=true)
             public void setAmount(Integer amount) {
                 this.amount = amount;
             }
@@ -91,6 +99,26 @@
             @JsonProperty("application_reference")
             public void setApplicationReference(String applicationReference) {
                 this.applicationReference = applicationReference;
+            }
+
+            /**
+             *
+             * @return
+             * The serviceReference
+             */
+            @JsonProperty("service_reference")
+            public String getServiceReference() {
+                return serviceReference;
+            }
+
+            /**
+             *
+             * @param serviceReference
+             * The serviceon_reference
+             */
+            @JsonProperty("service_reference")
+            public void setServicenReference(String serviceReference) {
+                this.serviceReference = serviceReference;
             }
 
             /**

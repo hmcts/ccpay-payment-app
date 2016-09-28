@@ -22,6 +22,8 @@ public class PaymentDetails {
 
     String applicationReference;
 
+    String serviceReference;
+
     String description;
 
     String returnUrl;
@@ -32,6 +34,7 @@ public class PaymentDetails {
         this.amount = request.getAmount();
         this.paymentReference=request.getPaymentReference();
         this.applicationReference=request.getApplicationReference();
+        this.serviceReference=request.getServiceReference();
         this.description=request.getDescription();
         this.returnUrl=request.getReturnUrl();
     }
