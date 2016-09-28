@@ -61,7 +61,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody CreatePaymentRequest payload) {
+    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload) {
         try {
             logger.debug("createPaymentRequest : " + getJson(payload));
 

@@ -48,7 +48,7 @@ public class PaymentController {
         paymentRequest.setPaymentReference(paymentReference);
         paymentRequest.setApplicationReference(applicationReference);
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
-        paymentRequest.setServicenReference("TEST_SERVICE");
+        paymentRequest.setServiceId("TEST_SERVICE");
 
 
 
