@@ -19,8 +19,6 @@ import java.util.Map;
         "description",
         "reference",
         "payment_id",
-        "payment_provider",
-        "return_url",
         "created_date"
 
 })
@@ -36,10 +34,6 @@ public class ViewPaymentResponse {
     private String reference;
     @JsonProperty("payment_id")
     private String paymentId;
-    @JsonProperty("payment_provider")
-    private String paymentProvider;
-    @JsonProperty("return_url")
-    private String returnUrl;
     @JsonProperty("created_date")
     private String createdDate;
 
@@ -51,8 +45,6 @@ public class ViewPaymentResponse {
         this.description=gdsViewPaymentResponse.getDescription();
         this.reference=gdsViewPaymentResponse.getReference();
         this.paymentId=gdsViewPaymentResponse.getPaymentId();
-        this.paymentProvider=gdsViewPaymentResponse.getPaymentProvider();
-        this.returnUrl=gdsViewPaymentResponse.getReturnUrl();
         this.createdDate=gdsViewPaymentResponse.getCreatedDate();
     }
 
@@ -159,45 +151,6 @@ public class ViewPaymentResponse {
         this.paymentId = paymentId;
     }
 
-    /**
-     *
-     * @return
-     *     The paymentProvider
-     */
-    @JsonProperty("payment_provider")
-    public String getPaymentProvider() {
-        return paymentProvider;
-    }
-
-    /**
-     *
-     * @param paymentProvider
-     *     The payment_provider
-     */
-    @JsonProperty("payment_provider")
-    public void setPaymentProvider(String paymentProvider) {
-        this.paymentProvider = paymentProvider;
-    }
-
-    /**
-     *
-     * @return
-     *     The returnUrl
-     */
-    @JsonProperty("return_url")
-    public String getReturnUrl() {
-        return returnUrl;
-    }
-
-    /**
-     *
-     * @param returnUrl
-     *     The return_url
-     */
-    @JsonProperty("return_url")
-    public void setReturnUrl(String returnUrl) {
-        this.returnUrl = returnUrl;
-    }
 
     /**
      *

@@ -86,7 +86,7 @@ public class PaymentController {
             createPaymentResponse.setPaymentId(response.getBody().getPaymentId());
             LinksInternal linksInternal = new LinksInternal();
             linksInternal.setNextUrl(response.getBody().getLinks().getNextUrl());
-            linksInternal.setNextUrlPost(response.getBody().getLinks().getNextUrlPost());
+            //linksInternal.setNextUrlPost(response.getBody().getLinks().getNextUrlPost());
             createPaymentResponse.setLinks(linksInternal);
             paymentService.storePayment(payload,createPaymentResponse);
             logger.debug("GDS : createPaymentResponse : " + getJson(createPaymentResponse));
