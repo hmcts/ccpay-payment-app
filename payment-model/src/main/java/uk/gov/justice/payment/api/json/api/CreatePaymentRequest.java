@@ -20,7 +20,7 @@
         })
         public class CreatePaymentRequest {
 
-            @JsonProperty(value = "amount",required=true)
+            @JsonProperty(value = "amount",required = true)
             private Integer amount;
 
             @JsonProperty("application_reference")
@@ -45,7 +45,7 @@
              * @return
              * The amount
              */
-            @JsonProperty(value = "amount",required=true)
+            @JsonProperty(value = "amount",required = true)
             public Integer getAmount() {
                 return amount;
             }
@@ -55,7 +55,7 @@
              * @param amount
              * The amount
              */
-            @JsonProperty(value = "amount",required=true)
+            @JsonProperty(value = "amount",required = true)
             public void setAmount(Integer amount) {
                 this.amount = amount;
             }

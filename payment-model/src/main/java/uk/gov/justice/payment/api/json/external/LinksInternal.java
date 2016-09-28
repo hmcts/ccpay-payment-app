@@ -8,15 +8,16 @@ import javax.annotation.Generated;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
-        "next_url"
+        "next_url",
+        "cancel_url"
 })
 public class LinksInternal {
 
 
     @JsonProperty("next_url")
     private NextUrl nextUrl;
-//    @JsonProperty("next_url_post")
-//    private NextUrlPost nextUrlPost;
+    @JsonProperty("cancel_url")
+    private Cancel cancelUrl;
 
 
     /**
@@ -39,25 +40,25 @@ public class LinksInternal {
         this.nextUrl = nextUrl;
     }
 
-//    /**
-//     *
-//     * @return
-//     *     The nextUrlPost
-//     */
-//    @JsonProperty("next_url_post")
-//    public NextUrlPost getNextUrlPost() {
-//        return nextUrlPost;
-//    }
-//
-//    /**
-//     *
-//     * @param nextUrlPost
-//     *     The next_url_post
-//     */
-//    @JsonProperty("next_url_post")
-//    public void setNextUrlPost(NextUrlPost nextUrlPost) {
-//        this.nextUrlPost = nextUrlPost;
-//    }
+    /**
+     *
+     * @return
+     *     The cancelUrlPost
+     */
+    @JsonProperty("cancel_url")
+    public Cancel getCancelUrl() {
+        return cancelUrl;
+    }
+
+    /**
+     *
+     * @param cancelUrl
+     *     The cancel_url
+     */
+    @JsonProperty("cancel_url")
+    public void setCancelUrl(Cancel cancelUrl) {
+        this.cancelUrl = cancelUrl;
+    }
 
 
 

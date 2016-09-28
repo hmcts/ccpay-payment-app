@@ -23,6 +23,9 @@ import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
 import uk.gov.justice.payment.api.services.PaymentService;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 
 @RestController
 @Api(value = "/payment", description = "Payment REST API")
@@ -61,7 +64,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload) {
+    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload, HttpServletRequest httpServletRequest) {
         try {
             logger.debug("createPaymentRequest : " + getJson(payload));
 
@@ -80,11 +83,17 @@ public class PaymentController {
             logger.debug("GDS : createPaymentRequest : " + getJson(paymentRequest));
             ResponseEntity<GDSCreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, GDSCreatePaymentResponse.class);
 
+            String url = httpServletRequest.getRequestURL().toString();
+            logger.debug("url="+url);
+
             CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse();
             createPaymentResponse.setPaymentId(response.getBody().getPaymentId());
             LinksInternal linksInternal = new LinksInternal();
             linksInternal.setNextUrl(response.getBody().getLinks().getNextUrl());
-            //linksInternal.setNextUrlPost(response.getBody().getLinks().getNextUrlPost());
+            Cancel cancel = new Cancel();
+            cancel.setHref(url+"/"+response.getBody().getPaymentId()+"/cancel");
+            cancel.setMethod(HttpMethod.POST.toString());
+            linksInternal.setCancelUrl(cancel);
             createPaymentResponse.setLinks(linksInternal);
             paymentService.storePayment(payload,createPaymentResponse);
             logger.debug("GDS : createPaymentResponse : " + getJson(createPaymentResponse));

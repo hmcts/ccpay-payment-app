@@ -52,5 +52,11 @@
 		<appender-ref ref="FILE-AUDIT" />
 		<appender-ref ref="FILE-JSON" />
 	</root>
-
+	<!--
+	<logger name="org.springframework" level="debug"
+			additivity="false">
+		<appender-ref ref="FILE-AUDIT" />
+		<appender-ref ref="FILE-JSON" />
+	</logger>
+	-->
 </configuration>
