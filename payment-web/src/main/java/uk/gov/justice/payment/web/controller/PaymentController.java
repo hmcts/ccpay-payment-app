@@ -35,7 +35,8 @@ public class PaymentController {
     @RequestMapping( value="/payment-intiate" , method = RequestMethod.POST )
     String intiatePayment(@RequestParam("amount") Double amount,
                           @RequestParam("description") String description,
-                          @RequestParam("reference") String reference,
+                          @RequestParam("applicationReference") String applicationReference,
+                          @RequestParam("paymentReference") String paymentReference,
                           HttpServletResponse httpServletResponse,
                           Model model) {
         System.out.println("amount="+amount);
@@ -44,9 +45,10 @@ public class PaymentController {
         CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(amount.intValue());
         paymentRequest.setDescription(description);
-        paymentRequest.setPaymentReference(reference);
+        paymentRequest.setPaymentReference(paymentReference);
+        paymentRequest.setApplicationReference(applicationReference);
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
-        paymentRequest.setApplicationReference("TEST_SERVICE");
+        paymentRequest.setServicenReference("TEST_SERVICE");
 
 
 
