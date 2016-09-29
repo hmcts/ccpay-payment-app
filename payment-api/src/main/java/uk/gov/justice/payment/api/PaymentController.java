@@ -60,7 +60,7 @@ public class PaymentController {
             @ApiResponse(code = 201, message = "Payment has been created"),
             @ApiResponse(code = 400, message = "The server cannot process the request due to a client error, eg missing details in the request or a failed payment cancellation"),
             @ApiResponse(code = 401, message = "Required authentication has failed or not been provided"),
-            @ApiResponse(code = 422, message = "Invalid attribute value: description. Must be less than or equal to 255 characters length"),
+            @ApiResponse(code = 422, message = "Invalid or missing attribute"),
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
@@ -91,18 +91,14 @@ public class PaymentController {
                     response.getStatusCode());
             return responseEntity;
         } catch (HttpClientErrorException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             logger.debug("createPaymentResponse : Error " + e.getMessage());
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
-    @PostConstruct
-    private void init() {
-        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
-    }
+
+
+
 
     @ApiOperation(value = "Get payment details by id", notes = "Get payment details for supplied payment id")
     @ApiResponses(value = {
@@ -152,6 +148,16 @@ public class PaymentController {
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
+
+
+    @PostConstruct
+    private void init() {
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+        headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
+    }
+
 
     private String getJson(Object obj) {
         try {
