@@ -69,11 +69,9 @@ public class PaymentController {
                                                                HttpServletRequest httpServletRequest) {
         try {
             logger.debug("createPaymentRequest : " + getJson(payload));
-
             if(!payload.isValid()) {
                 return new ResponseEntity(payload.getValidationMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
             }
-
             GDSCreatePaymentRequest paymentRequest = new GDSCreatePaymentRequest(payload);
             HttpEntity<GDSCreatePaymentRequest> entity = new HttpEntity<GDSCreatePaymentRequest>(paymentRequest, headers);
             logger.debug("GDS : createPaymentRequest : " + getJson(paymentRequest));
@@ -103,10 +101,7 @@ public class PaymentController {
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
     public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
 
-
         try {
-
-
             HttpEntity entity = new HttpEntity(headers);
             ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, GDSViewPaymentResponse.class);
             logger.debug("GDS : viewPaymentResponse : " + getJson(response));
@@ -127,11 +122,8 @@ public class PaymentController {
     @RequestMapping(value="/payments/{paymentId}/cancel", method=RequestMethod.POST)
     public ResponseEntity<String> cancelPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
 
-
         try {
             logger.debug("GDS : cancelPayment : paymentId=" + paymentId);
-
-
             HttpEntity entity = new HttpEntity(headers);
             ResponseEntity<String> response = restTemplate.exchange(url+"/"+paymentId+"/cancel", HttpMethod.POST ,entity, String.class);
             logger.debug("GDS : cancelPaymentResponse : " + response);
