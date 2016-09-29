@@ -67,7 +67,6 @@ public class PaymentApiApplicationIT {
                 body(getJson(paymentRequest)).
                 when().post("/payments").
                 then().statusCode(201).extract().path("payment_id");
-        System.out.print("paymentId==" + paymentId);
         given().contentType("application/json").
                 when().post("/payments/" + paymentId + "/cancel").
                 then().statusCode(204);
