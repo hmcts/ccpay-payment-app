@@ -17,15 +17,16 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.json.api.ViewPaymentResponse;
-import uk.gov.justice.payment.api.json.external.*;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
+import uk.gov.justice.payment.api.json.api.ViewPaymentResponse;
+import uk.gov.justice.payment.api.json.external.GDSCreatePaymentRequest;
+import uk.gov.justice.payment.api.json.external.GDSCreatePaymentResponse;
+import uk.gov.justice.payment.api.json.external.GDSViewPaymentResponse;
 import uk.gov.justice.payment.api.services.PaymentService;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 
 @RestController

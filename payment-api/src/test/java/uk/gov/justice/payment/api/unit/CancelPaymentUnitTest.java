@@ -15,8 +15,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.PaymentController;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
-import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
-import uk.gov.justice.payment.api.services.PaymentService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;

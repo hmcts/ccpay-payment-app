@@ -1,7 +1,6 @@
 package uk.gov.justice.payment.api.repository;
 
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.NoRepositoryBean;
 import uk.gov.justice.payment.api.domain.PaymentDetails;
 
 

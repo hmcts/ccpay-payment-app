@@ -7,7 +7,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
@@ -16,19 +15,17 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.PaymentController;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
-import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
 import uk.gov.justice.payment.api.services.PaymentService;
 
-import static org.mockito.Mockito.*;
 import javax.servlet.http.HttpServletRequest;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 
 @RunWith(SpringRunner.class)
