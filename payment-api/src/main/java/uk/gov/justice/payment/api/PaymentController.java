@@ -75,24 +75,16 @@ public class PaymentController {
             }
 
             GDSCreatePaymentRequest paymentRequest = new GDSCreatePaymentRequest(payload);
-
             HttpEntity<GDSCreatePaymentRequest> entity = new HttpEntity<GDSCreatePaymentRequest>(paymentRequest, headers);
-
             logger.debug("GDS : createPaymentRequest : " + getJson(paymentRequest));
             ResponseEntity<GDSCreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, GDSCreatePaymentResponse.class);
-
             String url = httpServletRequest.getRequestURL().toString();
-            logger.debug("url="+url);
-
             CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse(response.getBody(),url);
-
             paymentService.storePayment(payload,createPaymentResponse);
             logger.debug("GDS : createPaymentResponse : " + getJson(createPaymentResponse));
-            ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,
-                    response.getStatusCode());
+            ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,response.getStatusCode());
             return responseEntity;
         } catch (HttpClientErrorException e) {
-            //e.printStackTrace();
             logger.debug("createPaymentResponse : Error " + e.getMessage());
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
