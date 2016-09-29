@@ -11,8 +11,9 @@
         import com.fasterxml.jackson.annotation.JsonInclude;
         import com.fasterxml.jackson.annotation.JsonProperty;
         import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+        import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+        @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
         "amount",
@@ -32,6 +33,15 @@ public class GDSCreatePaymentRequest {
     private String returnUrl;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+
+    public GDSCreatePaymentRequest(){}
+
+    public GDSCreatePaymentRequest(CreatePaymentRequest request) {
+        this.setAmount(request.getAmount());
+        this.setReference(request.getPaymentReference());
+        this.setDescription(request.getDescription());
+        this.setReturnUrl(request.getReturnUrl());
+    }
 
     /**
      *

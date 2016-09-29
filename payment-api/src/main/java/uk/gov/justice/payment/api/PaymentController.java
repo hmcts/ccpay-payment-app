@@ -23,6 +23,7 @@ import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
 import uk.gov.justice.payment.api.services.PaymentService;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,17 +43,16 @@ public class PaymentController {
 
 
     @Autowired
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @Autowired
-    PaymentService paymentService;
+    private PaymentService paymentService;
 
     @Value("${gov.pay.url}")
     private String url;
 
-    private String BEARER = "Bearer ";;
-
-
+    private String BEARER = "Bearer ";
+    private HttpHeaders headers;
 
     @ApiOperation(value = "Create payment", notes = "Create payment")
     @ApiResponses(value = {
@@ -64,20 +64,17 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method=RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload,
+                                                               HttpServletRequest httpServletRequest) {
         try {
             logger.debug("createPaymentRequest : " + getJson(payload));
 
-            GDSCreatePaymentRequest paymentRequest = new GDSCreatePaymentRequest();
-            paymentRequest.setAmount(payload.getAmount());
-            paymentRequest.setReference(payload.getPaymentReference());
-            paymentRequest.setDescription(payload.getDescription());
-            paymentRequest.setReturnUrl(payload.getReturnUrl());
+            if(!payload.isValid()) {
+                return new ResponseEntity(payload.getValidationMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+            }
 
-            restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
+            GDSCreatePaymentRequest paymentRequest = new GDSCreatePaymentRequest(payload);
+
             HttpEntity<GDSCreatePaymentRequest> entity = new HttpEntity<GDSCreatePaymentRequest>(paymentRequest, headers);
 
             logger.debug("GDS : createPaymentRequest : " + getJson(paymentRequest));
@@ -86,15 +83,8 @@ public class PaymentController {
             String url = httpServletRequest.getRequestURL().toString();
             logger.debug("url="+url);
 
-            CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse();
-            createPaymentResponse.setPaymentId(response.getBody().getPaymentId());
-            LinksInternal linksInternal = new LinksInternal();
-            linksInternal.setNextUrl(response.getBody().getLinks().getNextUrl());
-            Cancel cancel = new Cancel();
-            cancel.setHref(url+"/"+response.getBody().getPaymentId()+"/cancel");
-            cancel.setMethod(HttpMethod.POST.toString());
-            linksInternal.setCancelUrl(cancel);
-            createPaymentResponse.setLinks(linksInternal);
+            CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse(response.getBody(),url);
+
             paymentService.storePayment(payload,createPaymentResponse);
             logger.debug("GDS : createPaymentResponse : " + getJson(createPaymentResponse));
             ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,
@@ -106,6 +96,13 @@ public class PaymentController {
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
+    @PostConstruct
+    private void init() {
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+        headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
+    }
 
     @ApiOperation(value = "Get payment details by id", notes = "Get payment details for supplied payment id")
     @ApiResponses(value = {
@@ -116,12 +113,11 @@ public class PaymentController {
     })
     @RequestMapping(value="/payments/{paymentId}", method=RequestMethod.GET)
     public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
+
+
         try {
-            RestTemplate restTemplate = new RestTemplate();
-            restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
+
+
             HttpEntity entity = new HttpEntity(headers);
             ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, GDSViewPaymentResponse.class);
             logger.debug("GDS : viewPaymentResponse : " + getJson(response));
@@ -141,13 +137,12 @@ public class PaymentController {
     })
     @RequestMapping(value="/payments/{paymentId}/cancel", method=RequestMethod.POST)
     public ResponseEntity<String> cancelPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
+
+
         try {
             logger.debug("GDS : cancelPayment : paymentId=" + paymentId);
-            RestTemplate restTemplate = new RestTemplate();
-            restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set(HttpHeaders.AUTHORIZATION, BEARER +authKey);
+
+
             HttpEntity entity = new HttpEntity(headers);
             ResponseEntity<String> response = restTemplate.exchange(url+"/"+paymentId+"/cancel", HttpMethod.POST ,entity, String.class);
             logger.debug("GDS : cancelPaymentResponse : " + response);

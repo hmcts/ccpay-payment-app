@@ -35,6 +35,21 @@ public class PaymentApiApplicationIT {
 
 
     @Test
+    public void createPaymentBlankAttribute() {
+        RestAssured.port = 8181;
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
+        paymentRequest.setAmount(10);
+        paymentRequest.setDescription("Test Desc");
+        paymentRequest.setPaymentReference("");
+        paymentRequest.setApplicationReference("TEST_SERVICE");
+        paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
+        given().contentType("application/json").
+                body(getJson(paymentRequest)).
+                when().post("/payments").
+                then().statusCode(400);
+    }
+
+    @Test
     public void viewPayment() {
         RestAssured.port = 8181;
         CreatePaymentRequest paymentRequest = new CreatePaymentRequest();

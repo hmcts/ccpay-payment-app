@@ -40,6 +40,8 @@
             @JsonIgnore
             private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
+
+
             /**
              *
              * @return
@@ -175,4 +177,66 @@
             public String toString() {
                 return super.toString();
             }
+
+
+            public  boolean isValid() {
+
+
+                if (getAmount() == null || "".equals(getAmount())) {
+                    return false;
+                }
+                if (getDescription() == null || "".equals(getDescription())) {
+                    return false;
+                }
+                if (getApplicationReference() == null || "".equals(getApplicationReference())) {
+                    return false;
+                }
+                if (getPaymentReference() == null || "".equals(getPaymentReference())) {
+                    return false;
+                }
+                if (getServiceId() == null || "".equals(getServiceId())) {
+                    return false;
+                }
+
+                if (getReturnUrl() == null || "".equals(getReturnUrl())) {
+                    return false;
+                }
+
+                if (getReturnUrl() != null && getReturnUrl().startsWith("http://")) {
+                    return false;
+                }
+                return true;
+            }
+
+            public  String getValidationMessage() {
+
+                String prefix = "attribute ";
+                String postfix = " is mandatory. Please provide a valid value.";
+
+                if (getAmount() == null || "".equals(getAmount())) {
+                    return prefix+"amount"+postfix;
+                }
+                if (getDescription() == null || "".equals(getDescription())) {
+                    return prefix+"description"+postfix;
+                }
+                if (getApplicationReference() == null || "".equals(getApplicationReference())) {
+                    return prefix+"application_reference"+postfix;
+                }
+                if (getPaymentReference() == null || "".equals(getPaymentReference())) {
+                    return prefix+"payment_reference"+postfix;
+                }
+                if (getServiceId() == null || "".equals(getServiceId())) {
+                    return prefix+"service_id"+postfix;
+                }
+
+                if (getReturnUrl() == null || "".equals(getReturnUrl())) {
+                    return prefix+"return_url"+postfix;
+                }
+
+                if (getReturnUrl() != null && getReturnUrl().startsWith("http://")) {
+                    return "return_url must be https";
+                }
+                return "";
+            }
+
         }
