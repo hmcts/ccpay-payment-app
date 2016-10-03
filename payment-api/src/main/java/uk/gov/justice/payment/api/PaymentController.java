@@ -59,7 +59,7 @@ public class PaymentController {
     @ApiResponses(value = {
 
             @ApiResponse(code = 201, message = "Payment has been created"),
-            @ApiResponse(code = 400, message = "The server cannot process the request due to a client error, eg missing details in the request or a failed payment cancellation"),
+            @ApiResponse(code = 400, message = "The server cannot process the request due to a client error, eg missing details in the request."),
             @ApiResponse(code = 401, message = "Required authentication has failed or not been provided"),
             @ApiResponse(code = 422, message = "Invalid or missing attribute"),
             @ApiResponse(code = 500, message = "Something is wrong with services")
@@ -118,6 +118,9 @@ public class PaymentController {
     @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "Payment cancel request succeeded"),
+            @ApiResponse(code = 400, message = "No payment matched the paymentId you provided"),
+            @ApiResponse(code = 404, message = "The Payment you want cannot be found"),
+            @ApiResponse(code = 500, message = "Something is wrong with services"),
     })
     @RequestMapping(value="/payments/{paymentId}/cancel", method=RequestMethod.POST)
     public ResponseEntity<String> cancelPayment(@ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId)  {
