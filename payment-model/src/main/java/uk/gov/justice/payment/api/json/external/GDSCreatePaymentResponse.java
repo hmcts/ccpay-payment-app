@@ -10,6 +10,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
@@ -49,6 +51,8 @@ public class GDSCreatePaymentResponse {
     private Links links;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+
+    private ObjectMapper mapper;
 
     /**
      * 
@@ -260,4 +264,14 @@ public class GDSCreatePaymentResponse {
         this.additionalProperties.put(name, value);
     }
 
+
+    @Override
+    public String toString() {
+        try {
+            mapper = new ObjectMapper();
+            return mapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
+    }
 }

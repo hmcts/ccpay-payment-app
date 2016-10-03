@@ -78,7 +78,7 @@ public class PaymentController {
             ResponseEntity<GDSCreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, GDSCreatePaymentResponse.class);
             String url = httpServletRequest.getRequestURL().toString();
             CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse(response.getBody(),url);
-            paymentService.storePayment(payload,createPaymentResponse);
+            paymentService.storePayment(payload,response.getBody());
             logger.debug("GDS : createPaymentResponse : " + getJson(createPaymentResponse));
             ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,response.getStatusCode());
             return responseEntity;

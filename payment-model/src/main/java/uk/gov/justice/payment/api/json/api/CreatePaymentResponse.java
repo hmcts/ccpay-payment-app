@@ -2,6 +2,8 @@
 package uk.gov.justice.payment.api.json.api;
 
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpMethod;
 import uk.gov.justice.payment.api.json.external.Cancel;
 import uk.gov.justice.payment.api.json.external.GDSCreatePaymentResponse;
@@ -26,6 +28,7 @@ public class CreatePaymentResponse {
     @JsonProperty("_links")
     private LinksInternal links;
 
+    private ObjectMapper mapper;
 
     public CreatePaymentResponse(){}
     public CreatePaymentResponse(GDSCreatePaymentResponse response,String url){
@@ -79,6 +82,13 @@ public class CreatePaymentResponse {
         this.links = links;
     }
 
-
-
+    @Override
+    public String toString() {
+        try {
+            mapper = new ObjectMapper();
+            return mapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
+    }
 }
