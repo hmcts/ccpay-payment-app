@@ -7,5 +7,6 @@ import uk.gov.justice.payment.api.json.external.GDSCreatePaymentResponse;
 public interface PaymentService {
 
     void storePayment(CreatePaymentRequest request , GDSCreatePaymentResponse response);
+    void updatePayment(String paymentId,String status);
 
 }

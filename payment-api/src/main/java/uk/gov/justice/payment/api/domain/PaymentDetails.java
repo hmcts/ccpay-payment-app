@@ -14,7 +14,91 @@ public class PaymentDetails {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Integer id;
 
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
+    }
+
+    public void setAmount(Integer amount) {
+        this.amount = amount;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+    }
+
+    public void setApplicationReference(String applicationReference) {
+        this.applicationReference = applicationReference;
+    }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setReturnUrl(String returnUrl) {
+        this.returnUrl = returnUrl;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setCreatedDate(String createdDate) {
+        this.createdDate = createdDate;
+    }
+
     String paymentId;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    public Integer getAmount() {
+        return amount;
+    }
+
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public String getApplicationReference() {
+        return applicationReference;
+    }
+
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getReturnUrl() {
+        return returnUrl;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getCreatedDate() {
+        return createdDate;
+    }
 
     Integer amount;
 
@@ -29,8 +113,14 @@ public class PaymentDetails {
 
     String returnUrl;
 
-
     String response;
+
+    String status;
+
+    String createdDate;
+
+
+
 
     public PaymentDetails(){};
     public PaymentDetails(CreatePaymentRequest request, GDSCreatePaymentResponse response) {
@@ -42,6 +132,8 @@ public class PaymentDetails {
         this.description=request.getDescription();
         this.returnUrl=request.getReturnUrl();
         this.response = response.toString();
-        System.out.println("lob="+this.response);
+        this.status = response.getState().getStatus();
+        this.createdDate = response.getCreatedDate();
+
     }
 }

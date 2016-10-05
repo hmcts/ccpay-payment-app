@@ -107,6 +107,7 @@ public class PaymentController {
             logger.debug("GDS : viewPaymentResponse : " + getJson(response));
             ViewPaymentResponse viewPaymentResponse = new ViewPaymentResponse(response.getBody());
             ResponseEntity<ViewPaymentResponse> responseEntity =  new ResponseEntity<ViewPaymentResponse>(viewPaymentResponse , response.getStatusCode());
+            paymentService.updatePayment(response.getBody().getPaymentId(),response.getBody().getState().getStatus());
             return responseEntity;
         } catch (HttpClientErrorException e) {
             logger.debug("viewPaymentResponse : Error " + e.getMessage());

@@ -8,4 +8,6 @@ public interface PaymentRepository extends CrudRepository <PaymentDetails, Integ
 
     <S extends PaymentDetails> S  save(S entity);
     Iterable<PaymentDetails> findAll();
+
+    PaymentDetails findByPaymentId(String paymentId);
 }

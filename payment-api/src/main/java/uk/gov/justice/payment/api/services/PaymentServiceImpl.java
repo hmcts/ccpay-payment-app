@@ -20,4 +20,12 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentDetails paymentRequest = new PaymentDetails(request,response);
         paymentRepository.save(paymentRequest);
     }
+
+    public void updatePayment(String paymentId, String status) {
+        PaymentDetails paymentRequest = paymentRepository.findByPaymentId(paymentId);
+        paymentRequest.setStatus(status);
+        paymentRepository.save(paymentRequest);
+
+
+    }
 }

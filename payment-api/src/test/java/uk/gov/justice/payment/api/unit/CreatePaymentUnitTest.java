@@ -2,6 +2,7 @@ package uk.gov.justice.payment.api.unit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,15 +35,9 @@ import static org.mockito.Mockito.when;
 
 public class CreatePaymentUnitTest extends AbstractPaymentTest{
 
-    public static final int PORT = 9092;
-    public static final String URL = "http://localhost:"+PORT+"/payments";
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(PORT);
 
-    protected PaymentController paymentController = new PaymentController();
-    protected ObjectMapper mapper = new ObjectMapper();
-    protected RestTemplate restTemplate = new RestTemplate();
-    protected ClassLoader classLoader = getClass().getClassLoader();
+
+
 
     private String expectedCreatePaymentResponse;
 
@@ -51,8 +46,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     @Mock
     HttpServletRequest httpServletRequest;
 
-    @Mock
-    PaymentService paymentService;
+
 
     @Before
     public void setUp() throws FileNotFoundException {
@@ -61,11 +55,15 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
 
 
         when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8181/payments"));
-        doNothing().when(paymentService).storePayment(null,null);
+        doNothing().when(paymentService).updatePayment(null,null);
         ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"mapper",mapper);
         expectedCreatePaymentResponse = new Scanner(new File(classLoader.getResource("createPaymentResponse.json").getFile())).useDelimiter("\\Z").next();
 
+    }
+    @After
+    public void cleanUp(){
+        wireMockRule.stop();
     }
 
     @Test

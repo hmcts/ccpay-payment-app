@@ -2,6 +2,7 @@ package uk.gov.justice.payment.api.unit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,6 +24,7 @@ import java.util.Scanner;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 
@@ -32,14 +34,8 @@ import static org.mockito.Mockito.when;
 
 public class ViewPaymentUnitTest extends AbstractPaymentTest{
 
-    public static final int PORT = 9092;
-    public static final String URL = "http://localhost:"+PORT+"/payments";
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(PORT);
-    PaymentController paymentController = new PaymentController();
-    ObjectMapper mapper = new ObjectMapper();
-    RestTemplate restTemplate = new RestTemplate();
-    ClassLoader classLoader = getClass().getClassLoader();
+
+
 
     private String expectedCreatePaymentResponse;
 
@@ -54,9 +50,9 @@ public class ViewPaymentUnitTest extends AbstractPaymentTest{
 
         MockitoAnnotations.initMocks(this);
         when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8181/payments"));
+        doNothing().when(paymentService).storePayment(null,null);
         ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"mapper",mapper);
-
         expectedViewPaymentResponse = new Scanner(new File(classLoader.getResource("viewPaymentResponse.json").getFile())).useDelimiter("\\Z").next();
 
         paymentRequest = new CreatePaymentRequest();
@@ -67,7 +63,10 @@ public class ViewPaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setApplicationReference("Test case");
     }
 
-
+    @After
+    public void cleanUp(){
+        wireMockRule.stop();
+    }
 
     @Test
     public void viewPayment() {
@@ -78,6 +77,7 @@ public class ViewPaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
         ReflectionTestUtils.setField(paymentController,"url",URL+"/view");
+        ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
         assertEquals(paymentController.viewPayment(null).getStatusCode().value(), 200);
    }
 
@@ -93,6 +93,7 @@ public class ViewPaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
         ReflectionTestUtils.setField(paymentController,"url",URL+"/view_not_found");
+        ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
         assertEquals(paymentController.viewPayment(null).getStatusCode().value(), 404);
     }
 

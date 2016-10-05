@@ -2,6 +2,7 @@ package uk.gov.justice.payment.api.unit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,22 +33,10 @@ import static org.mockito.Mockito.when;
 
 public class CancelPaymentUnitTest extends AbstractPaymentTest{
 
-    public static final int PORT = 9092;
-    public static final String URL = "http://localhost:"+PORT+"/payments";
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(PORT);
-    PaymentController paymentController = new PaymentController();
-    ObjectMapper mapper = new ObjectMapper();
-    RestTemplate restTemplate = new RestTemplate();
-    ClassLoader classLoader = getClass().getClassLoader();
-
-
     private String expectedViewPaymentResponse;
-
     private CreatePaymentRequest paymentRequest;
     @Mock
     HttpServletRequest httpServletRequest;
-
     @Before
     public void setUp() throws FileNotFoundException {
 
@@ -66,7 +55,10 @@ public class CancelPaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setApplicationReference("Test case");
     }
 
-
+    @After
+    public void cleanUp(){
+        wireMockRule.stop();
+    }
 
     @Test
     public void cancelPayment() {
