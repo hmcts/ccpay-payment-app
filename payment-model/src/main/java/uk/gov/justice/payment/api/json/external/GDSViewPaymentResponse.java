@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import uk.gov.justice.payment.api.json.AbstractDomainObject;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
@@ -25,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "refund_summary",
         "_links"
 })
-public class GDSViewPaymentResponse {
+public class GDSViewPaymentResponse  extends AbstractDomainObject {
 
     @JsonProperty("amount")
     private Integer amount;
@@ -260,4 +261,8 @@ public class GDSViewPaymentResponse {
         this.additionalProperties.put(name, value);
     }
 
+    @Override
+    public String toString() {
+        return super.toString(this);
+    }
 }

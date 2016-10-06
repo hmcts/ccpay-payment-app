@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import uk.gov.justice.payment.api.json.AbstractDomainObject;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
@@ -27,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
     "refund_summary",
     "_links"
 })
-public class GDSCreatePaymentResponse {
+public class GDSCreatePaymentResponse extends AbstractDomainObject {
 
     @JsonProperty("amount")
     private Integer amount;
@@ -51,8 +52,6 @@ public class GDSCreatePaymentResponse {
     private Links links;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-
-    private ObjectMapper mapper;
 
     /**
      * 
@@ -264,14 +263,8 @@ public class GDSCreatePaymentResponse {
         this.additionalProperties.put(name, value);
     }
 
-
     @Override
     public String toString() {
-        try {
-            mapper = new ObjectMapper();
-            return mapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            return "";
-        }
+        return super.toString(this);
     }
 }

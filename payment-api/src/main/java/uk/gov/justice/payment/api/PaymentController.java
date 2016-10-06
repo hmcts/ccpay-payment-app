@@ -68,18 +68,18 @@ public class PaymentController {
     public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload,
                                                                HttpServletRequest httpServletRequest) {
         try {
-            logger.debug("createPaymentRequest : " + getJson(payload));
+            logger.debug("createPaymentRequest : " + payload.toString());
             if(!payload.isValid()) {
                 return new ResponseEntity(payload.getValidationMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
             }
             GDSCreatePaymentRequest paymentRequest = new GDSCreatePaymentRequest(payload);
             HttpEntity<GDSCreatePaymentRequest> entity = new HttpEntity<GDSCreatePaymentRequest>(paymentRequest, headers);
-            logger.debug("GDS : createPaymentRequest : " + getJson(paymentRequest));
+            logger.debug("GDS : createPaymentRequest : " + paymentRequest.toString());
             ResponseEntity<GDSCreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, GDSCreatePaymentResponse.class);
             String url = httpServletRequest.getRequestURL().toString();
             CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse(response.getBody(),url);
             paymentService.storePayment(payload,response.getBody());
-            logger.debug("GDS : createPaymentResponse : " + getJson(createPaymentResponse));
+            logger.debug("GDS : createPaymentResponse : " + createPaymentResponse.toString());
             ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,response.getStatusCode());
             return responseEntity;
         } catch (HttpClientErrorException e) {
@@ -104,7 +104,7 @@ public class PaymentController {
         try {
             HttpEntity entity = new HttpEntity(headers);
             ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url+"/"+paymentId, HttpMethod.GET ,entity, GDSViewPaymentResponse.class);
-            logger.debug("GDS : viewPaymentResponse : " + getJson(response));
+            logger.debug("GDS : viewPaymentResponse : " + response.toString());
             ViewPaymentResponse viewPaymentResponse = new ViewPaymentResponse(response.getBody());
             ResponseEntity<ViewPaymentResponse> responseEntity =  new ResponseEntity<ViewPaymentResponse>(viewPaymentResponse , response.getStatusCode());
             paymentService.updatePayment(response.getBody().getPaymentId(),response.getBody().getState().getStatus());
@@ -119,7 +119,7 @@ public class PaymentController {
     @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "Payment cancel request succeeded"),
-            @ApiResponse(code = 400, message = "No payment matched the paymentId you provided"),
+            @ApiResponse(code = 400, message = "Cancellation of payment failed"),
             @ApiResponse(code = 404, message = "The Payment you want cannot be found"),
             @ApiResponse(code = 500, message = "Something is wrong with services"),
     })
@@ -145,15 +145,5 @@ public class PaymentController {
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(HttpHeaders.AUTHORIZATION, BEARER + authKey);
-    }
-
-
-    private String getJson(Object obj) {
-        try {
-            return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            return "";
-        }
-
     }
 }

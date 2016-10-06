@@ -2,6 +2,7 @@
 package uk.gov.justice.payment.api.json.api;
 
 import com.fasterxml.jackson.annotation.*;
+import uk.gov.justice.payment.api.json.AbstractDomainObject;
 import uk.gov.justice.payment.api.json.external.GDSViewPaymentResponse;
 import uk.gov.justice.payment.api.json.external.Links;
 import uk.gov.justice.payment.api.json.external.RefundSummary;
@@ -22,7 +23,7 @@ import java.util.Map;
         "created_date"
 
 })
-public class ViewPaymentResponse {
+public class ViewPaymentResponse  extends AbstractDomainObject  {
 
     @JsonProperty("amount")
     private Integer amount;
@@ -184,4 +185,8 @@ public class ViewPaymentResponse {
         this.additionalProperties.put(name, value);
     }
 
+    @Override
+    public String toString() {
+        return super.toString(this);
+    }
 }

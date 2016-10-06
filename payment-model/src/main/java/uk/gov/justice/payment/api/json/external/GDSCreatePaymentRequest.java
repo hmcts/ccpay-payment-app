@@ -11,6 +11,7 @@
         import com.fasterxml.jackson.annotation.JsonInclude;
         import com.fasterxml.jackson.annotation.JsonProperty;
         import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+        import uk.gov.justice.payment.api.json.AbstractDomainObject;
         import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -21,7 +22,7 @@
         "description",
         "return_url"
 })
-public class GDSCreatePaymentRequest {
+public class GDSCreatePaymentRequest  extends AbstractDomainObject {
 
     @JsonProperty("amount")
     private Integer amount;
@@ -133,10 +134,10 @@ public class GDSCreatePaymentRequest {
         this.additionalProperties.put(name, value);
     }
 
-    @Override
-    public String toString() {
-        return super.toString();
-    }
+            @Override
+            public String toString() {
+                return super.toString(this);
+            }
 
 
 }

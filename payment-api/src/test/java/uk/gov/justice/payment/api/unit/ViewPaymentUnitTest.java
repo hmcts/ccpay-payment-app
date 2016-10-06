@@ -63,10 +63,7 @@ public class ViewPaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setApplicationReference("Test case");
     }
 
-    @After
-    public void cleanUp(){
-        wireMockRule.stop();
-    }
+
 
     @Test
     public void viewPayment() {

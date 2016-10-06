@@ -61,10 +61,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
         expectedCreatePaymentResponse = new Scanner(new File(classLoader.getResource("createPaymentResponse.json").getFile())).useDelimiter("\\Z").next();
 
     }
-    @After
-    public void cleanUp(){
-        wireMockRule.stop();
-    }
+
 
     @Test
     public void createPaymentValidationMissingAmount() {

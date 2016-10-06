@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpMethod;
+import uk.gov.justice.payment.api.json.AbstractDomainObject;
 import uk.gov.justice.payment.api.json.external.Cancel;
 import uk.gov.justice.payment.api.json.external.GDSCreatePaymentResponse;
 import uk.gov.justice.payment.api.json.external.LinksInternal;
@@ -18,7 +19,7 @@ import javax.annotation.Generated;
     "payment_id",
         "_links"
 })
-public class CreatePaymentResponse {
+public class CreatePaymentResponse  extends AbstractDomainObject {
 
 
 
@@ -28,7 +29,7 @@ public class CreatePaymentResponse {
     @JsonProperty("_links")
     private LinksInternal links;
 
-    private ObjectMapper mapper;
+
 
     public CreatePaymentResponse(){}
     public CreatePaymentResponse(GDSCreatePaymentResponse response,String url){
@@ -84,11 +85,6 @@ public class CreatePaymentResponse {
 
     @Override
     public String toString() {
-        try {
-            mapper = new ObjectMapper();
-            return mapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            return "";
-        }
+        return super.toString(this);
     }
 }

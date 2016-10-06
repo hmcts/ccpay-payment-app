@@ -2,6 +2,8 @@ package uk.gov.justice.payment.api.unit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.After;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.mockito.Mock;
 import org.springframework.web.client.RestTemplate;
@@ -15,8 +17,9 @@ public class AbstractPaymentTest {
 
     public static final int PORT = 9190;
     public static final String URL = "http://localhost:"+PORT+"/payments";
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(PORT);
+
+    @ClassRule
+    public static WireMockRule wireMockRule = new WireMockRule(PORT);
 
     PaymentController paymentController = new PaymentController();
     ObjectMapper mapper = new ObjectMapper();
@@ -25,4 +28,10 @@ public class AbstractPaymentTest {
 
     @Mock
     PaymentService paymentService;
+
+    @After
+    public void cleanUp(){
+
+        //wireMockRule.stop();
+    }
 }

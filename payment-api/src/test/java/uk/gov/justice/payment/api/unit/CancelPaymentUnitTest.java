@@ -55,10 +55,7 @@ public class CancelPaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setApplicationReference("Test case");
     }
 
-    @After
-    public void cleanUp(){
-        wireMockRule.stop();
-    }
+
 
     @Test
     public void cancelPayment() {
@@ -70,6 +67,18 @@ public class CancelPaymentUnitTest extends AbstractPaymentTest{
                 ));
         ReflectionTestUtils.setField(paymentController,"url",URL+"/cancel");
         assertEquals(paymentController.cancelPayment(null).getStatusCode().value(), 204);
+    }
+
+    @Test
+    public void cancelPaymentFailed() {
+        stubFor(post(urlPathMatching("/payments/cancel/failed/.*"))
+                .willReturn(aResponse()
+                        .withStatus(400)
+                        .withBody("{ \"code\": \"P0501\", \"description\": \"Cancellation of payment failed\" }")
+                        .withHeader("Content-Type", "application/json")
+                ));
+        ReflectionTestUtils.setField(paymentController,"url",URL+"/cancel/failed");
+        assertEquals(paymentController.cancelPayment(null).getStatusCode().value(), 400);
     }
 
 }

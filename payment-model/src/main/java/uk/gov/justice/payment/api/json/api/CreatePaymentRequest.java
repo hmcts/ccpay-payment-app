@@ -3,6 +3,7 @@
         package uk.gov.justice.payment.api.json.api;
 
         import com.fasterxml.jackson.annotation.*;
+        import uk.gov.justice.payment.api.json.AbstractDomainObject;
 
         import javax.annotation.Generated;
         import java.util.HashMap;
@@ -18,7 +19,7 @@
                 "description",
                 "return_url"
         })
-        public class CreatePaymentRequest {
+        public class CreatePaymentRequest  extends AbstractDomainObject  {
 
             @JsonProperty(value = "amount",required = true)
             private Integer amount;
@@ -173,10 +174,7 @@
                 this.additionalProperties.put(name, value);
             }
 
-            @Override
-            public String toString() {
-                return super.toString();
-            }
+
 
 
             public  boolean isValid() {
@@ -237,6 +235,11 @@
                     return "return_url must be https";
                 }
                 return "";
+            }
+
+            @Override
+            public String toString() {
+                return super.toString(this);
             }
 
         }
