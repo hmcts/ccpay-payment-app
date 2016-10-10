@@ -36,9 +36,11 @@ import static org.mockito.Mockito.when;
 public class CreatePaymentUnitTest extends AbstractPaymentTest{
 
 
-
-
-
+    public static final String TEST_SERVICE = "TEST_SERVICE";
+    public static final int TEST_AMOUNT = 10;
+    public static final String TEST_REF = "TestRef";
+    public static final String TEST_DESC = "Test Desc";
+    public static final String TEST_CASE = "Test Case";
     private String expectedCreatePaymentResponse;
 
 
@@ -66,10 +68,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     @Test
     public void createPaymentValidationMissingAmount() {
         paymentRequest = new CreatePaymentRequest();
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -85,13 +87,15 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     }
 
 
+
+
     @Test
     public void createPaymentValidationMissingDesription() {
         paymentRequest = new CreatePaymentRequest();
-        paymentRequest.setAmount(10);
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setAmount(TEST_AMOUNT);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -110,9 +114,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationMissingPaymentReference() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -131,10 +135,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationBlankPaymentReference() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
+        paymentRequest.setDescription(TEST_DESC);
         paymentRequest.setPaymentReference("");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -153,9 +157,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationMissingServiceId() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -174,10 +178,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationBlankServiceId() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
         paymentRequest.setServiceId("");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -196,10 +200,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationMissingApplicationReference() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setReturnUrl("https://local");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setReturnUrl(URL);
 
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()
@@ -217,9 +221,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationBlankApplicationReference() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
         paymentRequest.setReturnUrl("https://local");
         paymentRequest.setApplicationReference("");
 
@@ -239,10 +243,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationMissingReturnUrl() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
 
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()
@@ -260,10 +264,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationBlankReturnUrl() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -282,10 +286,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentValidationNonHttpsReturnUrl() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("http://local");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -304,10 +308,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void createPaymentSuccess() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 
         stubFor(post(urlPathMatching("/payments/create"))
@@ -327,10 +331,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
 
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setServiceId("TEST_SERVICE");
-        paymentRequest.setApplicationReference("Test case");
+        paymentRequest.setDescription(TEST_DESC);
+        paymentRequest.setPaymentReference(TEST_REF);
+        paymentRequest.setServiceId(TEST_SERVICE);
+        paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 
         stubFor(post(urlPathMatching("/payments/create_fail"))
