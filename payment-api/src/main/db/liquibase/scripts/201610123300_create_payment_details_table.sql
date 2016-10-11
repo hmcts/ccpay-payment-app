@@ -17,3 +17,6 @@ create table payment_details (
 );
 
 alter table payment.payment_details owner to payment;
+
+
+create sequence hibernate_sequence start 101;
