@@ -41,6 +41,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public static final String TEST_REF = "TestRef";
     public static final String TEST_DESC = "Test Desc";
     public static final String TEST_CASE = "Test Case";
+    public static final String RETURN_URL = "https://local";
     private String expectedCreatePaymentResponse;
 
 
@@ -54,8 +55,6 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public void setUp() throws FileNotFoundException {
 
         MockitoAnnotations.initMocks(this);
-
-
         when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8181/payments"));
         doNothing().when(paymentService).updatePayment(null,null);
         ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
@@ -72,7 +71,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setPaymentReference(TEST_REF);
         paymentRequest.setServiceId(TEST_SERVICE);
         paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl("https://local");
+        paymentRequest.setReturnUrl(RETURN_URL);
 
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()
@@ -96,7 +95,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setPaymentReference(TEST_REF);
         paymentRequest.setServiceId(TEST_SERVICE);
         paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl("https://local");
+        paymentRequest.setReturnUrl(RETURN_URL);
 
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()
@@ -117,7 +116,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setDescription(TEST_DESC);
         paymentRequest.setServiceId(TEST_SERVICE);
         paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl("https://local");
+        paymentRequest.setReturnUrl(RETURN_URL);
 
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()
@@ -139,7 +138,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setPaymentReference("");
         paymentRequest.setServiceId(TEST_SERVICE);
         paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl("https://local");
+        paymentRequest.setReturnUrl(RETURN_URL);
 
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()
@@ -160,7 +159,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setDescription(TEST_DESC);
         paymentRequest.setPaymentReference(TEST_REF);
         paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl("https://local");
+        paymentRequest.setReturnUrl(RETURN_URL);
 
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()
@@ -182,7 +181,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
         paymentRequest.setPaymentReference(TEST_REF);
         paymentRequest.setServiceId("");
         paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl("https://local");
+        paymentRequest.setReturnUrl(RETURN_URL);
 
         stubFor(post(urlPathMatching("/payments/create"))
                 .willReturn(aResponse()

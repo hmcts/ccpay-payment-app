@@ -100,6 +100,11 @@ public class PaymentDetails {
         return createdDate;
     }
 
+
+    public String getEmail() {
+        return email;
+    }
+
     Integer amount;
 
     String paymentReference;
@@ -117,7 +122,10 @@ public class PaymentDetails {
 
     String status;
 
+
     String createdDate;
+
+    String email;
 
 
 
@@ -131,6 +139,7 @@ public class PaymentDetails {
         this.serviceId=request.getServiceId();
         this.description=request.getDescription();
         this.returnUrl=request.getReturnUrl();
+        this.email=request.getEmail();
         this.response = response.toString();
         this.status = response.getState().getStatus();
         this.createdDate = response.getCreatedDate();

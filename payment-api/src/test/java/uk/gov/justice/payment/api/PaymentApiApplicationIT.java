@@ -30,6 +30,7 @@ public class PaymentApiApplicationIT {
         paymentRequest.setPaymentReference("TestRef");
         paymentRequest.setApplicationReference("Test case id");
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
+        paymentRequest.setEmail("zeeshan.alam@agilesphere.co.uk");
         paymentRequest.setServiceId("TEST_SERVICE");
     }
 

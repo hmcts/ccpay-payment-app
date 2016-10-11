@@ -17,7 +17,8 @@
                 "service_id",
                 "payment_reference",
                 "description",
-                "return_url"
+                "return_url",
+                "email"
         })
         public class CreatePaymentRequest  extends AbstractDomainObject  {
 
@@ -38,6 +39,10 @@
 
             @JsonProperty("return_url")
             private String returnUrl;
+
+            @JsonProperty("email")
+            private String email;
+
             @JsonIgnore
             private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -162,6 +167,26 @@
             @JsonProperty("return_url")
             public void setReturnUrl(String returnUrl) {
                 this.returnUrl = returnUrl;
+            }
+
+            /**
+             *
+             * @return
+             * The email
+             */
+            @JsonProperty("email")
+            public String getEmail() {
+                return email;
+            }
+
+            /**
+             *
+             * @param email
+             * The email
+             */
+            @JsonProperty("email")
+            public void setEmail(String email) {
+                this.email = email;
             }
 
             @JsonAnyGetter

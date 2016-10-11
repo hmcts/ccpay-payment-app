@@ -12,6 +12,7 @@ create table payment_details (
     service_id varchar(255),
     status varchar(255),
     created_date varchar(255),
+    email varchar(255),
     primary key (id)
 );
 
