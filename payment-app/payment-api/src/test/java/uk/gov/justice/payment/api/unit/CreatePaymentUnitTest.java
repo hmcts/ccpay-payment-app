@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
 @Configuration
 
 public class CreatePaymentUnitTest extends AbstractPaymentTest{
