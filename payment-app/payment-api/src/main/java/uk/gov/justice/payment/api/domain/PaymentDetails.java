@@ -10,8 +10,10 @@ import java.sql.Clob;
 
 @Entity
 public class PaymentDetails {
+
+    @SequenceGenerator(name="idgen", sequenceName="payment_details_id_seq", allocationSize=10)
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgen")
     Integer id;
 
     public void setPaymentId(String paymentId) {
