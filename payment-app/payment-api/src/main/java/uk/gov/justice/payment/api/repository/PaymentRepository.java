@@ -11,6 +11,6 @@ public interface PaymentRepository extends CrudRepository <PaymentDetails, Integ
 
     PaymentDetails findByPaymentId(String paymentId);
 
-    //Iterable<PaymentDetails> findAll(BooleanExpression criteria);
+    ////Iterable<PaymentDetails> findAll(BooleanExpression criteria);
 
 }
