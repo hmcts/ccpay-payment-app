@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 
+import java.util.Calendar;
+
 import static com.jayway.restassured.RestAssured.given;
 
 
@@ -21,14 +23,16 @@ public class PaymentApiApplicationIT {
 
     private CreatePaymentRequest paymentRequest;
 
+
     @Before
     public void setUp() {
+        long timestamp = Calendar.getInstance().getTimeInMillis();
         RestAssured.port = 8181;
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
-        paymentRequest.setDescription("Test Desc");
-        paymentRequest.setPaymentReference("TestRef");
-        paymentRequest.setApplicationReference("Test case id");
+        paymentRequest.setDescription("Test Desc"+timestamp);
+        paymentRequest.setPaymentReference("TestRef"+timestamp);
+        paymentRequest.setApplicationReference("Test case id"+timestamp);
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
         paymentRequest.setEmail("zeeshan.alam@agilesphere.co.uk");
         paymentRequest.setServiceId("TEST_SERVICE");

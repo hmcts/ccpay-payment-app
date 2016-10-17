@@ -17,16 +17,20 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.justice.payment.api.domain.PaymentDetails;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
 import uk.gov.justice.payment.api.json.api.CreatePaymentResponse;
+import uk.gov.justice.payment.api.json.api.TransactionRecord;
 import uk.gov.justice.payment.api.json.api.ViewPaymentResponse;
 import uk.gov.justice.payment.api.json.external.GDSCreatePaymentRequest;
 import uk.gov.justice.payment.api.json.external.GDSCreatePaymentResponse;
 import uk.gov.justice.payment.api.json.external.GDSViewPaymentResponse;
 import uk.gov.justice.payment.api.services.PaymentService;
+import uk.gov.justice.payment.api.services.SearchCriteria;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 
 @RestController
@@ -79,6 +83,7 @@ public class PaymentController {
             String url = httpServletRequest.getRequestURL().toString();
             CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse(response.getBody(),url);
             paymentService.storePayment(payload,response.getBody());
+
             logger.debug("GDS : createPaymentResponse : " + createPaymentResponse.toString());
             ResponseEntity<CreatePaymentResponse> responseEntity =  new ResponseEntity<CreatePaymentResponse>(createPaymentResponse,response.getStatusCode());
             return responseEntity;
@@ -114,6 +119,35 @@ public class PaymentController {
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
+
+
+    @RequestMapping(value="/payments", method=RequestMethod.GET)
+    public ResponseEntity<List<TransactionRecord>> searchPayment(
+            @ApiParam(value = "amount") @RequestParam(value = "amount" , required = false ) Integer amount,
+            @ApiParam(value = "application reference") @RequestParam(value = "application_reference" , required = false) String applicationReference,
+            @ApiParam(value = "des") @RequestParam(value = "description" , required = false) String description,
+            @ApiParam(value = "payment reference") @RequestParam(value = "payment_reference" , required = false) String paymentReference,
+            @ApiParam(value = "service id") @RequestParam(value = "service_id" , required = false) String serviceId,
+            @ApiParam(value = "created date") @RequestParam(value = "created_date" , required = false) String createdDate,
+            @ApiParam(value = "email") @RequestParam(value = "email" , required = false) String email
+
+    )  {
+
+            SearchCriteria searchCriteria = new SearchCriteria();
+            searchCriteria.setAmount(amount);
+            searchCriteria.setApplicationReference(applicationReference);
+            searchCriteria.setDescription(description);
+            searchCriteria.setPaymentReference(paymentReference);
+            searchCriteria.setServiceId(serviceId);
+            searchCriteria.setCreatedDate(createdDate);
+            searchCriteria.setEmail(email);
+            List<TransactionRecord> list = paymentService.searchPayment(searchCriteria);
+            ResponseEntity<List<TransactionRecord>> responseEntity =  new ResponseEntity<List<TransactionRecord>>(list , HttpStatus.OK);
+            return responseEntity;
+
+    }
+
+
 
 
     @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
