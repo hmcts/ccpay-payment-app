@@ -21,6 +21,7 @@ import static com.jayway.restassured.RestAssured.given;
 @Configuration
 public class PaymentApiApplicationIT {
 
+    public static final int AMOUNT = 10;
     private CreatePaymentRequest paymentRequest;
 
 
@@ -29,7 +30,7 @@ public class PaymentApiApplicationIT {
         long timestamp = Calendar.getInstance().getTimeInMillis();
         RestAssured.port = 8181;
         paymentRequest = new CreatePaymentRequest();
-        paymentRequest.setAmount(10);
+        paymentRequest.setAmount(AMOUNT);
         paymentRequest.setDescription("Test Desc"+timestamp);
         paymentRequest.setPaymentReference("TestRef"+timestamp);
         paymentRequest.setApplicationReference("Test case id"+timestamp);
@@ -78,6 +79,19 @@ public class PaymentApiApplicationIT {
 
     }
 
+
+    @Test
+    public void searchTransactions() {
+        setUp();
+
+        given().contentType("application/json").
+                when().get("/payments").
+                then().statusCode(200).extract().path("payment_id");
+        given().contentType("application/json").
+                when().get("/payments/?amount=" + AMOUNT ).
+                then().statusCode(200);
+
+    }
 
     private String getJson(Object obj) {
         try {
