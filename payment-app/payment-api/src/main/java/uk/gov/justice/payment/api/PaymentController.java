@@ -121,6 +121,13 @@ public class PaymentController {
     }
 
 
+    @ApiOperation(value = "Search transaction log", notes = "Search transaction log for supplied search criteria")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Transaction search request succeeded"),
+            @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
+            @ApiResponse(code = 404, message = "The resource you want cannot be found"),
+            @ApiResponse(code = 500, message = "Something is wrong with services")
+    })
     @RequestMapping(value="/payments", method=RequestMethod.GET)
     public ResponseEntity<List<TransactionRecord>> searchPayment(
             @ApiParam(value = "amount") @RequestParam(value = "amount" , required = false ) Integer amount,
@@ -142,6 +149,9 @@ public class PaymentController {
             searchCriteria.setCreatedDate(createdDate);
             searchCriteria.setEmail(email);
             List<TransactionRecord> list = paymentService.searchPayment(searchCriteria);
+            if (list.size() == 0) {
+                return new ResponseEntity("No transaction record found for supplied criteria", HttpStatus.NOT_FOUND);
+            }
             ResponseEntity<List<TransactionRecord>> responseEntity =  new ResponseEntity<List<TransactionRecord>>(list , HttpStatus.OK);
             return responseEntity;
 
