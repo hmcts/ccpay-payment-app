@@ -78,7 +78,7 @@ databaseChangeLog:
               -
                 column:
                   constraints:
-                    nullable: false
+                    nullable: true
                   name: email
                   type: varchar(255)
             tableName: payment_details
