@@ -79,7 +79,6 @@ public class PaymentApiApplicationIT {
 
     }
 
-
     @Test
     public void searchTransactions() {
         setUp();
@@ -92,9 +91,6 @@ public class PaymentApiApplicationIT {
                 then().statusCode(200);
 
     }
-
-
-
 
     private String getJson(Object obj) {
         try {
