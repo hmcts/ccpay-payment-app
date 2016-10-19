@@ -50,7 +50,6 @@ public class PaymentServiceImpl implements PaymentService {
         if (searchCriteria.getApplicationReference() != null ){
             criteria = qPaymentDetails.applicationReference.eq(searchCriteria.getApplicationReference()).and(criteria);
         }
-
         if (searchCriteria.getServiceId() != null ){
             criteria = qPaymentDetails.serviceId.eq(searchCriteria.getServiceId()).and(criteria);
         }
@@ -64,7 +63,6 @@ public class PaymentServiceImpl implements PaymentService {
         if (searchCriteria.getEmail() != null ){
             criteria = qPaymentDetails.email.eq(searchCriteria.getEmail()).and(criteria);
         }
-
         if (searchCriteria.getCreatedDate() != null ){
             criteria = qPaymentDetails.createdDate.eq(searchCriteria.getCreatedDate()).and(criteria);
         }

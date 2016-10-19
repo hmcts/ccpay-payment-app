@@ -139,21 +139,25 @@ public class PaymentController {
             @ApiParam(value = "email") @RequestParam(value = "email" , required = false) String email
 
     )  {
+            try {
 
-            SearchCriteria searchCriteria = new SearchCriteria();
-            searchCriteria.setAmount(amount);
-            searchCriteria.setApplicationReference(applicationReference);
-            searchCriteria.setDescription(description);
-            searchCriteria.setPaymentReference(paymentReference);
-            searchCriteria.setServiceId(serviceId);
-            searchCriteria.setCreatedDate(createdDate);
-            searchCriteria.setEmail(email);
-            List<TransactionRecord> list = paymentService.searchPayment(searchCriteria);
-            if (list.size() == 0) {
-                return new ResponseEntity("No transaction record found for supplied criteria", HttpStatus.NOT_FOUND);
+                SearchCriteria searchCriteria = new SearchCriteria();
+                searchCriteria.setAmount(amount);
+                searchCriteria.setApplicationReference(applicationReference);
+                searchCriteria.setDescription(description);
+                searchCriteria.setPaymentReference(paymentReference);
+                searchCriteria.setServiceId(serviceId);
+                searchCriteria.setCreatedDate(createdDate);
+                searchCriteria.setEmail(email);
+                List<TransactionRecord> list = paymentService.searchPayment(searchCriteria);
+                if (list.size() == 0) {
+                    return new ResponseEntity("No transaction record found for supplied criteria", HttpStatus.NOT_FOUND);
+                }
+                ResponseEntity<List<TransactionRecord>> responseEntity = new ResponseEntity<List<TransactionRecord>>(list, HttpStatus.OK);
+                return responseEntity;
+            } catch(Exception e ){
+                return new ResponseEntity("Something is wrong with services", HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            ResponseEntity<List<TransactionRecord>> responseEntity =  new ResponseEntity<List<TransactionRecord>>(list , HttpStatus.OK);
-            return responseEntity;
 
     }
 

@@ -93,6 +93,9 @@ public class PaymentApiApplicationIT {
 
     }
 
+
+
+
     private String getJson(Object obj) {
         try {
             ObjectMapper mapper = new ObjectMapper();

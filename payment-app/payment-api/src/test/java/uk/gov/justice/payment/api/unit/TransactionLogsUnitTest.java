@@ -46,8 +46,6 @@ public class TransactionLogsUnitTest extends AbstractPaymentTest {
         ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"mapper",mapper);
         assertEquals(paymentController.searchPayment(null,null,null,null,null,null,null).getStatusCode().value(),404);
-
-
     }
     @Test
     public void searchTransactions() throws FileNotFoundException {
@@ -59,7 +57,5 @@ public class TransactionLogsUnitTest extends AbstractPaymentTest {
         ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
         ReflectionTestUtils.setField(paymentController,"mapper",mapper);
         assertEquals(paymentController.searchPayment(null,null,null,null,null,null,null).getStatusCode().value(),200);
-
-
     }
 }
