@@ -5,7 +5,7 @@
 
 
     <artifactId>payment-app</artifactId>
-    <groupId>payment</groupId>
+    <groupId>uk.gov.justice</groupId>
     <version>1.0</version>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
@@ -23,6 +23,8 @@
         <module>payment-core</module>
 
     </modules>
-
+    <properties>
+        <spring.boot.version>1.4.1.RELEASE</spring.boot.version>
+    </properties>
 
 </project>

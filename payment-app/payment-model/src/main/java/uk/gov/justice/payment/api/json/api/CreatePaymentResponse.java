@@ -4,7 +4,6 @@ package uk.gov.justice.payment.api.json.api;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.HttpMethod;
 import uk.gov.justice.payment.api.json.AbstractDomainObject;
 import uk.gov.justice.payment.api.json.external.Cancel;
 import uk.gov.justice.payment.api.json.external.GDSCreatePaymentResponse;
@@ -38,7 +37,7 @@ public class CreatePaymentResponse  extends AbstractDomainObject {
         linksInternal.setNextUrl(response.getLinks().getNextUrl());
         Cancel cancel = new Cancel();
         cancel.setHref(url+"/"+response.getPaymentId()+"/cancel");
-        cancel.setMethod(HttpMethod.POST.toString());
+        cancel.setMethod("POST");
         linksInternal.setCancelUrl(cancel);
         setLinks(linksInternal);
     }
