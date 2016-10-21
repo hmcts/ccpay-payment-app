@@ -1,4 +1,4 @@
-package uk.gov.justice.payment.api;
+package uk.gov.justice.payment.api.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,9 +17,9 @@ import static com.jayway.restassured.RestAssured.given;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+
 @Configuration
-public class PaymentApiApplicationIT {
+public class HealthCheck {
 
     public static final int AMOUNT = 10;
     private CreatePaymentRequest paymentRequest;

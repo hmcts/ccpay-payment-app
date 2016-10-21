@@ -1,0 +1,9 @@
+{
+"amount":100,
+"application_reference":"string",
+"description":"string",
+"email":"string",
+"payment_reference":"string",
+"return_url":"https://localhost",
+"service_id":"string"
+}

@@ -1,0 +1,9 @@
+{
+"amount":$amount,
+"application_reference":"$application_ref",
+"description":"$description",
+"email":"$email",
+"payment_reference":"$payment_ref",
+"return_url":"$ret_url",
+"service_id":"$service_id"
+}
