@@ -97,6 +97,16 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>9.4-1200-jdbc4</version>
+            <exclusions>
+            <exclusion>
+                <artifactId>commons-logging</artifactId>
+                <groupId>commons-logging</groupId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+            </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
