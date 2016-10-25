@@ -6,10 +6,14 @@ import com.jayway.restassured.RestAssured;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
+import uk.gov.justice.payment.api.services.PaymentService;
 
 import java.util.Calendar;
 
@@ -17,12 +21,16 @@ import static com.jayway.restassured.RestAssured.given;
 
 
 @RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.DEFINED_PORT)
 
-@Configuration
 public class HealthCheck {
 
     public static final int AMOUNT = 10;
     private CreatePaymentRequest paymentRequest;
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+
 
 
     @Before
@@ -42,6 +50,8 @@ public class HealthCheck {
 
     @Test
     public void createPayment() {
+
+
         setUp();
         given().contentType("application/json").
                 body(getJson(paymentRequest)).
@@ -61,6 +71,7 @@ public class HealthCheck {
         given().contentType("application/json").
                 when().get("/payments/" + paymentId).
                 then().statusCode(200).extract().path("state.status").equals("created");
+
 
     }
 
