@@ -11,7 +11,7 @@ public class PaymentWebApplicationTests {
 
 	@Test
 	public void contextLoads() {
-		//do nothing..
+		//do nothing...
 	}
 
 }
