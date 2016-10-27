@@ -9,6 +9,7 @@ where
 
 ################################################################################################
 To run acceptance test cases use following command
+mvn clean install -Pacceptance
 mvn clean install -Denv="acceptance"
 
 ################################################################################################
