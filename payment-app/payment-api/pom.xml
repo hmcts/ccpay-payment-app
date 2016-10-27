@@ -238,7 +238,7 @@
                             </execution>
                             <execution>
                                 <id>stop-jetty</id>
-                                <phase>post-integration-test</phase>
+                                <phase>test</phase>
                                 <goals>
                                     <goal>stop</goal>
                                 </goals>
