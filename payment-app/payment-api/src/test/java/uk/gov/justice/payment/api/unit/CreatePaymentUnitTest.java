@@ -1,22 +1,13 @@
 package uk.gov.justice.payment.api.unit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.PaymentController;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
-import uk.gov.justice.payment.api.services.PaymentService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -32,7 +23,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @Configuration
 
-public class CreatePaymentUnitTest extends AbstractPaymentTest{
+public class CreatePaymentUnitTest extends AbstractPaymentTest {
 
 
     public static final String TEST_SERVICE = "TEST_SERVICE";
@@ -41,25 +32,24 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
     public static final String TEST_DESC = "Test Desc";
     public static final String TEST_CASE = "Test Case";
     public static final String RETURN_URL = "https://local";
-    private String expectedCreatePaymentResponse;
-
-
-    private CreatePaymentRequest paymentRequest;
+    private static final String SERVICE_ID = "test-service-id";
     @Mock
     HttpServletRequest httpServletRequest;
-
-
+    private String expectedCreatePaymentResponse;
+    private CreatePaymentRequest paymentRequest;
 
     @Before
-    public void setUp() throws FileNotFoundException {
-
-        MockitoAnnotations.initMocks(this);
-        when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8181/payments"));
-        doNothing().when(paymentService).updatePayment(null,null);
-        ReflectionTestUtils.setField(paymentController,"restTemplate",restTemplate);
-        ReflectionTestUtils.setField(paymentController,"mapper",mapper);
-        expectedCreatePaymentResponse = new Scanner(new File(classLoader.getResource("createPaymentResponse.json").getFile())).useDelimiter("\\Z").next();
-
+    public void setUp() {
+        try {
+            super.setUp();
+            when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8181/payments"));
+            doNothing().when(paymentService).updatePayment(null, null);
+            ReflectionTestUtils.setField(paymentController, "restTemplate", restTemplate);
+            ReflectionTestUtils.setField(paymentController, "mapper", mapper);
+            expectedCreatePaymentResponse = new Scanner(new File(classLoader.getResource("createPaymentResponse.json").getFile())).useDelimiter("\\Z").next();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -79,12 +69,10 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
-
-
 
 
     @Test
@@ -103,9 +91,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -124,9 +112,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -146,9 +134,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -167,9 +155,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(null, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -189,9 +177,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment("", paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -210,9 +198,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -232,9 +220,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -253,9 +241,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -275,9 +263,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -297,9 +285,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 422);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
     }
 
     @Test
@@ -319,9 +307,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        ReflectionTestUtils.setField(paymentController,"url", URL +"/create");
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 201);
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 201);
     }
 
     @Test
@@ -340,13 +328,9 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest{
                         .withStatus(401)
 
                 ));
-        ReflectionTestUtils.setField(paymentController,"url",URL+"/create_fail");
-        assertEquals(paymentController.createPayment(paymentRequest,httpServletRequest).getStatusCode().value(), 401);
+        ReflectionTestUtils.setField(paymentController, "url", URL + "/create_fail");
+        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 401);
     }
-
-
-
-
 
 
 }

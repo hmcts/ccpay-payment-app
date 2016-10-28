@@ -3,7 +3,6 @@ package uk.gov.justice.payment.api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,7 +16,6 @@ public class PaymentConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-
 
 
 }
