@@ -8,8 +8,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@PropertySource("classpath:payment.properties")
-
 public class PaymentConfig {
 
     @Autowired

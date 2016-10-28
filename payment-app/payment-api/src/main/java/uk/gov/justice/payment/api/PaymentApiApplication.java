@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.PropertySource;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
@@ -18,13 +19,19 @@ import static springfox.documentation.builders.PathSelectors.regex;
 @EnableSwagger2
 public class PaymentApiApplication {
 
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(PaymentApiApplication.class);
 
 
 	public static void main(String[] args) {
+
         SpringApplication.run(PaymentApiApplication.class, args);
+
+
 	}
+
+
 
     @Bean
     public Docket newsApi() {
