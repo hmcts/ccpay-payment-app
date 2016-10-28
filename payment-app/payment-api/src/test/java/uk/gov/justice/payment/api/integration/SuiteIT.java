@@ -6,10 +6,10 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
 
-        PaymentsHappyPath.class,
-        PaymentsMandatoryValues.class,
+        //PaymentsHappyPath.class,
+        //PaymentsMandatoryValues.class,
         HealthCheck.class,
-        PaymentsKeysMissingValidation.class
+        //PaymentsKeysMissingValidation.class
 
   
 })
