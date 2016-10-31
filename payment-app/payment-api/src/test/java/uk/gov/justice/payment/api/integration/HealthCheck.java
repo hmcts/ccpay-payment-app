@@ -52,7 +52,7 @@ public class HealthCheck {
         setUp();
         given().contentType("application/json").
                 body(getJson(paymentRequest)).
-                header("service-id", SERVICE_ID).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
 
                 then().statusCode(201);
@@ -64,13 +64,13 @@ public class HealthCheck {
         setUp();
         String paymentId = given().contentType("application/json").
                 body(getJson(paymentRequest)).
-                header("service-id", SERVICE_ID).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
                 then().statusCode(201).extract().path("payment_id");
 
         given().contentType("application/json").
                 when().
-                header("service-id", SERVICE_ID).
+                header("service_id", SERVICE_ID).
                 get("/payments/" + paymentId).
 
                 then().statusCode(200).extract().path("state.status").equals("created");
@@ -85,11 +85,11 @@ public class HealthCheck {
 
         String paymentId = given().contentType("application/json").
                 body(getJson(paymentRequest)).
-                header("service-id", SERVICE_ID).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
                 then().statusCode(201).extract().path("payment_id");
         given().contentType("application/json").
-                header("service-id", SERVICE_ID).
+                header("service_id", SERVICE_ID).
                 when().post("/payments/" + paymentId + "/cancel").
                 then().statusCode(204);
 
@@ -101,12 +101,12 @@ public class HealthCheck {
 
         given().contentType("application/json").
                 when().
-                header("service-id", SERVICE_ID).
+                header("service_id", SERVICE_ID).
                 get("/payments").
                 then().statusCode(200).extract().path("payment_id");
         given().contentType("application/json").
                 when().
-                header("service-id", SERVICE_ID).
+                header("service_id", SERVICE_ID).
                 get("/payments/?amount=" + AMOUNT).
                 then().statusCode(200);
 

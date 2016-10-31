@@ -64,7 +64,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method = RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "service id") @RequestHeader(value = "service-id") String serviceId,
+    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "service id") @RequestHeader(value = "service_id") String serviceId,
                                                                @ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload,
                                                                HttpServletRequest httpServletRequest) {
         try {
@@ -102,7 +102,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{paymentId}", method = RequestMethod.GET)
 
-    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "service id") @RequestHeader(value = "service-id") String serviceId,
+    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "service id") @RequestHeader(value = "service_id") String serviceId,
                                                            @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId) {
 
         try {
@@ -129,7 +129,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services")
     })
     @RequestMapping(value = "/payments", method = RequestMethod.GET)
-    public ResponseEntity<List<TransactionRecord>> searchPayment(@ApiParam(value = "service id") @RequestHeader(value = "service-id") String serviceId,
+    public ResponseEntity<List<TransactionRecord>> searchPayment(@ApiParam(value = "service id") @RequestHeader(value = "service_id") String serviceId,
                                                                  @ApiParam(value = "amount") @RequestParam(value = "amount", required = false) Integer amount,
                                                                  @ApiParam(value = "application reference") @RequestParam(value = "application_reference", required = false) String applicationReference,
                                                                  @ApiParam(value = "description") @RequestParam(value = "description", required = false) String description,
@@ -170,7 +170,7 @@ public class PaymentController {
             @ApiResponse(code = 500, message = "Something is wrong with services"),
     })
     @RequestMapping(value = "/payments/{paymentId}/cancel", method = RequestMethod.POST)
-    public ResponseEntity<String> cancelPayment(@ApiParam(value = "service id") @RequestHeader(value = "service-id") String serviceId,
+    public ResponseEntity<String> cancelPayment(@ApiParam(value = "service id") @RequestHeader(value = "service_id") String serviceId,
                                                 @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId) {
 
         try {

@@ -14,7 +14,6 @@
         @JsonPropertyOrder({
                 "amount",
                 "application_reference",
-                "service_id",
                 "payment_reference",
                 "description",
                 "return_url",
@@ -28,7 +27,7 @@
             @JsonProperty("application_reference")
             private String applicationReference;
 
-            @JsonProperty("service_id")
+            @JsonIgnore
             private String serviceId;
 
             @JsonProperty("payment_reference")
@@ -114,7 +113,6 @@
              * @return
              * The serviceId
              */
-            @JsonProperty("service_id")
             public String getServiceId() {
                 return serviceId;
             }
@@ -124,7 +122,6 @@
              * @param serviceId
              * The service_id
              */
-            @JsonProperty("service_id")
             public void setServiceId(String serviceId) {
                 this.serviceId = serviceId;
             }
