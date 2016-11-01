@@ -43,7 +43,8 @@ public class PaymentsHappyPath extends TestBase
         String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
         String myJson = loadFile("Messages_Appeal_Post.json");
 
-        Response r = given().contentType("application/json").body(myJson).when().post(URL);
+        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).body(myJson).when().post(URL);
         Assert.assertEquals(201, r.statusCode());
 
         if (r.statusCode() == 201) {
@@ -57,7 +58,8 @@ public class PaymentsHappyPath extends TestBase
 
         String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
 
-        given().when().get(url).then().assertThat().statusCode(200);
+        given().when().header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).get(url).then().assertThat().statusCode(200);
 
     }
 
@@ -73,7 +75,8 @@ public class PaymentsHappyPath extends TestBase
     public void test4_POST_Cancel() {
 
         String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id + CONFIG.getProperty("cancel_path");
-        given().when().post(url).then().assertThat().statusCode(204);
+        given().when().header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).post(url).then().assertThat().statusCode(204);
 
     }
 
@@ -82,7 +85,8 @@ public class PaymentsHappyPath extends TestBase
 
         String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
 
-        Response r = given().when().get(url);
+        Response r = given().when().header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).get(url);
         Assert.assertEquals(CONFIG.getProperty("payment_cancel_status"), r.path("state.status"));
         Assert.assertEquals(CONFIG.getProperty("payment_cancel_message"), r.path("state.message"));
 
