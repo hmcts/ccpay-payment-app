@@ -37,6 +37,7 @@ public class PaymentController {
 
     private static final Logger logger = LoggerFactory
             .getLogger(PaymentController.class);
+    public static final String INVALID_SERVICE_ID = "service_id is invalid.";
 
     @Autowired
     KeyConfig keyConfig;
@@ -70,6 +71,9 @@ public class PaymentController {
         try {
             payload.setServiceId(serviceId);
             logger.debug("createPaymentRequest : " + payload.toString());
+            if (!isValid(serviceId)) {
+                return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
+            }
             if (!payload.isValid()) {
                 return new ResponseEntity(payload.getValidationMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
             }
@@ -106,6 +110,9 @@ public class PaymentController {
                                                            @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId) {
 
         try {
+            if (!isValid(serviceId)) {
+                return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
+            }
             headers.set(HttpHeaders.AUTHORIZATION, getAuth(serviceId));
             HttpEntity entity = new HttpEntity(headers);
             ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url + "/" + paymentId, HttpMethod.GET, entity, GDSViewPaymentResponse.class);
@@ -140,7 +147,9 @@ public class PaymentController {
 
     ) {
         try {
-
+            if (!isValid(serviceId)) {
+                return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
+            }
             SearchCriteria searchCriteria = new SearchCriteria();
             searchCriteria.setAmount(amount);
             searchCriteria.setApplicationReference(applicationReference);
@@ -174,6 +183,9 @@ public class PaymentController {
                                                 @ApiParam(value = "Payment id") @PathVariable("paymentId") String paymentId) {
 
         try {
+            if (!isValid(serviceId)) {
+                return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
+            }
             logger.debug("GDS : cancelPayment : paymentId=" + paymentId);
             headers.set(HttpHeaders.AUTHORIZATION, getAuth(serviceId));
             HttpEntity entity = new HttpEntity(headers);
@@ -196,5 +208,10 @@ public class PaymentController {
 
     private String getAuth(String serviceId) {
         return BEARER + keyConfig.getKey().get(serviceId);
+    }
+
+    private boolean isValid(String serviceId) {
+        return keyConfig.getKey().containsKey(serviceId);
+
     }
 }

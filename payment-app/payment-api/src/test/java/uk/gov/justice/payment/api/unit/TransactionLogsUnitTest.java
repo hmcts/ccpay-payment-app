@@ -1,5 +1,6 @@
 package uk.gov.justice.payment.api.unit;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -33,6 +34,11 @@ public class TransactionLogsUnitTest extends AbstractPaymentTest {
     @Mock
     List<TransactionRecord> txList;
 
+
+    @Before
+    public void setUp() {
+        super.setUp();
+    }
     @Test
     public void searchTransactionsNotFound() throws FileNotFoundException {
 
@@ -42,7 +48,7 @@ public class TransactionLogsUnitTest extends AbstractPaymentTest {
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
         ReflectionTestUtils.setField(paymentController, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(paymentController, "mapper", mapper);
-        assertEquals(paymentController.searchPayment(null, null, null, null, null, null, null).getStatusCode().value(), 404);
+        assertEquals(paymentController.searchPayment(SERVICE_ID, null, null, null, null, null, null).getStatusCode().value(), 404);
     }
 
     @Test
@@ -54,6 +60,6 @@ public class TransactionLogsUnitTest extends AbstractPaymentTest {
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
         ReflectionTestUtils.setField(paymentController, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(paymentController, "mapper", mapper);
-        assertEquals(paymentController.searchPayment(null, null, null, null, null, null, null).getStatusCode().value(), 200);
+        assertEquals(paymentController.searchPayment(SERVICE_ID, null, null, null, null, null, null).getStatusCode().value(), 200);
     }
 }

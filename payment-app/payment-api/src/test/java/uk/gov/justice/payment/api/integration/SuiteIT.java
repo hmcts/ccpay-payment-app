@@ -9,7 +9,7 @@ import org.junit.runners.Suite;
         //PaymentsHappyPath.class,
         //PaymentsMandatoryValues.class,
         HealthCheck.class,
-        //PaymentsKeysMissingValidation.class
+        PaymentsKeysMissingValidation.class
 
 
 })

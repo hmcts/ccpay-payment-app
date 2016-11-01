@@ -58,7 +58,7 @@ public class CancelPaymentUnitTest extends AbstractPaymentTest {
                         .withHeader("Content-Type", "application/json")
                 ));
         ReflectionTestUtils.setField(paymentController, "url", URL + "/cancel");
-        assertEquals(paymentController.cancelPayment(null, null).getStatusCode().value(), 204);
+        assertEquals(paymentController.cancelPayment(SERVICE_ID, null).getStatusCode().value(), 204);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class CancelPaymentUnitTest extends AbstractPaymentTest {
                         .withHeader("Content-Type", "application/json")
                 ));
         ReflectionTestUtils.setField(paymentController, "url", URL + "/cancel/failed");
-        assertEquals(paymentController.cancelPayment(null, null).getStatusCode().value(), 400);
+        assertEquals(paymentController.cancelPayment(SERVICE_ID, null).getStatusCode().value(), 400);
     }
 
 }

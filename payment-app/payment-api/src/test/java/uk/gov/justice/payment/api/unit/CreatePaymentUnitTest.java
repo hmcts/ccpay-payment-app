@@ -32,7 +32,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest {
     public static final String TEST_DESC = "Test Desc";
     public static final String TEST_CASE = "Test Case";
     public static final String RETURN_URL = "https://local";
-    private static final String SERVICE_ID = "test-service-id";
+    //private static final String SERVICE_ID = "test-service-id";
     @Mock
     HttpServletRequest httpServletRequest;
     private String expectedCreatePaymentResponse;
@@ -296,7 +296,7 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest {
         paymentRequest.setAmount(10);
         paymentRequest.setDescription(TEST_DESC);
         paymentRequest.setPaymentReference(TEST_REF);
-        paymentRequest.setServiceId(TEST_SERVICE);
+        //paymentRequest.setServiceId(TEST_SERVICE);
         paymentRequest.setApplicationReference(TEST_CASE);
         paymentRequest.setReturnUrl("https://local");
 

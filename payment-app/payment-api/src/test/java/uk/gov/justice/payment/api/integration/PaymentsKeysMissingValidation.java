@@ -53,7 +53,8 @@ public class PaymentsKeysMissingValidation extends TestBase {
                 CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"), CONFIG.getProperty("k_service_id"),
                 CONFIG.getProperty("service_id"));
 
-        Response r = given().contentType("application/json").body(formatted_json).when().post(URL);
+        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
         Assert.assertEquals(400, r.statusCode());
         Assert.assertEquals(CONFIG.getProperty("amount_man_msg"), r.path("error"));
 
@@ -70,7 +71,8 @@ public class PaymentsKeysMissingValidation extends TestBase {
                 CONFIG.getProperty("payment_ref"), CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"),
                 CONFIG.getProperty("k_service_id"), CONFIG.getProperty("service_id"));
 
-        Response r = given().contentType("application/json").body(formatted_json).when().post(URL);
+        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
         Assert.assertEquals(422, r.statusCode());
         Assert.assertEquals(CONFIG.getProperty("application_man_msg"), r.body().asString());
 
@@ -87,7 +89,8 @@ public class PaymentsKeysMissingValidation extends TestBase {
                 CONFIG.getProperty("payment_ref"), CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"),
                 CONFIG.getProperty("k_service_id"), CONFIG.getProperty("service_id"));
 
-        Response r = given().contentType("application/json").body(formatted_json).when().post(URL);
+        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
         Assert.assertEquals(422, r.statusCode());
         Assert.assertEquals(CONFIG.getProperty("description_man_msg"), r.getBody().asString());
 
@@ -104,7 +107,8 @@ public class PaymentsKeysMissingValidation extends TestBase {
                 CONFIG.getProperty("email"), "", "", CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"),
                 CONFIG.getProperty("k_service_id"), CONFIG.getProperty("service_id"));
 
-        Response r = given().contentType("application/json").body(formatted_json).when().post(URL);
+        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
         Assert.assertEquals(422, r.statusCode());
         Assert.assertEquals(CONFIG.getProperty("payment_ref_man_msg"), r.getBody().asString());
 
@@ -122,7 +126,8 @@ public class PaymentsKeysMissingValidation extends TestBase {
                 CONFIG.getProperty("payment_ref"), "", "", CONFIG.getProperty("k_service_id"),
                 CONFIG.getProperty("service_id"));
 
-        Response r = given().contentType("application/json").body(formatted_json).when().post(URL);
+        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
         Assert.assertEquals(422, r.statusCode());
         Assert.assertEquals(CONFIG.getProperty("ret_url_man_msg"), r.getBody().asString());
 
@@ -138,9 +143,11 @@ public class PaymentsKeysMissingValidation extends TestBase {
                 CONFIG.getProperty("k_description"), CONFIG.getProperty("description"), CONFIG.getProperty("k_email"),
                 CONFIG.getProperty("email"), CONFIG.getProperty("k_payment_reference"),
                 CONFIG.getProperty("payment_ref"), CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"),
-                "", "");
+                "",
+                "");
 
-        Response r = given().contentType("application/json").body(formatted_json).when().post(URL);
+        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
+                "").body(formatted_json).when().post(URL);
         Assert.assertEquals(422, r.statusCode());
         Assert.assertEquals(CONFIG.getProperty("service_id_man_msg"), r.getBody().asString());
 

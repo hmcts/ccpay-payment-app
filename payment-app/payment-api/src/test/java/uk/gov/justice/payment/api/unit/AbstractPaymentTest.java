@@ -24,6 +24,7 @@ public class AbstractPaymentTest {
 
     public static final int PORT = 9190;
     public static final String URL = "http://localhost:" + PORT + "/payments";
+    public static final String SERVICE_ID = "test-service-id";
 
     @ClassRule
     public static WireMockRule wireMockRule = new WireMockRule(PORT);
@@ -47,7 +48,8 @@ public class AbstractPaymentTest {
         MockitoAnnotations.initMocks(this);
 
         when(keyConfig.getKey()).thenReturn(keys);
-        when(keys.get(null)).thenReturn("someString");
+        when(keys.get(SERVICE_ID)).thenReturn(SERVICE_ID);
+        when(keys.containsKey(SERVICE_ID)).thenReturn(true);
 
         ReflectionTestUtils.setField(paymentController, "keyConfig", keyConfig);
         ReflectionTestUtils.setField(paymentController, "headers", headers);

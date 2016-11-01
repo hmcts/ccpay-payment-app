@@ -64,7 +64,7 @@ public class ViewPaymentUnitTest extends AbstractPaymentTest {
                 ));
         ReflectionTestUtils.setField(paymentController, "url", URL + "/view");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 200);
+        assertEquals(paymentController.viewPayment(SERVICE_ID, null).getStatusCode().value(), 200);
     }
 
 
@@ -78,7 +78,7 @@ public class ViewPaymentUnitTest extends AbstractPaymentTest {
                 ));
         ReflectionTestUtils.setField(paymentController, "url", URL + "/view_not_found");
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.viewPayment(null, null).getStatusCode().value(), 404);
+        assertEquals(paymentController.viewPayment(SERVICE_ID, null).getStatusCode().value(), 404);
     }
 
 

@@ -214,9 +214,9 @@
                 if (getPaymentReference() == null || "".equals(getPaymentReference())) {
                     return false;
                 }
-                if (getServiceId() == null || "".equals(getServiceId())) {
-                    return false;
-                }
+//                if (getServiceId() == null || "".equals(getServiceId())) {
+//                    return false;
+//                }
 
                 if (getReturnUrl() == null || "".equals(getReturnUrl())) {
                     return false;
@@ -245,9 +245,9 @@
                 if (getPaymentReference() == null || "".equals(getPaymentReference())) {
                     return prefix+"payment_reference"+postfix;
                 }
-                if (getServiceId() == null || "".equals(getServiceId())) {
-                    return prefix+"service_id"+postfix;
-                }
+//                if (getServiceId() == null || "".equals(getServiceId())) {
+//                    return prefix+"service_id"+postfix;
+//                }
 
                 if (getReturnUrl() == null || "".equals(getReturnUrl())) {
                     return prefix+"return_url"+postfix;
