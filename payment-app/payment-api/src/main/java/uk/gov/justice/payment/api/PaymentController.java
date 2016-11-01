@@ -141,7 +141,6 @@ public class PaymentController {
                                                                  @ApiParam(value = "application reference") @RequestParam(value = "application_reference", required = false) String applicationReference,
                                                                  @ApiParam(value = "description") @RequestParam(value = "description", required = false) String description,
                                                                  @ApiParam(value = "payment reference") @RequestParam(value = "payment_reference", required = false) String paymentReference,
-                                                                 //@ApiParam(value = "service id") @RequestParam(value = "service_id" , required = false) String serviceId,
                                                                  @ApiParam(value = "created date") @RequestParam(value = "created_date", required = false) String createdDate,
                                                                  @ApiParam(value = "email") @RequestParam(value = "email", required = false) String email
 
