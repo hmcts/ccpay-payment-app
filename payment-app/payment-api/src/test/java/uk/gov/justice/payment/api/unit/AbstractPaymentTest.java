@@ -41,8 +41,6 @@ public class AbstractPaymentTest {
     KeyConfig keyConfig;
     @Mock
     Map<String, String> keys;
-    @Mock
-    HttpHeaders headers;
 
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -52,9 +50,6 @@ public class AbstractPaymentTest {
         when(keys.containsKey(SERVICE_ID)).thenReturn(true);
 
         ReflectionTestUtils.setField(paymentController, "keyConfig", keyConfig);
-        ReflectionTestUtils.setField(paymentController, "headers", headers);
-
-
     }
 
     @After

@@ -39,7 +39,6 @@ public class ViewPaymentUnitTest extends AbstractPaymentTest {
             when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8181/payments"));
             doNothing().when(paymentService).storePayment(null, null);
             ReflectionTestUtils.setField(paymentController, "restTemplate", restTemplate);
-            ReflectionTestUtils.setField(paymentController, "mapper", mapper);
             expectedViewPaymentResponse = new Scanner(new File(classLoader.getResource("viewPaymentResponse.json").getFile())).useDelimiter("\\Z").next();
 
             paymentRequest = new CreatePaymentRequest();

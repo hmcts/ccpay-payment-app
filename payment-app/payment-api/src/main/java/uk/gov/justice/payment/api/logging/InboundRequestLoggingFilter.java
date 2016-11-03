@@ -2,12 +2,14 @@ package uk.gov.justice.payment.api.logging;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -37,11 +39,10 @@ public class InboundRequestLoggingFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        logRequest(request);
         Stopwatch stopwatch = createStarted(ticker);
 
         try {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(logRequest(request), response);
             logResponse(response, stopwatch.elapsed(MILLISECONDS));
         } catch (ServletException | IOException | RuntimeException e) {
             logFailure(stopwatch.elapsed(MILLISECONDS));
@@ -49,8 +50,16 @@ public class InboundRequestLoggingFilter extends OncePerRequestFilter {
         }
     }
 
-    private void logRequest(HttpServletRequest request) {
+    private HttpServletRequest logRequest(HttpServletRequest request) throws IOException {
         LOG.info("Inbound request start, method: {}, uri: {}", request.getMethod(), request.getRequestURI());
+
+        if (LOG.isDebugEnabled()) {
+            ContentCachingRequestWrapper cachedRequest = new ContentCachingRequestWrapper(request);
+            LOG.debug(IOUtils.toString(cachedRequest.getInputStream()));
+            return cachedRequest;
+        } else {
+            return request;
+        }
     }
 
     private void logResponse(HttpServletResponse response, long elapsed) {

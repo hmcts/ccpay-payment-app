@@ -45,7 +45,6 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest {
             when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8181/payments"));
             doNothing().when(paymentService).updatePayment(null, null);
             ReflectionTestUtils.setField(paymentController, "restTemplate", restTemplate);
-            ReflectionTestUtils.setField(paymentController, "mapper", mapper);
             expectedCreatePaymentResponse = new Scanner(new File(classLoader.getResource("createPaymentResponse.json").getFile())).useDelimiter("\\Z").next();
         } catch (FileNotFoundException e) {
             e.printStackTrace();

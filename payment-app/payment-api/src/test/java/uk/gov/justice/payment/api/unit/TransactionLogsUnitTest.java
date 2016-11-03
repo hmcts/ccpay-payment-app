@@ -47,7 +47,6 @@ public class TransactionLogsUnitTest extends AbstractPaymentTest {
         when(paymentService.searchPayment(searchCriteria)).thenReturn(txList);
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
         ReflectionTestUtils.setField(paymentController, "restTemplate", restTemplate);
-        ReflectionTestUtils.setField(paymentController, "mapper", mapper);
         assertEquals(paymentController.searchPayment(SERVICE_ID, null, null, null, null, null, null).getStatusCode().value(), 404);
     }
 
@@ -59,7 +58,6 @@ public class TransactionLogsUnitTest extends AbstractPaymentTest {
         when(txList.size()).thenReturn(2);
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
         ReflectionTestUtils.setField(paymentController, "restTemplate", restTemplate);
-        ReflectionTestUtils.setField(paymentController, "mapper", mapper);
         assertEquals(paymentController.searchPayment(SERVICE_ID, null, null, null, null, null, null).getStatusCode().value(), 200);
     }
 }
