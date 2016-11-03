@@ -310,26 +310,4 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest {
         ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
         assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 201);
     }
-
-    @Test
-    public void createPaymentAuthenticationFailure() {
-
-        paymentRequest = new CreatePaymentRequest();
-        paymentRequest.setAmount(10);
-        paymentRequest.setDescription(TEST_DESC);
-        paymentRequest.setPaymentReference(TEST_REF);
-        paymentRequest.setServiceId(TEST_SERVICE);
-        paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl("https://local");
-
-        stubFor(post(urlPathMatching("/payments/create_fail"))
-                .willReturn(aResponse()
-                        .withStatus(401)
-
-                ));
-        ReflectionTestUtils.setField(paymentController, "url", URL + "/create_fail");
-        assertEquals(paymentController.createPayment(SERVICE_ID, paymentRequest, httpServletRequest).getStatusCode().value(), 401);
-    }
-
-
 }

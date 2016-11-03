@@ -1,15 +1,15 @@
 package uk.gov.justice.payment.api.repository;
 
 
-import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 import uk.gov.justice.payment.api.domain.PaymentDetails;
 
 
-public interface PaymentRepository extends CrudRepository <PaymentDetails, Integer>,QueryDslPredicateExecutor<PaymentDetails> {
+public interface PaymentRepository extends CrudRepository<PaymentDetails, Integer>, QueryDslPredicateExecutor<PaymentDetails> {
 
-    <S extends PaymentDetails> S  save(S entity);
+    <S extends PaymentDetails> S save(S entity);
+
     Iterable<PaymentDetails> findAll();
 
     PaymentDetails findByPaymentId(String paymentId);

@@ -1,18 +1,17 @@
 package uk.gov.justice.payment.api.unit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.After;
 import org.junit.ClassRule;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.KeyConfig;
 import uk.gov.justice.payment.api.PaymentController;
 import uk.gov.justice.payment.api.services.PaymentService;
 
+import java.io.FileNotFoundException;
 import java.util.Map;
 
 import static org.mockito.Mockito.when;
@@ -30,7 +29,6 @@ public class AbstractPaymentTest {
     public static WireMockRule wireMockRule = new WireMockRule(PORT);
 
     PaymentController paymentController = new PaymentController();
-    ObjectMapper mapper = new ObjectMapper();
     RestTemplate restTemplate = new RestTemplate();
     ClassLoader classLoader = getClass().getClassLoader();
 
@@ -42,7 +40,7 @@ public class AbstractPaymentTest {
     @Mock
     Map<String, String> keys;
 
-    public void setUp() {
+    public void setUp() throws FileNotFoundException {
         MockitoAnnotations.initMocks(this);
 
         when(keyConfig.getKey()).thenReturn(keys);
