@@ -8,12 +8,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
-import uk.gov.justice.payment.api.services.PaymentService;
 
 import java.util.Calendar;
 
@@ -21,16 +18,16 @@ import static com.jayway.restassured.RestAssured.given;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 
 public class HealthCheck {
 
     public static final int AMOUNT = 10;
+    public static final String SERVICE_ID = "divorce";
     private CreatePaymentRequest paymentRequest;
+    //private HttpHeaders headers;
     @Autowired
     private TestRestTemplate restTemplate;
-
-
 
 
     @Before
@@ -39,12 +36,12 @@ public class HealthCheck {
         RestAssured.port = 8181;
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(AMOUNT);
-        paymentRequest.setDescription("Test Desc"+timestamp);
-        paymentRequest.setPaymentReference("TestRef"+timestamp);
-        paymentRequest.setApplicationReference("Test case id"+timestamp);
+        paymentRequest.setDescription("Test Desc" + timestamp);
+        paymentRequest.setPaymentReference("TestRef" + timestamp);
+        paymentRequest.setApplicationReference("Test case id" + timestamp);
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
         paymentRequest.setEmail("zeeshan.alam@agilesphere.co.uk");
-        paymentRequest.setServiceId("TEST_SERVICE");
+        //headers.put("service-id","divorce");
     }
 
 
@@ -55,7 +52,9 @@ public class HealthCheck {
         setUp();
         given().contentType("application/json").
                 body(getJson(paymentRequest)).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
+
                 then().statusCode(201);
     }
 
@@ -65,11 +64,15 @@ public class HealthCheck {
         setUp();
         String paymentId = given().contentType("application/json").
                 body(getJson(paymentRequest)).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
                 then().statusCode(201).extract().path("payment_id");
 
         given().contentType("application/json").
-                when().get("/payments/" + paymentId).
+                when().
+                header("service_id", SERVICE_ID).
+                get("/payments/" + paymentId).
+
                 then().statusCode(200).extract().path("state.status").equals("created");
 
 
@@ -82,9 +85,11 @@ public class HealthCheck {
 
         String paymentId = given().contentType("application/json").
                 body(getJson(paymentRequest)).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
                 then().statusCode(201).extract().path("payment_id");
         given().contentType("application/json").
+                header("service_id", SERVICE_ID).
                 when().post("/payments/" + paymentId + "/cancel").
                 then().statusCode(204);
 
@@ -95,10 +100,14 @@ public class HealthCheck {
         setUp();
 
         given().contentType("application/json").
-                when().get("/payments").
+                when().
+                header("service_id", SERVICE_ID).
+                get("/payments").
                 then().statusCode(200).extract().path("payment_id");
         given().contentType("application/json").
-                when().get("/payments/?amount=" + AMOUNT ).
+                when().
+                header("service_id", SERVICE_ID).
+                get("/payments/?amount=" + AMOUNT).
                 then().statusCode(200);
 
     }
