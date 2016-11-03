@@ -1,18 +1,9 @@
 package uk.gov.justice.payment.api;
 
-/**
- * Created by zeeshan on 30/08/2016.
- */
-
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -26,7 +17,6 @@ import uk.gov.justice.payment.api.json.external.GDSViewPaymentResponse;
 import uk.gov.justice.payment.api.services.PaymentService;
 import uk.gov.justice.payment.api.services.SearchCriteria;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -35,16 +25,13 @@ import java.util.List;
 @Api(value = "/payment", description = "Payment REST API")
 public class PaymentController {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(PaymentController.class);
-    public static final String INVALID_SERVICE_ID = "service_id is invalid.";
+    private static final String INVALID_SERVICE_ID = "service_id is invalid.";
 
     @Autowired
-    KeyConfig keyConfig;
+    private KeyConfig keyConfig;
+
     @Autowired
     private RestTemplate restTemplate;
-    @Autowired
-    private ObjectMapper mapper;
 
     @Autowired
     private PaymentService paymentService;
@@ -52,12 +39,8 @@ public class PaymentController {
     @Value("${gov.pay.url}")
     private String url;
 
-    private String BEARER = "Bearer ";
-    private HttpHeaders headers;
-
     @ApiOperation(value = "Create payment", notes = "Create payment")
     @ApiResponses(value = {
-
             @ApiResponse(code = 201, message = "Payment has been created"),
             @ApiResponse(code = 400, message = "The server cannot process the request due to a client error, eg missing details in the request."),
             @ApiResponse(code = 401, message = "Required authentication has failed or not been provided"),
@@ -70,7 +53,6 @@ public class PaymentController {
                                                                HttpServletRequest httpServletRequest) {
         try {
             payload.setServiceId(serviceId);
-            logger.debug("createPaymentRequest : " + payload.toString());
             if (!isValid(serviceId)) {
                 return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
             }
@@ -79,19 +61,15 @@ public class PaymentController {
             }
             GDSCreatePaymentRequest paymentRequest = new GDSCreatePaymentRequest(payload);
 
-            headers.set(HttpHeaders.AUTHORIZATION, getAuth(serviceId));
-            HttpEntity<GDSCreatePaymentRequest> entity = new HttpEntity<GDSCreatePaymentRequest>(paymentRequest, headers);
-            logger.debug("GDS : createPaymentRequest : " + paymentRequest.toString());
+            HttpEntity<GDSCreatePaymentRequest> entity = new HttpEntity<>(paymentRequest, getHeaders(serviceId));
             ResponseEntity<GDSCreatePaymentResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, GDSCreatePaymentResponse.class);
             String url = httpServletRequest.getRequestURL().toString();
             CreatePaymentResponse createPaymentResponse = new CreatePaymentResponse(response.getBody(), url);
             paymentService.storePayment(payload, response.getBody());
 
-            logger.debug("GDS : createPaymentResponse : " + createPaymentResponse.toString());
-            ResponseEntity<CreatePaymentResponse> responseEntity = new ResponseEntity<CreatePaymentResponse>(createPaymentResponse, response.getStatusCode());
+            ResponseEntity<CreatePaymentResponse> responseEntity = new ResponseEntity<>(createPaymentResponse, response.getStatusCode());
             return responseEntity;
         } catch (HttpClientErrorException e) {
-            logger.debug("createPaymentResponse : Error " + e.getMessage());
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
@@ -113,16 +91,13 @@ public class PaymentController {
             if (!isValid(serviceId)) {
                 return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
             }
-            headers.set(HttpHeaders.AUTHORIZATION, getAuth(serviceId));
-            HttpEntity entity = new HttpEntity(headers);
+            HttpEntity entity = new HttpEntity(getHeaders(serviceId));
             ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url + "/" + paymentId, HttpMethod.GET, entity, GDSViewPaymentResponse.class);
-            logger.debug("GDS : viewPaymentResponse : " + response.toString());
             ViewPaymentResponse viewPaymentResponse = new ViewPaymentResponse(response.getBody());
-            ResponseEntity<ViewPaymentResponse> responseEntity = new ResponseEntity<ViewPaymentResponse>(viewPaymentResponse, response.getStatusCode());
+            ResponseEntity<ViewPaymentResponse> responseEntity = new ResponseEntity<>(viewPaymentResponse, response.getStatusCode());
             paymentService.updatePayment(response.getBody().getPaymentId(), response.getBody().getState().getStatus());
             return responseEntity;
         } catch (HttpClientErrorException e) {
-            logger.debug("viewPaymentResponse : Error " + e.getMessage());
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
@@ -142,9 +117,7 @@ public class PaymentController {
                                                                  @ApiParam(value = "description") @RequestParam(value = "description", required = false) String description,
                                                                  @ApiParam(value = "payment reference") @RequestParam(value = "payment_reference", required = false) String paymentReference,
                                                                  @ApiParam(value = "created date") @RequestParam(value = "created_date", required = false) String createdDate,
-                                                                 @ApiParam(value = "email") @RequestParam(value = "email", required = false) String email
-
-    ) {
+                                                                 @ApiParam(value = "email") @RequestParam(value = "email", required = false) String email) {
         try {
             if (!isValid(serviceId)) {
                 return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
@@ -161,7 +134,7 @@ public class PaymentController {
             if (list.size() == 0) {
                 return new ResponseEntity("No transaction record found for supplied criteria", HttpStatus.NOT_FOUND);
             }
-            ResponseEntity<List<TransactionRecord>> responseEntity = new ResponseEntity<List<TransactionRecord>>(list, HttpStatus.OK);
+            ResponseEntity<List<TransactionRecord>> responseEntity = new ResponseEntity<>(list, HttpStatus.OK);
             return responseEntity;
         } catch (Exception e) {
             return new ResponseEntity("Something is wrong with services", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -185,28 +158,23 @@ public class PaymentController {
             if (!isValid(serviceId)) {
                 return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
             }
-            logger.debug("GDS : cancelPayment : paymentId=" + paymentId);
-            headers.set(HttpHeaders.AUTHORIZATION, getAuth(serviceId));
-            HttpEntity entity = new HttpEntity(headers);
-            ResponseEntity<String> response = restTemplate.exchange(url + "/" + paymentId + "/cancel", HttpMethod.POST, entity, String.class);
-            logger.debug("GDS : cancelPaymentResponse : " + response);
-            return response;
+
+            HttpEntity entity = new HttpEntity(getHeaders(serviceId));
+            return restTemplate.exchange(url + "/" + paymentId + "/cancel", HttpMethod.POST, entity, String.class);
         } catch (HttpClientErrorException e) {
-            logger.debug("viewPaymentResponse : Error " + e.getMessage());
             return new ResponseEntity(e.getResponseBodyAsString(), e.getStatusCode());
         }
     }
 
-
-    @PostConstruct
-    private void init() {
-        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        headers = new HttpHeaders();
+    private HttpHeaders getHeaders(String serviceId) {
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set(HttpHeaders.AUTHORIZATION, getAuth(serviceId));
+        return headers;
     }
 
     private String getAuth(String serviceId) {
-        return BEARER + keyConfig.getKey().get(serviceId);
+        return "Bearer " + keyConfig.getKey().get(serviceId);
     }
 
     private boolean isValid(String serviceId) {
