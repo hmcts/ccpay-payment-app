@@ -52,12 +52,12 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method = RequestMethod.GET)
     public List<TransactionRecord> searchPayment(@ServiceId String serviceId,
-                                                 @ApiParam(value = "amount") @RequestParam(value = "amount", required = false) Integer amount,
-                                                 @ApiParam(value = "application reference") @RequestParam(value = "application_reference", required = false) String applicationReference,
-                                                 @ApiParam(value = "description") @RequestParam(value = "description", required = false) String description,
-                                                 @ApiParam(value = "payment reference") @RequestParam(value = "payment_reference", required = false) String paymentReference,
-                                                 @ApiParam(value = "created date") @RequestParam(value = "created_date", required = false) String createdDate,
-                                                 @ApiParam(value = "email") @RequestParam(value = "email", required = false) String email) {
+                                                 @RequestParam(value = "amount", required = false) Integer amount,
+                                                 @RequestParam(value = "application_reference", required = false) String applicationReference,
+                                                 @RequestParam(value = "description", required = false) String description,
+                                                 @RequestParam(value = "payment_reference", required = false) String paymentReference,
+                                                 @RequestParam(value = "created_date", required = false) String createdDate,
+                                                 @RequestParam(value = "email", required = false) String email) {
         SearchCriteria searchCriteria = new SearchCriteria();
         searchCriteria.setAmount(amount);
         searchCriteria.setApplicationReference(applicationReference);
@@ -80,7 +80,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method = RequestMethod.POST)
     public ResponseEntity<CreatePaymentResponse> createPayment(@ServiceId String serviceId,
-                                                               @ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload,
+                                                               @RequestBody CreatePaymentRequest payload,
                                                                HttpServletRequest httpServletRequest) {
         if (!payload.isValid()) {
             return new ResponseEntity(payload.getValidationMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
@@ -103,9 +103,8 @@ public class PaymentController {
             @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/payments/{paymentId}", method = RequestMethod.GET)
-
     public ViewPaymentResponse viewPayment(@ServiceId String serviceId,
-                                           @ApiParam(value = "payment id") @PathVariable("paymentId") String paymentId) {
+                                           @PathVariable("paymentId") String paymentId) {
         ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url + "/" + paymentId, GET, new HttpEntity(getHeaders(serviceId)), GDSViewPaymentResponse.class);
         ViewPaymentResponse viewPaymentResponse = new ViewPaymentResponse(response.getBody());
         paymentService.updatePayment(response.getBody().getPaymentId(), response.getBody().getState().getStatus());
@@ -120,7 +119,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{paymentId}/cancel", method = RequestMethod.POST)
     public ResponseEntity<String> cancelPayment(@ServiceId String serviceId,
-                                                @ApiParam(value = "payment id") @PathVariable("paymentId") String paymentId) {
+                                                @PathVariable("paymentId") String paymentId) {
         HttpEntity entity = new HttpEntity(getHeaders(serviceId));
         return restTemplate.exchange(url + "/" + paymentId + "/cancel", HttpMethod.POST, entity, String.class);
     }
