@@ -20,10 +20,19 @@ public class RestActions {
     }
 
     public ResultActions get(String urlTemplate) {
+        return get(urlTemplate, new HttpHeaders());
+    }
+
+    public ResultActions get(String urlTemplate, HttpHeaders httpHeaders) {
+        if (!httpHeaders.containsKey("service_id")) {
+            httpHeaders.add("service_id", SERVICE_ID);
+        }
+
         return translateException(() -> mvc.perform(MockMvcRequestBuilders.get(urlTemplate)
                 .contentType(APPLICATION_JSON)
                 .accept(APPLICATION_JSON)
-                .header("service_id", SERVICE_ID)));
+                .headers(httpHeaders))
+        );
     }
 
     public ResultActions post(String urlTemplate) {
