@@ -24,5 +24,4 @@ public class ServiceIdSwaggerDocumentationPlugin implements ParameterBuilderPlug
     public boolean supports(DocumentationType delimiter) {
         return DocumentationType.SWAGGER_2.equals(delimiter);
     }
-
 }
