@@ -19,12 +19,14 @@
         <dependency>
             <groupId>uk.gov.justice</groupId>
             <artifactId>payment-model</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.justice</groupId>
             <artifactId>payment-core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

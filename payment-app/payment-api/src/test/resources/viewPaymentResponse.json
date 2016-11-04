@@ -5,8 +5,8 @@
     "finished": false
   },
   "description": "New passport application",
-  "reference": "12345",
-  "payment_id": "qtosj4ais4vjmetpfi2q3b4pp9",
+  "reference": "Reference",
+  "payment_id": "123",
   "payment_provider": "sandbox",
   "card_brand": "",
   "return_url": "https://service-name.gov.uk/transactions/12345",
