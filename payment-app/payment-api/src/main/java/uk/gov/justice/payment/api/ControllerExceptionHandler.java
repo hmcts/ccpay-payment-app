@@ -6,10 +6,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.justice.payment.api.parameters.serviceid.UnknownServiceIdException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {
@@ -21,4 +21,9 @@ public class ControllerExceptionHandler {
         LOG.error("Unknown error has occurred", e);
     }
 
+    @ExceptionHandler(value = {UnknownServiceIdException.class})
+    @ResponseStatus(code = UNPROCESSABLE_ENTITY, reason = "Unknown service id provided")
+    public void unknownServiceIdException(UnknownServiceIdException e) {
+        LOG.warn("Unknown service id provided", e);
+    }
 }

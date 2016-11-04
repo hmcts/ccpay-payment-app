@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Component
 @ConfigurationProperties(prefix = "gov.pay.auth")
-public class KeyConfig {
+public class GovPayConfig {
     private Map<String, String> key;
 
     public Map<String, String> getKey() {
@@ -19,4 +19,11 @@ public class KeyConfig {
     }
 
 
+    public boolean hasKeyForService(String serviceId) {
+        return key.containsKey(serviceId);
+    }
+
+    public String getKeyForService(String serviceId) {
+        return key.get(serviceId);
+    }
 }

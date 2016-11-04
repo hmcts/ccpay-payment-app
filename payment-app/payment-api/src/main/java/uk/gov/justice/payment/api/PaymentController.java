@@ -16,6 +16,7 @@ import uk.gov.justice.payment.api.json.api.ViewPaymentResponse;
 import uk.gov.justice.payment.api.json.external.GDSCreatePaymentRequest;
 import uk.gov.justice.payment.api.json.external.GDSCreatePaymentResponse;
 import uk.gov.justice.payment.api.json.external.GDSViewPaymentResponse;
+import uk.gov.justice.payment.api.parameters.serviceid.ServiceId;
 import uk.gov.justice.payment.api.services.PaymentService;
 import uk.gov.justice.payment.api.services.SearchCriteria;
 
@@ -33,7 +34,7 @@ public class PaymentController {
     private static final String INVALID_SERVICE_ID = "service_id is invalid.";
 
     @Autowired
-    private KeyConfig keyConfig;
+    private GovPayConfig govPayConfig;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -50,16 +51,13 @@ public class PaymentController {
             @ApiResponse(code = 401, message = "Credentials are required to access this resource")
     })
     @RequestMapping(value = "/payments", method = RequestMethod.GET)
-    public ResponseEntity<List<TransactionRecord>> searchPayment(@ApiParam(value = "service id") @RequestHeader(value = "service_id") String serviceId,
-                                                                 @ApiParam(value = "amount") @RequestParam(value = "amount", required = false) Integer amount,
-                                                                 @ApiParam(value = "application reference") @RequestParam(value = "application_reference", required = false) String applicationReference,
-                                                                 @ApiParam(value = "description") @RequestParam(value = "description", required = false) String description,
-                                                                 @ApiParam(value = "payment reference") @RequestParam(value = "payment_reference", required = false) String paymentReference,
-                                                                 @ApiParam(value = "created date") @RequestParam(value = "created_date", required = false) String createdDate,
-                                                                 @ApiParam(value = "email") @RequestParam(value = "email", required = false) String email) {
-        if (!isValid(serviceId)) {
-            return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+    public List<TransactionRecord> searchPayment(@ServiceId String serviceId,
+                                                 @ApiParam(value = "amount") @RequestParam(value = "amount", required = false) Integer amount,
+                                                 @ApiParam(value = "application reference") @RequestParam(value = "application_reference", required = false) String applicationReference,
+                                                 @ApiParam(value = "description") @RequestParam(value = "description", required = false) String description,
+                                                 @ApiParam(value = "payment reference") @RequestParam(value = "payment_reference", required = false) String paymentReference,
+                                                 @ApiParam(value = "created date") @RequestParam(value = "created_date", required = false) String createdDate,
+                                                 @ApiParam(value = "email") @RequestParam(value = "email", required = false) String email) {
         SearchCriteria searchCriteria = new SearchCriteria();
         searchCriteria.setAmount(amount);
         searchCriteria.setApplicationReference(applicationReference);
@@ -68,7 +66,7 @@ public class PaymentController {
         searchCriteria.setServiceId(serviceId);
         searchCriteria.setCreatedDate(createdDate);
         searchCriteria.setEmail(email);
-        return new ResponseEntity<>(paymentService.searchPayment(searchCriteria), OK);
+        return paymentService.searchPayment(searchCriteria);
 
     }
 
@@ -81,13 +79,9 @@ public class PaymentController {
             @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/payments", method = RequestMethod.POST)
-    public ResponseEntity<CreatePaymentResponse> createPayment(@ApiParam(value = "service id") @RequestHeader(value = "service_id") String serviceId,
+    public ResponseEntity<CreatePaymentResponse> createPayment(@ServiceId String serviceId,
                                                                @ApiParam(value = "payment request body") @RequestBody(required = true) CreatePaymentRequest payload,
                                                                HttpServletRequest httpServletRequest) {
-        payload.setServiceId(serviceId);
-        if (!isValid(serviceId)) {
-            return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
-        }
         if (!payload.isValid()) {
             return new ResponseEntity(payload.getValidationMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -102,7 +96,6 @@ public class PaymentController {
         return new ResponseEntity<>(createPaymentResponse, response.getStatusCode());
     }
 
-
     @ApiOperation(value = "Get payment details by id", notes = "Get payment details for supplied payment id")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Payment information request succeeded"),
@@ -111,16 +104,12 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{paymentId}", method = RequestMethod.GET)
 
-    public ResponseEntity<ViewPaymentResponse> viewPayment(@ApiParam(value = "service id") @RequestHeader(value = "service_id") String serviceId,
-                                                           @ApiParam(value = "payment id") @PathVariable("paymentId") String paymentId) {
-        if (!isValid(serviceId)) {
-            return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+    public ViewPaymentResponse viewPayment(@ServiceId String serviceId,
+                                           @ApiParam(value = "payment id") @PathVariable("paymentId") String paymentId) {
         ResponseEntity<GDSViewPaymentResponse> response = restTemplate.exchange(url + "/" + paymentId, GET, new HttpEntity(getHeaders(serviceId)), GDSViewPaymentResponse.class);
         ViewPaymentResponse viewPaymentResponse = new ViewPaymentResponse(response.getBody());
-        ResponseEntity<ViewPaymentResponse> responseEntity = new ResponseEntity<>(viewPaymentResponse, response.getStatusCode());
         paymentService.updatePayment(response.getBody().getPaymentId(), response.getBody().getState().getStatus());
-        return responseEntity;
+        return viewPaymentResponse;
     }
 
     @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
@@ -130,12 +119,8 @@ public class PaymentController {
             @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/payments/{paymentId}/cancel", method = RequestMethod.POST)
-    public ResponseEntity<String> cancelPayment(@ApiParam(value = "service id") @RequestHeader(value = "service_id") String serviceId,
+    public ResponseEntity<String> cancelPayment(@ServiceId String serviceId,
                                                 @ApiParam(value = "payment id") @PathVariable("paymentId") String paymentId) {
-        if (!isValid(serviceId)) {
-            return new ResponseEntity(INVALID_SERVICE_ID, HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
         HttpEntity entity = new HttpEntity(getHeaders(serviceId));
         return restTemplate.exchange(url + "/" + paymentId + "/cancel", HttpMethod.POST, entity, String.class);
     }
@@ -161,11 +146,6 @@ public class PaymentController {
     }
 
     private String getAuth(String serviceId) {
-        return "Bearer " + keyConfig.getKey().get(serviceId);
-    }
-
-    private boolean isValid(String serviceId) {
-        return keyConfig.getKey().containsKey(serviceId);
-
+        return "Bearer " + govPayConfig.getKey().get(serviceId);
     }
 }

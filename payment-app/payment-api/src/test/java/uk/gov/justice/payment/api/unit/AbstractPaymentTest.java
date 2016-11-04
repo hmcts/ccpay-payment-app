@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.KeyConfig;
+import uk.gov.justice.payment.api.GovPayConfig;
 import uk.gov.justice.payment.api.PaymentController;
 import uk.gov.justice.payment.api.services.PaymentService;
 
@@ -36,18 +36,18 @@ public class AbstractPaymentTest {
     PaymentService paymentService;
 
     @Mock
-    KeyConfig keyConfig;
+    GovPayConfig govPayConfig;
     @Mock
     Map<String, String> keys;
 
     public void setUp() throws FileNotFoundException {
         MockitoAnnotations.initMocks(this);
 
-        when(keyConfig.getKey()).thenReturn(keys);
+        when(govPayConfig.getKey()).thenReturn(keys);
         when(keys.get(SERVICE_ID)).thenReturn(SERVICE_ID);
         when(keys.containsKey(SERVICE_ID)).thenReturn(true);
 
-        ReflectionTestUtils.setField(paymentController, "keyConfig", keyConfig);
+        ReflectionTestUtils.setField(paymentController, "govPayConfig", govPayConfig);
     }
 
     @After

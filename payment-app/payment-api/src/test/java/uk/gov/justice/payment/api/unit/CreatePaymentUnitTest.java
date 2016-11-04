@@ -139,49 +139,6 @@ public class CreatePaymentUnitTest extends AbstractPaymentTest {
     }
 
     @Test
-    public void createPaymentValidationMissingServiceId() {
-        paymentRequest = new CreatePaymentRequest();
-        paymentRequest.setAmount(10);
-        paymentRequest.setDescription(TEST_DESC);
-        paymentRequest.setPaymentReference(TEST_REF);
-        paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl(RETURN_URL);
-
-        stubFor(post(urlPathMatching("/payments/create"))
-                .willReturn(aResponse()
-                        .withStatus(201)
-                        .withBody(expectedCreatePaymentResponse)
-                        .withHeader("Content-Type", "application/json")
-                ));
-
-        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
-        ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment(null, paymentRequest, httpServletRequest).getStatusCode().value(), 422);
-    }
-
-    @Test
-    public void createPaymentValidationBlankServiceId() {
-        paymentRequest = new CreatePaymentRequest();
-        paymentRequest.setAmount(10);
-        paymentRequest.setDescription(TEST_DESC);
-        paymentRequest.setPaymentReference(TEST_REF);
-        paymentRequest.setServiceId("");
-        paymentRequest.setApplicationReference(TEST_CASE);
-        paymentRequest.setReturnUrl(RETURN_URL);
-
-        stubFor(post(urlPathMatching("/payments/create"))
-                .willReturn(aResponse()
-                        .withStatus(201)
-                        .withBody(expectedCreatePaymentResponse)
-                        .withHeader("Content-Type", "application/json")
-                ));
-
-        ReflectionTestUtils.setField(paymentController, "url", URL + "/create");
-        ReflectionTestUtils.setField(paymentController, "paymentService", paymentService);
-        assertEquals(paymentController.createPayment("", paymentRequest, httpServletRequest).getStatusCode().value(), 422);
-    }
-
-    @Test
     public void createPaymentValidationMissingApplicationReference() {
         paymentRequest = new CreatePaymentRequest();
         paymentRequest.setAmount(10);
