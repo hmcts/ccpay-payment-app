@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<property name="LOG_LOCATION" value="/var/log/payment-api" />
+	<property name="LOG_LOCATION" value="${LOG_LOCATION:-/var/log/payment-api}" />
 
 	<appender name="FILE-AUDIT"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -38,12 +38,10 @@
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
-
 	</appender>
 
 
-	<logger name="uk.gov.justice.payment" level="debug"
-		additivity="false">
+	<logger name="uk.gov.justice.payment" level="debug" additivity="false">
 		<appender-ref ref="FILE-AUDIT" />
 		<appender-ref ref="FILE-JSON" />
 	</logger>
@@ -52,11 +50,4 @@
 		<appender-ref ref="FILE-AUDIT" />
 		<appender-ref ref="FILE-JSON" />
 	</root>
-	<!--
-	<logger name="org.springframework" level="debug"
-			additivity="false">
-		<appender-ref ref="FILE-AUDIT" />
-		<appender-ref ref="FILE-JSON" />
-	</logger>
-	-->
 </configuration>

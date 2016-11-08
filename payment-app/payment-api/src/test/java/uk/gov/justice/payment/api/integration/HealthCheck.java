@@ -6,10 +6,11 @@ import com.jayway.restassured.RestAssured;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
+import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
 
 import java.util.Calendar;
 
@@ -17,35 +18,43 @@ import static com.jayway.restassured.RestAssured.given;
 
 
 @RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 
-@Configuration
 public class HealthCheck {
 
     public static final int AMOUNT = 10;
-    private CreatePaymentRequest paymentRequest;
+    public static final String SERVICE_ID = "divorce";
+    private CreatePaymentRequestDto paymentRequest;
+    //private HttpHeaders headers;
+    @Autowired
+    private TestRestTemplate restTemplate;
 
 
     @Before
     public void setUp() {
         long timestamp = Calendar.getInstance().getTimeInMillis();
         RestAssured.port = 8181;
-        paymentRequest = new CreatePaymentRequest();
+        paymentRequest = new CreatePaymentRequestDto();
         paymentRequest.setAmount(AMOUNT);
-        paymentRequest.setDescription("Test Desc"+timestamp);
-        paymentRequest.setPaymentReference("TestRef"+timestamp);
-        paymentRequest.setApplicationReference("Test case id"+timestamp);
+        paymentRequest.setDescription("Test Desc" + timestamp);
+        paymentRequest.setPaymentReference("TestRef" + timestamp);
+        paymentRequest.setApplicationReference("Test case id" + timestamp);
         paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
         paymentRequest.setEmail("zeeshan.alam@agilesphere.co.uk");
-        paymentRequest.setServiceId("TEST_SERVICE");
+        //headers.put("service-id","divorce");
     }
 
 
     @Test
     public void createPayment() {
+
+
         setUp();
         given().contentType("application/json").
                 body(getJson(paymentRequest)).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
+
                 then().statusCode(201);
     }
 
@@ -55,12 +64,17 @@ public class HealthCheck {
         setUp();
         String paymentId = given().contentType("application/json").
                 body(getJson(paymentRequest)).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
                 then().statusCode(201).extract().path("payment_id");
 
         given().contentType("application/json").
-                when().get("/payments/" + paymentId).
+                when().
+                header("service_id", SERVICE_ID).
+                get("/payments/" + paymentId).
+
                 then().statusCode(200).extract().path("state.status").equals("created");
+
 
     }
 
@@ -71,9 +85,11 @@ public class HealthCheck {
 
         String paymentId = given().contentType("application/json").
                 body(getJson(paymentRequest)).
+                header("service_id", SERVICE_ID).
                 when().post("/payments").
                 then().statusCode(201).extract().path("payment_id");
         given().contentType("application/json").
+                header("service_id", SERVICE_ID).
                 when().post("/payments/" + paymentId + "/cancel").
                 then().statusCode(204);
 
@@ -84,10 +100,14 @@ public class HealthCheck {
         setUp();
 
         given().contentType("application/json").
-                when().get("/payments").
+                when().
+                header("service_id", SERVICE_ID).
+                get("/payments").
                 then().statusCode(200).extract().path("payment_id");
         given().contentType("application/json").
-                when().get("/payments/?amount=" + AMOUNT ).
+                when().
+                header("service_id", SERVICE_ID).
+                get("/payments/?amount=" + AMOUNT).
                 then().statusCode(200);
 
     }

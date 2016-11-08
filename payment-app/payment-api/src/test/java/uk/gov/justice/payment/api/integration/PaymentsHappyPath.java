@@ -1,92 +1,96 @@
 package uk.gov.justice.payment.api.integration;
 
-import static com.jayway.restassured.RestAssured.given;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.jayway.restassured.response.Response;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import com.jayway.restassured.response.Response;
+import java.io.IOException;
 
-
+import static com.jayway.restassured.RestAssured.given;
 
 
 /**
  * Unit test for simple App.
  */
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PaymentsHappyPath extends TestBase
 
 {
 
-	private static String payment_id = null;
+    private static String payment_id = null;
 
 
+    @Before
 
-	@Before
+    public void setup() throws IOException {
 
-	public void setup() throws IOException {
+        initialize();
 
-		initialize();
+    }
 
-	}
+    @Test
+    public void test1_POST_Payment_Call() throws IOException {
 
-	@Test
-	public void test1_POST_Payment_Call() throws IOException {
+        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
+        String myJson = loadFile("Messages_Appeal_Post.json");
 
-		String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
-		String myJson = loadFile("Messages_Appeal_Post.json");
+        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).body(myJson).when().post(URL);
+        Assert.assertEquals(201, r.statusCode());
 
-		Response r = given().contentType("application/json").body(myJson).when().post(URL);
-		Assert.assertEquals(201, r.statusCode());
-	
-		if (r.statusCode() == 201) {
-			payment_id = r.path("payment_id");
-			}
+        if (r.statusCode() == 201) {
+            payment_id = r.path("payment_id");
+        }
 
-	}
+    }
 
-	@Test
-	public void test2_GET_Status() {
+    @Test
+    public void test2_GET_Status() {
 
-		String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
+        String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
 
-		given().when().get(url).then().assertThat().statusCode(200);
+        given().when().header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).get(url).then().assertThat().statusCode(200);
 
-	}
+    }
 
-	@Test
-	public void test3_GET_Header() {
+    @Test
+    public void test3_GET_Header() {
 
-		String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
-		given().when().get(url).then().assertThat().header("content-type", "application/json;charset=UTF-8");
+        String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
+        given().when().get(url).then().assertThat().header("content-type", "application/json;charset=UTF-8");
 
-	}
-	@Test
-	public void test4_POST_Cancel() {
+    }
 
-		String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id+CONFIG.getProperty("cancel_path");
-		given().when().post(url).then().assertThat().statusCode(204);
+    @Test
+    public void test4_POST_Cancel() {
 
-	}
-	@Test
-	public void test5_GET_Cancel_Status() {
+        String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id + CONFIG.getProperty("cancel_path");
+        given().when().header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).post(url).then().assertThat().statusCode(204);
 
-		String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
+    }
 
-		Response r =given().when().get(url);
-		Assert.assertEquals(CONFIG.getProperty("payment_cancel_status"), r.path("state.status"));
-		Assert.assertEquals(CONFIG.getProperty("payment_cancel_message"), r.path("state.message"));
+    @Test
+    public void test5_GET_Cancel_Status() {
 
-	}
+        String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
 
-	
+        Response r = given().when().header(CONFIG.getProperty("k_service_id"),
+                CONFIG.getProperty("service_id")).get(url);
+        Assert.assertEquals(CONFIG.getProperty("payment_cancel_status"), r.path("state.status"));
+        Assert.assertEquals(CONFIG.getProperty("payment_cancel_message"), r.path("state.message"));
+
+    }
+
+
 }
-	

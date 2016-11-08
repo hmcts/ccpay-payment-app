@@ -11,7 +11,7 @@ import org.junit.runners.Suite;
         HealthCheck.class,
         PaymentsKeysMissingValidation.class
 
-  
+
 })
 
 public class SuiteIT {
