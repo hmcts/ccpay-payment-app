@@ -133,7 +133,7 @@ public class PaymentController {
             @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/payments/{paymentId}/cancel", method = RequestMethod.POST)
-    public ResponseEntity cancelPayment(@ServiceId String serviceId,
+    public ResponseEntity<?> cancelPayment(@ServiceId String serviceId,
                                         @PathVariable("paymentId") String paymentId) {
         try {
             govPayClient.cancelPayment(govPayConfig.getKeyForService(serviceId), paymentId);

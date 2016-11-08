@@ -23,8 +23,8 @@ public class PaymentDtoFactory {
                 .reference(payment.getReference())
                 .createdDate(payment.getCreatedDate())
                 .links(new PaymentDto.LinksDto(
-                        toLinkDto(payment.getLinks().getNextUrl()),
-                        cancellationLink(payment)
+                        payment.getLinks().getNextUrl() == null ? null : toLinkDto(payment.getLinks().getNextUrl()),
+                        payment.getLinks().getCancel() == null ? null : cancellationLink(payment)
                 ))
                 .build();
     }
