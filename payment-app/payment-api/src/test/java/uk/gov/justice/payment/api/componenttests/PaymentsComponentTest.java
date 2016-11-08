@@ -1,13 +1,16 @@
 package uk.gov.justice.payment.api.componenttests;
 
 import org.junit.Test;
+import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto.StateDto;
 import uk.gov.justice.payment.api.json.api.TransactionRecord;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.justice.payment.api.componenttests.sugar.RestActions.SERVICE_ID;
+import static uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto.createPaymentRequestDtoWith;
 import static uk.gov.justice.payment.api.domain.PaymentDetails.paymentDetailsWith;
 import static uk.gov.justice.payment.api.json.api.TransactionRecord.transactionRecordWith;
 
@@ -27,6 +30,35 @@ public class PaymentsComponentTest extends ComponentTestBase {
         restActions.get("/payments/?payment_reference=Ref999")
                 .andExpect(status().isOk())
                 .andExpect(bodyAs(TransactionRecord.class).containsExactly());
+    }
+
+
+    @Test
+    public void createPaymentValidationRules() throws Exception {
+        CreatePaymentRequestDto validRequest = createPaymentRequestDtoWith()
+                .amount(100)
+                .applicationReference("applicationReference")
+                .description("description")
+                .email("email@email.com")
+                .paymentReference("paymentReference")
+                .returnUrl("https://returnUrl")
+                .build();
+
+        tryCreateAndExpect(validRequest.withAmount(null), "amount: may not be null");
+        tryCreateAndExpect(validRequest.withApplicationReference(null), "applicationReference: may not be null");
+        tryCreateAndExpect(validRequest.withDescription(null), "description: may not be null");
+        tryCreateAndExpect(validRequest.withEmail(null), "email: may not be null");
+        tryCreateAndExpect(validRequest.withEmail("invalid@"), "email: not a well-formed email address");
+        tryCreateAndExpect(validRequest.withPaymentReference(null), "paymentReference: may not be null");
+        tryCreateAndExpect(validRequest.withReturnUrl(null), "returnUrl: may not be null");
+        tryCreateAndExpect(validRequest.withReturnUrl("invalid"), "returnUrl: must be a valid URL");
+        tryCreateAndExpect(validRequest.withReturnUrl("http://invalid"), "returnUrl: must be a valid URL");
+    }
+
+    private void tryCreateAndExpect(CreatePaymentRequestDto requestBody, String expectedContent) throws Exception {
+        restActions.post("/payments/", requestBody)
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(content().string(expectedContent));
     }
 
     @Test
