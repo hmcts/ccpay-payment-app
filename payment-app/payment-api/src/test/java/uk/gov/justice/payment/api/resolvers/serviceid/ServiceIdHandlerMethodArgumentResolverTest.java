@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.web.context.request.NativeWebRequest;
-import uk.gov.justice.payment.api.GovPayConfig;
+import uk.gov.justice.payment.api.configuration.GovPayConfig;
 import uk.gov.justice.payment.api.parameters.serviceid.ServiceIdHandlerMethodArgumentResolver;
 import uk.gov.justice.payment.api.parameters.serviceid.UnknownServiceIdException;
 

@@ -2,7 +2,7 @@ package uk.gov.justice.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.commons.io.IOUtils;
+import net.logstash.logback.encoder.org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;

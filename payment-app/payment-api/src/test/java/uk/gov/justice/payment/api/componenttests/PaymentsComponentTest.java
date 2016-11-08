@@ -1,15 +1,15 @@
 package uk.gov.justice.payment.api.componenttests;
 
 import org.junit.Test;
+import uk.gov.justice.payment.api.controllers.dto.PaymentDto;
+import uk.gov.justice.payment.api.controllers.dto.PaymentDto.StateDto;
 import uk.gov.justice.payment.api.json.api.TransactionRecord;
-import uk.gov.justice.payment.api.json.external.State;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.justice.payment.api.componenttests.sugar.RestActions.SERVICE_ID;
 import static uk.gov.justice.payment.api.domain.PaymentDetails.paymentDetailsWith;
 import static uk.gov.justice.payment.api.json.api.TransactionRecord.transactionRecordWith;
-import static uk.gov.justice.payment.api.json.api.ViewPaymentResponse.viewPaymentResponseWith;
 
 public class PaymentsComponentTest extends ComponentTestBase {
 
@@ -43,13 +43,17 @@ public class PaymentsComponentTest extends ComponentTestBase {
         restActions.get("/payments/123")
                 .andExpect(status().isOk())
                 .andExpect(body().isEqualTo(
-                        viewPaymentResponseWith()   // as defined in .json file
-                                .state(new State("created", false, null, null))
+                        PaymentDto.paymentDtoWith()   // as defined in .json file
+                                .state(new StateDto("created", false, null, null))
                                 .paymentId("123")
                                 .amount(12000)
                                 .description("New passport application")
                                 .reference("Reference")
                                 .createdDate("2016-09-29T09:12:38.413Z")
+                                .links(new PaymentDto.LinksDto(
+                                        new PaymentDto.LinkDto("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2", "GET"),
+                                        new PaymentDto.LinkDto("http://localhost/payments/123/cancel", "POST")
+                                ))
                                 .build()
                 ));
     }
@@ -59,6 +63,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
         stubFor(get(urlPathMatching("/v1/payments/-1"))
                 .willReturn(aResponse()
                         .withStatus(404)
+                        .withBody("{ \"code\": \"P0200\" }")
                         .withHeader("Content-Type", "application/json")
                 ));
 

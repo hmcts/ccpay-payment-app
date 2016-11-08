@@ -2,7 +2,7 @@ package uk.gov.justice.payment.api.logging;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
-import org.apache.commons.io.IOUtils;
+import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -16,7 +16,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Stopwatch.createStarted;
 import static com.google.common.base.Ticker.systemTicker;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -55,7 +57,7 @@ public class InboundRequestLoggingFilter extends OncePerRequestFilter {
 
         if (LOG.isDebugEnabled()) {
             ContentCachingRequestWrapper cachedRequest = new ContentCachingRequestWrapper(request);
-            LOG.debug(IOUtils.toString(cachedRequest.getInputStream()));
+            LOG.debug(CharStreams.toString(new InputStreamReader(cachedRequest.getInputStream(), UTF_8)));
             return cachedRequest;
         } else {
             return request;
