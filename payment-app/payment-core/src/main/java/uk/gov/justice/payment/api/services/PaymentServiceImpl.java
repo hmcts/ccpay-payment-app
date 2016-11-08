@@ -1,15 +1,18 @@
 package uk.gov.justice.payment.api.services;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.SimpleExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.payment.api.domain.PaymentDetails;
-import uk.gov.justice.payment.api.domain.QPaymentDetails;
 import uk.gov.justice.payment.api.json.api.TransactionRecord;
 import uk.gov.justice.payment.api.repository.PaymentRepository;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
+import static uk.gov.justice.payment.api.domain.QPaymentDetails.paymentDetails;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -33,40 +36,20 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<TransactionRecord> searchPayment(SearchCriteria searchCriteria) {
-        QPaymentDetails qPaymentDetails = QPaymentDetails.paymentDetails;
-        BooleanExpression criteria = null;
-        if (searchCriteria.getAmount() != null) {
-            criteria = qPaymentDetails.amount.eq(searchCriteria.getAmount());
-        }
-        if (searchCriteria.getPaymentReference() != null) {
-            criteria = qPaymentDetails.paymentReference.eq(searchCriteria.getPaymentReference()).and(criteria);
-        }
-        if (searchCriteria.getApplicationReference() != null) {
-            criteria = qPaymentDetails.applicationReference.eq(searchCriteria.getApplicationReference()).and(criteria);
-        }
+        BooleanExpression criteria = new CriteriaBuilder()
+                .eqIfNotNull(paymentDetails.amount, searchCriteria.getAmount())
+                .eqIfNotNull(paymentDetails.paymentReference, searchCriteria.getPaymentReference())
+                .eqIfNotNull(paymentDetails.applicationReference, searchCriteria.getApplicationReference())
+                .eqIfNotNull(paymentDetails.serviceId, searchCriteria.getServiceId())
+                .eqIfNotNull(paymentDetails.description, searchCriteria.getDescription())
+                .eqIfNotNull(paymentDetails.status, searchCriteria.getStatus())
+                .eqIfNotNull(paymentDetails.email, searchCriteria.getEmail())
+                .eqIfNotNull(paymentDetails.createdDate, searchCriteria.getCreatedDate())
+                .build();
 
-        if (searchCriteria.getApplicationReference() != null) {
-            criteria = qPaymentDetails.applicationReference.eq(searchCriteria.getApplicationReference()).and(criteria);
-        }
-        if (searchCriteria.getServiceId() != null) {
-            criteria = qPaymentDetails.serviceId.eq(searchCriteria.getServiceId()).and(criteria);
-        }
 
-        if (searchCriteria.getDescription() != null) {
-            criteria = qPaymentDetails.description.eq(searchCriteria.getDescription()).and(criteria);
-        }
-        if (searchCriteria.getStatus() != null) {
-            criteria = qPaymentDetails.status.eq(searchCriteria.getStatus()).and(criteria);
-        }
-        if (searchCriteria.getEmail() != null) {
-            criteria = qPaymentDetails.email.eq(searchCriteria.getEmail()).and(criteria);
-        }
-        if (searchCriteria.getCreatedDate() != null) {
-            criteria = qPaymentDetails.createdDate.eq(searchCriteria.getCreatedDate()).and(criteria);
-        }
-        List<TransactionRecord> list = new ArrayList<>();
-        paymentRepository.findAll(criteria).forEach(
-                paymentDetails -> {
+        return stream(paymentRepository.findAll(criteria).spliterator(), false)
+                .map(paymentDetails -> {
                     TransactionRecord transactionRecord = new TransactionRecord();
                     transactionRecord.setAmount(paymentDetails.getAmount());
                     transactionRecord.setApplicationReference(paymentDetails.getApplicationReference());
@@ -76,8 +59,23 @@ public class PaymentServiceImpl implements PaymentService {
                     transactionRecord.setPaymentReference(paymentDetails.getPaymentReference());
                     transactionRecord.setServiceId(paymentDetails.getServiceId());
                     transactionRecord.setEmail(paymentDetails.getEmail());
-                    list.add(transactionRecord);
-                });
-        return list;
+                    return transactionRecord;
+                })
+                .collect(toList());
+    }
+
+    private static class CriteriaBuilder {
+        private BooleanExpression criteria = null;
+
+        private <T> CriteriaBuilder eqIfNotNull(SimpleExpression<T> stringPath, T value) {
+            if (value != null) {
+                criteria = stringPath.eq(value).and(criteria);
+            }
+            return this;
+        }
+
+        BooleanExpression build() {
+            return criteria;
+        }
     }
 }

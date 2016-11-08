@@ -6,8 +6,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Wither;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.URL;
+
+import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -16,63 +22,21 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder(builderMethodName = "createPaymentRequestDtoWith")
+@Wither
 public class CreatePaymentRequestDto {
+    @NotNull
     private Integer amount;
+    @NotNull
     private String applicationReference;
+    @NotNull
     private String paymentReference;
+    @NotNull
     private String description;
+    @NotNull
+    @URL(protocol = "https")
     private String returnUrl;
+    @Email
+    @NotNull
     private String email;
-
-    public boolean isValid() {
-        if (getAmount() == null || "".equals(getAmount())) {
-            return false;
-        }
-        if (getDescription() == null || "".equals(getDescription())) {
-            return false;
-        }
-        if (getApplicationReference() == null || "".equals(getApplicationReference())) {
-            return false;
-        }
-        if (getPaymentReference() == null || "".equals(getPaymentReference())) {
-            return false;
-        }
-
-        if (getReturnUrl() == null || "".equals(getReturnUrl())) {
-            return false;
-        }
-
-        if (getReturnUrl() != null && getReturnUrl().startsWith("http://")) {
-            return false;
-        }
-        return true;
-    }
-
-    public String getValidationMessage() {
-        String prefix = "attribute ";
-        String postfix = " is mandatory. Please provide a valid value.";
-
-        if (getAmount() == null || "".equals(getAmount())) {
-            return prefix + "amount" + postfix;
-        }
-        if (getDescription() == null || "".equals(getDescription())) {
-            return prefix + "description" + postfix;
-        }
-        if (getApplicationReference() == null || "".equals(getApplicationReference())) {
-            return prefix + "application_reference" + postfix;
-        }
-        if (getPaymentReference() == null || "".equals(getPaymentReference())) {
-            return prefix + "payment_reference" + postfix;
-        }
-
-        if (getReturnUrl() == null || "".equals(getReturnUrl())) {
-            return prefix + "return_url" + postfix;
-        }
-
-        if (getReturnUrl() != null && getReturnUrl().startsWith("http://")) {
-            return "return_url must be https";
-        }
-        return "";
-    }
-
 }
