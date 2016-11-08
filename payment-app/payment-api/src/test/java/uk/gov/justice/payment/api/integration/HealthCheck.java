@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.justice.payment.api.json.api.CreatePaymentRequest;
+import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
 
 import java.util.Calendar;
 
@@ -24,7 +24,7 @@ public class HealthCheck {
 
     public static final int AMOUNT = 10;
     public static final String SERVICE_ID = "divorce";
-    private CreatePaymentRequest paymentRequest;
+    private CreatePaymentRequestDto paymentRequest;
     //private HttpHeaders headers;
     @Autowired
     private TestRestTemplate restTemplate;
@@ -34,7 +34,7 @@ public class HealthCheck {
     public void setUp() {
         long timestamp = Calendar.getInstance().getTimeInMillis();
         RestAssured.port = 8181;
-        paymentRequest = new CreatePaymentRequest();
+        paymentRequest = new CreatePaymentRequestDto();
         paymentRequest.setAmount(AMOUNT);
         paymentRequest.setDescription("Test Desc" + timestamp);
         paymentRequest.setPaymentReference("TestRef" + timestamp);

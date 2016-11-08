@@ -6,9 +6,8 @@ import org.junit.ClassRule;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.payment.api.GovPayConfig;
-import uk.gov.justice.payment.api.PaymentController;
+import uk.gov.justice.payment.api.configuration.GovPayConfig;
+import uk.gov.justice.payment.api.controllers.PaymentController;
 import uk.gov.justice.payment.api.services.PaymentService;
 
 import java.io.FileNotFoundException;
@@ -28,8 +27,7 @@ public class AbstractPaymentTest {
     @ClassRule
     public static WireMockRule wireMockRule = new WireMockRule(PORT);
 
-    PaymentController paymentController = new PaymentController();
-    RestTemplate restTemplate = new RestTemplate();
+    PaymentController paymentController = new PaymentController(null, null, null, null, null);
     ClassLoader classLoader = getClass().getClassLoader();
 
     @Mock

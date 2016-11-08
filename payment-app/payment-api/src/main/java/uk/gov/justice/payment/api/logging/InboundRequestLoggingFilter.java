@@ -2,7 +2,6 @@ package uk.gov.justice.payment.api.logging;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -41,24 +40,36 @@ public class InboundRequestLoggingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Stopwatch stopwatch = createStarted(ticker);
 
+        HttpServletRequest wrappedRequest = cacheIfRequired(request);
+
         try {
-            filterChain.doFilter(logRequest(request), response);
+            logRequest(request);
+            filterChain.doFilter(wrappedRequest, response);
+            logRequestBody(wrappedRequest);
             logResponse(response, stopwatch.elapsed(MILLISECONDS));
         } catch (ServletException | IOException | RuntimeException e) {
+            logRequestBody(wrappedRequest);
             logFailure(stopwatch.elapsed(MILLISECONDS));
             throw e;
         }
     }
 
-    private HttpServletRequest logRequest(HttpServletRequest request) throws IOException {
-        LOG.info("Inbound request start, method: {}, uri: {}", request.getMethod(), request.getRequestURI());
+    private HttpServletRequest cacheIfRequired(HttpServletRequest request) {
+        return LOG.isDebugEnabled() ? new ContentCachingRequestWrapper(request) : request;
+    }
 
-        if (LOG.isDebugEnabled()) {
-            ContentCachingRequestWrapper cachedRequest = new ContentCachingRequestWrapper(request);
-            LOG.debug(IOUtils.toString(cachedRequest.getInputStream()));
-            return cachedRequest;
-        } else {
-            return request;
+    private void logRequest(HttpServletRequest request) throws IOException {
+        LOG.info("Inbound request start, method: {}, uri: {}", request.getMethod(), request.getRequestURI());
+    }
+
+    /**
+     * This method should be invoked after processing, because ContentCachingRequestWrapper.cachedContent is populated as request is being read
+     *
+     * @param wrappedRequest request
+     */
+    private void logRequestBody(HttpServletRequest wrappedRequest) {
+        if (wrappedRequest instanceof ContentCachingRequestWrapper) {
+            LOG.debug(new String(((ContentCachingRequestWrapper) wrappedRequest).getContentAsByteArray()));
         }
     }
 

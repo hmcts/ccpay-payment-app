@@ -7,6 +7,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.ResolvedMethodParameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.ParameterBuilderPlugin;
 import springfox.documentation.spi.service.contexts.ParameterContext;
@@ -44,13 +45,13 @@ public class SwaggerConfig {
 
         @Override
         public void apply(ParameterContext context) {
-            MethodParameter methodParameter = context.methodParameter();
+            ResolvedMethodParameter methodParameter = context.resolvedMethodParameter();
 
             if (methodParameter.hasParameterAnnotation(ApiParam.class)) {
                 return;
             }
 
-            String description = capitalizeFirstLetter(join(splitByCharacterTypeCamelCase(methodParameter.getParameterName()), ' '));
+            String description = capitalizeFirstLetter(join(splitByCharacterTypeCamelCase(methodParameter.defaultName().get()), ' '));
             context.parameterBuilder().description(description);
         }
 

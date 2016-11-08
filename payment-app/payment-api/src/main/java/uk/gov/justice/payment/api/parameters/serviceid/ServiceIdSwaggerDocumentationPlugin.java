@@ -1,7 +1,7 @@
 package uk.gov.justice.payment.api.parameters.serviceid;
 
-import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
+import springfox.documentation.service.ResolvedMethodParameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.ParameterBuilderPlugin;
 import springfox.documentation.spi.service.contexts.ParameterContext;
@@ -12,8 +12,7 @@ public class ServiceIdSwaggerDocumentationPlugin implements ParameterBuilderPlug
 
     @Override
     public void apply(ParameterContext context) {
-        MethodParameter methodParameter = context.methodParameter();
-        methodParameter.getParameterAnnotations();
+        ResolvedMethodParameter methodParameter = context.resolvedMethodParameter();
 
         if (methodParameter.hasParameterAnnotation(ServiceId.class)) {
             context.parameterBuilder().name("service_id").description("Service Id").parameterType("header");
