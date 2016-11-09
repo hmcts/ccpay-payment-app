@@ -39,7 +39,7 @@ public class RestActions {
         return post(urlTemplate, null);
     }
 
-    private ResultActions post(String urlTemplate, Object requestBody) {
+    public ResultActions post(String urlTemplate, Object requestBody) {
         return post(urlTemplate, requestBody, new HttpHeaders());
     }
 

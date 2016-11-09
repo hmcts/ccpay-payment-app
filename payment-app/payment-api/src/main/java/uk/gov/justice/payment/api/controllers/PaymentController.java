@@ -9,7 +9,6 @@ import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.payment.api.configuration.GovPayConfig;
@@ -25,12 +24,13 @@ import uk.gov.justice.payment.api.external.client.exceptions.PaymentNotFoundExce
 import uk.gov.justice.payment.api.json.api.TransactionRecord;
 import uk.gov.justice.payment.api.parameters.serviceid.ServiceId;
 import uk.gov.justice.payment.api.services.PaymentService;
-import uk.gov.justice.payment.api.services.SearchCriteria;
 
+import javax.validation.Valid;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.justice.payment.api.domain.PaymentDetails.paymentDetailsWith;
+import static uk.gov.justice.payment.api.services.SearchCriteria.searchCriteriaWith;
 
 
 @RestController
@@ -65,17 +65,18 @@ public class PaymentController {
                                                  @RequestParam(value = "payment_reference", required = false) String paymentReference,
                                                  @RequestParam(value = "created_date", required = false) String createdDate,
                                                  @RequestParam(value = "email", required = false) String email) {
-        SearchCriteria searchCriteria = new SearchCriteria();
-        searchCriteria.setAmount(amount);
-        searchCriteria.setApplicationReference(applicationReference);
-        searchCriteria.setDescription(description);
-        searchCriteria.setPaymentReference(paymentReference);
-        searchCriteria.setServiceId(serviceId);
-        searchCriteria.setCreatedDate(createdDate);
-        searchCriteria.setEmail(email);
-        return paymentService.searchPayment(searchCriteria);
-    }
 
+        return paymentService.searchPayment(searchCriteriaWith()
+                .amount(amount)
+                .applicationReference(applicationReference)
+                .description(description)
+                .paymentReference(paymentReference)
+                .serviceId(serviceId)
+                .createdDate(createdDate)
+                .email(email)
+                .build()
+        );
+    }
 
     @ApiOperation(value = "Create payment", notes = "Create payment")
     @ApiResponses(value = {
@@ -85,11 +86,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method = RequestMethod.POST)
     public ResponseEntity<PaymentDto> createPayment(@ServiceId String serviceId,
-                                                    @RequestBody CreatePaymentRequestDto request) throws JsonProcessingException {
-        if (!request.isValid()) {
-            return new ResponseEntity(request.getValidationMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
+                                                    @Valid @RequestBody CreatePaymentRequestDto request) throws JsonProcessingException {
         Payment payment = govPayClient.createPayment(
                 govPayConfig.getKeyForService(serviceId),
                 new CreatePaymentRequest(request.getAmount(), request.getApplicationReference(), request.getDescription(), request.getReturnUrl())
@@ -134,7 +131,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{paymentId}/cancel", method = RequestMethod.POST)
     public ResponseEntity<?> cancelPayment(@ServiceId String serviceId,
-                                        @PathVariable("paymentId") String paymentId) {
+                                           @PathVariable("paymentId") String paymentId) {
         try {
             govPayClient.cancelPayment(govPayConfig.getKeyForService(serviceId), paymentId);
             return new ResponseEntity<>(NO_CONTENT);
