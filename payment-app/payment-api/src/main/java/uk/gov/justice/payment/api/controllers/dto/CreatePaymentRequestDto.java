@@ -11,8 +11,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -26,17 +28,18 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Wither
 public class CreatePaymentRequestDto {
     @NotNull
+    @Min(1)
     private Integer amount;
-    @NotNull
+    @NotEmpty
     private String applicationReference;
-    @NotNull
+    @NotEmpty
     private String paymentReference;
-    @NotNull
+    @NotEmpty
     private String description;
-    @NotNull
+    @NotEmpty
     @URL(protocol = "https")
     private String returnUrl;
     @Email
-    @NotNull
+    @NotEmpty
     private String email;
 }

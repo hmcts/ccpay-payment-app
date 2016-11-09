@@ -45,12 +45,18 @@ public class PaymentsComponentTest extends ComponentTestBase {
                 .build();
 
         tryCreateAndExpect(validRequest.withAmount(null), "amount: may not be null");
-        tryCreateAndExpect(validRequest.withApplicationReference(null), "applicationReference: may not be null");
-        tryCreateAndExpect(validRequest.withDescription(null), "description: may not be null");
-        tryCreateAndExpect(validRequest.withEmail(null), "email: may not be null");
+        tryCreateAndExpect(validRequest.withAmount(0), "amount: must be greater than or equal to 1");
+        tryCreateAndExpect(validRequest.withApplicationReference(null), "applicationReference: may not be empty");
+        tryCreateAndExpect(validRequest.withApplicationReference(""), "applicationReference: may not be empty");
+        tryCreateAndExpect(validRequest.withDescription(null), "description: may not be empty");
+        tryCreateAndExpect(validRequest.withDescription(""), "description: may not be empty");
+        tryCreateAndExpect(validRequest.withEmail(null), "email: may not be empty");
+        tryCreateAndExpect(validRequest.withEmail(""), "email: may not be empty");
         tryCreateAndExpect(validRequest.withEmail("invalid@"), "email: not a well-formed email address");
-        tryCreateAndExpect(validRequest.withPaymentReference(null), "paymentReference: may not be null");
-        tryCreateAndExpect(validRequest.withReturnUrl(null), "returnUrl: may not be null");
+        tryCreateAndExpect(validRequest.withPaymentReference(null), "paymentReference: may not be empty");
+        tryCreateAndExpect(validRequest.withPaymentReference(""), "paymentReference: may not be empty");
+        tryCreateAndExpect(validRequest.withReturnUrl(null), "returnUrl: may not be empty");
+        tryCreateAndExpect(validRequest.withReturnUrl(""), "returnUrl: may not be empty");
         tryCreateAndExpect(validRequest.withReturnUrl("invalid"), "returnUrl: must be a valid URL");
         tryCreateAndExpect(validRequest.withReturnUrl("http://invalid"), "returnUrl: must be a valid URL");
     }
