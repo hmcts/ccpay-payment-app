@@ -2,7 +2,7 @@ package uk.gov.justice.payment.api.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +14,7 @@ import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
 
 import java.util.Calendar;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 
 
 @RunWith(SpringRunner.class)

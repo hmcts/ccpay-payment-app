@@ -1,161 +1,154 @@
 package uk.gov.justice.payment.api.integration;
 
-import com.jayway.restassured.response.Response;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PaymentsKeysMissingValidation extends TestBase {
 
-    @Before
-    public void setup() throws IOException {
-
-        initialize();
-
-    }
 
     @Test
     public void test1_POST_Empty_Json() throws IOException {
 
-        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
+        String formatted_json = formatedJson("", "", "", "", "", "", "", "", "", "", "", "");
+        givenValidRequest()
+                .body(formatted_json)
+                .when()
+                .post()
+                .then()
+                .statusCode(400);
 
-        String formatted_json = formatedJson("", "", "", "", "", "", "", "", "", "", "", "", "", "");
-
-        Response r = given().contentType("application/json").body(formatted_json).when().post(URL);
-        Assert.assertEquals(400, r.statusCode());
 
     }
 
     @Test
     public void test2_POST_Without_Amount_Attribute() throws IOException {
 
-        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
 
-        String formatted_json = formatedJson("", "", CONFIG.getProperty("k_application_reference"),
+        String formatted_json = formatedJson("", "0", CONFIG.getProperty("k_application_reference"),
                 CONFIG.getProperty("application_ref"), CONFIG.getProperty("k_description"),
                 CONFIG.getProperty("description"), CONFIG.getProperty("k_email"), CONFIG.getProperty("email"),
                 CONFIG.getProperty("k_payment_reference"), CONFIG.getProperty("payment_ref"),
-                CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"), CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id"));
+                CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url")
+        );
 
-        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
-        Assert.assertEquals(400, r.statusCode());
-        Assert.assertEquals(CONFIG.getProperty("amount_man_msg"), r.path("error"));
-
+        givenValidRequest()
+                .body(formatted_json)
+                .when()
+                .post()
+                .then()
+                .statusCode(422)
+                .body(equalTo("amount: may not be null"));
     }
 
     @Test
     public void test3_POST_Without_App_Ref_Attribute() throws IOException {
 
-        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
 
         String formatted_json = formatedJson(CONFIG.getProperty("k_amount"), CONFIG.getProperty("amount"), "", "",
                 CONFIG.getProperty("k_description"), CONFIG.getProperty("description"), CONFIG.getProperty("k_email"),
                 CONFIG.getProperty("email"), CONFIG.getProperty("k_payment_reference"),
-                CONFIG.getProperty("payment_ref"), CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"),
-                CONFIG.getProperty("k_service_id"), CONFIG.getProperty("service_id"));
+                CONFIG.getProperty("payment_ref"), CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url")
+        );
 
-        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
-        Assert.assertEquals(422, r.statusCode());
-        Assert.assertEquals(CONFIG.getProperty("application_man_msg"), r.body().asString());
+        givenValidRequest()
+                .body(formatted_json)
+                .when()
+                .post()
+                .then()
+                .statusCode(422)
+                .body(equalTo(CONFIG.getProperty("application_man_msg")));
+
 
     }
 
     @Test
     public void test4_POST_Without_Desc_Attribute() throws IOException {
 
-        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
 
         String formatted_json = formatedJson(CONFIG.getProperty("k_amount"), CONFIG.getProperty("amount"),
                 CONFIG.getProperty("k_application_reference"), CONFIG.getProperty("application_ref"), "", "",
                 CONFIG.getProperty("k_email"), CONFIG.getProperty("email"), CONFIG.getProperty("k_payment_reference"),
-                CONFIG.getProperty("payment_ref"), CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"),
-                CONFIG.getProperty("k_service_id"), CONFIG.getProperty("service_id"));
+                CONFIG.getProperty("payment_ref"), CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url")
+        );
 
-        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
-        Assert.assertEquals(422, r.statusCode());
-        Assert.assertEquals(CONFIG.getProperty("description_man_msg"), r.getBody().asString());
+        givenValidRequest()
+                .body(formatted_json)
+                .when()
+                .post()
+                .then()
+                .statusCode(422)
+                .body(equalTo(CONFIG.getProperty("description_man_msg")));
 
     }
 
     @Test
     public void test5_POST_Without_Pay_Ref_Attribute() throws IOException {
 
-        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
-
         String formatted_json = formatedJson(CONFIG.getProperty("k_amount"), CONFIG.getProperty("amount"),
                 CONFIG.getProperty("k_application_reference"), CONFIG.getProperty("application_ref"),
                 CONFIG.getProperty("k_description"), CONFIG.getProperty("description"), CONFIG.getProperty("k_email"),
-                CONFIG.getProperty("email"), "", "", CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"),
-                CONFIG.getProperty("k_service_id"), CONFIG.getProperty("service_id"));
+                CONFIG.getProperty("email"), "", "", CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url")
+        );
 
-        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
-        Assert.assertEquals(422, r.statusCode());
-        Assert.assertEquals(CONFIG.getProperty("payment_ref_man_msg"), r.getBody().asString());
+        givenValidRequest()
+                .body(formatted_json)
+                .when()
+                .post()
+                .then()
+                .statusCode(422)
+                .body(equalTo(CONFIG.getProperty("payment_ref_man_msg")));
+
 
     }
 
     @Test
     public void test6_POST_Without_Ret_Url_Attribute() throws IOException {
 
-        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
 
         String formatted_json = formatedJson(CONFIG.getProperty("k_amount"), CONFIG.getProperty("amount"),
                 CONFIG.getProperty("k_application_reference"), CONFIG.getProperty("application_ref"),
                 CONFIG.getProperty("k_description"), CONFIG.getProperty("description"), CONFIG.getProperty("k_email"),
                 CONFIG.getProperty("email"), CONFIG.getProperty("k_payment_reference"),
-                CONFIG.getProperty("payment_ref"), "", "", CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id"));
+                CONFIG.getProperty("payment_ref"), "", ""
+        );
 
-        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).body(formatted_json).when().post(URL);
-        Assert.assertEquals(422, r.statusCode());
-        Assert.assertEquals(CONFIG.getProperty("ret_url_man_msg"), r.getBody().asString());
+        givenValidRequest()
+                .body(formatted_json)
+                .when()
+                .post()
+                .then()
+                .statusCode(422)
+                .body(equalTo(CONFIG.getProperty("ret_url_man_msg")));
 
-    }
-
-    @Test
-    public void test7_POST_Without_Ser_Id_Attribute() throws IOException {
-
-        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
-
-        String formatted_json = formatedJson(CONFIG.getProperty("k_amount"), CONFIG.getProperty("amount"),
-                CONFIG.getProperty("k_application_reference"), CONFIG.getProperty("application_ref"),
-                CONFIG.getProperty("k_description"), CONFIG.getProperty("description"), CONFIG.getProperty("k_email"),
-                CONFIG.getProperty("email"), CONFIG.getProperty("k_payment_reference"),
-                CONFIG.getProperty("payment_ref"), CONFIG.getProperty("k_return_url"), CONFIG.getProperty("ret_url"),
-                "",
-                "");
-
-        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
-                "").body(formatted_json).when().post(URL);
-        Assert.assertEquals(422, r.statusCode());
-        Assert.assertEquals(CONFIG.getProperty("service_id_man_msg"), r.getBody().asString());
 
     }
+
 
     private String formatedJson(String k_amount, String amount, String k_application_ref, String application_ref,
                                 String k_description, String description, String k_email, String email, String k_payment_ref,
-                                String payment_ref, String k_ret_url, String ret_url, String k_service_id, String service_id)
+                                String payment_ref, String k_ret_url, String ret_url)
             throws IOException {
 
         Map<String, String> m = new HashMap<String, String>();
@@ -171,10 +164,11 @@ public class PaymentsKeysMissingValidation extends TestBase {
         m.put("payment_ref", payment_ref);
         m.put("k_ret_url", k_ret_url);
         m.put("ret_url", ret_url);
-        m.put("k_service_id", k_service_id);
-        m.put("service_id", service_id);
+
 
         return getProcessedTemplateValue(loadFile("Message_Appeal_Post_Key_Validation.json"), m);
     }
+
+
 
 }

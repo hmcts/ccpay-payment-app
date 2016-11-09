@@ -124,9 +124,9 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>com.jayway.restassured</groupId>
+                <groupId>io.rest-assured</groupId>
                 <artifactId>rest-assured</artifactId>
-                <version>2.4.1</version>
+                <version>3.0.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

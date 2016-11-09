@@ -2,8 +2,7 @@
 "amount":100,
 "application_reference":"string",
 "description":"string",
-"email":"string",
+"email":"valid@email.com",
 "payment_reference":"string",
-"return_url":"https://localhost",
-"service_id":"string"
+"return_url":"https://localhost"
 }
