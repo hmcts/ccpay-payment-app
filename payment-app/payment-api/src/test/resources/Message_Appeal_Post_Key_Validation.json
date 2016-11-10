@@ -4,6 +4,5 @@
 "$k_description":"$description",
 "$k_email":"$email",
 "$k_payment_ref":"$payment_ref",
-"$k_ret_url":"$ret_url",
-"$k_service_id":"$service_id"
+"$k_ret_url":"$ret_url"
 }

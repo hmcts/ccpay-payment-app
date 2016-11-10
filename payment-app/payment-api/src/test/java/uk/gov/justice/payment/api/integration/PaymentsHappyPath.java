@@ -1,95 +1,76 @@
 package uk.gov.justice.payment.api.integration;
 
-import com.jayway.restassured.response.Response;
-import org.junit.Assert;
-import org.junit.Before;
+import io.restassured.response.Response;
+
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 
-import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.is;
 
 
-/**
- * Unit test for simple App.
- */
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class PaymentsHappyPath extends TestBase
-
-{
-
+public class PaymentsHappyPath extends TestBase {
     private static String payment_id = null;
-
-
-    @Before
-
-    public void setup() throws IOException {
-
-        initialize();
-
-    }
 
     @Test
     public void test1_POST_Payment_Call() throws IOException {
+        Response response =
+                givenValidRequest()
+                        .body(loadFile("Messages_Appeal_Post.json"))
+                        .when()
+                        .post();
 
-        String URL = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path");
-        String myJson = loadFile("Messages_Appeal_Post.json");
+        response
+                .then()
+                .statusCode(HttpStatus.CREATED.value());
 
-        Response r = given().contentType("application/json").header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).body(myJson).when().post(URL);
-        Assert.assertEquals(201, r.statusCode());
-
-        if (r.statusCode() == 201) {
-            payment_id = r.path("payment_id");
-        }
-
+        payment_id = response.path("payment_id");
     }
 
     @Test
     public void test2_GET_Status() {
-
-        String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
-
-        given().when().header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).get(url).then().assertThat().statusCode(200);
+        givenValidRequest()
+                .when()
+                .get(payment_id)
+                .then()
+                .statusCode(HttpStatus.OK.value());
 
     }
 
     @Test
     public void test3_GET_Header() {
-
-        String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
-        given().when().get(url).then().assertThat().header("content-type", "application/json;charset=UTF-8");
-
+        givenValidRequest()
+                .when()
+                .get(payment_id)
+                .then()
+                .header("content-type", "application/json;charset=UTF-8");
     }
 
     @Test
     public void test4_POST_Cancel() {
-
-        String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id + CONFIG.getProperty("cancel_path");
-        given().when().header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).post(url).then().assertThat().statusCode(204);
-
+        givenValidRequest()
+                .when()
+                .post(payment_id + "/cancel")
+                .then()
+                .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
     @Test
     public void test5_GET_Cancel_Status() {
-
-        String url = CONFIG.getProperty("baseURL") + CONFIG.getProperty("payments_path") + payment_id;
-
-        Response r = given().when().header(CONFIG.getProperty("k_service_id"),
-                CONFIG.getProperty("service_id")).get(url);
-        Assert.assertEquals(CONFIG.getProperty("payment_cancel_status"), r.path("state.status"));
-        Assert.assertEquals(CONFIG.getProperty("payment_cancel_message"), r.path("state.message"));
-
+        givenValidRequest()
+                .when()
+                .get(payment_id)
+                .then()
+                .body("state.status", is("cancelled"))
+                .body("state.message", is("Payment was cancelled by the service"));
     }
 
 
