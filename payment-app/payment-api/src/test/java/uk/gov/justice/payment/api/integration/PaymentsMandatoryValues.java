@@ -16,7 +16,6 @@ import java.util.Map;
 import static org.hamcrest.Matchers.equalTo;
 
 @RunWith(SpringRunner.class)
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PaymentsMandatoryValues extends TestBase {
 

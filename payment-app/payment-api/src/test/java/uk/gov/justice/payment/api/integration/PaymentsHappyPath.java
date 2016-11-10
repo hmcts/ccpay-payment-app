@@ -16,7 +16,6 @@ import static org.hamcrest.Matchers.is;
 
 
 @RunWith(SpringRunner.class)
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PaymentsHappyPath extends TestBase {
     private static String payment_id = null;

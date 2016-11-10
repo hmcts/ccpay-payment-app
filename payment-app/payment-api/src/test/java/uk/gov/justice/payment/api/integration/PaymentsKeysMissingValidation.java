@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.is;
 
 
 @RunWith(SpringRunner.class)
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PaymentsKeysMissingValidation extends TestBase {
@@ -166,7 +165,6 @@ public class PaymentsKeysMissingValidation extends TestBase {
 
         return getProcessedTemplateValue(loadFile("Message_Appeal_Post_Key_Validation.json"), m);
     }
-
 
 
 }
