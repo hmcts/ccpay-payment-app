@@ -2,10 +2,8 @@ package uk.gov.justice.payment.api.integration;
 
 import com.google.common.io.CharStreams;
 import io.restassured.specification.RequestSpecification;
-import lombok.SneakyThrows;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
-import org.junit.Before;
 import org.junit.BeforeClass;
 
 import java.io.*;
@@ -22,8 +20,9 @@ public class TestBase {
     @BeforeClass
     public static void initialize() throws IOException {
         CONFIG = new Properties();
-        FileInputStream fn = new FileInputStream(System.getProperty("user.dir") + "//src//test//resources//Config//config.properties");
-        CONFIG.load(fn);
+        InputStream is = TestBase.class.getClassLoader().getResourceAsStream("Config/config.properties");
+        CONFIG.load(is);
+
     }
 
     // This function used for passing parameters using velocity template
@@ -50,7 +49,6 @@ public class TestBase {
         return retValue;
     }
 
-    // This function used for converting JSON to String
 
     protected static String loadFile(String filename) {
         try {
@@ -59,6 +57,7 @@ public class TestBase {
             throw new RuntimeException(e);
         }
     }
+
     protected RequestSpecification givenValidRequest() {
         return given()
                 .baseUri(CONFIG.getProperty("baseURL"))
@@ -67,4 +66,4 @@ public class TestBase {
                 .header(CONFIG.getProperty("k_service_id"), CONFIG.getProperty("service_id"));
     }
 
-   }
+}

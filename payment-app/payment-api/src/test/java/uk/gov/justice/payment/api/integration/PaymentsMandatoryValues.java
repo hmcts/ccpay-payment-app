@@ -1,22 +1,18 @@
 package uk.gov.justice.payment.api.integration;
 
-import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
-import org.junit.Assert;
-import org.junit.Before;
+
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
-import static io.restassured.RestAssured.given;
+
+
 import static org.hamcrest.Matchers.equalTo;
 
 @RunWith(SpringRunner.class)
@@ -36,7 +32,7 @@ public class PaymentsMandatoryValues extends TestBase {
                 .when()
                 .post()
                 .then()
-                .statusCode(400);
+                .statusCode(HttpStatus.BAD_REQUEST.value());
 
     }
 
@@ -53,7 +49,7 @@ public class PaymentsMandatoryValues extends TestBase {
                 .when()
                 .post()
                 .then()
-                .statusCode(400);
+                .statusCode(HttpStatus.BAD_REQUEST.value());
 
     }
 
@@ -70,7 +66,7 @@ public class PaymentsMandatoryValues extends TestBase {
                 .when()
                 .post()
                 .then()
-                .statusCode(422)
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .body(equalTo(CONFIG.getProperty("application_man_msg")));
 
 
@@ -88,7 +84,7 @@ public class PaymentsMandatoryValues extends TestBase {
                 .when()
                 .post()
                 .then()
-                .statusCode(422)
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .body(equalTo(CONFIG.getProperty("description_man_msg")));
 
     }
@@ -105,7 +101,7 @@ public class PaymentsMandatoryValues extends TestBase {
                 .when()
                 .post()
                 .then()
-                .statusCode(422)
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .body(equalTo(CONFIG.getProperty("payment_ref_man_msg")));
 
 
@@ -124,7 +120,7 @@ public class PaymentsMandatoryValues extends TestBase {
                 .when()
                 .post()
                 .then()
-                .statusCode(422)
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .body(equalTo(CONFIG.getProperty("ret_url_man_msg")));
 
 
@@ -144,7 +140,7 @@ public class PaymentsMandatoryValues extends TestBase {
                 .when()
                 .post()
                 .then()
-                .statusCode(422);
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value());
 
 
     }

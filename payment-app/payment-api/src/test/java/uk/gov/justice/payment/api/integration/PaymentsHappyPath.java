@@ -1,22 +1,19 @@
 package uk.gov.justice.payment.api.integration;
 
 import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
+
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 
-/**
- * Unit test for simple App.
- */
 
 @RunWith(SpringRunner.class)
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -34,7 +31,7 @@ public class PaymentsHappyPath extends TestBase {
 
         response
                 .then()
-                .statusCode(201);
+                .statusCode(HttpStatus.CREATED.value());
 
         payment_id = response.path("payment_id");
     }
@@ -45,7 +42,7 @@ public class PaymentsHappyPath extends TestBase {
                 .when()
                 .get(payment_id)
                 .then()
-                .statusCode(200);
+                .statusCode(HttpStatus.OK.value());
 
     }
 
@@ -64,7 +61,7 @@ public class PaymentsHappyPath extends TestBase {
                 .when()
                 .post(payment_id + "/cancel")
                 .then()
-                .statusCode(204);
+                .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
     @Test
