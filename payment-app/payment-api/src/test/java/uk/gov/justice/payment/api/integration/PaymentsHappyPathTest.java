@@ -3,6 +3,7 @@ package uk.gov.justice.payment.api.integration;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 
@@ -11,7 +12,8 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.util.ResourceUtils.getFile;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class PaymentsHappyPath extends TestBase {
+
+public class PaymentsHappyPathTest extends TestBase {
     private static String payment_id = null;
 
     @Test
