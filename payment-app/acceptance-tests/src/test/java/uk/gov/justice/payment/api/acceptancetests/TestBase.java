@@ -1,4 +1,4 @@
-package uk.gov.justice.payment.api.integration;
+package uk.gov.justice.payment.api.acceptancetests;
 
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;

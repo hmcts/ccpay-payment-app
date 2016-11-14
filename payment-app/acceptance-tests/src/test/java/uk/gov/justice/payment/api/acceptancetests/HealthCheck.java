@@ -1,4 +1,4 @@
-package uk.gov.justice.payment.api.integration;
+package uk.gov.justice.payment.api.acceptancetests;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,9 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 
@@ -24,7 +25,7 @@ public class HealthCheck {
 
     public static final int AMOUNT = 10;
     public static final String SERVICE_ID = "divorce";
-    private CreatePaymentRequestDto paymentRequest;
+    private Map<String, Object> paymentRequest;
     //private HttpHeaders headers;
     @Autowired
     private TestRestTemplate restTemplate;
@@ -34,14 +35,13 @@ public class HealthCheck {
     public void setUp() {
         long timestamp = Calendar.getInstance().getTimeInMillis();
         RestAssured.port = 8181;
-        paymentRequest = new CreatePaymentRequestDto();
-        paymentRequest.setAmount(AMOUNT);
-        paymentRequest.setDescription("Test Desc" + timestamp);
-        paymentRequest.setPaymentReference("TestRef" + timestamp);
-        paymentRequest.setApplicationReference("Test case id" + timestamp);
-        paymentRequest.setReturnUrl("https://localhost:8443/payment-result");
-        paymentRequest.setEmail("zeeshan.alam@agilesphere.co.uk");
-        //headers.put("service-id","divorce");
+        paymentRequest = new HashMap();
+        paymentRequest.put("amount", AMOUNT);
+        paymentRequest.put("description", "Test Desc" + timestamp);
+        paymentRequest.put("payment_reference", "TestRef" + timestamp);
+        paymentRequest.put("application_reference", "Test case id" + timestamp);
+        paymentRequest.put("return_url", "https://localhost:8443/payment-result");
+        paymentRequest.put("email", "zeeshan.alam@agilesphere.co.uk");
     }
 
 

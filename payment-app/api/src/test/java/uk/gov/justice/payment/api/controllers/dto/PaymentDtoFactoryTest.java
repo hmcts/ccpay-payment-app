@@ -1,7 +1,7 @@
 package uk.gov.justice.payment.api.controllers.dto;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.web.context.request.RequestContextHolder;

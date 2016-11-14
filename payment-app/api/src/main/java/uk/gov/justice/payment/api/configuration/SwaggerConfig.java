@@ -1,9 +1,9 @@
 package uk.gov.justice.payment.api.configuration;
 
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.service.ApiInfo;
@@ -14,9 +14,9 @@ import springfox.documentation.spi.service.contexts.ParameterContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import static hidden.org.codehaus.plexus.interpolation.util.StringUtils.capitalizeFirstLetter;
-import static org.apache.commons.lang.StringUtils.join;
-import static org.apache.commons.lang.StringUtils.splitByCharacterTypeCamelCase;
+import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
 import static springfox.documentation.builders.PathSelectors.regex;
 
 @Configuration
@@ -51,7 +51,7 @@ public class SwaggerConfig {
                 return;
             }
 
-            String description = capitalizeFirstLetter(join(splitByCharacterTypeCamelCase(methodParameter.defaultName().get()), ' '));
+            String description = capitalize(join(splitByCharacterTypeCamelCase(methodParameter.defaultName().get()), ' '));
             context.parameterBuilder().description(description);
         }
 
