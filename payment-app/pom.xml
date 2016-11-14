@@ -17,16 +17,15 @@
 
     <modules>
         <module>gov-pay-client</module>
-        <module>payment-model</module>
-        <module>payment-core</module>
-        <module>payment-api</module>
+        <module>model</module>
+        <module>core</module>
+        <module>api</module>
     </modules>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-
 
     <dependencyManagement>
         <dependencies>
