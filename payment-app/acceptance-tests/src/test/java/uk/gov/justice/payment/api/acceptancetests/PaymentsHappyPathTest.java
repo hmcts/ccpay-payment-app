@@ -1,9 +1,8 @@
-package uk.gov.justice.payment.api.integration;
+package uk.gov.justice.payment.api.acceptancetests;
 
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 

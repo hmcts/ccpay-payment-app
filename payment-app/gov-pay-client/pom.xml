@@ -10,7 +10,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gov-pay-client</artifactId>
+    <artifactId>payment-gov-pay-client</artifactId>
 
     <dependencies>
         <dependency>
