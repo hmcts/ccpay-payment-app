@@ -32,7 +32,7 @@
         <dependencies>
             <dependency>
                 <groupId>uk.gov.justice</groupId>
-                <artifactId>gov-pay-client</artifactId>
+                <artifactId>payment-gov-pay-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

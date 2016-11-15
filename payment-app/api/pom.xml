@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>uk.gov.justice</groupId>
-            <artifactId>gov-pay-client</artifactId>
+            <artifactId>payment-gov-pay-client</artifactId>
         </dependency>
         <dependency>
             <groupId>uk.gov.justice</groupId>
