@@ -1,0 +1,60 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="1" author="zeeshan alam">
+        <createTable tableName="payment_details">
+            <column name="id" autoIncrement="true" type="int">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="service_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="application_reference" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_reference" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="return_url" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="response" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    
+    <changeSet id="2" author="Kazys Sketrys">
+        <addColumn tableName="payment_details">
+            <column name="finished" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="next_url" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cancel_url" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
