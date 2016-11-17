@@ -2,9 +2,9 @@ package uk.gov.justice.payment.api.external.client.exceptions;
 
 import uk.gov.justice.payment.api.external.client.dto.Error;
 
-public class PaymentNotFoundException extends GovPayException {
+public class GovPayCancellationFailedException extends GovPayException {
 
-    public PaymentNotFoundException(Error error) {
+    public GovPayCancellationFailedException(Error error) {
         super(error);
     }
 }

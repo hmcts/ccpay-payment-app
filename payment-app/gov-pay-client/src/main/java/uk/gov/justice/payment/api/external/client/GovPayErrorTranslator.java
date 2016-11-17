@@ -28,32 +28,32 @@ public class GovPayErrorTranslator {
 
             switch (error.getCode()) {
                 case "P0198":
-                    return new DownstreamSystemErrorException(error);
+                    return new GovPayDownstreamSystemErrorException(error);
                 case "P0199":
-                    return new AccountErrorException(error);
+                    return new GovPayAccountErrorException(error);
                 case "P0200":
-                    return new PaymentNotFoundException(error);
+                    return new GovPayPaymentNotFoundException(error);
                 case "P0298":
-                    return new DownstreamSystemErrorException(error);
+                    return new GovPayDownstreamSystemErrorException(error);
                 case "P0300":
-                    return new PaymentNotFoundException(error);
+                    return new GovPayPaymentNotFoundException(error);
                 case "P0398":
-                    return new DownstreamSystemErrorException(error);
+                    return new GovPayDownstreamSystemErrorException(error);
                 case "P0498":
-                    return new DownstreamSystemErrorException(error);
+                    return new GovPayDownstreamSystemErrorException(error);
                 case "P0500":
-                    return new PaymentNotFoundException(error);
+                    return new GovPayPaymentNotFoundException(error);
                 case "P0501":
-                    return new CancellationFailedException(error);
+                    return new GovPayCancellationFailedException(error);
                 case "P0598":
-                    return new DownstreamSystemErrorException(error);
+                    return new GovPayDownstreamSystemErrorException(error);
                 case "P0900":
-                    return new TooManyRequestsException(error);
+                    return new GovPayTooManyRequestsException(error);
                 case "P0999":
                     return new GovPayUnavailableException(error);
 
                 default:
-                    return new UnmappedGovPayErrorException(error);
+                    return new GovPayUnmappedErrorException(error);
             }
 
         } catch (IOException e) {

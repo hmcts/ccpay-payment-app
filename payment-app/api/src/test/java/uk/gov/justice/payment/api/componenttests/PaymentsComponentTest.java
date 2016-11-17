@@ -3,16 +3,16 @@ package uk.gov.justice.payment.api.componenttests;
 import org.junit.Test;
 import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto;
+import uk.gov.justice.payment.api.controllers.dto.PaymentDto.LinksDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto.StateDto;
-import uk.gov.justice.payment.api.json.api.TransactionRecord;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.justice.payment.api.componenttests.sugar.RestActions.SERVICE_ID;
 import static uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto.createPaymentRequestDtoWith;
-import static uk.gov.justice.payment.api.domain.PaymentDetails.paymentDetailsWith;
-import static uk.gov.justice.payment.api.json.api.TransactionRecord.transactionRecordWith;
+import static uk.gov.justice.payment.api.controllers.dto.PaymentDto.paymentDtoWith;
+import static uk.gov.justice.payment.api.model.PaymentDetails.paymentDetailsWith;
 
 public class PaymentsComponentTest extends ComponentTestBase {
 
@@ -23,15 +23,14 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
         restActions.get("/payments/?payment_reference=Ref1")
                 .andExpect(status().isOk())
-                .andExpect(bodyAs(TransactionRecord.class).containsExactly(
-                        transactionRecordWith().serviceId(SERVICE_ID).paymentReference("Ref1").build()
+                .andExpect(bodyAs(PaymentDto.class).containsExactly(
+                        paymentDtoWith().paymentReference("Ref1").state(new StateDto()).links(new LinksDto()).build()
                 ));
 
         restActions.get("/payments/?payment_reference=Ref999")
                 .andExpect(status().isOk())
-                .andExpect(bodyAs(TransactionRecord.class).containsExactly());
+                .andExpect(bodyAs(PaymentDto.class).containsExactly());
     }
-
 
     @Test
     public void createPaymentValidationRules() throws Exception {
@@ -76,19 +75,29 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        db.create(paymentDetailsWith().paymentId("123"));
+        db.create(paymentDetailsWith()
+                .paymentId("123")
+                .amount(12000)
+                .description("Description")
+                .applicationReference("Application reference")
+                .paymentReference("Payment reference")
+                .nextUrl("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2")
+                .cancelUrl("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2/cancel")
+                .createdDate("Created date")
+        );
 
         restActions.get("/payments/123")
                 .andExpect(status().isOk())
                 .andExpect(body().isEqualTo(
-                        PaymentDto.paymentDtoWith()   // as defined in .json file
-                                .state(new StateDto("created", false, null, null))
+                        paymentDtoWith()   // as defined in .json file
+                                .state(new StateDto("created", false))
                                 .paymentId("123")
                                 .amount(12000)
-                                .description("New passport application")
-                                .reference("Reference")
-                                .createdDate("2016-09-29T09:12:38.413Z")
-                                .links(new PaymentDto.LinksDto(
+                                .description("Description")
+                                .applicationReference("Application reference")
+                                .paymentReference("Payment reference")
+                                .createdDate("Created date")
+                                .links(new LinksDto(
                                         new PaymentDto.LinkDto("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2", "GET"),
                                         new PaymentDto.LinkDto("http://localhost/payments/123/cancel", "POST")
                                 ))

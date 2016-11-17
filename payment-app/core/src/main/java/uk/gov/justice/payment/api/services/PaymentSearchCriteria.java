@@ -9,11 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder(builderMethodName = "searchCriteriaWith")
 @AllArgsConstructor
 @NoArgsConstructor
-public class SearchCriteria {
+public class PaymentSearchCriteria {
     private Integer amount;
     private String paymentReference;
     private String applicationReference;
-    private String serviceId;
     private String description;
     private String returnUrl;
     private String response;

@@ -23,7 +23,8 @@ public class PaymentDto {
     private Integer amount;
     private StateDto state;
     private String description;
-    private String reference;
+    private String applicationReference;
+    private String paymentReference;
     private String paymentId;
     private String createdDate;
 
@@ -37,8 +38,6 @@ public class PaymentDto {
     public static class StateDto {
         private String status;
         private Boolean finished;
-        private String message;
-        private String code;
     }
 
     @Data
