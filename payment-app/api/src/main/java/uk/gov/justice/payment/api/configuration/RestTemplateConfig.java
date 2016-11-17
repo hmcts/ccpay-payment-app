@@ -21,7 +21,7 @@ public class RestTemplateConfig {
     private final String httpsProxy;
 
     @Autowired
-    public RestTemplateConfig(@Value("${https_proxy:}") String httpsProxy) {
+    public RestTemplateConfig(@Value("${proxy}") String httpsProxy) {
         this.httpsProxy = httpsProxy;
     }
 
