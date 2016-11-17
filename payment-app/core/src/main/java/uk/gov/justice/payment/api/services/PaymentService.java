@@ -1,17 +1,18 @@
 package uk.gov.justice.payment.api.services;
 
-import uk.gov.justice.payment.api.domain.PaymentDetails;
-import uk.gov.justice.payment.api.json.api.TransactionRecord;
+import lombok.NonNull;
+import uk.gov.justice.payment.api.model.PaymentDetails;
 
 import java.util.List;
 
 
 public interface PaymentService {
 
-    void storePayment(PaymentDetails paymentDetails);
+    PaymentDetails create(String serviceId, Integer amount, String email, String applicationReference, String paymentReference, String description, String returnUrl);
 
-    void updatePayment(String paymentId, String status);
+    PaymentDetails findByPaymentId(String serviceId, String paymentId);
 
-    List<TransactionRecord> searchPayment(SearchCriteria searchCriteria);
+    List<PaymentDetails> search(String serviceId, PaymentSearchCriteria searchCriteria);
 
+    void cancel(String serviceId, String paymentId);
 }

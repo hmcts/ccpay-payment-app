@@ -15,23 +15,23 @@ public class GovPayErrorTranslatorTest {
 
     @Test
     public void translatesAsExpected() throws JsonProcessingException {
-        assertThat(exceptionClassForErrorCode("P0198")).isEqualTo(DownstreamSystemErrorException.class);
-        assertThat(exceptionClassForErrorCode("P0199")).isEqualTo(AccountErrorException.class);
-        assertThat(exceptionClassForErrorCode("P0200")).isEqualTo(PaymentNotFoundException.class);
-        assertThat(exceptionClassForErrorCode("P0298")).isEqualTo(DownstreamSystemErrorException.class);
-        assertThat(exceptionClassForErrorCode("P0300")).isEqualTo(PaymentNotFoundException.class);
-        assertThat(exceptionClassForErrorCode("P0398")).isEqualTo(DownstreamSystemErrorException.class);
-        assertThat(exceptionClassForErrorCode("P0498")).isEqualTo(DownstreamSystemErrorException.class);
-        assertThat(exceptionClassForErrorCode("P0500")).isEqualTo(PaymentNotFoundException.class);
-        assertThat(exceptionClassForErrorCode("P0501")).isEqualTo(CancellationFailedException.class);
-        assertThat(exceptionClassForErrorCode("P0598")).isEqualTo(DownstreamSystemErrorException.class);
-        assertThat(exceptionClassForErrorCode("P0900")).isEqualTo(TooManyRequestsException.class);
+        assertThat(exceptionClassForErrorCode("P0198")).isEqualTo(GovPayDownstreamSystemErrorException.class);
+        assertThat(exceptionClassForErrorCode("P0199")).isEqualTo(GovPayAccountErrorException.class);
+        assertThat(exceptionClassForErrorCode("P0200")).isEqualTo(GovPayPaymentNotFoundException.class);
+        assertThat(exceptionClassForErrorCode("P0298")).isEqualTo(GovPayDownstreamSystemErrorException.class);
+        assertThat(exceptionClassForErrorCode("P0300")).isEqualTo(GovPayPaymentNotFoundException.class);
+        assertThat(exceptionClassForErrorCode("P0398")).isEqualTo(GovPayDownstreamSystemErrorException.class);
+        assertThat(exceptionClassForErrorCode("P0498")).isEqualTo(GovPayDownstreamSystemErrorException.class);
+        assertThat(exceptionClassForErrorCode("P0500")).isEqualTo(GovPayPaymentNotFoundException.class);
+        assertThat(exceptionClassForErrorCode("P0501")).isEqualTo(GovPayCancellationFailedException.class);
+        assertThat(exceptionClassForErrorCode("P0598")).isEqualTo(GovPayDownstreamSystemErrorException.class);
+        assertThat(exceptionClassForErrorCode("P0900")).isEqualTo(GovPayTooManyRequestsException.class);
         assertThat(exceptionClassForErrorCode("P0999")).isEqualTo(GovPayUnavailableException.class);
     }
 
     @Test
     public void unmappedErrorCode() throws JsonProcessingException {
-        assertThat(exceptionClassForErrorCode("-1")).isEqualTo(UnmappedGovPayErrorException.class);
+        assertThat(exceptionClassForErrorCode("-1")).isEqualTo(GovPayUnmappedErrorException.class);
     }
 
     @Test(expected = RuntimeException.class)

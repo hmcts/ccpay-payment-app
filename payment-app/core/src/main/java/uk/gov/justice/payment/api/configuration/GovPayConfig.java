@@ -18,7 +18,6 @@ public class GovPayConfig {
         this.key = key;
     }
 
-
     public boolean hasKeyForService(String serviceId) {
         return key.containsKey(serviceId);
     }

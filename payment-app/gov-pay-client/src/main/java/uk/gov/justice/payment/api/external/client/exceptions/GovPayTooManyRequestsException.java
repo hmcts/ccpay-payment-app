@@ -2,9 +2,9 @@ package uk.gov.justice.payment.api.external.client.exceptions;
 
 import uk.gov.justice.payment.api.external.client.dto.Error;
 
-public class TooManyRequestsException extends GovPayException {
+public class GovPayTooManyRequestsException extends GovPayException {
 
-    public TooManyRequestsException(Error error) {
+    public GovPayTooManyRequestsException(Error error) {
         super(error);
     }
 }

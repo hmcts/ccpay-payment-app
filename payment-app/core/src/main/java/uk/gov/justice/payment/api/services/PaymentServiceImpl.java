@@ -1,46 +1,101 @@
 package uk.gov.justice.payment.api.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.SimpleExpression;
+import lombok.NonNull;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.gov.justice.payment.api.domain.PaymentDetails;
-import uk.gov.justice.payment.api.json.api.TransactionRecord;
+import uk.gov.justice.payment.api.configuration.GovPayConfig;
+import uk.gov.justice.payment.api.external.client.GovPayClient;
+import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.justice.payment.api.external.client.dto.Link;
+import uk.gov.justice.payment.api.external.client.dto.Payment;
+import uk.gov.justice.payment.api.model.PaymentDetails;
 import uk.gov.justice.payment.api.repository.PaymentRepository;
 
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
-import static uk.gov.justice.payment.api.domain.QPaymentDetails.paymentDetails;
+import static com.google.common.collect.Lists.newArrayList;
+import static uk.gov.justice.payment.api.model.PaymentDetails.paymentDetailsWith;
+import static uk.gov.justice.payment.api.model.QPaymentDetails.paymentDetails;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
-
+    private final ObjectMapper objectMapper;
+    private final GovPayConfig govPayConfig;
+    private final GovPayClient govPayClient;
     private final PaymentRepository paymentRepository;
 
     @Autowired
-    public PaymentServiceImpl(PaymentRepository paymentRepository) {
+    public PaymentServiceImpl(ObjectMapper objectMapper, GovPayConfig govPayConfig, GovPayClient govPayClient, PaymentRepository paymentRepository) {
+        this.objectMapper = objectMapper;
+        this.govPayConfig = govPayConfig;
+        this.govPayClient = govPayClient;
         this.paymentRepository = paymentRepository;
     }
 
-    public void storePayment(PaymentDetails paymentDetails) {
-        paymentRepository.save(paymentDetails);
-    }
+    @Override
+    @SneakyThrows(JsonProcessingException.class)
+    public PaymentDetails create(@NonNull String serviceId,
+                                 @NonNull Integer amount,
+                                 @NonNull String email,
+                                 @NonNull String applicationReference,
+                                 @NonNull String paymentReference,
+                                 @NonNull String description,
+                                 @NonNull String returnUrl) {
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest(amount, applicationReference, description, returnUrl);
+        Payment govPayment = govPayClient.createPayment(keyFor(serviceId), paymentRequest);
 
-    public void updatePayment(String paymentId, String status) {
-        PaymentDetails paymentRequest = paymentRepository.findByPaymentId(paymentId);
-        paymentRequest.setStatus(status);
-        paymentRepository.save(paymentRequest);
+        Link nextUrl = govPayment.getLinks().getNextUrl();
+        Link cancelUrl = govPayment.getLinks().getCancel();
+
+        return paymentRepository.save(paymentDetailsWith()
+                .serviceId(serviceId)
+                .paymentId(govPayment.getPaymentId())
+                .amount(amount)
+                .email(email)
+                .status(govPayment.getState().getStatus())
+                .finished(govPayment.getState().getFinished())
+                .applicationReference(applicationReference)
+                .paymentReference(paymentReference)
+                .description(description)
+                .returnUrl(returnUrl)
+                .nextUrl(hrefFor(nextUrl))
+                .cancelUrl(hrefFor(cancelUrl))
+                .response(objectMapper.writeValueAsString(govPayment))
+                .createdDate(govPayment.getCreatedDate())
+                .build());
     }
 
     @Override
-    public List<TransactionRecord> searchPayment(SearchCriteria searchCriteria) {
+    public PaymentDetails findByPaymentId(@NonNull String serviceId, @NonNull String paymentId) {
+        Payment payment = govPayClient.getPayment(keyFor(serviceId), paymentId);
+        Link nextLink = payment.getLinks().getNextUrl();
+        Link cancelLink = payment.getLinks().getCancel();
+
+        PaymentDetails paymentDetails = paymentRepository.findByPaymentId(paymentId);
+        paymentDetails.setStatus(payment.getState().getStatus());
+        paymentDetails.setFinished(payment.getState().getFinished());
+        paymentDetails.setNextUrl(hrefFor(nextLink));
+        paymentDetails.setCancelUrl(hrefFor(cancelLink));
+
+        return paymentRepository.save(paymentDetails);
+    }
+
+    private String hrefFor(Link cancelUrl) {
+        return cancelUrl == null ? null : cancelUrl.getHref();
+    }
+
+    @Override
+    public List<PaymentDetails> search(@NonNull String serviceId, @NonNull PaymentSearchCriteria searchCriteria) {
         BooleanExpression criteria = new CriteriaBuilder()
+                .eqIfNotNull(paymentDetails.serviceId, serviceId)
                 .eqIfNotNull(paymentDetails.amount, searchCriteria.getAmount())
                 .eqIfNotNull(paymentDetails.paymentReference, searchCriteria.getPaymentReference())
                 .eqIfNotNull(paymentDetails.applicationReference, searchCriteria.getApplicationReference())
-                .eqIfNotNull(paymentDetails.serviceId, searchCriteria.getServiceId())
                 .eqIfNotNull(paymentDetails.description, searchCriteria.getDescription())
                 .eqIfNotNull(paymentDetails.status, searchCriteria.getStatus())
                 .eqIfNotNull(paymentDetails.email, searchCriteria.getEmail())
@@ -48,20 +103,16 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
 
-        return stream(paymentRepository.findAll(criteria).spliterator(), false)
-                .map(paymentDetails -> {
-                    TransactionRecord transactionRecord = new TransactionRecord();
-                    transactionRecord.setAmount(paymentDetails.getAmount());
-                    transactionRecord.setApplicationReference(paymentDetails.getApplicationReference());
-                    transactionRecord.setCreatedDate(paymentDetails.getCreatedDate());
-                    transactionRecord.setDescription(paymentDetails.getDescription());
-                    transactionRecord.setPaymentId(paymentDetails.getPaymentId());
-                    transactionRecord.setPaymentReference(paymentDetails.getPaymentReference());
-                    transactionRecord.setServiceId(paymentDetails.getServiceId());
-                    transactionRecord.setEmail(paymentDetails.getEmail());
-                    return transactionRecord;
-                })
-                .collect(toList());
+        return newArrayList(paymentRepository.findAll(criteria));
+    }
+
+    @Override
+    public void cancel(String serviceId, String paymentId) {
+        govPayClient.cancelPayment(govPayConfig.getKeyForService(serviceId), paymentId);
+    }
+
+    private String keyFor(String serviceId) {
+        return govPayConfig.getKeyForService(serviceId);
     }
 
     private static class CriteriaBuilder {
