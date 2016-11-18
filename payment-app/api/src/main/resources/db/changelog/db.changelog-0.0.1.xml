@@ -43,7 +43,7 @@
             </column>
         </createTable>
     </changeSet>
-    
+
     <changeSet id="2" author="Kazys Sketrys">
         <addColumn tableName="payment_details">
             <column name="finished" type="boolean">
@@ -57,4 +57,12 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="3" author="Kazys Sketrys">
+        <dropNotNullConstraint tableName="payment_details" columnName="next_url"/>
+        <dropNotNullConstraint tableName="payment_details" columnName="cancel_url"/>
+
+        <addUniqueConstraint tableName="payment_details" columnNames="service_id, application_reference"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -47,6 +47,12 @@ public class GovPayErrorTranslator {
                     return new GovPayCancellationFailedException(error);
                 case "P0598":
                     return new GovPayDownstreamSystemErrorException(error);
+                case "P0600":
+                    return new GovPayPaymentNotFoundException(error);
+                case "P0603":
+                    return new GovPayRefundNotAvailableException(error);
+                case "P0604":
+                    return new GovPayRefundAmountMismatch(error);
                 case "P0900":
                     return new GovPayTooManyRequestsException(error);
                 case "P0999":
@@ -55,7 +61,6 @@ public class GovPayErrorTranslator {
                 default:
                     return new GovPayUnmappedErrorException(error);
             }
-
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse error body");
         }

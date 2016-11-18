@@ -13,6 +13,7 @@ import uk.gov.justice.payment.api.external.client.GovPayClient;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.justice.payment.api.external.client.dto.Link;
 import uk.gov.justice.payment.api.external.client.dto.Payment;
+import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.justice.payment.api.model.PaymentDetails;
 import uk.gov.justice.payment.api.repository.PaymentRepository;
 
@@ -90,7 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<PaymentDetails> search(@NonNull String serviceId, @NonNull PaymentSearchCriteria searchCriteria) {
+    public List<PaymentDetails> find(@NonNull String serviceId, @NonNull PaymentSearchCriteria searchCriteria) {
         BooleanExpression criteria = new CriteriaBuilder()
                 .eqIfNotNull(paymentDetails.serviceId, serviceId)
                 .eqIfNotNull(paymentDetails.amount, searchCriteria.getAmount())
@@ -108,7 +109,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public void cancel(String serviceId, String paymentId) {
-        govPayClient.cancelPayment(govPayConfig.getKeyForService(serviceId), paymentId);
+        govPayClient.cancelPayment(keyFor(serviceId), paymentId);
+    }
+
+    @Override
+    public void refund(String serviceId, String paymentId, Integer amount, Integer refundAmountAvailable) {
+        govPayClient.refundPayment(keyFor(serviceId), paymentId, new RefundPaymentRequest(amount, refundAmountAvailable));
     }
 
     private String keyFor(String serviceId) {

@@ -1,6 +1,5 @@
 package uk.gov.justice.payment.api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -13,9 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDtoFactory;
+import uk.gov.justice.payment.api.controllers.dto.RefundPaymentRequestDto;
+import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
+import uk.gov.justice.payment.api.external.client.exceptions.GovPayRefundAmountMismatch;
 import uk.gov.justice.payment.api.model.PaymentDetails;
 import uk.gov.justice.payment.api.parameters.serviceid.ServiceId;
 import uk.gov.justice.payment.api.services.PaymentService;
@@ -57,7 +59,7 @@ public class PaymentController {
                                    @RequestParam(value = "created_date", required = false) String createdDate,
                                    @RequestParam(value = "email", required = false) String email) {
 
-        List<PaymentDetails> results = paymentService.search(serviceId, searchCriteriaWith()
+        List<PaymentDetails> results = paymentService.find(serviceId, searchCriteriaWith()
                 .amount(amount)
                 .applicationReference(applicationReference)
                 .description(description)
@@ -78,7 +80,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method = POST)
     public ResponseEntity<PaymentDto> create(@ServiceId String serviceId,
-                                             @Valid @RequestBody CreatePaymentRequestDto request) throws JsonProcessingException {
+                                             @Valid @RequestBody CreatePaymentRequestDto request) {
         PaymentDetails paymentDetails = paymentService.create(
                 serviceId,
                 request.getAmount(),
@@ -119,8 +121,29 @@ public class PaymentController {
         }
     }
 
-    @ExceptionHandler(value = {GovPayPaymentNotFoundException.class})
-    public ResponseEntity httpClientErrorException(GovPayPaymentNotFoundException e) {
+    @ApiOperation(value = "Refund payment", notes = "Refund payment for supplied application reference")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Refund accepted"),
+            @ApiResponse(code = 412, message = "Refund amount available mismatch"),
+            @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @RequestMapping(value = "/payments/{applicationReference}//refunds", method = POST)
+    public ResponseEntity<?> refund(@ServiceId String serviceId,
+                                    @PathVariable("applicationReference") String applicationReference,
+                                    @Valid @RequestBody RefundPaymentRequestDto request) {
+        PaymentDetails payment = paymentService.findOne(serviceId, searchCriteriaWith().applicationReference(applicationReference).build());
+
+        try {
+            paymentService.refund(serviceId, payment.getPaymentId(), request.getAmount(), request.getRefundAmountAvailable());
+            return new ResponseEntity<>(CREATED);
+        } catch (GovPayRefundAmountMismatch e) {
+            LOG.info("Refund amount available mismatch for paymentId: " + payment.getPaymentId());
+            return new ResponseEntity(PRECONDITION_FAILED);
+        }
+    }
+
+    @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
+    public ResponseEntity httpClientErrorException() {
         return new ResponseEntity(NOT_FOUND);
     }
 
