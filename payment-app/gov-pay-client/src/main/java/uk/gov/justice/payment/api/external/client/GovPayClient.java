@@ -10,6 +10,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.justice.payment.api.external.client.dto.Payment;
+import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
 
 import java.util.function.Supplier;
 
@@ -32,9 +33,9 @@ public class GovPayClient {
         this.errorTranslator = errorTranslator;
     }
 
-    public Payment createPayment(String authorizationKey, CreatePaymentRequest paymentRequestDto) {
+    public Payment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         return doWithErrorTranslation(() -> {
-            HttpEntity<CreatePaymentRequest> entity = new HttpEntity<>(paymentRequestDto, getHeaders(authorizationKey));
+            HttpEntity<CreatePaymentRequest> entity = new HttpEntity<>(createPaymentRequest, getHeaders(authorizationKey));
             ResponseEntity<Payment> response = restTemplate.exchange(url, POST, entity, Payment.class);
             return response.getBody();
         });
@@ -48,7 +49,11 @@ public class GovPayClient {
     }
 
     public void cancelPayment(String authorizationKey, String paymentId) {
-        doWithErrorTranslation(() -> restTemplate.exchange(url + "/" + paymentId + "/cancel", POST, new HttpEntity(getHeaders(authorizationKey)), Payment.class));
+        doWithErrorTranslation(() -> restTemplate.exchange(url + "/" + paymentId + "/cancel", POST, new HttpEntity(getHeaders(authorizationKey)), Void.class));
+    }
+
+    public void refundPayment(String authorizationKey, String paymentId, RefundPaymentRequest refundPaymentRequest) {
+        doWithErrorTranslation(() -> restTemplate.exchange(url + "/" + paymentId + "/refunds", POST, new HttpEntity(refundPaymentRequest, getHeaders(authorizationKey)), Void.class));
     }
 
     private <T> T doWithErrorTranslation(Supplier<T> function) {

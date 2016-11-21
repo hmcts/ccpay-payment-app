@@ -25,6 +25,9 @@ public class GovPayErrorTranslatorTest {
         assertThat(exceptionClassForErrorCode("P0500")).isEqualTo(GovPayPaymentNotFoundException.class);
         assertThat(exceptionClassForErrorCode("P0501")).isEqualTo(GovPayCancellationFailedException.class);
         assertThat(exceptionClassForErrorCode("P0598")).isEqualTo(GovPayDownstreamSystemErrorException.class);
+        assertThat(exceptionClassForErrorCode("P0600")).isEqualTo(GovPayPaymentNotFoundException.class);
+        assertThat(exceptionClassForErrorCode("P0603")).isEqualTo(GovPayRefundNotAvailableException.class);
+        assertThat(exceptionClassForErrorCode("P0604")).isEqualTo(GovPayRefundAmountMismatch.class);
         assertThat(exceptionClassForErrorCode("P0900")).isEqualTo(GovPayTooManyRequestsException.class);
         assertThat(exceptionClassForErrorCode("P0999")).isEqualTo(GovPayUnavailableException.class);
     }

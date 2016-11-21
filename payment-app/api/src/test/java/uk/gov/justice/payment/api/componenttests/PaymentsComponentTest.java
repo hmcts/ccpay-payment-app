@@ -5,6 +5,7 @@ import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto.LinksDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto.StateDto;
+import uk.gov.justice.payment.api.controllers.dto.RefundPaymentRequestDto;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.justice.payment.api.componenttests.sugar.RestActions.SERVICE_ID;
 import static uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto.createPaymentRequestDtoWith;
 import static uk.gov.justice.payment.api.controllers.dto.PaymentDto.paymentDtoWith;
+import static uk.gov.justice.payment.api.controllers.dto.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
 import static uk.gov.justice.payment.api.model.PaymentDetails.paymentDetailsWith;
 
 public class PaymentsComponentTest extends ComponentTestBase {
@@ -123,7 +125,6 @@ public class PaymentsComponentTest extends ComponentTestBase {
         stubFor(post(urlPathMatching("/v1/payments/1/cancel"))
                 .willReturn(aResponse()
                         .withStatus(204)
-                        .withBody(contentsOf("viewPaymentResponse.json"))
                         .withHeader("Content-Type", "application/json")
                 ));
 
@@ -143,4 +144,63 @@ public class PaymentsComponentTest extends ComponentTestBase {
         restActions.post("/payments/4/cancel")
                 .andExpect(status().is(400));
     }
+
+    @Test
+    public void refundPaymentValidationRules() throws Exception {
+        RefundPaymentRequestDto validRequest = refundPaymentRequestDtoWith()
+                .amount(100)
+                .refundAmountAvailable(200)
+                .build();
+
+        tryRefundAndExpect(validRequest.withAmount(null), "amount: may not be null");
+        tryRefundAndExpect(validRequest.withAmount(0), "amount: must be greater than or equal to 1");
+        tryRefundAndExpect(validRequest.withRefundAmountAvailable(null), "refundAmountAvailable: may not be null");
+        tryRefundAndExpect(validRequest.withRefundAmountAvailable(0), "refundAmountAvailable: must be greater than or equal to 1");
+    }
+
+    private void tryRefundAndExpect(RefundPaymentRequestDto requestBody, String expectedContent) throws Exception {
+        restActions.post("/payments/1/refunds", requestBody)
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(content().string(expectedContent));
+    }
+
+    @Test
+    public void refundPaymentShouldReturn201OnSuccess() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments/refundPaymentId/refunds"))
+                .willReturn(aResponse()
+                        .withStatus(201)
+                        .withHeader("Content-Type", "application/json")
+                ));
+
+        db.create(paymentDetailsWith()
+                .serviceId(SERVICE_ID)
+                .paymentId("refundPaymentId")
+                .applicationReference("refundApplicationReference")
+                .amount(100));
+
+        restActions
+                .post("/payments/refundApplicationReference/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+                .andExpect(status().is(201));
+    }
+
+    @Test
+    public void refundPaymentShouldReturn412IfAmountMismatch() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments/refundPaymentId/refunds"))
+                .willReturn(aResponse()
+                        .withStatus(412)
+                        .withBody("{ \"code\": \"P0604\", \"description\": \"Refund amount available mismatch\" }")
+                        .withHeader("Content-Type", "application/json")
+                ));
+
+        db.create(paymentDetailsWith()
+                .serviceId(SERVICE_ID)
+                .paymentId("refundPaymentId")
+                .applicationReference("refundApplicationReference")
+                .amount(100));
+
+        restActions
+                .post("/payments/refundApplicationReference/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+                .andExpect(status().is(412));
+    }
+
 }
