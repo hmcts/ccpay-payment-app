@@ -31,7 +31,7 @@ public class PaymentController {
         this.restTemplate = restTemplate;
     }
 
-    @RequestMapping
+    @RequestMapping("/")
     public String home() {
         return "index";
     }
