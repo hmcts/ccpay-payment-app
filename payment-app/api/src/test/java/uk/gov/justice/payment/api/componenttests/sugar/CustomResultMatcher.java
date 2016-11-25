@@ -7,7 +7,9 @@ import org.springframework.test.web.servlet.ResultMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CustomResultMatcher implements ResultMatcher {
@@ -46,6 +48,15 @@ public class CustomResultMatcher implements ResultMatcher {
             CollectionType valueType = objectMapper.getTypeFactory().constructCollectionType(List.class, expectedClass);
             List actual = objectMapper.readValue(result.getResponse().getContentAsByteArray(), valueType);
             assertThat(actual).containsExactly(expected);
+        });
+        return this;
+    }
+
+    public <I, O> CustomResultMatcher containsExactly(Function<I, O> mapper, O... expected) {
+        matchers.add(result -> {
+            CollectionType valueType = objectMapper.getTypeFactory().constructCollectionType(List.class, expectedClass);
+            List<I> actual = objectMapper.readValue(result.getResponse().getContentAsByteArray(), valueType);
+            assertThat(actual.stream().map(mapper).collect(toList())).containsExactly(expected);
         });
         return this;
     }

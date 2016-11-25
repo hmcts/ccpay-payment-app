@@ -6,6 +6,7 @@ import uk.gov.justice.payment.api.controllers.dto.PaymentDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto.LinksDto;
 import uk.gov.justice.payment.api.controllers.dto.PaymentDto.StateDto;
 import uk.gov.justice.payment.api.controllers.dto.RefundPaymentRequestDto;
+import uk.gov.justice.payment.api.model.PaymentDetails;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -20,14 +21,12 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void searchPayments() throws Exception {
-        db.create(paymentDetailsWith().paymentReference("Ref1").serviceId(SERVICE_ID));
-        db.create(paymentDetailsWith().paymentReference("Ref2").serviceId(SERVICE_ID));
+        db.create(validPaymentDetailsWith().paymentReference("Ref1").applicationReference("appRef1"));
+        db.create(validPaymentDetailsWith().paymentReference("Ref2").applicationReference("appRef2"));
 
         restActions.get("/payments/?payment_reference=Ref1")
                 .andExpect(status().isOk())
-                .andExpect(bodyAs(PaymentDto.class).containsExactly(
-                        paymentDtoWith().paymentReference("Ref1").state(new StateDto()).links(new LinksDto()).build()
-                ));
+                .andExpect(bodyAs(PaymentDto.class).containsExactly(PaymentDto::getPaymentReference, "Ref1"));
 
         restActions.get("/payments/?payment_reference=Ref999")
                 .andExpect(status().isOk())
@@ -69,6 +68,28 @@ public class PaymentsComponentTest extends ComponentTestBase {
     }
 
     @Test
+    public void createPaymentWithDuplicateApplicationReference() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(contentsOf("viewPaymentResponse.json"))
+                        .withHeader("Content-Type", "application/json")
+                ));
+
+        CreatePaymentRequestDto requestBody = createPaymentRequestDtoWith()
+                .amount(100)
+                .applicationReference("applicationReference")
+                .description("description")
+                .email("email@email.com")
+                .paymentReference("paymentReference")
+                .returnUrl("https://returnUrl")
+                .build();
+
+        restActions.post("/payments/", requestBody).andExpect(status().isCreated());
+        restActions.post("/payments/", requestBody).andExpect(status().isConflict());
+    }
+
+    @Test
     public void getExistingPaymentShouldReturn200AndBody() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/123"))
                 .willReturn(aResponse()
@@ -77,7 +98,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        db.create(paymentDetailsWith()
+        db.create(validPaymentDetailsWith()
                 .paymentId("123")
                 .amount(12000)
                 .description("Description")
@@ -172,10 +193,9 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        db.create(paymentDetailsWith()
-                .serviceId(SERVICE_ID)
-                .paymentId("refundPaymentId")
+        db.create(validPaymentDetailsWith()
                 .applicationReference("refundApplicationReference")
+                .paymentId("refundPaymentId")
                 .amount(100));
 
         restActions
@@ -192,8 +212,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        db.create(paymentDetailsWith()
-                .serviceId(SERVICE_ID)
+        db.create(validPaymentDetailsWith()
                 .paymentId("refundPaymentId")
                 .applicationReference("refundApplicationReference")
                 .amount(100));
@@ -201,6 +220,22 @@ public class PaymentsComponentTest extends ComponentTestBase {
         restActions
                 .post("/payments/refundApplicationReference/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
                 .andExpect(status().is(412));
+    }
+
+    private PaymentDetails.PaymentDetailsBuilder validPaymentDetailsWith() {
+        return paymentDetailsWith()
+                .serviceId(SERVICE_ID)
+                .amount(100)
+                .status("status")
+                .paymentId("paymentId")
+                .description("description")
+                .email("email@email.com")
+                .applicationReference("applicationReference")
+                .paymentReference("paymentReference")
+                .returnUrl("returnUrl")
+                .response("response")
+                .finished(true)
+                .createdDate("createdDate");
     }
 
 }
