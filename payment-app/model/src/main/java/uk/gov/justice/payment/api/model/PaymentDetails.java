@@ -14,9 +14,8 @@ import javax.persistence.*;
 @NoArgsConstructor
 public class PaymentDetails {
 
-    @SequenceGenerator(name = "idgen", sequenceName = "payment_details_id_seq", allocationSize = 10)
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idgen")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String serviceId;
     private String paymentId;
