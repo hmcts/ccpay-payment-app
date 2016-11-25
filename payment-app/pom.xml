@@ -19,6 +19,7 @@
         <module>gov-pay-client</module>
         <module>model</module>
         <module>core</module>
+        <module>api-contract</module>
         <module>api</module>
         <module>acceptance-tests</module>
     </modules>
@@ -43,6 +44,11 @@
             <dependency>
                 <groupId>uk.gov.justice</groupId>
                 <artifactId>payment-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>uk.gov.justice</groupId>
+                <artifactId>payment-api-contract</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

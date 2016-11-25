@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import uk.gov.justice.payment.api.contract.PaymentDto;
+import uk.gov.justice.payment.api.controllers.PaymentDtoFactory;
 import uk.gov.justice.payment.api.model.PaymentDetails;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +15,7 @@ import java.util.Collections;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.justice.payment.api.controllers.dto.PaymentDto.paymentDtoWith;
+import static uk.gov.justice.payment.api.contract.PaymentDto.paymentDtoWith;
 
 public class PaymentDtoFactoryTest {
 

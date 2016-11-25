@@ -1,17 +1,15 @@
-package uk.gov.justice.payment.api.controllers.dto;
+package uk.gov.justice.payment.api.controllers;
 
 import lombok.SneakyThrows;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.justice.payment.api.controllers.PaymentController;
+import uk.gov.justice.payment.api.contract.PaymentDto;
 import uk.gov.justice.payment.api.model.PaymentDetails;
 
 import java.lang.reflect.Method;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-
 @Component
-public class
-PaymentDtoFactory {
+public class PaymentDtoFactory {
 
     public PaymentDto toDto(PaymentDetails payment) {
         return PaymentDto.paymentDtoWith()
@@ -36,7 +34,7 @@ PaymentDtoFactory {
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto cancellationLink(String paymentId) {
         Method method = PaymentController.class.getMethod("cancel", String.class, String.class);
-        return new PaymentDto.LinkDto(linkTo(method, paymentId).toString(), "POST");
+        return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, paymentId).toString(), "POST");
     }
 
 }
