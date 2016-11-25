@@ -1,5 +1,5 @@
 
-package uk.gov.justice.payment.api.controllers.dto;
+package uk.gov.justice.payment.api.contract;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,7 +53,7 @@ public class PaymentDto {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @JsonInclude(value = NON_NULL)
+    @JsonInclude(NON_NULL)
     public static class LinkDto {
         private String href;
         private String method;

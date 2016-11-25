@@ -1,20 +1,20 @@
 package uk.gov.justice.payment.api.componenttests;
 
 import org.junit.Test;
-import uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto;
-import uk.gov.justice.payment.api.controllers.dto.PaymentDto;
-import uk.gov.justice.payment.api.controllers.dto.PaymentDto.LinksDto;
-import uk.gov.justice.payment.api.controllers.dto.PaymentDto.StateDto;
-import uk.gov.justice.payment.api.controllers.dto.RefundPaymentRequestDto;
+import uk.gov.justice.payment.api.contract.CreatePaymentRequestDto;
+import uk.gov.justice.payment.api.contract.PaymentDto;
+import uk.gov.justice.payment.api.contract.PaymentDto.LinksDto;
+import uk.gov.justice.payment.api.contract.PaymentDto.StateDto;
+import uk.gov.justice.payment.api.contract.RefundPaymentRequestDto;
 import uk.gov.justice.payment.api.model.PaymentDetails;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.justice.payment.api.componenttests.sugar.RestActions.SERVICE_ID;
-import static uk.gov.justice.payment.api.controllers.dto.CreatePaymentRequestDto.createPaymentRequestDtoWith;
-import static uk.gov.justice.payment.api.controllers.dto.PaymentDto.paymentDtoWith;
-import static uk.gov.justice.payment.api.controllers.dto.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
+import static uk.gov.justice.payment.api.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
+import static uk.gov.justice.payment.api.contract.PaymentDto.paymentDtoWith;
+import static uk.gov.justice.payment.api.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
 import static uk.gov.justice.payment.api.model.PaymentDetails.paymentDetailsWith;
 
 public class PaymentsComponentTest extends ComponentTestBase {

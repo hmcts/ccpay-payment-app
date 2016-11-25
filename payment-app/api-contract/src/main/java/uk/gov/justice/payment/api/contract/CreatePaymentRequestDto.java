@@ -1,6 +1,4 @@
-
-
-package uk.gov.justice.payment.api.controllers.dto;
+package uk.gov.justice.payment.api.contract;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy;

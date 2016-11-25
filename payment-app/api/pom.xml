@@ -19,6 +19,14 @@
         </dependency>
         <dependency>
             <groupId>uk.gov.justice</groupId>
+            <artifactId>payment-gov-pay-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.justice</groupId>
+            <artifactId>payment-api-contract</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.justice</groupId>
             <artifactId>payment-model</artifactId>
         </dependency>
         <dependency>

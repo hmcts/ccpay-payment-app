@@ -39,6 +39,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
     public ResponseEntity<String> validationException(MethodArgumentNotValidException e) {
+        LOG.debug("Validation error", e);
         FieldError fieldError = e.getBindingResult().getFieldError();
         return new ResponseEntity<>(fieldError.getField() + ": " + fieldError.getDefaultMessage(), UNPROCESSABLE_ENTITY);
     }
