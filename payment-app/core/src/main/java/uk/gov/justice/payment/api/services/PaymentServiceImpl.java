@@ -1,27 +1,25 @@
 package uk.gov.justice.payment.api.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.payment.api.configuration.GovPayConfig;
 import uk.gov.justice.payment.api.external.client.GovPayClient;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.justice.payment.api.external.client.dto.GovPayment;
 import uk.gov.justice.payment.api.external.client.dto.Link;
-import uk.gov.justice.payment.api.external.client.dto.Payment;
 import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
-import uk.gov.justice.payment.api.model.PaymentDetails;
+import uk.gov.justice.payment.api.model.Payment;
 import uk.gov.justice.payment.api.repository.PaymentRepository;
 
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static uk.gov.justice.payment.api.model.PaymentDetails.paymentDetailsWith;
-import static uk.gov.justice.payment.api.model.QPaymentDetails.paymentDetails;
+import static uk.gov.justice.payment.api.model.Payment.paymentWith;
+import static uk.gov.justice.payment.api.model.QPayment.payment;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -39,51 +37,49 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @SneakyThrows(JsonProcessingException.class)
-    public PaymentDetails create(@NonNull String serviceId,
-                                 @NonNull Integer amount,
-                                 @NonNull String email,
-                                 @NonNull String applicationReference,
-                                 @NonNull String paymentReference,
-                                 @NonNull String description,
-                                 @NonNull String returnUrl) {
+//    @SneakyThrows(JsonProcessingException.class)
+    public Payment create(@NonNull String serviceId,
+                          @NonNull Integer amount,
+                          @NonNull String email,
+                          @NonNull String applicationReference,
+                          @NonNull String paymentReference,
+                          @NonNull String description,
+                          @NonNull String returnUrl) {
         CreatePaymentRequest paymentRequest = new CreatePaymentRequest(amount, applicationReference, description, returnUrl);
-        Payment govPayment = govPayClient.createPayment(keyFor(serviceId), paymentRequest);
+        GovPayment govGovPayment = govPayClient.createPayment(keyFor(serviceId), paymentRequest);
 
-        Link nextUrl = govPayment.getLinks().getNextUrl();
-        Link cancelUrl = govPayment.getLinks().getCancel();
+        Link nextUrl = govGovPayment.getLinks().getNextUrl();
+        Link cancelUrl = govGovPayment.getLinks().getCancel();
 
-        return paymentRepository.save(paymentDetailsWith()
+        return paymentRepository.save(paymentWith()
                 .serviceId(serviceId)
-                .paymentId(govPayment.getPaymentId())
+                .govPayId(govGovPayment.getPaymentId())
                 .amount(amount)
                 .email(email)
-                .status(govPayment.getState().getStatus())
-                .finished(govPayment.getState().getFinished())
+                .status(govGovPayment.getState().getStatus())
+                .finished(govGovPayment.getState().getFinished())
                 .applicationReference(applicationReference)
                 .paymentReference(paymentReference)
                 .description(description)
                 .returnUrl(returnUrl)
                 .nextUrl(hrefFor(nextUrl))
                 .cancelUrl(hrefFor(cancelUrl))
-                .response(objectMapper.writeValueAsString(govPayment))
-                .createdDate(govPayment.getCreatedDate())
                 .build());
     }
 
     @Override
-    public PaymentDetails findByPaymentId(@NonNull String serviceId, @NonNull String paymentId) {
-        Payment payment = govPayClient.getPayment(keyFor(serviceId), paymentId);
-        Link nextLink = payment.getLinks().getNextUrl();
-        Link cancelLink = payment.getLinks().getCancel();
+    public Payment findByPaymentId(@NonNull String serviceId, @NonNull String paymentId) {
+        GovPayment govPayment = govPayClient.getPayment(keyFor(serviceId), paymentId);
+        Link nextLink = govPayment.getLinks().getNextUrl();
+        Link cancelLink = govPayment.getLinks().getCancel();
 
-        PaymentDetails paymentDetails = paymentRepository.findByPaymentId(paymentId);
-        paymentDetails.setStatus(payment.getState().getStatus());
-        paymentDetails.setFinished(payment.getState().getFinished());
-        paymentDetails.setNextUrl(hrefFor(nextLink));
-        paymentDetails.setCancelUrl(hrefFor(cancelLink));
+        Payment payment = paymentRepository.findByGovPayId(paymentId);
+        payment.setStatus(govPayment.getState().getStatus());
+        payment.setFinished(govPayment.getState().getFinished());
+        payment.setNextUrl(hrefFor(nextLink));
+        payment.setCancelUrl(hrefFor(cancelLink));
 
-        return paymentRepository.save(paymentDetails);
+        return paymentRepository.save(payment);
     }
 
     private String hrefFor(Link cancelUrl) {
@@ -91,18 +87,16 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<PaymentDetails> find(@NonNull String serviceId, @NonNull PaymentSearchCriteria searchCriteria) {
+    public List<Payment> find(@NonNull String serviceId, @NonNull PaymentSearchCriteria searchCriteria) {
         BooleanExpression criteria = new CriteriaBuilder()
-                .eqIfNotNull(paymentDetails.serviceId, serviceId)
-                .eqIfNotNull(paymentDetails.amount, searchCriteria.getAmount())
-                .eqIfNotNull(paymentDetails.paymentReference, searchCriteria.getPaymentReference())
-                .eqIfNotNull(paymentDetails.applicationReference, searchCriteria.getApplicationReference())
-                .eqIfNotNull(paymentDetails.description, searchCriteria.getDescription())
-                .eqIfNotNull(paymentDetails.status, searchCriteria.getStatus())
-                .eqIfNotNull(paymentDetails.email, searchCriteria.getEmail())
-                .eqIfNotNull(paymentDetails.createdDate, searchCriteria.getCreatedDate())
+                .eqIfNotNull(payment.serviceId, serviceId)
+                .eqIfNotNull(payment.amount, searchCriteria.getAmount())
+                .eqIfNotNull(payment.paymentReference, searchCriteria.getPaymentReference())
+                .eqIfNotNull(payment.applicationReference, searchCriteria.getApplicationReference())
+                .eqIfNotNull(payment.description, searchCriteria.getDescription())
+                .eqIfNotNull(payment.status, searchCriteria.getStatus())
+                .eqIfNotNull(payment.email, searchCriteria.getEmail())
                 .build();
-
 
         return newArrayList(paymentRepository.findAll(criteria));
     }

@@ -7,10 +7,11 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.justice.payment.api.contract.PaymentDto;
 import uk.gov.justice.payment.api.controllers.PaymentDtoFactory;
-import uk.gov.justice.payment.api.model.PaymentDetails;
+import uk.gov.justice.payment.api.model.Payment;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
+import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -32,15 +33,15 @@ public class PaymentDtoFactoryTest {
 
     @Test
     public void convertsToDto() {
-        assertThat(new PaymentDtoFactory().toDto(PaymentDetails.paymentDetailsWith()
-                .paymentId("123")
+        assertThat(new PaymentDtoFactory().toDto(Payment.paymentWith()
+                .govPayId("123")
                 .amount(500)
                 .status("status")
                 .finished(false)
                 .description("description")
                 .applicationReference("application_reference")
                 .paymentReference("payment_reference")
-                .createdDate("createdDate")
+                .dateCreated(new Date(123456789))
                 .cancelUrl("http://cancel_url")
                 .nextUrl("http://next_url")
                 .build())
@@ -51,7 +52,7 @@ public class PaymentDtoFactoryTest {
                 .description("description")
                 .applicationReference("application_reference")
                 .paymentReference("payment_reference")
-                .createdDate("createdDate")
+                .dateCreated(new Date(123456789))
                 .links(new PaymentDto.LinksDto(
                         new PaymentDto.LinkDto("http://next_url", "GET"),
                         new PaymentDto.LinkDto("http://localhost/payments/123/cancel", "POST")

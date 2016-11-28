@@ -7,14 +7,14 @@ import org.junit.Test;
 import uk.gov.justice.payment.api.configuration.GovPayConfig;
 import uk.gov.justice.payment.api.external.client.GovPayClient;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.justice.payment.api.external.client.dto.GovPayment;
 import uk.gov.justice.payment.api.external.client.dto.Link;
-import uk.gov.justice.payment.api.external.client.dto.Payment;
 import uk.gov.justice.payment.api.external.client.dto.State;
 import uk.gov.justice.payment.api.repository.PaymentRepository;
 
 import static org.mockito.Mockito.*;
-import static uk.gov.justice.payment.api.external.client.dto.Payment.paymentWith;
-import static uk.gov.justice.payment.api.model.PaymentDetails.paymentDetailsWith;
+import static uk.gov.justice.payment.api.external.client.dto.GovPayment.govPaymentWith;
+import static uk.gov.justice.payment.api.model.Payment.paymentWith;
 
 public class PaymentServiceImplTest {
 
@@ -25,11 +25,11 @@ public class PaymentServiceImplTest {
 
     @Test
     public void createCallsGovPayAndSavesTheResponse() throws JsonProcessingException {
-        Payment govPayResponse = paymentWith()
+        GovPayment govPayResponse = govPaymentWith()
                 .paymentId("paymentId")
                 .state(new State("status", false, "any", "any"))
                 .createdDate("createdDate")
-                .links(new Payment.Links(
+                .links(new GovPayment.Links(
                         null,
                         new Link("any", ImmutableMap.of(), "nextUrl", "any"),
                         null,
@@ -45,9 +45,9 @@ public class PaymentServiceImplTest {
         paymentService().create("divorce", 100, "email", "applicationReference", "paymentReference", "description", "returnUrl");
 
         verify(paymentRepository).save(
-                paymentDetailsWith()
+                paymentWith()
                         .serviceId("divorce")
-                        .paymentId("paymentId")
+                        .govPayId("paymentId")
                         .amount(100)
                         .email("email")
                         .status("status")
@@ -58,17 +58,15 @@ public class PaymentServiceImplTest {
                         .returnUrl("returnUrl")
                         .nextUrl("nextUrl")
                         .cancelUrl("cancelUrl")
-                        .response(objectMapper.writeValueAsString(govPayResponse))
-                        .createdDate("createdDate")
                         .build());
     }
 
     @Test
     public void findByPaymentIdCallsGovPayAndUpdatesPayment() throws JsonProcessingException {
         when(govPayConfig.getKeyForService("divorce")).thenReturn("authorizationKey");
-        when(govPayClient.getPayment("authorizationKey", "paymentId")).thenReturn(paymentWith()
+        when(govPayClient.getPayment("authorizationKey", "paymentId")).thenReturn(govPaymentWith()
                 .state(new State("newStatus", true, "any", "any"))
-                .links(new Payment.Links(
+                .links(new GovPayment.Links(
                         null,
                         new Link("any", ImmutableMap.of(), "newNextUrl", "any"),
                         null,
@@ -79,7 +77,7 @@ public class PaymentServiceImplTest {
                 .build()
         );
 
-        when(paymentRepository.findByPaymentId("paymentId")).thenReturn(paymentDetailsWith()
+        when(paymentRepository.findByGovPayId("paymentId")).thenReturn(paymentWith()
                 .status("oldStatus")
                 .finished(false)
                 .nextUrl("oldNextUrl")
@@ -89,7 +87,7 @@ public class PaymentServiceImplTest {
         paymentService().findByPaymentId("divorce", "paymentId");
 
         verify(paymentRepository).save(
-                paymentDetailsWith()
+                paymentWith()
                         .status("newStatus")
                         .finished(true)
                         .nextUrl("newNextUrl")

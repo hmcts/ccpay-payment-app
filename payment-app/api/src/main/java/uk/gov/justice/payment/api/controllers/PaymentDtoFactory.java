@@ -4,25 +4,25 @@ import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.justice.payment.api.contract.PaymentDto;
-import uk.gov.justice.payment.api.model.PaymentDetails;
+import uk.gov.justice.payment.api.model.Payment;
 
 import java.lang.reflect.Method;
 
 @Component
 public class PaymentDtoFactory {
 
-    public PaymentDto toDto(PaymentDetails payment) {
+    public PaymentDto toDto(Payment payment) {
         return PaymentDto.paymentDtoWith()
-                .paymentId(payment.getPaymentId())
+                .paymentId(payment.getGovPayId())
                 .amount(payment.getAmount())
                 .state(toStateDto(payment.getStatus(), payment.getFinished()))
                 .description(payment.getDescription())
                 .applicationReference(payment.getApplicationReference())
                 .paymentReference(payment.getPaymentReference())
-                .createdDate(payment.getCreatedDate())
+                .dateCreated(payment.getDateCreated())
                 .links(new PaymentDto.LinksDto(
                         payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                        payment.getCancelUrl() == null ? null : cancellationLink(payment.getPaymentId())
+                        payment.getCancelUrl() == null ? null : cancellationLink(payment.getGovPayId())
                 ))
                 .build();
     }

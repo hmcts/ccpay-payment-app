@@ -65,4 +65,46 @@
         <addUniqueConstraint tableName="payment_details" columnNames="service_id, application_reference"/>
     </changeSet>
 
+    <changeSet id="4" author="Kazys Sketrys">
+        <renameTable oldTableName="payment_details" newTableName="payment"/>
+        <renameColumn tableName="payment" oldColumnName="payment_id" newColumnName="gov_pay_id"/>
+        <dropColumn tableName="payment" columnName="response"/>
+        <dropColumn tableName="payment" columnName="created_date"/>
+        <dropColumn tableName="payment" columnName="return_url"/>
+        <dropColumn tableName="payment" columnName="next_url"/>
+        <dropColumn tableName="payment" columnName="cancel_url"/>
+        <addColumn tableName="payment">
+            <column name="date_created" type="timestamp" defaultValueDate="CURRENT_TIMESTAMP">
+                <constraints nullable="false"  />
+            </column>
+            <column name="return_url" type="text"/>
+            <column name="next_url" type="text"/>
+            <column name="cancel_url" type="text"/>
+            <column name="refunds_url" type="text"/>
+        </addColumn>
+
+        <createTable tableName="payment_history">
+            <column name="id" autoIncrement="true" type="int">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="payment_id" type="int">
+                <constraints nullable="false" references="payment(id)" foreignKeyName="ph_fk_payment_id"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="finished" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="response" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

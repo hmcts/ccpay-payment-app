@@ -6,7 +6,7 @@ import uk.gov.justice.payment.api.contract.PaymentDto;
 import uk.gov.justice.payment.api.contract.PaymentDto.LinksDto;
 import uk.gov.justice.payment.api.contract.PaymentDto.StateDto;
 import uk.gov.justice.payment.api.contract.RefundPaymentRequestDto;
-import uk.gov.justice.payment.api.model.PaymentDetails;
+import uk.gov.justice.payment.api.model.Payment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -15,14 +15,14 @@ import static uk.gov.justice.payment.api.componenttests.sugar.RestActions.SERVIC
 import static uk.gov.justice.payment.api.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
 import static uk.gov.justice.payment.api.contract.PaymentDto.paymentDtoWith;
 import static uk.gov.justice.payment.api.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
-import static uk.gov.justice.payment.api.model.PaymentDetails.paymentDetailsWith;
+import static uk.gov.justice.payment.api.model.Payment.paymentWith;
 
 public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void searchPayments() throws Exception {
-        db.create(validPaymentDetailsWith().paymentReference("Ref1").applicationReference("appRef1"));
-        db.create(validPaymentDetailsWith().paymentReference("Ref2").applicationReference("appRef2"));
+        db.create(validPaymentWith().paymentReference("Ref1").applicationReference("appRef1"));
+        db.create(validPaymentWith().paymentReference("Ref2").applicationReference("appRef2"));
 
         restActions.get("/payments/?payment_reference=Ref1")
                 .andExpect(status().isOk())
@@ -98,15 +98,14 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        db.create(validPaymentDetailsWith()
-                .paymentId("123")
+        Payment payment = db.create(validPaymentWith()
+                .govPayId("123")
                 .amount(12000)
                 .description("Description")
                 .applicationReference("Application reference")
                 .paymentReference("Payment reference")
                 .nextUrl("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2")
                 .cancelUrl("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2/cancel")
-                .createdDate("Created date")
         );
 
         restActions.get("/payments/123")
@@ -119,7 +118,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
                                 .description("Description")
                                 .applicationReference("Application reference")
                                 .paymentReference("Payment reference")
-                                .createdDate("Created date")
+                                .dateCreated(payment.getDateCreated())
                                 .links(new LinksDto(
                                         new PaymentDto.LinkDto("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2", "GET"),
                                         new PaymentDto.LinkDto("http://localhost/payments/123/cancel", "POST")
@@ -193,9 +192,9 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        db.create(validPaymentDetailsWith()
+        db.create(validPaymentWith()
                 .applicationReference("refundApplicationReference")
-                .paymentId("refundPaymentId")
+                .govPayId("refundPaymentId")
                 .amount(100));
 
         restActions
@@ -212,8 +211,8 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        db.create(validPaymentDetailsWith()
-                .paymentId("refundPaymentId")
+        db.create(validPaymentWith()
+                .govPayId("refundPaymentId")
                 .applicationReference("refundApplicationReference")
                 .amount(100));
 
@@ -222,20 +221,18 @@ public class PaymentsComponentTest extends ComponentTestBase {
                 .andExpect(status().is(412));
     }
 
-    private PaymentDetails.PaymentDetailsBuilder validPaymentDetailsWith() {
-        return paymentDetailsWith()
+    private Payment.PaymentBuilder validPaymentWith() {
+        return paymentWith()
                 .serviceId(SERVICE_ID)
                 .amount(100)
                 .status("status")
-                .paymentId("paymentId")
+                .govPayId("paymentId")
                 .description("description")
                 .email("email@email.com")
                 .applicationReference("applicationReference")
                 .paymentReference("paymentReference")
                 .returnUrl("returnUrl")
-                .response("response")
-                .finished(true)
-                .createdDate("createdDate");
+                .finished(true);
     }
 
 }

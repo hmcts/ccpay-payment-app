@@ -17,7 +17,7 @@ import uk.gov.justice.payment.api.external.client.exceptions.GovPayCancellationF
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayRefundAmountMismatch;
-import uk.gov.justice.payment.api.model.PaymentDetails;
+import uk.gov.justice.payment.api.model.Payment;
 import uk.gov.justice.payment.api.parameters.serviceid.ServiceId;
 import uk.gov.justice.payment.api.services.PaymentService;
 
@@ -58,7 +58,7 @@ public class PaymentController {
                                    @RequestParam(value = "created_date", required = false) String createdDate,
                                    @RequestParam(value = "email", required = false) String email) {
 
-        List<PaymentDetails> results = paymentService.find(serviceId, searchCriteriaWith()
+        List<Payment> results = paymentService.find(serviceId, searchCriteriaWith()
                 .amount(amount)
                 .applicationReference(applicationReference)
                 .description(description)
@@ -80,7 +80,7 @@ public class PaymentController {
     @RequestMapping(value = "/payments", method = POST)
     public ResponseEntity<PaymentDto> create(@ServiceId String serviceId,
                                              @Valid @RequestBody CreatePaymentRequestDto request) {
-        PaymentDetails paymentDetails = paymentService.create(
+        Payment payment = paymentService.create(
                 serviceId,
                 request.getAmount(),
                 request.getEmail(),
@@ -90,7 +90,7 @@ public class PaymentController {
                 request.getReturnUrl()
         );
 
-        return new ResponseEntity<>(paymentDtoFactory.toDto(paymentDetails), CREATED);
+        return new ResponseEntity<>(paymentDtoFactory.toDto(payment), CREATED);
     }
 
     @ApiOperation(value = "Get payment details by id", notes = "Get payment details for supplied payment id")
@@ -130,13 +130,13 @@ public class PaymentController {
     public ResponseEntity<?> refund(@ServiceId String serviceId,
                                     @PathVariable("applicationReference") String applicationReference,
                                     @Valid @RequestBody RefundPaymentRequestDto request) {
-        PaymentDetails payment = paymentService.findOne(serviceId, searchCriteriaWith().applicationReference(applicationReference).build());
+        Payment payment = paymentService.findOne(serviceId, searchCriteriaWith().applicationReference(applicationReference).build());
 
         try {
-            paymentService.refund(serviceId, payment.getPaymentId(), request.getAmount(), request.getRefundAmountAvailable());
+            paymentService.refund(serviceId, payment.getGovPayId(), request.getAmount(), request.getRefundAmountAvailable());
             return new ResponseEntity<>(CREATED);
         } catch (GovPayRefundAmountMismatch e) {
-            LOG.info("Refund amount available mismatch for paymentId: " + payment.getPaymentId());
+            LOG.info("Refund amount available mismatch for paymentId: " + payment.getGovPayId());
             return new ResponseEntity(PRECONDITION_FAILED);
         }
     }

@@ -2,13 +2,13 @@ package uk.gov.justice.payment.api.services;
 
 import uk.gov.justice.payment.api.exceptions.ApplicationException;
 import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
-import uk.gov.justice.payment.api.model.PaymentDetails;
+import uk.gov.justice.payment.api.model.Payment;
 
 import java.util.List;
 
 public interface PaymentSearchService {
-    default PaymentDetails findOne(String serviceId, PaymentSearchCriteria searchCriteria) {
-        List<PaymentDetails> results = find(serviceId, searchCriteria);
+    default Payment findOne(String serviceId, PaymentSearchCriteria searchCriteria) {
+        List<Payment> results = find(serviceId, searchCriteria);
 
         if (results.isEmpty()) {
             throw new PaymentNotFoundException();
@@ -21,5 +21,5 @@ public interface PaymentSearchService {
         return results.get(0);
     }
 
-    List<PaymentDetails> find(String serviceId, PaymentSearchCriteria searchCriteria);
+    List<Payment> find(String serviceId, PaymentSearchCriteria searchCriteria);
 }
