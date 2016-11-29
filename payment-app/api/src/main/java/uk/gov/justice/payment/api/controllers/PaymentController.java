@@ -101,9 +101,9 @@ public class PaymentController {
             @ApiResponse(code = 200, message = "Payment retrieved"),
             @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/payments/{paymentId}", method = GET)
-    public PaymentDto findByPaymentId(@ServiceId String serviceId, @PathVariable("paymentId") String paymentId) {
-        return paymentDtoFactory.toDto(paymentService.retrieve(serviceId, paymentId));
+    @RequestMapping(value = "/payments/{govPayId}", method = GET)
+    public PaymentDto retrieve(@ServiceId String serviceId, @PathVariable("govPayId") String govPayId) {
+        return paymentDtoFactory.toDto(paymentService.retrieve(serviceId, govPayId));
     }
 
     @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
@@ -112,13 +112,13 @@ public class PaymentController {
             @ApiResponse(code = 400, message = "Cancellation failed"),
             @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/payments/{paymentId}/cancel", method = POST)
-    public ResponseEntity<?> cancel(@ServiceId String serviceId, @PathVariable("paymentId") String paymentId) {
+    @RequestMapping(value = "/payments/{govPayId}/cancel", method = POST)
+    public ResponseEntity<?> cancel(@ServiceId String serviceId, @PathVariable("govPayId") String govPayId) {
         try {
-            paymentService.cancel(serviceId, paymentId);
+            paymentService.cancel(serviceId, govPayId);
             return new ResponseEntity<>(NO_CONTENT);
         } catch (GovPayCancellationFailedException e) {
-            LOG.info("Cancellation failed for paymentId: " + paymentId);
+            LOG.info("Cancellation failed for govPayId: " + govPayId);
             return new ResponseEntity(BAD_REQUEST);
         }
     }
@@ -129,7 +129,7 @@ public class PaymentController {
             @ApiResponse(code = 412, message = "Refund amount available mismatch"),
             @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/payments/{applicationReference}//refunds", method = POST)
+    @RequestMapping(value = "/payments/{applicationReference}/refunds", method = POST)
     public ResponseEntity<?> refund(@ServiceId String serviceId,
                                     @PathVariable("applicationReference") String applicationReference,
                                     @Valid @RequestBody RefundPaymentRequestDto request) {
@@ -139,7 +139,7 @@ public class PaymentController {
             paymentService.refund(serviceId, payment.getGovPayId(), request.getAmount(), request.getRefundAmountAvailable());
             return new ResponseEntity<>(CREATED);
         } catch (GovPayRefundAmountMismatch e) {
-            LOG.info("Refund amount available mismatch for paymentId: " + payment.getGovPayId());
+            LOG.info("Refund amount available mismatch for govPayId: " + payment.getGovPayId());
             return new ResponseEntity(PRECONDITION_FAILED);
         }
     }
