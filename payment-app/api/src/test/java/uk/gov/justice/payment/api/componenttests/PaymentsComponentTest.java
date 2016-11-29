@@ -9,6 +9,7 @@ import uk.gov.justice.payment.api.contract.RefundPaymentRequestDto;
 import uk.gov.justice.payment.api.model.Payment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.justice.payment.api.componenttests.sugar.RestActions.SERVICE_ID;
@@ -117,6 +118,8 @@ public class PaymentsComponentTest extends ComponentTestBase {
                                 ))
                                 .build()
                 ));
+
+        assertThat(db.getLastPaymentHistoryEntry().getAction()).isEqualTo("retrieve");
     }
 
     @Test
@@ -151,6 +154,8 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
         restActions.post("/payments/cancelPaymentId/cancel")
                 .andExpect(status().is(204));
+
+        assertThat(db.getLastPaymentHistoryEntry().getAction()).isEqualTo("cancel");
     }
 
     @Test
@@ -208,6 +213,8 @@ public class PaymentsComponentTest extends ComponentTestBase {
         restActions
                 .post("/payments/refundApplicationReference/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
                 .andExpect(status().is(201));
+
+        assertThat(db.getLastPaymentHistoryEntry().getAction()).isEqualTo("refund");
     }
 
     @Test
