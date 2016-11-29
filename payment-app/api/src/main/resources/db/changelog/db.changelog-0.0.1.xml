@@ -73,6 +73,7 @@
         <dropColumn tableName="payment" columnName="return_url"/>
         <dropColumn tableName="payment" columnName="next_url"/>
         <dropColumn tableName="payment" columnName="cancel_url"/>
+
         <addColumn tableName="payment">
             <column name="date_created" type="timestamp" defaultValueDate="CURRENT_TIMESTAMP">
                 <constraints nullable="false"  />
@@ -102,7 +103,7 @@
             <column name="finished" type="boolean">
                 <constraints nullable="false"/>
             </column>
-            <column name="response" type="text">
+            <column name="gov_pay_json" type="text">
                 <constraints nullable="false"/>
             </column>
         </createTable>

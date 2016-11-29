@@ -5,7 +5,7 @@
     "finished": false
   },
   "description": "New passport application",
-  "reference": "Reference",
+  "reference": "Payment reference",
   "payment_id": "123",
   "payment_provider": "sandbox",
   "card_brand": "",

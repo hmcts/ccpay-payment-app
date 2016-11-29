@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
-import uk.gov.justice.payment.api.external.client.dto.GovPayment;
+import uk.gov.justice.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
 
 import java.util.function.Supplier;
@@ -33,17 +33,17 @@ public class GovPayClient {
         this.errorTranslator = errorTranslator;
     }
 
-    public GovPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
+    public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         return doWithErrorTranslation(() -> {
             HttpEntity<CreatePaymentRequest> entity = new HttpEntity<>(createPaymentRequest, getHeaders(authorizationKey));
-            ResponseEntity<GovPayment> response = restTemplate.exchange(url, POST, entity, GovPayment.class);
+            ResponseEntity<GovPayPayment> response = restTemplate.exchange(url, POST, entity, GovPayPayment.class);
             return response.getBody();
         });
     }
 
-    public GovPayment getPayment(String authorizationKey, String paymentId) {
+    public GovPayPayment retrievePayment(String authorizationKey, String paymentId) {
         return doWithErrorTranslation(() -> {
-            ResponseEntity<GovPayment> response = restTemplate.exchange(url + "/" + paymentId, GET, new HttpEntity(getHeaders(authorizationKey)), GovPayment.class);
+            ResponseEntity<GovPayPayment> response = restTemplate.exchange(url + "/" + paymentId, GET, new HttpEntity(getHeaders(authorizationKey)), GovPayPayment.class);
             return response.getBody();
         });
     }

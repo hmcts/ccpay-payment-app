@@ -1,13 +1,10 @@
 package uk.gov.justice.payment.api.services;
 
-import uk.gov.justice.payment.api.model.Payment;
+public interface PaymentService<T> {
 
+    T create(String serviceId, String applicationReference, Integer amount, String email, String paymentReference, String description, String returnUrl);
 
-public interface PaymentService extends PaymentSearchService {
-
-    Payment create(String serviceId, Integer amount, String email, String applicationReference, String paymentReference, String description, String returnUrl);
-
-    Payment findByPaymentId(String serviceId, String paymentId);
+    T retrieve(String serviceId, String id);
 
     void cancel(String serviceId, String paymentId);
 

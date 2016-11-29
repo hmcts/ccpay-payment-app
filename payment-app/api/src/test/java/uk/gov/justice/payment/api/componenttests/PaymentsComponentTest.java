@@ -98,15 +98,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        Payment payment = db.create(validPaymentWith()
-                .govPayId("123")
-                .amount(12000)
-                .description("Description")
-                .applicationReference("Application reference")
-                .paymentReference("Payment reference")
-                .nextUrl("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2")
-                .cancelUrl("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2/cancel")
-        );
+        Payment payment = db.create(validPaymentWith().govPayId("123").applicationReference("Application reference"));
 
         restActions.get("/payments/123")
                 .andExpect(status().isOk())
@@ -115,7 +107,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
                                 .state(new StateDto("created", false))
                                 .paymentId("123")
                                 .amount(12000)
-                                .description("Description")
+                                .description("New passport application")
                                 .applicationReference("Application reference")
                                 .paymentReference("Payment reference")
                                 .dateCreated(payment.getDateCreated())
@@ -142,13 +134,22 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void cancelExistingPaymentShouldReturn204() throws Exception {
-        stubFor(post(urlPathMatching("/v1/payments/1/cancel"))
+        stubFor(get(urlPathMatching("/v1/payments/cancelPaymentId"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(contentsOf("viewPaymentResponse.json"))
+                        .withHeader("Content-Type", "application/json")
+                ));
+
+        stubFor(post(urlPathMatching("/v1/payments/cancelPaymentId/cancel"))
                 .willReturn(aResponse()
                         .withStatus(204)
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        restActions.post("/payments/1/cancel")
+        db.create(validPaymentWith().govPayId("cancelPaymentId").amount(100));
+
+        restActions.post("/payments/cancelPaymentId/cancel")
                 .andExpect(status().is(204));
     }
 
@@ -186,6 +187,13 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void refundPaymentShouldReturn201OnSuccess() throws Exception {
+        stubFor(get(urlPathMatching("/v1/payments/refundPaymentId"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(contentsOf("viewPaymentResponse.json"))
+                        .withHeader("Content-Type", "application/json")
+                ));
+
         stubFor(post(urlPathMatching("/v1/payments/refundPaymentId/refunds"))
                 .willReturn(aResponse()
                         .withStatus(201)

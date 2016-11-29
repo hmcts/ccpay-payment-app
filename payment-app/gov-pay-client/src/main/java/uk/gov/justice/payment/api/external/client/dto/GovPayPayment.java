@@ -18,7 +18,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "govPaymentWith")
 @AllArgsConstructor
 @NoArgsConstructor
-public class GovPayment {
+public class GovPayPayment {
 
     private Integer amount;
     private State state;

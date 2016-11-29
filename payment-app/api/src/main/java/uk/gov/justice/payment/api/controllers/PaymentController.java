@@ -19,6 +19,7 @@ import uk.gov.justice.payment.api.external.client.exceptions.GovPayPaymentNotFou
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayRefundAmountMismatch;
 import uk.gov.justice.payment.api.model.Payment;
 import uk.gov.justice.payment.api.parameters.serviceid.ServiceId;
+import uk.gov.justice.payment.api.services.PaymentSearchService;
 import uk.gov.justice.payment.api.services.PaymentService;
 
 import javax.validation.Valid;
@@ -36,12 +37,14 @@ import static uk.gov.justice.payment.api.services.PaymentSearchCriteria.searchCr
 public class PaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
 
-    private final PaymentService paymentService;
+    private final PaymentService<Payment> paymentService;
+    private final PaymentSearchService paymentSearchService;
     private final PaymentDtoFactory paymentDtoFactory;
 
     @Autowired
-    public PaymentController(PaymentService paymentService, PaymentDtoFactory paymentDtoFactory) {
+    public PaymentController(PaymentService<Payment> paymentService, PaymentSearchService paymentSearchService, PaymentDtoFactory paymentDtoFactory) {
         this.paymentService = paymentService;
+        this.paymentSearchService = paymentSearchService;
         this.paymentDtoFactory = paymentDtoFactory;
     }
 
@@ -58,7 +61,7 @@ public class PaymentController {
                                    @RequestParam(value = "created_date", required = false) String createdDate,
                                    @RequestParam(value = "email", required = false) String email) {
 
-        List<Payment> results = paymentService.find(serviceId, searchCriteriaWith()
+        List<Payment> results = paymentSearchService.find(serviceId, searchCriteriaWith()
                 .amount(amount)
                 .applicationReference(applicationReference)
                 .description(description)
@@ -82,9 +85,9 @@ public class PaymentController {
                                              @Valid @RequestBody CreatePaymentRequestDto request) {
         Payment payment = paymentService.create(
                 serviceId,
+                request.getApplicationReference(),
                 request.getAmount(),
                 request.getEmail(),
-                request.getApplicationReference(),
                 request.getPaymentReference(),
                 request.getDescription(),
                 request.getReturnUrl()
@@ -100,7 +103,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{paymentId}", method = GET)
     public PaymentDto findByPaymentId(@ServiceId String serviceId, @PathVariable("paymentId") String paymentId) {
-        return paymentDtoFactory.toDto(paymentService.findByPaymentId(serviceId, paymentId));
+        return paymentDtoFactory.toDto(paymentService.retrieve(serviceId, paymentId));
     }
 
     @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
@@ -130,7 +133,7 @@ public class PaymentController {
     public ResponseEntity<?> refund(@ServiceId String serviceId,
                                     @PathVariable("applicationReference") String applicationReference,
                                     @Valid @RequestBody RefundPaymentRequestDto request) {
-        Payment payment = paymentService.findOne(serviceId, searchCriteriaWith().applicationReference(applicationReference).build());
+        Payment payment = paymentSearchService.findOne(serviceId, searchCriteriaWith().applicationReference(applicationReference).build());
 
         try {
             paymentService.refund(serviceId, payment.getGovPayId(), request.getAmount(), request.getRefundAmountAvailable());

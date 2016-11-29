@@ -9,7 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity(name = "payment")
+@Entity
 @Data
 @Builder(builderMethodName = "paymentWith")
 @AllArgsConstructor
