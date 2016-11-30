@@ -30,6 +30,7 @@ public class Payment {
     @CreationTimestamp
     private Date dateCreated;
     private String returnUrl;
+    private String selfUrl;
     private String nextUrl;
     private String cancelUrl;
     private String refundsUrl;

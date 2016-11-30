@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -41,6 +42,9 @@ public class ComponentTestBase {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+
     RestActions restActions;
 
     @Before
@@ -58,7 +62,11 @@ public class ComponentTestBase {
     }
 
     String contentsOf(String fileName) throws IOException {
-        return IOUtils.toString(ResourceUtils.getURL("classpath:" + fileName).openStream());
+        String content = IOUtils.toString(ResourceUtils.getURL("classpath:" + fileName).openStream());
+        return resolvePlaceholders(content);
     }
 
+    String resolvePlaceholders(String content) {
+        return configurableListableBeanFactory.resolveEmbeddedValue(content);
+    }
 }
