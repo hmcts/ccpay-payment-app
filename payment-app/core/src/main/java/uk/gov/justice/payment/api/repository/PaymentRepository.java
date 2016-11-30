@@ -3,14 +3,14 @@ package uk.gov.justice.payment.api.repository;
 
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
-import uk.gov.justice.payment.api.model.PaymentDetails;
+import uk.gov.justice.payment.api.model.Payment;
 
 
-public interface PaymentRepository extends CrudRepository<PaymentDetails, Integer>, QueryDslPredicateExecutor<PaymentDetails> {
+public interface PaymentRepository extends CrudRepository<Payment, Integer>, QueryDslPredicateExecutor<Payment> {
 
-    <S extends PaymentDetails> S save(S entity);
+    <S extends Payment> S save(S entity);
 
-    Iterable<PaymentDetails> findAll();
+    Iterable<Payment> findAll();
 
-    PaymentDetails findByPaymentId(String paymentId);
+    Payment findByGovPayId(String govPayId);
 }

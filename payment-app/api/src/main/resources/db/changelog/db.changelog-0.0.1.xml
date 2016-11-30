@@ -3,66 +3,71 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="1" author="zeeshan alam">
-        <createTable tableName="payment_details">
+    <changeSet id="1" author="Kazys Sketrys">
+        <createTable tableName="payment">
             <column name="id" autoIncrement="true" type="int">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
             <column name="service_id" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="payment_id" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="amount" type="int">
-                <constraints nullable="false"/>
-            </column>
             <column name="application_reference" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="payment_reference" type="varchar(255)">
+            <column name="date_created" type="timestamp" defaultValueDate="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="email" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="description" type="varchar(255)">
+            <column name="gov_pay_id" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="status" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="created_date" type="varchar(255)">
+            <column name="finished" type="boolean">
                 <constraints nullable="false"/>
             </column>
-            <column name="return_url" type="text">
+            <column name="amount" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="response" type="text">
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_reference" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="return_url" type="text"/>
+            <column name="next_url" type="text"/>
+            <column name="cancel_url" type="text"/>
+            <column name="refunds_url" type="text"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="payment" columnNames="service_id, application_reference"/>
+
+        <createTable tableName="payment_history">
+            <column name="id" autoIncrement="true" type="int">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="payment_id" type="int">
+                <constraints nullable="false" references="payment(id)" foreignKeyName="ph_fk_payment_id"/>
+            </column>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="finished" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gov_pay_json" type="text">
                 <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
-
-    <changeSet id="2" author="Kazys Sketrys">
-        <addColumn tableName="payment_details">
-            <column name="finished" type="boolean">
-                <constraints nullable="false"/>
-            </column>
-            <column name="next_url" type="text">
-                <constraints nullable="false"/>
-            </column>
-            <column name="cancel_url" type="text">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="3" author="Kazys Sketrys">
-        <dropNotNullConstraint tableName="payment_details" columnName="next_url"/>
-        <dropNotNullConstraint tableName="payment_details" columnName="cancel_url"/>
-
-        <addUniqueConstraint tableName="payment_details" columnNames="service_id, application_reference"/>
-    </changeSet>
-
 </databaseChangeLog>

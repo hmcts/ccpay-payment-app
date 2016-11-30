@@ -3,7 +3,7 @@ package uk.gov.justice.payment.api.services;
 import org.junit.Test;
 import uk.gov.justice.payment.api.exceptions.ApplicationException;
 import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
-import uk.gov.justice.payment.api.model.PaymentDetails;
+import uk.gov.justice.payment.api.model.Payment;
 
 import java.util.List;
 
@@ -21,15 +21,15 @@ public class PaymentSearchServiceTest {
 
     @Test(expected = ApplicationException.class)
     public void findOneShouldThrowExceptionIfMoreThanOneResultFound() {
-        searchServiceReturning(asList(new PaymentDetails(), new PaymentDetails())).findOne("any", null);
+        searchServiceReturning(asList(new Payment(), new Payment())).findOne("any", null);
     }
 
     @Test
     public void findOneShouldReturnInCaseOnlyOneResultFound() {
-        assertThat(searchServiceReturning(singletonList(new PaymentDetails())).findOne("any", null)).isEqualTo(new PaymentDetails());
+        assertThat(searchServiceReturning(singletonList(new Payment())).findOne("any", null)).isEqualTo(new Payment());
     }
 
-    private PaymentSearchService searchServiceReturning(List<PaymentDetails> list) {
+    private PaymentSearchService searchServiceReturning(List<Payment> list) {
         return (serviceId, searchCriteria) -> list;
     }
 }

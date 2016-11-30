@@ -15,10 +15,10 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "paymentWith")
+@Builder(builderMethodName = "govPaymentWith")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Payment {
+public class GovPayPayment {
 
     private Integer amount;
     private State state;

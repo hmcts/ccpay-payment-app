@@ -10,6 +10,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(SnakeCaseStrategy.class)
@@ -26,7 +28,7 @@ public class PaymentDto {
     private String applicationReference;
     private String paymentReference;
     private String paymentId;
-    private String createdDate;
+    private Date dateCreated;
 
     @JsonProperty("_links")
     private LinksDto links;
