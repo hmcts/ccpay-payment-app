@@ -73,7 +73,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
         stubFor(post(urlPathMatching("/v1/payments"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withBody(contentsOf("viewPaymentResponse.json"))
+                        .withBody(contentsOf("gov-pay-responses/status-created.json"))
                         .withHeader("Content-Type", "application/json")
                 ));
 
@@ -92,21 +92,21 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void getExistingPaymentShouldReturn200AndBody() throws Exception {
-        stubFor(get(urlPathMatching("/v1/payments/123"))
+        stubFor(get(urlPathMatching("/v1/payments/GOV_PAY_ID"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withBody(contentsOf("viewPaymentResponse.json"))
+                        .withBody(contentsOf("gov-pay-responses/status-created.json"))
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        Payment payment = db.create(validPaymentWith().govPayId("123").applicationReference("Application reference"));
+        Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID").applicationReference("Application reference"));
 
-        restActions.get("/payments/123")
+        restActions.get("/payments/GOV_PAY_ID")
                 .andExpect(status().isOk())
                 .andExpect(body().isEqualTo(
                         paymentDtoWith()   // as defined in .json file
                                 .state(new StateDto("created", false))
-                                .paymentId("123")
+                                .paymentId("GOV_PAY_ID")
                                 .amount(12000)
                                 .description("New passport application")
                                 .applicationReference("Application reference")
@@ -114,7 +114,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
                                 .dateCreated(payment.getDateCreated())
                                 .links(new LinksDto(
                                         new PaymentDto.LinkDto("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2", "GET"),
-                                        new PaymentDto.LinkDto("http://localhost/payments/123/cancel", "POST")
+                                        new PaymentDto.LinkDto("http://localhost/payments/GOV_PAY_ID/cancel", "POST")
                                 ))
                                 .build()
                 ));
@@ -124,35 +124,28 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void getUnknownPaymentShouldReturn404() throws Exception {
-        stubFor(get(urlPathMatching("/v1/payments/-1"))
-                .willReturn(aResponse()
-                        .withStatus(404)
-                        .withBody("{ \"code\": \"P0200\" }")
-                        .withHeader("Content-Type", "application/json")
-                ));
-
-        restActions.get("/payments/-1")
+        restActions.get("/payments/UNKNOWN_GOV_PAY_ID")
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void cancelExistingPaymentShouldReturn204() throws Exception {
-        stubFor(get(urlPathMatching("/v1/payments/cancelPaymentId"))
+        stubFor(get(urlPathMatching("/v1/payments/GOV_PAY_ID"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withBody(contentsOf("viewPaymentResponse.json"))
+                        .withBody(contentsOf("gov-pay-responses/status-created.json"))
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        stubFor(post(urlPathMatching("/v1/payments/cancelPaymentId/cancel"))
+        stubFor(post(urlPathMatching("/v1/payments/GOV_PAY_ID/cancel"))
                 .willReturn(aResponse()
                         .withStatus(204)
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        db.create(validPaymentWith().govPayId("cancelPaymentId").amount(100));
+        db.create(validPaymentWith().govPayId("GOV_PAY_ID").amount(100));
 
-        restActions.post("/payments/cancelPaymentId/cancel")
+        restActions.post("/payments/GOV_PAY_ID/cancel")
                 .andExpect(status().is(204));
 
         assertThat(db.getLastPaymentHistoryEntry().getAction()).isEqualTo("cancel");
@@ -160,14 +153,16 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void cancelPaymentFailureShouldReturn400() throws Exception {
-        stubFor(post(urlPathMatching("/v1/payments/4/cancel"))
+        stubFor(post(urlPathMatching("/v1/payments/GOV_PAY_ID/cancel"))
                 .willReturn(aResponse()
                         .withStatus(400)
                         .withBody("{ \"code\": \"P0501\", \"description\": \"Cancellation of payment failed\" }")
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        restActions.post("/payments/4/cancel")
+        db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
+
+        restActions.post("/payments/GOV_PAY_ID/cancel")
                 .andExpect(status().is(400));
     }
 
@@ -192,26 +187,25 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void refundPaymentShouldReturn201OnSuccess() throws Exception {
-        stubFor(get(urlPathMatching("/v1/payments/refundPaymentId"))
+        stubFor(get(urlPathMatching("/v1/payments/GOV_PAY_ID"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withBody(contentsOf("viewPaymentResponse.json"))
+                        .withBody(contentsOf("gov-pay-responses/status-created.json"))
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        stubFor(post(urlPathMatching("/v1/payments/refundPaymentId/refunds"))
+        stubFor(post(urlPathMatching("/v1/payments/GOV_PAY_ID/refunds"))
                 .willReturn(aResponse()
                         .withStatus(201)
                         .withHeader("Content-Type", "application/json")
                 ));
 
         db.create(validPaymentWith()
-                .applicationReference("refundApplicationReference")
-                .govPayId("refundPaymentId")
-                .amount(100));
+                .applicationReference("REFUND_APPLICATION_REFERENCE")
+                .govPayId("GOV_PAY_ID"));
 
         restActions
-                .post("/payments/refundApplicationReference/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+                .post("/payments/REFUND_APPLICATION_REFERENCE/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
                 .andExpect(status().is(201));
 
         assertThat(db.getLastPaymentHistoryEntry().getAction()).isEqualTo("refund");
@@ -219,7 +213,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void refundPaymentShouldReturn412IfAmountMismatch() throws Exception {
-        stubFor(post(urlPathMatching("/v1/payments/refundPaymentId/refunds"))
+        stubFor(post(urlPathMatching("/v1/payments/GOV_PAY_ID/refunds"))
                 .willReturn(aResponse()
                         .withStatus(412)
                         .withBody("{ \"code\": \"P0604\", \"description\": \"Refund amount available mismatch\" }")
@@ -227,12 +221,12 @@ public class PaymentsComponentTest extends ComponentTestBase {
                 ));
 
         db.create(validPaymentWith()
-                .govPayId("refundPaymentId")
-                .applicationReference("refundApplicationReference")
+                .govPayId("GOV_PAY_ID")
+                .applicationReference("REFUND_APPLICATION_REFERENCE")
                 .amount(100));
 
         restActions
-                .post("/payments/refundApplicationReference/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+                .post("/payments/REFUND_APPLICATION_REFERENCE/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
                 .andExpect(status().is(412));
     }
 
@@ -247,6 +241,9 @@ public class PaymentsComponentTest extends ComponentTestBase {
                 .applicationReference("applicationReference")
                 .paymentReference("paymentReference")
                 .returnUrl("returnUrl")
+                .selfUrl(resolvePlaceholders("${gov.pay.url}/GOV_PAY_ID"))
+                .cancelUrl(resolvePlaceholders("${gov.pay.url}/GOV_PAY_ID/cancel"))
+                .refundsUrl(resolvePlaceholders("${gov.pay.url}/GOV_PAY_ID/refunds"))
                 .finished(true);
     }
 

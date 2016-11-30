@@ -4,18 +4,23 @@ import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.payment.api.configuration.GovPayConfig;
+import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.GovPayClient;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.justice.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
+import uk.gov.justice.payment.api.model.Payment;
+import uk.gov.justice.payment.api.repository.PaymentRepository;
 
 @Service
 public class GovPayPaymentService implements PaymentService<GovPayPayment> {
+    private final PaymentRepository paymentRepository;
     private final GovPayConfig govPayConfig;
     private final GovPayClient govPayClient;
 
     @Autowired
-    public GovPayPaymentService(GovPayConfig govPayConfig, GovPayClient govPayClient) {
+    public GovPayPaymentService(PaymentRepository paymentRepository, GovPayConfig govPayConfig, GovPayClient govPayClient) {
+        this.paymentRepository = paymentRepository;
         this.govPayConfig = govPayConfig;
         this.govPayClient = govPayClient;
     }
@@ -23,7 +28,7 @@ public class GovPayPaymentService implements PaymentService<GovPayPayment> {
     @Override
     public GovPayPayment create(@NonNull String serviceId,
                                 @NonNull String applicationReference,
-                                @NonNull Integer amount,
+                                int amount,
                                 @NonNull String email,
                                 @NonNull String paymentReference,
                                 @NonNull String description,
@@ -32,18 +37,25 @@ public class GovPayPaymentService implements PaymentService<GovPayPayment> {
     }
 
     @Override
-    public GovPayPayment retrieve(@NonNull String serviceId, @NonNull String id) {
-        return govPayClient.retrievePayment(keyFor(serviceId), id);
+    public GovPayPayment retrieve(@NonNull String serviceId, @NonNull String govPayId) {
+        Payment payment = paymentFor(govPayId);
+        return govPayClient.retrievePayment(keyFor(serviceId), payment.getSelfUrl());
     }
 
     @Override
-    public void cancel(String serviceId, String paymentId) {
-        govPayClient.cancelPayment(keyFor(serviceId), paymentId);
+    public void cancel(@NonNull String serviceId, @NonNull String govPayId) {
+        Payment payment = paymentFor(govPayId);
+        govPayClient.cancelPayment(keyFor(serviceId), payment.getCancelUrl());
     }
 
     @Override
-    public void refund(String serviceId, String paymentId, Integer amount, Integer refundAmountAvailable) {
-        govPayClient.refundPayment(keyFor(serviceId), paymentId, new RefundPaymentRequest(amount, refundAmountAvailable));
+    public void refund(@NonNull String serviceId, @NonNull String govPayId, int amount, int refundAmountAvailable) {
+        Payment payment = paymentFor(govPayId);
+        govPayClient.refundPayment(keyFor(serviceId), payment.getRefundsUrl(), new RefundPaymentRequest(amount, refundAmountAvailable));
+    }
+
+    private Payment paymentFor(@NonNull String govPayId) {
+        return paymentRepository.findByGovPayId(govPayId).orElseThrow(PaymentNotFoundException::new);
     }
 
     private String keyFor(String serviceId) {

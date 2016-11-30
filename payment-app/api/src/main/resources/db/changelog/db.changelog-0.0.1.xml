@@ -38,6 +38,7 @@
             <column name="description" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="self_url" type="text"/>
             <column name="return_url" type="text"/>
             <column name="next_url" type="text"/>
             <column name="cancel_url" type="text"/>

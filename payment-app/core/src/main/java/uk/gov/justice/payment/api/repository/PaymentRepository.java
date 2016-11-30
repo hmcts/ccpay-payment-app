@@ -5,6 +5,8 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 import uk.gov.justice.payment.api.model.Payment;
 
+import java.util.Optional;
+
 
 public interface PaymentRepository extends CrudRepository<Payment, Integer>, QueryDslPredicateExecutor<Payment> {
 
@@ -12,5 +14,5 @@ public interface PaymentRepository extends CrudRepository<Payment, Integer>, Que
 
     Iterable<Payment> findAll();
 
-    Payment findByGovPayId(String govPayId);
+    Optional<Payment> findByGovPayId(String govPayId);
 }

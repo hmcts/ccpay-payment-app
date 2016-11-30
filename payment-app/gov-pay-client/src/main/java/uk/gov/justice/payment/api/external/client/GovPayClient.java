@@ -41,19 +41,19 @@ public class GovPayClient {
         });
     }
 
-    public GovPayPayment retrievePayment(String authorizationKey, String paymentId) {
+    public GovPayPayment retrievePayment(String authorizationKey, String selfUrl) {
         return doWithErrorTranslation(() -> {
-            ResponseEntity<GovPayPayment> response = restTemplate.exchange(url + "/" + paymentId, GET, new HttpEntity(getHeaders(authorizationKey)), GovPayPayment.class);
+            ResponseEntity<GovPayPayment> response = restTemplate.exchange(selfUrl, GET, new HttpEntity(getHeaders(authorizationKey)), GovPayPayment.class);
             return response.getBody();
         });
     }
 
-    public void cancelPayment(String authorizationKey, String paymentId) {
-        doWithErrorTranslation(() -> restTemplate.exchange(url + "/" + paymentId + "/cancel", POST, new HttpEntity(getHeaders(authorizationKey)), Void.class));
+    public void cancelPayment(String authorizationKey, String cancelUrl) {
+        doWithErrorTranslation(() -> restTemplate.exchange(cancelUrl, POST, new HttpEntity(getHeaders(authorizationKey)), Void.class));
     }
 
-    public void refundPayment(String authorizationKey, String paymentId, RefundPaymentRequest refundPaymentRequest) {
-        doWithErrorTranslation(() -> restTemplate.exchange(url + "/" + paymentId + "/refunds", POST, new HttpEntity(refundPaymentRequest, getHeaders(authorizationKey)), Void.class));
+    public void refundPayment(String authorizationKey, String refundsUrl, RefundPaymentRequest refundPaymentRequest) {
+        doWithErrorTranslation(() -> restTemplate.exchange(refundsUrl, POST, new HttpEntity(refundPaymentRequest, getHeaders(authorizationKey)), Void.class));
     }
 
     private <T> T doWithErrorTranslation(Supplier<T> function) {

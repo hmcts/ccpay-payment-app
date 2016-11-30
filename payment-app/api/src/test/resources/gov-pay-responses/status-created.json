@@ -6,7 +6,7 @@
   },
   "description": "New passport application",
   "reference": "Payment reference",
-  "payment_id": "123",
+  "payment_id": "GOV_PAY_ID",
   "payment_provider": "sandbox",
   "card_brand": "",
   "return_url": "https://service-name.gov.uk/transactions/12345",
@@ -18,7 +18,7 @@
   },
   "_links": {
     "self": {
-      "href": "https://publicapi.payments.service.gov.uk/v1/payments/qtosj4ais4vjmetpfi2q3b4pp9",
+      "href": "${gov.pay.url}/GOV_PAY_ID",
       "method": "GET"
     },
     "next_url": {
@@ -34,15 +34,15 @@
       "method": "POST"
     },
     "events": {
-      "href": "https://publicapi.payments.service.gov.uk/v1/payments/qtosj4ais4vjmetpfi2q3b4pp9/events",
+      "href": "${gov.pay.url}/GOV_PAY_ID/events",
       "method": "GET"
     },
     "refunds": {
-      "href": "https://publicapi.payments.service.gov.uk/v1/payments/qtosj4ais4vjmetpfi2q3b4pp9/refunds",
+      "href": "${gov.pay.url}/GOV_PAY_ID/refunds",
       "method": "GET"
     },
     "cancel": {
-      "href": "https://publicapi.payments.service.gov.uk/v1/payments/qtosj4ais4vjmetpfi2q3b4pp9/cancel",
+      "href": "${gov.pay.url}/GOV_PAY_ID/cancel",
       "method": "POST"
     }
   }

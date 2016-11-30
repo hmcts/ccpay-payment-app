@@ -8,6 +8,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.justice.payment.api.external.client.dto.Link;
 import uk.gov.justice.payment.api.model.Payment;
@@ -39,7 +40,7 @@ public class DefaultPaymentService implements PaymentService<Payment>, PaymentSe
     @Override
     public Payment create(@NonNull String serviceId,
                           @NonNull String applicationReference,
-                          @NonNull Integer amount,
+                          int amount,
                           @NonNull String email,
                           @NonNull String paymentReference,
                           @NonNull String description,
@@ -62,14 +63,14 @@ public class DefaultPaymentService implements PaymentService<Payment>, PaymentSe
     }
 
     @Override
-    public void refund(@NonNull String serviceId, @NonNull String govPayId, @NonNull Integer amount, @NonNull Integer refundAmountAvailable) {
+    public void refund(@NonNull String serviceId, @NonNull String govPayId, int amount, int refundAmountAvailable) {
         govPayPaymentService.refund(serviceId, govPayId, amount, refundAmountAvailable);
         retrieveAndUpdatePayment(serviceId, govPayId, "refund");
     }
 
     private Payment retrieveAndUpdatePayment(String serviceId, String govPayId, String action) {
         GovPayPayment govPayPayment = govPayPaymentService.retrieve(serviceId, govPayId);
-        Payment payment = updatePayment(paymentRepository.findByGovPayId(govPayId), govPayPayment);
+        Payment payment = updatePayment(paymentRepository.findByGovPayId(govPayId).orElseThrow(PaymentNotFoundException::new), govPayPayment);
         updatePaymentHistory(payment, action, govPayPayment);
         return payment;
     }
@@ -82,13 +83,15 @@ public class DefaultPaymentService implements PaymentService<Payment>, PaymentSe
         payment.setPaymentReference(govPayPayment.getReference());
         payment.setDescription(govPayPayment.getDescription());
         payment.setReturnUrl(govPayPayment.getReturnUrl());
+        payment.setSelfUrl(hrefFor(govPayPayment.getLinks().getSelf()));
         payment.setNextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()));
         payment.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
+        payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
         return paymentRepository.save(payment);
     }
 
-    private String hrefFor(Link cancelUrl) {
-        return cancelUrl == null ? null : cancelUrl.getHref();
+    private String hrefFor(Link url) {
+        return url == null ? null : url.getHref();
     }
 
     @SneakyThrows(JsonProcessingException.class)
