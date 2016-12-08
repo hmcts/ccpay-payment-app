@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  payments:
+    build: .
+    links:
+     - payments-postgres
+    ports:
+     - "8181:8181"
+    depends_on:
+     - payments-postgres
+  payments-postgres:
+    image: postgres:9.5
+    volumes:
+      - ./docker-postgres:/docker-entrypoint-initdb.d
+    ports:
+      - "5431:5432"
