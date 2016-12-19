@@ -1,8 +1,9 @@
 version: '2'
 
 services:
-  payments:
+  payments-api:
     build: .
+    image: uk.gov.justice.cc/payments-api
     links:
      - payments-postgres
     ports:
