@@ -1,8 +1,12 @@
 FROM openjdk:8-jre
 
+RUN curl -L https://raw.github.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /usr/local/bin/wait-for-it.sh \
+    && chmod +x /usr/local/bin/wait-for-it.sh
+
+COPY docker/entrypoint.sh /
+
 EXPOSE 8181
 
-ENV SPRING_DATASOURCE_URL "jdbc:postgresql://payments-postgres:5432/payment"
 COPY api/target/payment-api-*.jar /app.jar
 
-ENTRYPOINT [ "java",  "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app.jar" ]
+ENTRYPOINT [ "/entrypoint.sh" ]
