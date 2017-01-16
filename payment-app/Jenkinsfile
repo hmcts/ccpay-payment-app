@@ -15,6 +15,12 @@ node('docker') {
                     '''
                     archive 'api/target/*.jar'
                 }
+
+                stage('Build (Docker)') {
+                    sh '''
+                      docker-compose build --force-rm
+                    '''
+                }
             }
         } finally {
             deleteDir()

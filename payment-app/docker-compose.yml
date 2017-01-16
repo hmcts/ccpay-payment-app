@@ -2,7 +2,12 @@ version: '2'
 
 services:
   payments-api:
-    build: .
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
     image: uk.gov.justice.cc/payments-api
     command: --wait-for-database 30
     environment:
