@@ -22,6 +22,14 @@ node('docker') {
                     '''
                 }
             }
+        } catch (err) {
+            if (getBinding().hasVariable('slackChannel')) {
+                slackSend(
+                    channel: slackChannel,
+                    color: 'danger',
+                    message: "${env.JOB_NAME}: <${env.BUILD_URL}console|Build ${env.BUILD_DISPLAY_NAME}> has FAILED")
+            }
+            throw err
         } finally {
             deleteDir()
         }
