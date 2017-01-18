@@ -1,9 +1,9 @@
 #!groovy
 
-node('docker') {
-    configure(env)
-    ws('workspace/cc-payment-api/build') {
-        try {
+node {
+    try {
+        configure(env)
+        withWorkspace(cleanup: false) {
             stage('Checkout') {
                 checkout scm
             }
@@ -17,30 +17,34 @@ node('docker') {
                 }
 
                 stage('Build (Docker)') {
-                    sh '''
-                      docker-compose build --force-rm
-                    '''
+                    stash 'docker-context'
+                    node('docker') {
+                        withWorkspace {
+                            unstash 'docker-context'
+                            sh '''
+                                docker-compose build --force-rm
+                            '''
+                        }
+                    }
                 }
             }
-        } catch (err) {
-            if (getBinding().hasVariable('slackChannel')) {
-                slackSend(
-                    channel: slackChannel,
-                    color: 'danger',
-                    message: "${env.JOB_NAME}: <${env.BUILD_URL}console|Build ${env.BUILD_DISPLAY_NAME}> has FAILED")
-            }
-            throw err
-        } finally {
-            deleteDir()
         }
-    }
+    } catch (err) {
+         if (getBinding().hasVariable('slackChannel')) {
+             slackSend(
+                 channel: slackChannel,
+                 color: 'danger',
+                 message: "${env.JOB_NAME}: <${env.BUILD_URL}console|Build ${env.BUILD_DISPLAY_NAME}> has FAILED")
+         }
+         throw err
+     }
 }
 
 private void configure(env) {
     env.JAVA_HOME = "${tool name: 'default-jdk', type: 'hudson.model.JDK'}"
     env.MAVEN_HOME = "${tool name: 'default', type: 'hudson.tasks.Maven$MavenInstallation'}"
     env.MAVEN_OPTS = "${env.MAVEN_OPTS != null ? env.MAVEN_OPTS : ''} ${proxySystemProperties(env)}"
-    env.PATH = "${env.PATH}:${env.JAVA_HOME}/bin:${env.MAVEN_HOME}/bin"
+    env.PATH = "${env.PATH}:/usr/local/bin:${env.JAVA_HOME}/bin:${env.MAVEN_HOME}/bin"
 }
 
 private proxySystemProperties(env) {
@@ -59,4 +63,16 @@ private proxySystemProperties(env) {
         systemProperties.add("-Dhttp.nonProxyHosts=${env.no_proxy}")
     }
     return systemProperties.join(' ')
+}
+
+private void withWorkspace(Map args = [cleanup: true], Closure closure) {
+    ws('workspace/cc-payment-api/build') {
+        try {
+            closure()
+        } finally {
+            if (args.cleanup) {
+                deleteDir()
+            }
+        }
+    }
 }
