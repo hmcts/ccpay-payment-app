@@ -11,17 +11,17 @@ services:
     image: uk.gov.justice.cc/payments-api
     command: --wait-for-database 30
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://payments-postgres:5432/payment
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://payments-database:5432/payment
     ports:
      - 8181:8181
     links:
-     - payments-postgres
+     - payments-database
     depends_on:
-     - payments-postgres
+     - payments-database
 
-  payments-postgres:
-    image: postgres:9.5
-    volumes:
-      - ./docker/database:/docker-entrypoint-initdb.d
+  payments-database:
+    build:
+      context: docker/database
+    image: uk.gov.justice.cc/payments-database
     ports:
       - 5431:5432
