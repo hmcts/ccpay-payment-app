@@ -12,7 +12,7 @@ node {
                 sh '''
                     mvn clean package
                 '''
-                archive 'api/target/*.jar'
+                archiveArtifacts 'api/target/*.jar'
             }
 
             stage('Build (Docker)') {
