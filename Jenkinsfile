@@ -53,7 +53,7 @@ private proxySystemProperties(env) {
         systemProperties.add("-Dhttp.proxyPort=${proxyURL.getPort()}")
     }
     if (env.https_proxy != null) {
-        def proxyURL = new URL(env.http_proxy)
+        def proxyURL = new URL(env.https_proxy)
         systemProperties.add("-Dhttps.proxyHost=${proxyURL.getHost()}")
         systemProperties.add("-Dhttps.proxyPort=${proxyURL.getPort()}")
     }
