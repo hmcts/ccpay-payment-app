@@ -39,10 +39,7 @@ node {
 }
 
 private void configure(env) {
-    env.JAVA_HOME = "${tool name: 'default-jdk', type: 'hudson.model.JDK'}"
-    env.MAVEN_HOME = "${tool name: 'default', type: 'hudson.tasks.Maven$MavenInstallation'}"
     env.MAVEN_OPTS = "${env.MAVEN_OPTS != null ? env.MAVEN_OPTS : ''} ${proxySystemProperties(env)}"
-    env.PATH = "${env.PATH}:/usr/local/bin:${env.JAVA_HOME}/bin:${env.MAVEN_HOME}/bin"
 }
 
 private proxySystemProperties(env) {
