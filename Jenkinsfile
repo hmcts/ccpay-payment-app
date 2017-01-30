@@ -16,15 +16,9 @@ node {
             }
 
             stage('Build (Docker)') {
-                stash 'docker-context'
-                node('docker') {
-                    withWorkspace {
-                        unstash 'docker-context'
-                        sh '''
-                            docker-compose build --force-rm
-                        '''
-                    }
-                }
+                sh '''
+                    docker-compose build --force-rm
+                '''
             }
         }
     } catch (err) {
