@@ -8,23 +8,21 @@ node {
                 checkout scm
             }
 
-            dir('payment-app') {
-                stage('Build (JAR)') {
-                    sh '''
-                        mvn clean package
-                    '''
-                    archive 'api/target/*.jar'
-                }
+            stage('Build (JAR)') {
+                sh '''
+                    mvn clean package
+                '''
+                archive 'api/target/*.jar'
+            }
 
-                stage('Build (Docker)') {
-                    stash 'docker-context'
-                    node('docker') {
-                        withWorkspace {
-                            unstash 'docker-context'
-                            sh '''
-                                docker-compose build --force-rm
-                            '''
-                        }
+            stage('Build (Docker)') {
+                stash 'docker-context'
+                node('docker') {
+                    withWorkspace {
+                        unstash 'docker-context'
+                        sh '''
+                            docker-compose build --force-rm
+                        '''
                     }
                 }
             }
