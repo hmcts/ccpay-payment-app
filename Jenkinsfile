@@ -1,5 +1,13 @@
 #!groovy
 
+properties(
+    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'http://git.reform/common-components/payment-app/'],
+    parameters(
+        [string(name: 'slackChannel', description: 'Which Slack channel to send notifications to', defaultValue: '#cc_tech')]
+    ),
+    pipelineTriggers([[$class: 'GitHubPushTrigger']])]
+)
+
 node {
     try {
         configure(env)
