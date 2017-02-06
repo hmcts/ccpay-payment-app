@@ -1,5 +1,13 @@
 #!groovy
 
+properties(
+    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'http://git.reform/common-components/payment-app/'],
+    parameters(
+        [string(name: 'slackChannel', description: 'Which Slack channel to send notifications to', defaultValue: '#cc_tech')]
+    ),
+    pipelineTriggers([[$class: 'GitHubPushTrigger']])]
+)
+
 node {
     try {
         configure(env)
@@ -12,19 +20,13 @@ node {
                 sh '''
                     mvn clean package
                 '''
-                archive 'api/target/*.jar'
+                archiveArtifacts 'api/target/*.jar'
             }
 
             stage('Build (Docker)') {
-                stash 'docker-context'
-                node('docker') {
-                    withWorkspace {
-                        unstash 'docker-context'
-                        sh '''
-                            docker-compose build --force-rm
-                        '''
-                    }
-                }
+                sh '''
+                    docker-compose build --force-rm
+                '''
             }
         }
     } catch (err) {
@@ -39,10 +41,7 @@ node {
 }
 
 private void configure(env) {
-    env.JAVA_HOME = "${tool name: 'default-jdk', type: 'hudson.model.JDK'}"
-    env.MAVEN_HOME = "${tool name: 'default', type: 'hudson.tasks.Maven$MavenInstallation'}"
     env.MAVEN_OPTS = "${env.MAVEN_OPTS != null ? env.MAVEN_OPTS : ''} ${proxySystemProperties(env)}"
-    env.PATH = "${env.PATH}:/usr/local/bin:${env.JAVA_HOME}/bin:${env.MAVEN_HOME}/bin"
 }
 
 private proxySystemProperties(env) {
@@ -53,7 +52,7 @@ private proxySystemProperties(env) {
         systemProperties.add("-Dhttp.proxyPort=${proxyURL.getPort()}")
     }
     if (env.https_proxy != null) {
-        def proxyURL = new URL(env.http_proxy)
+        def proxyURL = new URL(env.https_proxy)
         systemProperties.add("-Dhttps.proxyHost=${proxyURL.getHost()}")
         systemProperties.add("-Dhttps.proxyPort=${proxyURL.getPort()}")
     }
