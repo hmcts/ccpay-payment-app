@@ -1,40 +1,31 @@
 package uk.gov.justice.payment.api.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.justice.payment.api.external.client.dto.Link;
 import uk.gov.justice.payment.api.model.Payment;
-import uk.gov.justice.payment.api.repository.PaymentHistoryRepository;
 import uk.gov.justice.payment.api.repository.PaymentRepository;
 
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static uk.gov.justice.payment.api.model.Payment.paymentWith;
-import static uk.gov.justice.payment.api.model.PaymentHistoryEntry.paymentHistoryEntryWith;
 import static uk.gov.justice.payment.api.model.QPayment.payment;
 
 @Service
-public class DefaultPaymentService implements PaymentService<Payment>, PaymentSearchService {
-    private final ObjectMapper objectMapper;
+public class InterceptingPaymentService implements PaymentService<Payment>, PaymentSearchService {
     private final PaymentService<GovPayPayment> govPayPaymentService;
     private final PaymentRepository paymentRepository;
-    private final PaymentHistoryRepository paymentHistoryRepository;
 
     @Autowired
-    public DefaultPaymentService(ObjectMapper objectMapper, PaymentService<GovPayPayment> govPayPaymentService, PaymentRepository paymentRepository, PaymentHistoryRepository paymentHistoryRepository) {
-        this.objectMapper = objectMapper;
+    public InterceptingPaymentService(PaymentService<GovPayPayment> govPayPaymentService, PaymentRepository paymentRepository) {
         this.govPayPaymentService = govPayPaymentService;
         this.paymentRepository = paymentRepository;
-        this.paymentHistoryRepository = paymentHistoryRepository;
     }
 
     @Override
@@ -46,9 +37,7 @@ public class DefaultPaymentService implements PaymentService<Payment>, PaymentSe
                           @NonNull String description,
                           @NonNull String returnUrl) {
         GovPayPayment govPayPayment = govPayPaymentService.create(serviceId, applicationReference, amount, email, paymentReference, description, returnUrl);
-        Payment payment = updatePayment(paymentWith().serviceId(serviceId).applicationReference(applicationReference).email(email).build(), govPayPayment);
-        updatePaymentHistory(payment, "create", govPayPayment);
-        return payment;
+        return updatePayment(paymentWith().serviceId(serviceId).applicationReference(applicationReference).email(email).build(), govPayPayment);
     }
 
     @Override
@@ -70,9 +59,7 @@ public class DefaultPaymentService implements PaymentService<Payment>, PaymentSe
 
     private Payment retrieveAndUpdatePayment(String serviceId, String govPayId, String action) {
         GovPayPayment govPayPayment = govPayPaymentService.retrieve(serviceId, govPayId);
-        Payment payment = updatePayment(paymentRepository.findByGovPayId(govPayId).orElseThrow(PaymentNotFoundException::new), govPayPayment);
-        updatePaymentHistory(payment, action, govPayPayment);
-        return payment;
+        return updatePayment(paymentRepository.findByGovPayId(govPayId).orElseThrow(PaymentNotFoundException::new), govPayPayment);
     }
 
     private Payment updatePayment(Payment payment, GovPayPayment govPayPayment) {
@@ -92,17 +79,6 @@ public class DefaultPaymentService implements PaymentService<Payment>, PaymentSe
 
     private String hrefFor(Link url) {
         return url == null ? null : url.getHref();
-    }
-
-    @SneakyThrows(JsonProcessingException.class)
-    private void updatePaymentHistory(Payment payment, String action, GovPayPayment govPayPayment) {
-        paymentHistoryRepository.save(paymentHistoryEntryWith()
-                .payment(payment)
-                .action(action)
-                .status(govPayPayment.getState().getStatus())
-                .finished(govPayPayment.getState().getFinished())
-                .govPayJson(objectMapper.writeValueAsString(govPayPayment))
-                .build());
     }
 
     @Override
