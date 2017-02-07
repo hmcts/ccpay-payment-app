@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.payment.api.contract.CreatePaymentRequestDto;
 import uk.gov.justice.payment.api.contract.PaymentDto;
 import uk.gov.justice.payment.api.contract.RefundPaymentRequestDto;
-import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.exceptions.GovPayRefundAmountMismatch;
 import uk.gov.justice.payment.api.model.Payment;
+import uk.gov.justice.payment.api.model.PaymentSearchService;
+import uk.gov.justice.payment.api.model.PaymentService;
+import uk.gov.justice.payment.api.model.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.parameters.serviceid.ServiceId;
-import uk.gov.justice.payment.api.services.PaymentSearchService;
-import uk.gov.justice.payment.api.services.PaymentService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -29,7 +29,7 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static uk.gov.justice.payment.api.services.PaymentSearchCriteria.searchCriteriaWith;
+import static uk.gov.justice.payment.api.model.PaymentSearchCriteria.searchCriteriaWith;
 
 
 @RestController

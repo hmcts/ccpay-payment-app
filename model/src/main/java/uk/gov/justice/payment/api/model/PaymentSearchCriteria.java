@@ -1,4 +1,4 @@
-package uk.gov.justice.payment.api.services;
+package uk.gov.justice.payment.api.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

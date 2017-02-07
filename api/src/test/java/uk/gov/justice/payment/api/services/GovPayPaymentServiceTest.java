@@ -1,11 +1,12 @@
 package uk.gov.justice.payment.api.services;
 
 import org.junit.Test;
-import uk.gov.justice.payment.api.configuration.GovPayConfig;
 import uk.gov.justice.payment.api.external.client.GovPayClient;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
-import uk.gov.justice.payment.api.repository.PaymentRepository;
+import uk.gov.justice.payment.api.model.PaymentRepository;
+import uk.gov.justice.payment.api.model.govpay.GovPayConfig;
+import uk.gov.justice.payment.api.model.govpay.GovPayPaymentService;
 
 import java.util.Optional;
 

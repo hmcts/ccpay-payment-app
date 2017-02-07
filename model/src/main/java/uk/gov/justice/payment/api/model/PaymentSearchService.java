@@ -1,8 +1,8 @@
-package uk.gov.justice.payment.api.services;
+package uk.gov.justice.payment.api.model;
 
-import uk.gov.justice.payment.api.exceptions.ApplicationException;
-import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
-import uk.gov.justice.payment.api.model.Payment;
+
+import uk.gov.justice.payment.api.model.exceptions.PaymentException;
+import uk.gov.justice.payment.api.model.exceptions.PaymentNotFoundException;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public interface PaymentSearchService {
         }
 
         if (results.size() > 1) {
-            throw new ApplicationException("Expected one payment, but more than one was found");
+            throw new PaymentException("Expected one payment, but more than one was found");
         }
 
         return results.get(0);

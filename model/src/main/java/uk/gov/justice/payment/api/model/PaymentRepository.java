@@ -1,4 +1,4 @@
-package uk.gov.justice.payment.api.repository;
+package uk.gov.justice.payment.api.model;
 
 
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;

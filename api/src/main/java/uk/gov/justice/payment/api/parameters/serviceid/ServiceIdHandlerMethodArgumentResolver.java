@@ -7,7 +7,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import uk.gov.justice.payment.api.configuration.GovPayConfig;
+import uk.gov.justice.payment.api.model.govpay.GovPayConfig;
 
 @Component
 public class ServiceIdHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
