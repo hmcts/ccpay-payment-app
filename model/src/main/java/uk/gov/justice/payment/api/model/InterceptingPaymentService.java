@@ -1,20 +1,17 @@
-package uk.gov.justice.payment.api.services;
+package uk.gov.justice.payment.api.model;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.justice.payment.api.external.client.dto.Link;
-import uk.gov.justice.payment.api.model.Payment;
-import uk.gov.justice.payment.api.repository.PaymentRepository;
+import uk.gov.justice.payment.api.model.exceptions.PaymentNotFoundException;
 
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static uk.gov.justice.payment.api.model.Payment.paymentWith;
 import static uk.gov.justice.payment.api.model.QPayment.payment;
 
 @Service
@@ -37,7 +34,7 @@ public class InterceptingPaymentService implements PaymentService<Payment>, Paym
                           @NonNull String description,
                           @NonNull String returnUrl) {
         GovPayPayment govPayPayment = govPayPaymentService.create(serviceId, applicationReference, amount, email, paymentReference, description, returnUrl);
-        return updatePayment(paymentWith().serviceId(serviceId).applicationReference(applicationReference).email(email).build(), govPayPayment);
+        return updatePayment(Payment.paymentWith().serviceId(serviceId).applicationReference(applicationReference).email(email).build(), govPayPayment);
     }
 
     @Override

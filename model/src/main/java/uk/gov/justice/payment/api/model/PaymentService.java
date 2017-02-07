@@ -1,4 +1,4 @@
-package uk.gov.justice.payment.api.services;
+package uk.gov.justice.payment.api.model;
 
 public interface PaymentService<T> {
 

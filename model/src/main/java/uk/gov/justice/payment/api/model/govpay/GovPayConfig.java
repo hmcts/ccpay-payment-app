@@ -1,4 +1,4 @@
-package uk.gov.justice.payment.api.configuration;
+package uk.gov.justice.payment.api.model.govpay;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

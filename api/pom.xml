@@ -29,10 +29,6 @@
             <groupId>uk.gov.justice</groupId>
             <artifactId>payment-model</artifactId>
         </dependency>
-        <dependency>
-            <groupId>uk.gov.justice</groupId>
-            <artifactId>payment-core</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

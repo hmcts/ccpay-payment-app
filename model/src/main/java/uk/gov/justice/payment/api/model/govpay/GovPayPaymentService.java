@@ -1,16 +1,16 @@
-package uk.gov.justice.payment.api.services;
+package uk.gov.justice.payment.api.model.govpay;
 
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.gov.justice.payment.api.configuration.GovPayConfig;
-import uk.gov.justice.payment.api.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.external.client.GovPayClient;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.justice.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.justice.payment.api.model.Payment;
-import uk.gov.justice.payment.api.repository.PaymentRepository;
+import uk.gov.justice.payment.api.model.PaymentRepository;
+import uk.gov.justice.payment.api.model.PaymentService;
+import uk.gov.justice.payment.api.model.exceptions.PaymentNotFoundException;
 
 @Service
 public class GovPayPaymentService implements PaymentService<GovPayPayment> {
