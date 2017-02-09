@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import static ch.qos.logback.classic.Level.*;
+import static net.logstash.logback.argument.StructuredArguments.keyValue;
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
@@ -38,9 +39,9 @@ public class OutboundRequestLoggingInterceptorTest {
                 (req, body) -> new MockClientHttpResponse(withBody("Response payload"), OK)
         );
 
-        testAppender.assertEvent(0, INFO, "Outbound request start, method: GET, uri: http://www.google.com");
+        testAppender.assertEvent(0, INFO, "Outbound request start", keyValue("method", "GET"), keyValue("uri", "http://www.google.com"));
         testAppender.assertEvent(1, DEBUG, "Request payload");
-        testAppender.assertEvent(2, INFO, "Outbound request finish, status: 200, elapsedTime: 20");
+        testAppender.assertEvent(2, INFO, "Outbound request finish", keyValue("responseTime", 20L), keyValue("responseStatus", 200));
         testAppender.assertEvent(3, DEBUG, "Response payload");
     }
 
@@ -57,9 +58,9 @@ public class OutboundRequestLoggingInterceptorTest {
             // expected
         }
 
-        testAppender.assertEvent(0, INFO, "Outbound request start, method: GET, uri: http://www.google.com");
+        testAppender.assertEvent(0, INFO, "Outbound request start", keyValue("method", "GET"), keyValue("uri", "http://www.google.com"));
         testAppender.assertEvent(1, DEBUG, "Request payload");
-        testAppender.assertEvent(2, ERROR, "Outbound request failed, elapsedTime: 20");
+        testAppender.assertEvent(2, ERROR, "Outbound request failed", keyValue("responseTime", 20L));
     }
 
     private MockClientHttpRequest requestFor(HttpMethod httpMethod, String uri) {
