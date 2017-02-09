@@ -3,6 +3,9 @@ package uk.gov.justice.payment.api.logging;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.io.CharStreams;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpRequest;
@@ -10,13 +13,11 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import static com.google.common.base.Stopwatch.createStarted;
 import static com.google.common.base.Ticker.systemTicker;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static net.logstash.logback.argument.StructuredArguments.keyValue;
 
 public class OutboundRequestLoggingInterceptor implements ClientHttpRequestInterceptor {
     private static final Logger LOG = LoggerFactory.getLogger(OutboundRequestLoggingInterceptor.class);
@@ -45,7 +46,7 @@ public class OutboundRequestLoggingInterceptor implements ClientHttpRequestInter
     }
 
     private void logRequest(HttpRequest request, byte[] body) throws UnsupportedEncodingException {
-        LOG.info("Outbound request start, method: {}, uri: {}", request.getMethod(), request.getURI());
+        LOG.info("Outbound request start", keyValue("method", request.getMethod().toString()), keyValue("uri", request.getURI().toString()));
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(new String(body, "UTF-8"));
@@ -53,7 +54,7 @@ public class OutboundRequestLoggingInterceptor implements ClientHttpRequestInter
     }
 
     private void logResponse(ClientHttpResponse response, long elapsed) throws IOException {
-        LOG.info("Outbound request finish, status: {}, elapsedTime: {}", response.getRawStatusCode(), elapsed);
+        LOG.info("Outbound request finish", keyValue("responseTime", elapsed), keyValue("responseStatus", response.getRawStatusCode()));
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(CharStreams.toString(new InputStreamReader(response.getBody())));
@@ -61,6 +62,6 @@ public class OutboundRequestLoggingInterceptor implements ClientHttpRequestInter
     }
 
     private void logFailure(long elapsed) {
-        LOG.error("Outbound request failed, elapsedTime: {}", elapsed);
+        LOG.error("Outbound request failed", keyValue("responseTime", elapsed));
     }
 }

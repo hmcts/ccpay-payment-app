@@ -4,11 +4,18 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.util.List;
+import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.justice.payment.api.contract.CreatePaymentRequestDto;
 import uk.gov.justice.payment.api.contract.PaymentDto;
 import uk.gov.justice.payment.api.contract.RefundPaymentRequestDto;
@@ -22,10 +29,9 @@ import uk.gov.justice.payment.api.model.PaymentService;
 import uk.gov.justice.payment.api.model.exceptions.PaymentNotFoundException;
 import uk.gov.justice.payment.api.parameters.serviceid.ServiceId;
 
-import javax.validation.Valid;
-import java.util.List;
-
 import static java.util.stream.Collectors.toList;
+
+import static net.logstash.logback.argument.StructuredArguments.keyValue;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -118,7 +124,7 @@ public class PaymentController {
             paymentService.cancel(serviceId, govPayId);
             return new ResponseEntity<>(NO_CONTENT);
         } catch (GovPayCancellationFailedException e) {
-            LOG.info("Cancellation failed for govPayId: " + govPayId);
+            LOG.info("Cancellation failed", keyValue("govPayId", govPayId));
             return new ResponseEntity(BAD_REQUEST);
         }
     }
@@ -139,7 +145,7 @@ public class PaymentController {
             paymentService.refund(serviceId, payment.getGovPayId(), request.getAmount(), request.getRefundAmountAvailable());
             return new ResponseEntity<>(CREATED);
         } catch (GovPayRefundAmountMismatch e) {
-            LOG.info("Refund amount available mismatch for govPayId: " + payment.getGovPayId());
+            LOG.info("Refund amount available mismatch", keyValue("govPayId", payment.getGovPayId()));
             return new ResponseEntity(PRECONDITION_FAILED);
         }
     }
