@@ -2,7 +2,7 @@ package uk.gov.justice.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import net.logstash.logback.encoder.org.apache.commons.io.IOUtils;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -19,7 +19,8 @@ import uk.gov.justice.payment.api.componenttests.backdoors.DbBackdoor;
 import uk.gov.justice.payment.api.componenttests.sugar.CustomResultMatcher;
 import uk.gov.justice.payment.api.componenttests.sugar.RestActions;
 
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -61,8 +62,9 @@ public class ComponentTestBase {
         return new CustomResultMatcher(objectMapper);
     }
 
-    String contentsOf(String fileName) throws IOException {
-        String content = IOUtils.toString(ResourceUtils.getURL("classpath:" + fileName).openStream());
+    @SneakyThrows
+    String contentsOf(String fileName) {
+        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
         return resolvePlaceholders(content);
     }
 

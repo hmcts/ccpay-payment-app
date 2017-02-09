@@ -29,7 +29,10 @@
             <groupId>uk.gov.justice</groupId>
             <artifactId>payment-model</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>uk.gov.hmcts.reform</groupId>
+            <artifactId>java-logging-spring</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -58,10 +61,6 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
         </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
