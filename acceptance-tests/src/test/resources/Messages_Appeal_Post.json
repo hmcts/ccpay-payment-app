@@ -1,6 +1,6 @@
 {
 "amount":100,
-"application_reference":"string",
+"application_reference":"$application_ref",
 "description":"string",
 "email":"valid@email.com",
 "payment_reference":"string",

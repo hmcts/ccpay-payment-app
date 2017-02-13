@@ -16,5 +16,6 @@ mvn clean install -Denv="acceptance"
 ################################################################################################
 
 To run acceptance test cases and generate report use following command
-mvn clean install -Denv="acceptance" surefire-report:failsafe-report-only
+mvn clean install -P with-acceptance-tests site
+Reports are available under /acceptance-tests/target/site/surefire-report.html
 

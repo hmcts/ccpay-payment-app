@@ -5,6 +5,8 @@ import io.restassured.specification.RequestSpecification;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.junit.BeforeClass;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.ResourceUtils;
 
 import java.io.IOException;
@@ -14,15 +16,22 @@ import java.io.StringWriter;
 import java.util.Map;
 import java.util.Properties;
 
+@TestPropertySource(value = "classpath:config/application-test.properties", properties = "logging.level.org.springframework.web:ERROR")
 public class TestBase {
 
     protected final ScenarioFactory scenario = new ScenarioFactory();
+    public static String appBaseUri;
+
+    @Value("${appBaseURL}")
+    public void setappURL(String app_base_uri) {
+        appBaseUri = app_base_uri;
+    }
 
     public static Properties CONFIG = null;
 
     @BeforeClass
     public static void initialize() throws IOException {
-        InputStream is = TestBase.class.getClassLoader().getResourceAsStream("Config/config.properties");
+        InputStream is = TestBase.class.getClassLoader().getResourceAsStream("config/config.properties");
         CONFIG = new Properties();
         CONFIG.load(is);
     }
@@ -48,7 +57,7 @@ public class TestBase {
     public static class ScenarioFactory {
         public RequestSpecification given() {
             return RestAssured.given()
-                    .baseUri(CONFIG.getProperty("baseURL"))
+                    .baseUri(appBaseUri)
                     .basePath("/payments")
                     .contentType("application/json")
                     .header(CONFIG.getProperty("k_service_id"), CONFIG.getProperty("service_id"));
