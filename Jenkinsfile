@@ -15,7 +15,7 @@ node {
 
             stage('Build (JAR)') {
                 sh '''
-                    mvn clean package
+                    mvn clean verify
                 '''
                 archiveArtifacts 'api/target/*.jar'
             }
@@ -36,6 +36,8 @@ node {
 }
 
 private void configure(env) {
+    def mvnHome = tool 'apache-maven-3.3.9'
+    env.PATH = "${mvnHome}/bin:${env.PATH}"
     env.MAVEN_OPTS = "${env.MAVEN_OPTS != null ? env.MAVEN_OPTS : ''} ${proxySystemProperties(env)}"
 }
 
