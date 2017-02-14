@@ -2,9 +2,6 @@
 
 properties(
     [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'http://git.reform/common-components/payment-app/'],
-    parameters(
-        [string(name: 'slackChannel', description: 'Which Slack channel to send notifications to', defaultValue: '#cc_tech')]
-    ),
     pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
@@ -18,7 +15,7 @@ node {
 
             stage('Build (JAR)') {
                 sh '''
-                    mvn clean package
+                    mvn clean verify
                 '''
                 archiveArtifacts 'api/target/*.jar'
             }
@@ -30,17 +27,17 @@ node {
             }
         }
     } catch (err) {
-         if (getBinding().hasVariable('slackChannel')) {
-             slackSend(
-                 channel: slackChannel,
-                 color: 'danger',
-                 message: "${env.JOB_NAME}: <${env.BUILD_URL}console|Build ${env.BUILD_DISPLAY_NAME}> has FAILED")
-         }
+         slackSend(
+             channel: '#cc_tech',
+             color: 'danger',
+             message: "${env.JOB_NAME}: <${env.BUILD_URL}console|Build ${env.BUILD_DISPLAY_NAME}> has FAILED")
          throw err
      }
 }
 
 private void configure(env) {
+    def mvnHome = tool 'apache-maven-3.3.9'
+    env.PATH = "${mvnHome}/bin:${env.PATH}"
     env.MAVEN_OPTS = "${env.MAVEN_OPTS != null ? env.MAVEN_OPTS : ''} ${proxySystemProperties(env)}"
 }
 
