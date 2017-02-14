@@ -4,15 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>payment-app</artifactId>
     <groupId>uk.gov.justice</groupId>
+    <artifactId>payment-app</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.4.1.RELEASE</version>
+        <version>1.5.1.RELEASE</version>
+        <relativePath />
     </parent>
 
     <modules>
@@ -64,22 +65,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-web</artifactId>
-                <version>1.4.1.RELEASE</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>commons-logging</artifactId>
-                        <groupId>commons-logging</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-tomcat</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>4.5.2</version>
@@ -93,7 +78,7 @@
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>9.4-1200-jdbc4</version>
+                <version>9.4.1212</version>
                 <exclusions>
                     <exclusion>
                         <artifactId>commons-logging</artifactId>
@@ -217,6 +202,90 @@
             </plugins>
         </pluginManagement>
     </build>
+
+
+    <profiles>
+        <profile>
+            <id>prod</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.commonjava.maven.plugins</groupId>
+                        <artifactId>directory-maven-plugin</artifactId>
+                        <version>0.1</version>
+                        <executions>
+                            <execution>
+                                <id>directories</id>
+                                <goals>
+                                    <goal>directory-of</goal>
+                                </goals>
+                                <phase>initialize</phase>
+                                <configuration>
+                                    <property>parent.basedir</property>
+                                    <project>
+                                        <groupId>uk.gov.justice</groupId>
+                                        <artifactId>payment-app</artifactId>
+                                    </project>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>findbugs-maven-plugin</artifactId>
+                        <version>3.0.1</version>
+                        <configuration>
+                            <effort>Max</effort>
+                            <threshold>Medium</threshold>
+                            <failOnError>true</failOnError>
+                            <includeFilterFile>${parent.basedir}/findbugs-security-include.xml</includeFilterFile>
+                            <excludeFilterFile>${parent.basedir}/findbugs-security-exclude.xml</excludeFilterFile>
+                            <plugins>
+                                <plugin>
+                                    <groupId>com.h3xstream.findsecbugs</groupId>
+                                    <artifactId>findsecbugs-plugin</artifactId>
+                                    <version>LATEST</version> <!-- Auto-update to the latest stable -->
+                                </plugin>
+                            </plugins>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <version>1.4.5</version>
+                        <configuration>
+                            <failBuildOnCVSS>0</failBuildOnCVSS>
+                            <suppressionFile>${parent.basedir}/dependency-check-suppressions.xml</suppressionFile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <!-- Profile to skip some plugins when running locally -->
+            <id>dev</id>
+        </profile>
+    </profiles>
 
     <reporting>
         <excludeDefaults>true</excludeDefaults>

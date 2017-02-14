@@ -2,9 +2,6 @@
 
 properties(
     [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'http://git.reform/common-components/payment-app/'],
-    parameters(
-        [string(name: 'slackChannel', description: 'Which Slack channel to send notifications to', defaultValue: '#cc_tech')]
-    ),
     pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
@@ -30,12 +27,10 @@ node {
             }
         }
     } catch (err) {
-         if (getBinding().hasVariable('slackChannel')) {
-             slackSend(
-                 channel: slackChannel,
-                 color: 'danger',
-                 message: "${env.JOB_NAME}: <${env.BUILD_URL}console|Build ${env.BUILD_DISPLAY_NAME}> has FAILED")
-         }
+         slackSend(
+             channel: '#cc_tech',
+             color: 'danger',
+             message: "${env.JOB_NAME}: <${env.BUILD_URL}console|Build ${env.BUILD_DISPLAY_NAME}> has FAILED")
          throw err
      }
 }
