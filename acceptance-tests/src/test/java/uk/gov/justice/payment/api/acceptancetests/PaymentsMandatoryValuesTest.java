@@ -2,6 +2,9 @@ package uk.gov.justice.payment.api.acceptancetests;
 
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.junit4.SpringRunner;
+
 import static org.springframework.http.HttpStatus.*;
 
 import java.io.IOException;
@@ -10,6 +13,7 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 
+@RunWith(SpringRunner.class)
 public class PaymentsMandatoryValuesTest extends TestBase {
     @Test
     public void test1_POST_Without_Values() throws IOException {
