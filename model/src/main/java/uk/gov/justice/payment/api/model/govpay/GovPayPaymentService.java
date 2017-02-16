@@ -33,7 +33,7 @@ public class GovPayPaymentService implements PaymentService<Payment> {
                           @NonNull String description,
                           @NonNull String returnUrl) {
         GovPayPayment govPayPayment = govPayClient.createPayment(keyFor(serviceId), new CreatePaymentRequest(amount, reference, description, returnUrl));
-        Payment payment = paymentRepository.save(Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).build());
+        Payment payment = paymentRepository.save(Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).serviceId(serviceId).build());
         fillTransientDetails(payment, govPayPayment);
         return payment;
     }

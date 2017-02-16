@@ -55,7 +55,8 @@ public class GovPayPaymentServiceTest {
     public void checkCreateWiring() {
         when(govPayConfig.getKeyForService("divorce")).thenReturn("authorizationKey");
         when(govPayClient.createPayment("authorizationKey", new CreatePaymentRequest(100, "reference", "description", "returnUrl"))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
-        when(paymentRepository.save(paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).build())).thenReturn(paymentWith().id(999).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).build());
+        when(paymentRepository.save(paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).serviceId("divorce").build()))
+                .thenReturn(paymentWith().id(999).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).build());
 
         Payment payment = govPayPaymentService.create("divorce", 100, "reference", "description", "returnUrl");
         assertThat(payment).isEqualTo(mapToPayment(999, VALID_GOV_PAYMENT_RESPONSE.getPaymentId(), VALID_GOV_PAYMENT_RESPONSE));
