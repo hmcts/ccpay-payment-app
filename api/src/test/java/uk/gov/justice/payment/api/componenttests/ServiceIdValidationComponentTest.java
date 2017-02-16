@@ -9,10 +9,10 @@ public class ServiceIdValidationComponentTest extends ComponentTestBase {
 
     @Test
     public void unknownServiceIdShouldResultIn422() throws Exception {
-        restActions.get("/payments/?payment_reference=any", headersForServiceId("divorce"))
-                .andExpect(status().isOk());
+        restActions.get("/payments/99977888", headersForServiceId("divorce"))
+                .andExpect(status().isNotFound());
 
-        restActions.get("/payments/?payment_reference=any", headersForServiceId("unknown"))
+        restActions.get("/payments/99977888", headersForServiceId("unknown"))
                 .andExpect(status().isUnprocessableEntity());
     }
 

@@ -1,5 +1,6 @@
 package uk.gov.justice.payment.api.external.client;
 
+import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -11,8 +12,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.justice.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
-
-import java.util.function.Supplier;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
@@ -41,9 +40,9 @@ public class GovPayClient {
         });
     }
 
-    public GovPayPayment retrievePayment(String authorizationKey, String selfUrl) {
+    public GovPayPayment retrievePayment(String authorizationKey, String govPayId) {
         return doWithErrorTranslation(() -> {
-            ResponseEntity<GovPayPayment> response = restTemplate.exchange(selfUrl, GET, new HttpEntity(getHeaders(authorizationKey)), GovPayPayment.class);
+            ResponseEntity<GovPayPayment> response = restTemplate.exchange(url + "/" + govPayId, GET, new HttpEntity(getHeaders(authorizationKey)), GovPayPayment.class);
             return response.getBody();
         });
     }

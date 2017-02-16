@@ -14,5 +14,5 @@ public interface PaymentRepository extends CrudRepository<Payment, Integer>, Que
 
     Iterable<Payment> findAll();
 
-    Optional<Payment> findByGovPayId(String govPayId);
+    Optional<Payment> findById(Integer id);
 }
