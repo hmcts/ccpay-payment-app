@@ -22,12 +22,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 public class PaymentDto {
 
+    private String id;
     private Integer amount;
     private StateDto state;
     private String description;
-    private String applicationReference;
-    private String paymentReference;
-    private String paymentId;
+    private String reference;
     private Date dateCreated;
 
     @JsonProperty("_links")

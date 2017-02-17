@@ -1,5 +1,8 @@
 package uk.gov.justice.payment.api.controllers.dto;
 
+import java.util.Collections;
+import java.util.Date;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,10 +11,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.justice.payment.api.contract.PaymentDto;
 import uk.gov.justice.payment.api.controllers.PaymentDtoFactory;
 import uk.gov.justice.payment.api.model.Payment;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -34,28 +33,27 @@ public class PaymentDtoFactoryTest {
     @Test
     public void convertsToDto() {
         assertThat(new PaymentDtoFactory().toDto(Payment.paymentWith()
-                .govPayId("123")
+                .id(999)
+                .govPayId("govPayId")
                 .amount(500)
                 .status("status")
                 .finished(false)
                 .description("description")
-                .applicationReference("application_reference")
-                .paymentReference("payment_reference")
+                .reference("reference")
                 .dateCreated(new Date(123456789))
                 .cancelUrl("http://cancel_url")
                 .nextUrl("http://next_url")
                 .build())
         ).isEqualTo(paymentDtoWith()
-                .paymentId("123")
+                .id("999")
                 .amount(500)
                 .state(new PaymentDto.StateDto("status", false))
                 .description("description")
-                .applicationReference("application_reference")
-                .paymentReference("payment_reference")
+                .reference("reference")
                 .dateCreated(new Date(123456789))
                 .links(new PaymentDto.LinksDto(
                         new PaymentDto.LinkDto("http://next_url", "GET"),
-                        new PaymentDto.LinkDto("http://localhost/payments/123/cancel", "POST")
+                        new PaymentDto.LinkDto("http://localhost/payments/999/cancel", "POST")
                 ))
                 .build());
     }

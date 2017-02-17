@@ -29,9 +29,7 @@ public class CreatePaymentRequestDto {
     @Min(1)
     private Integer amount;
     @NotEmpty
-    private String applicationReference;
-    @NotEmpty
-    private String paymentReference;
+    private String reference;
     @NotEmpty
     private String description;
     @NotEmpty

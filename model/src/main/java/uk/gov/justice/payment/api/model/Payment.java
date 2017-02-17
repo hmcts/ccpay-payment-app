@@ -1,13 +1,16 @@
 package uk.gov.justice.payment.api.model;
 
+import java.util.Date;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-
-import javax.persistence.*;
-import java.util.Date;
 
 @Entity
 @Data
@@ -20,18 +23,27 @@ public class Payment {
     private Integer id;
     private String serviceId;
     private String govPayId;
-    private String email;
-    private Integer amount;
-    private String applicationReference;
-    private String paymentReference;
-    private String description;
-    private String status;
-    private Boolean finished;
     @CreationTimestamp
     private Date dateCreated;
+
+    @Transient
+    private String email;
+    @Transient
+    private Integer amount;
+    @Transient
+    private String reference;
+    @Transient
+    private String description;
+    @Transient
+    private String status;
+    @Transient
+    private Boolean finished;
+    @Transient
     private String returnUrl;
-    private String selfUrl;
+    @Transient
     private String nextUrl;
+    @Transient
     private String cancelUrl;
+    @Transient
     private String refundsUrl;
 }
