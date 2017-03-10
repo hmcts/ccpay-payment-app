@@ -1,5 +1,7 @@
 #!groovy
 
+@Library('Reform') _
+
 properties(
     [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'http://git.reform/common-components/payment-app/'],
     pipelineTriggers([[$class: 'GitHubPushTrigger']])]
@@ -21,9 +23,8 @@ node {
             }
 
             stage('Build (Docker)') {
-                sh '''
-                    docker-compose build --force-rm
-                '''
+                dockerImage imageName: 'common-components/payments-api'
+                dockerImage imageName: 'common-components/payments-database', context: 'docker/database'
             }
         }
     } catch (err) {
