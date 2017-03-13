@@ -1,12 +1,12 @@
 package uk.gov.justice.payment.api.model;
 
-public interface PaymentService<T> {
+public interface PaymentService<T, ID> {
 
-    T create(String serviceId, int amount, String reference, String description, String returnUrl);
+    T create(int amount, String reference, String description, String returnUrl);
 
-    T retrieve(String serviceId, Integer id);
+    T retrieve(ID id);
 
-    void cancel(String serviceId, Integer id);
+    void cancel(ID id);
 
-    void refund(String serviceId, Integer id, int amount, int refundAmountAvailabie);
+    void refund(ID id, int amount, int refundAmountAvailabie);
 }

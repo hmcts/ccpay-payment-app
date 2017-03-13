@@ -11,7 +11,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import uk.gov.justice.payment.api.parameters.serviceid.UnknownServiceIdException;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -23,12 +22,6 @@ public class ControllerExceptionHandler {
     @ResponseStatus(code = INTERNAL_SERVER_ERROR)
     public void unknownException(Exception e) {
         LOG.error("Unknown error has occurred", e);
-    }
-
-    @ExceptionHandler(value = {UnknownServiceIdException.class})
-    @ResponseStatus(code = UNPROCESSABLE_ENTITY, reason = "Unknown service id provided")
-    public void unknownServiceIdException(UnknownServiceIdException e) {
-        LOG.warn("Unknown service id provided", e);
     }
 
     @ExceptionHandler(value = {HttpMessageNotReadableException.class})

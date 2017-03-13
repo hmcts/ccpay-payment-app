@@ -34,7 +34,7 @@ public class HealthCheck {
     @Before
     public void setUp() {
         long timestamp = Calendar.getInstance().getTimeInMillis();
-        RestAssured.port = 8181;
+        RestAssured.port = 8080;
         paymentRequest = new HashMap();
         paymentRequest.put("amount", AMOUNT);
         paymentRequest.put("description", "Test Desc" + timestamp);

@@ -8,6 +8,9 @@ public class SpringConfigurationComponentTest extends ComponentTestBase {
 
     @Test
     public void invalidRequestShouldResultIn400() throws Exception {
-        restActions.post("/payments/", "{ invalid json }").andExpect(status().isBadRequest());
+        restActions
+            .withAuthorizedUser("userId")
+            .withAuthorizedService("divorce")
+            .post("/users/userId/payments/", "{ invalid json }").andExpect(status().isBadRequest());
     }
 }

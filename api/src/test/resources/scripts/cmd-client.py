@@ -8,7 +8,7 @@ opener = urllib2.build_opener()
 
 def prepareRequest(path, data):
     payload = None if data is None else json.dumps(data)
-    return urllib2.Request('http://localhost:8181/payments/' + path, payload,
+    return urllib2.Request('http://localhost:8080/payments/' + path, payload,
                            {'Content-Type': 'application/json', 'service_id': 'divorce'})
 
 

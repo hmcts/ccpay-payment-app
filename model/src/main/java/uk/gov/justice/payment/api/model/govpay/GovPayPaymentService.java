@@ -8,74 +8,57 @@ import uk.gov.justice.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.justice.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.justice.payment.api.external.client.dto.Link;
 import uk.gov.justice.payment.api.external.client.dto.RefundPaymentRequest;
-import uk.gov.justice.payment.api.model.Payment;
-import uk.gov.justice.payment.api.model.PaymentRepository;
 import uk.gov.justice.payment.api.model.PaymentService;
-import uk.gov.justice.payment.api.model.exceptions.PaymentNotFoundException;
+import uk.gov.justice.payment.api.model.ServiceIdSupplier;
 
 @Service
-public class GovPayPaymentService implements PaymentService<Payment> {
-    private final PaymentRepository paymentRepository;
+public class GovPayPaymentService implements PaymentService<GovPayPayment, String> {
     private final GovPayConfig govPayConfig;
     private final GovPayClient govPayClient;
+    private final ServiceIdSupplier serviceIdSupplier;
 
     @Autowired
-    public GovPayPaymentService(PaymentRepository paymentRepository, GovPayConfig govPayConfig, GovPayClient govPayClient) {
-        this.paymentRepository = paymentRepository;
+    public GovPayPaymentService(GovPayConfig govPayConfig, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier) {
         this.govPayConfig = govPayConfig;
         this.govPayClient = govPayClient;
+        this.serviceIdSupplier = serviceIdSupplier;
     }
 
     @Override
-    public Payment create(@NonNull String serviceId,
-                          int amount,
-                          @NonNull String reference,
-                          @NonNull String description,
-                          @NonNull String returnUrl) {
-        GovPayPayment govPayPayment = govPayClient.createPayment(keyFor(serviceId), new CreatePaymentRequest(amount, reference, description, returnUrl));
-        Payment payment = paymentRepository.save(Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).serviceId(serviceId).build());
-        fillTransientDetails(payment, govPayPayment);
-        return payment;
+    public GovPayPayment create(int amount,
+                                @NonNull String reference,
+                                @NonNull String description,
+                                @NonNull String returnUrl) {
+        return govPayClient.createPayment(keyForCurrentService(), new CreatePaymentRequest(amount, reference, description, returnUrl));
     }
 
     @Override
-    public Payment retrieve(@NonNull String serviceId, @NonNull Integer id) {
-        Payment payment = paymentRepository.findById(id).orElseThrow(PaymentNotFoundException::new);
-        GovPayPayment govPayPayment = govPayClient.retrievePayment(keyFor(serviceId), payment.getGovPayId());
-        fillTransientDetails(payment, govPayPayment);
-        return payment;
-    }
-
-    private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {
-        payment.setAmount(govPayPayment.getAmount());
-        payment.setStatus(govPayPayment.getState().getStatus());
-        payment.setFinished(govPayPayment.getState().getFinished());
-        payment.setReference(govPayPayment.getReference());
-        payment.setDescription(govPayPayment.getDescription());
-        payment.setReturnUrl(govPayPayment.getReturnUrl());
-        payment.setNextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()));
-        payment.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
-        payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
+    public GovPayPayment retrieve(@NonNull String id) {
+        return govPayClient.retrievePayment(keyForCurrentService(), id);
     }
 
     @Override
-    public void cancel(@NonNull String serviceId, @NonNull Integer id) {
-        Payment payment = retrieve(serviceId, id);
-        govPayClient.cancelPayment(keyFor(serviceId), payment.getCancelUrl());
+    public void cancel(@NonNull String id) {
+        GovPayPayment payment = retrieve(id);
+        govPayClient.cancelPayment(keyForCurrentService(), hrefFor(payment.getLinks().getCancel()));
     }
 
     @Override
-    public void refund(@NonNull String serviceId, @NonNull Integer id, int amount, int refundAmountAvailable) {
-        Payment payment = retrieve(serviceId, id);
-        govPayClient.refundPayment(keyFor(serviceId), payment.getRefundsUrl(), new RefundPaymentRequest(amount, refundAmountAvailable));
+    public void refund(@NonNull String id, int amount, int refundAmountAvailable) {
+        GovPayPayment payment = retrieve(id);
+        govPayClient.refundPayment(keyForCurrentService(), hrefFor(payment.getLinks().getRefunds()), new RefundPaymentRequest(amount, refundAmountAvailable));
     }
 
-    private String hrefFor(Link url) {
-        return url == null ? null : url.getHref();
+    private String hrefFor(Link link) {
+        if (link == null) {
+            throw new UnsupportedOperationException("Requested action is not available for the payment");
+        }
+
+        return link.getHref();
     }
 
-
-    private String keyFor(String serviceId) {
+    private String keyForCurrentService() {
+        String serviceId = serviceIdSupplier.get();
         return govPayConfig.getKeyForService(serviceId);
     }
 }

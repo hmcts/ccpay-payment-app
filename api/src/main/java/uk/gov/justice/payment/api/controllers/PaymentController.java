@@ -24,7 +24,6 @@ import uk.gov.justice.payment.api.external.client.exceptions.GovPayRefundAmountM
 import uk.gov.justice.payment.api.model.Payment;
 import uk.gov.justice.payment.api.model.PaymentService;
 import uk.gov.justice.payment.api.model.exceptions.PaymentNotFoundException;
-import uk.gov.justice.payment.api.parameters.serviceid.ServiceId;
 
 import static net.logstash.logback.argument.StructuredArguments.keyValue;
 import static org.springframework.http.HttpStatus.*;
@@ -37,11 +36,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class PaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
 
-    private final PaymentService<Payment> paymentService;
+    private final PaymentService<Payment, Integer> paymentService;
     private final PaymentDtoFactory paymentDtoFactory;
 
     @Autowired
-    public PaymentController(PaymentService<Payment> paymentService, PaymentDtoFactory paymentDtoFactory) {
+    public PaymentController(PaymentService<Payment, Integer> paymentService, PaymentDtoFactory paymentDtoFactory) {
         this.paymentService = paymentService;
         this.paymentDtoFactory = paymentDtoFactory;
     }
@@ -52,11 +51,10 @@ public class PaymentController {
             @ApiResponse(code = 400, message = "Payment creation failed"),
             @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @RequestMapping(value = "/payments", method = POST)
-    public ResponseEntity<PaymentDto> create(@ServiceId String serviceId,
+    @RequestMapping(value = "/users/{userId}/payments", method = POST)
+    public ResponseEntity<PaymentDto> create(@PathVariable("userId") String userId,
                                              @Valid @RequestBody CreatePaymentRequestDto request) {
         Payment payment = paymentService.create(
-                serviceId,
                 request.getAmount(),
                 request.getReference(),
                 request.getDescription(),
@@ -71,9 +69,10 @@ public class PaymentController {
             @ApiResponse(code = 200, message = "Payment retrieved"),
             @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/payments/{id}", method = GET)
-    public PaymentDto retrieve(@ServiceId String serviceId, @PathVariable("id") Integer id) {
-        return paymentDtoFactory.toDto(paymentService.retrieve(serviceId, id));
+    @RequestMapping(value = "/users/{userId}/payments/{paymentId}", method = GET)
+    public PaymentDto retrieve(@PathVariable("userId") String userId,
+                               @PathVariable("paymentId") Integer paymentId) {
+        return paymentDtoFactory.toDto(paymentService.retrieve(paymentId));
     }
 
     @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
@@ -82,13 +81,14 @@ public class PaymentController {
             @ApiResponse(code = 400, message = "Cancellation failed"),
             @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/payments/{id}/cancel", method = POST)
-    public ResponseEntity<?> cancel(@ServiceId String serviceId, @PathVariable("id") Integer id) {
+    @RequestMapping(value = "/users/{userId}/payments/{paymentId}/cancel", method = POST)
+    public ResponseEntity<?> cancel(@PathVariable("userId") String userId,
+                                    @PathVariable("paymentId") Integer paymentId) {
         try {
-            paymentService.cancel(serviceId, id);
+            paymentService.cancel(paymentId);
             return new ResponseEntity<>(NO_CONTENT);
         } catch (GovPayCancellationFailedException e) {
-            LOG.info("Cancellation failed", keyValue("id", id));
+            LOG.info("Cancellation failed", keyValue("paymentId", paymentId));
             return new ResponseEntity(BAD_REQUEST);
         }
     }
@@ -99,15 +99,15 @@ public class PaymentController {
             @ApiResponse(code = 412, message = "Refund amount available mismatch"),
             @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/payments/{id}/refunds", method = POST)
-    public ResponseEntity<?> refund(@ServiceId String serviceId,
-                                    @PathVariable("id") Integer id,
+    @RequestMapping(value = "/users/{userId}/payments/{paymentId}/refunds", method = POST)
+    public ResponseEntity<?> refund(@PathVariable("userId") String userId,
+                                    @PathVariable("paymentId") Integer paymentId,
                                     @Valid @RequestBody RefundPaymentRequestDto request) {
         try {
-            paymentService.refund(serviceId, id, request.getAmount(), request.getRefundAmountAvailable());
+            paymentService.refund(paymentId, request.getAmount(), request.getRefundAmountAvailable());
             return new ResponseEntity<>(CREATED);
         } catch (GovPayRefundAmountMismatch e) {
-            LOG.info("Refund amount available mismatch", keyValue("id", id));
+            LOG.info("Refund amount available mismatch", keyValue("paymentId", paymentId));
             return new ResponseEntity(PRECONDITION_FAILED);
         }
     }

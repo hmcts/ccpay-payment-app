@@ -12,7 +12,5 @@ public interface PaymentRepository extends CrudRepository<Payment, Integer>, Que
 
     <S extends Payment> S save(S entity);
 
-    Iterable<Payment> findAll();
-
-    Optional<Payment> findById(Integer id);
+    Optional<Payment> findByUserIdAndId(String userId, Integer id);
 }

@@ -33,7 +33,8 @@ public class PaymentDtoFactoryTest {
     @Test
     public void convertsToDto() {
         assertThat(new PaymentDtoFactory().toDto(Payment.paymentWith()
-                .id(999)
+                .userId("123")
+                .id(456)
                 .govPayId("govPayId")
                 .amount(500)
                 .status("status")
@@ -45,7 +46,7 @@ public class PaymentDtoFactoryTest {
                 .nextUrl("http://next_url")
                 .build())
         ).isEqualTo(paymentDtoWith()
-                .id("999")
+                .id("456")
                 .amount(500)
                 .state(new PaymentDto.StateDto("status", false))
                 .description("description")
@@ -53,7 +54,7 @@ public class PaymentDtoFactoryTest {
                 .dateCreated(new Date(123456789))
                 .links(new PaymentDto.LinksDto(
                         new PaymentDto.LinkDto("http://next_url", "GET"),
-                        new PaymentDto.LinkDto("http://localhost/payments/999/cancel", "POST")
+                        new PaymentDto.LinkDto("http://localhost/users/123/payments/456/cancel", "POST")
                 ))
                 .build());
     }

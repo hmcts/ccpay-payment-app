@@ -17,11 +17,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.http.HttpHost.create;
 
 @Configuration
-public class RestTemplateConfig {
+public class RestTemplateConfiguration {
     private final String httpsProxy;
 
     @Autowired
-    public RestTemplateConfig(@Value("${proxy}") String httpsProxy) {
+    public RestTemplateConfiguration(@Value("${proxy}") String httpsProxy) {
         this.httpsProxy = httpsProxy;
     }
 

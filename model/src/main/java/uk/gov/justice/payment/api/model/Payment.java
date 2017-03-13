@@ -21,7 +21,7 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String serviceId;
+    private String userId;
     private String govPayId;
     @CreationTimestamp
     private Date dateCreated;

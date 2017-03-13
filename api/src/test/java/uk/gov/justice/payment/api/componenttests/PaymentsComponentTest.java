@@ -1,5 +1,6 @@
 package uk.gov.justice.payment.api.componenttests;
 
+import org.junit.Before;
 import org.junit.Test;
 import uk.gov.justice.payment.api.contract.CreatePaymentRequestDto;
 import uk.gov.justice.payment.api.contract.PaymentDto;
@@ -8,16 +9,26 @@ import uk.gov.justice.payment.api.contract.PaymentDto.StateDto;
 import uk.gov.justice.payment.api.contract.RefundPaymentRequestDto;
 import uk.gov.justice.payment.api.model.Payment;
 
+import static java.lang.String.format;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.justice.payment.api.componenttests.sugar.RestActions.SERVICE_ID;
 import static uk.gov.justice.payment.api.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
 import static uk.gov.justice.payment.api.contract.PaymentDto.paymentDtoWith;
 import static uk.gov.justice.payment.api.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
 import static uk.gov.justice.payment.api.model.Payment.paymentWith;
 
 public class PaymentsComponentTest extends ComponentTestBase {
+
+    private static final String USER_ID = "userId";
+
+    @Before
+    public void setup() {
+        restActions
+                .withAuthorizedService("divorce")
+                .withAuthorizedUser(USER_ID);
+    }
 
     @Test
     public void createPaymentValidationRules() throws Exception {
@@ -45,7 +56,8 @@ public class PaymentsComponentTest extends ComponentTestBase {
     }
 
     private void tryCreateAndExpect(CreatePaymentRequestDto requestBody, String expectedContent) throws Exception {
-        restActions.post("/payments/", requestBody)
+        restActions
+                .post(format("/users/%s/payments", USER_ID), requestBody)
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(content().string(expectedContent));
     }
@@ -61,7 +73,8 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
         Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
-        restActions.get("/payments/" + payment.getId())
+        restActions
+                .get(format("/users/%s/payments/%s", USER_ID, payment.getId()))
                 .andExpect(status().isOk())
                 .andExpect(body().isEqualTo(
                         paymentDtoWith()
@@ -74,7 +87,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
                                 .dateCreated(payment.getDateCreated())
                                 .links(new LinksDto(
                                         new PaymentDto.LinkDto("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2", "GET"),
-                                        new PaymentDto.LinkDto("http://localhost/payments/" + payment.getId() + "/cancel", "POST")
+                                        new PaymentDto.LinkDto(String.format("http://localhost/users/%s/payments/%s/cancel", USER_ID, payment.getId()), "POST")
                                 ))
                                 .build()
                 ));
@@ -82,7 +95,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     @Test
     public void getUnknownPaymentShouldReturn404() throws Exception {
-        restActions.get("/payments/99999")
+        restActions.get(format("/users/%s/payments/99999", USER_ID))
                 .andExpect(status().isNotFound());
     }
 
@@ -103,7 +116,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
         Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID").amount(100));
 
-        restActions.post("/payments/" + payment.getId() + "/cancel")
+        restActions.post(format("/users/%s/payments/%s/cancel", USER_ID, payment.getId()))
                 .andExpect(status().is(204));
     }
 
@@ -118,7 +131,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
         Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
-        restActions.post("/payments/" + payment.getId() + "/cancel")
+        restActions.post(format("/users/%s/payments/%s/cancel", USER_ID, payment.getId()))
                 .andExpect(status().is(400));
     }
 
@@ -136,7 +149,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
     }
 
     private void tryRefundAndExpect(RefundPaymentRequestDto requestBody, String expectedContent) throws Exception {
-        restActions.post("/payments/1/refunds", requestBody)
+        restActions.post(format("/users/%s/payments/1/refunds", USER_ID), requestBody)
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(content().string(expectedContent));
     }
@@ -159,7 +172,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
         Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
         restActions
-                .post("/payments/" + payment.getId() + "/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+                .post(format("/users/%s/payments/%s/refunds", USER_ID, payment.getId()), refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
                 .andExpect(status().is(201));
     }
 
@@ -175,13 +188,13 @@ public class PaymentsComponentTest extends ComponentTestBase {
         Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
         restActions
-                .post("/payments/" + payment.getId() + "/refunds", refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+                .post(format("/users/%s/payments/%s/refunds", USER_ID, payment.getId()), refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
                 .andExpect(status().is(412));
     }
 
     private Payment.PaymentBuilder validPaymentWith() {
         return paymentWith()
-                .serviceId(SERVICE_ID)
+                .userId(USER_ID)
                 .amount(100)
                 .status("status")
                 .govPayId("paymentId")

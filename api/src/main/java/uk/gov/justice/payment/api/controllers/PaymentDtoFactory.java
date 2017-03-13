@@ -20,7 +20,7 @@ public class PaymentDtoFactory {
                 .dateCreated(payment.getDateCreated())
                 .links(new PaymentDto.LinksDto(
                         payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                        payment.getCancelUrl() == null ? null : cancellationLink(payment.getId())
+                        payment.getCancelUrl() == null ? null : cancellationLink(payment.getUserId(), payment.getId())
                 ))
                 .build();
     }
@@ -30,9 +30,9 @@ public class PaymentDtoFactory {
     }
 
     @SneakyThrows(NoSuchMethodException.class)
-    private PaymentDto.LinkDto cancellationLink(Integer id) {
+    private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
         Method method = PaymentController.class.getMethod("cancel", String.class, Integer.class);
-        return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, id).toString(), "POST");
+        return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
     }
 
 }

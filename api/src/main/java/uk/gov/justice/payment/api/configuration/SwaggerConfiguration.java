@@ -21,7 +21,7 @@ import static springfox.documentation.builders.PathSelectors.regex;
 
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig {
+public class SwaggerConfiguration {
 
     @Bean
     public Docket newsApi() {
@@ -29,7 +29,7 @@ public class SwaggerConfig {
                 .groupName("payment")
                 .apiInfo(apiInfo())
                 .select()
-                .paths(regex("/payment.*"))
+                .paths(regex("/users/.*"))
                 .build();
     }
 

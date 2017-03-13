@@ -2,6 +2,8 @@ package uk.gov.justice.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -16,13 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.justice.payment.api.componenttests.backdoors.DbBackdoor;
+import uk.gov.justice.payment.api.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.justice.payment.api.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.justice.payment.api.componenttests.sugar.CustomResultMatcher;
 import uk.gov.justice.payment.api.componenttests.sugar.RestActions;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringRunner.class)
@@ -38,6 +40,12 @@ public class ComponentTestBase {
     protected DbBackdoor db;
 
     @Autowired
+    protected ServiceResolverBackdoor serviceRequestAuthorizer;
+
+    @Autowired
+    protected UserResolverBackdoor userRequestAuthorizer;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -50,8 +58,8 @@ public class ComponentTestBase {
 
     @Before
     public void setUp() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).build();
-        this.restActions = new RestActions(mvc, objectMapper);
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
     }
 
     CustomResultMatcher bodyAs(Class expectedClass) {
