@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>uk.gov.justice</groupId>
+        <groupId>uk.gov.hmcts.payment</groupId>
         <artifactId>payment-app</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
