@@ -9,6 +9,6 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="uk.gov.justice.payment" level="debug" />
+    <logger name="uk.gov.hmcts.payment" level="debug" />
 
 </configuration>
