@@ -20,4 +20,9 @@
         <gav regex="true">^io\.jsonwebtoken:jjwt:.*$</gav>
         <cpe>cpe:/a:sonatype:nexus</cpe>
     </suppress>
+    <suppress>
+        <notes>Does not apply as we do not use SocketServer or ServerSocketReceiver in prod</notes>
+        <gav regex="true">^ch\.qos\.logback:logback-.*:.*$</gav>
+        <cve>CVE-2017-5929</cve>
+    </suppress>
 </suppressions>
