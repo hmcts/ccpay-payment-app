@@ -21,7 +21,6 @@
         <module>model</module>
         <module>api-contract</module>
         <module>api</module>
-        <module>acceptance-tests</module>
     </modules>
 
     <properties>
