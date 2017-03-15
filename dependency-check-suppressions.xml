@@ -25,4 +25,9 @@
         <gav regex="true">^ch\.qos\.logback:logback-.*:.*$</gav>
         <cve>CVE-2017-5929</cve>
     </suppress>
+    <suppress>
+        <notes>Does not apply as tomcat is configured to run as HTTP only</notes>
+        <gav regex="true">^org\.apache\.tomcat\.embed:tomcat-embed.*:.*$</gav>
+        <cve>CVE-2017-6056</cve>
+    </suppress>
 </suppressions>
