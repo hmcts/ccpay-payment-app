@@ -27,7 +27,8 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .csrf().disable()
             .formLogin().disable()
             .logout().disable()
-            .anonymous().disable()
-            .authorizeRequests().anyRequest().authenticated();
+            .authorizeRequests()
+            .antMatchers("/swagger-ui.html", "/webjars/springfox-swagger-ui/**", "/swagger-resources/**", "/v2/**").permitAll()
+            .anyRequest().authenticated();
     }
 }
