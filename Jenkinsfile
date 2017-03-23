@@ -8,24 +8,30 @@ properties(
 )
 
 node {
+    def server = Artifactory.server 'artifactory.reform'
+    def rtMaven = Artifactory.newMavenBuild()
+    def buildInfo = Artifactory.newBuildInfo()
+
     try {
-        configure(env)
-        withWorkspace(cleanup: false) {
-            stage('Checkout') {
-                checkout scm
-            }
+        stage('Checkout') {
+            checkout scm
+        }
 
-            stage('Build (JAR)') {
-                sh '''
-                    mvn clean verify
-                '''
-                archiveArtifacts 'api/target/*.jar'
-            }
+        stage('Build (JAR)') {
+            rtMaven.tool = 'apache-maven-3.3.9'
+            rtMaven.opts = mavenOpts(env)
+            rtMaven.deployer releaseRepo:'libs-release', snapshotRepo:'libs-snapshot', server: server
+            rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
+            archiveArtifacts 'api/target/*.jar'
+        }
 
-            stage('Build (Docker)') {
-                dockerImage imageName: 'common-components/payments-api'
-                dockerImage imageName: 'common-components/payments-database', context: 'docker/database'
-            }
+        stage('Publish (JAR)') {
+            server.publishBuildInfo buildInfo
+        }
+
+        stage('Build (Docker)') {
+            dockerImage imageName: 'common-components/payments-api'
+            dockerImage imageName: 'common-components/payments-database', context: 'docker/database'
         }
     } catch (err) {
          slackSend(
@@ -36,10 +42,8 @@ node {
      }
 }
 
-private void configure(env) {
-    def mvnHome = tool 'apache-maven-3.3.9'
-    env.PATH = "${mvnHome}/bin:${env.PATH}"
-    env.MAVEN_OPTS = "${env.MAVEN_OPTS != null ? env.MAVEN_OPTS : ''} ${proxySystemProperties(env)}"
+private void mavenOpts(env) {
+    return "${env.MAVEN_OPTS != null ? env.MAVEN_OPTS : ''} ${proxySystemProperties(env)}"
 }
 
 private proxySystemProperties(env) {
@@ -58,16 +62,4 @@ private proxySystemProperties(env) {
         systemProperties.add("-Dhttp.nonProxyHosts=${env.no_proxy}")
     }
     return systemProperties.join(' ')
-}
-
-private void withWorkspace(Map args = [cleanup: true], Closure closure) {
-    ws('workspace/cc-payment-api/build') {
-        try {
-            closure()
-        } finally {
-            if (args.cleanup) {
-                deleteDir()
-            }
-        }
-    }
 }
