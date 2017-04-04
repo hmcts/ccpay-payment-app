@@ -2,9 +2,9 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uk.gov.hmcts.auth.checker.Service;
+import uk.gov.hmcts.auth.checker.service.Service;
 import uk.gov.hmcts.auth.checker.SubjectResolver;
-import uk.gov.hmcts.auth.checker.User;
+import uk.gov.hmcts.auth.checker.user.User;
 import uk.gov.hmcts.payment.api.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.backdoors.UserResolverBackdoor;
 
