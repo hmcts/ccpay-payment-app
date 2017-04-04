@@ -6,8 +6,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import uk.gov.hmcts.auth.checker.ServiceRequestAuthorizer;
-import uk.gov.hmcts.auth.checker.UserRequestAuthorizer;
+import uk.gov.hmcts.auth.checker.service.ServiceRequestAuthorizer;
+import uk.gov.hmcts.auth.checker.user.UserRequestAuthorizer;
 import uk.gov.hmcts.payment.api.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.backdoors.UserResolverBackdoor;
 

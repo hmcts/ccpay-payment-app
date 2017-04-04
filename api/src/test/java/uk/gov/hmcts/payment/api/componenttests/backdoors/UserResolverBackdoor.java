@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.componenttests.backdoors;
 import com.google.common.collect.ImmutableSet;
 import java.util.concurrent.ConcurrentHashMap;
 import uk.gov.hmcts.auth.checker.SubjectResolver;
-import uk.gov.hmcts.auth.checker.User;
+import uk.gov.hmcts.auth.checker.user.User;
 import uk.gov.hmcts.auth.checker.exceptions.AuthCheckerException;
 
 public class UserResolverBackdoor implements SubjectResolver<User> {
