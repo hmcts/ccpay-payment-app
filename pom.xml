@@ -314,6 +314,19 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.6</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
             </plugin>
 
@@ -321,6 +334,22 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
             </plugin>
+
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <configuration>
+                    <suppressionFile>dependency-check-suppressions.xml</suppressionFile>
+                </configuration>
+            </plugin>
         </plugins>
     </reporting>
+
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <name>Site</name>
+            <url>http://jenkins01.reform/job/common-components/job/payment-app/site</url>
+        </site>
+    </distributionManagement>
 </project>

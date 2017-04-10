@@ -21,8 +21,17 @@ node {
             rtMaven.tool = 'apache-maven-3.3.9'
             rtMaven.opts = mavenOpts(env)
             rtMaven.deployer releaseRepo:'libs-release', snapshotRepo:'libs-snapshot', server: server
-            rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
+            rtMaven.run pom: 'pom.xml', goals: 'clean install site site:stage', buildInfo: buildInfo
             archiveArtifacts 'api/target/*.jar'
+
+            publishHTML([
+                allowMissing         : false,
+                alwaysLinkToLastBuild: true,
+                keepAll              : false,
+                reportDir            : 'target/staging',
+                reportFiles          : 'index.html',
+                reportName           : 'Maven Site'
+            ])
         }
 
         stage('Publish (JAR)') {
