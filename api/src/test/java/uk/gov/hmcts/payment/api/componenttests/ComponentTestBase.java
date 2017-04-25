@@ -62,10 +62,6 @@ public class ComponentTestBase {
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
     }
 
-    CustomResultMatcher bodyAs(Class expectedClass) {
-        return new CustomResultMatcher(objectMapper, expectedClass);
-    }
-
     CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
