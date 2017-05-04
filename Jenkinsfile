@@ -10,7 +10,7 @@ def rtMaven = Artifactory.newMavenBuild()
 def buildInfo = Artifactory.newBuildInfo()
 
 properties(
-    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'http://git.reform/common-components/payment-app/'],
+    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'http://git.reform.hmcts.net/common-components/payment-app/'],
      pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
