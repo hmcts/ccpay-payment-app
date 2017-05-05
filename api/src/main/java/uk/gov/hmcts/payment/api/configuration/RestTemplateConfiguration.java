@@ -1,5 +1,8 @@
 package uk.gov.hmcts.payment.api.configuration;
 
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
@@ -7,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -26,20 +28,22 @@ public class RestTemplateConfiguration {
     }
 
     @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate(new BufferingClientHttpRequestFactory(requestFactory()));
-        restTemplate.getInterceptors().add(new OutboundRequestLoggingInterceptor());
+    public RestTemplate restTemplate(CloseableHttpClient paymentsHttpClient) {
+        RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(paymentsHttpClient));
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         return restTemplate;
     }
 
-    private HttpComponentsClientHttpRequestFactory requestFactory() {
-        HttpClientBuilder clientBuilder = HttpClients.custom();
+    @Bean(name = {"paymentsHttpClient", "serviceTokenParserHttpClient", "userTokenParserHttpClient"})
+    public CloseableHttpClient paymentsHttpClient() {
+        HttpClientBuilder clientBuilder = HttpClients.custom()
+            .addInterceptorFirst((HttpRequestInterceptor) new OutboundRequestLoggingInterceptor())
+            .addInterceptorLast((HttpResponseInterceptor) new OutboundRequestLoggingInterceptor());
 
         if (!isNullOrEmpty(httpsProxy)) {
             clientBuilder.setRoutePlanner(new DefaultProxyRoutePlanner(create(httpsProxy)));
         }
 
-        return new HttpComponentsClientHttpRequestFactory(clientBuilder.build());
+        return clientBuilder.build();
     }
 }
