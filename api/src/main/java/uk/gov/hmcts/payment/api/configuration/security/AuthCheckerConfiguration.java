@@ -37,7 +37,7 @@ public class AuthCheckerConfiguration {
 
     @Bean
     public Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor() {
-        return (any) -> Collections.singletonList("citizen");
+        return (any) -> Collections.emptyList();
     }
 
     @Bean
