@@ -1,20 +1,22 @@
 #!groovy
 @Library("Reform")
-import uk.gov.hmcts.Deployer
+import uk.gov.hmcts.Ansible
 import uk.gov.hmcts.Packager
 
 def packager = new Packager(steps, 'cc');
-def deployer = new Deployer(steps, 'ccpay');
+def ansible = new Ansible(steps, 'ccpay');
+
 def server = Artifactory.server 'artifactory.reform'
 def rtMaven = Artifactory.newMavenBuild()
 def buildInfo = Artifactory.newBuildInfo()
 
 properties(
-    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'http://git.reform.hmcts.net/common-components/payment-app/'],
+    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'https://git.reform.hmcts.net/common-components/payment-app/'],
      pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
 stageWithNotification('Checkout') {
+    deleteDir()
     checkout scm
 }
 
@@ -35,29 +37,25 @@ stageWithNotification('Build') {
 }
 
 ifMaster {
+    def rpmVersion
+
     stageWithNotification('Publish JAR') {
         server.publishBuildInfo buildInfo
     }
-}
 
-ifMaster {
     stageWithNotification("Publish RPM") {
-        packager.javaRPM('master', 'payment-api', '$(ls api/target/payment-api-*.jar)', 'springboot', 'api/src/main/resources/application.properties')
+        rpmVersion = packager.javaRPM('master', 'payment-api', '$(ls api/target/payment-api-*.jar)', 'springboot', 'api/src/main/resources/application.properties')
         packager.publishJavaRPM('payment-api')
     }
-}
 
-ifMaster {
     stageWithNotification('Publish Docker') {
         dockerImage imageName: 'common-components/payments-api'
         dockerImage imageName: 'common-components/payments-database', context: 'docker/database'
     }
-}
 
-ifMaster {
     stageWithNotification('Deploy') {
-        def version = "{payment_api_version: ${env.BUILD_NUMBER}}"
-        deployer.deploy(version, 'dev', "deploy.yml")
+        def version = "{payment_api_version: ${rpmVersion}}"
+        ansible.runDeployPlaybook(version, 'dev')
     }
 }
 
