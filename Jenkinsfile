@@ -3,8 +3,8 @@
 import uk.gov.hmcts.Ansible
 import uk.gov.hmcts.Packager
 
-def packager = new Packager(steps, 'cc');
-def ansible = new Ansible(steps, 'ccpay');
+def packager = new Packager(this, 'cc');
+def ansible = new Ansible(this, 'ccpay');
 
 def server = Artifactory.server 'artifactory.reform'
 def rtMaven = Artifactory.newMavenBuild()
