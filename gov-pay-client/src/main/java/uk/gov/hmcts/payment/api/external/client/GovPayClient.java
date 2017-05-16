@@ -26,7 +26,9 @@ public class GovPayClient {
     private final GovPayErrorTranslator errorTranslator;
 
     @Autowired
-    public GovPayClient(@Value("${gov.pay.url}") String url, RestTemplate restTemplate, GovPayErrorTranslator errorTranslator) {
+    public GovPayClient(@Value("#{${payment.testing-support.enabled} ? '${payment.testing-support.wiremock.url}' : '${gov.pay.url}'}") String url,
+                        RestTemplate restTemplate,
+                        GovPayErrorTranslator errorTranslator) {
         this.url = url;
         this.restTemplate = restTemplate;
         this.errorTranslator = errorTranslator;
