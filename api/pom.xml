@@ -58,7 +58,8 @@
             <artifactId>spring-hateoas</artifactId>
         </dependency>
         <dependency>
-            <!-- Embed wiremock so GOV.PAY can be easily stubbed in test environments  -->
+            <!-- Embed wiremock so GOV.PAY can be easily stubbed in test environments. This should be moved into its
+                own dedicated service (server) and deployed using Ansible -->
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
         </dependency>
