@@ -120,6 +120,11 @@
                 <artifactId>springfox-swagger2</artifactId>
                 <version>2.6.0</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.tomakehurst</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>2.5.1</version>
+            </dependency>
 
             <dependency>
                 <groupId>junit</groupId>
@@ -137,12 +142,6 @@
                 <groupId>io.rest-assured</groupId>
                 <artifactId>rest-assured</artifactId>
                 <version>3.0.1</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.github.tomakehurst</groupId>
-                <artifactId>wiremock</artifactId>
-                <version>2.1.12</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
