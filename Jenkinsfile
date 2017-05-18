@@ -1,10 +1,8 @@
 #!groovy
 @Library("Reform")
-import uk.gov.hmcts.Ansible
 import uk.gov.hmcts.Packager
 
 def packager = new Packager(this, 'cc')
-def ansible = new Ansible(this, 'ccpay')
 
 def server = Artifactory.server 'artifactory.reform'
 def rtMaven = Artifactory.newMavenBuild()
@@ -48,14 +46,13 @@ ifMaster {
         packager.publishJavaRPM('payment-api')
     }
 
+    stage("Trigger acceptance tests") {
+        build job: 'payment-app-acceptance-tests/master', parameters: [[$class: 'StringParameterValue', name: 'rpmVersion', value: rpmVersion]]
+    }
+
     stageWithNotification('Publish Docker') {
         dockerImage imageName: 'common-components/payments-api'
         dockerImage imageName: 'common-components/payments-database', context: 'docker/database'
-    }
-
-    stageWithNotification('Deploy') {
-        def version = "{payment_api_version: ${rpmVersion}}"
-        ansible.runDeployPlaybook(version, 'dev')
     }
 }
 
