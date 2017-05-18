@@ -47,7 +47,7 @@ ifMaster {
     }
 
     stage("Trigger acceptance tests") {
-        build job: 'payment-app-acceptance-tests/master', parameters: [[$class: 'StringParameterValue', name: 'rpmVersion', value: rpmVersion]]
+        build job: '/common-components/payment-app-acceptance-tests/master', parameters: [[$class: 'StringParameterValue', name: 'rpmVersion', value: rpmVersion]]
     }
 
     stageWithNotification('Publish Docker') {
