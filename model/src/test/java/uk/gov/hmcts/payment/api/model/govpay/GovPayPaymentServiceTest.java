@@ -21,13 +21,13 @@ public class GovPayPaymentServiceTest {
     private static final String GOV_PAY_KEY = "GOV_PAY_KEY";
 
     private final ServiceIdSupplier serviceIdSupplier = () -> SERVICE_ID;
-    private final GovPayConfig govPayConfig = mock(GovPayConfig.class);
+    private final GovPayKeyRepository govPayKeyRepository = mock(GovPayKeyRepository.class);
     private final GovPayClient govPayClient = mock(GovPayClient.class);
-    private final GovPayPaymentService govPayPaymentService = new GovPayPaymentService(govPayConfig, govPayClient, serviceIdSupplier);
+    private final GovPayPaymentService govPayPaymentService = new GovPayPaymentService(govPayKeyRepository, govPayClient, serviceIdSupplier);
 
     @Before
     public void setUp() throws Exception {
-        when(govPayConfig.getKeyForService(SERVICE_ID)).thenReturn(GOV_PAY_KEY);
+        when(govPayKeyRepository.getKey(SERVICE_ID)).thenReturn(GOV_PAY_KEY);
     }
 
     @Test
