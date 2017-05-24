@@ -1,9 +1,8 @@
 package uk.gov.hmcts.payment.api.model.govpay;
 
+import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 @Component
 @ConfigurationProperties(prefix = "gov.pay.auth")
@@ -16,13 +15,5 @@ public class GovPayConfig {
 
     public void setKey(Map<String, String> key) {
         this.key = key;
-    }
-
-    public boolean hasKeyForService(String serviceId) {
-        return key.containsKey(serviceId);
-    }
-
-    public String getKeyForService(String serviceId) {
-        return key.get(serviceId);
     }
 }
