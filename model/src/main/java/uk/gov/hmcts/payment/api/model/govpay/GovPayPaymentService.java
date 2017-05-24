@@ -13,13 +13,13 @@ import uk.gov.hmcts.payment.api.model.ServiceIdSupplier;
 
 @Service
 public class GovPayPaymentService implements PaymentService<GovPayPayment, String> {
-    private final GovPayConfig govPayConfig;
+    private final GovPayKeyRepository govPayKeyRepository;
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
 
     @Autowired
-    public GovPayPaymentService(GovPayConfig govPayConfig, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier) {
-        this.govPayConfig = govPayConfig;
+    public GovPayPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier) {
+        this.govPayKeyRepository = govPayKeyRepository;
         this.govPayClient = govPayClient;
         this.serviceIdSupplier = serviceIdSupplier;
     }
@@ -58,7 +58,6 @@ public class GovPayPaymentService implements PaymentService<GovPayPayment, Strin
     }
 
     private String keyForCurrentService() {
-        String serviceId = serviceIdSupplier.get();
-        return govPayConfig.getKeyForService(serviceId);
+        return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 }
