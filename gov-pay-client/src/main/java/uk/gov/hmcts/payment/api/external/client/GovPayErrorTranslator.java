@@ -62,7 +62,7 @@ public class GovPayErrorTranslator {
                     return new GovPayUnmappedErrorException(error);
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to parse error body");
+            throw new RuntimeException("Failed to parse error body: " + new String(responseBody));
         }
     }
 }
