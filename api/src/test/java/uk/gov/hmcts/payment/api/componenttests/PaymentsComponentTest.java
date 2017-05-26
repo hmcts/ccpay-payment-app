@@ -36,7 +36,6 @@ public class PaymentsComponentTest extends ComponentTestBase {
                 .amount(100)
                 .description("description")
                 .reference("reference")
-                .email("email@email.com")
                 .returnUrl("https://returnUrl")
                 .build();
 
@@ -46,9 +45,6 @@ public class PaymentsComponentTest extends ComponentTestBase {
         tryCreateAndExpect(validRequest.withReference(""), "reference: may not be empty");
         tryCreateAndExpect(validRequest.withDescription(null), "description: may not be empty");
         tryCreateAndExpect(validRequest.withDescription(""), "description: may not be empty");
-        tryCreateAndExpect(validRequest.withEmail(null), "email: may not be empty");
-        tryCreateAndExpect(validRequest.withEmail(""), "email: may not be empty");
-        tryCreateAndExpect(validRequest.withEmail("invalid@"), "email: not a well-formed email address");
         tryCreateAndExpect(validRequest.withReturnUrl(null), "returnUrl: may not be empty");
         tryCreateAndExpect(validRequest.withReturnUrl(""), "returnUrl: may not be empty");
         tryCreateAndExpect(validRequest.withReturnUrl("invalid"), "returnUrl: must be a valid URL");

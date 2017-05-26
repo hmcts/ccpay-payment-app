@@ -35,7 +35,4 @@ public class CreatePaymentRequestDto {
     @NotEmpty
     @URL(protocol = "https")
     private String returnUrl;
-    @Email
-    @NotEmpty
-    private String email;
 }
