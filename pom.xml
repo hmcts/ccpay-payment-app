@@ -26,6 +26,11 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <sonar.host.url>https://sonar.reform.hmcts.net/</sonar.host.url>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+        <sonar.dependencyCheck.reportPath>${project.basedir}/target/dependency-check-report.xml</sonar.dependencyCheck.reportPath>
     </properties>
 
     <dependencyManagement>
@@ -201,38 +206,9 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.7.7.201606060606</version>
-
-                    <executions>
-                        <execution>
-                            <id>default-prepare-agent</id>
-                            <goals>
-                                <goal>prepare-agent</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>default-report</id>
-                            <phase>prepare-package</phase>
-                            <goals>
-                                <goal>report</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
-
-
     <profiles>
         <profile>
-            <id>prod</id>
+            <id>ci</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -274,7 +250,7 @@
                                 <plugin>
                                     <groupId>com.h3xstream.findsecbugs</groupId>
                                     <artifactId>findsecbugs-plugin</artifactId>
-                                    <version>LATEST</version> <!-- Auto-update to the latest stable -->
+                                    <version>LATEST</version>
                                 </plugin>
                             </plugins>
                         </configuration>
@@ -291,17 +267,43 @@
                         <groupId>org.owasp</groupId>
                         <artifactId>dependency-check-maven</artifactId>
                         <version>1.4.5</version>
+                        <inherited>false</inherited>
                         <configuration>
                             <failBuildOnCVSS>0</failBuildOnCVSS>
                             <suppressionFile>${parent.basedir}/dependency-check-suppressions.xml</suppressionFile>
+                            <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                            <format>XML</format>
                         </configuration>
                         <executions>
                             <execution>
                                 <goals>
-                                    <goal>check</goal>
+                                    <goal>aggregate</goal>
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.7.9</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <append>true</append>
+                            <destFile>${sonar.jacoco.reportPath}</destFile>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <version>3.2</version>
                     </plugin>
                 </plugins>
             </build>
@@ -312,48 +314,4 @@
             <id>dev</id>
         </profile>
     </profiles>
-
-    <reporting>
-        <excludeDefaults>true</excludeDefaults>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.6</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>index</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-report-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <configuration>
-                    <suppressionFile>dependency-check-suppressions.xml</suppressionFile>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
-
-    <distributionManagement>
-        <site>
-            <id>site</id>
-            <name>Site</name>
-            <url>http://jenkins01.reform/job/common-components/job/payment-app/site</url>
-        </site>
-    </distributionManagement>
 </project>
