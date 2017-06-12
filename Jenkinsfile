@@ -5,7 +5,6 @@ import uk.gov.hmcts.Packager
 def packager = new Packager(this, 'cc')
 
 def server = Artifactory.server 'artifactory.reform'
-def rtMaven = Artifactory.newMavenBuild()
 def buildInfo = Artifactory.newBuildInfo()
 
 properties(
@@ -22,6 +21,11 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
     }
 
     stageWithNotification('Build') {
+        def descriptor = Artifactory.mavenDescriptor()
+        descriptor.version = "1.0.0.${env.BUILD_NUMBER}"
+        descriptor.transform()
+
+        def rtMaven = Artifactory.newMavenBuild()
         rtMaven.tool = 'apache-maven-3.3.9'
         rtMaven.deployer releaseRepo: 'libs-release', snapshotRepo: 'libs-snapshot', server: server
         rtMaven.run pom: 'pom.xml', goals: 'clean install sonar:sonar', buildInfo: buildInfo
