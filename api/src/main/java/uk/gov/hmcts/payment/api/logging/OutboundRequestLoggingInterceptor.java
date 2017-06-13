@@ -18,6 +18,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static com.google.common.base.Stopwatch.createStarted;
 import static com.google.common.base.Ticker.systemTicker;
 import static net.logstash.logback.argument.StructuredArguments.keyValue;
+import static org.apache.http.protocol.HttpCoreContext.HTTP_TARGET_HOST;
 
 public class OutboundRequestLoggingInterceptor implements HttpRequestInterceptor, HttpResponseInterceptor {
     private static final Logger LOG = LoggerFactory.getLogger(OutboundRequestLoggingInterceptor.class);
@@ -33,16 +34,31 @@ public class OutboundRequestLoggingInterceptor implements HttpRequestInterceptor
 
     @Override
     public void process(HttpRequest request, HttpContext context) throws HttpException, IOException {
+        RequestLine requestLine = request.getRequestLine();
+        String url = context.getAttribute(HTTP_TARGET_HOST) + requestLine.getUri();
+
         Stopwatch stopwatch = createStarted(ticker);
         context.setAttribute("stopwatch", stopwatch);
+        context.setAttribute("method", requestLine.getMethod());
+        context.setAttribute("url", url);
 
-        RequestLine requestLine = request.getRequestLine();
-        LOG.info("Outbound request start", keyValue("method", requestLine.getMethod()), keyValue("uri", requestLine.getUri()));
+        LOG.info(
+            "Outbound request start",
+            keyValue("method", requestLine.getMethod()),
+            keyValue("url", url)
+        );
     }
 
     @Override
     public void process(HttpResponse response, HttpContext context) throws HttpException, IOException {
         Stopwatch stopwatch = (Stopwatch) context.getAttribute("stopwatch");
-        LOG.info("Outbound request finish", keyValue("responseTime", stopwatch.elapsed(MILLISECONDS)), keyValue("responseStatus", response.getStatusLine().getStatusCode()));
+
+        LOG.info(
+            "Outbound request finish",
+            keyValue("method", context.getAttribute("method")),
+            keyValue("url", context.getAttribute("url")),
+            keyValue("responseTime", stopwatch.elapsed(MILLISECONDS)),
+            keyValue("responseStatus", response.getStatusLine().getStatusCode())
+        );
     }
 }
