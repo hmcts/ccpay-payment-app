@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.logging;
 
 import ch.qos.logback.classic.Logger;
-import java.net.URI;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
@@ -12,11 +11,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpMethod;
-import org.springframework.mock.http.client.MockClientHttpRequest;
 
 import static ch.qos.logback.classic.Level.INFO;
 import static net.logstash.logback.argument.StructuredArguments.keyValue;
+import static org.apache.http.protocol.HttpCoreContext.HTTP_TARGET_HOST;
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
 public class OutboundRequestLoggingInterceptorTest {
@@ -36,20 +34,22 @@ public class OutboundRequestLoggingInterceptorTest {
     @Test
     public void logsRequestAndResponseFields() throws Exception {
         HttpContext context = new BasicHttpContext();
+        context.setAttribute(HTTP_TARGET_HOST, "http://www.google.com");
 
         OutboundRequestLoggingInterceptor interceptor = new OutboundRequestLoggingInterceptor(new FakeTicker(20));
 
-        interceptor.process(new BasicHttpRequest("GET", "http://www.google.com"), context);
+        interceptor.process(new BasicHttpRequest("GET", "/something"), context);
         interceptor.process(new BasicHttpResponse(new BasicStatusLine(new ProtocolVersion("any", 0, 0), 200, "any")), context);
 
-        testAppender.assertEvent(0, INFO, "Outbound request start", keyValue("method", "GET"), keyValue("uri", "http://www.google.com"));
-        testAppender.assertEvent(1, INFO, "Outbound request finish", keyValue("responseTime", 20L), keyValue("responseStatus", 200));
-    }
-
-    private MockClientHttpRequest requestFor(HttpMethod httpMethod, String uri) {
-        MockClientHttpRequest request = new MockClientHttpRequest();
-        request.setMethod(httpMethod);
-        request.setURI(URI.create(uri));
-        return request;
+        testAppender.assertEvent(0, INFO, "Outbound request start",
+            keyValue("method", "GET"),
+            keyValue("url", "http://www.google.com/something")
+        );
+        testAppender.assertEvent(1, INFO, "Outbound request finish",
+            keyValue("method", "GET"),
+            keyValue("url", "http://www.google.com/something"),
+            keyValue("responseTime", 20L),
+            keyValue("responseStatus", 200)
+        );
     }
 }
