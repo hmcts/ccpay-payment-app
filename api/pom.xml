@@ -27,6 +27,14 @@
         </dependency>
         <dependency>
             <groupId>uk.gov.hmcts.reform</groupId>
+            <artifactId>java-logging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.hmcts.reform</groupId>
+            <artifactId>java-logging-httpcomponents</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.hmcts.reform</groupId>
             <artifactId>java-logging-spring</artifactId>
         </dependency>
         <dependency>
