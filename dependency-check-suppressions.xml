@@ -16,6 +16,11 @@
         <cve>CVE-2016-5425</cve>
     </suppress>
     <suppress>
+        <notes>Does not apply as we don't use tomcat error pages</notes>
+        <gav regex="true">^org\.apache\.tomcat\.embed:tomcat-embed.*:.*$</gav>
+        <cve>CVE-2017-5664</cve>
+    </suppress>
+    <suppress>
         <notes>Incorrect library matched</notes>
         <gav regex="true">^io\.jsonwebtoken:jjwt:.*$</gav>
         <cpe>cpe:/a:sonatype:nexus</cpe>
