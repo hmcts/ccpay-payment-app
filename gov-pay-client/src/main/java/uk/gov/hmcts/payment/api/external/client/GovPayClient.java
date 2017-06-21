@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.external.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.apache.http.Header;
@@ -24,6 +25,7 @@ import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 @Component
+@SuppressWarnings(value = "HTTP_PARAMETER_POLLUTION", justification = "No way around it in a client")
 public class GovPayClient {
 
     private final String url;
@@ -116,6 +118,5 @@ public class GovPayClient {
 
     private interface CheckedExceptionProvider<T> {
         T get() throws IOException;
-
     }
 }
