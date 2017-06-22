@@ -1,12 +1,20 @@
 package uk.gov.hmcts.payment.api.external.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.external.client.dto.Error;
-import uk.gov.hmcts.payment.api.external.client.exceptions.*;
-
-import java.io.IOException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayAccountErrorException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayDownstreamSystemErrorException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayRefundAmountMismatch;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayRefundNotAvailableException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayTooManyRequestsException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayUnavailableException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayUnmappedErrorException;
 
 @Component
 public class GovPayErrorTranslator {
