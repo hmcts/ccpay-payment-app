@@ -1,0 +1,49 @@
+{
+  "amount": 12000,
+  "state": {
+    "status": "created",
+    "finished": false
+  },
+  "description": "New passport application",
+  "reference": "Payment reference",
+  "payment_id": "GOV_PAY_ID",
+  "payment_provider": "sandbox",
+  "card_brand": "",
+  "return_url": "https://service-name.gov.uk/transactions/12345",
+  "created_date": "2016-09-29T09:12:38.413Z",
+  "refund_summary": {
+    "status": "pending",
+    "amount_available": 12000,
+    "amount_submitted": 0
+  },
+  "_links": {
+    "self": {
+      "href": "http://some-host/GOV_PAY_ID",
+      "method": "GET"
+    },
+    "next_url": {
+      "href": "https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2",
+      "method": "GET"
+    },
+    "next_url_post": {
+      "type": "application/x-www-form-urlencoded",
+      "params": {
+        "chargeTokenId": "7f4adfaa-d834-4657-9c16-946863655bb2"
+      },
+      "href": "https://www.payments.service.gov.uk/secure",
+      "method": "POST"
+    },
+    "events": {
+      "href": "http://some-host/GOV_PAY_ID/events",
+      "method": "GET"
+    },
+    "refunds": {
+      "href": "http://some-host/GOV_PAY_ID/refunds",
+      "method": "GET"
+    },
+    "cancel": {
+      "href": "http://some-host/GOV_PAY_ID/cancel",
+      "method": "POST"
+    }
+  }
+}
