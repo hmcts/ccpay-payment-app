@@ -8,6 +8,10 @@ import uk.gov.hmcts.auth.checker.service.Service;
 public class ServiceResolverBackdoor implements SubjectResolver<Service> {
     private final ConcurrentHashMap<String, String> tokenToServiceMap = new ConcurrentHashMap<>();
 
+    public ServiceResolverBackdoor() {
+        tokenToServiceMap.put("Bearer service-cmc", "cmc");
+    }
+
     @Override
     public Service getTokenDetails(String token) {
         String serviceId = tokenToServiceMap.get(token);
