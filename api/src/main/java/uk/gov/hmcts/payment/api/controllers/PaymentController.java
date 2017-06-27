@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +41,8 @@ public class PaymentController {
     private final PaymentDtoFactory paymentDtoFactory;
 
     @Autowired
-    public PaymentController(PaymentService<Payment, Integer> paymentService, PaymentDtoFactory paymentDtoFactory) {
+    public PaymentController(@Qualifier("loggingPaymentService") PaymentService<Payment, Integer> paymentService,
+                             PaymentDtoFactory paymentDtoFactory) {
         this.paymentService = paymentService;
         this.paymentDtoFactory = paymentDtoFactory;
     }
