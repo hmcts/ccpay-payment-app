@@ -21,10 +21,7 @@ public class UserAwareDelegatingPaymentService implements PaymentService<Payment
     }
 
     @Override
-    public Payment create(int amount,
-                          @NonNull String reference,
-                          @NonNull String description,
-                          @NonNull String returnUrl) {
+    public Payment create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl) {
         GovPayPayment govPayPayment = delegate.create(amount, reference, description, returnUrl);
         Payment payment = paymentRepository.save(Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).userId(userIdSupplier.get()).build());
         fillTransientDetails(payment, govPayPayment);
@@ -52,7 +49,9 @@ public class UserAwareDelegatingPaymentService implements PaymentService<Payment
     }
 
     private Payment findSavedPayment(@NonNull Integer paymentId) {
-        return paymentRepository.findByUserIdAndId(userIdSupplier.get(), paymentId).orElseThrow(PaymentNotFoundException::new);
+        return paymentRepository
+            .findByUserIdAndId(userIdSupplier.get(), paymentId)
+            .orElseThrow(PaymentNotFoundException::new);
     }
 
     private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {
