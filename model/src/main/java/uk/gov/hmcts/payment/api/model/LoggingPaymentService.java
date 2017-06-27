@@ -28,10 +28,7 @@ public class LoggingPaymentService implements PaymentService<Payment, Integer> {
     }
 
     @Override
-    public Payment create(int amount,
-                          @NonNull String reference,
-                          @NonNull String description,
-                          @NonNull String returnUrl) {
+    public Payment create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl) {
         Payment payment = delegate.create(amount, reference, description, returnUrl);
         LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
             PAYMENT_ID, payment.getId(),
