@@ -23,7 +23,7 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
 
             stage('Build') {
                 def descriptor = Artifactory.mavenDescriptor()
-                descriptor.version = "1.0.0.${env.BUILD_NUMBER}"
+                descriptor.version = readFile('version.txt').trim()
                 descriptor.transform()
 
                 def rtMaven = Artifactory.newMavenBuild()
