@@ -30,10 +30,9 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
                 rtMaven.tool = 'apache-maven-3.3.9'
                 rtMaven.deployer releaseRepo: 'libs-release', snapshotRepo: 'libs-snapshot', server: server
                 rtMaven.run pom: 'pom.xml', goals: 'clean install sonar:sonar', buildInfo: buildInfo
-                archiveArtifacts 'api/target/*.jar'
             }
 
-            ifMaster {
+            onMaster {
                 def rpmVersion
 
                 stage('Publish JAR') {
@@ -60,11 +59,5 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
             notifyBuildFailure channel: '#cc-payments-tech'
             throw err
         }
-    }
-}
-
-private ifMaster(Closure body) {
-    if ("master" == "${env.BRANCH_NAME}") {
-        body()
     }
 }
