@@ -27,36 +27,10 @@ public class CustomResultMatcher implements ResultMatcher {
         this.expectedClass = expectedClass;
     }
 
-    public CustomResultMatcher hasPropertyEqualTo(String name, Object value) {
-        matchers.add(result -> {
-            Object actual = objectMapper.readValue(result.getResponse().getContentAsByteArray(), expectedClass);
-            assertThat(actual).hasFieldOrPropertyWithValue(name, value);
-        });
-        return this;
-    }
-
     public CustomResultMatcher isEqualTo(Object expected) {
         matchers.add(result -> {
             Object actual = objectMapper.readValue(result.getResponse().getContentAsByteArray(), expected.getClass());
             assertThat(actual).isEqualTo(expected);
-        });
-        return this;
-    }
-
-    public CustomResultMatcher containsExactly(Object... expected) {
-        matchers.add(result -> {
-            CollectionType valueType = objectMapper.getTypeFactory().constructCollectionType(List.class, expectedClass);
-            List actual = objectMapper.readValue(result.getResponse().getContentAsByteArray(), valueType);
-            assertThat(actual).containsExactly(expected);
-        });
-        return this;
-    }
-
-    public <I, O> CustomResultMatcher containsExactly(Function<I, O> mapper, O... expected) {
-        matchers.add(result -> {
-            CollectionType valueType = objectMapper.getTypeFactory().constructCollectionType(List.class, expectedClass);
-            List<I> actual = objectMapper.readValue(result.getResponse().getContentAsByteArray(), valueType);
-            assertThat(actual.stream().map(mapper).collect(toList())).containsExactly(expected);
         });
         return this;
     }
