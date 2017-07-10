@@ -91,7 +91,7 @@ public class PaymentController {
             return new ResponseEntity<>(NO_CONTENT);
         } catch (GovPayCancellationFailedException e) {
             LOG.info("Cancellation failed", keyValue("paymentId", paymentId));
-            return new ResponseEntity(BAD_REQUEST);
+            return new ResponseEntity<>(BAD_REQUEST);
         }
     }
 
@@ -110,7 +110,7 @@ public class PaymentController {
             return new ResponseEntity<>(CREATED);
         } catch (GovPayRefundAmountMismatch e) {
             LOG.info("Refund amount available mismatch", keyValue("paymentId", paymentId));
-            return new ResponseEntity(PRECONDITION_FAILED);
+            return new ResponseEntity<>(PRECONDITION_FAILED);
         }
     }
 
