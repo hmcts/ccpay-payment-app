@@ -6,6 +6,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -64,7 +65,7 @@ public class GovPayClient {
 
     public void cancelPayment(String authorizationKey, String cancelUrl) {
         withIOExceptionHandling(() -> {
-            HttpPost request = postRequestFor(authorizationKey, cancelUrl, "");
+            HttpPost request = postRequestFor(authorizationKey, cancelUrl, null);
             HttpResponse response = httpClient.execute(request);
             checkNotAnError(response);
             return null;
@@ -81,8 +82,12 @@ public class GovPayClient {
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, Object entity) throws JsonProcessingException {
+        return postRequestFor(authorizationKey, url, new StringEntity(objectMapper.writeValueAsString(entity), APPLICATION_JSON));
+    }
+
+    private HttpPost postRequestFor(String authorizationKey, String url, HttpEntity entity) throws JsonProcessingException {
         HttpPost request = new HttpPost(url);
-        request.setEntity(new StringEntity(objectMapper.writeValueAsString(entity), APPLICATION_JSON));
+        request.setEntity(entity);
         request.addHeader(authorizationHeader(authorizationKey));
         return request;
     }
