@@ -34,7 +34,7 @@ public class GovPayClient {
     private final GovPayErrorTranslator errorTranslator;
 
     @Autowired
-    public GovPayClient(@Value("#{${payment.testing-support.enabled} ? '${payment.testing-support.wiremock.url}' : '${gov.pay.url}'}") String url,
+    public GovPayClient(@Value("${gov.pay.url}") String url,
                         HttpClient httpClient,
                         ObjectMapper objectMapper,
                         GovPayErrorTranslator errorTranslator) {
