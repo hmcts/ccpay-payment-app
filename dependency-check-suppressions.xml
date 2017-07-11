@@ -40,14 +40,4 @@
         <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-.*:.*$</gav>
         <cve>CVE-2016-7051</cve>
     </suppress>
-    <suppress>
-        <notes>Does not apply as we don't run WireMock outside dev</notes>
-        <gav regex="true">^org\.apache\.commons:commons-collections4:4\.0</gav>
-        <cve>CVE-2015-6420</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as we don't run WireMock outside dev</notes>
-        <gav regex="true">^org\.eclipse\.jetty:jetty.*:.*</gav>
-        <cve>CVE-2017-9735</cve>
-    </suppress>
 </suppressions>
