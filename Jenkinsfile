@@ -1,8 +1,12 @@
 #!groovy
 @Library("Reform")
+import uk.gov.hmcts.Ansible
 import uk.gov.hmcts.Packager
+import uk.gov.hmcts.RPMTagger
 
 def packager = new Packager(this, 'cc')
+def ansible = new Ansible(this, 'ccpay')
+RPMTagger rpmTagger = new RPMTagger(this, 'payment-api', packager.rpmName('payment-api', params.rpmVersion), 'cc-local')
 
 def server = Artifactory.server 'artifactory.reform'
 def buildInfo = Artifactory.newBuildInfo()
@@ -21,36 +25,60 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
                 checkout scm
             }
 
+            def artifactVersion = readFile('version.txt').trim()
+            def versionAlreadyPublished = checkJavaVersionPublished group: 'payment-app', artifact: 'payment-api', version: artifactVersion
+
+            onPR {
+                if (versionAlreadyPublished) {
+                    print "Artifact version already exists. Please bump it."
+                    error "Artifact version already exists. Please bump it."
+                }
+            }
+
             stage('Build') {
                 def descriptor = Artifactory.mavenDescriptor()
-                descriptor.version = readFile('version.txt').trim()
+                descriptor.version = artifactVersion
                 descriptor.transform()
 
                 def rtMaven = Artifactory.newMavenBuild()
                 rtMaven.tool = 'apache-maven-3.3.9'
                 rtMaven.deployer releaseRepo: 'libs-release', snapshotRepo: 'libs-snapshot', server: server
+                rtMaven.deployer.deployArtifacts = (env.BRANCH_NAME == 'master') && !versionAlreadyPublished
                 rtMaven.run pom: 'pom.xml', goals: 'clean install sonar:sonar', buildInfo: buildInfo
             }
 
-            onMaster {
-                def rpmVersion
 
+            def paymentsApiDockerVersion
+            def paymentsDatabaseDockerVersion
+
+            stage('Build docker') {
+                paymentsApiDockerVersion = dockerImage imageName: 'common-components/payments-api'
+                paymentsDatabaseDockerVersion = dockerImage imageName: 'common-components/payments-database', context: 'docker/database'
+            }
+
+            stage("Trigger acceptance tests") {
+                build job: '/common-components/payment-app-acceptance-tests/master', parameters: [
+                    [$class: 'StringParameterValue', name: 'paymentsApiDockerVersion', value: paymentsApiDockerVersion],
+                    [$class: 'StringParameterValue', name: 'paymentsDatabaseDockerVersion', value: paymentsDatabaseDockerVersion]
+                ]
+            }
+
+            onMaster {
                 stage('Publish JAR') {
                     server.publishBuildInfo buildInfo
                 }
+
+                def rpmVersion
 
                 stage("Publish RPM") {
                     rpmVersion = packager.javaRPM('master', 'payment-api', '$(ls api/target/payment-api-*.jar)', 'springboot', 'api/src/main/resources/application.properties')
                     packager.publishJavaRPM('payment-api')
                 }
 
-                stage("Trigger acceptance tests") {
-                    build job: '/common-components/payment-app-acceptance-tests/master', parameters: [[$class: 'StringParameterValue', name: 'rpmVersion', value: rpmVersion]]
-                }
-
-                stage('Publish Docker') {
-                    dockerImage imageName: 'common-components/payments-api'
-                    dockerImage imageName: 'common-components/payments-database', context: 'docker/database'
+                stage('Deploy to Dev') {
+                    ansible.runDeployPlaybook("{payment_api_version: ${rpmVersion}}", 'dev')
+                    rpmTagger.tagDeploymentSuccessfulOn('dev')
+                    rpmTagger.tagTestingPassedOn('dev')
                 }
             }
 
