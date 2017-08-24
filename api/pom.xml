@@ -6,7 +6,7 @@
 
     <parent>
         <artifactId>payment-app</artifactId>
-        <groupId>uk.gov.hmcts.payment</groupId>
+        <groupId>uk.gov.hmcts.reform.payment</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
@@ -14,15 +14,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>uk.gov.hmcts.payment</groupId>
+            <groupId>uk.gov.hmcts.reform.payment</groupId>
             <artifactId>payment-gov-pay-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>uk.gov.hmcts.payment</groupId>
+            <groupId>uk.gov.hmcts.reform.payment</groupId>
             <artifactId>payment-api-contract</artifactId>
         </dependency>
         <dependency>
-            <groupId>uk.gov.hmcts.payment</groupId>
+            <groupId>uk.gov.hmcts.reform.payment</groupId>
             <artifactId>payment-model</artifactId>
         </dependency>
         <dependency>
