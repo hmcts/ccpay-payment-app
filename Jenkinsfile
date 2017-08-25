@@ -26,7 +26,7 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
             }
 
             def artifactVersion = readFile('version.txt').trim()
-            def versionAlreadyPublished = checkJavaVersionPublished group: 'payment-app', artifact: 'payment-api', version: artifactVersion
+            def versionAlreadyPublished = checkJavaVersionPublished group: 'payment', artifact: 'payment-api', version: artifactVersion
 
             onPR {
                 if (versionAlreadyPublished) {
