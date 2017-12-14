@@ -83,8 +83,8 @@ public class PaymentReferenceDataController {
 
     @ApiOperation(value = "Payment status", notes = "Get all payment statuses")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment statuses found"),
-        @ApiResponse(code = 404, message = "Payment statuses not found")
+        @ApiResponse(code = 200, message = "Payment status found"),
+        @ApiResponse(code = 404, message = "Payment status not found")
     })
     @GetMapping("/status")
     public List<PaymentStatus> findAllPaymentStatuses() {
