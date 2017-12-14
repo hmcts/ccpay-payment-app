@@ -22,6 +22,11 @@ import uk.gov.hmcts.payment.api.componenttests.backdoors.ServiceResolverBackdoor
 import uk.gov.hmcts.payment.api.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.controllers.PaymentReferenceDataController;
+import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRespository;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
