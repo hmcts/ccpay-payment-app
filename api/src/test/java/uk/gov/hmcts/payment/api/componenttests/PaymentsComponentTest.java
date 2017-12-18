@@ -1,7 +1,10 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.gov.hmcts.payment.api.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto.LinksDto;
@@ -23,11 +26,20 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     private static final String USER_ID = "userId";
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    protected CustomResultMatcher body() {
+        return new CustomResultMatcher(objectMapper);
+    }
+
+
     @Before
     public void setup() {
         restActions
                 .withAuthorizedService("divorce")
                 .withAuthorizedUser(USER_ID);
+
     }
 
     @Test
