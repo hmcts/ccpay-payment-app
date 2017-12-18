@@ -1,0 +1,125 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Kazys Sketrys
+      changes:
+        - createTable:
+            tableName: payment
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: gov_pay_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_created
+                  type: timestamp
+                  defaultValue: now()
+
+  - changeSet:
+      id: 2
+      author: tarunp
+      changes:
+        - createTable:
+            tableName: payment_status
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO payment_status (name, description)
+                VALUES
+                  ('Pending', 'Valid payment instructions entered and recorded successfully'),
+                  ('Success', 'Valid payment details and user successfully made payment'),
+                  ('Failed', 'Invalid payment details/unsuccessful payment'),
+                  ('Cancelled', 'User cancels session'),
+                  ('Error', 'Missing payment parameters');
+
+        - createTable:
+            tableName: payment_provider
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
+
+        - sql:
+          splitStatements: true
+          sql: >
+            INSERT INTO payment_provider (name, description)
+            VALUES
+              ('GovPay', 'Gov pay'),
+              ('MiddleOfficeProvider', 'Middle office provider');
+
+        - createTable:
+            tableName: payment_method
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
+
+        - sql:
+            splitStatements:
+            sql: >
+              INSERT INTO payment_method (name, description)
+              VALUES
+                ('Card', 'Card'),
+                ('DirectDebit', 'Direct debit'),
+                ('Cash', 'Cash'),
+                ('PaymentByAccount', 'Payment by account'),
+                ('Cheque', 'Cheque');
+
+        - createTable:
+            tableName: payment_channel
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
+
+        - sql:
+            splitStatements:
+            sql: >
+             INSERT INTO payment_channel (name, description)
+             VALUES
+              ('Online', 'Through online portal'),
+              ('Telephony', 'Through the IVR'),
+              ('SolicitorsPortal', 'Through the online solicitors portal'),
+              ('DigitalBar', 'Through the digital bar code');
+
