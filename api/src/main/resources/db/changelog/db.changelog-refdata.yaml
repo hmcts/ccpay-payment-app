@@ -1,34 +1,5 @@
 databaseChangeLog:
   - changeSet:
-      id: 1
-      author: Kazys Sketrys
-      changes:
-        - createTable:
-            tableName: payment
-            columns:
-              - column:
-                  name: id
-                  type: int
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: user_id
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: gov_pay_id
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: date_created
-                  type: timestamp
-                  defaultValue: now()
-
-  - changeSet:
       id: 2
       author: tarunp
       changes:
