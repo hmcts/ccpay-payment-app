@@ -1,12 +1,15 @@
 package uk.gov.hmcts.payment.api.configuration;
 
+import com.google.common.base.Predicate;
 import io.swagger.annotations.ApiParam;
 import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import springfox.documentation.RequestHandler;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.ParameterBuilder;
+import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.ResolvedMethodParameter;
@@ -43,16 +46,39 @@ public class SwaggerConfiguration {
                     .modelRef(new ModelRef("string"))
                     .build())
             )
+            .useDefaultResponseMessages(false)
             .apiInfo(apiInfo())
             .select()
             .paths(regex("/users/.*"))
             .build();
     }
 
+    @Bean
+    public Docket referenceDataApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+            .groupName("referenceData")
+            .useDefaultResponseMessages(false)
+            .apiInfo(paymentApiInfo())
+            .select()
+            .paths(regex("/refdata/.*"))
+            .build();
+    }
+
+    private static Predicate<RequestHandler> packagesLike(final String pkg) {
+        return input -> input.declaringClass().getName().equals(pkg);
+    }
+
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
             .title("Payment API documentation")
             .description("Payment API documentation")
+            .build();
+    }
+
+    private ApiInfo paymentApiInfo() {
+        return new ApiInfoBuilder()
+            .title("Reference data payment API documentation")
+            .description("Reference data payment API documentation")
             .build();
     }
 

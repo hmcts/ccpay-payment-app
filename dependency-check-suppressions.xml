@@ -60,4 +60,9 @@
         <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-.*:.*$</gav>
         <cve>CVE-2016-7051</cve>
     </suppress>
+    <suppress>
+        <notes>Does not apply as postgresql</notes>
+        <gav regex="true">^org\.postgresql:postgresql.*:.*$</gav>
+        <cve>CVE-2017-8806</cve>
+    </suppress>
 </suppressions>
