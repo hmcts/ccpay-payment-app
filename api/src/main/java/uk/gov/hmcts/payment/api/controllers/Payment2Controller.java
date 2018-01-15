@@ -24,6 +24,8 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment2Service;
 
+import javax.validation.Valid;
+
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -52,7 +54,7 @@ public class Payment2Controller {
     })
     @RequestMapping(value = "/users/{userId}/cardpayments", method = POST)
     public ResponseEntity<CardPaymentDto> createCardPayment(@PathVariable("userId") String userId,
-                                                            @Validated @RequestBody CardPaymentRequest request) {
+                                                            @Valid @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
         PaymentFeeLink paymentLink = cardPayment2Service.create(request.getAmount(), paymentReference,
             request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
