@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,7 +52,7 @@ public class Payment2Controller {
     })
     @RequestMapping(value = "/users/{userId}/cardpayments", method = POST)
     public ResponseEntity<CardPaymentDto> createCardPayment(@PathVariable("userId") String userId,
-                                                            @RequestBody CardPaymentRequest request) {
+                                                            @Validated @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
         PaymentFeeLink paymentLink = cardPayment2Service.create(request.getAmount(), paymentReference,
             request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
