@@ -4,4 +4,5 @@
 
     <include file="db/changelog/db.changelog-0.0.1.xml"/>
     <include file="db/changelog/db.changelog-refdata.yaml"/>
+    <include file="db/changelog/db.changelog-0.0.2.yaml"/>
 </databaseChangeLog>

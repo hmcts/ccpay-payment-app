@@ -16,7 +16,7 @@ import uk.gov.hmcts.auth.checker.RequestAuthorizer;
 import uk.gov.hmcts.auth.checker.service.Service;
 import uk.gov.hmcts.auth.checker.spring.serviceanduser.AuthCheckerServiceAndUserFilter;
 import uk.gov.hmcts.auth.checker.user.User;
-import uk.gov.hmcts.payment.api.model.govpay.GovPayConfig;
+import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayConfig;
 
 @Configuration
 public class AuthCheckerConfiguration {
