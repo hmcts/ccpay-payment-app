@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.configuration.security;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 @Component
 public class AuthenticatedUserIdSupplier implements UserIdSupplier {

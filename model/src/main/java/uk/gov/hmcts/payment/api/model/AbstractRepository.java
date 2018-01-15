@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.model;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
-import uk.gov.hmcts.payment.api.model.exceptions.PaymentRefDataNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentRefDataNotFoundException;
 
 import java.io.Serializable;
 import java.util.Optional;

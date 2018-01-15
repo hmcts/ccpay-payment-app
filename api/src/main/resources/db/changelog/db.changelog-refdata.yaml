@@ -20,11 +20,11 @@ databaseChangeLog:
             sql: >
               INSERT INTO payment_status (name, description)
                 VALUES
-                  ('Pending', 'Valid payment instructions entered and recorded successfully'),
-                  ('Success', 'Valid payment details and user successfully made payment'),
-                  ('Failed', 'Invalid payment details/unsuccessful payment'),
-                  ('Cancelled', 'User cancels session'),
-                  ('Error', 'Missing payment parameters');
+                  ('created', 'Valid payment instructions entered and recorded successfully'),
+                  ('success', 'Valid payment details and user successfully made payment'),
+                  ('failed', 'Invalid payment details/unsuccessful payment'),
+                  ('cancelled', 'User cancels session'),
+                  ('error', 'Missing payment parameters');
 
         - createTable:
             tableName: payment_provider
@@ -44,8 +44,8 @@ databaseChangeLog:
           sql: >
             INSERT INTO payment_provider (name, description)
             VALUES
-              ('GovPay', 'Gov pay'),
-              ('MiddleOfficeProvider', 'Middle office provider');
+              ('gov pay', 'Gov pay'),
+              ('middle office provider', 'Middle office provider');
 
         - createTable:
             tableName: payment_method
@@ -65,11 +65,11 @@ databaseChangeLog:
             sql: >
               INSERT INTO payment_method (name, description)
               VALUES
-                ('Card', 'Card'),
-                ('DirectDebit', 'Direct debit'),
-                ('Cash', 'Cash'),
-                ('PaymentByAccount', 'Payment by account'),
-                ('Cheque', 'Cheque');
+                ('card', 'Card'),
+                ('direct debit', 'Direct debit'),
+                ('cash', 'Cash'),
+                ('payment by account', 'Payment by account'),
+                ('cheque', 'Cheque');
 
         - createTable:
             tableName: payment_channel
@@ -89,8 +89,15 @@ databaseChangeLog:
             sql: >
              INSERT INTO payment_channel (name, description)
              VALUES
-              ('Online', 'Through online portal'),
-              ('Telephony', 'Through the IVR'),
-              ('SolicitorsPortal', 'Through the online solicitors portal'),
-              ('DigitalBar', 'Through the digital bar code');
+              ('online', 'Through online portal'),
+              ('telephony', 'Through the IVR'),
+              ('solicitors portal', 'Through the online solicitors portal'),
+              ('digital bar', 'Through the digital bar code');
 
+  - changeSet:
+      id: 3
+      author: tarunp
+      changes:
+        - renameTable:
+            newTableName: payment_old
+            oldTableName: payment
