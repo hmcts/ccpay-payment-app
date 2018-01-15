@@ -214,6 +214,47 @@
         </dependency>
     </dependencies>
 
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
+                    <diffChangeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.2.yaml</diffChangeLogFile>
+                    <url>jdbc:postgresql://localhost:5432/payment</url>
+                    <driver>org.postgresql.Driver</driver>
+                    <username>payment</username>
+                    <password>payment</password>
+                    <referenceUrl>hibernate:spring:uk.gov.hmcts.payment2.api.model?dialect=org.hibernate.dialect.PostgreSQL9Dialect</referenceUrl>
+                    <verbose>true</verbose>
+                    <diffExcludeObjects>table:payment_old, table:payment_channel, table:payment_method, table:payment_provider, table:payment_status</diffExcludeObjects>
+                </configuration>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>42.1.4</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.liquibase.ext</groupId>
+                        <artifactId>liquibase-hibernate4</artifactId>
+                        <version>3.6</version>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-data-jpa</artifactId>
+                        <version>1.5.6.RELEASE</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <id>ci</id>
