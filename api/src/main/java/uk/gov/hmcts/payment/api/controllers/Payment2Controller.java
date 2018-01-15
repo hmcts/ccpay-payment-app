@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +23,8 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment2Service;
+
+import javax.validation.Valid;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -51,7 +54,7 @@ public class Payment2Controller {
     })
     @RequestMapping(value = "/users/{userId}/cardpayments", method = POST)
     public ResponseEntity<CardPaymentDto> createCardPayment(@PathVariable("userId") String userId,
-                                                            @RequestBody CardPaymentRequest request) {
+                                                            @Valid @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
         PaymentFeeLink paymentLink = cardPayment2Service.create(request.getAmount(), paymentReference,
             request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
