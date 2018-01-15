@@ -9,25 +9,25 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.v1.controllers.PaymentController;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.Payment2Dto;
+import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 @Component
-public class Payment2DtoFactory {
+public class CardPaymentDtoMapper {
 
-    public Payment2Dto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
+    public CardPaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return Payment2Dto.payment2DtoWith()
+        return CardPaymentDto.payment2DtoWith()
             .id(payment.getId().toString())
             .amount(payment.getAmount())
             .state(toStateDto(payment.getStatus(), payment.getFinished()))
             .description(payment.getDescription())
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
-            .links(new Payment2Dto.LinksDto(
-                payment.getNextUrl() == null ? null : new Payment2Dto.LinkDto(payment.getNextUrl(), "GET"),
+            .links(new CardPaymentDto.LinksDto(
+                payment.getNextUrl() == null ? null : new CardPaymentDto.LinkDto(payment.getNextUrl(), "GET"),
                 payment.getCancelUrl() == null ? null : cancellationLink(payment.getUserId(), payment.getId())
             ))
             .build();
@@ -41,14 +41,14 @@ public class Payment2DtoFactory {
         return Fee.feeWith().code(feeDto.getCode()).version(feeDto.getVersion()).build();
     }
 
-    private Payment2Dto.StateDto toStateDto(String status, Boolean finished) {
-        return new Payment2Dto.StateDto(status, finished);
+    private CardPaymentDto.StateDto toStateDto(String status, Boolean finished) {
+        return new CardPaymentDto.StateDto(status, finished);
     }
 
     @SneakyThrows(NoSuchMethodException.class)
-    private Payment2Dto.LinkDto cancellationLink(String userId, Integer paymentId) {
+    private CardPaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
         Method method = PaymentController.class.getMethod("cancel", String.class, Integer.class);
-        return new Payment2Dto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
+        return new CardPaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
     }
 
 }
