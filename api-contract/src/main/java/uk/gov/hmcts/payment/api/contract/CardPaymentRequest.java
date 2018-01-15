@@ -26,7 +26,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Builder(builderMethodName = "createCardPaymentRequestDtoWith")
 @Wither
-public class CreateCardPaymentRequestDto {
+public class CardPaymentRequest {
 
     @NotNull
     @Min(1)

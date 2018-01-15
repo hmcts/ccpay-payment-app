@@ -55,7 +55,7 @@ public class SwaggerConfiguration {
     }
 
     @Bean
-    public Docket newPaymentApi() {
+    public Docket Payment2Api() {
         return new Docket(DocumentationType.SWAGGER_2)
             .groupName("payment2")
             .globalOperationParameters(Arrays.asList(

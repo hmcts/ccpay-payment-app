@@ -22,12 +22,13 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Payment2Dto {
+public class CardPaymentDto {
 
     private String id;
 
     @NotEmpty
     private Integer amount;
+
     private StateDto state;
 
     @NotEmpty

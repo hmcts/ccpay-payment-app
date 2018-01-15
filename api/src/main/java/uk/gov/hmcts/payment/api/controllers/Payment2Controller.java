@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.payment.api.contract.CreateCardPaymentRequestDto;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
-import uk.gov.hmcts.payment.api.contract.Payment2Dto;
+import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment2Service;
@@ -33,13 +33,13 @@ public class Payment2Controller {
     private static final Logger LOG = LoggerFactory.getLogger(Payment2Controller.class);
 
     private final Payment2Service<PaymentFeeLink, Integer> cardPayment2Service;
-    private final Payment2DtoFactory payment2DtoFactory;
+    private final CardPaymentDtoMapper cardPaymentDtoMapper;
 
     @Autowired
     public Payment2Controller(@Qualifier("loggingCardPaymentService") Payment2Service<PaymentFeeLink, Integer> cardPayment2Service,
-                              Payment2DtoFactory payment2DtoFactory) {
+                              CardPaymentDtoMapper cardPaymentDtoMapper) {
         this.cardPayment2Service = cardPayment2Service;
-        this.payment2DtoFactory = payment2DtoFactory;
+        this.cardPaymentDtoMapper = cardPaymentDtoMapper;
     }
 
 
@@ -50,14 +50,14 @@ public class Payment2Controller {
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/users/{userId}/cardpayments", method = POST)
-    public ResponseEntity<Payment2Dto> createCardPayment(@PathVariable("userId") String userId,
-                                                         @RequestBody CreateCardPaymentRequestDto request) {
+    public ResponseEntity<CardPaymentDto> createCardPayment(@PathVariable("userId") String userId,
+                                                            @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
         PaymentFeeLink paymentLink = cardPayment2Service.create(request.getAmount(), paymentReference,
             request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
-            request.getCurrency(), request.getSiteId(), payment2DtoFactory.toFees(request.getFeeDtos()));
+            request.getCurrency(), request.getSiteId(), cardPaymentDtoMapper.toFees(request.getFeeDtos()));
 
-        return new ResponseEntity<>(payment2DtoFactory.toCardPaymentDto(paymentLink), CREATED);
+        return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }
 
 
