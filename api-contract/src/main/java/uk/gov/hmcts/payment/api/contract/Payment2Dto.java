@@ -8,7 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
@@ -23,21 +25,40 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class Payment2Dto {
 
     private String id;
+
+    @NotEmpty
     private Integer amount;
     private StateDto state;
+
+    @NotEmpty
     private String description;
+
     private String reference;
+
     private Date dateCreated;
+
     private String currency;
+
     private String ccdCaseNumber;
+
     private String caseReference;
+
     private String paymentReference;
+
     private String paymentChannel;
+
     private String paymentMethod;
+
     private String paymentProvider;
+
     private String paymentStatus;
+
+    @NotEmpty
     private String siteId;
+
     private String serviceType;
+
+    @NotNull
     private List<FeeDto> feeDtos;
 
     @JsonProperty("_links")
