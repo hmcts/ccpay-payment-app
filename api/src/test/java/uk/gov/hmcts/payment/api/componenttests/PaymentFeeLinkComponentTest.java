@@ -19,7 +19,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.*;
 public class PaymentFeeLinkComponentTest  extends ComponentTestBase {
 
     @Test
-    public void saveSinglePaymentWithSingleFee() {
+    public void testSaveOfSinglePaymentWithSingleFee() {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference("00000001")
             .payments(Arrays.asList(getPaymentsData().get(0)))
             .fees(Arrays.asList(getFeesData().get(2)))
@@ -34,7 +34,7 @@ public class PaymentFeeLinkComponentTest  extends ComponentTestBase {
 
 
     @Test
-    public void saveSinglePaymentWithMultipleFees() {
+    public void testSaveOfSinglePaymentWithMultipleFees() {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference("00000002")
             .payments(Arrays.asList(getPaymentsData().get(0)))
             .fees(getFeesData())
@@ -50,7 +50,7 @@ public class PaymentFeeLinkComponentTest  extends ComponentTestBase {
     }
 
     @Test
-    public void saveMutliplePaymentsWithMutlipleFees() {
+    public void testSaveOfMutliplePaymentsWithMutlipleFees() {
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference("00000003")
             .payments(getPaymentsData())
