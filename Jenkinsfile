@@ -87,17 +87,17 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
                     rpmTagger.tagTestingPassedOn('dev')
                 }
 
-//                stage('Deploy to Test') {
-//                    ansible.runDeployPlaybook("{payment_api_version: ${rpmVersion}}", 'test')
-//                    rpmTagger.tagDeploymentSuccessfulOn('test')
-//                }
-//
-//                stage("Trigger smoke tests in Test") {
-//                    build job: '/common-components/payment-app-smoke-tests/master', parameters: [
-//                        [$class: 'StringParameterValue', name: 'environment', value: 'test']
-//                    ]
-//                    rpmTagger.tagTestingPassedOn('test')
-//                }
+                stage('Deploy to Test') {
+                    ansible.runDeployPlaybook("{payment_api_version: ${rpmVersion}}", 'test')
+                    rpmTagger.tagDeploymentSuccessfulOn('test')
+                }
+
+                stage("Trigger smoke tests in Test") {
+                    build job: '/common-components/payment-app-smoke-tests/master', parameters: [
+                        [$class: 'StringParameterValue', name: 'environment', value: 'test']
+                    ]
+                    rpmTagger.tagTestingPassedOn('test')
+                }
             }
 
             milestone()
