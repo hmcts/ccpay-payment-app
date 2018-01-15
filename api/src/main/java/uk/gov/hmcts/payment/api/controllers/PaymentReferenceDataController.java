@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment2.api.model.*;
 
 import java.util.List;
 
