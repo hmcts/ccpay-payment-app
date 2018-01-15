@@ -1,0 +1,177 @@
+databaseChangeLog:
+- changeSet:
+    id: 1515795200616-1
+    author: tarun (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: feePK
+            name: id
+            type: INT
+        - column:
+            name: code
+            type: VARCHAR(255)
+        - column:
+            name: version
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: payment_link_id
+            type: INT
+        tableName: fee
+- changeSet:
+    id: 1515795200616-2
+    author: tarun (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: paymentPK
+            name: id
+            type: INT
+        - column:
+            name: amount
+            type: INT
+        - column:
+            name: case_reference
+            type: VARCHAR(255)
+        - column:
+            name: ccd_case_number
+            type: VARCHAR(255)
+        - column:
+            name: currency
+            type: VARCHAR(255)
+        - column:
+            name: date_created
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: description
+            type: VARCHAR(255)
+        - column:
+            name: gov_pay_id
+            type: VARCHAR(255)
+        - column:
+            name: service_type
+            type: VARCHAR(255)
+        - column:
+            name: site_id
+            type: VARCHAR(255)
+        - column:
+            name: user_id
+            type: VARCHAR(255)
+        - column:
+            name: payment_channel
+            type: VARCHAR(255)
+        - column:
+            name: payment_method
+            type: VARCHAR(255)
+        - column:
+            name: payment_provider
+            type: VARCHAR(255)
+        - column:
+            name: payment_status
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: payment_link_id
+            type: INT
+        tableName: payment
+- changeSet:
+    id: 1515795200616-3
+    author: tarun (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: payment_fee_linkPK
+            name: id
+            type: INT
+        - column:
+            name: payment_reference
+            type: VARCHAR(255)
+        tableName: payment_fee_link
+- changeSet:
+    id: 1515795200616-4
+    author: tarun (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_link_id
+        baseTableName: fee
+        constraintName: FK_3c04152jyub2e59dll7si8ggp
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: payment_fee_link
+- changeSet:
+    id: 1515795200616-5
+    author: tarun (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_status
+        baseTableName: payment
+        constraintName: FK_boc1od01im5po7i8e5biph5df
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: name
+        referencedTableName: payment_status
+- changeSet:
+    id: 1515795200616-6
+    author: tarun (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_link_id
+        baseTableName: payment
+        constraintName: FK_gymrxo16ly2casha68ic9dvg9
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: payment_fee_link
+- changeSet:
+    id: 1515795200616-7
+    author: tarun (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_method
+        baseTableName: payment
+        constraintName: FK_m67it6o1xja3py5erpdabvanj
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: name
+        referencedTableName: payment_method
+- changeSet:
+    id: 1515795200616-8
+    author: tarun (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_channel
+        baseTableName: payment
+        constraintName: FK_ng3t9dbrvsnfoh27elyyxt0ra
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: name
+        referencedTableName: payment_channel
+- changeSet:
+    id: 1515795200616-9
+    author: tarun (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_provider
+        baseTableName: payment
+        constraintName: FK_qhbn3c5pejpl26rkokgo1139n
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: name
+        referencedTableName: payment_provider
+

@@ -49,23 +49,41 @@ public class SwaggerConfiguration {
             .useDefaultResponseMessages(false)
             .apiInfo(apiInfo())
             .select()
-            .paths(regex("/users/.*"))
+            .apis(packagesLike("uk.gov.hmcts.payment.api.v1.controllers"))
+            .paths(PathSelectors.any())
             .build();
     }
 
     @Bean
-    public Docket referenceDataApi() {
+    public Docket newPaymentApi() {
         return new Docket(DocumentationType.SWAGGER_2)
-            .groupName("referenceData")
+            .groupName("payment2")
+            .globalOperationParameters(Arrays.asList(
+                new ParameterBuilder()
+                    .name("Authorization")
+                    .description("User authorization header")
+                    .required(true)
+                    .parameterType("header")
+                    .modelRef(new ModelRef("string"))
+                    .build(),
+                new ParameterBuilder()
+                    .name("ServiceAuthorization")
+                    .description("Service authorization header")
+                    .required(true)
+                    .parameterType("header")
+                    .modelRef(new ModelRef("string"))
+                    .build())
+            )
             .useDefaultResponseMessages(false)
             .apiInfo(paymentApiInfo())
             .select()
-            .paths(regex("/refdata/.*"))
+            .apis(packagesLike("uk.gov.hmcts.payment.api.controllers"))
+            .paths(PathSelectors.any())
             .build();
     }
 
     private static Predicate<RequestHandler> packagesLike(final String pkg) {
-        return input -> input.declaringClass().getName().equals(pkg);
+        return input -> input.declaringClass().getPackage().getName().equals(pkg);
     }
 
     private ApiInfo apiInfo() {
@@ -77,8 +95,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo paymentApiInfo() {
         return new ApiInfoBuilder()
-            .title("Reference data payment API documentation")
-            .description("Reference data payment API documentation")
+            .title("New payment API documentation")
+            .description("New payment API documentation")
             .build();
     }
 

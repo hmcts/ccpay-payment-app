@@ -5,10 +5,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional(readOnly = true)
-public interface PaymentMethodRepository extends AbstractRepository<PaymentMethod, String> {
+public interface PaymentProviderRepository extends AbstractRepository<PaymentProvider, String> {
 
     @Override
     default String getEntityName() {
-        return PaymentMethod.class.getName();
+        return PaymentProvider.class.getName();
     }
 }

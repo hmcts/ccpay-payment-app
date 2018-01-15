@@ -9,33 +9,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment2.api.model.*;
 
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.*;
-
 @RestController
-@Api(value = "/refdata", description = "Payment reference data REST API")
+@Api(value = "ReferenceData", description = "Payment reference data REST API")
 @RequestMapping("/refdata")
 public class PaymentReferenceDataController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentReferenceDataController.class);
 
     private final PaymentStatusRepository paymentStatusRepository;
 
-    private final PaymentProviderRespository paymentProviderRespository;
+    private final PaymentProviderRepository paymentProviderRespository;
 
     private final PaymentMethodRepository paymentMethodRepository;
 
     private final PaymentChannelRepository paymentChannelRepository;
 
     @Autowired
-    public PaymentReferenceDataController(PaymentStatusRepository paymentStatusRepository, PaymentProviderRespository paymentProviderRespository,
+    public PaymentReferenceDataController(PaymentStatusRepository paymentStatusRepository, PaymentProviderRepository paymentProviderRespository,
                                           PaymentMethodRepository paymentMethodRepository, PaymentChannelRepository paymentChannelRepository) {
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentProviderRespository = paymentProviderRespository;
