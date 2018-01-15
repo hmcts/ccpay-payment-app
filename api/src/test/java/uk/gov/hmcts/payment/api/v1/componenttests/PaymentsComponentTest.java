@@ -42,7 +42,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
     }
 
-    //@Test
+    @Test
     public void createPaymentValidationRules() throws Exception {
         CreatePaymentRequestDto validRequest = createPaymentRequestDtoWith()
                 .amount(100)
