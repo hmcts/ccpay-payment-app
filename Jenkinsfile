@@ -12,7 +12,7 @@ def server = Artifactory.server 'artifactory.reform'
 def buildInfo = Artifactory.newBuildInfo()
 
 properties(
-    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'https://github.com/hmcts/ccpay-payment-app/'],
+    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'https://github.com/hmcts/ccpay-payment-app'],
      pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
