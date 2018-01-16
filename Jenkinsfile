@@ -12,12 +12,12 @@ def server = Artifactory.server 'artifactory.reform'
 def buildInfo = Artifactory.newBuildInfo()
 
 properties(
-    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'https://git.reform.hmcts.net/common-components/ccpay-payment-app/'],
+    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'https://github.com/hmcts/ccpay-payment-app/'],
      pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
 milestone()
-lock(resource: "ccpay-payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
+lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
     node {
         try {
             stage('Checkout') {
@@ -56,12 +56,12 @@ lock(resource: "ccpay-payment-app-${env.BRANCH_NAME}", inversePrecedence: true) 
                 paymentsDatabaseDockerVersion = dockerImage imageName: 'common-components/payments-database', context: 'docker/database'
             }
 
-            stage("Trigger acceptance tests") {
-                build job: '/common-components/payment-app-acceptance-tests/master', parameters: [
-                    [$class: 'StringParameterValue', name: 'paymentsApiDockerVersion', value: paymentsApiDockerVersion],
-                    [$class: 'StringParameterValue', name: 'paymentsDatabaseDockerVersion', value: paymentsDatabaseDockerVersion]
-                ]
-            }
+//            stage("Trigger acceptance tests") {
+//                build job: '/common-components/payment-app-acceptance-tests/master', parameters: [
+//                    [$class: 'StringParameterValue', name: 'paymentsApiDockerVersion', value: paymentsApiDockerVersion],
+//                    [$class: 'StringParameterValue', name: 'paymentsDatabaseDockerVersion', value: paymentsDatabaseDockerVersion]
+//                ]
+//            }
 
             onMaster {
                 stage('Publish JAR') {
