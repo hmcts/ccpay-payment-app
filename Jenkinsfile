@@ -12,12 +12,12 @@ def server = Artifactory.server 'artifactory.reform'
 def buildInfo = Artifactory.newBuildInfo()
 
 properties(
-    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'https://git.reform.hmcts.net/common-components/payment-app/'],
+    [[$class: 'GithubProjectProperty', displayName: 'Payment API', projectUrlStr: 'https://git.reform.hmcts.net/common-components/ccpay-payment-app/'],
      pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
 milestone()
-lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
+lock(resource: "ccpay-payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
     node {
         try {
             stage('Checkout') {
