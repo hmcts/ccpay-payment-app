@@ -2,7 +2,10 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.temporal.TemporalAdjusters;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PaymentReference {
@@ -16,7 +19,11 @@ public class PaymentReference {
     }
 
     public static PaymentReference getInstance() {
-        if (obj == null) {
+        // First day of the CURRENT YEAR
+        LocalDate date = LocalDate.of(LocalDateTime.now().getYear(), Month.JANUARY, 01);
+
+        LocalDate now = LocalDate.now();
+        if ( obj == null || now.equals(date.with(TemporalAdjusters.firstDayOfYear())) ) {
             obj = new PaymentReference(1);
         }
 
