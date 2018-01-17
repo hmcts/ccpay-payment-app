@@ -15,6 +15,7 @@ import org.hibernate.validator.constraints.URL;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -30,7 +31,7 @@ public class CardPaymentRequest {
 
     @NotNull
     @Min(1)
-    private Integer amount;
+    private BigDecimal amount;
 
     @NotEmpty
     private String description;

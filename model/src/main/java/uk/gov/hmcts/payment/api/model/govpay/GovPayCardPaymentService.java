@@ -11,19 +11,19 @@ import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 import uk.gov.hmcts.payment.api.model.Fee;
-import uk.gov.hmcts.payment.api.model.Payment2Service;
+import uk.gov.hmcts.payment.api.model.CardPaymentService;
 
 import java.util.List;
 
 
 @Service
-public class GovPayPayment2Service implements Payment2Service<GovPayPayment, String> {
+public class GovPayCardPaymentService implements CardPaymentService<GovPayPayment, String> {
     private final GovPayKeyRepository govPayKeyRepository;
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
 
     @Autowired
-    public GovPayPayment2Service(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier) {
+    public GovPayCardPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier) {
         this.govPayKeyRepository = govPayKeyRepository;
         this.govPayClient = govPayClient;
         this.serviceIdSupplier = serviceIdSupplier;

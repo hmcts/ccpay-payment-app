@@ -228,7 +228,7 @@
                     <driver>org.postgresql.Driver</driver>
                     <username>payment</username>
                     <password>payment</password>
-                    <referenceUrl>hibernate:spring:uk.gov.hmcts.payment2.api.model?dialect=org.hibernate.dialect.PostgreSQL9Dialect</referenceUrl>
+                    <referenceUrl>hibernate:spring:uk.gov.hmcts.payment.api.model?dialect=org.hibernate.dialect.PostgreSQL9Dialect</referenceUrl>
                     <verbose>true</verbose>
                     <diffExcludeObjects>table:payment_old, table:payment_channel, table:payment_method, table:payment_provider, table:payment_status</diffExcludeObjects>
                 </configuration>

@@ -25,6 +25,9 @@ public class Fee {
     @Column(name = "version")
     private String version;
 
+    @Column(name = "amount")
+    private Integer amount;
+
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
 //    private PaymentLink paymentLink;
