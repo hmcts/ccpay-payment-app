@@ -31,7 +31,7 @@ public class CardPaymentRequest {
 
     @NotNull
     @Min(1)
-    private BigDecimal amount;
+    private Integer amount;
 
     @NotEmpty
     private String description;
