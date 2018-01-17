@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class UserAwareDelegatingCardPaymentService implements Payment2Service<PaymentFeeLink, Integer> {
+public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, Integer> {
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
@@ -20,7 +20,7 @@ public class UserAwareDelegatingCardPaymentService implements Payment2Service<Pa
 
     private final UserIdSupplier userIdSupplier;
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
-    private final Payment2Service<GovPayPayment, String> delegate;
+    private final CardPaymentService<GovPayPayment, String> delegate;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentProviderRepository paymentProviderRespository;
@@ -28,7 +28,7 @@ public class UserAwareDelegatingCardPaymentService implements Payment2Service<Pa
 
     @Autowired
     public UserAwareDelegatingCardPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
-                                                 Payment2Service<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
+                                                 CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
                                                  PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                  PaymentStatusRepository paymentStatusRepository) {
         this.userIdSupplier = userIdSupplier;

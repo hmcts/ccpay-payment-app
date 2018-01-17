@@ -15,6 +15,7 @@ import org.hibernate.validator.constraints.URL;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
