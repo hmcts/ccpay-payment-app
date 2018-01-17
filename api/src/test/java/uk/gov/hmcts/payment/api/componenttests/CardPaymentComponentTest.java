@@ -16,7 +16,7 @@ import static uk.gov.hmcts.payment.api.model.Fee.*;
 import static uk.gov.hmcts.payment.api.model.Payment.*;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.*;
 
-public class PaymentFeeLinkComponentTest  extends ComponentTestBase {
+public class CardPaymentComponentTest extends ComponentTestBase {
 
     @Test
     public void testSaveOfSinglePaymentWithSingleFee() {

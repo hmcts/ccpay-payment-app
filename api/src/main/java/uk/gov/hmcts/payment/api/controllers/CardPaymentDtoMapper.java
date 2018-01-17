@@ -20,10 +20,7 @@ public class CardPaymentDtoMapper {
     public CardPaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return CardPaymentDto.payment2DtoWith()
-            .id(payment.getId().toString())
-            .amount(payment.getAmount())
             .state(toStateDto(payment.getStatus(), payment.getFinished()))
-            .description(payment.getDescription())
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .links(new CardPaymentDto.LinksDto(

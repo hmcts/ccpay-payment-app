@@ -2,6 +2,9 @@ package uk.gov.hmcts.payment.api.model;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
@@ -14,14 +17,15 @@ import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaym
 import static uk.gov.hmcts.payment.api.model.Payment.*;
 
 
+@RunWith(MockitoJUnitRunner.class)
 public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
     private static final String USER_ID = "USER_ID";
     private static final GovPayPayment VALID_GOV_PAYMENT_RESPONSE = govPaymentWith()
         .paymentId("paymentId")
-        .amount(100)
+        .amount(1000)
         .description("description")
-        .reference("reference")
+        .reference("paymentReference")
         .state(new State("status", false, "message", "code"))
         .links(new GovPayPayment.Links(
             new Link("type", ImmutableMap.of(), "selfUrl", "GET"),
@@ -38,58 +42,28 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private PaymentProviderRepository paymentProviderRepository = mock(PaymentProviderRepository.class);
     private PaymentStatusRepository paymentStatusRepository = mock(PaymentStatusRepository.class);
 
-    private Payment2Service<GovPayPayment, String> govPayPayment2Service = mock(Payment2Service.class);
+    private CardPaymentService<GovPayPayment, String> govPayCardPaymentService = mock(CardPaymentService.class);
     private PaymentFeeLinkRepository paymentFeeLinkRepository = mock(PaymentFeeLinkRepository.class);
 
     private UserAwareDelegatingCardPaymentService cardPaymentService = new UserAwareDelegatingCardPaymentService(() -> USER_ID, paymentFeeLinkRepository,
-        govPayPayment2Service, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository, paymentStatusRepository);
+        govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository, paymentStatusRepository);
 
     @Test
     public void checkCreateWiring() {
-        Fee fee = Fee.feeWith().code("feeCode").version("feeVersion").build();
+        when(govPayCardPaymentService.create(10, "paymentReference", "description", "returnUrl",
+            "ccdCaseNo", "caseReference", "GBP", "siteId",
+            Arrays.asList(Fee.feeWith().code("code").version("version").amount(10).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
-        when(paymentChannelRepository.findByNameOrThrow("online")).thenReturn(PaymentChannel.paymentChannelWith().name("online").build());
-        when(paymentMethodRepository.findByNameOrThrow("card")).thenReturn(PaymentMethod.paymentMethodWith().name("card").build());
-        when(paymentProviderRepository.findByNameOrThrow("gov pay")).thenReturn(PaymentProvider.paymentProviderWith().name("gov pay").build());
-        when(paymentStatusRepository.findByNameOrThrow("created")).thenReturn(PaymentStatus.paymentStatusWith().name("created").build());
-
-        when(govPayPayment2Service.create(100, "reference", "description", "returnUrl", "ccdCaseNo",
-            "caseRef", "GBP", "siteId", Arrays.asList(fee))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
-
-       when(paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("paymentReference")
-           .payments(Arrays.asList(Payment.paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID).build()))
-           .fees(Arrays.asList(getFee()))
-           .build())).thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(999).paymentReference("paymentReference")
-               .payments(Arrays.asList(Payment.paymentWith().id(888).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).build()))
-               .fees(Arrays.asList(Fee.feeWith().id(777).code("feeCode").version("feeVersion").build())).build());
-
-       PaymentFeeLink paymentFeeLink = cardPaymentService.create(100, "reference", "description", "returnUrl",
-           "ccdCaseNo","caseRef", "GBP", "siteId", Arrays.asList(fee));
-
-        //System.out.println("PaymentLink : " + paymentFeeLink.getId());
-
-    }
-
-    private Fee getFee() {
-        return Fee.feeWith().code("feeCode").version("feeVersion").build();
-    }
-
-    private Fee getFeeWithId() {
-        return Fee.feeWith().id(998).code("feeCode").version("feeVersion").build();
-    }
-
-    private Payment getPayment() {
-        return Payment.paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId())
-            .amount(100).reference("reference").description("description").returnUrl("returnUrl")
-            .ccdCaseNumber("ccdCaseNo").caseReference("caseRef").currency("GBP").siteId("siteId")
-            .build();
-    }
-
-    private Payment getPaymentWithId() {
-        return Payment.paymentWith().id(998).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId())
-            .amount(100).reference("reference").description("description").returnUrl("returnUrl")
-            .ccdCaseNumber("ccdCaseNo").caseReference("caseRef").currency("GBP").siteId("siteId")
-            .build();
+        when(paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("paymentReference")
+            .payments(Arrays.asList(Payment.paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
+                .amount(10).description("description").returnUrl("returnUrl").build()))
+            .fees(Arrays.asList(Fee.feeWith().code("code").version("version").amount(10).build()))
+            .build()))
+            .thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(999).paymentReference("paymentReference")
+                .payments(Arrays.asList(Payment.paymentWith().id(998).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
+                    .amount(10).description("description").returnUrl("returnUrl").build()))
+                .fees(Arrays.asList(Fee.feeWith().id(998).code("feeCode").version("feeVersion").amount(10).build()))
+                .build());
     }
 
 

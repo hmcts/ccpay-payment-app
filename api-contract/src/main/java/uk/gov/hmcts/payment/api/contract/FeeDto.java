@@ -24,4 +24,7 @@ public class FeeDto {
 
     @NotEmpty
     private String version;
+
+    @NotEmpty
+    private Integer amount;
 }
