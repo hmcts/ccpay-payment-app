@@ -11,7 +11,7 @@ import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import java.util.List;
 
 @Component
-public class LoggingCardPaymentService implements Payment2Service<PaymentFeeLink, Integer> {
+public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeLink, Integer> {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoggingCardPaymentService.class);
 
@@ -27,9 +27,9 @@ public class LoggingCardPaymentService implements Payment2Service<PaymentFeeLink
 
 
     private final UserIdSupplier userIdSupplier;
-    private final Payment2Service<PaymentFeeLink, Integer> delegate;
+    private final CardPaymentService<PaymentFeeLink, Integer> delegate;
 
-    public LoggingCardPaymentService(UserIdSupplier userIdSupplier, Payment2Service<PaymentFeeLink, Integer> delete) {
+    public LoggingCardPaymentService(UserIdSupplier userIdSupplier, CardPaymentService<PaymentFeeLink, Integer> delete) {
         this.userIdSupplier = userIdSupplier;
         this.delegate = delete;
     }
@@ -45,7 +45,7 @@ public class LoggingCardPaymentService implements Payment2Service<PaymentFeeLink
             USER_ID, userIdSupplier.get(),
             EVENT_TYPE, "create",
             AMOUNT, payment.getAmount(),
-            REFERENCE, payment.getReference()
+            REFERENCE, paymentFeeLink.getPaymentReference()
         )));
         return paymentFeeLink;
     }
