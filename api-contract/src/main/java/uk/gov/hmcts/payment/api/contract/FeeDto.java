@@ -9,6 +9,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
+
+import java.math.BigDecimal;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
@@ -25,6 +30,7 @@ public class FeeDto {
     @NotEmpty
     private String version;
 
-    @NotEmpty
-    private Integer amount;
+    @NotNull
+    @Digits(integer = 6, fraction = 2, message = "Fee amount numeric value out of bounds (<6 digits>.<2 digits> expected)")
+    private BigDecimal amount;
 }
