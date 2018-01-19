@@ -33,7 +33,7 @@ public class CardPaymentRequest {
 
     @NotNull
     @Min(1)
-    @Digits(integer = 6, fraction = 2, message = "Payment amount numeric value out of bounds (<6 digits>.<2 digits> expected)")
+    @Digits(integer = 6, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 
     @NotEmpty
