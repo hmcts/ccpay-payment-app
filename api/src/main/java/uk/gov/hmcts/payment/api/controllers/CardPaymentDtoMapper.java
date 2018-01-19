@@ -35,7 +35,7 @@ public class CardPaymentDtoMapper {
     }
 
     private Fee toFee(FeeDto feeDto) {
-        return Fee.feeWith().code(feeDto.getCode()).version(feeDto.getVersion()).build();
+        return Fee.feeWith().amount(feeDto.getAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
     }
 
     private CardPaymentDto.StateDto toStateDto(String status, Boolean finished) {
