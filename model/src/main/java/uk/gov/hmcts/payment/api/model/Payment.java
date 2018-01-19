@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.*;
 
@@ -35,7 +36,7 @@ public class Payment {
     private String email;
 
     @Column(name = "amount")
-    private Integer amount;
+    private BigDecimal amount;
 
     @Transient
     private String reference;

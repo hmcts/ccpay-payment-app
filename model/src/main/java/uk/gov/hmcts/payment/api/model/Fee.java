@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Data
@@ -26,7 +27,7 @@ public class Fee {
     private String version;
 
     @Column(name = "amount")
-    private Integer amount;
+    private BigDecimal amount;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)

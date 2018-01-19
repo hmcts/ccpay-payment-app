@@ -7,6 +7,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,7 +49,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             ccdCaseNumber, caseReference, currency, siteId, fees);
 
         //Build PaymentLink obj
-        Payment payment = Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).userId(userIdSupplier.get()).amount(amount)
+        Payment payment = Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).userId(userIdSupplier.get())
+                                .amount(BigDecimal.valueOf(amount).movePointRight(2))
                                 .description(description).returnUrl(returnUrl).ccdCaseNumber(ccdCaseNumber)
                                 .caseReference(caseReference).currency(currency).siteId(siteId)
                                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
@@ -82,7 +84,9 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {
-        payment.setAmount(govPayPayment.getAmount());
+        BigDecimal amountInPounds = new BigDecimal(govPayPayment.getAmount());
+        amountInPounds = amountInPounds.divide(new BigDecimal(100));
+        payment.setAmount(amountInPounds);
         payment.setStatus(govPayPayment.getState().getStatus());
         payment.setFinished(govPayPayment.getState().getFinished());
         payment.setReference(govPayPayment.getReference());
