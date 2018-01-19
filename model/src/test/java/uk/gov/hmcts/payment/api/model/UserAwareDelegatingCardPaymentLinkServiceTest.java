@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 
 import static org.mockito.Mockito.mock;
@@ -52,17 +53,17 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     public void checkCreateWiring() {
         when(govPayCardPaymentService.create(10, "paymentReference", "description", "returnUrl",
             "ccdCaseNo", "caseReference", "GBP", "siteId",
-            Arrays.asList(Fee.feeWith().code("code").version("version").amount(10).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
+            Arrays.asList(Fee.feeWith().code("code").version("version").amount(new BigDecimal(1000)).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
         when(paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("paymentReference")
             .payments(Arrays.asList(Payment.paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
-                .amount(10).description("description").returnUrl("returnUrl").build()))
-            .fees(Arrays.asList(Fee.feeWith().code("code").version("version").amount(10).build()))
+                .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
+            .fees(Arrays.asList(Fee.feeWith().code("code").version("version").amount(new BigDecimal(1000)).build()))
             .build()))
             .thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(999).paymentReference("paymentReference")
                 .payments(Arrays.asList(Payment.paymentWith().id(998).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
-                    .amount(10).description("description").returnUrl("returnUrl").build()))
-                .fees(Arrays.asList(Fee.feeWith().id(998).code("feeCode").version("feeVersion").amount(10).build()))
+                    .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
+                .fees(Arrays.asList(Fee.feeWith().id(998).code("feeCode").version("feeVersion").amount(new BigDecimal(1000)).build()))
                 .build());
     }
 
@@ -71,7 +72,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         return paymentWith()
             .id(id)
             .govPayId(govPayId)
-            .amount(govPayPayment.getAmount())
+            .amount(BigDecimal.valueOf(govPayPayment.getAmount()).movePointRight(2))
             .description(govPayPayment.getDescription())
             .reference(govPayPayment.getReference())
             .status(govPayPayment.getState().getStatus())

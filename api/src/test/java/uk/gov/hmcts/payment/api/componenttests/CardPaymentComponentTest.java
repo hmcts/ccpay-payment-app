@@ -7,6 +7,7 @@ import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,11 +70,11 @@ public class CardPaymentComponentTest extends ComponentTestBase {
 
     private List<Payment> getPaymentsData() {
         List<Payment> payments = new ArrayList<>();
-        payments.add(paymentWith().amount(100).reference("reference1").description("desc1").returnUrl("returnUrl1")
+        payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
             .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP").build());
-        payments.add(paymentWith().amount(200).reference("reference2").description("desc2").returnUrl("returnUrl2")
+        payments.add(paymentWith().amount(BigDecimal.valueOf(20000).movePointRight(2)).reference("reference2").description("desc2").returnUrl("returnUrl2")
             .ccdCaseNumber("ccdCaseNo2").caseReference("caseRef2").serviceType("divorce").currency("GBP").build());
-        payments.add(paymentWith().amount(300).reference("reference3").description("desc3").returnUrl("returnUrl3")
+        payments.add(paymentWith().amount(BigDecimal.valueOf(30000).movePointRight(2)).reference("reference3").description("desc3").returnUrl("returnUrl3")
             .ccdCaseNumber("ccdCaseNo3").caseReference("caseRef3").serviceType("probate").currency("GBP").build());
 
         return payments;

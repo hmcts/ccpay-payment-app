@@ -54,7 +54,8 @@ public class CardPaymentController {
                                                             @Valid @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
 
-        PaymentFeeLink paymentLink = cardCardPaymentService.create(request.getAmount(), paymentReference,
+        int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
+        PaymentFeeLink paymentLink = cardCardPaymentService.create(amountInPence, paymentReference,
             request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
             request.getCurrency(), request.getSiteId(), cardPaymentDtoMapper.toFees(request.getFeeDtos()));
 

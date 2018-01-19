@@ -12,6 +12,8 @@ import lombok.experimental.Wither;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.URL;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
@@ -31,7 +33,8 @@ public class CardPaymentRequest {
 
     @NotNull
     @Min(1)
-    private Integer amount;
+    @Digits(integer = 6, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
+    private BigDecimal amount;
 
     @NotEmpty
     private String description;
@@ -53,5 +56,6 @@ public class CardPaymentRequest {
     @JsonProperty("site_id")
     private String siteId;
 
+    @Valid
     private List<FeeDto> feeDtos;
 }
