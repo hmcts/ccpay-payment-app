@@ -106,30 +106,4 @@ public class CardPaymentComponentTest extends ComponentTestBase {
         return fees;
     }
 
-    private Payment mapToPayment(Payment payment) {
-        return Payment.paymentWith()
-            .id(payment.getId())
-            .govPayId(payment.getGovPayId())
-            .amount(payment.getAmount())
-            .reference(payment.getReference())
-            .description(payment.getDescription())
-            .returnUrl(payment.getReturnUrl())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
-            .caseReference(payment.getCaseReference())
-            .serviceType(payment.getServiceType())
-            .currency(payment.getCurrency())
-            .siteId(payment.getSiteId())
-            .email(payment.getEmail())
-            .status(payment.getStatus())
-            .finished(payment.getFinished())
-            .nextUrl(payment.getNextUrl())
-            .cancelUrl(payment.getCancelUrl())
-            .returnUrl(payment.getRefundsUrl())
-            .paymentChannel(payment.getPaymentChannel())
-            .paymentMethod(payment.getPaymentMethod())
-            .paymentProvider(payment.getPaymentProvider())
-            .paymentStatus(payment.getPaymentStatus())
-            .build();
-
-    }
 }
