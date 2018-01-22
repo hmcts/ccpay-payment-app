@@ -17,6 +17,8 @@ import static uk.gov.hmcts.payment.api.model.Fee.*;
 import static uk.gov.hmcts.payment.api.model.Payment.*;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class CardPaymentComponentTest extends ComponentTestBase {
 
     @Test
@@ -68,6 +70,20 @@ public class CardPaymentComponentTest extends ComponentTestBase {
     }
 
 
+    @Test
+    public void testRetrieveCardPaymentWithPaymentReference() throws Exception {
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+            .payments(Arrays.asList(getPaymentsData().get(2)))
+            .fees(getFeesData())
+            .build());
+
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        assertNotNull(payment.getId());
+        assertEquals(payment.getAmount(), new BigDecimal(3000000));
+    }
+
+
     private List<Payment> getPaymentsData() {
         List<Payment> payments = new ArrayList<>();
         payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
@@ -88,5 +104,32 @@ public class CardPaymentComponentTest extends ComponentTestBase {
         fees.add(feeWith().code("X0044").version("4").build());
 
         return fees;
+    }
+
+    private Payment mapToPayment(Payment payment) {
+        return Payment.paymentWith()
+            .id(payment.getId())
+            .govPayId(payment.getGovPayId())
+            .amount(payment.getAmount())
+            .reference(payment.getReference())
+            .description(payment.getDescription())
+            .returnUrl(payment.getReturnUrl())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .caseReference(payment.getCaseReference())
+            .serviceType(payment.getServiceType())
+            .currency(payment.getCurrency())
+            .siteId(payment.getSiteId())
+            .email(payment.getEmail())
+            .status(payment.getStatus())
+            .finished(payment.getFinished())
+            .nextUrl(payment.getNextUrl())
+            .cancelUrl(payment.getCancelUrl())
+            .returnUrl(payment.getRefundsUrl())
+            .paymentChannel(payment.getPaymentChannel())
+            .paymentMethod(payment.getPaymentMethod())
+            .paymentProvider(payment.getPaymentProvider())
+            .paymentStatus(payment.getPaymentStatus())
+            .build();
+
     }
 }
