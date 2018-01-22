@@ -6,13 +6,15 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, Integer> {
+public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
@@ -69,18 +71,30 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     @Override
-    public PaymentFeeLink retrieve(Integer integer) {
-        return null;
+    public PaymentFeeLink retrieve(String paymentReference) {
+        PaymentFeeLink paymentFeeLink = findSavedPayment(paymentReference);
+        Payment payment = paymentFeeLink.getPayments().get(0);
+
+        GovPayPayment govPayPayment = delegate.retrieve(payment.getGovPayId());
+
+        fillTransientDetails(payment, govPayPayment);
+        return paymentFeeLink;
     }
 
     @Override
-    public void cancel(Integer integer) {
+    public void cancel(String paymentReference) {
 
     }
 
     @Override
-    public void refund(Integer integer, int amount, int refundAmountAvailabie) {
+    public void refund(String paymentReference, int amount, int refundAmountAvailabie) {
 
+    }
+
+
+    private PaymentFeeLink findSavedPayment(@NotNull String paymentReference) {
+        return paymentFeeLinkRepository.findByPaymentReference(paymentReference)
+            .orElseThrow(PaymentNotFoundException::new);
     }
 
     private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {

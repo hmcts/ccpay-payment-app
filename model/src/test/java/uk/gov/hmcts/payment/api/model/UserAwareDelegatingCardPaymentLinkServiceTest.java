@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.model;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
@@ -11,11 +10,14 @@ import uk.gov.hmcts.payment.api.external.client.dto.State;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaymentWith;
 import static uk.gov.hmcts.payment.api.model.Payment.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -65,6 +67,15 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
                     .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
                 .fees(Arrays.asList(Fee.feeWith().id(998).code("feeCode").version("feeVersion").amount(new BigDecimal(1000)).build()))
                 .build());
+    }
+
+    @Test
+    public void testRetrieveCardPaymentForGivenPaymentReference() throws Exception {
+        when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1)
+            .payments(Arrays.asList(Payment.paymentWith().id(1).govPayId("govPayId").build())).build()));
+
+        when(govPayCardPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
+        assertThat(cardPaymentService.retrieve("1").getPayments().get(0).getGovPayId()).isEqualTo("govPayId");
     }
 
 

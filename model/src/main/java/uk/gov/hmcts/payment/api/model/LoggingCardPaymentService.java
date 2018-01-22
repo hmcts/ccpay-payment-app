@@ -11,7 +11,7 @@ import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import java.util.List;
 
 @Component
-public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeLink, Integer> {
+public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoggingCardPaymentService.class);
 
@@ -27,9 +27,9 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
 
 
     private final UserIdSupplier userIdSupplier;
-    private final CardPaymentService<PaymentFeeLink, Integer> delegate;
+    private final CardPaymentService<PaymentFeeLink, String> delegate;
 
-    public LoggingCardPaymentService(UserIdSupplier userIdSupplier, CardPaymentService<PaymentFeeLink, Integer> delete) {
+    public LoggingCardPaymentService(UserIdSupplier userIdSupplier, CardPaymentService<PaymentFeeLink, String> delete) {
         this.userIdSupplier = userIdSupplier;
         this.delegate = delete;
     }
@@ -51,17 +51,17 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     }
 
     @Override
-    public PaymentFeeLink retrieve(Integer integer) {
-        return null;
+    public PaymentFeeLink retrieve(String paymentReference) {
+        return delegate.retrieve(paymentReference);
     }
 
     @Override
-    public void cancel(Integer integer) {
+    public void cancel(String paymentReference) {
 
     }
 
     @Override
-    public void refund(Integer integer, int amount, int refundAmountAvailabie) {
+    public void refund(String paymentReference, int amount, int refundAmountAvailabie) {
 
     }
 
