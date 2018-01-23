@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
@@ -24,6 +25,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 
 import static org.springframework.http.HttpStatus.*;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 
@@ -32,13 +34,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class CardPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 
-    private final CardPaymentService<PaymentFeeLink, Integer> cardCardPaymentService;
+    private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
     private final CardPaymentDtoMapper cardPaymentDtoMapper;
 
     @Autowired
-    public CardPaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, Integer> cardCardPaymentService,
+    public CardPaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardCardPaymentService,
                                  CardPaymentDtoMapper cardPaymentDtoMapper) {
-        this.cardCardPaymentService = cardCardPaymentService;
+        this.cardPaymentService = cardCardPaymentService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
     }
 
@@ -55,11 +57,21 @@ public class CardPaymentController {
         String paymentReference = PaymentReference.getInstance().getNext();
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
-        PaymentFeeLink paymentLink = cardCardPaymentService.create(amountInPence, paymentReference,
+        PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
             request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
             request.getCurrency(), request.getSiteId(), cardPaymentDtoMapper.toFees(request.getFeeDtos()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
+    }
+
+    @ApiOperation(value = "Get card payment details by payment reference", notes = "Get payment details for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment retrieved"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @RequestMapping(value = "/cardpayment/{paymentReference}", method = GET)
+    public CardPaymentDto retrieve(@PathVariable("paymentReference") String paymentReference) {
+        return cardPaymentDtoMapper.toCardPaymentDto(cardPaymentService.retrieve(paymentReference));
     }
 
 

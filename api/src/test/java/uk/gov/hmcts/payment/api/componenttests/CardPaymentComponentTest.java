@@ -6,6 +6,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBase;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -16,6 +17,8 @@ import static org.junit.Assert.*;
 import static uk.gov.hmcts.payment.api.model.Fee.*;
 import static uk.gov.hmcts.payment.api.model.Payment.*;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CardPaymentComponentTest extends ComponentTestBase {
 
@@ -29,7 +32,7 @@ public class CardPaymentComponentTest extends ComponentTestBase {
         assertNotNull(paymentFeeLink);
         assertEquals(paymentFeeLink.getPayments().size(), 1);
         assertEquals(paymentFeeLink.getFees().size(), 1);
-        assertEquals(paymentFeeLink.getPayments().get(0).getAmount(),  new Integer(100));
+        assertEquals(paymentFeeLink.getPayments().get(0).getAmount(),  new Integer(1000000));
         assertEquals(paymentFeeLink.getFees().get(0).getCode(), "X0033");
     }
 
@@ -68,6 +71,33 @@ public class CardPaymentComponentTest extends ComponentTestBase {
     }
 
 
+    @Test
+    public void testRetrieveCardPaymentWithPaymentReference() throws Exception {
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000004")
+            .payments(Arrays.asList(getPaymentsData().get(2)))
+            .fees(getFeesData())
+            .build());
+
+        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000004").orElseThrow(PaymentNotFoundException::new);
+
+
+        Payment payment = foundPayment.getPayments().get(0);
+        assertNotNull(payment.getId());
+        assertEquals(payment.getAmount(), new BigDecimal(3000000));
+    }
+
+    @Test(expected = PaymentNotFoundException.class)
+    public void testRetrieveCardPaymentWithNonExistingPaymentReferenceShouldThrowException() throws Exception {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+            .payments(Arrays.asList(getPaymentsData().get(2)))
+            .fees(getFeesData())
+            .build());
+
+        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000006").orElseThrow(PaymentNotFoundException::new);
+    }
+
+
     private List<Payment> getPaymentsData() {
         List<Payment> payments = new ArrayList<>();
         payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
@@ -89,4 +119,5 @@ public class CardPaymentComponentTest extends ComponentTestBase {
 
         return fees;
     }
+
 }
