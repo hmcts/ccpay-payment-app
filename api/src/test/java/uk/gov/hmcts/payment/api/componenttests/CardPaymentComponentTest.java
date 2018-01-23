@@ -6,6 +6,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBase;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -78,9 +79,22 @@ public class CardPaymentComponentTest extends ComponentTestBase {
             .fees(getFeesData())
             .build());
 
-        Payment payment = paymentFeeLink.getPayments().get(0);
+        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000004").orElseThrow(PaymentNotFoundException::new);
+
+
+        Payment payment = foundPayment.getPayments().get(0);
         assertNotNull(payment.getId());
         assertEquals(payment.getAmount(), new BigDecimal(3000000));
+    }
+
+    @Test(expected = PaymentNotFoundException.class)
+    public void testRetrieveCardPaymentWithNonExistingPaymentReferenceShouldThrowException() throws Exception {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+            .payments(Arrays.asList(getPaymentsData().get(2)))
+            .fees(getFeesData())
+            .build());
+
+        PaymentFeeLink foundPayment = paymentFeeLinkRepository.findByPaymentReference("00000006").orElseThrow(PaymentNotFoundException::new);
     }
 
 
