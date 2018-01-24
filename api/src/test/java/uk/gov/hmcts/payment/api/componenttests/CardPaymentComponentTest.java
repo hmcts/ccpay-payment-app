@@ -32,7 +32,7 @@ public class CardPaymentComponentTest extends ComponentTestBase {
         assertNotNull(paymentFeeLink);
         assertEquals(paymentFeeLink.getPayments().size(), 1);
         assertEquals(paymentFeeLink.getFees().size(), 1);
-        assertEquals(paymentFeeLink.getPayments().get(0).getAmount(),  new Integer(1000000));
+        assertEquals(new BigDecimal(1000000), paymentFeeLink.getPayments().get(0).getAmount());
         assertEquals(paymentFeeLink.getFees().get(0).getCode(), "X0033");
     }
 
