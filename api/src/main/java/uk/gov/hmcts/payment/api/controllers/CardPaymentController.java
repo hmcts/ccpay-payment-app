@@ -95,7 +95,7 @@ public class CardPaymentController {
         Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
         Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
 
-        // Date & time to be considered in the going forward.
+        // Limiting search only to date without time.
         MutableDateTime mutableToDate = new MutableDateTime(toDate);
         mutableToDate.addDays(1);
 
