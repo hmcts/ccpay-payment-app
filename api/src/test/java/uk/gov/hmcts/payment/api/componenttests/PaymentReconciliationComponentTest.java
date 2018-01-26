@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBase;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -24,7 +25,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 public class PaymentReconciliationComponentTest extends ComponentTestBase {
 
     @Test
-    public void testSaveOfSinglePaymentWithSingleFee() throws Exception {
+    public void testFindPaymetsBetweenGivenValidDates() throws Exception {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         String paymentRef1 = UUID.randomUUID().toString();
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef1)
@@ -51,6 +52,37 @@ public class PaymentReconciliationComponentTest extends ComponentTestBase {
         assertNotNull(paymentFeeLink);
         assertEquals(paymentFeeLinks.size(), 2);
     }
+
+    @Test
+    public void testFindPaymetsBetweenGivenInValidDates() throws Exception {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        String paymentRef3 = UUID.randomUUID().toString();
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef3)
+            .payments(Arrays.asList(getPaymentsData().get(1)))
+            .fees(getFeesData())
+            .build());
+
+        String paymentRef4 = UUID.randomUUID().toString();
+        paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef4)
+            .payments(Arrays.asList(getPaymentsData().get(1)))
+            .fees(Arrays.asList(getFeesData().get(0)))
+            .build());
+
+
+
+        Date fromDate = new Date();
+        MutableDateTime mFromDate = new MutableDateTime(fromDate);
+        mFromDate.addDays(-3);
+        Date toDate = new Date();
+        MutableDateTime mToDate = new MutableDateTime(toDate);
+        mToDate.addDays(-2);
+
+        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(mFromDate.toDate(), mToDate.toDate()));
+
+        assertNotNull(paymentFeeLink);
+        assertEquals(paymentFeeLinks.size(), 0);
+    }
+
 
     private static Specification findByDatesBetween(Date fromDate, Date toDate) {
         return Specifications
