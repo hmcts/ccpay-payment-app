@@ -108,9 +108,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             GovPayPayment govPayPayment = delegate.retrieve(payment.getGovPayId());
 
             fillTransientDetails(payment, govPayPayment);
-
-            // Todo
-            //paymentFeeLinkRepository.save(p);
         });
 
         return paymentFeeLinks;
