@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class CardPaymentDto {
     private String id;
 
     @NotEmpty
-    private Integer amount;
+    private BigDecimal amount;
 
     private StateDto state;
 

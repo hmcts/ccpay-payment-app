@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+import org.joda.time.DateTime;
+import org.joda.time.MutableDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,11 @@ import uk.gov.hmcts.payment.api.model.CardPaymentService;
 import javax.validation.Valid;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -36,6 +43,10 @@ public class CardPaymentController {
 
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
     private final CardPaymentDtoMapper cardPaymentDtoMapper;
+
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+    private static final SimpleDateFormat outformat = new SimpleDateFormat("yyyy-MM-dd");
+
 
     @Autowired
     public CardPaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardCardPaymentService,
@@ -59,7 +70,7 @@ public class CardPaymentController {
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
             request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
-            request.getCurrency(), request.getSiteId(), cardPaymentDtoMapper.toFees(request.getFeeDtos()));
+            request.getCurrency(), request.getSiteId(), request.getServiceType(), cardPaymentDtoMapper.toFees(request.getFeeDtos()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }
@@ -74,6 +85,23 @@ public class CardPaymentController {
         return cardPaymentDtoMapper.toCardPaymentDto(cardPaymentService.retrieve(paymentReference));
     }
 
+    @ApiOperation(value = "Get payments information for reconciliation", notes = "Get payments information for reconciliation")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment retrieved"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @RequestMapping(value = "/payments/reconciliation", method = GET)
+    public List<CardPaymentDto> search(@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) throws ParseException {
+        Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
+        Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
+
+        // Date & time to be considered in the going forward.
+        MutableDateTime mutableToDate = new MutableDateTime(toDate);
+        mutableToDate.addDays(1);
+
+        return cardPaymentService.search(fromDate, mutableToDate.toDate()).stream()
+            .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+    }
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
@@ -84,5 +112,16 @@ public class CardPaymentController {
     public ResponseEntity httpClientErrorException(GovPayException e) {
         LOG.error("Error while calling payments", e);
         return new ResponseEntity(INTERNAL_SERVER_ERROR);
+    }
+
+    private String getYesterdaysDate() {
+        Date now = new Date();
+        MutableDateTime mtDtNow = new MutableDateTime(now);
+        mtDtNow.addDays(-1);
+        return sdf.format(mtDtNow.toDate());
+    }
+
+    private String getTodaysDate() {
+        return sdf.format(new Date());
     }
 }

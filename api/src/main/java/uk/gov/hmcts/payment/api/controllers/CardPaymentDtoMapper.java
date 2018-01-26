@@ -1,18 +1,22 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.v1.controllers.PaymentController;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+
+import javax.smartcardio.Card;
 
 @Component
 public class CardPaymentDtoMapper {
@@ -30,12 +34,37 @@ public class CardPaymentDtoMapper {
             .build();
     }
 
+    public CardPaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return CardPaymentDto.payment2DtoWith()
+            .paymentReference(payment.getReference())
+            .serviceType(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .amount(payment.getAmount())
+            .currency(payment.getCurrency())
+            .paymentStatus(payment.getStatus())
+            .dateCreated(payment.getDateCreated())
+            .paymentMethod(payment.getPaymentMethod().getName())
+            .paymentProvider(payment.getPaymentProvider().getName())
+            .feeDtos(toFeeDtos(paymentFeeLink.getFees()))
+            .build();
+
+    }
+
+    public List<FeeDto> toFeeDtos(List<Fee> fees) {
+        return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
+    }
+
     public List<Fee> toFees(List<FeeDto> feeDtos) {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
     private Fee toFee(FeeDto feeDto) {
         return Fee.feeWith().amount(feeDto.getAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
+    }
+
+    private FeeDto toFeeDto(Fee fee) {
+        return FeeDto.feeDtoWith().amount(fee.getAmount()).code(fee.getCode()).version(fee.getVersion()).build();
     }
 
     private CardPaymentDto.StateDto toStateDto(String status, Boolean finished) {

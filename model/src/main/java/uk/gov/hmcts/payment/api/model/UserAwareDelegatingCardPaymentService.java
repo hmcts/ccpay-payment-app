@@ -2,7 +2,10 @@ package uk.gov.hmcts.payment.api.model;
 
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -10,8 +13,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.function.Predicate;
 
 @Service
 public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
@@ -29,6 +32,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final PaymentProviderRepository paymentProviderRespository;
     private final PaymentMethodRepository paymentMethodRepository;
 
+    private static final Predicate[] REF = new Predicate[0];
+
     @Autowired
     public UserAwareDelegatingCardPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
                                                  CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
@@ -45,16 +50,17 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     @Override
     public PaymentFeeLink create(int amount, @NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, List<Fee> fees) {
+                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) {
 
         GovPayPayment govPayPayment = delegate.create(amount, paymentReference, description, returnUrl,
-            ccdCaseNumber, caseReference, currency, siteId, fees);
+            ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
 
         //Build PaymentLink obj
         Payment payment = Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).userId(userIdSupplier.get())
                                 .amount(BigDecimal.valueOf(amount).movePointRight(2))
                                 .description(description).returnUrl(returnUrl).ccdCaseNumber(ccdCaseNumber)
                                 .caseReference(caseReference).currency(currency).siteId(siteId)
+                                .serviceType(serviceType)
                                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
                                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CARD))
                                 .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_GOVPAY))
@@ -89,6 +95,35 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     @Override
     public void refund(String paymentReference, int amount, int refundAmountAvailabie) {
 
+    }
+
+    @Override
+    @Transactional
+    public List<PaymentFeeLink> search(Date startDate, Date endDate) {
+        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(startDate, endDate));
+
+        // For each payment get the gov pay status.
+        paymentFeeLinks.stream().forEach(p -> {
+            Payment payment = p.getPayments().get(0);
+            GovPayPayment govPayPayment = delegate.retrieve(payment.getGovPayId());
+
+            fillTransientDetails(payment, govPayPayment);
+
+            // Todo
+            //paymentFeeLinkRepository.save(p);
+        });
+
+        return paymentFeeLinks;
+    }
+
+    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
+        return Specifications
+            .where(isBetween(fromDate, toDate));
+    }
+
+    private static Specification isBetween(Date startDate, Date endDate) {
+
+        return ((root, query, cb) -> cb.between(root.get("dateCreated"), startDate, endDate));
     }
 
 
