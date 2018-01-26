@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Data
@@ -31,6 +32,10 @@ public class Payment {
     @CreationTimestamp
     @Column(name = "date_created")
     private Date dateCreated;
+
+    @UpdateTimestamp
+    @Column(name =  "date_updated")
+    private Date dateUpdate;
 
     @Transient
     private String email;
