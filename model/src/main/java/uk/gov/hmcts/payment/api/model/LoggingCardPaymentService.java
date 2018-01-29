@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -36,8 +37,8 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
 
     @Override
     public PaymentFeeLink create(int amount, @NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, List<Fee> fees) {
-        PaymentFeeLink paymentFeeLink = delegate.create(amount, paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, fees);
+                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) {
+        PaymentFeeLink paymentFeeLink = delegate.create(amount, paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
 
         Payment payment = paymentFeeLink.getPayments().get(0);
         LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
@@ -63,6 +64,15 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     @Override
     public void refund(String paymentReference, int amount, int refundAmountAvailabie) {
 
+    }
+
+    @Override
+    public List<PaymentFeeLink> search(Date startDate, Date endDate) {
+        LOG.info("Searching for payments between {} and {}", startDate, endDate);
+
+        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate);
+        LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
+        return paymentFeeLinks;
     }
 
 }

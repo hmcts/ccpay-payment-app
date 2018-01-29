@@ -4,8 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.List;
 
 
@@ -25,6 +28,14 @@ public class PaymentFeeLink {
     @Column(name = "payment_reference")
     private String paymentReference;
 
+    @CreationTimestamp
+    @Column(name = "date_created", nullable = false)
+    private Date dateCreated;
+
+    @UpdateTimestamp
+    @Column(name = "date_updated", nullable = false)
+    private Date dateUpdated;
+
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     private List<Payment> payments;
@@ -32,4 +43,5 @@ public class PaymentFeeLink {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     private List<Fee> fees;
+
 }
