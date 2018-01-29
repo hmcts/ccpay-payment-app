@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.CardPaymentService;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -38,6 +39,7 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
                                 String caseReference,
                                 String currency,
                                 String siteId,
+                                String serviceType,
                                 List<Fee> fees) {
         return govPayClient.createPayment(keyForCurrentService(), new CreatePaymentRequest(amount, reference, description, returnUrl));
     }
@@ -57,6 +59,11 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     public void refund(@NonNull String id, int amount, int refundAmountAvailable) {
         GovPayPayment payment = retrieve(id);
         govPayClient.refundPayment(keyForCurrentService(), hrefFor(payment.getLinks().getRefunds()), new RefundPaymentRequest(amount, refundAmountAvailable));
+    }
+
+    @Override
+    public List<GovPayPayment> search(Date startDate, Date endDate) {
+        return null;
     }
 
     private String hrefFor(Link link) {

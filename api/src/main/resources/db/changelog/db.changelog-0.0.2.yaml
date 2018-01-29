@@ -1,6 +1,6 @@
 databaseChangeLog:
 - changeSet:
-    id: 1516362465574-1
+    id: 1516983556756-1
     author: tarun (generated)
     changes:
     - createTable:
@@ -28,7 +28,7 @@ databaseChangeLog:
             type: INT
         tableName: fee
 - changeSet:
-    id: 1516362465574-2
+    id: 1516983556756-2
     author: tarun (generated)
     changes:
     - createTable:
@@ -54,6 +54,9 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: date_created
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: date_updated
             type: TIMESTAMP WITHOUT TIME ZONE
         - column:
             name: description
@@ -89,7 +92,7 @@ databaseChangeLog:
             type: INT
         tableName: payment
 - changeSet:
-    id: 1516362465574-3
+    id: 1516983556756-3
     author: tarun (generated)
     changes:
     - createTable:
@@ -102,11 +105,21 @@ databaseChangeLog:
             name: id
             type: INT
         - column:
+            constraints:
+              nullable: false
+            name: date_created
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: date_updated
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
             name: payment_reference
             type: VARCHAR(255)
         tableName: payment_fee_link
 - changeSet:
-    id: 1516362465574-4
+    id: 1516983556756-4
     author: tarun (generated)
     changes:
     - addForeignKeyConstraint:
@@ -118,7 +131,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: payment_fee_link
 - changeSet:
-    id: 1516362465574-5
+    id: 1516983556756-5
     author: tarun (generated)
     changes:
     - addForeignKeyConstraint:
@@ -130,7 +143,7 @@ databaseChangeLog:
         referencedColumnNames: name
         referencedTableName: payment_status
 - changeSet:
-    id: 1516362465574-6
+    id: 1516983556756-6
     author: tarun (generated)
     changes:
     - addForeignKeyConstraint:
@@ -142,7 +155,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: payment_fee_link
 - changeSet:
-    id: 1516362465574-7
+    id: 1516983556756-7
     author: tarun (generated)
     changes:
     - addForeignKeyConstraint:
@@ -154,7 +167,7 @@ databaseChangeLog:
         referencedColumnNames: name
         referencedTableName: payment_method
 - changeSet:
-    id: 1516362465574-8
+    id: 1516983556756-8
     author: tarun (generated)
     changes:
     - addForeignKeyConstraint:
@@ -166,7 +179,7 @@ databaseChangeLog:
         referencedColumnNames: name
         referencedTableName: payment_channel
 - changeSet:
-    id: 1516362465574-9
+    id: 1516983556756-9
     author: tarun (generated)
     changes:
     - addForeignKeyConstraint:

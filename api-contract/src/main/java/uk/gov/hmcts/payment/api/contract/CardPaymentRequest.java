@@ -53,6 +53,9 @@ public class CardPaymentRequest {
     private String caseReference;
 
     @NotEmpty
+    private String serviceType;
+
+    @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
 

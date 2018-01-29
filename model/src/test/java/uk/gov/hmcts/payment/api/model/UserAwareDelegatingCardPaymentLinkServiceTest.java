@@ -54,7 +54,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     @Test
     public void checkCreateWiring() {
         when(govPayCardPaymentService.create(10, "paymentReference", "description", "returnUrl",
-            "ccdCaseNo", "caseReference", "GBP", "siteId",
+            "ccdCaseNo", "caseReference", "GBP", "siteId", "CMC1",
             Arrays.asList(Fee.feeWith().code("code").version("version").amount(new BigDecimal(1000)).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
         when(paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("paymentReference")
