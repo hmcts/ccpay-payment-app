@@ -62,7 +62,7 @@ public class CardPaymentController {
         @ApiResponse(code = 400, message = "Payment creation failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @RequestMapping(value = "/cardpayments", method = POST)
+    @RequestMapping(value = "/card-payments", method = POST)
     public ResponseEntity<CardPaymentDto> createCardPayment(@RequestHeader(value = "userId") String userId,
                                                             @Valid @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
@@ -80,8 +80,8 @@ public class CardPaymentController {
         @ApiResponse(code = 200, message = "Payment retrieved"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/cardpayment/{paymentReference}", method = GET)
-    public CardPaymentDto retrieve(@PathVariable("paymentReference") String paymentReference) {
+    @RequestMapping(value = "/card-payments/{reference}", method = GET)
+    public CardPaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return cardPaymentDtoMapper.toCardPaymentDto(cardPaymentService.retrieve(paymentReference));
     }
 
