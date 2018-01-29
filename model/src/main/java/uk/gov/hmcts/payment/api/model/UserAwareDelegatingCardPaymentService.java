@@ -103,12 +103,14 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(startDate, endDate));
 
         // For each payment get the gov pay status.
-        paymentFeeLinks.stream().forEach(p -> {
-            Payment payment = p.getPayments().get(0);
-            GovPayPayment govPayPayment = delegate.retrieve(payment.getGovPayId());
+        // commented b'coz the not efficient to make govPay calls for each payment in reconciliation.
 
-            fillTransientDetails(payment, govPayPayment);
-        });
+//        paymentFeeLinks.stream().forEach(p -> {
+//            Payment payment = p.getPayments().get(0);
+//            GovPayPayment govPayPayment = delegate.retrieve(payment.getGovPayId());
+//
+//            fillTransientDetails(payment, govPayPayment);
+//        });
 
         return paymentFeeLinks;
     }
