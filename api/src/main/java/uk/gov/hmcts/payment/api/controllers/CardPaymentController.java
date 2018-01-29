@@ -80,8 +80,8 @@ public class CardPaymentController {
         @ApiResponse(code = 200, message = "Payment retrieved"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/card-payments/{paymentReference}", method = GET)
-    public CardPaymentDto retrieve(@PathVariable("paymentReference") String paymentReference) {
+    @RequestMapping(value = "/card-payments/{reference}", method = GET)
+    public CardPaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return cardPaymentDtoMapper.toCardPaymentDto(cardPaymentService.retrieve(paymentReference));
     }
 
