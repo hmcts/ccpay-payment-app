@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import uk.gov.hmcts.auth.checker.RequestAuthorizer;
 import uk.gov.hmcts.auth.checker.service.Service;
 import uk.gov.hmcts.auth.checker.spring.serviceanduser.AuthCheckerServiceAndUserFilter;
+import uk.gov.hmcts.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
 import uk.gov.hmcts.auth.checker.user.User;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayConfig;
 
@@ -53,4 +54,13 @@ public class AuthCheckerConfiguration {
         filter.setAuthenticationManager(authenticationManager);
         return filter;
     }
+
+    @Bean
+    public AuthCheckerServiceOnlyFilter authCheckerServiceFilter(RequestAuthorizer<Service> serviceRequestAuthorizer,
+                                                                        AuthenticationManager authenticationManager) {
+        AuthCheckerServiceOnlyFilter filter = new AuthCheckerServiceOnlyFilter(serviceRequestAuthorizer);
+        filter.setAuthenticationManager(authenticationManager);
+        return filter;
+    }
+
 }

@@ -33,4 +33,37 @@ public class SecurityConfigurationComponentTest extends ComponentTestBase {
             .andExpect(status().isNotFound());
     }
 
+    @Test
+    public void requestFromAuthorizedService_ShouldBe403() throws Exception {
+        restActions
+            .withAuthorizedService("cmc")
+            .get("/users/userId/payments/123456")
+            .andExpect(status().isForbidden());
+    }
+
+
+    @Test
+    public void requestFromAuthorizedServiceShouldNotBe403() throws Exception {
+        restActions
+            .withAuthorizedService("cmc")
+            .get("/payments/reconcile")
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    public void requestFromAuthorizedService_WrongEndpoint() throws Exception {
+        restActions
+            .withAuthorizedService("cmc")
+            .get("/payments/reconcile/wrongEndpoint")
+            .andExpect(status().isForbidden());
+    }
+
+
+
+
+
+
+
+
+
 }
