@@ -90,7 +90,7 @@ public class CardPaymentController {
         @ApiResponse(code = 200, message = "Payment retrieved"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/payments/reconciliation", method = GET)
+    @RequestMapping(value = "/payments/reconcile", method = GET)
     public List<CardPaymentDto> search(@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) throws ParseException {
         Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
         Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
