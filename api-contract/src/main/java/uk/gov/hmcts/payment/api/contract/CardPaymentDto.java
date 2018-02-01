@@ -13,8 +13,10 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -95,4 +97,30 @@ public class CardPaymentDto {
         private String href;
         private String method;
     }
+
+    public String toCsv() {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
+
+        StringJoiner sb = new StringJoiner(",")
+            .add(getServiceType())
+            .add(getPaymentReference())
+            .add(getCcdCaseNumber())
+            .add(getCaseReference())
+            .add(sdf.format(getDateCreated()))
+            .add(getPaymentChannel())
+            .add(getAmount().toString())
+            .add(getSiteId());
+
+        StringJoiner feeSb = new StringJoiner(",");
+
+        for (FeeDto fee : getFeeDtos()) {
+
+            feeSb.add(fee.getCode()).add(fee.getVersion());
+        }
+
+
+        return sb.merge(feeSb).toString();
+    }
+
 }
