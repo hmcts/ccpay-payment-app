@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.contract;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -60,6 +61,7 @@ public class CardPaymentDto {
 
     private String serviceType;
 
+    @JsonUnwrapped
     @NotNull
     private List<FeeDto> feeDtos;
 
