@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.scheduler;
 
-import org.apache.commons.io.FileUtils;
 import org.joda.time.MutableDateTime;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,8 +26,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 @Service
 public class CsvExtractService {
+
+    private static final Logger LOG = getLogger(CsvExtractService.class);
+
+    private static final String EXTRACT_FILE_PREFIX="hmcts_payments_";
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 
@@ -59,6 +65,8 @@ public class CsvExtractService {
         List<CardPaymentDto> cardPayments = cardPaymentService.search(fromDate, mutableToDate.toDate()).stream()
             .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
+        LOG.info("CsvExtractScheduler - Total records found for CSV extract "+cardPayments.size()+".");
+
         createCsv(cardPayments);
     }
 
@@ -67,41 +75,47 @@ public class CsvExtractService {
         File folder = new File(extractFileLocation);
 
         for (File file : folder.listFiles()) {
-            if (file.getName().startsWith("hmcts_payments_") && file.getName().endsWith(".csv")) {
+            if (file.getName().startsWith(EXTRACT_FILE_PREFIX) && file.getName().endsWith(".csv")) {
                 file.delete();
             }
         }
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-            String fileNameSuffix = LocalDateTime.now().format(formatter);
-            String extractFileName = extractFileLocation + File.separator + "hmcts_payments_" + fileNameSuffix + ".csv";
 
-            Path path = Paths.get(extractFileName);
+        LOG.info("CsvExtractScheduler - Old extract files deleted ");
 
-            try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))) {
-                writer.write(HEADER);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+        String fileNameSuffix = LocalDateTime.now().format(formatter);
+        String extractFileName = extractFileLocation + File.separator + EXTRACT_FILE_PREFIX + fileNameSuffix + ".csv";
+
+        Path path = Paths.get(extractFileName);
+
+        try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))) {
+            writer.write(HEADER);
+            writer.newLine();
+            for (CardPaymentDto cardPayment : cardPayments) {
+                writer.write(cardPayment.toCsv());
                 writer.newLine();
-                for (CardPaymentDto cardPayment : cardPayments) {
-                    writer.write(cardPayment.toCsv());
-                    writer.newLine();
-                }
-
-            } catch (IOException ex) {
-
             }
 
+            LOG.info("CsvExtractScheduler - "+ extractFileName +" file created.");
 
-        }
+        } catch (IOException ex) {
 
-        private String getYesterdaysDate () {
-            Date now = new Date();
-            MutableDateTime mtDtNow = new MutableDateTime(now);
-            mtDtNow.addDays(-1);
-            return sdf.format(mtDtNow.toDate());
-        }
+            LOG.error("CsvExtractScheduler - Error while creating extract file "+ extractFileName + ". Error message is"+ex.getMessage());
 
-        private String getTodaysDate () {
-            return sdf.format(new Date());
         }
 
 
     }
+
+    private String getYesterdaysDate() {
+        Date now = new Date();
+        MutableDateTime mtDtNow = new MutableDateTime(now);
+        mtDtNow.addDays(-1);
+        return sdf.format(mtDtNow.toDate());
+    }
+
+    private String getTodaysDate() {
+        return sdf.format(new Date());
+    }
+
+}
