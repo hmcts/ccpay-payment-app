@@ -64,38 +64,44 @@ public class CsvExtractService {
 
     private void createCsv(List<CardPaymentDto> cardPayments) throws IOException {
 
-        FileUtils.cleanDirectory(new File(extractFileLocation));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-        String fileNameSuffix = LocalDateTime.now().format(formatter);
-        String extractFileName = extractFileLocation + File.separator + "hmcts_payments_" + fileNameSuffix + ".csv";
+        File folder = new File(extractFileLocation);
 
-        Path path = Paths.get(extractFileName);
+        for (File file : folder.listFiles()) {
+            if (file.getName().startsWith("hmcts_payments_") && file.getName().endsWith(".csv")) {
+                file.delete();
+            }
+        }
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+            String fileNameSuffix = LocalDateTime.now().format(formatter);
+            String extractFileName = extractFileLocation + File.separator + "hmcts_payments_" + fileNameSuffix + ".csv";
 
-        try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))) {
-            writer.write(HEADER);
-            writer.newLine();
-            for (CardPaymentDto cardPayment : cardPayments) {
-                writer.write(cardPayment.toCsv());
+            Path path = Paths.get(extractFileName);
+
+            try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))) {
+                writer.write(HEADER);
                 writer.newLine();
+                for (CardPaymentDto cardPayment : cardPayments) {
+                    writer.write(cardPayment.toCsv());
+                    writer.newLine();
+                }
+
+            } catch (IOException ex) {
+
             }
 
-        } catch (IOException ex) {
 
+        }
+
+        private String getYesterdaysDate () {
+            Date now = new Date();
+            MutableDateTime mtDtNow = new MutableDateTime(now);
+            mtDtNow.addDays(-1);
+            return sdf.format(mtDtNow.toDate());
+        }
+
+        private String getTodaysDate () {
+            return sdf.format(new Date());
         }
 
 
     }
-
-    private String getYesterdaysDate() {
-        Date now = new Date();
-        MutableDateTime mtDtNow = new MutableDateTime(now);
-        mtDtNow.addDays(-1);
-        return sdf.format(mtDtNow.toDate());
-    }
-
-    private String getTodaysDate() {
-        return sdf.format(new Date());
-    }
-
-
-}
