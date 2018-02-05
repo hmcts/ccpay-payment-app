@@ -1,2 +1,7 @@
 <FindBugsFilter>
+    <Match>
+        <Class name="uk.gov.hmcts.payment.api.scheduler.CsvExtractService" />
+        <Method name="createCsv" />
+        <Bug pattern="PATH_TRAVERSAL_IN" />
+    </Match>
 </FindBugsFilter>
