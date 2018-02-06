@@ -29,11 +29,11 @@ import java.util.stream.Collectors;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Service
-public class CsvExtractService {
+public class PaymentsReportService {
 
-    private static final Logger LOG = getLogger(CsvExtractService.class);
+    private static final Logger LOG = getLogger(PaymentsReportService.class);
 
-    private static final String EXTRACT_FILE_PREFIX="hmcts_payments_";
+    private static final String CSV_FILE_PREFIX = "hmcts_payments_";
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 
@@ -44,17 +44,18 @@ public class CsvExtractService {
 
     private CardPaymentDtoMapper cardPaymentDtoMapper;
 
-    private String extractFileLocation;
+    private String csvFileLocation;
 
     @Autowired
-    public CsvExtractService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, CardPaymentDtoMapper cardPaymentDtoMapper,
-                             @Value("${csv.extract.file.location}") String extractFileLocation) {
+    public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, CardPaymentDtoMapper cardPaymentDtoMapper,
+                                 @Value("${payments.report.file.location}") String csvFileLocation) {
         this.cardPaymentService = cardPaymentService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
-        this.extractFileLocation = extractFileLocation;
+        this.csvFileLocation = csvFileLocation;
     }
 
-    public void extractCsv(String startDate, String endDate) throws ParseException, IOException {
+    public void generateCsv(String startDate, String endDate) throws ParseException, IOException {
+
         Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
         Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
 
@@ -65,28 +66,26 @@ public class CsvExtractService {
         List<CardPaymentDto> cardPayments = cardPaymentService.search(fromDate, mutableToDate.toDate()).stream()
             .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-        LOG.info("CsvExtractScheduler - Total records found for CSV extract "+cardPayments.size()+".");
-
         createCsv(cardPayments);
+
     }
 
     private void createCsv(List<CardPaymentDto> cardPayments) throws IOException {
 
-        File folder = new File(extractFileLocation);
+        File folder = new File(csvFileLocation);
 
         for (File file : folder.listFiles()) {
-            if (file.getName().startsWith(EXTRACT_FILE_PREFIX) && file.getName().endsWith(".csv")) {
+            if (file.getName().startsWith(CSV_FILE_PREFIX) && file.getName().endsWith(".csv")) {
                 file.delete();
+                LOG.info("PaymentsReportService - " + file.getName() + " deleted ");
             }
         }
 
-        LOG.info("CsvExtractScheduler - Old extract files deleted ");
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
         String fileNameSuffix = LocalDateTime.now().format(formatter);
-        String extractFileName = extractFileLocation + File.separator + EXTRACT_FILE_PREFIX + fileNameSuffix + ".csv";
+        String csvFileName = csvFileLocation + File.separator + CSV_FILE_PREFIX + fileNameSuffix + ".csv";
 
-        Path path = Paths.get(extractFileName);
+        Path path = Paths.get(csvFileName);
 
         try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))) {
             writer.write(HEADER);
@@ -96,11 +95,11 @@ public class CsvExtractService {
                 writer.newLine();
             }
 
-            LOG.info("CsvExtractScheduler - "+ extractFileName +" file created.");
+            LOG.info("PaymentsReportService - Total " + cardPayments.size() + " records written in payments csv file " + csvFileName);
 
         } catch (IOException ex) {
 
-            LOG.error("CsvExtractScheduler - Error while creating extract file "+ extractFileName + ". Error message is"+ex.getMessage());
+            LOG.error("PaymentsReportService - Error while creating extract file " + csvFileName + ". Error message is" + ex.getMessage());
 
         }
 

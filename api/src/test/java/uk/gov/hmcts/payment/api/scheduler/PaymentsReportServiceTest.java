@@ -9,17 +9,17 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CsvExtractServiceTest {
+public class PaymentsReportServiceTest {
 
     @Mock
-    private CsvExtractService csvExtractService;
+    private PaymentsReportService paymentsReportService;
 
 
-    private CsvExtractScheduler scheduler;
+    private PaymentsReportScheduler scheduler;
 
     @Before
     public void setUp() {
-        scheduler = new CsvExtractScheduler(csvExtractService,null,null);
+        scheduler = new PaymentsReportScheduler(paymentsReportService);
     }
 
     @Test
@@ -27,10 +27,10 @@ public class CsvExtractServiceTest {
         // given
 
         // when
-        scheduler.extractCsv();
+        scheduler.generatePaymentsReport();
 
         // then
-        verify(csvExtractService).extractCsv(null,null);
+        verify(paymentsReportService).generateCsv(null,null);
     }
 }
 
