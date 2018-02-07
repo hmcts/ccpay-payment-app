@@ -39,9 +39,6 @@ public class CardPaymentRequest {
     @NotEmpty
     private String description;
 
-    @NotEmpty
-    @URL(protocol = "https")
-    private String returnUrl;
 
     @NotEmpty
     private String currency;
@@ -53,12 +50,12 @@ public class CardPaymentRequest {
     private String caseReference;
 
     @NotEmpty
-    private String serviceType;
+    private String serviceName;
 
     @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
 
     @Valid
-    private List<FeeDto> feeDtos;
+    private List<FeeDto> fee;
 }
