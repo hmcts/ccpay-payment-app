@@ -77,6 +77,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     @Override
+    @Transactional
     public PaymentFeeLink retrieve(String paymentReference) {
         PaymentFeeLink paymentFeeLink = findSavedPayment(paymentReference);
         Payment payment = paymentFeeLink.getPayments().get(0);

@@ -14,3 +14,7 @@ target/
 *.iml
 *.ipr
 *.class
+
+
+#### Payment audit log ####
+payment-audit.log
