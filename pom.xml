@@ -28,7 +28,8 @@
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
-        <sonar.dependencyCheck.reportPath>${project.basedir}/target/dependency-check-report.xml</sonar.dependencyCheck.reportPath>
+        <sonar.dependencyCheck.reportPath>${project.basedir}/target/dependency-check-report.xml
+        </sonar.dependencyCheck.reportPath>
     </properties>
 
     <dependencyManagement>
@@ -181,32 +182,7 @@
                 <artifactId>annotations</artifactId>
                 <version>1.3.2</version>
                 <scope>provided</scope>
-            </dependency><dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.9.4</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>2.9.4</version>
             </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>2.9.4</version>
-            </dependency>
-
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
@@ -232,7 +208,6 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>2.9.4</version>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 
@@ -274,15 +249,22 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>3.5.3</version>
                 <configuration>
-                    <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
-                    <diffChangeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.2.yaml</diffChangeLogFile>
+                    <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml
+                    </changeLogFile>
+                    <diffChangeLogFile>
+                        ${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.2.yaml
+                    </diffChangeLogFile>
                     <url>jdbc:postgresql://localhost:5432/payment</url>
                     <driver>org.postgresql.Driver</driver>
                     <username>payment</username>
                     <password>payment</password>
-                    <referenceUrl>hibernate:spring:uk.gov.hmcts.payment.api.model?dialect=org.hibernate.dialect.PostgreSQL9Dialect</referenceUrl>
+                    <referenceUrl>
+                        hibernate:spring:uk.gov.hmcts.payment.api.model?dialect=org.hibernate.dialect.PostgreSQL9Dialect
+                    </referenceUrl>
                     <verbose>true</verbose>
-                    <diffExcludeObjects>table:payment_old, table:payment_channel, table:payment_method, table:payment_provider, table:payment_status</diffExcludeObjects>
+                    <diffExcludeObjects>table:payment_old, table:payment_channel, table:payment_method,
+                        table:payment_provider, table:payment_status
+                    </diffExcludeObjects>
                 </configuration>
 
                 <dependencies>
@@ -428,7 +410,8 @@
                             <verbose>true</verbose>
                             <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
                             <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                            <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                            <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+                            </generateGitPropertiesFilename>
                         </configuration>
                     </plugin>
                 </plugins>
