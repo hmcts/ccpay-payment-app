@@ -43,8 +43,9 @@ public class Payment {
     @Column(name = "amount")
     private BigDecimal amount;
 
-    @Transient
+    @Column(name = "reference")
     private String reference;
+
 
     @Column(name = "description")
     private String description;
@@ -93,8 +94,8 @@ public class Payment {
     @JoinColumn(name = "payment_status")
     private PaymentStatus paymentStatus;
 
-    @Column(name = "payment_reference")
-    private String PaymentReference;
+    @Column(name = "external_reference")
+    private String externalReference;
 
     @Column(name = "organisation_name")
     private String organisationName;
