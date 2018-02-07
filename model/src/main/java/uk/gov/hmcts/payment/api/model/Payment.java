@@ -93,6 +93,18 @@ public class Payment {
     @JoinColumn(name = "payment_status")
     private PaymentStatus paymentStatus;
 
+    @Column(name = "payment_reference")
+    private String PaymentReference;
+
+    @Column(name = "organisation_name")
+    private String organisationName;
+
+    @Column(name = "pba_number")
+    private String pbaNumber;
+
+    @Column(name = "customer_reference")
+    private String customerReference;
+
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
 //    private PaymentLink paymentLink;
