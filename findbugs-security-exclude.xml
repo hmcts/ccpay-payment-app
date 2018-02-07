@@ -1,6 +1,6 @@
 <FindBugsFilter>
     <Match>
-        <Class name="uk.gov.hmcts.payment.api.scheduler.CsvExtractService" />
+        <Class name="uk.gov.hmcts.payment.api.scheduler.PaymentsReportService" />
         <Method name="createCsv" />
         <Bug pattern="PATH_TRAVERSAL_IN" />
     </Match>
