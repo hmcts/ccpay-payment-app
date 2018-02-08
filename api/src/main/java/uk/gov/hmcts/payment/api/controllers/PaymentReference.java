@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -33,7 +35,10 @@ public class PaymentReference {
 
     public String getNext() {
         SecureRandom random = new SecureRandom();
-        String nextVal = String.format("%08d", random.nextInt(100000000));
+
+        DateTime dateTime = new DateTime(DateTimeZone.UTC);
+
+        String nextVal = String.format("%010d", random.nextInt((int)dateTime.getMillis()/100));
         return LocalDateTime.now().getYear() + "-" + nextVal;
     }
 
