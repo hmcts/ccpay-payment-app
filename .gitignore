@@ -14,7 +14,9 @@ target/
 *.iml
 *.ipr
 *.class
+<<<<<<< HEAD
 
 
 #### Payment audit log ####
 payment-audit.log
+api/src/main/resources/application.properties
