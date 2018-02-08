@@ -61,11 +61,8 @@ public class PaymentsReportService {
         Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
         Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
 
-        // Limiting search only to date without time.
-        MutableDateTime mutableToDate = new MutableDateTime(toDate);
-        mutableToDate.addDays(1);
 
-        List<CardPaymentDto> cardPayments = cardPaymentService.search(fromDate, mutableToDate.toDate()).stream()
+        List<CardPaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
             .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
         createCsv(cardPayments);
