@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.contract;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -38,6 +39,7 @@ public class CardPaymentDto {
 
     private String reference;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss.SSS'Z'", timezone = "GMT")
     private Date dateCreated;
 
     private String currency;

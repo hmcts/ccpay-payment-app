@@ -26,8 +26,8 @@ public class Payment {
     @Column(name = "user_id")
     private String userId;
 
-    @Column(name = "gov_pay_id")
-    private String govPayId;
+    @Column(name = "external_reference")
+    private String externalReference;
 
     @CreationTimestamp
     @Column(name = "date_created")
@@ -42,9 +42,6 @@ public class Payment {
 
     @Column(name = "amount")
     private BigDecimal amount;
-
-    @Transient
-    private String reference;
 
     @Column(name = "description")
     private String description;
@@ -92,6 +89,18 @@ public class Payment {
     @ManyToOne
     @JoinColumn(name = "payment_status")
     private PaymentStatus paymentStatus;
+
+    @Column(name = "organisation_name")
+    private String organisationName;
+
+    @Column(name = "pba_number")
+    private String pbaNumber;
+
+    @Column(name = "customer_reference")
+    private String customerReference;
+
+    @Column(name = "reference")
+    private String reference;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)

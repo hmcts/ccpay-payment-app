@@ -14,6 +14,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payments-database:5432/payment
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8080/
       - auth.idam.client.baseUrl=http://idam-api:8080/
+      - payments.report.file.location=.
     ports:
      - 8080:8080
     links:

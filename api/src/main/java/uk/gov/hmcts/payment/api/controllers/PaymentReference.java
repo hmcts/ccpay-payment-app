@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -31,7 +32,8 @@ public class PaymentReference {
     }
 
     public String getNext() {
-        String nextVal = StringUtils.leftPad(Integer.toString(atomicInteger.getAndIncrement()), 8, '0');
+        SecureRandom random = new SecureRandom();
+        String nextVal = String.format("%08d", random.nextInt(100000000));
         return LocalDateTime.now().getYear() + "-" + nextVal;
     }
 
