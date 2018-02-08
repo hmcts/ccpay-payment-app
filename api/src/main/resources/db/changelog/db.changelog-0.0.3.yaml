@@ -134,13 +134,3 @@ databaseChangeLog:
         constraintName: FK_qhbn3c5pejpl26rkokgo1139n
         referencedColumnNames: name
         referencedTableName: payment_provider
-- changeSet:
-    id: 1518026402074-13
-    author: tarun (generated)
-    changes:
-    - addDefaultValue:
-        columnDataType: int
-        columnName: id
-        defaultValueComputed: nextval('payment_id_seq'::regclass)
-        tableName: payment
-
