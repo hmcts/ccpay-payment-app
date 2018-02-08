@@ -58,12 +58,12 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
             Arrays.asList(Fee.feeWith().code("code").version("version").amount(new BigDecimal(1000)).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
         when(paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("paymentReference")
-            .payments(Arrays.asList(Payment.paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
+            .payments(Arrays.asList(Payment.paymentWith().externalReference(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
                 .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
             .fees(Arrays.asList(Fee.feeWith().code("code").version("version").amount(new BigDecimal(1000)).build()))
             .build()))
             .thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(999).paymentReference("paymentReference")
-                .payments(Arrays.asList(Payment.paymentWith().id(998).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
+                .payments(Arrays.asList(Payment.paymentWith().id(998).externalReference(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
                     .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
                 .fees(Arrays.asList(Fee.feeWith().id(998).code("feeCode").version("feeVersion").amount(new BigDecimal(1000)).build()))
                 .build());
@@ -72,17 +72,17 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     @Test
     public void testRetrieveCardPaymentForGivenPaymentReference() throws Exception {
         when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1)
-            .payments(Arrays.asList(Payment.paymentWith().id(1).govPayId("govPayId").build())).build()));
+            .payments(Arrays.asList(Payment.paymentWith().id(1).externalReference("govPayId").build())).build()));
 
         when(govPayCardPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
-        assertThat(cardPaymentService.retrieve("1").getPayments().get(0).getGovPayId()).isEqualTo("govPayId");
+        assertThat(cardPaymentService.retrieve("1").getPayments().get(0).getExternalReference()).isEqualTo("govPayId");
     }
 
 
     private Payment mapToPayment(Integer id, String govPayId, GovPayPayment govPayPayment) {
         return paymentWith()
             .id(id)
-            .govPayId(govPayId)
+            .externalReference(govPayId)
             .amount(BigDecimal.valueOf(govPayPayment.getAmount()).movePointRight(2))
             .description(govPayPayment.getDescription())
             .reference(govPayPayment.getReference())
