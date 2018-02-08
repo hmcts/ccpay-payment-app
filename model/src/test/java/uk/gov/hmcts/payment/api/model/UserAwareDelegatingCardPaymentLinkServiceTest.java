@@ -75,7 +75,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
             .payments(Arrays.asList(Payment.paymentWith().id(1).externalReference("govPayId").build())).build()));
 
         when(govPayCardPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
-        assertThat(cardPaymentService.retrieve("1").getPayments().get(0).getExternalReference()).isEqualTo("govPayId");
+        assertThat(cardPaymentService.retrieve("1").getPayments().get(0).getExternalReference()).isEqualTo("paymentId");
     }
 
 
