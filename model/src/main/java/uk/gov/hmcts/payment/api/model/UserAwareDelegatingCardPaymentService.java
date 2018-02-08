@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.model;
 
 import lombok.NonNull;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
@@ -56,7 +58,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
 
         //Build PaymentLink obj
-        Payment payment = Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).userId(userIdSupplier.get())
+        Payment payment = Payment.paymentWith().userId(userIdSupplier.get())
                                 .amount(BigDecimal.valueOf(amount).movePointRight(2))
                                 .description(description).returnUrl(returnUrl).ccdCaseNumber(ccdCaseNumber)
                                 .caseReference(caseReference).currency(currency).siteId(siteId)
@@ -65,6 +67,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
                                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CARD))
                                 .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_GOVPAY))
                                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
+                                .reference(generatePaymentReference())
                                 .build();
         fillTransientDetails(payment, govPayPayment);
 
@@ -77,11 +80,12 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     @Override
+    @Transactional
     public PaymentFeeLink retrieve(String paymentReference) {
         PaymentFeeLink paymentFeeLink = findSavedPayment(paymentReference);
         Payment payment = paymentFeeLink.getPayments().get(0);
 
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getGovPayId());
+        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
 
         fillTransientDetails(payment, govPayPayment);
         return paymentFeeLink;
@@ -137,7 +141,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         payment.setAmount(amountInPounds);
         payment.setStatus(govPayPayment.getState().getStatus());
         payment.setFinished(govPayPayment.getState().getFinished());
-        payment.setReference(govPayPayment.getReference());
+        payment.setExternalReference(govPayPayment.getPaymentId());
         payment.setDescription(govPayPayment.getDescription());
         payment.setReturnUrl(govPayPayment.getReturnUrl());
         payment.setNextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()));
@@ -147,5 +151,22 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private String hrefFor(Link url) {
         return url == null ? null : url.getHref();
+    }
+
+    private String generatePaymentReference() {
+        DateTime dateTime = new DateTime(DateTimeZone.UTC);
+        long timeInMillis = dateTime.getMillis()/100;
+
+        StringBuffer sb = new StringBuffer();
+        sb.append(timeInMillis);
+
+        // append the random 4 characters
+        Random random = new Random();
+        sb.append(String.format("%04d", random.nextInt(10000)));
+        sb.append("C");
+
+        String[] parts = sb.toString().split("(?<=\\G.{4})");
+
+        return "RC-" + String.join("-", parts);
     }
 }

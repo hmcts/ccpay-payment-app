@@ -239,6 +239,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.9.9</version>
+        </dependency>
     </dependencies>
 
 
@@ -249,11 +254,9 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>3.5.3</version>
                 <configuration>
-                    <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml
-                    </changeLogFile>
-                    <diffChangeLogFile>
-                        ${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.2.yaml
-                    </diffChangeLogFile>
+                    <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
+                    <diffChangeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.3.yaml</diffChangeLogFile>
+                    <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
                     <url>jdbc:postgresql://localhost:5432/payment</url>
                     <driver>org.postgresql.Driver</driver>
                     <username>payment</username>

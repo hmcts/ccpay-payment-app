@@ -94,7 +94,6 @@ public class CardPaymentController {
 
         // Limiting search only to date without time.
         MutableDateTime mutableToDate = new MutableDateTime(toDate);
-        mutableToDate.addDays(1);
 
         return cardPaymentService.search(fromDate, mutableToDate.toDate()).stream()
             .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
