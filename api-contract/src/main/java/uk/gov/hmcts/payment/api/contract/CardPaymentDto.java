@@ -34,8 +34,6 @@ public class CardPaymentDto {
     @NotEmpty
     private BigDecimal amount;
 
-    private StateDto state;
-
     @NotEmpty
     private String description;
 
@@ -52,34 +50,26 @@ public class CardPaymentDto {
 
     private String paymentReference;
 
-    private String paymentChannel;
+    private String channel;
 
-    private String paymentMethod;
+    private String method;
 
-    private String paymentProvider;
+    private String provider;
 
-    private String paymentStatus;
+    private String status;
 
     @NotEmpty
     private String siteId;
 
-    private String serviceType;
+    private String serviceName;
 
     @JsonUnwrapped
     @NotNull
-    private List<FeeDto> feeDtos;
+    private List<FeeDto> fees;
 
     @JsonProperty("_links")
     private LinksDto links;
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @JsonInclude(NON_NULL)
-    public static class StateDto {
-        private String status;
-        private Boolean finished;
-    }
 
     @Data
     @AllArgsConstructor
@@ -105,18 +95,18 @@ public class CardPaymentDto {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
         StringJoiner sb = new StringJoiner(",")
-            .add(getServiceType())
+            .add(getServiceName())
             .add(getPaymentReference())
             .add(getCcdCaseNumber())
             .add(getCaseReference())
             .add(sdf.format(getDateCreated()))
-            .add(getPaymentChannel())
+            .add(getChannel())
             .add(getAmount().toString())
             .add(getSiteId());
 
         StringJoiner feeSb = new StringJoiner(",");
 
-        for (FeeDto fee : getFeeDtos()) {
+        for (FeeDto fee : getFees()) {
 
             feeSb.add(fee.getCode()).add(fee.getVersion());
         }

@@ -4,26 +4,22 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
-import org.joda.time.DateTime;
 import org.joda.time.MutableDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
-import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
+import uk.gov.hmcts.payment.api.model.CardPaymentService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.api.model.CardPaymentService;
 
 import javax.validation.Valid;
-
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,14 +59,15 @@ public class CardPaymentController {
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/card-payments", method = POST)
-    public ResponseEntity<CardPaymentDto> createCardPayment(@RequestHeader(value = "userId") String userId,
+    public ResponseEntity<CardPaymentDto> createCardPayment(@RequestHeader(value = "user_id") String userId,
+                                                            @RequestHeader(value = "return_url") String returnUrl,
                                                             @Valid @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
-            request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
-            request.getCurrency(), request.getSiteId(), request.getServiceType(), cardPaymentDtoMapper.toFees(request.getFeeDtos()));
+            request.getDescription(), returnUrl, request.getCcdCaseNumber(), request.getCaseReference(),
+            request.getCurrency(), request.getSiteId(), request.getServiceName(), cardPaymentDtoMapper.toFees(request.getFee()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }
