@@ -25,6 +25,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD =  "card";
+    private final static String PAYMENT_REF_REGEX = "(?<=\\G.{4})";
 
     private final UserIdSupplier userIdSupplier;
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -165,7 +166,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         sb.append(String.format("%04d", random.nextInt(10000)));
         sb.append("C");
 
-        String[] parts = sb.toString().split("(?<=\\G.{4})");
+        String[] parts = sb.toString().split(PAYMENT_REF_REGEX);
 
         return "RC-" + String.join("-", parts);
     }
