@@ -34,6 +34,16 @@ public class RestActions {
         return this;
     }
 
+    public RestActions withUserId(String userId) {
+        httpHeaders.add("user_id", userId);
+        return this;
+    }
+
+    public RestActions withReturnUrl(String returnUrl) {
+        httpHeaders.add("return_url", returnUrl);
+        return this;
+    }
+
     public RestActions withAuthorizedUser(String userId) {
         String token = UUID.randomUUID().toString();
         userRequestAuthorizer.registerToken(token, userId);
