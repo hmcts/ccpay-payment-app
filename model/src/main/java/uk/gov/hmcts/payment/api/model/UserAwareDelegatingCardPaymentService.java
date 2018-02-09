@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -163,7 +164,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         sb.append(timeInMillis);
 
         // append the random 4 characters
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         sb.append(String.format("%04d", random.nextInt(10000)));
         sb.append("C");
 
