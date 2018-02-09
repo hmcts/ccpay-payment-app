@@ -32,11 +32,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-
+@RunWith(SpringRunner.class)
+@ActiveProfiles({"embedded", "local", "componenttest"})
+@SpringBootTest(webEnvironment = MOCK)
+@Transactional
 public class ComponentTestBase {
 
-    //@ClassRule
-    //public static WireMockRule wireMockRule = new WireMockRule(9190);
+    @ClassRule
+    public static WireMockRule wireMockRule = new WireMockRule(9190);
 
     @Autowired
     protected DbBackdoor db;
