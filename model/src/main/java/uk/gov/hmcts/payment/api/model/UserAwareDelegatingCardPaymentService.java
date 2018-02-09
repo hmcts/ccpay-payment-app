@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -52,8 +53,9 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     @Override
-    public PaymentFeeLink create(int amount, @NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl,
+    public PaymentFeeLink create(int amount, @NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl,
                                  String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) {
+        String paymentReference = generatePaymentReference();
 
         GovPayPayment govPayPayment = delegate.create(amount, paymentReference, description, returnUrl,
             ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
@@ -68,11 +70,11 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
                                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CARD))
                                 .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_GOVPAY))
                                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
-                                .reference(generatePaymentReference())
+                                .reference(paymentReference)
                                 .build();
         fillTransientDetails(payment, govPayPayment);
 
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentReference)
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
             .payments(Arrays.asList(payment))
             .fees(fees)
             .build());
@@ -162,7 +164,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         sb.append(timeInMillis);
 
         // append the random 4 characters
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         sb.append(String.format("%04d", random.nextInt(10000)));
         sb.append("C");
 

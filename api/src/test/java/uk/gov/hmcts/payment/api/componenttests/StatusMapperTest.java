@@ -58,6 +58,7 @@ public class StatusMapperTest {
 
         assertThat("PBAStatus", is(paymentDto.getStatus()));
     }
+
     private PaymentFeeLink getPaymentWithStatus(String status) {
         List payments = new ArrayList<>();
         Payment payment = Payment.paymentWith().
@@ -66,7 +67,6 @@ public class StatusMapperTest {
         payments.add(payment);
 
 
-        return PaymentFeeLink.paymentFeeLinkWith().payments(payments
-        ).build();
+        return PaymentFeeLink.paymentFeeLinkWith().payments(payments).build();
     }
 }
