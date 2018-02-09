@@ -63,7 +63,7 @@ public class CardPaymentDto {
 
     private String serviceName;
 
-    @JsonUnwrapped
+    //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;
 
