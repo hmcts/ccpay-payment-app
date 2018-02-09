@@ -1,0 +1,38 @@
+{
+  "amount": 10189,
+  "state": {
+    "status": "failed",
+    "finished": true,
+    "message": "Payment expired",
+    "code": "P0020"
+  },
+  "description": "Description101",
+  "reference": "2018-0018162019",
+  "payment_id": "ak8gtvb438drmp59cs7ijppr3i",
+  "payment_provider": "sandbox",
+  "return_url": "https://localhost",
+  "created_date": "2018-02-08T12:34:45.482Z",
+  "refund_summary": {
+    "status": "unavailable",
+    "amount_available": 10189,
+    "amount_submitted": 0
+  },
+  "settlement_summary": {},
+  "_links": {
+    "self": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/33gm1751bnvmpgn9c4llmbd15e",
+      "method": "GET"
+    },
+    "next_url": null,
+    "next_url_post": null,
+    "events": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/33gm1751bnvmpgn9c4llmbd15e/events",
+      "method": "GET"
+    },
+    "refunds": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/33gm1751bnvmpgn9c4llmbd15e/refunds",
+      "method": "GET"
+    },
+    "cancel": null
+  }
+}
