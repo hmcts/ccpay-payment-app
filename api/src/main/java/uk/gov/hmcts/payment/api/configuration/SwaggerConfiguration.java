@@ -72,13 +72,6 @@ public class SwaggerConfiguration {
                     .required(true)
                     .parameterType("header")
                     .modelRef(new ModelRef("string"))
-                    .build(),
-                new ParameterBuilder()
-                    .name("user_id")
-                    .description("user id")
-                    .required(true)
-                    .parameterType("header")
-                    .modelRef(new ModelRef("string"))
                     .build())
             )
             .useDefaultResponseMessages(false)

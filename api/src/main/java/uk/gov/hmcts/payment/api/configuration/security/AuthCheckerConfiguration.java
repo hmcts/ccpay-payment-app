@@ -29,9 +29,11 @@ public class AuthCheckerConfiguration {
         Pattern pattern = Pattern.compile("^/users/([^/]+)/.+$");
 
         return (request) -> {
-            Matcher matcher = pattern.matcher(request.getRequestURI());
-            boolean matched = matcher.find();
-            return Optional.ofNullable(matched ? matcher.group(1) : null);
+//            Matcher matcher = pattern.matcher(request.getRequestURI());
+//            boolean matched = matcher.find();
+
+            String userId = request.getHeader("user_id");
+            return Optional.ofNullable(userId != null ? userId : null);
         };
     }
 
