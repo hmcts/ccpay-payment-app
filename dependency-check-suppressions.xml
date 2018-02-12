@@ -61,6 +61,11 @@
         <cve>CVE-2016-7051</cve>
     </suppress>
     <suppress>
+        <notes>Does not apply as we don't use Jackson XmlMapper</notes>
+        <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-.*:.*$</gav>
+        <cve>CVE-2017-17485</cve>
+    </suppress>
+    <suppress>
         <notes>Does not apply as postgresql</notes>
         <gav regex="true">^org\.postgresql:postgresql.*:.*$</gav>
         <cve>CVE-2017-8806</cve>
