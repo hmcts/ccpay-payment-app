@@ -13,21 +13,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class PaymentReference {
 
-    private AtomicInteger atomicInteger;
-
     private static PaymentReference obj = null;
 
-    private PaymentReference(int initialValue) {
-        this.atomicInteger = new AtomicInteger(initialValue);
+    private PaymentReference() {
     }
 
     public static PaymentReference getInstance() {
-        // First day of the CURRENT YEAR
-        LocalDate date = LocalDate.of(LocalDateTime.now().getYear(), Month.JANUARY, 01);
-
-        LocalDate now = LocalDate.now();
-        if ( obj == null || now.equals(date.with(TemporalAdjusters.firstDayOfYear())) ) {
-            obj = new PaymentReference(1);
+        if ( obj == null ) {
+            obj = new PaymentReference();
         }
 
         return obj;
@@ -37,8 +30,9 @@ public class PaymentReference {
         SecureRandom random = new SecureRandom();
 
         DateTime dateTime = new DateTime(DateTimeZone.UTC);
+        long dateTimeinMillis = dateTime.getMillis()/100;
 
-        String nextVal = String.format("%010d", random.nextInt((int)dateTime.getMillis()/100));
+        String nextVal = String.format("%010d", dateTimeinMillis);
         return LocalDateTime.now().getYear() + "-" + nextVal;
     }
 
