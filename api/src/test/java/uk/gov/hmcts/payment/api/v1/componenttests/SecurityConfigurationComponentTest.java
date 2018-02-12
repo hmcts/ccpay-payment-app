@@ -1,10 +1,13 @@
 package uk.gov.hmcts.payment.api.v1.componenttests;
 
 import org.junit.Test;
+import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class SecurityConfigurationComponentTest extends ComponentTestBase {
+public class SecurityConfigurationComponentTest {
+
+    private RestActions restActions;
 
     public void requestFromUnauthorizedServiceShouldResultIn403() throws Exception {
         restActions
