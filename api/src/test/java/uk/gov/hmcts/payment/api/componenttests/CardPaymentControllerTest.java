@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +47,8 @@ public class CardPaymentControllerTest{
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{3}C){1}";
 
-    @ClassRule
-    public static WireMockRule wireMockRule = new WireMockRule(9190);
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(9190);
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
