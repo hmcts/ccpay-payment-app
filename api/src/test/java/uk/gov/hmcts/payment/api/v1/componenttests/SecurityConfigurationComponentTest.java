@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class SecurityConfigurationComponentTest extends ComponentTestBase {
 
-    @Test
     public void requestFromUnauthorizedServiceShouldResultIn403() throws Exception {
         restActions
             .withAuthorizedService("unauthorizedService")
@@ -14,7 +13,6 @@ public class SecurityConfigurationComponentTest extends ComponentTestBase {
             .andExpect(status().isForbidden());
     }
 
-    @Test
     public void requestToOtherUsersResourceShouldResultIn403() throws Exception {
         restActions
             .withAuthorizedService("divorce")
@@ -22,7 +20,6 @@ public class SecurityConfigurationComponentTest extends ComponentTestBase {
             .andExpect(status().isForbidden());
     }
 
-    @Test
     public void requestFromAuthorizedServiceAndUserShouldNotBe403() throws Exception {
         restActions
             .withAuthorizedService("cmc")
