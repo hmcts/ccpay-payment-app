@@ -70,4 +70,9 @@
         <gav regex="true">^org\.postgresql:postgresql.*:.*$</gav>
         <cve>CVE-2017-8806</cve>
     </suppress>
+    <suppress>
+        <notes>Suppress spring-boot-starter-mail as it doesn't apply to java mail</notes>
+        <gav regex="true">^org\.springframework\.boot:spring-boot-starter-mail:.*$</gav>
+        <cpe>cpe:/a:mail_project:mail:1.5.9</cpe>
+    </suppress>
 </suppressions>
