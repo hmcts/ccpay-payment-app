@@ -9,16 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
+import uk.gov.hmcts.payment.api.email.EmailFailedException;
+import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.CardPaymentService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
-import java.io.BufferedWriter;
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -27,13 +25,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.slf4j.LoggerFactory.getLogger;
+import static uk.gov.hmcts.payment.api.email.EmailAttachment.csv;
 
 @Service
 @Transactional
 public class PaymentsReportService {
 
     private static final Logger LOG = getLogger(PaymentsReportService.class);
+
+    private static final String BYTE_ARRAY_OUTPUT_STREAM_NEWLINE = "\r\n";
 
     private static final String CSV_FILE_PREFIX = "hmcts_payments_";
 
@@ -46,14 +48,17 @@ public class PaymentsReportService {
 
     private CardPaymentDtoMapper cardPaymentDtoMapper;
 
-    private String csvFileLocation;
+    private EmailService emailService;
+
+    private CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail;
 
     @Autowired
     public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, CardPaymentDtoMapper cardPaymentDtoMapper,
-                                 @Value("${payments.report.file.location}") String csvFileLocation) {
+                                 EmailService emailService, CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail) {
         this.cardPaymentService = cardPaymentService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
-        this.csvFileLocation = csvFileLocation;
+        this.emailService = emailService;
+        this.cardPaymentReconciliationReportEmail = cardPaymentReconciliationReportEmail;
     }
 
     public void generateCsv(String startDate, String endDate) throws ParseException, IOException {
@@ -71,34 +76,29 @@ public class PaymentsReportService {
 
     private void createCsv(List<CardPaymentDto> cardPayments) throws IOException {
 
-        File folder = new File(csvFileLocation);
-
-        for (File file : folder.listFiles()) {
-            if (file.getName().startsWith(CSV_FILE_PREFIX) && file.getName().endsWith(".csv")) {
-                file.delete();
-                LOG.info("PaymentsReportService - " + file.getName() + " deleted ");
-            }
-        }
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
         String fileNameSuffix = LocalDateTime.now().format(formatter);
-        String csvFileName = csvFileLocation + File.separator + CSV_FILE_PREFIX + fileNameSuffix + ".csv";
+        String csvFileName = CSV_FILE_PREFIX + fileNameSuffix + ".csv";
 
-        Path path = Paths.get(csvFileName);
-
-        try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))) {
-            writer.write(HEADER);
-            writer.newLine();
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            bos.write(HEADER.getBytes());
+            bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
             for (CardPaymentDto cardPayment : cardPayments) {
-                writer.write(cardPayment.toCsv());
-                writer.newLine();
+                bos.write(cardPayment.toCsv().getBytes());
+                bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
             }
 
             LOG.info("PaymentsReportService - Total " + cardPayments.size() + " records written in payments csv file " + csvFileName);
 
-        } catch (IOException ex) {
+            cardPaymentReconciliationReportEmail.setAttachments(newArrayList(csv(bos.toByteArray(), csvFileName)));
 
-            LOG.error("PaymentsReportService - Error while creating extract file " + csvFileName + ". Error message is" + ex.getMessage());
+            emailService.sendEmail(cardPaymentReconciliationReportEmail);
+
+            LOG.info("PaymentsReportService - Card payments report  email sent to " + cardPaymentReconciliationReportEmail.getTo());
+
+        } catch (IOException | EmailFailedException ex) {
+
+            LOG.error("PaymentsReportService - Error while creating card payments csv file " + csvFileName + ". Error message is" + ex.getMessage());
 
         }
 
