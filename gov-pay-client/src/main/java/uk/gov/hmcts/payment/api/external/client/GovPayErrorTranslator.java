@@ -34,7 +34,7 @@ public class GovPayErrorTranslator {
         try {
             Error error = objectMapper.readValue(responseBody, Error.class);
 
-            switch (error.getCode()) {
+                switch (error.getCode()) {
                 case "P0198":
                     return new GovPayDownstreamSystemErrorException(error);
                 case "P0199":
