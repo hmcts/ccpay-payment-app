@@ -80,7 +80,7 @@ public class EmailServiceTest {
 
         public TestEmail(String from, String to, String subject, String message) {
             this.from = from;
-            this.to = to;
+            this.to = to.split(",");
             this.subject = subject;
             this.message = message;
         }
