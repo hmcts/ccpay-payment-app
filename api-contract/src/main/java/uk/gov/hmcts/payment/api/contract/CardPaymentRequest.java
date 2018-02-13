@@ -40,10 +40,6 @@ public class CardPaymentRequest {
     private String description;
 
     @NotEmpty
-    @URL(protocol = "https")
-    private String returnUrl;
-
-    @NotEmpty
     private String currency;
 
     @NotEmpty
