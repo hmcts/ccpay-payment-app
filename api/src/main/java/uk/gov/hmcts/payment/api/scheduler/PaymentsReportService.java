@@ -4,7 +4,6 @@ import org.joda.time.MutableDateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
@@ -21,6 +20,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -94,7 +94,7 @@ public class PaymentsReportService {
 
             emailService.sendEmail(cardPaymentReconciliationReportEmail);
 
-            LOG.info("PaymentsReportService - Card payments report  email sent to " + cardPaymentReconciliationReportEmail.getTo());
+            LOG.info("PaymentsReportService - Card payments report  email sent to " + Arrays.toString(cardPaymentReconciliationReportEmail.getTo()));
 
         } catch (IOException | EmailFailedException ex) {
 
