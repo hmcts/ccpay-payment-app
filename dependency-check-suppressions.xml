@@ -61,8 +61,10 @@
         <cve>CVE-2016-7051</cve>
     </suppress>
     <suppress>
-        <notes>Does not apply as we don't use Jackson XmlMapper</notes>
+        <notes>This will be fixed as part of PAY-604 </notes>
         <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-.*:.*$</gav>
+        <cve>CVE-2017-17485</cve>
+        <cve>CVE-2018-5968</cve>
         <cve>CVE-2017-17485</cve>
     </suppress>
     <suppress>
