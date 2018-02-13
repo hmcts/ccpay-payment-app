@@ -5,22 +5,22 @@ import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.v1.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.v1.model.Payment;
+import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
 @Component
 public class PaymentDtoFactory {
 
-    public PaymentDto toDto(Payment payment) {
+    public PaymentDto toDto(PaymentOld paymentOld) {
         return PaymentDto.paymentDtoWith()
-                .id(payment.getId().toString())
-                .amount(payment.getAmount())
-                .state(toStateDto(payment.getStatus(), payment.getFinished()))
-                .description(payment.getDescription())
-                .reference(payment.getReference())
-                .dateCreated(payment.getDateCreated())
+                .id(paymentOld.getId().toString())
+                .amount(paymentOld.getAmount())
+                .state(toStateDto(paymentOld.getStatus(), paymentOld.getFinished()))
+                .description(paymentOld.getDescription())
+                .reference(paymentOld.getReference())
+                .dateCreated(paymentOld.getDateCreated())
                 .links(new PaymentDto.LinksDto(
-                        payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                        payment.getCancelUrl() == null ? null : cancellationLink(payment.getUserId(), payment.getId())
+                        paymentOld.getNextUrl() == null ? null : new PaymentDto.LinkDto(paymentOld.getNextUrl(), "GET"),
+                        paymentOld.getCancelUrl() == null ? null : cancellationLink(paymentOld.getUserId(), paymentOld.getId())
                 ))
                 .build();
     }

@@ -38,23 +38,23 @@ public class UserAwareDelegatingPaymentServiceTest {
     @Test
     public void checkCreateWiring() {
         when(govPayPaymentService.create(100, "reference", "description", "returnUrl")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
-        when(paymentRepository.save(Payment.paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID).build()))
-                .thenReturn(Payment.paymentWith().id(999).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).build());
+        when(paymentRepository.save(PaymentOld.paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID).build()))
+                .thenReturn(PaymentOld.paymentWith().id(999).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).build());
 
-        Payment payment = paymentService.create(100, "reference", "description", "returnUrl");
-        assertThat(payment).isEqualTo(mapToPayment(999, VALID_GOV_PAYMENT_RESPONSE.getPaymentId(), VALID_GOV_PAYMENT_RESPONSE));
+        PaymentOld paymentOld = paymentService.create(100, "reference", "description", "returnUrl");
+        assertThat(paymentOld).isEqualTo(mapToPayment(999, VALID_GOV_PAYMENT_RESPONSE.getPaymentId(), VALID_GOV_PAYMENT_RESPONSE));
     }
 
     @Test
     public void checkRetrieveWiring() {
-        when(paymentRepository.findByUserIdAndId(USER_ID, 1)).thenReturn(Optional.of(Payment.paymentWith().id(1).govPayId("govPayId").build()));
+        when(paymentRepository.findByUserIdAndId(USER_ID, 1)).thenReturn(Optional.of(PaymentOld.paymentWith().id(1).govPayId("govPayId").build()));
         when(govPayPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
         assertThat(paymentService.retrieve(1)).isEqualTo(mapToPayment(1, "govPayId", VALID_GOV_PAYMENT_RESPONSE));
     }
 
     @Test
     public void checkCancelWiring() {
-        when(paymentRepository.findByUserIdAndId(USER_ID, 1)).thenReturn(Optional.of(Payment.paymentWith().govPayId("govPayId").build()));
+        when(paymentRepository.findByUserIdAndId(USER_ID, 1)).thenReturn(Optional.of(PaymentOld.paymentWith().govPayId("govPayId").build()));
         when(govPayPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
         paymentService.cancel(1);
         verify(govPayPaymentService).cancel("govPayId");
@@ -62,7 +62,7 @@ public class UserAwareDelegatingPaymentServiceTest {
 
     @Test
     public void resolvesAuthorizationKeyWhenRefunding() {
-        when(paymentRepository.findByUserIdAndId(USER_ID, 1)).thenReturn(Optional.of(Payment.paymentWith().govPayId("govPayId").build()));
+        when(paymentRepository.findByUserIdAndId(USER_ID, 1)).thenReturn(Optional.of(PaymentOld.paymentWith().govPayId("govPayId").build()));
         when(govPayPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
         govPayPaymentService.refund("govPayId", 100, 500);
         verify(govPayPaymentService).refund("govPayId", 100, 500);
@@ -75,8 +75,8 @@ public class UserAwareDelegatingPaymentServiceTest {
     }
 
 
-    private Payment mapToPayment(Integer id, String govPayId, GovPayPayment govPayPayment) {
-        return Payment.paymentWith()
+    private PaymentOld mapToPayment(Integer id, String govPayId, GovPayPayment govPayPayment) {
+        return PaymentOld.paymentWith()
                 .id(id)
                 .govPayId(govPayId)
                 .amount(govPayPayment.getAmount())

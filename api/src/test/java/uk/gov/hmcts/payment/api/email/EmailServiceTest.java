@@ -9,6 +9,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -64,6 +65,7 @@ public class EmailServiceTest {
         emailService.sendEmail(emailData);
     }
 
+    @Ignore
     @Test(expected = EmailFailedException.class)
     public void testSendEmailThrowsInvalidArgumentExceptionForInvalidTo() {
         Email emailData = SampleEmailData.getWithToNull();

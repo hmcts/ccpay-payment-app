@@ -8,7 +8,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 @Service
-public class UserAwareDelegatingPaymentService implements PaymentService<Payment, Integer> {
+public class UserAwareDelegatingPaymentService implements PaymentService<PaymentOld, Integer> {
     private final UserIdSupplier userIdSupplier;
     private final PaymentRepository paymentRepository;
     private final PaymentService<GovPayPayment, String> delegate;
@@ -21,49 +21,49 @@ public class UserAwareDelegatingPaymentService implements PaymentService<Payment
     }
 
     @Override
-    public Payment create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl) {
+    public PaymentOld create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl) {
         GovPayPayment govPayPayment = delegate.create(amount, reference, description, returnUrl);
-        Payment payment = paymentRepository.save(Payment.paymentWith().govPayId(govPayPayment.getPaymentId()).userId(userIdSupplier.get()).build());
-        fillTransientDetails(payment, govPayPayment);
-        return payment;
+        PaymentOld paymentOld = paymentRepository.save(PaymentOld.paymentWith().govPayId(govPayPayment.getPaymentId()).userId(userIdSupplier.get()).build());
+        fillTransientDetails(paymentOld, govPayPayment);
+        return paymentOld;
     }
 
     @Override
-    public Payment retrieve(@NonNull Integer paymentId) {
-        Payment payment = findSavedPayment(paymentId);
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getGovPayId());
-        fillTransientDetails(payment, govPayPayment);
-        return payment;
+    public PaymentOld retrieve(@NonNull Integer paymentId) {
+        PaymentOld paymentOld = findSavedPayment(paymentId);
+        GovPayPayment govPayPayment = delegate.retrieve(paymentOld.getGovPayId());
+        fillTransientDetails(paymentOld, govPayPayment);
+        return paymentOld;
     }
 
     @Override
     public void cancel(@NonNull Integer id) {
-        Payment payment = findSavedPayment(id);
-        delegate.cancel(payment.getGovPayId());
+        PaymentOld paymentOld = findSavedPayment(id);
+        delegate.cancel(paymentOld.getGovPayId());
     }
 
     @Override
     public void refund(@NonNull Integer id, int amount, int refundAmountAvailable) {
-        Payment payment = findSavedPayment(id);
-        delegate.refund(payment.getGovPayId(), amount, refundAmountAvailable);
+        PaymentOld paymentOld = findSavedPayment(id);
+        delegate.refund(paymentOld.getGovPayId(), amount, refundAmountAvailable);
     }
 
-    private Payment findSavedPayment(@NonNull Integer paymentId) {
+    private PaymentOld findSavedPayment(@NonNull Integer paymentId) {
         return paymentRepository
             .findByUserIdAndId(userIdSupplier.get(), paymentId)
             .orElseThrow(PaymentNotFoundException::new);
     }
 
-    private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {
-        payment.setAmount(govPayPayment.getAmount());
-        payment.setStatus(govPayPayment.getState().getStatus());
-        payment.setFinished(govPayPayment.getState().getFinished());
-        payment.setReference(govPayPayment.getReference());
-        payment.setDescription(govPayPayment.getDescription());
-        payment.setReturnUrl(govPayPayment.getReturnUrl());
-        payment.setNextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()));
-        payment.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
-        payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
+    private void fillTransientDetails(PaymentOld paymentOld, GovPayPayment govPayPayment) {
+        paymentOld.setAmount(govPayPayment.getAmount());
+        paymentOld.setStatus(govPayPayment.getState().getStatus());
+        paymentOld.setFinished(govPayPayment.getState().getFinished());
+        paymentOld.setReference(govPayPayment.getReference());
+        paymentOld.setDescription(govPayPayment.getDescription());
+        paymentOld.setReturnUrl(govPayPayment.getReturnUrl());
+        paymentOld.setNextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()));
+        paymentOld.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
+        paymentOld.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
     }
 
     private String hrefFor(Link url) {

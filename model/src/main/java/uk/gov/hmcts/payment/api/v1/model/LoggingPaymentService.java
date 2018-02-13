@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LoggingPaymentService implements PaymentService<Payment, Integer> {
+public class LoggingPaymentService implements PaymentService<PaymentOld, Integer> {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingPaymentService.class);
 
     private static final String PAYMENT_ID = "paymentId";
@@ -19,36 +19,36 @@ public class LoggingPaymentService implements PaymentService<Payment, Integer> {
     private static final String REFERENCE = "reference";
 
     private final UserIdSupplier userIdSupplier;
-    private final PaymentService<Payment, Integer> delegate;
+    private final PaymentService<PaymentOld, Integer> delegate;
 
     @Autowired
-    public LoggingPaymentService(UserIdSupplier userIdSupplier, PaymentService<Payment, Integer> delegate) {
+    public LoggingPaymentService(UserIdSupplier userIdSupplier, PaymentService<PaymentOld, Integer> delegate) {
         this.userIdSupplier = userIdSupplier;
         this.delegate = delegate;
     }
 
     @Override
-    public Payment create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl) {
-        Payment payment = delegate.create(amount, reference, description, returnUrl);
-        LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
-            PAYMENT_ID, payment.getId(),
+    public PaymentOld create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl) {
+        PaymentOld paymentOld = delegate.create(amount, reference, description, returnUrl);
+        LOG.info("PaymentOld event", StructuredArguments.entries(ImmutableMap.of(
+            PAYMENT_ID, paymentOld.getId(),
             USER_ID, userIdSupplier.get(),
             EVENT_TYPE, "create",
-            AMOUNT, payment.getAmount(),
-            REFERENCE, payment.getReference()
+            AMOUNT, paymentOld.getAmount(),
+            REFERENCE, paymentOld.getReference()
         )));
-        return payment;
+        return paymentOld;
     }
 
     @Override
-    public Payment retrieve(@NonNull Integer id) {
+    public PaymentOld retrieve(@NonNull Integer id) {
         return delegate.retrieve(id);
     }
 
     @Override
     public void cancel(@NonNull Integer id) {
         delegate.cancel(id);
-        LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
+        LOG.info("PaymentOld event", StructuredArguments.entries(ImmutableMap.of(
             PAYMENT_ID, id,
             USER_ID, userIdSupplier.get(),
             EVENT_TYPE, "cancel"
@@ -58,7 +58,7 @@ public class LoggingPaymentService implements PaymentService<Payment, Integer> {
     @Override
     public void refund(@NonNull Integer id, int amount, int refundAmountAvailable) {
         delegate.refund(id, amount, refundAmountAvailable);
-        LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
+        LOG.info("PaymentOld event", StructuredArguments.entries(ImmutableMap.of(
             PAYMENT_ID, id,
             USER_ID, userIdSupplier.get(),
             EVENT_TYPE, "refund",
