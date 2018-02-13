@@ -41,7 +41,7 @@ public class PaymentsReportService {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 
-    private static final String HEADER = "Service,PaymentOld reference,CCD reference,Case reference,PaymentOld date,PaymentOld channel,PaymentOld amount,"
+    private static final String HEADER = "Service,Payment reference,CCD reference,Case reference,Payment date,Payment channel,Payment amount,"
         + "Site id,Fee code,Version,Fee code,Version,Fee code,Version,Fee code,Version,Fee code,Version";
 
     private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
