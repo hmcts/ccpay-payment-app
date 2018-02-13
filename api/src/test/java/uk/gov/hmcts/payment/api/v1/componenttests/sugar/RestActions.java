@@ -35,7 +35,7 @@ public class RestActions {
     }
 
     public RestActions withUserId(String userId) {
-        httpHeaders.add("userId", userId);
+        httpHeaders.add("user_id", userId);
         return this;
     }
 

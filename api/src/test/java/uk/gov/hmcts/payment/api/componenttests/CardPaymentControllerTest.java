@@ -113,6 +113,7 @@ public class CardPaymentControllerTest{
 
 
         MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
             .post(format("/card-payments"), cardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();
