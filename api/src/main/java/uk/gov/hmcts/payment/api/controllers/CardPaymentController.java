@@ -59,7 +59,7 @@ public class CardPaymentController {
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/card-payments", method = POST)
-    public ResponseEntity<CardPaymentDto> createCardPayment(@RequestHeader(value = "user_id") String userId,
+    public ResponseEntity<CardPaymentDto> createCardPayment(@RequestHeader(value = "userId") String userId,
                                                             @RequestHeader(value = "return_url") String returnUrl,
                                                             @Valid @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
