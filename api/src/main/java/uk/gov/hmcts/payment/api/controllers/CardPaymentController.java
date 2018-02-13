@@ -60,13 +60,12 @@ public class CardPaymentController {
     })
     @RequestMapping(value = "/card-payments", method = POST)
     public ResponseEntity<CardPaymentDto> createCardPayment(@RequestHeader(value = "userId") String userId,
-                                                            @RequestHeader(value = "return_url") String returnUrl,
                                                             @Valid @RequestBody CardPaymentRequest request) {
         String paymentReference = PaymentReference.getInstance().getNext();
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
-            request.getDescription(), returnUrl, request.getCcdCaseNumber(), request.getCaseReference(),
+            request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
             request.getCurrency(), request.getSiteId(), request.getServiceName(), cardPaymentDtoMapper.toFees(request.getFee()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
