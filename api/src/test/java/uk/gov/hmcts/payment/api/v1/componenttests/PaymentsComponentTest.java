@@ -10,7 +10,7 @@ import uk.gov.hmcts.payment.api.v1.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.v1.contract.PaymentDto.LinksDto;
 import uk.gov.hmcts.payment.api.v1.contract.PaymentDto.StateDto;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto;
-import uk.gov.hmcts.payment.api.v1.model.Payment;
+import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
 import static java.lang.String.format;
 
@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
 import static uk.gov.hmcts.payment.api.v1.contract.PaymentDto.paymentDtoWith;
 import static uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
-import static uk.gov.hmcts.payment.api.v1.model.Payment.paymentWith;
+import static uk.gov.hmcts.payment.api.v1.model.PaymentOld.paymentWith;
 
 public class PaymentsComponentTest extends ComponentTestBase {
 
@@ -79,23 +79,23 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
+        PaymentOld paymentOld = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
         restActions
-                .get(format("/users/%s/payments/%s", USER_ID, payment.getId()))
+                .get(format("/users/%s/payments/%s", USER_ID, paymentOld.getId()))
                 .andExpect(status().isOk())
                 .andExpect(body().isEqualTo(
                         paymentDtoWith()
-                                .id(payment.getId().toString())
+                                .id(paymentOld.getId().toString())
                                 // as defined in .json file
                                 .state(new StateDto("created", false))
                                 .amount(12000)
                                 .description("New passport application")
-                                .reference("Payment reference")
-                                .dateCreated(payment.getDateCreated())
+                                .reference("PaymentOld reference")
+                                .dateCreated(paymentOld.getDateCreated())
                                 .links(new LinksDto(
                                         new PaymentDto.LinkDto("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2", "GET"),
-                                        new PaymentDto.LinkDto(String.format("http://localhost/users/%s/payments/%s/cancel", USER_ID, payment.getId()), "POST")
+                                        new PaymentDto.LinkDto(String.format("http://localhost/users/%s/payments/%s/cancel", USER_ID, paymentOld.getId()), "POST")
                                 ))
                                 .build()
                 ));
@@ -122,9 +122,9 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID").amount(100));
+        PaymentOld paymentOld = db.create(validPaymentWith().govPayId("GOV_PAY_ID").amount(100));
 
-        restActions.post(format("/users/%s/payments/%s/cancel", USER_ID, payment.getId()))
+        restActions.post(format("/users/%s/payments/%s/cancel", USER_ID, paymentOld.getId()))
                 .andExpect(status().is(204));
     }
 
@@ -133,13 +133,13 @@ public class PaymentsComponentTest extends ComponentTestBase {
         stubFor(post(urlPathMatching("/v1/payments/GOV_PAY_ID/cancel"))
                 .willReturn(aResponse()
                         .withStatus(400)
-                        .withBody("{ \"code\": \"P0501\", \"description\": \"Cancellation of payment failed\" }")
+                        .withBody("{ \"code\": \"P0501\", \"description\": \"Cancellation of paymentOld failed\" }")
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
+        PaymentOld paymentOld = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
-        restActions.post(format("/users/%s/payments/%s/cancel", USER_ID, payment.getId()))
+        restActions.post(format("/users/%s/payments/%s/cancel", USER_ID, paymentOld.getId()))
                 .andExpect(status().is(400));
     }
 
@@ -177,10 +177,10 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
+        PaymentOld paymentOld = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
         restActions
-                .post(format("/users/%s/payments/%s/refunds", USER_ID, payment.getId()), refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+                .post(format("/users/%s/payments/%s/refunds", USER_ID, paymentOld.getId()), refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
                 .andExpect(status().is(201));
     }
 
@@ -193,14 +193,14 @@ public class PaymentsComponentTest extends ComponentTestBase {
                         .withHeader("Content-Type", "application/json")
                 ));
 
-        Payment payment = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
+        PaymentOld paymentOld = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
         restActions
-                .post(format("/users/%s/payments/%s/refunds", USER_ID, payment.getId()), refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+                .post(format("/users/%s/payments/%s/refunds", USER_ID, paymentOld.getId()), refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
                 .andExpect(status().is(412));
     }
 
-    private Payment.PaymentBuilder validPaymentWith() {
+    private PaymentOld.PaymentOldBuilder validPaymentWith() {
         return paymentWith()
                 .userId(USER_ID)
                 .amount(100)

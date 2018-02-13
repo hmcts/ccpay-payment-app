@@ -5,9 +5,9 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
 
-public interface PaymentRepository extends CrudRepository<Payment, Integer> {
+public interface PaymentRepository extends CrudRepository<PaymentOld, Integer> {
 
-    <S extends Payment> S save(S entity);
+    <S extends PaymentOld> S save(S entity);
 
-    Optional<Payment> findByUserIdAndId(String userId, Integer id);
+    Optional<PaymentOld> findByUserIdAndId(String userId, Integer id);
 }

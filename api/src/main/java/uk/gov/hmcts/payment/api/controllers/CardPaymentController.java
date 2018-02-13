@@ -79,7 +79,7 @@ public class CardPaymentController {
     })
     @RequestMapping(value = "/card-payments/{reference}", method = GET)
     public CardPaymentDto retrieve(@PathVariable("reference") String paymentReference) {
-        return cardPaymentDtoMapper.toCardPaymentDto(cardPaymentService.retrieve(paymentReference));
+        return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
 
     @ApiOperation(value = "Get payments information for reconciliation", notes = "Get payments information for reconciliation")
