@@ -11,7 +11,7 @@ public class CardPaymentReconciliationReportEmail extends Email {
                                                 @Value("${card.payments.email.subject}") String subject,
                                                 @Value("${card.payments.email.message}") String message) {
         this.from = from;
-        this.to = to;
+        this.to = to.split(",");
         this.subject = subject;
         this.message = message;
     }
