@@ -88,8 +88,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-            .title("Payment API documentation")
-            .description("Payment API documentation")
+            .title("PaymentOld API documentation")
+            .description("PaymentOld API documentation")
             .build();
     }
 

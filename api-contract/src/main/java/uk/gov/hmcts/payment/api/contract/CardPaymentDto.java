@@ -58,6 +58,8 @@ public class CardPaymentDto {
 
     private String status;
 
+    private String externalReference;
+
     @NotEmpty
     private String siteId;
 
@@ -80,6 +82,7 @@ public class CardPaymentDto {
         private LinkDto nextUrl;
         private LinkDto cancel;
     }
+
 
     @Data
     @AllArgsConstructor

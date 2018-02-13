@@ -15,7 +15,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "payment_old")
-public class Payment {
+public class PaymentOld {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

@@ -54,8 +54,8 @@ public class CardPaymentController {
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Payment creation failed"),
+        @ApiResponse(code = 201, message = "PaymentOld created"),
+        @ApiResponse(code = 400, message = "PaymentOld creation failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/card-payments", method = POST)
@@ -74,18 +74,18 @@ public class CardPaymentController {
 
     @ApiOperation(value = "Get card payment details by payment reference", notes = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(code = 200, message = "PaymentOld retrieved"),
+        @ApiResponse(code = 404, message = "PaymentOld not found")
     })
     @RequestMapping(value = "/card-payments/{reference}", method = GET)
     public CardPaymentDto retrieve(@PathVariable("reference") String paymentReference) {
-        return cardPaymentDtoMapper.toCardPaymentDto(cardPaymentService.retrieve(paymentReference));
+        return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
 
     @ApiOperation(value = "Get payments information for reconciliation", notes = "Get payments information for reconciliation")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 404, message = "Payment not found")
+        @ApiResponse(code = 200, message = "PaymentOld retrieved"),
+        @ApiResponse(code = 404, message = "PaymentOld not found")
     })
     @RequestMapping(value = "/payments/reconciliation", method = GET)
     public List<CardPaymentDto> search(@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) throws ParseException {
