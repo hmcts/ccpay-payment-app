@@ -61,13 +61,21 @@
         <cve>CVE-2016-7051</cve>
     </suppress>
     <suppress>
-        <notes>Does not apply as we don't use Jackson XmlMapper</notes>
+        <notes>This will be fixed as part of PAY-604 </notes>
         <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-.*:.*$</gav>
+        <cve>CVE-2017-17485</cve>
+        <cve>CVE-2018-5968</cve>
         <cve>CVE-2017-17485</cve>
     </suppress>
     <suppress>
         <notes>Does not apply as postgresql</notes>
         <gav regex="true">^org\.postgresql:postgresql.*:.*$</gav>
         <cve>CVE-2017-8806</cve>
+    </suppress>
+    <suppress>
+        <notes>Suppress spring-boot-starter-mail as it doesn't apply to java mail</notes>
+        <gav regex="true">^org\.springframework\.boot:spring-boot-starter-mail:.*$</gav>
+        <cpe>cpe:/a:mail_project:mail:1.5.9</cpe>
+        <cve>CVE-2015-9097</cve>
     </suppress>
 </suppressions>
