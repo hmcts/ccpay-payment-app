@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.controllers.PaymentController;
 
+import javax.smartcardio.Card;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,6 +41,29 @@ public class CardPaymentDtoMapper {
             .links(new CardPaymentDto.LinksDto(
                 payment.getNextUrl() == null ? null : new CardPaymentDto.LinkDto(payment.getNextUrl(), "GET"),
                 payment.getCancelUrl() == null ? null : cancellationLink(payment.getUserId(), payment.getId())
+            ))
+            .build();
+    }
+
+    public CardPaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return CardPaymentDto.payment2DtoWith()
+            .reference(payment.getReference())
+            .amount(payment.getAmount())
+            .currency(payment.getCurrency())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .status(getMappedStatus(payment.getPaymentStatus().getName()))
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .description(payment.getDescription())
+            .channel(payment.getPaymentChannel().getName())
+            .method(payment.getPaymentMethod().getName())
+            .externalReference(payment.getExternalReference())
+            .provider(payment.getPaymentProvider().getName())
+            .links(new CardPaymentDto.LinksDto(
+                retrieveCardPaymentLink(payment.getReference()),
+                retrieveCardPaymentLink(payment.getReference())
             ))
             .build();
     }
@@ -82,6 +106,12 @@ public class CardPaymentDtoMapper {
     private CardPaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
         Method method = PaymentController.class.getMethod("cancel", String.class, Integer.class);
         return new CardPaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
+    }
+
+    @SneakyThrows(NoSuchMethodException.class)
+    private CardPaymentDto.LinkDto retrieveCardPaymentLink(String reference) {
+        Method method = CardPaymentController.class.getMethod("retrieve", String.class);
+        return new CardPaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 
     private String getMappedStatus(String status) {

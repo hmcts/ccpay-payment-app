@@ -22,7 +22,7 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFai
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayRefundAmountMismatch;
-import uk.gov.hmcts.payment.api.v1.model.Payment;
+import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 import uk.gov.hmcts.payment.api.v1.model.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -33,15 +33,15 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 
 @RestController
-@Api(value = "/payment", description = "Payment REST API")
+@Api(value = "/payment", description = "PaymentOld REST API")
 public class PaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
 
-    private final PaymentService<Payment, Integer> paymentService;
+    private final PaymentService<PaymentOld, Integer> paymentService;
     private final PaymentDtoFactory paymentDtoFactory;
 
     @Autowired
-    public PaymentController(@Qualifier("loggingPaymentService") PaymentService<Payment, Integer> paymentService,
+    public PaymentController(@Qualifier("loggingPaymentService") PaymentService<PaymentOld, Integer> paymentService,
                              PaymentDtoFactory paymentDtoFactory) {
         this.paymentService = paymentService;
         this.paymentDtoFactory = paymentDtoFactory;
@@ -49,27 +49,27 @@ public class PaymentController {
 
     @ApiOperation(value = "Create payment", notes = "Create payment")
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Payment created"),
-            @ApiResponse(code = 400, message = "Payment creation failed"),
+            @ApiResponse(code = 201, message = "PaymentOld created"),
+            @ApiResponse(code = 400, message = "PaymentOld creation failed"),
             @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/users/{userId}/payments", method = POST)
     public ResponseEntity<PaymentDto> create(@PathVariable("userId") String userId,
                                              @Valid @RequestBody CreatePaymentRequestDto request) {
-        Payment payment = paymentService.create(
+        PaymentOld paymentOld = paymentService.create(
                 request.getAmount(),
                 request.getReference(),
                 request.getDescription(),
                 request.getReturnUrl()
         );
 
-        return new ResponseEntity<>(paymentDtoFactory.toDto(payment), CREATED);
+        return new ResponseEntity<>(paymentDtoFactory.toDto(paymentOld), CREATED);
     }
 
     @ApiOperation(value = "Get payment details by id", notes = "Get payment details for supplied payment id")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Payment retrieved"),
-            @ApiResponse(code = 404, message = "Payment not found")
+            @ApiResponse(code = 200, message = "PaymentOld retrieved"),
+            @ApiResponse(code = 404, message = "PaymentOld not found")
     })
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}", method = GET)
     public PaymentDto retrieve(@PathVariable("userId") String userId,
@@ -79,9 +79,9 @@ public class PaymentController {
 
     @ApiOperation(value = "Cancel payment", notes = "Cancel payment for supplied payment id")
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "Payment canceled"),
+            @ApiResponse(code = 204, message = "PaymentOld canceled"),
             @ApiResponse(code = 400, message = "Cancellation failed"),
-            @ApiResponse(code = 404, message = "Payment not found")
+            @ApiResponse(code = 404, message = "PaymentOld not found")
     })
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}/cancel", method = POST)
     public ResponseEntity<?> cancel(@PathVariable("userId") String userId,
@@ -99,7 +99,7 @@ public class PaymentController {
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Refund accepted"),
             @ApiResponse(code = 412, message = "Refund amount available mismatch"),
-            @ApiResponse(code = 404, message = "Payment not found")
+            @ApiResponse(code = 404, message = "PaymentOld not found")
     })
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}/refunds", method = POST)
     public ResponseEntity<?> refund(@PathVariable("userId") String userId,

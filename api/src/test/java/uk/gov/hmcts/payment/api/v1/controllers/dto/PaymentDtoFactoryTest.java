@@ -11,7 +11,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.payment.api.v1.controllers.PaymentDtoFactory;
 import uk.gov.hmcts.payment.api.v1.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.v1.model.Payment;
+import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -33,7 +33,7 @@ public class PaymentDtoFactoryTest {
 
     @Test
     public void convertsToDto() {
-        Assertions.assertThat(new PaymentDtoFactory().toDto(Payment.paymentWith()
+        Assertions.assertThat(new PaymentDtoFactory().toDto(PaymentOld.paymentWith()
                 .userId("123")
                 .id(456)
                 .govPayId("govPayId")

@@ -29,7 +29,7 @@ public class LoggingPaymentServiceTest {
     @Test
     public void createPaymentShouldBeLogged() {
         loggingPaymentService.create(100, "reference", "any", "any");
-        testAppender.assertEvent(0, INFO, "Payment event", ImmutableMap.of(
+        testAppender.assertEvent(0, INFO, "PaymentOld event", ImmutableMap.of(
             "paymentId", 1,
             "userId", "userId",
             "eventType", "create",
@@ -41,7 +41,7 @@ public class LoggingPaymentServiceTest {
     @Test
     public void cancelPaymentShouldBeLogged() {
         loggingPaymentService.cancel(2);
-        testAppender.assertEvent(0, INFO, "Payment event", ImmutableMap.of(
+        testAppender.assertEvent(0, INFO, "PaymentOld event", ImmutableMap.of(
             "paymentId", 2,
             "userId", "userId",
             "eventType", "cancel"
@@ -51,7 +51,7 @@ public class LoggingPaymentServiceTest {
     @Test
     public void refundPaymentShouldBeLogged() {
         loggingPaymentService.refund(3, 10, 500);
-        testAppender.assertEvent(0, INFO, "Payment event", ImmutableMap.of(
+        testAppender.assertEvent(0, INFO, "PaymentOld event", ImmutableMap.of(
             "paymentId", 3,
             "userId", "userId",
             "eventType", "refund",
@@ -59,14 +59,14 @@ public class LoggingPaymentServiceTest {
         ));
     }
 
-    private static class FakePaymentService implements PaymentService<Payment, Integer> {
+    private static class FakePaymentService implements PaymentService<PaymentOld, Integer> {
         @Override
-        public Payment create(int amount, String reference, String description, String returnUrl) {
-            return Payment.paymentWith().id(1).amount(amount).reference(reference).build();
+        public PaymentOld create(int amount, String reference, String description, String returnUrl) {
+            return PaymentOld.paymentWith().id(1).amount(amount).reference(reference).build();
         }
 
         @Override
-        public Payment retrieve(Integer integer) {
+        public PaymentOld retrieve(Integer integer) {
             return null;
         }
 

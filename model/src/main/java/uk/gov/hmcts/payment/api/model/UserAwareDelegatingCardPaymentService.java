@@ -35,6 +35,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentProviderRepository paymentProviderRespository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final Payment2Repository paymentRespository;
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -42,7 +43,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     public UserAwareDelegatingCardPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
                                                  CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
                                                  PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                                 PaymentStatusRepository paymentStatusRepository) {
+                                                 PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegate = delegate;
@@ -50,9 +51,11 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentProviderRespository = paymentProviderRepository;
         this.paymentStatusRepository = paymentStatusRepository;
+        this.paymentRespository = paymentRespository;
     }
 
     @Override
+    @Transactional
     public PaymentFeeLink create(int amount, @NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl,
                                  String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) {
         String paymentReference = generatePaymentReference();
@@ -85,8 +88,9 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     @Override
     @Transactional
     public PaymentFeeLink retrieve(String paymentReference) {
-        PaymentFeeLink paymentFeeLink = findSavedPayment(paymentReference);
-        Payment payment = paymentFeeLink.getPayments().get(0);
+        Payment payment = findSavedPayment(paymentReference);
+
+        PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
         GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
 
@@ -112,13 +116,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         // For each payment get the gov pay status.
         // commented b'coz the not efficient to make govPay calls for each payment in reconciliation.
 
-//        paymentFeeLinks.stream().forEach(p -> {
-//            Payment payment = p.getPayments().get(0);
-//            GovPayPayment govPayPayment = delegate.retrieve(payment.getGovPayId());
-//
-//            fillTransientDetails(payment, govPayPayment);
-//        });
-
         return paymentFeeLinks;
     }
 
@@ -133,9 +130,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
 
-    private PaymentFeeLink findSavedPayment(@NotNull String paymentReference) {
-        return paymentFeeLinkRepository.findByPaymentReference(paymentReference)
-            .orElseThrow(PaymentNotFoundException::new);
+    private Payment findSavedPayment(@NotNull String paymentReference) {
+        return paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
     }
 
     private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {

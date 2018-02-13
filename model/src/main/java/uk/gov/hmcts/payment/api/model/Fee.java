@@ -29,7 +29,7 @@ public class Fee {
     @Column(name = "amount")
     private BigDecimal amount;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
-//    private PaymentLink paymentLink;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
+    private PaymentFeeLink paymentLink;
 }
