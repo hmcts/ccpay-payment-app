@@ -5,7 +5,7 @@ import java.util.List;
 public class Email {
 
     protected String from;
-    protected String to;
+    protected String[] to;
     protected String subject;
     protected String message;
 
@@ -19,11 +19,11 @@ public class Email {
         this.from = from;
     }
 
-    public String getTo() {
+    public String[] getTo() {
         return to;
     }
 
-    public void setTo(String to) {
+    public void setTo(String[] to) {
         this.to = to;
     }
 
