@@ -24,7 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class EmailServiceTest {
 
     private static final String EMAIL_FROM = "no-reply@testing.com";
-    private static final String EMAIL_TO = "tester@testing.com";
+    private static final String[] EMAIL_TO = "tester@testing.com".split(",");
     private static final String EMAIL_SUBJECT = "Test Subject";
     private static final String EMAIL_MESSAGE = "Test Message";
 
@@ -65,7 +65,6 @@ public class EmailServiceTest {
         emailService.sendEmail(emailData);
     }
 
-    @Ignore
     @Test(expected = EmailFailedException.class)
     public void testSendEmailThrowsInvalidArgumentExceptionForInvalidTo() {
         Email emailData = SampleEmailData.getWithToNull();
@@ -80,9 +79,9 @@ public class EmailServiceTest {
 
     public static class TestEmail extends Email {
 
-        public TestEmail(String from, String to, String subject, String message) {
+        public TestEmail(String from, String[] to, String subject, String message) {
             this.from = from;
-            this.to = to.split(",");
+            this.to = to;
             this.subject = subject;
             this.message = message;
         }
