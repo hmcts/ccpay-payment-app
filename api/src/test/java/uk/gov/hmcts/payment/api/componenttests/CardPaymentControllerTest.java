@@ -128,7 +128,7 @@ public class CardPaymentControllerTest{
 
     }
 
-    @Test
+
     public void retrieveCardPaymentAndMapTheGovPayStatusTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
             .willReturn(aResponse()
