@@ -53,7 +53,7 @@ public class CardPaymentDtoMapper {
             .currency(payment.getCurrency())
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(getMappedStatus(payment.getPaymentStatus().getName()))
+            .status(getMappedStatus(payment.getStatus()))
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
