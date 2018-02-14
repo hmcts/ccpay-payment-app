@@ -180,7 +180,6 @@ public class CardPaymentControllerTest{
         return "{\n" +
             "  \"amount\": 101.89,\n" +
             "  \"description\": \"New passport application\",\n" +
-            "  \"currency\": \"GBP\",\n" +
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
             "  \"service_name\": \"Probate\",\n" +
