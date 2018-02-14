@@ -40,7 +40,7 @@ public class CardPaymentDtoMapper {
             .dateCreated(payment.getDateCreated())
             .links(new CardPaymentDto.LinksDto(
                 payment.getNextUrl() == null ? null : new CardPaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                payment.getCancelUrl() == null ? null : cancellationLink(payment.getUserId(), payment.getId())
+                null, null
             ))
             .build();
     }
@@ -61,9 +61,9 @@ public class CardPaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
             .provider(payment.getPaymentProvider().getName())
-            .links(new CardPaymentDto.LinksDto(
+            .links(new CardPaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
-                retrieveCardPaymentLink(payment.getReference())
+                null
             ))
             .build();
     }
