@@ -40,9 +40,6 @@ public class CardPaymentRequest {
     private String description;
 
     @NotEmpty
-    private String currency;
-
-    @NotEmpty
     private String ccdCaseNumber;
 
     @NotEmpty
