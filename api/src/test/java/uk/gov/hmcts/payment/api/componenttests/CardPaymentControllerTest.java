@@ -141,7 +141,6 @@ public class CardPaymentControllerTest{
             .amount(new BigDecimal("11.99"))
             .caseReference("Reference1")
             .ccdCaseNumber("ccdCaseNumber1")
-            .currency("GBP")
             .description("Description1")
             .serviceType("Probate")
             .siteId("AA01")
