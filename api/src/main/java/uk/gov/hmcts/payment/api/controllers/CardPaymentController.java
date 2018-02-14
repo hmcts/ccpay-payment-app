@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.CardPaymentService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
@@ -37,12 +38,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class CardPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 
+    private static final String DEFAULT_CURRENCY = "GBP";
+
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
     private final CardPaymentDtoMapper cardPaymentDtoMapper;
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
     private static final SimpleDateFormat outformat = new SimpleDateFormat("yyyy-MM-dd");
-
 
     @Autowired
     public CardPaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardCardPaymentService,
@@ -50,7 +52,6 @@ public class CardPaymentController {
         this.cardPaymentService = cardCardPaymentService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
     }
-
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
     @ApiResponses(value = {
@@ -65,9 +66,10 @@ public class CardPaymentController {
         String paymentReference = PaymentReference.getInstance().getNext();
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
+
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
             request.getDescription(),returnURL, request.getCcdCaseNumber(), request.getCaseReference(),
-            request.getCurrency(), request.getSiteId(), request.getServiceName(), cardPaymentDtoMapper.toFees(request.getFee()));
+            CurrencyCode.valueOf(DEFAULT_CURRENCY).getCode(), request.getSiteId(), request.getServiceName(), cardPaymentDtoMapper.toFees(request.getFee()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }

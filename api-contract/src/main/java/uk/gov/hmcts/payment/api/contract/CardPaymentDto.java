@@ -80,6 +80,7 @@ public class CardPaymentDto {
     @JsonInclude(NON_NULL)
     public static class LinksDto {
         private LinkDto nextUrl;
+        private LinkDto selfUrl;
         private LinkDto cancel;
     }
 
