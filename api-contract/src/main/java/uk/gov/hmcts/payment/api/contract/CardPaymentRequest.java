@@ -48,7 +48,6 @@ public class CardPaymentRequest {
     @NotEmpty
     private String serviceName;
 
-    @NotEmpty
     private CurrencyCode currency;
 
     @NotEmpty
