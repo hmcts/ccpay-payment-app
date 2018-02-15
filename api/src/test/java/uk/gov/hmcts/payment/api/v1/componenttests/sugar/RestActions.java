@@ -35,12 +35,12 @@ public class RestActions {
     }
 
     public RestActions withUserId(String userId) {
-        httpHeaders.add("user_id", userId);
+        httpHeaders.add("user-id", userId);
         return this;
     }
 
     public RestActions withReturnUrl(String returnUrl) {
-        httpHeaders.add("return_url", returnUrl);
+        httpHeaders.add("return-url", returnUrl);
         return this;
     }
 
