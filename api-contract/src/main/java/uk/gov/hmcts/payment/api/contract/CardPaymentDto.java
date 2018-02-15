@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotEmpty;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -42,7 +43,7 @@ public class CardPaymentDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss.SSS'Z'", timezone = "GMT")
     private Date dateCreated;
 
-    private String currency;
+    private CurrencyCode currency;
 
     private String ccdCaseNumber;
 
