@@ -17,7 +17,6 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.CardPaymentService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
@@ -68,8 +67,8 @@ public class CardPaymentController {
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
 
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
-            request.getDescription(),returnURL, request.getCcdCaseNumber(), request.getCaseReference(),
-            CurrencyCode.valueOf(DEFAULT_CURRENCY).getCode(), request.getSiteId(), request.getServiceName(), cardPaymentDtoMapper.toFees(request.getFee()));
+            request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
+            request.getCurrency().getCode(), request.getSiteId(), request.getServiceName(), cardPaymentDtoMapper.toFees(request.getFee()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }

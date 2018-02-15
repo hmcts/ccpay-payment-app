@@ -100,9 +100,7 @@ public class CardPaymentControllerTest{
         restActions
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .withReturnUrl("https://divorce.gov.uk");
-
+            .withUserId(USER_ID);
     }
 
     @Test
@@ -116,7 +114,6 @@ public class CardPaymentControllerTest{
 
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.google.com")
             .post(format("/card-payments"), cardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();
@@ -127,7 +124,6 @@ public class CardPaymentControllerTest{
         assertTrue(cardPaymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
 
     }
-
 
     public void retrieveCardPaymentAndMapTheGovPayStatusTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))

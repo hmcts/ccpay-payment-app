@@ -5,12 +5,11 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.v1.controllers.PaymentController;
 
-import javax.smartcardio.Card;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +34,7 @@ public class CardPaymentDtoMapper {
     public CardPaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return CardPaymentDto.payment2DtoWith()
-            .status(getMappedStatus(payment.getPaymentStatus().getName()))
+            .status(getMappedStatus(payment.getStatus()))
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .links(new CardPaymentDto.LinksDto(
@@ -50,7 +49,7 @@ public class CardPaymentDtoMapper {
         return CardPaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
-            .currency(payment.getCurrency())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .status(getMappedStatus(payment.getStatus()))
@@ -75,7 +74,7 @@ public class CardPaymentDtoMapper {
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .amount(payment.getAmount())
-            .currency(payment.getCurrency())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(payment.getStatus())
             .dateCreated(payment.getDateCreated())
             .method(payment.getPaymentMethod().getName())
@@ -104,7 +103,7 @@ public class CardPaymentDtoMapper {
 
     @SneakyThrows(NoSuchMethodException.class)
     private CardPaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
-        Method method = PaymentController.class.getMethod("cancel", String.class, Integer.class);
+        Method method = CardPaymentController.class.getMethod("cancel", String.class, Integer.class);
         return new CardPaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
     }
 
