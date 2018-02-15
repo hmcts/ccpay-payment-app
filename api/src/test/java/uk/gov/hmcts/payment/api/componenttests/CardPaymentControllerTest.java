@@ -101,18 +101,18 @@ public class CardPaymentControllerTest{
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .withReturnUrl("https://divorce.gov.uk");
+            .withReturnUrl("https://www.gooooogle.com");
 
     }
 
     @Test
-    public void createCardPaymentTest() throws Exception {
+    public void createCardPaymentWithValidInputData_shouldReturnStatusCreatedTest() throws Exception {
 
         stubFor(post(urlPathMatching("/v1/payments"))
-        .willReturn(aResponse()
-            .withStatus(201)
-            .withHeader("Content-Type", "application/json")
-            .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
 
 
         MvcResult result = restActions
@@ -126,6 +126,14 @@ public class CardPaymentControllerTest{
         assertEquals(cardPaymentDto.getStatus(), "Initiated");
         assertTrue(cardPaymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
 
+    }
+
+    @Test
+    public void createCardPaymentWithInValidInputData_shouldReturnStatusBadRequestTest() throws Exception {
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post(format("/card-payments"), cardPaymentInvalidRequestJson())
+            .andExpect(status().isBadRequest());
     }
 
 
@@ -182,6 +190,27 @@ public class CardPaymentControllerTest{
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
             "  \"service_name\": \"Probate\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"fee\": [\n" +
+            "    {\n" +
+            "      \"amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String cardPaymentInvalidRequestJson() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service_name\": \"Probate\",\n" +
+            "  \"currency\": \"INR\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +
             "  \"fee\": [\n" +
