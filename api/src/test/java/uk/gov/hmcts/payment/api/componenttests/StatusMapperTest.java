@@ -62,7 +62,7 @@ public class StatusMapperTest {
     private PaymentFeeLink getPaymentWithStatus(String status) {
         List payments = new ArrayList<>();
         Payment payment = Payment.paymentWith().
-            paymentStatus(PaymentStatus.paymentStatusWith().name(status).build()).build();
+            status(status).build();
 
         payments.add(payment);
 
