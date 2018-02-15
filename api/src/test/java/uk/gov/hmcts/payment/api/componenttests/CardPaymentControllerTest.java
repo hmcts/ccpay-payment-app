@@ -69,7 +69,7 @@ public class CardPaymentControllerTest{
     protected PaymentDbBackdoor db;
 
 
-    private static final String USER_ID = "user_id";
+    private static final String USER_ID = "user-id";
 
     RestActions restActions;
 
