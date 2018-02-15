@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.hibernate.validator.constraints.URL;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Digits;
@@ -33,7 +33,7 @@ public class CardPaymentRequest {
 
     @NotNull
     @Min(1)
-    @Digits(integer = 6, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
+    @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 
     @NotEmpty
@@ -47,6 +47,12 @@ public class CardPaymentRequest {
 
     @NotEmpty
     private String serviceName;
+
+    @NotEmpty
+    private CurrencyCode currency;
+
+    @NotEmpty
+    private String returnUrl;
 
     @NotEmpty
     @JsonProperty("site_id")

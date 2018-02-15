@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.util;
+package uk.gov.hmcts.payment.api.contract.util;
 
 public enum CurrencyCode {
     GBP("GBP");
