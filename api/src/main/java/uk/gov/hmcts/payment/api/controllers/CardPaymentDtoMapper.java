@@ -59,7 +59,7 @@ public class CardPaymentDtoMapper {
             .channel(payment.getPaymentChannel().getName())
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
-            .provider(payment.getPaymentProvider().getName())
+            .externalProvider(payment.getPaymentProvider().getName())
             .links(new CardPaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
@@ -78,7 +78,7 @@ public class CardPaymentDtoMapper {
             .status(payment.getStatus())
             .dateCreated(payment.getDateCreated())
             .method(payment.getPaymentMethod().getName())
-            .provider(payment.getPaymentProvider().getName())
+            .externalProvider(payment.getPaymentProvider().getName())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
 

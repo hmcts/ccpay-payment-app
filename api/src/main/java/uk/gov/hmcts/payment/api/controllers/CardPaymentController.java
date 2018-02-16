@@ -83,23 +83,7 @@ public class CardPaymentController {
     public CardPaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
-
-    @ApiOperation(value = "Get payments information for reconciliation", notes = "Get payments information for reconciliation")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 404, message = "Payment not found")
-    })
-    @RequestMapping(value = "/payments/reconciliation", method = GET)
-    public List<CardPaymentDto> search(@RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) throws ParseException {
-        Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
-        Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
-
-        // Limiting search only to date without time.
-        MutableDateTime mutableToDate = new MutableDateTime(toDate);
-
-        return cardPaymentService.search(fromDate, mutableToDate.toDate()).stream()
-            .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
-    }
+    
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
