@@ -51,9 +51,6 @@ public class CardPaymentRequest {
     private CurrencyCode currency;
 
     @NotEmpty
-    private String returnUrl;
-
-    @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
 

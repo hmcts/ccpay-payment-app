@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.model;
 
 import lombok.NonNull;
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.util.CheckDigitUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -57,7 +59,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     @Override
     @Transactional
     public PaymentFeeLink create(int amount, @NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) {
+                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) throws CheckDigitException {
         String paymentReference = generatePaymentReference();
 
         GovPayPayment govPayPayment = delegate.create(amount, paymentReference, description, returnUrl,
@@ -151,7 +153,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return url == null ? null : url.getHref();
     }
 
-    private String generatePaymentReference() {
+    private String generatePaymentReference() throws CheckDigitException {
         DateTime dateTime = new DateTime(DateTimeZone.UTC);
         long timeInMillis = dateTime.getMillis()/100;
 
@@ -161,7 +163,9 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         // append the random 4 characters
         SecureRandom random = new SecureRandom();
         sb.append(String.format("%04d", random.nextInt(10000)));
-        sb.append("C");
+
+        CheckDigitUtil checkDigit = new CheckDigitUtil(11);
+        sb.append(checkDigit.calculate(sb.toString()));
 
         String[] parts = sb.toString().split(PAYMENT_REF_REGEX);
 
