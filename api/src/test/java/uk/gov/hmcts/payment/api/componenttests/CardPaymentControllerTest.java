@@ -21,6 +21,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.util.CheckDigitUtil;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -48,7 +49,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class CardPaymentControllerTest{
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{3}C){1}";
+    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(9190);
@@ -125,7 +126,6 @@ public class CardPaymentControllerTest{
         assertNotNull(cardPaymentDto);
         assertEquals(cardPaymentDto.getStatus(), "Initiated");
         assertTrue(cardPaymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
-
     }
 
     @Test
@@ -134,6 +134,33 @@ public class CardPaymentControllerTest{
             .withReturnUrl("https://www.google.com")
             .post(format("/card-payments"), cardPaymentInvalidRequestJson())
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void createCardPayment_andValidatePaymentReferenceCheckDigit() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+
+        MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
+            .post(format("/card-payments"), cardPaymentRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        CardPaymentDto cardPaymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), CardPaymentDto.class);
+        assertNotNull(cardPaymentDto);
+        assertEquals(cardPaymentDto.getStatus(), "Initiated");
+        assertTrue(cardPaymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+
+        String reference = cardPaymentDto.getReference();
+        String[] refs = reference.split("-");
+        String timestamp = String.join("", refs[1], refs[2], refs[3], refs[4].substring(0, 3));
+        CheckDigitUtil ck = new CheckDigitUtil(11);
+        assertEquals(Character.toString(refs[4].charAt(3)), ck.calculate(timestamp));
     }
 
 
