@@ -68,7 +68,7 @@ public class CardPaymentController {
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
 
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
-            request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
+            request.getDescription(), returnURL, request.getCcdCaseNumber(), request.getCaseReference(),
             request.getCurrency().getCode(), request.getSiteId(), request.getServiceName(), cardPaymentDtoMapper.toFees(request.getFee()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
@@ -83,7 +83,7 @@ public class CardPaymentController {
     public CardPaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
-    
+
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
