@@ -1,0 +1,129 @@
+databaseChangeLog:
+- changeSet:
+    id: 1518785630503-1
+    author: Jalal (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: calculated_amount
+            type: numeric(19, 2)
+        tableName: fee
+- changeSet:
+    id: 1518785630503-2
+    author: Jalal (generated)
+    changes:
+    - dropColumn:
+        columnName: amount
+        tableName: fee
+- changeSet:
+    id: 1518785630503-3
+    author: Jalal (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: fee
+        constraintName: FK_3c04152jyub2e59dll7si8ggp
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_link_id
+        baseTableName: fee
+        constraintName: FK_3c04152jyub2e59dll7si8ggp
+        referencedColumnNames: id
+        referencedTableName: payment_fee_link
+- changeSet:
+    id: 1518785630503-4
+    author: Jalal (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_boc1od01im5po7i8e5biph5df
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_status
+        baseTableName: payment
+        constraintName: FK_boc1od01im5po7i8e5biph5df
+        referencedColumnNames: name
+        referencedTableName: payment_status
+- changeSet:
+    id: 1518785630503-5
+    author: Jalal (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_gymrxo16ly2casha68ic9dvg9
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_link_id
+        baseTableName: payment
+        constraintName: FK_gymrxo16ly2casha68ic9dvg9
+        referencedColumnNames: id
+        referencedTableName: payment_fee_link
+- changeSet:
+    id: 1518785630503-6
+    author: Jalal (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_m67it6o1xja3py5erpdabvanj
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_method
+        baseTableName: payment
+        constraintName: FK_m67it6o1xja3py5erpdabvanj
+        referencedColumnNames: name
+        referencedTableName: payment_method
+- changeSet:
+    id: 1518785630503-7
+    author: Jalal (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_ng3t9dbrvsnfoh27elyyxt0ra
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_channel
+        baseTableName: payment
+        constraintName: FK_ng3t9dbrvsnfoh27elyyxt0ra
+        referencedColumnNames: name
+        referencedTableName: payment_channel
+- changeSet:
+    id: 1518785630503-8
+    author: Jalal (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_qhbn3c5pejpl26rkokgo1139n
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_provider
+        baseTableName: payment
+        constraintName: FK_qhbn3c5pejpl26rkokgo1139n
+        referencedColumnNames: name
+        referencedTableName: payment_provider
+- changeSet:
+    id: 1518785630503-9
+    author: Jalal (generated)
+    changes:
+    - addDefaultValue:
+        columnDataType: int
+        columnName: id
+        defaultValueComputed: nextval('payment_id_seq'::regclass)
+        tableName: payment
+- changeSet:
+    id: 1518785630503-10
+    author: Jalal (generated)
+    changes:
+    - dropNotNullConstraint:
+        columnDataType: int
+        columnName: payment_link_id
+        tableName: fee
+- changeSet:
+    id: 1518785630503-11
+    author: Jalal (generated)
+    changes:
+    - dropNotNullConstraint:
+        columnDataType: int
+        columnName: payment_link_id
+        tableName: payment
+
+pejpl26rkokgo1139n
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_provider
+        baseTableName: payment
+        constraintName: FK_qhbn3c5pejpl26rkokgo1139n
+        referencedColumnNames: name
+        referencedTableName: payment_provider
