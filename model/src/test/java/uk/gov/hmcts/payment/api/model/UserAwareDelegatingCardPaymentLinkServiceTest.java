@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.model;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,7 +58,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository, paymentStatusRepository, paymentRespository);
 
     @Test
-    public void checkCreateWiring() {
+    public void checkCreateWiring() throws CheckDigitException {
         when(govPayCardPaymentService.create(10, "paymentReference", "description", "returnUrl",
             "ccdCaseNo", "caseReference", "GBP", "siteId", "CMC1",
             Arrays.asList(Fee.feeWith().code("code").version("version").amount(new BigDecimal(1000)).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
