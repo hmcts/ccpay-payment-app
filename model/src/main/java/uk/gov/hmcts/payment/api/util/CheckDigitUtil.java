@@ -24,4 +24,10 @@ public class CheckDigitUtil extends ModulusCheckDigit{
         // odd or even position
         return 7;
     }
+
+    @Override
+    public int calculateModulus(String code,
+                                boolean includesCheckDigit) throws CheckDigitException {
+        return super.calculateModulus(code, includesCheckDigit);
+    }
 }
