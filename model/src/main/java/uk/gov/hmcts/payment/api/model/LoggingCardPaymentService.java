@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.model;
 import com.google.common.collect.ImmutableMap;
 import lombok.NonNull;
 import net.logstash.logback.argument.StructuredArguments;
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -37,7 +38,7 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
 
     @Override
     public PaymentFeeLink create(int amount, @NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) {
+                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = delegate.create(amount, paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
 
         Payment payment = paymentFeeLink.getPayments().get(0);
