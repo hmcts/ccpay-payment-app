@@ -34,7 +34,17 @@ of MoJ financial arrangements  & back-office systems.
 
 Please refer to Swagger UI and Gov.UK Pay for more details.
 
+
 ### Useful Links
 * https://gds-payments.gelato.io/docs/versions/1.0.0/resources/general
 * https://git.reform.hmcts.net/common-components/reference-app
 * https://git.reform.hmcts.net/common-components/reference-web
+
+## How to generate Liquibase yaml file
+Liquibase is used to update the database changes. Perform following steps to create and update the new yaml file. 
+
+1. cd model
+2. run command $mvn liquibase:diff
+3. this will generate a new yaml file e.g. api/src/main/resources/db/changelog/db.changelog-0.0.5.yaml
+5. Add this file to pom.xml in diffChangeLogFile section under configuration
+6. Add this file to db.changelog-master.xml's diff files list
