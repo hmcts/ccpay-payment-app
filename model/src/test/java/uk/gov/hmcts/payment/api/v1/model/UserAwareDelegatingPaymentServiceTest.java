@@ -22,7 +22,7 @@ public class UserAwareDelegatingPaymentServiceTest {
             .reference("reference")
             .state(new State("status", false, "message", "code"))
             .links(new GovPayPayment.Links(
-                    new Link("type", ImmutableMap.of(), "selfUrl", "GET"),
+                    new Link("type", ImmutableMap.of(), "self", "GET"),
                     new Link("type", ImmutableMap.of(), "nextUrl", "GET"),
                     new Link("type", ImmutableMap.of(), "nextUrlPost", "GET"),
                     new Link("type", ImmutableMap.of(), "eventsUrl", "GET"),
