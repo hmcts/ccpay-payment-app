@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.joda.time.MutableDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,13 +62,13 @@ public class CardPaymentController {
     @RequestMapping(value = "/card-payments", method = POST)
     public ResponseEntity<CardPaymentDto> createCardPayment(@RequestHeader(value = "user-id") String userId,
                                                             @RequestHeader(value = "return-url") String returnURL,
-                                                            @Valid @RequestBody CardPaymentRequest request) {
+                                                            @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentReference = PaymentReference.getInstance().getNext();
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
 
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
-            request.getDescription(), request.getReturnUrl(), request.getCcdCaseNumber(), request.getCaseReference(),
+            request.getDescription(), returnURL, request.getCcdCaseNumber(), request.getCaseReference(),
             request.getCurrency().getCode(), request.getSiteId(), request.getServiceName(), cardPaymentDtoMapper.toFees(request.getFee()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
@@ -82,7 +83,7 @@ public class CardPaymentController {
     public CardPaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
-    
+
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
