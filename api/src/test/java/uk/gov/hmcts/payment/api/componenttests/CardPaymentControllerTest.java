@@ -3,10 +3,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import lombok.SneakyThrows;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -136,6 +133,7 @@ public class CardPaymentControllerTest{
             .andExpect(status().isBadRequest());
     }
 
+    @Ignore
     @Test
     public void createCardPayment_andValidatePaymentReferenceCheckDigit() throws Exception {
         stubFor(post(urlPathMatching("/v1/payments"))
