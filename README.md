@@ -11,8 +11,8 @@ For a successful integration with HMCTS Payment Gateway you will require the fol
 you should use GOV.UK Pay admin console to create your API key(-s) and provide them to us.
 * **IDAM**. All requests to Payment Gateway require a valid user JWT token to be passed in "Authorization" header. 
 Please make sure your application is integrated with IDAM before you start.  
-* **service-auth-externalProvider**. All requests to Payment Gateway require a valid service JWT token to be passed in 
-"ServiceAuthorization" header. Please make sure your application is registered in service-auth-externalProvider-app and you are 
+* **service-auth-provider**. All requests to Payment Gateway require a valid service JWT token to be passed in 
+"ServiceAuthorization" header. Please make sure your application is registered in service-auth-provider-app and you are 
 able to acquire service JWT tokens.
 
 ### Integration GOTCHAs
