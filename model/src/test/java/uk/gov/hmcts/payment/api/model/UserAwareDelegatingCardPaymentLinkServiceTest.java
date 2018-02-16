@@ -60,17 +60,17 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     public void checkCreateWiring() {
         when(govPayCardPaymentService.create(10, "paymentReference", "description", "returnUrl",
             "ccdCaseNo", "caseReference", "GBP", "siteId", "CMC1",
-            Arrays.asList(Fee.feeWith().code("code").version("version").amount(new BigDecimal(1000)).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
+            Arrays.asList(Fee.feeWith().code("code").version("version").calculatedAmount(new BigDecimal(1000)).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
         when(paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("paymentReference")
             .payments(Arrays.asList(Payment.paymentWith().externalReference(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
                 .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
-            .fees(Arrays.asList(Fee.feeWith().code("code").version("version").amount(new BigDecimal(1000)).build()))
+            .fees(Arrays.asList(Fee.feeWith().code("code").version("version").calculatedAmount(new BigDecimal(1000)).build()))
             .build()))
             .thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(999).paymentReference("paymentReference")
                 .payments(Arrays.asList(Payment.paymentWith().id(998).externalReference(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
                     .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
-                .fees(Arrays.asList(Fee.feeWith().id(998).code("feeCode").version("feeVersion").amount(new BigDecimal(1000)).build()))
+                .fees(Arrays.asList(Fee.feeWith().id(998).code("feeCode").version("feeVersion").calculatedAmount(new BigDecimal(1000)).build()))
                 .build());
     }
 

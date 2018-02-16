@@ -160,7 +160,7 @@ public class CardPaymentControllerTest{
             .externalReference("ia2mv22nl5o880rct0vqfa7k76")
             .reference("RC-1518-4594-2723-363C")
             .build();
-        Fee fee = Fee.feeWith().amount(new BigDecimal("11.99")).version("1").code("X0001").build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162001").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -195,7 +195,7 @@ public class CardPaymentControllerTest{
             "  \"site_id\": \"AA101\",\n" +
             "  \"fee\": [\n" +
             "    {\n" +
-            "      \"amount\": 101.89,\n" +
+            "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
@@ -215,7 +215,7 @@ public class CardPaymentControllerTest{
             "  \"site_id\": \"AA101\",\n" +
             "  \"fee\": [\n" +
             "    {\n" +
-            "      \"amount\": 101.89,\n" +
+            "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
