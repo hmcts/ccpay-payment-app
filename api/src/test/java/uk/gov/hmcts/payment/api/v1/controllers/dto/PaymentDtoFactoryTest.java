@@ -10,13 +10,13 @@ import org.junit.Test;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.payment.api.v1.controllers.PaymentDtoFactory;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
 import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.payment.api.v1.contract.PaymentDto.paymentDtoWith;
+import static uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.paymentDtoWith;
 
 public class PaymentDtoFactoryTest {
 
@@ -49,13 +49,13 @@ public class PaymentDtoFactoryTest {
         ).isEqualTo(paymentDtoWith()
                 .id("456")
                 .amount(500)
-                .state(new PaymentDto.StateDto("status", false))
+                .state(new PaymentOldDto.StateDto("status", false))
                 .description("description")
                 .reference("reference")
                 .dateCreated(new Date(123456789))
-                .links(new PaymentDto.LinksDto(
-                        new PaymentDto.LinkDto("http://next_url", "GET"),
-                        new PaymentDto.LinkDto("http://localhost/users/123/payments/456/cancel", "POST")
+                .links(new PaymentOldDto.LinksDto(
+                        new PaymentOldDto.LinkDto("http://next_url", "GET"),
+                        new PaymentOldDto.LinkDto("http://localhost/users/123/payments/456/cancel", "POST")
                 ))
                 .build());
     }

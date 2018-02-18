@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.EmailFailedException;
@@ -67,14 +67,14 @@ public class PaymentsReportService {
         Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
 
 
-        List<CardPaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
+        List<PaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
             .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
         createCsv(cardPayments);
 
     }
 
-    private void createCsv(List<CardPaymentDto> cardPayments) throws IOException {
+    private void createCsv(List<PaymentDto> cardPayments) throws IOException {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
         String fileNameSuffix = LocalDateTime.now().format(formatter);
@@ -83,7 +83,7 @@ public class PaymentsReportService {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             bos.write(HEADER.getBytes());
             bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
-            for (CardPaymentDto cardPayment : cardPayments) {
+            for (PaymentDto cardPayment : cardPayments) {
                 bos.write(cardPayment.toCsv().getBytes());
                 bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
             }
