@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface CreditAccountPaymentService<T, ID> {
 
-    T create(List<Payment> creditAccounts, List<Fee> fees, String paymentGroupReference) throws CheckDigitException;
+    T create(Payment creditAccount, List<Fee> fees, String paymentGroupReference) throws CheckDigitException;
 
     T retrieveByPaymentGroupReference(ID id);
 

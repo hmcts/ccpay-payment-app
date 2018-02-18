@@ -37,8 +37,8 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
     }
 
     @Override
-    public PaymentFeeLink create(List<Payment> payments, List<Fee> fees, String paymentGroupReference) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = delegate.create(payments, fees, paymentGroupReference);
+    public PaymentFeeLink create(Payment payment, List<Fee> fees, String paymentGroupReference) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = delegate.create(payment, fees, paymentGroupReference);
 
         paymentFeeLink.getPayments().forEach(p -> {
             LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
