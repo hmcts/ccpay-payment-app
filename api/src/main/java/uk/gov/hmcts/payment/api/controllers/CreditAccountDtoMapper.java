@@ -51,7 +51,7 @@ public class CreditAccountDtoMapper {
             .build();
     }
 
-    public PaymentDto toRetrievePaymentResponse(Payment payment) {
+    public PaymentDto toRetrievePaymentResponse(Payment payment, List<Fee> fees) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
@@ -69,6 +69,7 @@ public class CreditAccountDtoMapper {
             .customerReference(payment.getCustomerReference())
             .organisationName(payment.getOrganisationName())
             .accountNumber(payment.getPbaNumber())
+            .fees(toFeeDtos(fees))
             .links(new PaymentDto.LinksDto(null,
                 retrievePaymentLink(payment.getReference()),
                 null
