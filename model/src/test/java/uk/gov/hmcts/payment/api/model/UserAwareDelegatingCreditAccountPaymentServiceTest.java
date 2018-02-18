@@ -87,7 +87,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
     private Fee getFee(int number) {
         return Fee.feeWith()
             .id(number)
-            .amount(new BigDecimal("10000.00"))
+            .calculatedAmount(new BigDecimal("10000.00"))
             .code("X0123")
             .version("1")
             .build();

@@ -65,7 +65,7 @@ public class CreditAccountPaymentController {
             .map(p -> creditAccountDtoMapper.toPaymentRequest(p))
             .collect(Collectors.toList());
 
-        List<Fee> fees = creditAccountPaymentRequest.getFee().stream()
+        List<Fee> fees = creditAccountPaymentRequest.getFees().stream()
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with " + payments.size() + " - Payments and " + fees.size() + " - Fees");
