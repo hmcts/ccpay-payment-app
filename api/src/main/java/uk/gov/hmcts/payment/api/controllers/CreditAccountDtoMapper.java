@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPayment;
+import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentGroupDto;
@@ -19,19 +19,20 @@ import java.util.stream.Collectors;
 @Component
 public class CreditAccountDtoMapper {
 
-    public PaymentGroupDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
-        return PaymentGroupDto.paymentGroupWith()
-            .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .payments(paymentFeeLink.getPayments().stream().map(p -> PaymentDto.payment2DtoWith()
-                .reference(p.getReference())
-                .status(p.getStatus())
-                .dateCreated(p.getDateCreated())
-                .build())
-                .collect(Collectors.toList()))
+    public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .status(payment.getStatus())
+            .reference(payment.getReference())
+            .dateCreated(payment.getDateCreated())
+            .links(new PaymentDto.LinksDto(
+                retrievePaymentLink(payment.getReference()),
+                null, null
+            ))
             .build();
     }
 
-    public Payment toPaymentRequest(CreditAccountPayment creditAccountPayment) {
+    public Payment toPaymentRequest(CreditAccountPaymentRequest creditAccountPayment) {
         return Payment.paymentWith()
             .amount(creditAccountPayment.getAmount())
             .description(creditAccountPayment.getDescription())
@@ -41,7 +42,7 @@ public class CreditAccountDtoMapper {
             .currency(creditAccountPayment.getCurrency().getCode())
             .customerReference(creditAccountPayment.getCustomerReference())
             .ccdCaseNumber(creditAccountPayment.getCcdCaseNumber())
-            .pbaNumber(creditAccountPayment.getPbaNumber())
+            .pbaNumber(creditAccountPayment.getAccountNumber())
             .siteId(creditAccountPayment.getSiteId())
             .build();
     }
@@ -70,6 +71,9 @@ public class CreditAccountDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider().getName())
+            .customerReference(payment.getCustomerReference())
+            .organisationName(payment.getOrganisationName())
+            .accountNumber(payment.getPbaNumber())
             .links(new PaymentDto.LinksDto(null,
                 retrievePaymentLink(payment.getReference()),
                 null
@@ -87,7 +91,7 @@ public class CreditAccountDtoMapper {
             .currency(paymentDto.getCurrency().getCode())
             .customerReference(paymentDto.getCustomerReference())
             .ccdCaseNumber(paymentDto.getCcdCaseNumber())
-            .pbaNumber(paymentDto.getPbaNumber())
+            .pbaNumber(paymentDto.getAccountNumber())
             .siteId(paymentDto.getSiteId())
             .build();
     }
@@ -105,12 +109,12 @@ public class CreditAccountDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .customerReference(payment.getCustomerReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .pbaNumber(payment.getPbaNumber())
+            .accountNumber(payment.getPbaNumber())
             .siteId(payment.getSiteId())
             .build();
     }
 
-    public List<Payment> toPaymentsRequest(List<CreditAccountPayment> creditAccountPayments) {
+    public List<Payment> toPaymentsRequest(List<CreditAccountPaymentRequest> creditAccountPayments) {
         return creditAccountPayments.stream().map(this::toPaymentRequest).collect(Collectors.toList());
     }
 
