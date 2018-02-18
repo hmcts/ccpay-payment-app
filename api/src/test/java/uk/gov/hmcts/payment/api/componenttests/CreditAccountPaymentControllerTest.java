@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,21 +134,21 @@ public class CreditAccountPaymentControllerTest {
 
     private String creditAccountPaymentRequestJson() {
         return "{\n" +
-            "  \"amount\": 1000.00,\n" +
-            "  \"description\": \"string\",\n" +
-            "  \"ccd_case_number\": \"string\",\n" +
-            "  \"case_reference\": \"string\",\n" +
-            "  \"service_name\": \"string\",\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service_name\": \"Probate\",\n" +
             "  \"currency\": \"GBP\",\n" +
-            "  \"customer_reference\": \"string\",\n" +
-            "  \"organisation_name\": \"string\",\n" +
-            "  \"account_number\": \"string\",\n" +
-            "  \"site_id\": \"AA001\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
-            "      \"code\": \"X0123\",\n" +
-            "      \"version\": \"1\",\n" +
-            "      \"calculated_amount\": 1000.00\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
             "    }\n" +
             "  ]\n" +
             "}";
