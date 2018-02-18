@@ -133,13 +133,13 @@ public class CreditAccountDtoMapper {
 
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
-        Method method = CardPaymentController.class.getMethod("cancel", String.class, Integer.class);
+        Method method = CreditAccountPaymentController.class.getMethod("cancel", String.class, Integer.class);
         return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
     }
 
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto retrievePaymentLink(String reference) {
-        Method method = CardPaymentController.class.getMethod("retrieve", String.class);
+        Method method = CreditAccountPaymentController.class.getMethod("retrieve", String.class);
         return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 }
