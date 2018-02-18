@@ -4,6 +4,8 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
@@ -12,6 +14,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -99,7 +102,24 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
         return payment.getPaymentLink();
     }
 
+    @Override
+    public List<PaymentFeeLink> search(Date startDate, Date endDate) {
+        LOG.info("Search for payments between " + startDate + " and " + endDate);
+        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(startDate, endDate));
+        return paymentFeeLinks;
+    }
+
     private Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+    }
+
+    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
+        return Specifications
+            .where(isBetween(fromDate, toDate));
+    }
+
+    private static Specification isBetween(Date startDate, Date endDate) {
+
+        return ((root, query, cb) -> cb.between(root.get("dateCreated"), startDate, endDate));
     }
 }
