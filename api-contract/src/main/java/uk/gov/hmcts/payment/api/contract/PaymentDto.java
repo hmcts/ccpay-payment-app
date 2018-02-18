@@ -70,7 +70,7 @@ public class PaymentDto {
 
     private String pbaNumber;
 
-    private String organistionName;
+    private String organisationName;
 
     //@JsonUnwrapped
     @NotNull

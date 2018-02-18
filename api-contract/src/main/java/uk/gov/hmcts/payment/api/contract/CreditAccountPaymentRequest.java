@@ -27,5 +27,5 @@ public class CreditAccountPaymentRequest {
     private List<CreditAccountPayment> payments;
 
     @Valid
-    private List<FeeDto> fee;
+    private List<FeeDto> fees;
 }

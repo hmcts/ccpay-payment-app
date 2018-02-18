@@ -86,7 +86,7 @@ public class CreditAccountPaymentComponentTest extends ComponentTestBase {
 
     private Fee getFee() {
         return Fee.feeWith()
-            .amount(new BigDecimal("10000.00"))
+            .calculatedAmount(new BigDecimal("10000.00"))
             .code("X0123")
             .version("1")
             .build();
