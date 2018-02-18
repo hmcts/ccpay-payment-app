@@ -47,6 +47,7 @@ public class CardPaymentDtoMapper {
 
     public PaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
+        List<Fee> fees = paymentFeeLink.getFees();
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
@@ -61,6 +62,7 @@ public class CardPaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider().getName())
+            .fees(toFeeDtos(fees))
             .links(new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null

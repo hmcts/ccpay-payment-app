@@ -106,7 +106,7 @@ public class CreditAccountPaymentControllerTest {
             .andExpect(status().isCreated());
     }
 
-    public void retrieveCreditAccountPaymentByPaymentGroupReference() throws Exception {
+    public void retrieveCreditAccountPaymentByPaymentReference() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
 
         MvcResult createResponse = restActions
