@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink, String>, JpaSpecificationExecutor<PaymentFeeLink> {
+public interface PaymentFeeLinkRepository extends CrudRepository<PaymentFeeLink, Integer>, JpaSpecificationExecutor<PaymentFeeLink> {
 
     <S extends PaymentFeeLink> S save(S entity);
 

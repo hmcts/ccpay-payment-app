@@ -6,9 +6,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentDto.LinksDto;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentDto.StateDto;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.LinksDto;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.StateDto;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto;
 import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
@@ -18,7 +18,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
-import static uk.gov.hmcts.payment.api.v1.contract.PaymentDto.paymentDtoWith;
+import static uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.paymentDtoWith;
 import static uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
 import static uk.gov.hmcts.payment.api.v1.model.PaymentOld.paymentWith;
 
@@ -94,8 +94,8 @@ public class PaymentsComponentTest extends ComponentTestBase {
                                 .reference("PaymentOld reference")
                                 .dateCreated(paymentOld.getDateCreated())
                                 .links(new LinksDto(
-                                        new PaymentDto.LinkDto("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2", "GET"),
-                                        new PaymentDto.LinkDto(String.format("http://localhost/users/%s/payments/%s/cancel", USER_ID, paymentOld.getId()), "POST")
+                                        new PaymentOldDto.LinkDto("https://www.payments.service.gov.uk/secure/7f4adfaa-d834-4657-9c16-946863655bb2", "GET"),
+                                        new PaymentOldDto.LinkDto(String.format("http://localhost/users/%s/payments/%s/cancel", USER_ID, paymentOld.getId()), "POST")
                                 ))
                                 .build()
                 ));

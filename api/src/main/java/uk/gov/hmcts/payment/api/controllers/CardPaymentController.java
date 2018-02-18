@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
@@ -22,11 +22,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -60,9 +57,9 @@ public class CardPaymentController {
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/card-payments", method = POST)
-    public ResponseEntity<CardPaymentDto> createCardPayment(@RequestHeader(value = "user-id") String userId,
-                                                            @RequestHeader(value = "return-url") String returnURL,
-                                                            @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
+    public ResponseEntity<PaymentDto> createCardPayment(@RequestHeader(value = "user-id") String userId,
+                                                        @RequestHeader(value = "return-url") String returnURL,
+                                                        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentReference = PaymentReference.getInstance().getNext();
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
@@ -80,7 +77,7 @@ public class CardPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/card-payments/{reference}", method = GET)
-    public CardPaymentDto retrieve(@PathVariable("reference") String paymentReference) {
+    public PaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
 

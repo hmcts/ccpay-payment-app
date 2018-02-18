@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.model.Fee;
@@ -31,22 +31,23 @@ public class CardPaymentDtoMapper {
         }
 
     };
-    public CardPaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
+
+    public PaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CardPaymentDto.payment2DtoWith()
+        return PaymentDto.payment2DtoWith()
             .status(getMappedStatus(payment.getStatus()))
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
-            .links(new CardPaymentDto.LinksDto(
-                payment.getNextUrl() == null ? null : new CardPaymentDto.LinkDto(payment.getNextUrl(), "GET"),
+            .links(new PaymentDto.LinksDto(
+                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
                 null, null
             ))
             .build();
     }
 
-    public CardPaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
+    public PaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CardPaymentDto.payment2DtoWith()
+        return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
@@ -60,16 +61,16 @@ public class CardPaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider().getName())
-            .links(new CardPaymentDto.LinksDto(null,
+            .links(new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
             ))
             .build();
     }
 
-    public CardPaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+    public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CardPaymentDto.payment2DtoWith()
+        return PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
@@ -105,15 +106,15 @@ public class CardPaymentDtoMapper {
 
 
     @SneakyThrows(NoSuchMethodException.class)
-    private CardPaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
+    private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
         Method method = CardPaymentController.class.getMethod("cancel", String.class, Integer.class);
-        return new CardPaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
+        return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
     }
 
     @SneakyThrows(NoSuchMethodException.class)
-    private CardPaymentDto.LinkDto retrieveCardPaymentLink(String reference) {
+    private PaymentDto.LinkDto retrieveCardPaymentLink(String reference) {
         Method method = CardPaymentController.class.getMethod("retrieve", String.class);
-        return new CardPaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, reference).toString(), "GET");
+        return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 
     private String getMappedStatus(String status) {

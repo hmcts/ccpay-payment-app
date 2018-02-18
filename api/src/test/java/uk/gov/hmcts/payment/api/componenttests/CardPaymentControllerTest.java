@@ -3,7 +3,10 @@ package uk.gov.hmcts.payment.api.componenttests;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import lombok.SneakyThrows;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -15,7 +18,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.contract.CardPaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.CheckDigitUtil;
@@ -119,10 +122,10 @@ public class CardPaymentControllerTest{
             .andExpect(status().isCreated())
             .andReturn();
 
-        CardPaymentDto cardPaymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), CardPaymentDto.class);
-        assertNotNull(cardPaymentDto);
-        assertEquals(cardPaymentDto.getStatus(), "Initiated");
-        assertTrue(cardPaymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getStatus(), "Initiated");
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
     }
 
     @Test
@@ -149,12 +152,12 @@ public class CardPaymentControllerTest{
             .andExpect(status().isCreated())
             .andReturn();
 
-        CardPaymentDto cardPaymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), CardPaymentDto.class);
-        assertNotNull(cardPaymentDto);
-        assertEquals(cardPaymentDto.getStatus(), "Initiated");
-        assertTrue(cardPaymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getStatus(), "Initiated");
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
 
-        String reference = cardPaymentDto.getReference();
+        String reference = paymentDto.getReference();
         String[] refs = reference.split("-");
         String timestamp = String.join("", refs[1], refs[2], refs[3], refs[4].substring(0, 3));
         CheckDigitUtil ck = new CheckDigitUtil(11);
@@ -197,11 +200,11 @@ public class CardPaymentControllerTest{
             .andExpect(status().isOk())
             .andReturn();
 
-        CardPaymentDto cardPaymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), CardPaymentDto.class);
-        assertNotNull(cardPaymentDto);
-        assertEquals(cardPaymentDto.getReference(), payment.getReference());
-        assertEquals(cardPaymentDto.getExternalReference(), payment.getExternalReference());
-        assertEquals(cardPaymentDto.getStatus(), "Success");
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getReference(), payment.getReference());
+        assertEquals(paymentDto.getExternalReference(), payment.getExternalReference());
+        assertEquals(paymentDto.getStatus(), "Success");
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception{
