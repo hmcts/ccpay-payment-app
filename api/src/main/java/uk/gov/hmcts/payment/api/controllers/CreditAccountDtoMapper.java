@@ -22,13 +22,9 @@ public class CreditAccountDtoMapper {
     public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(payment.getStatus())
+            .status(payment.getPaymentStatus().getName())
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(
-                retrievePaymentLink(payment.getReference()),
-                null, null
-            ))
             .build();
     }
 
@@ -63,14 +59,13 @@ public class CreditAccountDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(payment.getStatus())
+            .status(payment.getPaymentStatus().getName())
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
             .channel(payment.getPaymentChannel().getName())
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
-            .externalProvider(payment.getPaymentProvider().getName())
             .customerReference(payment.getCustomerReference())
             .organisationName(payment.getOrganisationName())
             .accountNumber(payment.getPbaNumber())
