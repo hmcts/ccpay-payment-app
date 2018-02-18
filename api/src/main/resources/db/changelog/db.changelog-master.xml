@@ -7,4 +7,5 @@
     <include file="db/changelog/db.changelog-0.0.2.yaml"/>
     <include file="db/changelog/db.changelog-0.0.3.yaml"/>
     <include file="db/changelog/db.changelog-0.0.4.yaml"/>
+    <include file="db/changelog/db.changelog-0.0.5.yaml"/>
 </databaseChangeLog>

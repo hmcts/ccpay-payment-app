@@ -75,6 +75,9 @@ public class CardPaymentDtoMapper {
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .amount(payment.getAmount())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(payment.getStatus())
             .dateCreated(payment.getDateCreated())
@@ -94,11 +97,11 @@ public class CardPaymentDtoMapper {
     }
 
     private Fee toFee(FeeDto feeDto) {
-        return Fee.feeWith().amount(feeDto.getAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
+        return Fee.feeWith().calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
     }
 
     private FeeDto toFeeDto(Fee fee) {
-        return FeeDto.feeDtoWith().amount(fee.getAmount()).code(fee.getCode()).version(fee.getVersion()).build();
+        return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion()).build();
     }
 
 
