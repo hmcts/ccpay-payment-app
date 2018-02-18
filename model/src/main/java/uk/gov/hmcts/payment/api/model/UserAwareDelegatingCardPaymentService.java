@@ -113,7 +113,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     @Override
-    @Transactional
     public List<PaymentFeeLink> search(Date startDate, Date endDate) {
         List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(startDate, endDate));
 

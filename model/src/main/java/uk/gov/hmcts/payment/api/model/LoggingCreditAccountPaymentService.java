@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -63,5 +64,14 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
     public PaymentFeeLink retrieveByPaymentReference(String paymentReference) {
         LOG.info("Get payment by payment reference: {}", paymentReference);
         return delegate.retrieveByPaymentReference(paymentReference);
+    }
+
+    @Override
+    public List<PaymentFeeLink> search(Date startDate, Date endDate) {
+        LOG.info("Searching for payments between {} and {}", startDate, endDate);
+
+        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate);
+        LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
+        return paymentFeeLinks;
     }
 }

@@ -97,7 +97,8 @@ public class CreditAccountPaymentController {
         Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
             .findAny()
             .orElseThrow(PaymentNotFoundException::new);
-        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment), OK);
+        List<Fee> fees = paymentFeeLink.getFees();
+        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), OK);
     }
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
