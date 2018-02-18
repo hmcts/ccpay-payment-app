@@ -82,7 +82,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/credit-account/payments/{paymentGroupReference}", method = GET)
-    public ResponseEntity<PaymentGroupDto> retrievePaymentByGroupReference(@PathVariable("paymentGroupReference") String paymentGroupReference) {
+    public ResponseEntity<PaymentGroupDto> retrieveByPaymentGroupReference(@PathVariable("paymentGroupReference") String paymentGroupReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentGroupReference(paymentGroupReference);
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentGroupReferenceResponse(paymentFeeLink), OK);
     }
@@ -94,7 +94,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/credit-account/payment/{paymentReference}", method = GET)
-    public ResponseEntity<PaymentDto> retrievePaymentReference(@PathVariable("paymentReference") String paymentReference) {
+    public ResponseEntity<PaymentDto> retrieveByPaymentReference(@PathVariable("paymentReference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
         Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
             .findAny()
