@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Component
 public class CreditAccountDtoMapper {
 
-    public PaymentGroupDto toCreditAccountPaymentDto(PaymentFeeLink paymentFeeLink) {
+    public PaymentGroupDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         return PaymentGroupDto.paymentGroupWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .payments(paymentFeeLink.getPayments().stream().map(p -> PaymentDto.payment2DtoWith()
