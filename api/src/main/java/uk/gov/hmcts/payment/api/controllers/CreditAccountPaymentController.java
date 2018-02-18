@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -56,35 +57,32 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/credit-account-payments", method = POST)
-    public ResponseEntity<PaymentGroupDto> createCreditAccountPayment(@RequestHeader(value = "user-id") String userId,
+    public ResponseEntity<PaymentDto> createCreditAccountPayment(@RequestHeader(value = "user-id") String userId,
                                                              @RequestHeader(value = "return-url") String returnURL,
                                                              @Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        List<Payment> payments = creditAccountPaymentRequest.getPayments().stream()
-            .map(p -> creditAccountDtoMapper.toPaymentRequest(p))
-            .collect(Collectors.toList());
+        Payment payment = Payment.paymentWith()
+            .amount(creditAccountPaymentRequest.getAmount())
+            .description(creditAccountPaymentRequest.getDescription())
+            .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
+            .caseReference(creditAccountPaymentRequest.getCaseReference())
+            .currency(creditAccountPaymentRequest.getCurrency().getCode())
+            .serviceType(creditAccountPaymentRequest.getServiceName())
+            .customerReference(creditAccountPaymentRequest.getCustomerReference())
+            .organisationName(creditAccountPaymentRequest.getOrganisationName())
+            .pbaNumber(creditAccountPaymentRequest.getAccountNumber())
+            .siteId(creditAccountPaymentRequest.getSiteId())
+            .build();
 
         List<Fee> fees = creditAccountPaymentRequest.getFees().stream()
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());
-        LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with " + payments.size() + " - Payments and " + fees.size() + " - Fees");
+        LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
-        PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payments, fees, paymentGroupReference);
+        PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), CREATED);
-    }
-
-
-    @ApiOperation(value = "Get credit account payment details by payment group reference", notes = "Get payment details for supplied payment group reference")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment retrieved"),
-        @ApiResponse(code = 404, message = "Payment not found")
-    })
-    @RequestMapping(value = "/credit-account/payments/{paymentGroupReference}", method = GET)
-    public ResponseEntity<PaymentGroupDto> retrieveByPaymentGroupReference(@PathVariable("paymentGroupReference") String paymentGroupReference) {
-        PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentGroupReference(paymentGroupReference);
-        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentGroupReferenceResponse(paymentFeeLink), OK);
     }
 
 
@@ -93,8 +91,8 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 200, message = "Payment retrieved"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/credit-account/payment/{paymentReference}", method = GET)
-    public ResponseEntity<PaymentDto> retrieveByPaymentReference(@PathVariable("paymentReference") String paymentReference) {
+    @RequestMapping(value = "/credit-account-payments/{paymentReference}", method = GET)
+    public ResponseEntity<PaymentDto> retrieve(@PathVariable("paymentReference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
         Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
             .findAny()
@@ -102,5 +100,9 @@ public class CreditAccountPaymentController {
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment), OK);
     }
 
+    @ExceptionHandler(value = {PaymentNotFoundException.class})
+    public ResponseEntity httpClientErrorException() {
+        return new ResponseEntity(NOT_FOUND);
+    }
 
 }

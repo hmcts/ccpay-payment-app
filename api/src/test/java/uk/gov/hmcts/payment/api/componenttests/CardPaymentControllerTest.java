@@ -238,7 +238,7 @@ public class CardPaymentControllerTest{
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
             "  \"service_name\": \"Probate\",\n" +
-            "  \"currency\": \"INR\",\n" +
+            "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +
             "  \"fee\": [\n" +

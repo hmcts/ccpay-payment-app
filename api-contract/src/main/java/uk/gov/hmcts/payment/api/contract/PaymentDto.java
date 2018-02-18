@@ -68,7 +68,7 @@ public class PaymentDto {
 
     private String customerReference;
 
-    private String pbaNumber;
+    private String accountNumber;
 
     private String organisationName;
 
