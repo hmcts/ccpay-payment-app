@@ -30,7 +30,7 @@ public class EmailService {
             mimeMessageHelper.setFrom(email.getFrom());
             mimeMessageHelper.setTo(email.getTo());
             mimeMessageHelper.setSubject(email.getSubject());
-            mimeMessageHelper.setText(email.getMessage());
+            mimeMessageHelper.setText(email.getMessage(),false);
 
             if (email.hasAttachments()) {
                 for (EmailAttachment emailAttachment : email.getAttachments()) {
