@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
@@ -54,8 +54,8 @@ public class PaymentController {
             @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/users/{userId}/payments", method = POST)
-    public ResponseEntity<PaymentDto> create(@PathVariable("userId") String userId,
-                                             @Valid @RequestBody CreatePaymentRequestDto request) {
+    public ResponseEntity<PaymentOldDto> create(@PathVariable("userId") String userId,
+                                                @Valid @RequestBody CreatePaymentRequestDto request) {
         PaymentOld paymentOld = paymentService.create(
                 request.getAmount(),
                 request.getReference(),
@@ -72,8 +72,8 @@ public class PaymentController {
             @ApiResponse(code = 404, message = "PaymentOld not found")
     })
     @RequestMapping(value = "/users/{userId}/payments/{paymentId}", method = GET)
-    public PaymentDto retrieve(@PathVariable("userId") String userId,
-                               @PathVariable("paymentId") Integer paymentId) {
+    public PaymentOldDto retrieve(@PathVariable("userId") String userId,
+                                  @PathVariable("paymentId") Integer paymentId) {
         return paymentDtoFactory.toDto(paymentService.retrieve(paymentId));
     }
 

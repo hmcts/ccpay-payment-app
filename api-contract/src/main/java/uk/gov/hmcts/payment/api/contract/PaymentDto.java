@@ -28,7 +28,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CardPaymentDto {
+public class PaymentDto {
 
     private String id;
 
@@ -65,6 +65,12 @@ public class CardPaymentDto {
     private String siteId;
 
     private String serviceName;
+
+    private String customerReference;
+
+    private String pbaNumber;
+
+    private String organisationName;
 
     //@JsonUnwrapped
     @NotNull

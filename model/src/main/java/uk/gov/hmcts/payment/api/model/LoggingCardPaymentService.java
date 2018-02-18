@@ -47,7 +47,7 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
             USER_ID, userIdSupplier.get(),
             EVENT_TYPE, "create",
             AMOUNT, payment.getAmount(),
-            REFERENCE, paymentFeeLink.getPaymentReference()
+            REFERENCE, payment.getReference()
         )));
         return paymentFeeLink;
     }
