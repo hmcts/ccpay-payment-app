@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.util.CheckDigitUtil;
+import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -28,7 +29,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD =  "card";
-    private final static String PAYMENT_REF_REGEX = "(?<=\\G.{4})";
 
     private final UserIdSupplier userIdSupplier;
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -38,6 +38,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final PaymentProviderRepository paymentProviderRespository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final Payment2Repository paymentRespository;
+    private final PaymentReferenceUtil paymentReferenceUtil;
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -45,7 +46,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     public UserAwareDelegatingCardPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
                                                  CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
                                                  PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                                 PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository) {
+                                                 PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
+                                                 PaymentReferenceUtil paymentReferenceUtil) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegate = delegate;
@@ -54,13 +56,14 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         this.paymentProviderRespository = paymentProviderRepository;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentRespository = paymentRespository;
+        this.paymentReferenceUtil = paymentReferenceUtil;
     }
 
     @Override
     @Transactional
     public PaymentFeeLink create(int amount, @NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl,
                                  String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) throws CheckDigitException {
-        String paymentReference = generatePaymentReference();
+        String paymentReference = paymentReferenceUtil.getNext();
 
         GovPayPayment govPayPayment = delegate.create(amount, paymentReference, description, returnUrl,
             ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
@@ -153,22 +156,4 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return url == null ? null : url.getHref();
     }
 
-    private String generatePaymentReference() throws CheckDigitException {
-        DateTime dateTime = new DateTime(DateTimeZone.UTC);
-        long timeInMillis = dateTime.getMillis()/100;
-
-        StringBuffer sb = new StringBuffer();
-        sb.append(timeInMillis);
-
-        // append the random 4 characters
-        SecureRandom random = new SecureRandom();
-        sb.append(String.format("%04d", random.nextInt(10000)));
-
-        CheckDigitUtil checkDigit = new CheckDigitUtil(11);
-        sb.append(checkDigit.calculate(sb.toString()));
-
-        String[] parts = sb.toString().split(PAYMENT_REF_REGEX);
-
-        return "RC-" + String.join("-", parts);
-    }
 }

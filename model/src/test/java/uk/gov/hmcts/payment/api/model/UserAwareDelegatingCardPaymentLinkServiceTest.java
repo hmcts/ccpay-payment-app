@@ -9,6 +9,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
@@ -45,6 +46,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         ))
         .build();
 
+    private PaymentReferenceUtil paymentReferenceUtil = mock(PaymentReferenceUtil.class);
     private PaymentChannelRepository paymentChannelRepository = mock(PaymentChannelRepository.class);
     private PaymentMethodRepository paymentMethodRepository = mock(PaymentMethodRepository.class);
     private PaymentProviderRepository paymentProviderRepository = mock(PaymentProviderRepository.class);
@@ -55,7 +57,8 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private PaymentFeeLinkRepository paymentFeeLinkRepository = mock(PaymentFeeLinkRepository.class);
 
     private UserAwareDelegatingCardPaymentService cardPaymentService = new UserAwareDelegatingCardPaymentService(() -> USER_ID, paymentFeeLinkRepository,
-        govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository, paymentStatusRepository, paymentRespository);
+        govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
+        paymentStatusRepository, paymentRespository, paymentReferenceUtil);
 
     @Test
     public void checkCreateWiring() throws CheckDigitException {
@@ -77,24 +80,27 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
     @Test
     public void testRetrieveCardPaymentForGivenPaymentReference() throws Exception {
+        when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-123C");
+        String reference = paymentReferenceUtil.getNext();
+
         when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).paymentReference("payGroupRef")
-            .payments(Arrays.asList(Payment.paymentWith().id(1).externalReference("govPayId").reference("RC-1234-1234-1234-123C").build())).build()));
+            .payments(Arrays.asList(Payment.paymentWith().id(1).externalReference("govPayId").reference(reference).build())).build()));
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference("1").orElseThrow(PaymentNotFoundException::new);
-        when(paymentRespository.findByReference("RC-1234-1234-1234-123C")).thenReturn(Optional.of(Payment.paymentWith().id(1)
+        when(paymentRespository.findByReference(reference)).thenReturn(Optional.of(Payment.paymentWith().id(1)
             .externalReference("govPayId")
-            .reference("RC-1234-1234-1234-123C")
+            .reference(reference)
             .paymentLink(paymentFeeLink)
             .build()));
 
-        Payment payment = paymentRespository.findByReference("RC-1234-1234-1234-123C").orElseThrow(PaymentNotFoundException::new);
+        Payment payment = paymentRespository.findByReference(reference).orElseThrow(PaymentNotFoundException::new);
 
         when(govPayCardPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
-        PaymentFeeLink result = cardPaymentService.retrieve("RC-1234-1234-1234-123C");
+        PaymentFeeLink result = cardPaymentService.retrieve(reference);
         assertNotNull(result.getPayments().get(0));
         assertEquals(result.getPayments().get(0).getExternalReference(), "govPayId");
-        assertEquals(result.getPayments().get(0).getReference(), "RC-1234-1234-1234-123C");
+        assertEquals(result.getPayments().get(0).getReference(), reference);
     }
 
 
