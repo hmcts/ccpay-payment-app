@@ -31,6 +31,6 @@ public class FeeDto {
     private String version;
 
     @NotNull
-    @Digits(integer = 10, fraction = 2, message = "Fee amount cannot have more than 2 decimal places")
-    private BigDecimal amount;
+    @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
+    private BigDecimal calculatedAmount;
 }

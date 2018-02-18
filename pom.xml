@@ -240,7 +240,7 @@
                 <version>3.5.3</version>
                 <configuration>
                     <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
-                    <diffChangeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.3.yaml</diffChangeLogFile>
+                    <diffChangeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.5.yaml</diffChangeLogFile>
                     <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
                     <url>jdbc:postgresql://localhost:5432/payment</url>
                     <driver>org.postgresql.Driver</driver>
@@ -350,7 +350,7 @@
                     <plugin>
                         <groupId>org.owasp</groupId>
                         <artifactId>dependency-check-maven</artifactId>
-                        <version>1.4.5</version>
+                        <version>3.1.1</version>
                         <inherited>false</inherited>
                         <configuration>
                             <failBuildOnCVSS>0</failBuildOnCVSS>
