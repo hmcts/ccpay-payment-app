@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPayment;
+import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentGroupDto;
@@ -32,7 +32,7 @@ public class CreditAccountDtoMapper {
             .build();
     }
 
-    public Payment toPaymentRequest(CreditAccountPayment creditAccountPayment) {
+    public Payment toPaymentRequest(CreditAccountPaymentRequest creditAccountPayment) {
         return Payment.paymentWith()
             .amount(creditAccountPayment.getAmount())
             .description(creditAccountPayment.getDescription())
@@ -114,7 +114,7 @@ public class CreditAccountDtoMapper {
             .build();
     }
 
-    public List<Payment> toPaymentsRequest(List<CreditAccountPayment> creditAccountPayments) {
+    public List<Payment> toPaymentsRequest(List<CreditAccountPaymentRequest> creditAccountPayments) {
         return creditAccountPayments.stream().map(this::toPaymentRequest).collect(Collectors.toList());
     }
 
