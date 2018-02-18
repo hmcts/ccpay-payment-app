@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,25 +54,23 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     @Override
     @Transactional
-    public PaymentFeeLink create(List<Payment> creditAccounts, List<Fee> fees, String paymentGroupRef) throws CheckDigitException {
+    public PaymentFeeLink create(Payment creditAccount, List<Fee> fees, String paymentGroupRef) throws CheckDigitException {
         LOG.debug("Create credit account payment with PaymentGroupReference: {}", paymentGroupRef);
-
-        List<Payment> payments = creditAccounts.stream().map(p -> {
 
             Payment payment = null;
             try {
                 payment = Payment.paymentWith().userId(userIdSupplier.get())
-                    .amount(p.getAmount())
-                    .description(p.getDescription())
-                    .returnUrl(p.getReturnUrl())
-                    .ccdCaseNumber(p.getCcdCaseNumber())
-                    .caseReference(p.getCaseReference())
-                    .currency(p.getCurrency())
-                    .siteId(p.getSiteId())
-                    .serviceType(p.getServiceType())
-                    .customerReference(p.getCustomerReference())
-                    .organisationName(p.getOrganisationName())
-                    .pbaNumber(p.getPbaNumber())
+                    .amount(creditAccount.getAmount())
+                    .description(creditAccount.getDescription())
+                    .returnUrl(creditAccount.getReturnUrl())
+                    .ccdCaseNumber(creditAccount.getCcdCaseNumber())
+                    .caseReference(creditAccount.getCaseReference())
+                    .currency(creditAccount.getCurrency())
+                    .siteId(creditAccount.getSiteId())
+                    .serviceType(creditAccount.getServiceType())
+                    .customerReference(creditAccount.getCustomerReference())
+                    .organisationName(creditAccount.getOrganisationName())
+                    .pbaNumber(creditAccount.getPbaNumber())
                     .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
                     .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
                     .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_MIDDLE_OFFICE_PROVIDER))
@@ -82,13 +81,10 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                 LOG.error("Error in generating check digit for the payment reference, {}", e);
             }
 
-            return payment;
-        }).collect(Collectors.toList());
-
 
         return paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
-            .payments(payments)
+            .payments(Arrays.asList(payment))
             .fees(fees)
             .build());
     }

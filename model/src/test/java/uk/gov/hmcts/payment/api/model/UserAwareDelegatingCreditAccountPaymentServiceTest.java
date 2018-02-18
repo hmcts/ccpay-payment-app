@@ -46,20 +46,16 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
         List<Fee> fees = Arrays.asList(getFee(1));
-        List<Payment> payments = new ArrayList<>(3);
-        payments.add(getPayment(1));
-        payments.add(getPayment(2));
-        payments.add(getPayment(3));
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkWith()
             .id(1)
             .paymentReference("2018-1234567890")
-            .payments(payments)
+            .payments(Arrays.asList(getPayment(1)))
             .fees(fees)
             .build();
 
         when(paymentFeeLinkRepository.save(paymentFeeLink)).thenReturn(paymentFeeLink);
-        creditAccountPaymentService.create(payments, fees, "2018-1234567890");
+        creditAccountPaymentService.create(getPayment(1), fees, "2018-1234567890");
     }
 
     private Payment getPayment(int number) throws CheckDigitException {

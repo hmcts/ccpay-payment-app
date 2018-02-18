@@ -19,15 +19,16 @@ import java.util.stream.Collectors;
 @Component
 public class CreditAccountDtoMapper {
 
-    public PaymentGroupDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
-        return PaymentGroupDto.paymentGroupWith()
-            .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .payments(paymentFeeLink.getPayments().stream().map(p -> PaymentDto.payment2DtoWith()
-                .reference(p.getReference())
-                .status(p.getStatus())
-                .dateCreated(p.getDateCreated())
-                .build())
-                .collect(Collectors.toList()))
+    public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .status(payment.getStatus())
+            .reference(payment.getReference())
+            .dateCreated(payment.getDateCreated())
+            .links(new PaymentDto.LinksDto(
+                retrievePaymentLink(payment.getReference()),
+                null, null
+            ))
             .build();
     }
 
@@ -41,7 +42,7 @@ public class CreditAccountDtoMapper {
             .currency(creditAccountPayment.getCurrency().getCode())
             .customerReference(creditAccountPayment.getCustomerReference())
             .ccdCaseNumber(creditAccountPayment.getCcdCaseNumber())
-            .pbaNumber(creditAccountPayment.getPbaNumber())
+            .pbaNumber(creditAccountPayment.getAccountNumber())
             .siteId(creditAccountPayment.getSiteId())
             .build();
     }
@@ -70,6 +71,9 @@ public class CreditAccountDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider().getName())
+            .customerReference(payment.getCustomerReference())
+            .organisationName(payment.getOrganisationName())
+            .accountNumber(payment.getPbaNumber())
             .links(new PaymentDto.LinksDto(null,
                 retrievePaymentLink(payment.getReference()),
                 null
@@ -87,7 +91,7 @@ public class CreditAccountDtoMapper {
             .currency(paymentDto.getCurrency().getCode())
             .customerReference(paymentDto.getCustomerReference())
             .ccdCaseNumber(paymentDto.getCcdCaseNumber())
-            .pbaNumber(paymentDto.getPbaNumber())
+            .pbaNumber(paymentDto.getAccountNumber())
             .siteId(paymentDto.getSiteId())
             .build();
     }
@@ -105,7 +109,7 @@ public class CreditAccountDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .customerReference(payment.getCustomerReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .pbaNumber(payment.getPbaNumber())
+            .accountNumber(payment.getPbaNumber())
             .siteId(payment.getSiteId())
             .build();
     }

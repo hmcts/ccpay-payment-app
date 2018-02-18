@@ -105,7 +105,6 @@ public class CreditAccountPaymentControllerTest {
             .andExpect(status().isCreated());
     }
 
-    @Test
     public void retrieveCreditAccountPaymentByPaymentGroupReference() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
 
@@ -113,22 +112,16 @@ public class CreditAccountPaymentControllerTest {
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated())
             .andReturn();
-        PaymentGroupDto paymentGroup = objectMapper.readValue(createResponse.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentDto paymentDto = objectMapper.readValue(createResponse.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         MvcResult result = restActions
-            .get(format("/credit-account/payments/" + paymentGroup.getPaymentGroupReference()))
+            .get(format("/credit-account-payments/" + paymentDto.getReference()))
             .andExpect(status().isOk())
             .andReturn();
-        PaymentGroupDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(response);
-        assertEquals(response.getPaymentGroupReference(), paymentGroup.getPaymentGroupReference());
-        response.getPayments().stream().forEach(p -> {
-            assertTrue(p.getReference().matches(PAYMENT_REFERENCE_REFEX));
-        });
-
-        BigDecimal paymentsTotalAmount = response.getPayments().stream().map(PaymentDto::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal feesTotalAmount = response.getFees().stream().map(FeeDto::getCalculatedAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        assertEquals(paymentsTotalAmount, feesTotalAmount);
+        assertTrue(response.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        assertEquals(response.getAmount(), new BigDecimal("1000.00"));
     }
 
     @Test
@@ -140,49 +133,21 @@ public class CreditAccountPaymentControllerTest {
 
     private String creditAccountPaymentRequestJson() {
         return "{\n" +
-            "  \"payments\": [\n" +
-            "    {\n" +
-            "      \"amount\": 8000.00,\n" +
-            "      \"description\": \"description1\",\n" +
-            "      \"ccd_case_number\": \"ccdCaseNo1\",\n" +
-            "      \"case_reference\": \"caseRef1\",\n" +
-            "      \"service_name\": \"Divorce\",\n" +
-            "      \"currency\": \"GBP\",\n" +
-            "      \"customer_reference\": \"R1234567890\",\n" +
-            "      \"organisation_name\": \"myOrganisation\",\n" +
-            "      \"pba_number\": \"pba001\",\n" +
-            "      \"site_id\": \"AA001\"\n" +
-            "    },\n" +
-            "    {\n" +
-            "      \"amount\": 500.00,\n" +
-            "      \"description\": \"description2\",\n" +
-            "      \"ccd_case_number\": \"ccdCaseNo1\",\n" +
-            "      \"case_reference\": \"caseRef1\",\n" +
-            "      \"service_name\": \"Divorce\",\n" +
-            "      \"currency\": \"GBP\",\n" +
-            "      \"customer_reference\": \"R1234567890\",\n" +
-            "      \"organisation_name\": \"myOrganisation\",\n" +
-            "      \"pba_number\": \"pba001\",\n" +
-            "      \"site_id\": \"AA001\"\n" +
-            "    },\n" +
-            "    {\n" +
-            "      \"amount\": 1500.00,\n" +
-            "      \"description\": \"description1\",\n" +
-            "      \"ccd_case_number\": \"ccdCaseNo1\",\n" +
-            "      \"case_reference\": \"caseRef1\",\n" +
-            "      \"service_name\": \"Divorce\",\n" +
-            "      \"currency\": \"GBP\",\n" +
-            "      \"customer_reference\": \"R1234567890\",\n" +
-            "      \"organisation_name\": \"myOrganisation\",\n" +
-            "      \"pba_number\": \"pba001\",\n" +
-            "      \"site_id\": \"AA001\"\n" +
-            "    }\n" +
-            "  ],\n" +
+            "  \"amount\": 1000.00,\n" +
+            "  \"description\": \"string\",\n" +
+            "  \"ccd_case_number\": \"string\",\n" +
+            "  \"case_reference\": \"string\",\n" +
+            "  \"service_name\": \"string\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"customer_reference\": \"string\",\n" +
+            "  \"organisation_name\": \"string\",\n" +
+            "  \"account_number\": \"string\",\n" +
+            "  \"site_id\": \"AA001\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
             "      \"code\": \"X0123\",\n" +
             "      \"version\": \"1\",\n" +
-            "      \"calculated_amount\": 10000.00\n" +
+            "      \"calculated_amount\": 1000.00\n" +
             "    }\n" +
             "  ]\n" +
             "}";
