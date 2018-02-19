@@ -57,7 +57,7 @@ public class CardPaymentController {
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/card-payments", method = POST)
-    public ResponseEntity<PaymentDto> createCardPayment(@RequestHeader(value = "user-id") String userId,
+    public ResponseEntity<PaymentDto> createCardPayment(
                                                         @RequestHeader(value = "return-url") String returnURL,
                                                         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentReference = PaymentReference.getInstance().getNext();
