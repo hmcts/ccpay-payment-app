@@ -8,10 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.controllers.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
+import uk.gov.hmcts.payment.api.email.CreditAccountReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.EmailFailedException;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.CardPaymentService;
+import uk.gov.hmcts.payment.api.model.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.io.ByteArrayOutputStream;
@@ -37,31 +40,45 @@ public class PaymentsReportService {
 
     private static final String BYTE_ARRAY_OUTPUT_STREAM_NEWLINE = "\r\n";
 
-    private static final String CSV_FILE_PREFIX = "hmcts_payments_";
+    private static final String CARD_PAYMENTS_CSV_FILE_PREFIX = "hmcts_card_payments_";
+
+    private static final String PBA_PAYMENTS_CSV_FILE_PREFIX = "hmcts_pba_payments_";
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 
-    private static final String HEADER = "Service,Payment reference,CCD reference,Case reference,Payment date,Payment channel,Payment amount,"
+    private static final String CARD_PAYMENTS_HEADER = "Service,Payment reference,CCD reference,Case reference,Payment date,Payment channel,Payment amount,"
+        + "Site id,Fee code,Version,Fee code,Version,Fee code,Version,Fee code,Version,Fee code,Version";
+
+    private static final String PBA_PAYMENTS_HEADER = "Service,Payment Group reference,CCD reference,Case reference,Payment date,Payment channel,Payment amount,"
         + "Site id,Fee code,Version,Fee code,Version,Fee code,Version,Fee code,Version,Fee code,Version";
 
     private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
 
+    private CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
+
     private CardPaymentDtoMapper cardPaymentDtoMapper;
+    private CreditAccountDtoMapper creditAccountDtoMapper;
 
     private EmailService emailService;
 
     private CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail;
+    private CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail;
+
 
     @Autowired
     public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, CardPaymentDtoMapper cardPaymentDtoMapper,
-                                 EmailService emailService, CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail) {
+                                 @Qualifier("loggingCreditAccountPaymentService")CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,CreditAccountDtoMapper creditAccountDtoMapper,
+                                 EmailService emailService, CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail, CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail1) {
         this.cardPaymentService = cardPaymentService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
         this.emailService = emailService;
         this.cardPaymentReconciliationReportEmail = cardPaymentReconciliationReportEmail;
+        this.creditAccountReconciliationReportEmail = creditAccountReconciliationReportEmail1;
+        this.creditAccountPaymentService = creditAccountPaymentService;
+        this.creditAccountDtoMapper = creditAccountDtoMapper;
     }
 
-    public void generateCsv(String startDate, String endDate) throws ParseException, IOException {
+    public void generateCardPaymentsCsv(String startDate, String endDate) throws ParseException, IOException {
 
         Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
         Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
@@ -70,27 +87,27 @@ public class PaymentsReportService {
         List<PaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
             .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-        createCsv(cardPayments);
+        createCardPaymentsCsv(cardPayments);
 
     }
 
-    private void createCsv(List<PaymentDto> cardPayments) throws IOException {
+    private void createCardPaymentsCsv(List<PaymentDto> cardPayments) throws IOException {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
         String fileNameSuffix = LocalDateTime.now().format(formatter);
-        String csvFileName = CSV_FILE_PREFIX + fileNameSuffix + ".csv";
+        String cardPaymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + ".csv";
 
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            bos.write(HEADER.getBytes());
+            bos.write(CARD_PAYMENTS_HEADER.getBytes());
             bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
             for (PaymentDto cardPayment : cardPayments) {
                 bos.write(cardPayment.toCsv().getBytes());
                 bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
             }
 
-            LOG.info("PaymentsReportService - Total " + cardPayments.size() + " records written in payments csv file " + csvFileName);
+            LOG.info("PaymentsReportService - Total " + cardPayments.size() + " card payments records written in payments csv file " + cardPaymentsCsvFileName);
 
-            cardPaymentReconciliationReportEmail.setAttachments(newArrayList(csv(bos.toByteArray(), csvFileName)));
+            cardPaymentReconciliationReportEmail.setAttachments(newArrayList(csv(bos.toByteArray(), cardPaymentsCsvFileName)));
 
             emailService.sendEmail(cardPaymentReconciliationReportEmail);
 
@@ -98,7 +115,52 @@ public class PaymentsReportService {
 
         } catch (IOException | EmailFailedException ex) {
 
-            LOG.error("PaymentsReportService - Error while creating card payments csv file " + csvFileName + ". Error message is" + ex.getMessage());
+            LOG.error("PaymentsReportService - Error while creating card payments csv file " + cardPaymentsCsvFileName + ". Error message is" + ex.getMessage());
+
+        }
+
+
+    }
+
+    public void generateCreditAccountPaymentsCsv(String startDate, String endDate) throws ParseException, IOException {
+
+        Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
+        Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
+
+        System.out.println(startDate);
+        System.out.println(endDate);
+        List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
+            .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+
+        createCreditAccountPaymentsCsv(creditAccountPayments);
+
+    }
+
+    private void createCreditAccountPaymentsCsv(List<PaymentDto> creditAccountPayments) throws IOException {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+        String fileNameSuffix = LocalDateTime.now().format(formatter);
+        String creditAccountCsvFileName = PBA_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + ".csv";
+
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            bos.write(PBA_PAYMENTS_HEADER.getBytes());
+            bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
+            for (PaymentDto creditAccountPayment : creditAccountPayments) {
+                bos.write(creditAccountPayment.toCsv().getBytes());
+                bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
+            }
+
+            LOG.info("PaymentsReportService - Total " +creditAccountPayments.size() + " credit account payments(pba) records written in payments csv file " + creditAccountCsvFileName);
+
+            creditAccountReconciliationReportEmail.setAttachments(newArrayList(csv(bos.toByteArray(), creditAccountCsvFileName)));
+
+            emailService.sendEmail(creditAccountReconciliationReportEmail);
+
+            LOG.info("PaymentsReportService - Credit account payments report  email sent to " + Arrays.toString(creditAccountReconciliationReportEmail.getTo()));
+
+        } catch (IOException | EmailFailedException ex) {
+
+            LOG.error("PaymentsReportService - Error while creating credit account payments csv file " + creditAccountCsvFileName + ". Error message is" + ex.getMessage());
 
         }
 
