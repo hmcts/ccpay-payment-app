@@ -15,29 +15,38 @@ public class PaymentsReportServiceTest {
     private PaymentsReportService paymentsReportService;
 
 
-    private PaymentsReportScheduler scheduler;
+    private CardPaymentsReportScheduler cardPaymentsReportScheduler;
+
+    private CreditAccountPaymentsReportScheduler creditAccountPaymentsReportScheduler;
 
     @Before
     public void setUp() {
-        scheduler = new PaymentsReportScheduler(paymentsReportService);
+        cardPaymentsReportScheduler = new CardPaymentsReportScheduler(paymentsReportService);
+        creditAccountPaymentsReportScheduler =new CreditAccountPaymentsReportScheduler(paymentsReportService);
     }
 
     @Test
-    public void shouldInvokeCsvExtractServiceToExtractCsv() throws Exception {
+    public void shouldInvokeGenerateCardPaymentsReport() throws Exception {
         // given
 
         // when
-        scheduler.generatePaymentsReport();
+        cardPaymentsReportScheduler.generateCardPaymentsReport();
 
         // then
-        verify(paymentsReportService).generateCsv(null,null);
+        verify(paymentsReportService).generateCardPaymentsCsv(null,null);
     }
+
+    @Test
+    public void shouldInvokeGenerateCreditAccountPaymentsReport() throws Exception {
+        // given
+
+        // when
+        creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReport();
+
+        // then
+        verify(paymentsReportService).generateCreditAccountPaymentsCsv(null,null);
+    }
+
+
+
 }
-
-
-
-
-
-
-
-

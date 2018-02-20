@@ -109,6 +109,24 @@ public class CreditAccountDtoMapper {
             .siteId(payment.getSiteId())
             .build();
     }
+    public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .paymentReference(payment.getReference())
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .amount(payment.getAmount())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .channel(payment.getPaymentChannel().getName())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
+            .status(payment.getStatus())
+            .dateCreated(payment.getDateCreated())
+            .method(payment.getPaymentMethod().getName())
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .build();
+
+    }
 
     public List<Payment> toPaymentsRequest(List<CreditAccountPaymentRequest> creditAccountPayments) {
         return creditAccountPayments.stream().map(this::toPaymentRequest).collect(Collectors.toList());
