@@ -131,6 +131,14 @@ public class CreditAccountPaymentControllerTest {
         assertNotNull(request);
     }
 
+    @Test
+    public void createCreditAccountPayment_withInvalidRequestJsonTest() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentInvalidRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isUnprocessableEntity());
+    }
 
     private String creditAccountPaymentRequestJson() {
         return "{\n" +
@@ -150,6 +158,23 @@ public class CreditAccountPaymentControllerTest {
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String creditAccountPaymentInvalidRequestJson() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service_name\": \"Probate\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
             "  ]\n" +
             "}";
     }
