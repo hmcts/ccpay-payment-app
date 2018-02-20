@@ -217,7 +217,7 @@ public class CardPaymentControllerTest{
             "  \"description\": \"New passport application\",\n" +
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
-            "  \"service_name\": \"Probate\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +
@@ -237,7 +237,7 @@ public class CardPaymentControllerTest{
             "  \"description\": \"New passport application\",\n" +
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
-            "  \"service_name\": \"Probate\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +

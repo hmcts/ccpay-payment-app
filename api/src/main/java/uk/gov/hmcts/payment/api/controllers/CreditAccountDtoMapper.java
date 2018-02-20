@@ -34,7 +34,7 @@ public class CreditAccountDtoMapper {
             .description(creditAccountPayment.getDescription())
             .ccdCaseNumber(creditAccountPayment.getCcdCaseNumber())
             .caseReference(creditAccountPayment.getCaseReference())
-            .serviceType(creditAccountPayment.getServiceName())
+            .serviceType(creditAccountPayment.getService().getName())
             .currency(creditAccountPayment.getCurrency().getCode())
             .customerReference(creditAccountPayment.getCustomerReference())
             .ccdCaseNumber(creditAccountPayment.getCcdCaseNumber())

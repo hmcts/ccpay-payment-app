@@ -7,9 +7,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,11 +30,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static java.lang.String.format;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -139,13 +145,23 @@ public class CreditAccountPaymentControllerTest {
             .andExpect(status().isUnprocessableEntity());
     }
 
+    @Test
+    public void createCreditAccountPayment_WithInvalidServiceNameTest() throws Exception {
+
+        restActions
+            .post(format("/credit-account-payments"), creditAccountPaymentRequestJsonWithInvalidServiceName())
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    }
+
     private String creditAccountPaymentRequestJson() {
         return "{\n" +
             "  \"amount\": 101.89,\n" +
             "  \"description\": \"New passport application\",\n" +
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
-            "  \"service_name\": \"Probate\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"site_id\": \"AA101\",\n" +
             "  \"customer_reference\": \"CUST101\",\n" +
@@ -167,7 +183,7 @@ public class CreditAccountPaymentControllerTest {
             "  \"description\": \"New passport application\",\n" +
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
-            "  \"service_name\": \"Probate\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"site_id\": \"AA101\",\n" +
             "  \"customer_reference\": \"CUST101\",\n" +
@@ -177,4 +193,28 @@ public class CreditAccountPaymentControllerTest {
             "  ]\n" +
             "}";
     }
+
+
+    private String creditAccountPaymentRequestJsonWithInvalidServiceName() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"NO_SERVICE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
 }
