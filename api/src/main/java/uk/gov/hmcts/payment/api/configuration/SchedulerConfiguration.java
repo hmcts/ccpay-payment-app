@@ -15,20 +15,10 @@ import org.springframework.scheduling.config.TaskManagementConfigUtils;
 @EnableScheduling
 public class SchedulerConfiguration {
 
-    @Conditional(SchedulerCondition.class)
     @Bean(name = TaskManagementConfigUtils.SCHEDULED_ANNOTATION_PROCESSOR_BEAN_NAME)
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     public ScheduledAnnotationBeanPostProcessor scheduledAnnotationProcessor() {
         return new ScheduledAnnotationBeanPostProcessor();
-    }
-
-
-    @Bean
-    public TaskScheduler poolScheduler() {
-        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("hmctsPaymentsScheduler");
-        scheduler.setPoolSize(5);
-        return scheduler;
     }
 
 }
