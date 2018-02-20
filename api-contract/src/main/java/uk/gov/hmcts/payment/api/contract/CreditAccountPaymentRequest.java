@@ -62,6 +62,7 @@ public class CreditAccountPaymentRequest {
     @JsonProperty("site_id")
     private String siteId;
 
+    @NotEmpty
     @Valid
     private List<FeeDto> fees;
 }
