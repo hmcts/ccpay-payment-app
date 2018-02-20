@@ -123,7 +123,6 @@ public class CreditAccountDtoMapper {
             .status(payment.getStatus())
             .dateCreated(payment.getDateCreated())
             .method(payment.getPaymentMethod().getName())
-            .externalProvider(payment.getPaymentProvider().getName())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
 
