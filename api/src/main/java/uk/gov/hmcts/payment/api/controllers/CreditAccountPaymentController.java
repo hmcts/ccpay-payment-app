@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -26,9 +25,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -57,9 +54,8 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @RequestMapping(value = "/credit-account-payments", method = POST)
-    public ResponseEntity<PaymentDto> createCreditAccountPayment(
-
-                                                             @Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
+    @ResponseBody
+    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         Payment payment = Payment.paymentWith()
@@ -68,7 +64,7 @@ public class CreditAccountPaymentController {
             .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
             .caseReference(creditAccountPaymentRequest.getCaseReference())
             .currency(creditAccountPaymentRequest.getCurrency().getCode())
-            .serviceType(creditAccountPaymentRequest.getServiceName())
+            .serviceType(creditAccountPaymentRequest.getService().getName())
             .customerReference(creditAccountPaymentRequest.getCustomerReference())
             .organisationName(creditAccountPaymentRequest.getOrganisationName())
             .pbaNumber(creditAccountPaymentRequest.getAccountNumber())

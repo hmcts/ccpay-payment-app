@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import org.hibernate.validator.constraints.NotEmpty;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Digits;
@@ -44,8 +45,7 @@ public class CreditAccountPaymentRequest {
     @NotEmpty
     private String caseReference;
 
-    @NotEmpty
-    private String serviceName;
+    private Service service;
 
     private CurrencyCode currency;
 
@@ -62,6 +62,9 @@ public class CreditAccountPaymentRequest {
     @JsonProperty("site_id")
     private String siteId;
 
+    @NotEmpty
     @Valid
     private List<FeeDto> fees;
+
+
 }
