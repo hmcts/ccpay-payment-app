@@ -63,6 +63,9 @@ public class ComponentTestBase {
     @Autowired
     protected UserAwareDelegatingCardPaymentService cardPaymentService;
 
+    @Autowired
+    protected UserAwareDelegatingCreditAccountPaymentService creditAccountPaymentService;
+
     RestActions restActions;
 
     @Before

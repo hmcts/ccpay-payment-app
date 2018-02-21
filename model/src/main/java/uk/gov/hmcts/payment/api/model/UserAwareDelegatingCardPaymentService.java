@@ -122,7 +122,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private static Specification findCardPaymentsByBetweenDates(Date fromDate, Date toDate) {
         return Specifications
-            .where(isEquals(PaymentProvider.paymentProviderWith().name("gov pay").build()))
+            .where(isEquals(PaymentProvider.paymentProviderWith().name(PAYMENT_PROVIDER_GOVPAY).build()))
             .and(isBetween(fromDate, toDate));
     }
 
@@ -131,6 +131,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
             return cb.equal(paymentJoin.get("paymentProvider").get("name"), paymentProvider.getName());
         });
+
     }
 
     private static Specification isBetween(Date startDate, Date endDate) {
