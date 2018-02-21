@@ -125,7 +125,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private static Specification isEquals(PaymentMethod paymentMethod) {
         return ((root, query, cb) -> {
             Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-            return cb.equal(paymentJoin.get("paymentProvider").get("name"), paymentMethod.getName());
+            return cb.equal(paymentJoin.get("paymentMethod").get("name"), paymentMethod.getName());
         });
 
     }
