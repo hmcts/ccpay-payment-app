@@ -12,6 +12,8 @@ import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.Date;
@@ -26,6 +28,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_MIDDLE_OFFICE_PROVIDER = "middle office provider";
+    private final static String PAYMENT_METHOD = "payment by account";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_BY_ACCOUNT =  "payment by account";
 
@@ -105,7 +108,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     @Override
     public List<PaymentFeeLink> search(Date startDate, Date endDate) {
         LOG.info("Search for payments between " + startDate + " and " + endDate);
-        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(startDate, endDate));
+        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findCreditAccountPaymentsByBetweenDates(startDate, endDate));
         return paymentFeeLinks;
     }
 
@@ -113,9 +116,18 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
         return paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
     }
 
-    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
+    private static Specification findCreditAccountPaymentsByBetweenDates(Date fromDate, Date toDate) {
         return Specifications
-            .where(isBetween(fromDate, toDate));
+            .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
+            .and(isBetween(fromDate, toDate));
+    }
+
+    private static Specification isEquals(PaymentMethod paymentMethod) {
+        return ((root, query, cb) -> {
+            Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
+            return cb.equal(paymentJoin.get("paymentProvider").get("name"), paymentMethod.getName());
+        });
+
     }
 
     private static Specification isBetween(Date startDate, Date endDate) {
