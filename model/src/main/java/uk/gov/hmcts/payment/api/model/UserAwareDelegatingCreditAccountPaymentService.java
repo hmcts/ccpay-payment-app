@@ -28,6 +28,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_MIDDLE_OFFICE_PROVIDER = "middle office provider";
+    private final static String PAYMENT_METHOD = "payment by account";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_BY_ACCOUNT =  "payment by account";
 
@@ -117,14 +118,14 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     private static Specification findCreditAccountPaymentsByBetweenDates(Date fromDate, Date toDate) {
         return Specifications
-            .where(isEquals(PaymentProvider.paymentProviderWith().name(PAYMENT_PROVIDER_MIDDLE_OFFICE_PROVIDER).build()))
+            .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
             .and(isBetween(fromDate, toDate));
     }
 
-    private static Specification isEquals(PaymentProvider paymentProvider) {
+    private static Specification isEquals(PaymentMethod paymentMethod) {
         return ((root, query, cb) -> {
             Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-            return cb.equal(paymentJoin.get("paymentProvider").get("name"), paymentProvider.getName());
+            return cb.equal(paymentJoin.get("paymentProvider").get("name"), paymentMethod.getName());
         });
 
     }

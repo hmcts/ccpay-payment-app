@@ -8,10 +8,7 @@ import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.payment.api.model.Fee;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBase;
 
 import javax.persistence.criteria.Join;
@@ -38,8 +35,13 @@ public class CardPaymentServiceTest extends ComponentTestBase {
             .fees(getFeesData())
             .build();
 
-        PaymentFeeLink result = paymentFeeLinkRepository.save(paymentFeeLink);
-        System.out.println(result.getPayments().size());
+        paymentFeeLinkRepository.save(paymentFeeLink);
+
+        //pba payments
+        paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
+            .payments(getCreditAccountPaymentsData())
+            .fees(getFeesData())
+            .build());
     }
 
     @Test
@@ -55,8 +57,9 @@ public class CardPaymentServiceTest extends ComponentTestBase {
 
         assertNotNull(result);
         result.stream().forEach(g -> {
+            assertEquals(g.getPayments().size(), 3);
             g.getPayments().stream().forEach(p -> {
-                assertEquals(p.getPaymentProvider().getName(), "gov pay");
+                assertEquals(p.getPaymentMethod().getName(), "card");
             });
         });
 
@@ -66,15 +69,33 @@ public class CardPaymentServiceTest extends ComponentTestBase {
         List<Payment> payments = new ArrayList<>();
         payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1")
             .returnUrl("returnUrl1")
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP").build());
         payments.add(paymentWith().amount(BigDecimal.valueOf(20000).movePointRight(2)).reference("reference2").description("desc2")
             .returnUrl("returnUrl2")
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .ccdCaseNumber("ccdCaseNo2").caseReference("caseRef2").serviceType("divorce").currency("GBP").build());
         payments.add(paymentWith().amount(BigDecimal.valueOf(30000).movePointRight(2)).reference("reference3").description("desc3")
             .returnUrl("returnUrl3")
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .ccdCaseNumber("ccdCaseNo3").caseReference("caseRef3").serviceType("probate").currency("GBP").build());
+
+        return payments;
+    }
+
+    private List<Payment> getCreditAccountPaymentsData() {
+        List<Payment> payments = new ArrayList<>();
+        payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1")
+            .returnUrl("returnUrl1")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP").build());
+        payments.add(paymentWith().amount(BigDecimal.valueOf(20000).movePointRight(2)).reference("reference2").description("desc2")
+            .returnUrl("returnUrl2")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .ccdCaseNumber("ccdCaseNo2").caseReference("caseRef2").serviceType("divorce").currency("GBP").build());
+        payments.add(paymentWith().amount(BigDecimal.valueOf(30000).movePointRight(2)).reference("reference3").description("desc3")
+            .returnUrl("returnUrl3")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
             .ccdCaseNumber("ccdCaseNo3").caseReference("caseRef3").serviceType("probate").currency("GBP").build());
 
         return payments;
