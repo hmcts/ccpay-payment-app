@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.*;
@@ -127,8 +128,9 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private static Specification isEquals(PaymentProvider paymentProvider) {
         return ((root, query, cb) -> {
-            Join<PaymentFeeLink, Payment> paymentsJoin = root.join("payments");
-            return  cb.equal(paymentsJoin.get("paymentProvider"), paymentProvider);
+            Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
+            Join<Payment, PaymentProvider> paymentProviderJoin = root.join("paymentProvider", JoinType.LEFT);
+            return cb.equal(root.join("payments").get("paymentProvider").get("name"), paymentProvider.getName());
         });
     }
 
