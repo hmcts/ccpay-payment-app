@@ -2,8 +2,6 @@ package uk.gov.hmcts.payment.api.model;
 
 import lombok.NonNull;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
@@ -11,14 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
-import uk.gov.hmcts.payment.api.util.CheckDigitUtil;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import javax.persistence.criteria.Join;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -114,7 +111,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     @Override
     public List<PaymentFeeLink> search(Date startDate, Date endDate) {
-        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findByDatesBetween(startDate, endDate));
+        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findCardPaymentsByBetweenDates(startDate, endDate));
 
         // For each payment get the gov pay status.
         // commented b'coz the not efficient to make govPay calls for each payment in reconciliation.
@@ -122,9 +119,17 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return paymentFeeLinks;
     }
 
-    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
+    private static Specification findCardPaymentsByBetweenDates(Date fromDate, Date toDate) {
         return Specifications
-            .where(isBetween(fromDate, toDate));
+            .where(isEquals(PaymentProvider.paymentProviderWith().name("gov pay").build()))
+            .and(isBetween(fromDate, toDate));
+    }
+
+    private static Specification isEquals(PaymentProvider paymentProvider) {
+        return ((root, query, cb) -> {
+            Join<PaymentFeeLink, Payment> paymentsJoin = root.join("payments");
+            return  cb.equal(paymentsJoin.get("paymentProvider"), paymentProvider);
+        });
     }
 
     private static Specification isBetween(Date startDate, Date endDate) {

@@ -18,16 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
-import uk.gov.hmcts.payment.api.model.CardPaymentService;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.model.govpay.GovPayCardPaymentService;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.DbBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -62,6 +59,9 @@ public class ComponentTestBase {
 
     @Autowired
     protected PaymentFeeLinkRepository paymentFeeLinkRepository;
+
+    @Autowired
+    protected UserAwareDelegatingCardPaymentService cardPaymentService;
 
     RestActions restActions;
 
