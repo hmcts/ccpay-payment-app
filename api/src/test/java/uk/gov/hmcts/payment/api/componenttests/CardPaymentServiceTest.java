@@ -62,8 +62,7 @@ public class CardPaymentServiceTest extends ComponentTestBase {
     private static Specification isEquals(PaymentProvider paymentProvider) {
         return ((root, query, cb) -> {
             Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-            Join<Payment, PaymentProvider> paymentProviderJoin = root.join("paymentProvider", JoinType.LEFT);
-            return cb.equal(root.join("payments").get("paymentProvider").get("name"), paymentProvider.getName());
+            return cb.equal(paymentJoin.get("paymentProvider").get("name"), paymentProvider.getName());
         });
 
     }
