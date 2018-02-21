@@ -34,7 +34,7 @@ public class CreditAccountPaymentServiceTest extends ComponentTestBase{
     }
 
     @Test
-    public void retireveCardPayments_forBetweenDates_WhereProviderIsMiddleOfficeTest() throws Exception {
+    public void retireveCreditAccountPayments_forBetweenDates_WhereProviderIsMiddleOfficeTest() throws Exception {
         Date fromDate = new Date();
         MutableDateTime mFromDate = new MutableDateTime(fromDate);
         mFromDate.addDays(-1);
