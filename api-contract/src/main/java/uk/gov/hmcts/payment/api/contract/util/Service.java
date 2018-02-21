@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.contract.util;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum Service {
-    CIVIL_MONEY_CLAIMS("Civil Money Claims"),
+    CMC("Civil Money Claims"),
     DIVORCE("Divorce"),
     PROBATE("Probate");
 
