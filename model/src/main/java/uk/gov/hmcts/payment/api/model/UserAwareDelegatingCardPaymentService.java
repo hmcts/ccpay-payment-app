@@ -139,7 +139,10 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private static Specification isBetween(Date startDate, Date endDate) {
 
-        return ((root, query, cb) -> cb.between(root.get("dateUpdate"), startDate, endDate));
+        return ((root, query, cb) -> {
+            Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
+            return cb.between(paymentJoin.get("dateUpdated"), startDate, endDate);
+        });
     }
 
 
