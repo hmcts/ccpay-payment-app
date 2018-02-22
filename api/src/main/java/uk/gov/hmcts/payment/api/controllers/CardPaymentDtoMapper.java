@@ -74,6 +74,7 @@ public class CardPaymentDtoMapper {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .amount(payment.getAmount())
@@ -84,7 +85,6 @@ public class CardPaymentDtoMapper {
             .status(payment.getStatus())
             .dateCreated(payment.getDateCreated())
             .method(payment.getPaymentMethod().getName())
-            .externalProvider(payment.getPaymentProvider().getName())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
 
