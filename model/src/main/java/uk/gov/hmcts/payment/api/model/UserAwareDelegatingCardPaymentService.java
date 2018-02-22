@@ -90,6 +90,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     @Override
+    @Transactional
     public PaymentFeeLink retrieve(String paymentReference) {
         Payment payment = findSavedPayment(paymentReference);
 
@@ -98,6 +99,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
 
         fillTransientDetails(payment, govPayPayment);
+
         return paymentFeeLink;
     }
 
@@ -150,6 +152,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         amountInPounds = amountInPounds.divide(new BigDecimal(100));
         payment.setAmount(amountInPounds);
         payment.setStatus(govPayPayment.getState().getStatus());
+        payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(govPayPayment.getState().getStatus().toLowerCase()).build());
         payment.setFinished(govPayPayment.getState().getFinished());
         payment.setExternalReference(govPayPayment.getPaymentId());
         payment.setDescription(govPayPayment.getDescription());
