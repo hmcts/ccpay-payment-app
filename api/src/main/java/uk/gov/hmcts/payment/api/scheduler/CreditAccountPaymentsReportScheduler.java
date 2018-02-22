@@ -31,9 +31,9 @@ public class CreditAccountPaymentsReportScheduler {
     }
 
     @Scheduled(cron = "${pba.payments.report.schedule}")
-    public void generateCreditAccountPaymentsReport() throws ParseException, IOException {
+    public void generateCreditAccountPaymentsReportTask() throws ParseException, IOException {
         LOG.info("CreditAccountPaymentsReportScheduler -  Start of scheduled job for HMCTS-PBA Payments csv report file.");
-        paymentsReportService.generateCreditAccountPaymentsCsv(startDate, endDate);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(startDate, endDate);
         LOG.info("CreditAccountPaymentsReportScheduler -  End of scheduled job for HMCTS-PBA Payments csv report file.");
     }
 

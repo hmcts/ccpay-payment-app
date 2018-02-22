@@ -32,9 +32,9 @@ public class CardPaymentsReportScheduler {
     }
 
     @Scheduled(cron = "${card.payments.report.schedule}")
-    public void generateCardPaymentsReport() throws ParseException, IOException {
+    public void generateCardPaymentsReportTask() throws ParseException, IOException {
         LOG.info("CardPaymentsReportScheduler -  Start of scheduled job for HMCTS-Card Payments csv report file.");
-        paymentsReportService.generateCardPaymentsCsv(startDate, endDate);
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(startDate, endDate);
         LOG.info("CardPaymentsReportScheduler -  End of scheduled job for HMCTS-Card Payments csv report file.");
     }
 
