@@ -2,9 +2,11 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
+import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -23,20 +25,26 @@ import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 public class PaymentReconciliationComponentTest extends ComponentTestBase {
+    private PaymentsDataUtil paymentsDataUtil;
+
+    @Before
+    public void setUp() {
+        paymentsDataUtil = new PaymentsDataUtil();
+    }
 
     @Test
     public void testFindPaymetsBetweenGivenValidDates() throws Exception {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         String paymentRef1 = UUID.randomUUID().toString();
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef1)
-            .payments(getPaymentsData())
-            .fees(getFeesData())
+            .payments(paymentsDataUtil.getCardPaymentsData())
+            .fees(paymentsDataUtil.getFeesData())
             .build());
 
         String paymentRef2 = UUID.randomUUID().toString();
         paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef2)
-            .payments(Arrays.asList(getPaymentsData().get(1)))
-            .fees(Arrays.asList(getFeesData().get(0)))
+            .payments(Arrays.asList(paymentsDataUtil.getCardPaymentsData().get(1)))
+            .fees(Arrays.asList(paymentsDataUtil.getFeesData().get(0)))
             .build());
 
 
@@ -58,14 +66,14 @@ public class PaymentReconciliationComponentTest extends ComponentTestBase {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         String paymentRef3 = UUID.randomUUID().toString();
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef3)
-            .payments(Arrays.asList(getPaymentsData().get(1)))
-            .fees(getFeesData())
+            .payments(Arrays.asList(paymentsDataUtil.getCardPaymentsData().get(1)))
+            .fees(paymentsDataUtil.getFeesData())
             .build());
 
         String paymentRef4 = UUID.randomUUID().toString();
         paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef4)
-            .payments(Arrays.asList(getPaymentsData().get(1)))
-            .fees(Arrays.asList(getFeesData().get(0)))
+            .payments(Arrays.asList(paymentsDataUtil.getCardPaymentsData().get(1)))
+            .fees(Arrays.asList(paymentsDataUtil.getFeesData().get(0)))
             .build());
 
 
@@ -94,25 +102,4 @@ public class PaymentReconciliationComponentTest extends ComponentTestBase {
         return ((root, query, cb) -> cb.between(root.get("dateCreated"), startDate, endDate));
     }
 
-    private List<Payment> getPaymentsData() {
-        List<Payment> payments = new ArrayList<>();
-        payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
-            .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP").build());
-        payments.add(paymentWith().amount(BigDecimal.valueOf(20000).movePointRight(2)).reference("reference2").description("desc2").returnUrl("returnUrl2")
-            .ccdCaseNumber("ccdCaseNo2").caseReference("caseRef2").serviceType("divorce").currency("GBP").build());
-        payments.add(paymentWith().amount(BigDecimal.valueOf(30000).movePointRight(2)).reference("reference3").description("desc3").returnUrl("returnUrl3")
-            .ccdCaseNumber("ccdCaseNo3").caseReference("caseRef3").serviceType("probate").currency("GBP").build());
-
-        return payments;
-    }
-
-    private List<Fee> getFeesData() {
-        List<Fee> fees = new ArrayList<>();
-        fees.add(feeWith().code("X0011").version("1").build());
-        fees.add(feeWith().code("X0022").version("2").build());
-        fees.add(feeWith().code("X0033").version("3").build());
-        fees.add(feeWith().code("X0044").version("4").build());
-
-        return fees;
-    }
 }

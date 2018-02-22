@@ -32,26 +32,22 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_BY_ACCOUNT =  "payment by account";
 
-    private final UserIdSupplier userIdSupplier;
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentChannelRepository paymentChannelRepository;
-    private final PaymentProviderRepository paymentProviderRespository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final Payment2Repository paymentRespository;
     private final PaymentReferenceUtil paymentReferenceUtil;
 
     @Autowired
-    public UserAwareDelegatingCreditAccountPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
+    public UserAwareDelegatingCreditAccountPaymentService(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                                           PaymentChannelRepository paymentChannelRepository,
                                                  PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                  PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
                                                  PaymentReferenceUtil paymentReferenceUtil) {
-        this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
-        this.paymentProviderRespository = paymentProviderRepository;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentRespository = paymentRespository;
         this.paymentReferenceUtil = paymentReferenceUtil;
@@ -65,7 +61,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
             Payment payment = null;
             try {
-                payment = Payment.paymentWith().userId(userIdSupplier.get())
+                payment = Payment.paymentWith()
                     .amount(creditAccount.getAmount())
                     .description(creditAccount.getDescription())
                     .returnUrl(creditAccount.getReturnUrl())
@@ -87,11 +83,13 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
             }
 
 
-        return paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
+        PaymentFeeLink result =  paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
             .payments(Arrays.asList(payment))
             .fees(fees)
             .build());
+
+        return result;
     }
 
     @Override
