@@ -35,7 +35,7 @@ public class Payment {
 
     @UpdateTimestamp
     @Column(name =  "date_updated")
-    private Date dateUpdate;
+    private Date dateUpdated;
 
     @Transient
     private String email;
