@@ -124,8 +124,9 @@ public class CreditAccountDtoMapper {
             .customerReference(payment.getCustomerReference())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(payment.getStatus())
+            .status(payment.getPaymentStatus().getName())
             .dateCreated(payment.getDateCreated())
+            .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
