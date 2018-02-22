@@ -43,6 +43,9 @@ public class PaymentDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
+    private Date dateUpdated;
+
     private CurrencyCode currency;
 
     private String ccdCaseNumber;
@@ -115,6 +118,8 @@ public class PaymentDto {
             .add(getCcdCaseNumber())
             .add(getCaseReference())
             .add(sdf.format(getDateCreated()))
+            .add(sdf.format(getDateUpdated()))
+            .add(getStatus())
             .add(getChannel())
             .add(getMethod())
             .add(getAmount().toString())
@@ -146,6 +151,8 @@ public class PaymentDto {
             .add(getCustomerReference())
             .add(getAccountNumber())
             .add(sdf.format(getDateCreated()))
+            .add(sdf.format(getDateUpdated()))
+            .add(getStatus())
             .add(getChannel())
             .add(getMethod())
             .add(getAmount().toString())
