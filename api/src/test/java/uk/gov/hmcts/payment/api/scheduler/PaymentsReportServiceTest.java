@@ -30,10 +30,10 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        cardPaymentsReportScheduler.generateCardPaymentsReport();
+        cardPaymentsReportScheduler.generateCardPaymentsReportTask();
 
         // then
-        verify(paymentsReportService).generateCardPaymentsCsv(null,null);
+        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(null,null);
     }
 
     @Test
@@ -41,10 +41,10 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReport();
+        creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReportTask();
 
         // then
-        verify(paymentsReportService).generateCreditAccountPaymentsCsv(null,null);
+        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(null,null);
     }
 
 

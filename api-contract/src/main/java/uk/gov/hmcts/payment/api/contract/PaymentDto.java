@@ -40,7 +40,7 @@ public class PaymentDto {
 
     private String reference;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss.SSS'Z'", timezone = "GMT")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 
     private CurrencyCode currency;
@@ -72,6 +72,9 @@ public class PaymentDto {
 
     private String organisationName;
 
+    @JsonProperty(access= JsonProperty.Access.READ_ONLY)
+    private String paymentGroupReference;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;
@@ -101,17 +104,19 @@ public class PaymentDto {
         private String method;
     }
 
-    public String toCsv() {
+    public String toCardPaymentCsv() {
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
 
         StringJoiner sb = new StringJoiner(",")
             .add(getServiceName())
+            .add(getPaymentGroupReference())
             .add(getPaymentReference())
             .add(getCcdCaseNumber())
             .add(getCaseReference())
             .add(sdf.format(getDateCreated()))
             .add(getChannel())
+            .add(getMethod())
             .add(getAmount().toString())
             .add(getSiteId());
 
@@ -125,5 +130,39 @@ public class PaymentDto {
 
         return sb.merge(feeSb).toString();
     }
+
+
+    public String toCreditAccountPaymentCsv() {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
+
+        StringJoiner sb = new StringJoiner(",")
+            .add(getServiceName())
+            .add(getPaymentGroupReference())
+            .add(getPaymentReference())
+            .add(getCcdCaseNumber())
+            .add(getCaseReference())
+            .add(getOrganisationName())
+            .add(getCustomerReference())
+            .add(getAccountNumber())
+            .add(sdf.format(getDateCreated()))
+            .add(getChannel())
+            .add(getMethod())
+            .add(getAmount().toString())
+            .add(getSiteId());
+
+        StringJoiner feeSb = new StringJoiner(",");
+
+        for (FeeDto fee : getFees()) {
+
+            feeSb.add(fee.getCode()).add(fee.getVersion());
+        }
+
+
+        return sb.merge(feeSb).toString();
+    }
+
+
+
 
 }
