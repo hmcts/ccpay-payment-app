@@ -68,7 +68,7 @@ public class CardPaymentDtoMapper {
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(payment.getPaymentStatus().getName())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus()).mapedStatus)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
