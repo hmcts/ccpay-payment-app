@@ -130,6 +130,6 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     private static Specification isBetween(Date startDate, Date endDate) {
 
-        return ((root, query, cb) -> cb.between(root.get("dateCreated"), startDate, endDate));
+        return ((root, query, cb) -> cb.between(root.get("dateUpdate"), startDate, endDate));
     }
 }
