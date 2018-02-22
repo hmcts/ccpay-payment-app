@@ -23,9 +23,6 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaymentWith;
 import static uk.gov.hmcts.payment.api.model.Payment.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-
 @RunWith(MockitoJUnitRunner.class)
 public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
