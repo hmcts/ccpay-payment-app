@@ -9,7 +9,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.util.GovPayStatusToPayHubStatus;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -21,7 +21,7 @@ public class CardPaymentDtoMapper {
     public PaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(GovPayStatusToPayHubStatus.valueOf(payment.getStatus()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus()).mapedStatus)
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .links(new PaymentDto.LinksDto(
@@ -40,7 +40,7 @@ public class CardPaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(GovPayStatusToPayHubStatus.valueOf(payment.getStatus()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus()).mapedStatus)
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
