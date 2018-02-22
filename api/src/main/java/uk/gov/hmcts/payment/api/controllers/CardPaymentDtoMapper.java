@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -17,25 +18,10 @@ import java.util.stream.Collectors;
 @Component
 public class CardPaymentDtoMapper {
 
-    private enum GovPayStatusToPayHubStatus {
-        created("Initiated"), started("Initiated"), submitted("Initiated"), success("Success"), failed("Failed"), cancelled("Failed"), error("Failed");
-
-        private String mapedStatus;
-
-        GovPayStatusToPayHubStatus(String status) {
-            this.mapedStatus = status;
-        }
-
-        String getMapedStatus() {
-            return mapedStatus;
-        }
-
-    };
-
     public PaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(getMappedStatus(payment.getStatus()))
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus()).mapedStatus)
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .links(new PaymentDto.LinksDto(
@@ -54,7 +40,7 @@ public class CardPaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(getMappedStatus(payment.getStatus()))
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus()).mapedStatus)
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
@@ -120,12 +106,4 @@ public class CardPaymentDtoMapper {
         return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 
-    private String getMappedStatus(String status) {
-
-        try {
-            return GovPayStatusToPayHubStatus.valueOf(status).getMapedStatus();
-        }catch (IllegalArgumentException ex){
-            return status;
-        }
-    }
 }

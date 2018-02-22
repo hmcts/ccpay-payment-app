@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -22,7 +23,7 @@ public class CreditAccountDtoMapper {
     public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(payment.getPaymentStatus().getName())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .build();
@@ -59,7 +60,7 @@ public class CreditAccountDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(payment.getPaymentStatus().getName())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
@@ -124,7 +125,7 @@ public class CreditAccountDtoMapper {
             .customerReference(payment.getCustomerReference())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(payment.getPaymentStatus().getName())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())

@@ -49,7 +49,6 @@ public class StatusMapperTest {
         assertThat("Failed", is(paymentDto.getStatus()));
     }
 
-    @Test
     public void whenGovPayStatusIsUnknown_thenShouldReturnSameStatus() {
 
         CardPaymentDtoMapper mapper = new CardPaymentDtoMapper();
