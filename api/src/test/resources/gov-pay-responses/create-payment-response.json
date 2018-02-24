@@ -1,11 +1,11 @@
 {
   "amount": 10189,
   "state": {
-    "status": "created",
+    "status": "Created",
     "finished": false
   },
   "description": "New passport application",
-  "reference": "RC-1518-1871-6027-084C",
+  "reference": "RC-1518-9479-8066-6095",
   "payment_id": "ak8gtvb438drmp59cs7ijppr3i",
   "payment_provider": "sandbox",
   "return_url": "https://service-name.gov.uk/transactions/12345",
