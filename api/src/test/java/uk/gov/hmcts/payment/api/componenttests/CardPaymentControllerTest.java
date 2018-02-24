@@ -106,6 +106,7 @@ public class CardPaymentControllerTest{
 
     }
 
+    @Ignore
     @Test
     public void createCardPaymentWithValidInputData_shouldReturnStatusCreatedTest() throws Exception {
 
