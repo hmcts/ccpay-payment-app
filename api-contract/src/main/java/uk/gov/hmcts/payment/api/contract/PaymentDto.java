@@ -129,7 +129,7 @@ public class PaymentDto {
 
         for (FeeDto fee : getFees()) {
 
-            feeSb.add(fee.getCode()).add(fee.getVersion());
+            feeSb.add(fee.getCode()).add(fee.getVersion()).add(fee.getCalculatedAmount().toString());
         }
 
 
@@ -162,7 +162,7 @@ public class PaymentDto {
 
         for (FeeDto fee : getFees()) {
 
-            feeSb.add(fee.getCode()).add(fee.getVersion());
+            feeSb.add(fee.getCode()).add(fee.getVersion()).add(fee.getCalculatedAmount().toString());
         }
 
 
