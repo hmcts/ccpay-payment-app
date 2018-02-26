@@ -1,8 +1,10 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import lombok.SneakyThrows;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,8 @@ public class CardPaymentControllerTest {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(9190);
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
@@ -53,18 +57,18 @@ public class CardPaymentControllerTest {
     private WebApplicationContext webApplicationContext;
 
     @Autowired
-    protected ServiceResolverBackdoor serviceRequestAuthorizer;
+    private ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
-    protected UserResolverBackdoor userRequestAuthorizer;
+    private UserResolverBackdoor userRequestAuthorizer;
 
     @Autowired
-    protected PaymentDbBackdoor db;
+    private PaymentDbBackdoor db;
 
 
     private static final String USER_ID = "user-id";
 
-    RestActions restActions;
+    private RestActions restActions;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -74,12 +78,12 @@ public class CardPaymentControllerTest {
     }
 
     @SneakyThrows
-    String contentsOf(String fileName) {
+    private String contentsOf(String fileName) {
         String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
         return resolvePlaceholders(content);
     }
 
-    String resolvePlaceholders(String content) {
+    private String resolvePlaceholders(String content) {
         return configurableListableBeanFactory.resolveEmbeddedValue(content);
     }
 
@@ -109,13 +113,13 @@ public class CardPaymentControllerTest {
 
         MvcResult result = restActions
             .withReturnUrl("https://www.google.com")
-            .post(format("/card-payments"), cardPaymentRequest())
+            .post("/card-payments", cardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        assertEquals(paymentDto.getStatus(), "Initiated");
+        assertEquals("Initiated", paymentDto.getStatus());
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
     }
 
@@ -123,7 +127,7 @@ public class CardPaymentControllerTest {
     public void createCardPaymentWithInValidInputData_shouldReturnStatusBadRequestTest() throws Exception {
         restActions
             .withReturnUrl("https://www.google.com")
-            .post(format("/card-payments"), cardPaymentInvalidRequestJson())
+            .post("/card-payments", cardPaymentInvalidRequestJson())
             .andExpect(status().isBadRequest());
     }
 
@@ -158,7 +162,7 @@ public class CardPaymentControllerTest {
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 
         MvcResult result = restActions
-            .get(format("/card-payments/" + savedPayment.getReference()))
+            .get("/card-payments/" + savedPayment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -166,7 +170,7 @@ public class CardPaymentControllerTest {
         assertNotNull(paymentDto);
         assertEquals(paymentDto.getReference(), payment.getReference());
         assertEquals(paymentDto.getExternalReference(), payment.getExternalReference());
-        assertEquals(paymentDto.getStatus(), "Success");
+        assertEquals("Success", paymentDto.getStatus());
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {

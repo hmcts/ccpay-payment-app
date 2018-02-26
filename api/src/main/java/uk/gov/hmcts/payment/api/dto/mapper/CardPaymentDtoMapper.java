@@ -78,7 +78,7 @@ public class CardPaymentDtoMapper {
 
     }
 
-    public List<FeeDto> toFeeDtos(List<Fee> fees) {
+    private List<FeeDto> toFeeDtos(List<Fee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
@@ -94,12 +94,6 @@ public class CardPaymentDtoMapper {
         return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion()).build();
     }
 
-
-    @SneakyThrows(NoSuchMethodException.class)
-    private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
-        Method method = CardPaymentController.class.getMethod("cancel", String.class, Integer.class);
-        return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
-    }
 
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto retrieveCardPaymentLink(String reference) {
