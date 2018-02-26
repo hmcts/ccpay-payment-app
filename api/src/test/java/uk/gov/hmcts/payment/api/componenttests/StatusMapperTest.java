@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.controllers.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 

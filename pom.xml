@@ -30,6 +30,30 @@
         <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
         <sonar.dependencyCheck.reportPath>${project.basedir}/target/dependency-check-report.xml
         </sonar.dependencyCheck.reportPath>
+        <sonar.coverage.exclusions>
+            **/v1/**,
+            **/api/model/**,
+            **/api/contract/**,
+            **/api/dto/mapper/**,
+            **/api/external/client/dto/**,
+            **/api/external/client/exceptions/**
+        </sonar.coverage.exclusions>
+        <sonar.exclusions>
+            **/v1/**,
+            **/api/model/**,
+            **/api/contract/**,
+            **/api/dto/mapper/**,
+            **/api/external/client/dto/**,
+            **/api/external/client/exceptions/**
+        </sonar.exclusions>
+        <sonar.test.exclusions>
+            **/v1/**,
+            **/api/model/**,
+            **/api/contract/**,
+            **/api/dto/mapper/**,
+            **/api/external/client/dto/**,
+            **/api/external/client/exceptions/**
+        </sonar.test.exclusions>
     </properties>
 
     <dependencyManagement>

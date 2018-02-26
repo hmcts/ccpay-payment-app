@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.model;
+package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.NonNull;
@@ -7,6 +7,9 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.util.Date;
