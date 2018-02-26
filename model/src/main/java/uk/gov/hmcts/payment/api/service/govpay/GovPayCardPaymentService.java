@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.model.govpay;
+package uk.gov.hmcts.payment.api.service.govpay;
 
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +8,10 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
+import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 import uk.gov.hmcts.payment.api.model.Fee;
-import uk.gov.hmcts.payment.api.model.CardPaymentService;
 
 import java.util.Date;
 import java.util.List;
