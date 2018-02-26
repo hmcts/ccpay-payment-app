@@ -1,9 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.joda.time.MutableDateTime;
 import org.slf4j.Logger;
@@ -12,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
@@ -32,18 +29,17 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 
 @RestController
-@Api(value = "CardPaymentController", description = "Card payment REST API")
+@Api(tags = {"CardPaymentController"})
+@SwaggerDefinition(tags = {@Tag(name = "CardPaymentController", description = "Card Payment API")})
+
 public class CardPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 
-    private static final String DEFAULT_CURRENCY = "GBP";
 
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
     private final CardPaymentDtoMapper cardPaymentDtoMapper;
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-    private static final SimpleDateFormat outformat = new SimpleDateFormat("yyyy-MM-dd");
-
+    private final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
     @Autowired
     public CardPaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardCardPaymentService,
                                  CardPaymentDtoMapper cardPaymentDtoMapper) {
@@ -60,8 +56,8 @@ public class CardPaymentController {
     @RequestMapping(value = "/card-payments", method = POST)
     @ResponseBody
     public ResponseEntity<PaymentDto> createCardPayment(
-                                                        @RequestHeader(value = "return-url") String returnURL,
-                                                        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
+        @RequestHeader(value = "return-url") String returnURL,
+        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentReference = PaymentReference.getInstance().getNext();
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
@@ -95,14 +91,5 @@ public class CardPaymentController {
         return new ResponseEntity(INTERNAL_SERVER_ERROR);
     }
 
-    private String getYesterdaysDate() {
-        Date now = new Date();
-        MutableDateTime mtDtNow = new MutableDateTime(now);
-        mtDtNow.addDays(-1);
-        return sdf.format(mtDtNow.toDate());
-    }
 
-    private String getTodaysDate() {
-        return sdf.format(new Date());
-    }
 }
