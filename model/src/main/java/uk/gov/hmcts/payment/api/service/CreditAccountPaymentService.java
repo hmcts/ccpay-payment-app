@@ -1,6 +1,8 @@
-package uk.gov.hmcts.payment.api.model;
+package uk.gov.hmcts.payment.api.service;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.Payment;
 
 import java.util.Date;
 import java.util.List;
