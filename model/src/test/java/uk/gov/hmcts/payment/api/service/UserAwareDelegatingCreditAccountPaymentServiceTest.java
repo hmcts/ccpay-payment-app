@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.model;
+package uk.gov.hmcts.payment.api.service;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.junit.Before;
@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
