@@ -1,0 +1,38 @@
+{
+  "amount": 2289,
+  "state": {
+    "status": "Error",
+    "finished": true,
+    "message": "Payment not found",
+    "code": "P0200"
+  },
+  "description": "Description101",
+  "reference": "RC-1518-9429-1432-7825",
+  "payment_id": "ia2mv22nl5o880rct0vqfa7k76",
+  "payment_provider": "sandbox",
+  "return_url": "https://localhost",
+  "created_date": "2018-02-08T12:34:45.482Z",
+  "refund_summary": {
+    "status": "unavailable",
+    "amount_available": 2289,
+    "amount_submitted": 0
+  },
+  "settlement_summary": {},
+  "_links": {
+    "self": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ia2mv22nl5o880rct0vqfa7k76",
+      "method": "GET"
+    },
+    "next_url": null,
+    "next_url_post": null,
+    "events": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ia2mv22nl5o880rct0vqfa7k76/events",
+      "method": "GET"
+    },
+    "refunds": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ia2mv22nl5o880rct0vqfa7k76/refunds",
+      "method": "GET"
+    },
+    "cancel": null
+  }
+}
