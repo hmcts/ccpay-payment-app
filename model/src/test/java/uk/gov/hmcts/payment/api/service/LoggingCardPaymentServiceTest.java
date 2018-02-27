@@ -1,0 +1,70 @@
+package uk.gov.hmcts.payment.api.service;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
+
+public class LoggingCardPaymentServiceTest {
+
+    @Mock
+    private UserIdSupplier userIdSupplier;
+
+    @Mock
+    private CardPaymentService cardPaymentService;
+
+    @InjectMocks
+    private LoggingCardPaymentService loggingCardPaymentService;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+    }
+
+    @Test
+    public void createCardPaymentTest() throws Exception {
+        when(userIdSupplier.get()).thenReturn("USER_ID");
+        when(cardPaymentService.create(10000, "paymentReference", "description", "https://www.google.com",
+            "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce",
+            Arrays.asList(Fee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()))).thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(1)
+            .payments(Arrays.asList(Payment.paymentWith()
+                .id(1)
+                .amount(new BigDecimal("10000"))
+                .status("created")
+                .reference("RC-1518-9479-8089-4415")
+                .currency("GBP")
+                .siteId("siteId")
+                .build()))
+            .fees(Arrays.asList(Fee.feeWith()
+                .id(1)
+                .calculatedAmount(new BigDecimal("10000"))
+                .code("X0001")
+                .version("1")
+                .build()))
+            .build());
+
+        PaymentFeeLink paymentFeeLink = loggingCardPaymentService.create(10000, "paymentReference", "description", "https://www.google.com",
+            "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce",
+            Arrays.asList(Fee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()));
+        assertNotNull(paymentFeeLink);
+        paymentFeeLink.getPayments().stream().forEach(p -> {
+            assertEquals(p.getReference(), "RC-1518-9479-8089-4415");
+            assertEquals(p.getAmount(), new BigDecimal("10000"));
+            assertEquals(p.getStatus(), "created");
+        });
+    }
+}
