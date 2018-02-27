@@ -1,7 +1,8 @@
-package uk.gov.hmcts.payment.api.model;
+package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.apache.http.util.Asserts;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,8 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
-import uk.gov.hmcts.payment.api.service.CardPaymentService;
-import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCardPaymentService;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
