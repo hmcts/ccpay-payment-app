@@ -41,7 +41,8 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
                                 String siteId,
                                 String serviceType,
                                 List<Fee> fees) {
-        return govPayClient.createPayment(keyForCurrentService(), new CreatePaymentRequest(amount, reference, description, returnUrl));
+        String key = keyForCurrentService();
+        return govPayClient.createPayment(key, new CreatePaymentRequest(amount, reference, description, returnUrl));
     }
 
     @Override
@@ -75,6 +76,8 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     }
 
     private String keyForCurrentService() {
-        return govPayKeyRepository.getKey(serviceIdSupplier.get());
+
+        String key = govPayKeyRepository.getKey(serviceIdSupplier.get());
+        return key;
     }
 }
