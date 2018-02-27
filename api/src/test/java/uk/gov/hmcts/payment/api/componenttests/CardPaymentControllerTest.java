@@ -1,9 +1,11 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import lombok.SneakyThrows;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,8 +49,11 @@ public class CardPaymentControllerTest {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(9190);
+    public WireMockClassRule instanceRule = wireMockRule;
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
@@ -131,6 +136,7 @@ public class CardPaymentControllerTest {
             .andExpect(status().isBadRequest());
     }
 
+    @Test
     public void retrieveCardPaymentAndMapTheGovPayStatusTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
             .willReturn(aResponse()
@@ -144,7 +150,8 @@ public class CardPaymentControllerTest {
             .caseReference("Reference1")
             .ccdCaseNumber("ccdCaseNumber1")
             .description("Description1")
-            .serviceType("Probate")
+            .serviceType("PROBATE")
+            .currency("GBP")
             .siteId("AA01")
             .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
@@ -171,6 +178,56 @@ public class CardPaymentControllerTest {
         assertEquals(paymentDto.getReference(), payment.getReference());
         assertEquals(paymentDto.getExternalReference(), payment.getExternalReference());
         assertEquals("Success", paymentDto.getStatus());
+    }
+
+    @Test
+    public void retrieveCardPayment_withNonExistingReferenceTest() throws Exception {
+        restActions
+            .get("/card-payments/" + "RC-1518-9576-1498-8035")
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void retrieveCardPayment_andMapGovPayErrorStatusTest() throws Exception {
+        stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-error-response.json"))));
+
+        //Create a payment in db
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("22.89"))
+            .caseReference("Reference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Description")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA00")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("ia2mv22nl5o880rct0vqfa7k76")
+            .reference("RC-1518-9429-1432-7825")
+            .build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("X0011").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162002").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result = restActions
+            .get("/card-payments/" + savedPayment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getReference(), payment.getReference());
+        assertEquals(paymentDto.getStatus(), "Failed");
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {
