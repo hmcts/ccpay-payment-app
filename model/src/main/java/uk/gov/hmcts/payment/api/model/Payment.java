@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.model;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.*;
 
 import lombok.AllArgsConstructor;
@@ -105,5 +106,10 @@ public class Payment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentLink;
+
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
+    private List<StatusHistory> statusHistories;
 
 }

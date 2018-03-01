@@ -159,7 +159,11 @@ public class CardPaymentControllerTest {
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .externalReference("ia2mv22nl5o880rct0vqfa7k76")
-            .reference("RC-1518-4594-2723-363C")
+            .reference("RC-1519-9028-1909-3475")
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                .status("Initiated")
+                .externalStatus("created")
+                .build()))
             .build();
         Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
@@ -181,6 +185,56 @@ public class CardPaymentControllerTest {
     }
 
     @Test
+    public void retrieveCardPaymentStatuses_byPaymentReferenceTest() throws Exception {
+        stubFor(get(urlPathMatching("/v1/payments/e2kkddts5215h9qqoeuth5c0v3"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-status-response.json"))));
+
+        //Create a payment in db
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("499.99"))
+            .caseReference("Reference1")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .description("Test payments statuses")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v3")
+            .reference("RC-1519-9028-2432-9115")
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("499.99")).version("1").code("X0123").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162002").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result = restActions
+            .get("/card-payments/" + savedPayment.getReference() + "/statuses")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getReference(), savedPayment.getReference());
+        assertEquals(paymentDto.getAmount(), new BigDecimal("499.99"));
+        assertEquals(paymentDto.getStatusHistories().size(), 1);
+        paymentDto.getStatusHistories().stream().forEach(h -> {
+            assertEquals(h.getStatus(), "Success");
+            assertEquals(h.getExternalStatus(), "success");
+        });
+    }
+
+    @Test
     public void retrieveCardPayment_withNonExistingReferenceTest() throws Exception {
         restActions
             .get("/card-payments/" + "RC-1518-9576-1498-8035")
@@ -196,6 +250,7 @@ public class CardPaymentControllerTest {
                 .withBody(contentsOf("gov-pay-responses/get-payment-error-response.json"))));
 
         //Create a payment in db
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("22.89"))
             .caseReference("Reference")
@@ -211,10 +266,11 @@ public class CardPaymentControllerTest {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .externalReference("ia2mv22nl5o880rct0vqfa7k76")
             .reference("RC-1518-9429-1432-7825")
+            .statusHistories(Arrays.asList(statusHistory))
             .build();
         Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("X0011").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162002").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162003").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
         Payment savedPayment = paymentFeeLink.getPayments().get(0);

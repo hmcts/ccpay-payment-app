@@ -76,6 +76,17 @@ public class CardPaymentController {
     }
 
 
+    @ApiOperation(value = "Get card payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment retrieved"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @RequestMapping(value = "/card-payments/{reference}/statuses", method = GET)
+    public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
+        return cardPaymentDtoMapper.toRetrievePaymentStatusesDto(cardPaymentService.retrieve(paymentReference));
+    }
+
+
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
         return new ResponseEntity(NOT_FOUND);
