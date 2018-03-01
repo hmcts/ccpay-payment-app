@@ -20,7 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -134,6 +137,29 @@ public class CardPaymentControllerTest {
             .withReturnUrl("https://www.google.com")
             .post("/card-payments", cardPaymentInvalidRequestJson())
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void createCardPayment_withMissingCcdCaseNumberAndCaseReference_shouldReturn422Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .fee(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build())).build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertEquals(result.getResponse().getContentAsString(), "eitherOneRequired: Either ccdCaseNumber or caseReference is required.");
     }
 
     @Test
