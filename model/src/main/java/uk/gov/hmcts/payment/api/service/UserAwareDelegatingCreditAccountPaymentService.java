@@ -79,15 +79,13 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                     .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
                     .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
                     .reference(paymentReferenceUtil.getNext())
+                    .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                        .status(PayStatusToPayHubStatus.valueOf(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED).getName()).mapedStatus)
+                        .build()))
                     .build();
             } catch (CheckDigitException e) {
                 LOG.error("Error in generating check digit for the payment reference, {}", e);
             }
-
-        payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-            .status(PayStatusToPayHubStatus.valueOf(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED).getName()).mapedStatus)
-            .build()));
-
 
         PaymentFeeLink result =  paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
