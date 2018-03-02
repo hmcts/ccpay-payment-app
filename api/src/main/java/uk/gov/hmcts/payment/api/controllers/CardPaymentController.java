@@ -60,7 +60,7 @@ public class CardPaymentController {
 
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
             request.getDescription(), returnURL, request.getCcdCaseNumber(), request.getCaseReference(),
-            request.getCurrency().getCode(), request.getSiteId(), request.getService().getName(), cardPaymentDtoMapper.toFees(request.getFee()));
+            request.getCurrency().getCode(), request.getSiteId(), request.getService().getName(), cardPaymentDtoMapper.toFees(request.getFees()));
 
         return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }

@@ -147,7 +147,7 @@ public class CardPaymentControllerTest {
             .description("Test cross field validation")
             .service(Service.CMC)
             .siteId("siteID")
-            .fee(Arrays.asList(FeeDto.feeDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
                 .calculatedAmount(new BigDecimal("200.11"))
                 .code("X0001")
                 .version("1")
@@ -353,7 +353,7 @@ public class CardPaymentControllerTest {
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +
-            "  \"fee\": [\n" +
+            "  \"fees\": [\n" +
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
@@ -372,7 +372,7 @@ public class CardPaymentControllerTest {
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"siteId\",\n" +
-            "  \"fee\": [\n" +
+            "  \"fees\": [\n" +
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
@@ -392,7 +392,7 @@ public class CardPaymentControllerTest {
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +
-            "  \"fee\": [\n" +
+            "  \"fees\": [\n" +
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
