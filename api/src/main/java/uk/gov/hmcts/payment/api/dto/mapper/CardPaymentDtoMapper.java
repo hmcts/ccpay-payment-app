@@ -115,7 +115,6 @@ public class CardPaymentDtoMapper {
             .status(statusHistory.getStatus())
             .externalStatus(statusHistory.getExternalStatus())
             .dateCreated(statusHistory.getDateCreated())
-            .dateUpdated(statusHistory.getDateUpdated())
             .build();
     }
 

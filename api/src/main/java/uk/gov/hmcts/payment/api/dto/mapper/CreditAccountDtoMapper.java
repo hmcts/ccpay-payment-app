@@ -3,15 +3,13 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
@@ -76,6 +74,26 @@ public class CreditAccountDtoMapper {
                 retrievePaymentLink(payment.getReference()),
                 null
             ))
+            .build();
+    }
+
+    public PaymentDto toRetrievePaymentStatusResponse(Payment payment) {
+        return PaymentDto.payment2DtoWith()
+            .reference(payment.getReference())
+            .amount(payment.getAmount())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .statusHistories(toStatusHistoryDtos(payment.getStatusHistories()))
+            .build();
+    }
+
+    private List<StatusHistoryDto> toStatusHistoryDtos(List<StatusHistory> statusHistories) {
+        return statusHistories.stream().map(this::toStatusHistoryDto).collect(Collectors.toList());
+    }
+
+    private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
+        return StatusHistoryDto.statusHistoryDtoWith()
+            .status(statusHistory.getStatus())
+            .dateCreated(statusHistory.getDateCreated())
             .build();
     }
 

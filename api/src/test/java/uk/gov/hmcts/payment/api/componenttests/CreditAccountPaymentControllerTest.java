@@ -20,10 +20,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.PaymentRepository;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -64,6 +70,9 @@ public class CreditAccountPaymentControllerTest {
 
     @Autowired
     protected PaymentDbBackdoor db;
+
+    @Autowired
+    protected Payment2Repository paymentRepository;
 
 
     private static final String USER_ID = "user-id";
@@ -153,6 +162,88 @@ public class CreditAccountPaymentControllerTest {
             .andExpect(status().isBadRequest())
             .andReturn();
 
+    }
+
+    @Test
+    public void retrievePaymentStatusesTest() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        MvcResult res = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto createResponse = objectMapper.readValue(res.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+
+        Payment payment = paymentRepository.findByReference(createResponse.getReference()).orElseThrow(PaymentNotFoundException::new);
+        assertNotNull(payment);
+        assertEquals(payment.getReference(), createResponse.getReference());
+        payment.getStatusHistories().stream().forEach(h -> {
+            assertEquals(h.getStatus(), "Initiated");
+        });
+    }
+
+    @Test
+    public void validateCreateCreditAccountPayment_withoutCcdCaseNumberAndCaseReferenceTest() throws Exception{
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithoutCcdCaseRefAndCaseRef().getBytes(), CreditAccountPaymentRequest.class);
+
+        MvcResult res = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertEquals(res.getResponse().getContentAsString(), "eitherOneRequired: Either ccdCaseNumber or caseReference is required.");
+    }
+
+    @Test
+    public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseReference().getBytes(), CreditAccountPaymentRequest.class);
+
+        restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated());
+    }
+
+    private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String jsonRequestWithCaseReference() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"case_reference\": \"caseReference\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
     }
 
     private String creditAccountPaymentRequestJson() {
