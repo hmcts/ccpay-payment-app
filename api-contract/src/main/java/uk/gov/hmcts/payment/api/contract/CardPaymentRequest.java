@@ -56,5 +56,5 @@ public class CardPaymentRequest {
 
     @NotEmpty
     @Valid
-    private List<FeeDto> fee;
+    private List<FeeDto> fees;
 }
