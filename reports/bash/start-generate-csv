@@ -1,0 +1,32 @@
+if [ -f './pid' ]; then
+    PID=$(cat ./pid) && kill -15 $PID
+fi
+read -p "Enter card payments start date in format dd-mm-yyyy: " CARD_PAYMENTS_REPORT_START_DATE 
+read -p "Enter card payments end date in format dd-mm-yyyy: " CARD_PAYMENTS_REPORT_END_DATE
+read -p "Enter credit account start date in format dd-mm-yyyy: " PBA_PAYMENTS_REPORT_START_DATE
+read -p "Enter credit account end date in format dd-mm-yyyy: " PBA_PAYMENTS_REPORT_END_DATE
+if [[ $CARD_PAYMENTS_REPORT_START_DATE ]]
+then
+export CARD_PAYMENTS_REPORT_START_DATE
+fi
+if [[ $CARD_PAYMENTS_REPORT_END_DATE ]]
+then
+export CARD_PAYMENTS_REPORT_END_DATE
+fi
+if [[ $PBA_PAYMENTS_REPORT_START_DATE ]]
+then
+export PBA_PAYMENTS_REPORT_START_DATE
+fi
+if [[ $PBA_PAYMENTS_REPORT_END_DATE ]]
+then
+export PBA_PAYMENTS_REPORT_END_DATE
+fi
+CARD_PAYMENTS_REPORT_SCHEDULE='0 */1 * * * ?'
+export CARD_PAYMENTS_REPORT_SCHEDULE
+PBA_PAYMENTS_REPORT_SCHEDULE='0 */1 * * * ?'
+export PBA_PAYMENTS_REPORT_SCHEDULE
+n=2																																	
+nohup java -jar -Dserver.port=4403 payment-api.jar > csv-report.log 2>errors.txt < /dev/null & 
+PID=$!
+echo $PID > ./pid
+at now+$n minutes <<<"kill -nohup $PID"
