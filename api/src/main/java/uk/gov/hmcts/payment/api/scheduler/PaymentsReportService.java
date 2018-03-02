@@ -85,7 +85,7 @@ public class PaymentsReportService {
         this.creditAccountDtoMapper = creditAccountDtoMapper;
     }
 
-    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) throws ParseException, IOException {
+    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) throws ParseException{
 
         Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
         Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
@@ -98,7 +98,7 @@ public class PaymentsReportService {
         generateCsvAndSendEmail(cardPayments, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
     }
 
-    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) throws ParseException, IOException {
+    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) throws ParseException{
 
         Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
         Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
