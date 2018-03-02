@@ -98,6 +98,21 @@ public class CreditAccountPaymentController {
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), OK);
     }
 
+    @ApiOperation(value = "Get credit account payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment retrieved"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @RequestMapping(value = "/credit-account-payments/{paymentReference}/statuses", method = GET)
+    public ResponseEntity<PaymentDto> retrievePaymentStatus(@PathVariable("paymentReference") String paymentReference) {
+        PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
+        Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
+            .findAny()
+            .orElseThrow(PaymentNotFoundException::new);
+
+        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment), OK);
+    }
+
     @ExceptionHandler(value = {PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
         return new ResponseEntity(NOT_FOUND);
