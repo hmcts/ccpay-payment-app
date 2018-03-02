@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.service;
 
 import lombok.NonNull;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -23,6 +26,7 @@ import java.util.function.Predicate;
 
 @Service
 public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
+    private static final Logger LOG = LoggerFactory.getLogger(UserAwareDelegatingCardPaymentService.class);
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
@@ -82,6 +86,11 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
                                 .build();
         fillTransientDetails(payment, govPayPayment);
 
+        payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+            .externalStatus(govPayPayment.getState().getStatus())
+            .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+            .build()));
+
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
             .payments(Arrays.asList(payment))
             .fees(fees)
@@ -100,6 +109,20 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
 
         fillTransientDetails(payment, govPayPayment);
+
+        // Checking if the gov pay status already exists.
+        boolean statusExists = payment.getStatusHistories().stream()
+            .map(StatusHistory::getExternalStatus)
+            .anyMatch(govPayPayment.getState().getStatus()::equals);
+        LOG.debug("Payment status exists in status history: {}", statusExists);
+
+
+        if (!statusExists) {
+            payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                .externalStatus(govPayPayment.getState().getStatus())
+                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                .build()));
+        }
 
         return paymentFeeLink;
     }

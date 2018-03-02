@@ -1,7 +1,7 @@
 {
   "amount": 2289,
   "state": {
-    "status": "Error",
+    "status": "error",
     "finished": true,
     "message": "Payment not found",
     "code": "P0200"
