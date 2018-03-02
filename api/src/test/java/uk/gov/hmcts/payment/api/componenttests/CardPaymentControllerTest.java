@@ -230,11 +230,38 @@ public class CardPaymentControllerTest {
         assertEquals(paymentDto.getStatus(), "Failed");
     }
 
-    private CardPaymentRequest cardPaymentRequest() throws Exception {
-        return objectMapper.readValue(cardPaymentRequestJson().getBytes(), CardPaymentRequest.class);
+
+    @Test
+    public void createCardPaymentForCMC_withCaseReferenceOnly_shouldReturnStatusCreatedTest() throws Exception {
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+
+        MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/card-payments", cardPaymentRequestWithCaseReference())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals("Initiated", paymentDto.getStatus());
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
     }
 
-    private String cardPaymentRequestJson() {
+    private CardPaymentRequest cardPaymentRequest() throws Exception {
+        return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
+    }
+
+    private CardPaymentRequest cardPaymentRequestWithCaseReference() throws Exception {
+        return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
+    }
+
+    private String requestJson() {
         return "{\n" +
             "  \"amount\": 101.89,\n" +
             "  \"description\": \"New passport application\",\n" +
@@ -244,6 +271,25 @@ public class CardPaymentControllerTest {
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +
+            "  \"fee\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    public String jsonWithCaseReference() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"case_reference\": \"caseReference\",\n" +
+            "  \"service\": \"CMC\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"site_id\": \"siteId\",\n" +
             "  \"fee\": [\n" +
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
