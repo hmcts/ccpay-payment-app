@@ -20,7 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -137,6 +140,29 @@ public class CardPaymentControllerTest {
     }
 
     @Test
+    public void createCardPayment_withMissingCcdCaseNumberAndCaseReference_shouldReturn422Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build())).build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertEquals(result.getResponse().getContentAsString(), "eitherOneRequired: Either ccdCaseNumber or caseReference is required.");
+    }
+
+    @Test
     public void retrieveCardPaymentAndMapTheGovPayStatusTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
             .willReturn(aResponse()
@@ -159,7 +185,11 @@ public class CardPaymentControllerTest {
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .externalReference("ia2mv22nl5o880rct0vqfa7k76")
-            .reference("RC-1518-4594-2723-363C")
+            .reference("RC-1519-9028-1909-3475")
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                .status("Initiated")
+                .externalStatus("created")
+                .build()))
             .build();
         Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
@@ -181,6 +211,56 @@ public class CardPaymentControllerTest {
     }
 
     @Test
+    public void retrieveCardPaymentStatuses_byPaymentReferenceTest() throws Exception {
+        stubFor(get(urlPathMatching("/v1/payments/e2kkddts5215h9qqoeuth5c0v3"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-status-response.json"))));
+
+        //Create a payment in db
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("499.99"))
+            .caseReference("Reference1")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .description("Test payments statuses")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v3")
+            .reference("RC-1519-9028-2432-9115")
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("499.99")).version("1").code("X0123").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162002").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result = restActions
+            .get("/card-payments/" + savedPayment.getReference() + "/statuses")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getReference(), savedPayment.getReference());
+        assertEquals(paymentDto.getAmount(), new BigDecimal("499.99"));
+        assertEquals(paymentDto.getStatusHistories().size(), 1);
+        paymentDto.getStatusHistories().stream().forEach(h -> {
+            assertEquals(h.getStatus(), "Success");
+            assertEquals(h.getExternalStatus(), "success");
+        });
+    }
+
+    @Test
     public void retrieveCardPayment_withNonExistingReferenceTest() throws Exception {
         restActions
             .get("/card-payments/" + "RC-1518-9576-1498-8035")
@@ -196,6 +276,7 @@ public class CardPaymentControllerTest {
                 .withBody(contentsOf("gov-pay-responses/get-payment-error-response.json"))));
 
         //Create a payment in db
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("22.89"))
             .caseReference("Reference")
@@ -211,10 +292,11 @@ public class CardPaymentControllerTest {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .externalReference("ia2mv22nl5o880rct0vqfa7k76")
             .reference("RC-1518-9429-1432-7825")
+            .statusHistories(Arrays.asList(statusHistory))
             .build();
         Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("X0011").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162002").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162003").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
@@ -230,11 +312,38 @@ public class CardPaymentControllerTest {
         assertEquals(paymentDto.getStatus(), "Failed");
     }
 
-    private CardPaymentRequest cardPaymentRequest() throws Exception {
-        return objectMapper.readValue(cardPaymentRequestJson().getBytes(), CardPaymentRequest.class);
+
+    @Test
+    public void createCardPaymentForCMC_withCaseReferenceOnly_shouldReturnStatusCreatedTest() throws Exception {
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+
+        MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/card-payments", cardPaymentRequestWithCaseReference())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals("Initiated", paymentDto.getStatus());
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
     }
 
-    private String cardPaymentRequestJson() {
+    private CardPaymentRequest cardPaymentRequest() throws Exception {
+        return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
+    }
+
+    private CardPaymentRequest cardPaymentRequestWithCaseReference() throws Exception {
+        return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
+    }
+
+    private String requestJson() {
         return "{\n" +
             "  \"amount\": 101.89,\n" +
             "  \"description\": \"New passport application\",\n" +
@@ -244,7 +353,26 @@ public class CardPaymentControllerTest {
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +
-            "  \"fee\": [\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    public String jsonWithCaseReference() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"case_reference\": \"caseReference\",\n" +
+            "  \"service\": \"CMC\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"site_id\": \"siteId\",\n" +
+            "  \"fees\": [\n" +
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
@@ -264,7 +392,7 @@ public class CardPaymentControllerTest {
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.gooooogle.com\",\n" +
             "  \"site_id\": \"AA101\",\n" +
-            "  \"fee\": [\n" +
+            "  \"fees\": [\n" +
             "    {\n" +
             "      \"calculated_amount\": 101.89,\n" +
             "      \"code\": \"X0101\",\n" +
