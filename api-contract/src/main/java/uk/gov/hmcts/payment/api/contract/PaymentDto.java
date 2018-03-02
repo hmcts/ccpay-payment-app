@@ -82,6 +82,8 @@ public class PaymentDto {
     @NotNull
     private List<FeeDto> fees;
 
+    private List<StatusHistoryDto> statusHistories;
+
     @JsonProperty("_links")
     private LinksDto links;
 

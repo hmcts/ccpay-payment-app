@@ -5,11 +5,13 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
@@ -57,6 +59,16 @@ public class CardPaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toRetrievePaymentStatusesDto(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .reference(payment.getReference())
+            .amount(payment.getAmount())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .statusHistories(toStatusHistoryDtos(payment.getStatusHistories()))
+            .build();
+    }
+
     public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
@@ -92,6 +104,19 @@ public class CardPaymentDtoMapper {
 
     private FeeDto toFeeDto(Fee fee) {
         return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion()).build();
+    }
+
+    private List<StatusHistoryDto> toStatusHistoryDtos(List<StatusHistory> statusHistories) {
+        return statusHistories.stream().map(this::toStatusHistoryDto).collect(Collectors.toList());
+    }
+
+    private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
+        return StatusHistoryDto.statusHistoryDtoWith()
+            .status(statusHistory.getStatus())
+            .externalStatus(statusHistory.getExternalStatus())
+            .dateCreated(statusHistory.getDateCreated())
+            .dateUpdated(statusHistory.getDateUpdated())
+            .build();
     }
 
 
