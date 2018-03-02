@@ -264,7 +264,7 @@
                 <version>3.5.3</version>
                 <configuration>
                     <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
-                    <diffChangeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.5.yaml</diffChangeLogFile>
+                    <diffChangeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-0.0.8.yaml</diffChangeLogFile>
                     <changeLogFile>${project.basedir}/../api/src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
                     <url>jdbc:postgresql://localhost:5432/payment</url>
                     <driver>org.postgresql.Driver</driver>

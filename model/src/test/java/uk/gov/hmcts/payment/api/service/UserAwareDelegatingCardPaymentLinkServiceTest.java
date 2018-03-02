@@ -34,7 +34,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         .amount(1000)
         .description("description")
         .reference("paymentReference")
-        .state(new State("status", false, "message", "code"))
+        .state(new State("created", false, "message", "code"))
         .links(new GovPayPayment.Links(
             new Link("type", ImmutableMap.of(), "self", "GET"),
             new Link("type", ImmutableMap.of(), "nextUrl", "GET"),
@@ -83,12 +83,26 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         String reference = paymentReferenceUtil.getNext();
 
         when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).paymentReference("payGroupRef")
-            .payments(Arrays.asList(Payment.paymentWith().id(1).externalReference("govPayId").reference(reference).build())).build()));
+            .payments(Arrays.asList(Payment.paymentWith().id(1)
+                .externalReference("govPayId")
+                .reference(reference)
+                .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                    .id(1)
+                    .status("Initiated")
+                    .externalStatus("created")
+                    .build()))
+                .build()))
+            .build()));
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference("1").orElseThrow(PaymentNotFoundException::new);
         when(paymentRespository.findByReference(reference)).thenReturn(Optional.of(Payment.paymentWith().id(1)
             .externalReference("govPayId")
             .reference(reference)
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                .id(1)
+                .status("Initiated")
+                .externalStatus("created")
+                .build()))
             .paymentLink(paymentFeeLink)
             .build()));
 

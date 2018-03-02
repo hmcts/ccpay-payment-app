@@ -14,9 +14,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Digits;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,10 +38,8 @@ public class CardPaymentRequest {
     @NotEmpty
     private String description;
 
-    @NotEmpty
     private String ccdCaseNumber;
 
-    @NotEmpty
     private String caseReference;
 
     private Service service;
@@ -57,4 +53,9 @@ public class CardPaymentRequest {
     @NotEmpty
     @Valid
     private List<FeeDto> fee;
+
+    @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
+    private boolean isEitherOneRequired() {
+        return (ccdCaseNumber == null && caseReference == null);
+    }
 }

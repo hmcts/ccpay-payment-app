@@ -120,7 +120,7 @@ public class GovPayComponentMockTest {
 
     @Test
     public void verifyGovPayGetResponseTest() throws Exception {
-        String reference = "RC-1518-9479-8089-4415";
+        String reference = "RC-1519-9028-1909-3475";
         DefaultResponseCreator govPayResponse = withStatus(HttpStatus.OK)
             .body(contentsOf("gov-pay-responses/get-payment-response.json").getBytes())
             .contentType(MediaType.APPLICATION_JSON_UTF8);
