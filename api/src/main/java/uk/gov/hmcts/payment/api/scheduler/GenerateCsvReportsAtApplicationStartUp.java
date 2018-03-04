@@ -43,7 +43,6 @@ public class GenerateCsvReportsAtApplicationStartUp implements ApplicationListen
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event){
 
-        try {
             LOG.info("GenerateCsvReportsAtApplicationStartUp -  Start of generation of HMCTS-Card Payments csv report file.");
             paymentsReportService.generateCardPaymentsCsvAndSendEmail(cardPaymentsStartDate, cardPaymentsEndDate);
             LOG.info("GenerateCsvReportsAtApplicationStartUp -  End of generation of HMCTS-Card Payments csv report file.");
@@ -52,13 +51,5 @@ public class GenerateCsvReportsAtApplicationStartUp implements ApplicationListen
             paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(creditAccountPaymentsStartDate, creditAccountPaymentsEndDate);
             LOG.info("GenerateCsvReportsAtApplicationStartUp -  End of generation of HMCTS-PBA Payments csv report file.");
 
-        }
-        catch(ParseException ex){
-
-            LOG.info("GenerateCsvReportsAtApplicationStartUp -  Exception in generating cvs reconciliation reports. "+ ex.getMessage());
-
-        }
-
-        return;
     }
 }
