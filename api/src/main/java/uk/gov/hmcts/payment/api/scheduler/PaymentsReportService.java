@@ -56,8 +56,8 @@ public class PaymentsReportService {
 
     private static final String CREDIT_ACCOUNT_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference,CCD reference,Case reference," +
         "Organisation name,Customer internal reference,PBA Number,Payment created date,Payment status updated date," +
-         "Payment status,Payment channel,Payment method,Payment amount," +
-         "Site id,Fee code,Version,Calculated amount,Fee code,Version,Calculated amount,Fee code,Version,Calculated amount,Fee code,Version,Calculated amount,Fee code,Version,Calculated amount";
+        "Payment status,Payment channel,Payment method,Payment amount," +
+        "Site id,Fee code,Version,Calculated amount,Fee code,Version,Calculated amount,Fee code,Version,Calculated amount,Fee code,Version,Calculated amount,Fee code,Version,Calculated amount";
 
     private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
 
@@ -83,32 +83,58 @@ public class PaymentsReportService {
         this.creditAccountReconciliationReportEmail = creditAccountReconciliationReportEmail1;
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
+        sdf.setLenient(false);
     }
 
-    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) throws ParseException{
+    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) {
 
-        Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
-        Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
+        try {
+            Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
+            Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
 
-        List<PaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
-            .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-        String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
-        String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
-        generateCsvAndSendEmail(cardPayments, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
+            if (fromDate.after(toDate) || fromDate.compareTo(toDate) == 0) {
+                LOG.error("PaymentsReportService - Error while card  payments csv file. Incorrect start and end dates ");
+                return;
+
+            }
+            List<PaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
+                .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+
+            String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
+            String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
+            generateCsvAndSendEmail(cardPayments, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
+        } catch (ParseException paex) {
+
+            LOG.error("PaymentsReportService - Error while creating card payments csv file." +
+                " Error message is " + paex.getMessage()+". Expected format is dd-mm-yyyy.");
+
+        }
     }
 
-    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) throws ParseException{
+    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) {
+        try {
+            Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
+            Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
 
-        Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
-        Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
+            if (fromDate.after(toDate) || fromDate.compareTo(toDate) == 0) {
+                LOG.error("PaymentsReportService - Error while creating credit account payments csv file. Incorrect start and end dates ");
+                return;
 
-        List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
-            .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+            }
 
-        String fileNameSuffix = LocalDateTime.now().format(formatter);
-        String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
-        generateCsvAndSendEmail(creditAccountPayments, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
+            List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
+                .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+
+            String fileNameSuffix = LocalDateTime.now().format(formatter);
+            String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
+            generateCsvAndSendEmail(creditAccountPayments, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
+        } catch (ParseException paex) {
+
+            LOG.error("PaymentsReportService - Error while creating credit account payments csv file."
+                +" Error message is " + paex.getMessage()+". Expected format is dd-mm-yyyy.");
+
+        }
     }
 
     public void generateCsvAndSendEmail(List<PaymentDto> payments, String paymentsCsvFileName, String header, Email mail) {
@@ -128,7 +154,7 @@ public class PaymentsReportService {
             for (PaymentDto payment : payments) {
                 if (paymentsCsvFileName.startsWith(CARD_PAYMENTS_CSV_FILE_PREFIX)) {
                     bos.write(payment.toCardPaymentCsv().getBytes());
-                } else if (paymentsCsvFileName.startsWith(CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX)){
+                } else if (paymentsCsvFileName.startsWith(CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX)) {
                     bos.write(payment.toCreditAccountPaymentCsv().getBytes());
                 }
                 bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes());
@@ -140,7 +166,7 @@ public class PaymentsReportService {
 
         } catch (IOException ex) {
 
-            LOG.error("PaymentsReportService - Error while creating card payments csv file " + paymentsCsvFileName + ". Error message is" + ex.getMessage());
+            LOG.error("PaymentsReportService - Error while creating card payments csv file " + paymentsCsvFileName + ". Error message is " + ex.getMessage());
 
         }
         return paymentsCsvByteArray;
