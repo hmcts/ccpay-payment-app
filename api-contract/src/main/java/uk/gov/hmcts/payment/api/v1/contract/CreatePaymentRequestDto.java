@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.v1.contract;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -32,7 +33,9 @@ public class CreatePaymentRequestDto {
     private String reference;
     @NotEmpty
     private String description;
+
     @NotEmpty
     @URL(protocol = "https")
+    @JsonProperty("returnUrl")
     private String returnUrl;
 }
