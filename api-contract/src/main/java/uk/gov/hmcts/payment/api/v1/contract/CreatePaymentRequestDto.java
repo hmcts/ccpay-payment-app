@@ -36,6 +36,5 @@ public class CreatePaymentRequestDto {
 
     @NotEmpty
     @URL(protocol = "https")
-    @JsonProperty("returnUrl")
     private String returnUrl;
 }
