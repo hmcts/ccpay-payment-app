@@ -78,7 +78,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                     .pbaNumber(creditAccount.getPbaNumber())
                     .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
                     .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
-                    .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
+                    .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING))
                     .reference(paymentReferenceUtil.getNext())
                     .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                         .status(PayStatusToPayHubStatus.valueOf(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName()).mapedStatus)
