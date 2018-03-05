@@ -28,6 +28,8 @@ import static uk.gov.hmcts.payment.api.model.Payment.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
+    private final static String PAYMENT_METHOD = "card";
+
     private static final String USER_ID = "USER_ID";
     private static final GovPayPayment VALID_GOV_PAYMENT_RESPONSE = govPaymentWith()
         .paymentId("paymentId")
@@ -95,7 +97,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
             .build()));
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference("1").orElseThrow(PaymentNotFoundException::new);
-        when(paymentRespository.findByReference(reference)).thenReturn(Optional.of(Payment.paymentWith().id(1)
+        when(paymentRespository.findByReferenceAndPaymentMethod(reference, PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build())).thenReturn(Optional.of(Payment.paymentWith().id(1)
             .externalReference("govPayId")
             .reference(reference)
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
@@ -106,7 +108,8 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
             .paymentLink(paymentFeeLink)
             .build()));
 
-        Payment payment = paymentRespository.findByReference(reference).orElseThrow(PaymentNotFoundException::new);
+        Payment payment = paymentRespository.findByReferenceAndPaymentMethod(reference,
+            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
 
         when(govPayCardPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 

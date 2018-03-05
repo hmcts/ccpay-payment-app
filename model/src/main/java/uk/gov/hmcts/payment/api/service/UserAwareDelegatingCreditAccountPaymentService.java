@@ -81,7 +81,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                     .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING))
                     .reference(paymentReferenceUtil.getNext())
                     .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                        .status(PayStatusToPayHubStatus.valueOf(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName()).mapedStatus)
+                        .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName())
                         .build()))
                     .build();
             } catch (CheckDigitException e) {
@@ -116,7 +116,8 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
-        return paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+        return paymentRespository.findByReferenceAndPaymentMethod(paymentReference,
+            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
     }
 
     private static Specification findCreditAccountPaymentsByBetweenDates(Date fromDate, Date toDate) {

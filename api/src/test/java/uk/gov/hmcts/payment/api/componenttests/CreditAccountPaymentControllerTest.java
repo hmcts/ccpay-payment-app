@@ -22,6 +22,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -76,6 +77,8 @@ public class CreditAccountPaymentControllerTest {
 
 
     private static final String USER_ID = "user-id";
+
+    private final static String PAYMENT_METHOD = "payment by account";
 
     RestActions restActions;
 
@@ -176,11 +179,12 @@ public class CreditAccountPaymentControllerTest {
         PaymentDto createResponse = objectMapper.readValue(res.getResponse().getContentAsByteArray(), PaymentDto.class);
 
 
-        Payment payment = paymentRepository.findByReference(createResponse.getReference()).orElseThrow(PaymentNotFoundException::new);
+        Payment payment = paymentRepository.findByReferenceAndPaymentMethod(createResponse.getReference(),
+            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
         assertNotNull(payment);
         assertEquals(payment.getReference(), createResponse.getReference());
         payment.getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getStatus(), "Pending");
+            assertEquals(h.getStatus(), "pending");
         });
     }
 
