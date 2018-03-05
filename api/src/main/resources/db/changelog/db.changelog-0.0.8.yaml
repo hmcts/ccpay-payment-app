@@ -1,0 +1,11 @@
+databaseChangeLog:
+- changeSet:
+    id: 1520495787678-1
+    author: Jalal (generated)
+    changes:
+      - sql:
+          splitStatements: true
+          sql: >
+            INSERT INTO payment_status (name, description)
+            VALUES
+            ('pending', 'Payment awaiting confirmation from external provider');

@@ -32,6 +32,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private final static String PAYMENT_PROVIDER_MIDDLE_OFFICE_PROVIDER = "middle office provider";
     private final static String PAYMENT_METHOD = "payment by account";
     private final static String PAYMENT_STATUS_CREATED = "created";
+    private final static String PAYMENT_STATUS_PENDING = "pending";
     private final static String PAYMENT_METHOD_BY_ACCOUNT =  "payment by account";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -77,10 +78,10 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                     .pbaNumber(creditAccount.getPbaNumber())
                     .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
                     .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
-                    .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
+                    .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING))
                     .reference(paymentReferenceUtil.getNext())
                     .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                        .status(PayStatusToPayHubStatus.valueOf(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED).getName()).mapedStatus)
+                        .status(PayStatusToPayHubStatus.valueOf(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName()).mapedStatus)
                         .build()))
                     .build();
             } catch (CheckDigitException e) {
