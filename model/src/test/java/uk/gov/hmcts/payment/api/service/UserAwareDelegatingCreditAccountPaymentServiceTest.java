@@ -57,7 +57,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
         List<Payment> payments = Arrays.asList(getPayment(1, reference));
         List<Fee> fees = Arrays.asList(getFee(1));
 
-        List<StatusHistory> statusHistories = Arrays.asList(StatusHistory.statusHistoryWith().status("Initiated").build());
+        List<StatusHistory> statusHistories = Arrays.asList(StatusHistory.statusHistoryWith().status("pending").build());
         payments.stream().forEach(p -> p.setStatusHistories(statusHistories));
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
@@ -66,7 +66,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             .fees(fees)
             .build();
 
-        when(paymentStatusRepository.findByNameOrThrow("created")).thenReturn(PaymentStatus.paymentStatusWith().name("created").build());
+        when(paymentStatusRepository.findByNameOrThrow("pending")).thenReturn(PaymentStatus.paymentStatusWith().name("pending").build());
 
         when(paymentFeeLinkRepository.save(paymentFeeLink)).thenReturn(PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
@@ -98,7 +98,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             p.setId(1);
             p.setPaymentChannel(PaymentChannel.paymentChannelWith().name("online").build());
             p.setPaymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build());
-            p.setPaymentStatus(PaymentStatus.paymentStatusWith().name("created").build());
+            p.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
         });
         List<Fee> fees = Arrays.asList(getFee(1));
 
@@ -116,7 +116,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
                 .amount(new BigDecimal("6000.00"))
                 .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
                 .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-                .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+                .paymentStatus(PaymentStatus.paymentStatusWith().name("pending").build())
                 .paymentLink(paymentFeeLink)
                 .build()));
 
