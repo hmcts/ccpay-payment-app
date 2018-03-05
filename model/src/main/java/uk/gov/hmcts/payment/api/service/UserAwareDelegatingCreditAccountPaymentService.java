@@ -32,6 +32,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private final static String PAYMENT_PROVIDER_MIDDLE_OFFICE_PROVIDER = "middle office provider";
     private final static String PAYMENT_METHOD = "payment by account";
     private final static String PAYMENT_STATUS_CREATED = "created";
+    private final static String PAYMENT_STATUS_PENDING = "pending";
     private final static String PAYMENT_METHOD_BY_ACCOUNT =  "payment by account";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -80,7 +81,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                     .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
                     .reference(paymentReferenceUtil.getNext())
                     .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                        .status(PayStatusToPayHubStatus.valueOf(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED).getName()).mapedStatus)
+                        .status(PayStatusToPayHubStatus.valueOf(PAYMENT_STATUS_PENDING).mapedStatus)
                         .build()))
                     .build();
             } catch (CheckDigitException e) {
