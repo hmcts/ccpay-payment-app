@@ -16,16 +16,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class GenerateCsvReportsAtApplicationStartUp implements ApplicationListener<ApplicationReadyEvent> {
     private static final Logger LOG = getLogger(GenerateCsvReportsAtApplicationStartUp.class);
 
-    @Value("${card.payments.report.startDate:#{null}}")
+    @Value("${card.payments.report.startDate}")
     private String cardPaymentsStartDate;
 
-    @Value("${card.payments.report.endDate:#{null}}")
+    @Value("${card.payments.report.endDate}")
     private String cardPaymentsEndDate;
 
-    @Value("${pba.payments.report.startDate:#{null}}")
+    @Value("${pba.payments.report.startDate}")
     private String creditAccountPaymentsStartDate;
 
-    @Value("${pba.payments.report.endDate:#{null}}")
+    @Value("${pba.payments.report.endDate}")
     private String creditAccountPaymentsEndDate;
 
 
