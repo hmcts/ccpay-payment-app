@@ -44,6 +44,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
     @InjectMocks
     private UserAwareDelegatingCreditAccountPaymentService creditAccountPaymentService;
 
+    private final static String PAYMENT_METHOD = "payment by account";
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -109,7 +111,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             .fees(fees)
             .build();
 
-        when(paymentRespository.findByReference(reference))
+        when(paymentRespository.findByReferenceAndPaymentMethod(reference, PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
             .thenReturn(Optional.of(Payment.paymentWith()
                 .id(1)
                 .reference(reference)
@@ -145,7 +147,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             .fees(fees)
             .build();
 
-        when(paymentRespository.findByReference("RC-1234-1234-1234-1112"))
+        when(paymentRespository.findByReferenceAndPaymentMethod("RC-1234-1234-1234-1112", PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
             .thenThrow(new PaymentNotFoundException());
         creditAccountPaymentService.retrieveByPaymentReference("RC-1234-1234-1234-1112");
     }
