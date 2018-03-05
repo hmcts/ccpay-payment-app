@@ -20,10 +20,10 @@ public class CardPaymentsReportScheduler {
     private static final Logger LOG = getLogger(CardPaymentsReportScheduler.class);
     private PaymentsReportService paymentsReportService;
 
-    @Value("${card.payments.report.startDate}")
+    @Value("${card.payments.report.startDate:#{null}}")
     private String startDate;
 
-    @Value("${card.payments.report.endDate}")
+    @Value("${card.payments.report.endDate:#{null}}")
     private String endDate;
 
     @Autowired
