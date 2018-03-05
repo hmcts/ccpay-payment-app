@@ -6,6 +6,6 @@ import java.util.Optional;
 
 public interface Payment2Repository extends CrudRepository<Payment, Integer>{
 
-    Optional<Payment> findByReference(String reference);
+    Optional<Payment> findByReferenceAndPaymentMethod(String reference, PaymentMethod paymentMethod);
 
 }
