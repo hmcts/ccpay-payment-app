@@ -180,7 +180,7 @@ public class CreditAccountPaymentControllerTest {
         assertNotNull(payment);
         assertEquals(payment.getReference(), createResponse.getReference());
         payment.getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getStatus(), "Initiated");
+            assertEquals(h.getStatus(), "Pending");
         });
     }
 
@@ -200,9 +200,15 @@ public class CreditAccountPaymentControllerTest {
     public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseReference().getBytes(), CreditAccountPaymentRequest.class);
 
-        restActions
+        MvcResult result = restActions
             .post("/credit-account-payments", request)
-            .andExpect(status().isCreated());
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getStatus(), "Pending");
+
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {

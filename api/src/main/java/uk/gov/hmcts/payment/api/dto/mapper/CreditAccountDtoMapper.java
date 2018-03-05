@@ -92,7 +92,7 @@ public class CreditAccountDtoMapper {
 
     private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
         return StatusHistoryDto.statusHistoryDtoWith()
-            .status(statusHistory.getStatus())
+            .status(PayStatusToPayHubStatus.valueOf(statusHistory.getStatus()).mapedStatus)
             .dateCreated(statusHistory.getDateCreated())
             .build();
     }
