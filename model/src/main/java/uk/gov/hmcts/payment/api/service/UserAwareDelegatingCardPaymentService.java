@@ -171,7 +171,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
-        return paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+        return paymentRespository.findByReferenceAndPaymentMethod(paymentReference,
+            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
     }
 
     private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {

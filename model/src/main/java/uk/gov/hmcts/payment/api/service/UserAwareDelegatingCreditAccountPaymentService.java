@@ -116,7 +116,8 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
-        return paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+        return paymentRespository.findByReferenceAndPaymentMethod(paymentReference,
+            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
     }
 
     private static Specification findCreditAccountPaymentsByBetweenDates(Date fromDate, Date toDate) {
