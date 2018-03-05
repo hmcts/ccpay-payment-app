@@ -81,7 +81,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                     .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
                     .reference(paymentReferenceUtil.getNext())
                     .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                        .status(PayStatusToPayHubStatus.valueOf(PAYMENT_STATUS_PENDING).mapedStatus)
+                        .status(PayStatusToPayHubStatus.valueOf(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName()).mapedStatus)
                         .build()))
                     .build();
             } catch (CheckDigitException e) {
