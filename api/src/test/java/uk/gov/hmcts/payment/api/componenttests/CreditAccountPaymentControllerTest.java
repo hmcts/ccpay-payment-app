@@ -180,7 +180,7 @@ public class CreditAccountPaymentControllerTest {
         assertNotNull(payment);
         assertEquals(payment.getReference(), createResponse.getReference());
         payment.getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getStatus(), "Pending");
+            assertEquals(h.getStatus(), "pending");
         });
     }
 
