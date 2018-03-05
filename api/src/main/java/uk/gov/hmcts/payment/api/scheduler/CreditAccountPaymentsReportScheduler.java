@@ -19,10 +19,10 @@ public class CreditAccountPaymentsReportScheduler {
     private static final Logger LOG = getLogger(CreditAccountPaymentsReportScheduler.class);
     private PaymentsReportService paymentsReportService;
 
-    @Value("${pba.payments.report.startDate}")
+    @Value("${pba.payments.report.startDate:#{null}}")
     private String startDate;
 
-    @Value("${pba.payments.report.endDate}")
+    @Value("${pba.payments.report.endDate:#{null}}")
     private String endDate;
 
     @Autowired

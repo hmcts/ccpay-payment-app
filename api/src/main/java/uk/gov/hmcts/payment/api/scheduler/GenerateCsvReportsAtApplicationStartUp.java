@@ -9,25 +9,23 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
-
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component
-@ConditionalOnProperty("manual.csv.report.generation")
+@ConditionalOnProperty(value="manual.csv.report.generation",havingValue="true")
 public class GenerateCsvReportsAtApplicationStartUp implements ApplicationListener<ApplicationReadyEvent> {
     private static final Logger LOG = getLogger(GenerateCsvReportsAtApplicationStartUp.class);
 
-    @Value("${card.payments.report.startDate}")
+    @Value("${card.payments.report.startDate:#{null}}")
     private String cardPaymentsStartDate;
 
-    @Value("${card.payments.report.endDate}")
+    @Value("${card.payments.report.endDate:#{null}}")
     private String cardPaymentsEndDate;
 
-    @Value("${pba.payments.report.startDate}")
+    @Value("${pba.payments.report.startDate:#{null}}")
     private String creditAccountPaymentsStartDate;
 
-    @Value("${pba.payments.report.endDate}")
+    @Value("${pba.payments.report.endDate:#{null}}")
     private String creditAccountPaymentsEndDate;
 
 
