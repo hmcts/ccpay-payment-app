@@ -9,12 +9,10 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
-
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component
-@ConditionalOnProperty("manual.csv.report.generation")
+@ConditionalOnProperty(value="manual.csv.report.generation",havingValue="true")
 public class GenerateCsvReportsAtApplicationStartUp implements ApplicationListener<ApplicationReadyEvent> {
     private static final Logger LOG = getLogger(GenerateCsvReportsAtApplicationStartUp.class);
 
