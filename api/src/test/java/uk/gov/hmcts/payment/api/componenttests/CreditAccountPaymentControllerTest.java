@@ -20,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.*;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -35,6 +33,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.is;
@@ -48,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"embedded", "local", "componenttest"})
@@ -123,23 +123,39 @@ public class CreditAccountPaymentControllerTest {
             .andExpect(status().isCreated());
     }
 
+    @Test
     public void retrieveCreditAccountPaymentByPaymentReference() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        //Create a payment in db
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("Reference1")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .description("Description1")
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference("RC-1519-9028-1909-3475")
+            .build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        MvcResult createResponse = restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isCreated())
-            .andReturn();
-        PaymentDto paymentDto = objectMapper.readValue(createResponse.getResponse().getContentAsByteArray(), PaymentDto.class);
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162020").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
 
         MvcResult result = restActions
-            .get(format("/credit-account-payments/" + paymentDto.getReference()))
+            .get("/credit-account-payments/RC-1519-9028-1909-3475")
             .andExpect(status().isOk())
             .andReturn();
+
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(response);
         assertTrue(response.getReference().matches(PAYMENT_REFERENCE_REFEX));
-        assertEquals(response.getAmount(), new BigDecimal("1000.00"));
+        assertEquals(response.getAmount(), new BigDecimal("11.99"));
     }
 
     @Test
@@ -169,22 +185,41 @@ public class CreditAccountPaymentControllerTest {
 
     @Test
     public void retrievePaymentStatusesTest() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        //Create a payment in db
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("Reference11")
+            .ccdCaseNumber("ccdCaseNumber11")
+            .description("Description11")
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA011")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference("RC-1519-9239-1920-0375")
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                .status("pending")
+                .build()))
+            .build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        MvcResult res = restActions
-            .post("/credit-account-payments", request)
-            .andExpect(status().isCreated())
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15199028243").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result = restActions
+            .get("/credit-account-payments/RC-1519-9239-1920-0375/statuses")
+            .andExpect(status().isOk())
             .andReturn();
 
-        PaymentDto createResponse = objectMapper.readValue(res.getResponse().getContentAsByteArray(), PaymentDto.class);
-
-
-        Payment payment = paymentRepository.findByReferenceAndPaymentMethod(createResponse.getReference(),
-            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(payment);
-        assertEquals(payment.getReference(), createResponse.getReference());
-        payment.getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getStatus(), "pending");
+        assertEquals(paymentDto.getReference(), payment.getReference());
+        paymentDto.getStatusHistories().stream().forEach(h -> {
+            assertEquals(h.getStatus(), "Pending");
         });
     }
 
