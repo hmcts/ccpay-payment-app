@@ -61,16 +61,6 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     }
 
     @Override
-    public void cancel(String paymentReference) {
-
-    }
-
-    @Override
-    public void refund(String paymentReference, int amount, int refundAmountAvailabie) {
-
-    }
-
-    @Override
     public List<PaymentFeeLink> search(Date startDate, Date endDate) {
         LOG.info("Searching for payments between {} and {}", startDate, endDate);
 

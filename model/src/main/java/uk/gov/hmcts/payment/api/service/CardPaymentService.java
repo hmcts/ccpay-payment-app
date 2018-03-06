@@ -13,9 +13,5 @@ public interface CardPaymentService<T, ID> {
 
     T retrieve(ID id);
 
-    void cancel(ID id);
-
-    void refund(ID id, int amount, int refundAmountAvailabie);
-
     List<T> search(Date startDate, Date endDate);
 }

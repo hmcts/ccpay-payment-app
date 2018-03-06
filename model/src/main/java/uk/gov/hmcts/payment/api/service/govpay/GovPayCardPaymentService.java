@@ -51,18 +51,6 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     }
 
     @Override
-    public void cancel(@NonNull String id) {
-        GovPayPayment payment = retrieve(id);
-        govPayClient.cancelPayment(keyForCurrentService(), hrefFor(payment.getLinks().getCancel()));
-    }
-
-    @Override
-    public void refund(@NonNull String id, int amount, int refundAmountAvailable) {
-        GovPayPayment payment = retrieve(id);
-        govPayClient.refundPayment(keyForCurrentService(), hrefFor(payment.getLinks().getRefunds()), new RefundPaymentRequest(amount, refundAmountAvailable));
-    }
-
-    @Override
     public List<GovPayPayment> search(Date startDate, Date endDate) {
         return null;
     }
