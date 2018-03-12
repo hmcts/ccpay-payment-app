@@ -46,8 +46,6 @@ public class PaymentsReportService {
 
     private static final String PAYMENTS_CSV_FILE_EXTENSION = ".csv";
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
     private static final String CARD_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference,CCD reference,Case reference," +
@@ -83,11 +81,11 @@ public class PaymentsReportService {
         this.creditAccountReconciliationReportEmail = creditAccountReconciliationReportEmail1;
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
-        sdf.setLenient(false);
     }
 
     public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) {
-
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        sdf.setLenient(false);
         try {
             Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
             Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
@@ -113,6 +111,8 @@ public class PaymentsReportService {
     }
 
     public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        sdf.setLenient(false);
         try {
             Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
             Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
@@ -137,14 +137,14 @@ public class PaymentsReportService {
         }
     }
 
-    public void generateCsvAndSendEmail(List<PaymentDto> payments, String paymentsCsvFileName, String header, Email mail) {
+    private void generateCsvAndSendEmail(List<PaymentDto> payments, String paymentsCsvFileName, String header, Email mail) {
 
         byte[] paymentsByteArray = createPaymentsCsvByteArray(payments, paymentsCsvFileName, header);
         sendEmail(mail, paymentsByteArray, paymentsCsvFileName);
 
     }
 
-    public byte[] createPaymentsCsvByteArray(List<PaymentDto> payments, String paymentsCsvFileName, String header) {
+    private byte[] createPaymentsCsvByteArray(List<PaymentDto> payments, String paymentsCsvFileName, String header) {
 
         byte[] paymentsCsvByteArray = null;
 
@@ -173,7 +173,7 @@ public class PaymentsReportService {
 
     }
 
-    public void sendEmail(Email email, byte[] paymentsCsvByteArray, String csvFileName) {
+    private void sendEmail(Email email, byte[] paymentsCsvByteArray, String csvFileName) {
         email.setAttachments(newArrayList(csv(paymentsCsvByteArray, csvFileName)));
         emailService.sendEmail(email);
 
@@ -182,6 +182,7 @@ public class PaymentsReportService {
     }
 
     private String getYesterdaysDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         Date now = new Date();
         MutableDateTime mtDtNow = new MutableDateTime(now);
         mtDtNow.addDays(-1);
@@ -189,7 +190,9 @@ public class PaymentsReportService {
     }
 
     private String getTodaysDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         return sdf.format(new Date());
     }
 
 }
+
