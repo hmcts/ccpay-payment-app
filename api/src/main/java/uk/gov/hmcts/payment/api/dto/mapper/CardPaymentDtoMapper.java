@@ -99,11 +99,19 @@ public class CardPaymentDtoMapper {
     }
 
     private Fee toFee(FeeDto feeDto) {
-        return Fee.feeWith().calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
+        return Fee.feeWith().calculatedAmount(feeDto.getCalculatedAmount())
+            .code(feeDto.getCode())
+            .version(feeDto.getVersion())
+            .volume(feeDto.getVolume())
+            .build();
     }
 
     private FeeDto toFeeDto(Fee fee) {
-        return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion()).build();
+        return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount())
+            .code(fee.getCode())
+            .version(fee.getVersion())
+            .volume(fee.getVolume())
+            .build();
     }
 
     private List<StatusHistoryDto> toStatusHistoryDtos(List<StatusHistory> statusHistories) {
