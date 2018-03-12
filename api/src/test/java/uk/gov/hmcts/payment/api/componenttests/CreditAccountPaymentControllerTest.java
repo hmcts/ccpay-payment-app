@@ -140,7 +140,7 @@ public class CreditAccountPaymentControllerTest {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .reference("RC-1519-9028-1909-3475")
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(5).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162020").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -156,6 +156,10 @@ public class CreditAccountPaymentControllerTest {
         assertNotNull(response);
         assertTrue(response.getReference().matches(PAYMENT_REFERENCE_REFEX));
         assertEquals(response.getAmount(), new BigDecimal("11.99"));
+        response.getFees().stream().forEach(f -> {
+            assertEquals(f.getCode(), "X0001");
+            assertEquals(f.getVolume(), new Integer(5));
+        });
     }
 
     @Test

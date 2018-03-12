@@ -191,7 +191,7 @@ public class CardPaymentControllerTest {
                 .externalStatus("created")
                 .build()))
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162001").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -208,6 +208,10 @@ public class CardPaymentControllerTest {
         assertEquals(paymentDto.getReference(), payment.getReference());
         assertEquals(paymentDto.getExternalReference(), payment.getExternalReference());
         assertEquals("Success", paymentDto.getStatus());
+        paymentDto.getFees().stream().forEach(f -> {
+            assertEquals(f.getCode(), "X0001");
+            assertEquals(f.getVolume(), new Integer(1));
+        });
     }
 
     @Test

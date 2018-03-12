@@ -83,6 +83,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
                 .calculatedAmount(new BigDecimal("6000.00"))
                 .code("X0001")
                 .version("1")
+                .volume(1)
                 .build()))
             .build());
 
@@ -176,6 +177,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             .calculatedAmount(new BigDecimal("6000.00"))
             .code("X0123")
             .version("1")
+            .volume(1)
             .build();
 
     }
