@@ -310,6 +310,14 @@ public class CardPaymentControllerTest {
         assertNotNull(paymentDto);
         assertEquals(paymentDto.getReference(), payment.getReference());
         assertEquals(paymentDto.getStatus(), "Failed");
+
+        PaymentFeeLink savedPaymentGroup = db.findByReference("2018-15186162003");
+        Payment dbPayment = savedPaymentGroup.getPayments().get(0);
+        assertEquals(dbPayment.getReference(), "RC-1518-9429-1432-7825");
+        dbPayment.getStatusHistories().stream().forEach(h -> {
+            assertEquals(h.getErrorCode(), "P0200");
+            assertEquals(h.getMessage(), "Payment not found");
+        });
     }
 
 

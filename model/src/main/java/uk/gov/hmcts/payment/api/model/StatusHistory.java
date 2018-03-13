@@ -37,6 +37,12 @@ public class StatusHistory {
     @Column(name = "external_status")
     private String externalStatus;
 
+    @Column(name = "errorCode")
+    private String errorCode;
+
+    @Column(name = "message")
+    private String message;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", insertable = false, updatable = false)
     private Payment payment;
