@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
@@ -18,6 +19,7 @@ import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,10 +46,13 @@ public class PaymentsReportServiceTest {
     private CreditAccountDtoMapper creditAccountDtoMapper;
 
     @Mock
-    CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail;
+    private CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail;
 
     @Mock
-    CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail;
+    private CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail;
+
+    @Mock
+    private Map<String,Fee2Dto> feesDataMap;
 
     private Date startDate;
     private Date endDate;
@@ -55,8 +60,8 @@ public class PaymentsReportServiceTest {
     @Before
     public void setUp() throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        startDate =  sdf.parse(getYesterdaysDate()) ;
-        endDate = sdf.parse(getTodaysDate());
+        startDate =  sdf.parse(getYesterdaysDate("dd-MM-yyyy")) ;
+        endDate = sdf.parse(getTodaysDate("dd-MM-yyyy"));
 
         paymentsReportService = new PaymentsReportService(cardPaymentService,cardPaymentDtoMapper,
             creditAccountPaymentService,creditAccountDtoMapper,emailService,cardPaymentReconciliationReportEmail,creditAccountReconciliationReportEmail);
@@ -71,7 +76,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(null,null);
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(null,null,feesDataMap);
 
         // then
         verify(cardPaymentService).search(startDate,endDate);
@@ -85,7 +90,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(null,null);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(null,null,feesDataMap);
 
         // then
         verify(creditAccountPaymentService).search(startDate,endDate);
@@ -99,7 +104,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getYesterdaysDate(),getYesterdaysDate());
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"),feesDataMap);
 
         // then
         verify(cardPaymentService,times(0)).search(startDate,startDate);
@@ -113,7 +118,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getTodaysDate(),getYesterdaysDate());
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"),feesDataMap);
 
         // then
         verify(cardPaymentService,times(0)).search(endDate,startDate);
@@ -129,7 +134,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getYesterdaysDate(),getYesterdaysDate());
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"),feesDataMap);
 
         // then
         verify(creditAccountPaymentService,times(0)).search(startDate,startDate);
@@ -137,12 +142,27 @@ public class PaymentsReportServiceTest {
 
 
     }
+
+
     @Test
-    public void shouldNotGenerateCreditAccountPaymentsCsvWhenStartDateGreaterThanEndDate()  {
+    public void shouldNotGenerateCreditAccountPaymentsCsvWhenInCorrectStartDateFormat()  {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate(),getYesterdaysDate());
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("yyyy-MM-dd"),feesDataMap);
+
+        // then
+        verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
+        verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
+
+
+    }
+    @Test
+    public void shouldNotGenerateCreditAccountPaymentsCsvWhenInCorrectEndDateFormat()  {
+        // given
+
+        // when
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate("yyyy-MM-dd"),getYesterdaysDate("dd-MM-yyyy"),feesDataMap);
 
         // then
         verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
@@ -155,16 +175,18 @@ public class PaymentsReportServiceTest {
 
 
 
-    private String getYesterdaysDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+
+
+    private String getYesterdaysDate(String format) {
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
         Date now = new Date();
         MutableDateTime mtDtNow = new MutableDateTime(now);
         mtDtNow.addDays(-1);
         return sdf.format(mtDtNow.toDate());
     }
 
-    private String getTodaysDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+    private String getTodaysDate(String format) {
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
         return sdf.format(new Date());
     }
 

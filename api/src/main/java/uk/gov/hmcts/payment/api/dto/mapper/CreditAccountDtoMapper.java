@@ -129,9 +129,9 @@ public class CreditAccountDtoMapper {
             .siteId(payment.getSiteId())
             .build();
     }
-    public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+    public PaymentCsvDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return PaymentDto.payment2DtoWith()
+        return PaymentCsvDto.paymentCsvDtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .serviceName(payment.getServiceType())
@@ -148,7 +148,7 @@ public class CreditAccountDtoMapper {
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
-            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .fees(toFeeCsvDtos(paymentFeeLink.getFees()))
             .build();
 
     }
@@ -161,6 +161,10 @@ public class CreditAccountDtoMapper {
     public List<FeeDto> toFeeDtos(List<Fee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
+    private List<FeeCsvDto> toFeeCsvDtos(List<Fee> fees) {
+        return fees.stream().map(this::toFeeCsvDto).collect(Collectors.toList());
+    }
+
 
     public List<Fee> toFees(List<FeeDto> feeDtos) {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
@@ -172,6 +176,10 @@ public class CreditAccountDtoMapper {
 
     public FeeDto toFeeDto(Fee fee) {
         return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion()).build();
+    }
+    private FeeCsvDto toFeeCsvDto(Fee fee) {
+        return FeeCsvDto.feeCsvDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion())
+            .memoLine("").naturalAccountCode("").build();
     }
 
 
