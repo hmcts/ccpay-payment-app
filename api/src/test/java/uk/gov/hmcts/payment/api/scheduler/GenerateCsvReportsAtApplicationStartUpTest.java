@@ -1,17 +1,18 @@
 package uk.gov.hmcts.payment.api.scheduler;
 
-import org.joda.time.MutableDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
+import uk.gov.hmcts.payment.api.fees.client.FeesRegisterClient;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Collections;
+import java.util.Map;
 
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class GenerateCsvReportsAtApplicationStartUpTest {
@@ -24,10 +25,16 @@ public class GenerateCsvReportsAtApplicationStartUpTest {
     @Mock
     ApplicationReadyEvent applicationReadyEvent;
 
-    @Before
-    public void setUp() throws ParseException {
+    @Mock
+    FeesRegisterClient feesRegisterClient;
 
-        generateCsvReportsAtApplicationStartUp= new GenerateCsvReportsAtApplicationStartUp(paymentsReportService);
+    private Map<String,Fee2Dto> feesDataMap = Collections.emptyMap();
+
+
+    @Before
+    public void setUp() {
+
+        generateCsvReportsAtApplicationStartUp= new GenerateCsvReportsAtApplicationStartUp(paymentsReportService,feesRegisterClient);
 
     }
 
@@ -39,8 +46,9 @@ public class GenerateCsvReportsAtApplicationStartUpTest {
         generateCsvReportsAtApplicationStartUp.onApplicationEvent(applicationReadyEvent);
 
         // then
-        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(null,null);
-        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(null,null);
+        verify(feesRegisterClient,times(1)).getFeesDataAsMap();
+        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(null,null,feesDataMap);
+        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(null,null,feesDataMap);
 
 
     }
