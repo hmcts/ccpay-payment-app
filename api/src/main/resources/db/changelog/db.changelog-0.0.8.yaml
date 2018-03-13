@@ -9,3 +9,29 @@ databaseChangeLog:
             INSERT INTO payment_status (name, description)
             VALUES
             ('pending', 'Payment awaiting confirmation from external provider');
+
+
+- changeSet:
+    id: 1520495787680-2
+    author: tarun
+    changes:
+      - addColumn:
+          columns:
+          - column:
+              name: error_code
+              type: varchar(10)
+          tableName: status_history
+
+- changeSet:
+    id: 1520495787680-3
+    author: tarun
+    changes:
+      - addColumn:
+          columns:
+          - column:
+              name: message
+              type: varchar(255)
+          tableName: status_history
+
+
+
