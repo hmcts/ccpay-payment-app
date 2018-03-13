@@ -89,6 +89,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
             .externalStatus(govPayPayment.getState().getStatus())
             .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+            .errorCode(govPayPayment.getState().getCode())
+            .message(govPayPayment.getState().getMessage())
             .build()));
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
@@ -121,6 +123,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                 .externalStatus(govPayPayment.getState().getStatus())
                 .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                .errorCode(govPayPayment.getState().getCode())
+                .message(govPayPayment.getState().getMessage())
                 .build()));
         }
 
