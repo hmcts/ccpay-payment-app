@@ -61,7 +61,7 @@
         <cve>CVE-2016-7051</cve>
     </suppress>
     <suppress>
-        <notes>This will be fixed as part of PAY-604 </notes>
+        <notes>This will be fixed as part of PAY-604</notes>
         <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-.*:.*$</gav>
         <cve>CVE-2017-17485</cve>
         <cve>CVE-2018-5968</cve>
@@ -81,5 +81,33 @@
     <suppress>
         <notes>waiting for idam to fix issues</notes>
         <cve>CVE-2016-9878</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+			something to do with oracle, doesn't look like it applies file name: jersey-apache-client4-1.19.1.jar
+			]]></notes>
+        <gav regex="true">^com\.sun\.jersey\.contribs:jersey-apache-client4:.*$</gav>
+        <cve>CVE-2006-0550</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+			only relates to ssl which we don't do at the java app level
+			]]></notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2014-3488</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+			only relates to cookies, which we don't do at the java level
+			]]></notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2015-2156</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+			only relates to ssl
+			]]></notes>
+        <gav regex="true">.*$</gav>
+        <cve>CVE-2016-4970</cve>
     </suppress>
 </suppressions>
