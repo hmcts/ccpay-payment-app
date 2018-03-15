@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeCsvDto;
 import uk.gov.hmcts.payment.api.contract.PaymentCsvDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
@@ -204,9 +205,21 @@ public class PaymentsReportService {
         for (PaymentCsvDto payment : payments) {
             List<FeeCsvDto> fees = payment.getFees();
             for (FeeCsvDto unPopulatedFee : fees) {
-                Fee2Dto fee = feesDataMap.get(unPopulatedFee.getCode());
-                unPopulatedFee.setMemoLine(fee.getMemoLine());
-                unPopulatedFee.setNaturalAccountCode(fee.getNaturalAccountCode());
+                Fee2Dto feeFromFeesRegister = feesDataMap.get(unPopulatedFee.getCode());
+                if(null!=feeFromFeesRegister) {
+                    if(unPopulatedFee.getVersion().equals(feeFromFeesRegister.getCurrentVersion().getVersion())) {
+                        unPopulatedFee.setMemoLine(feeFromFeesRegister.getCurrentVersion().getMemoLine());
+                        unPopulatedFee.setNaturalAccountCode(feeFromFeesRegister.getCurrentVersion().getNaturalAccountCode());
+                    }
+                    else{
+                        FeeVersionDto matchingVersion= feeFromFeesRegister.getFeeVersionDtos()
+                            .stream().filter(versionDto -> versionDto.getVersion().equals(unPopulatedFee.getVersion())).findFirst().orElse(null);
+                        if(null!=matchingVersion) {
+                            unPopulatedFee.setMemoLine(matchingVersion.getMemoLine());
+                            unPopulatedFee.setNaturalAccountCode(matchingVersion.getNaturalAccountCode());
+                        }
+                    }
+                }
             }
             payment.setFees(fees);
 
