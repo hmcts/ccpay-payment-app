@@ -97,7 +97,10 @@ public class PaymentCsvDto {
         StringJoiner feeSb = new StringJoiner(",");
 
         for (FeeCsvDto fee : getFees()) {
-            String memolineWithQuotes = new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString();
+            String memolineWithQuotes="";
+            if (null!=fee.getMemoLine()){
+                memolineWithQuotes = new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString();
+            }
             feeSb.add(fee.getCode())
                 .add(fee.getVersion())
                 .add(fee.getCalculatedAmount().toString())
@@ -133,7 +136,10 @@ public class PaymentCsvDto {
         StringJoiner feeSb = new StringJoiner(",");
 
         for (FeeCsvDto fee : getFees()) {
-            String memolineWithQuotes = new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString();
+            String memolineWithQuotes="";
+            if (!fee.getMemoLine().isEmpty()){
+             memolineWithQuotes = new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString();
+            }
             feeSb.add(fee.getCode())
                 .add(fee.getVersion())
                 .add(fee.getCalculatedAmount().toString())
