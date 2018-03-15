@@ -27,10 +27,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -212,11 +209,11 @@ public class PaymentsReportService {
                         unPopulatedFee.setNaturalAccountCode(feeFromFeesRegister.getCurrentVersion().getNaturalAccountCode());
                     }
                     else{
-                        FeeVersionDto matchingVersion= feeFromFeesRegister.getFeeVersionDtos()
-                            .stream().filter(versionDto -> versionDto.getVersion().equals(unPopulatedFee.getVersion())).findFirst().orElse(null);
-                        if(null!=matchingVersion) {
-                            unPopulatedFee.setMemoLine(matchingVersion.getMemoLine());
-                            unPopulatedFee.setNaturalAccountCode(matchingVersion.getNaturalAccountCode());
+                        Optional<FeeVersionDto> optionalMatchingFeeVersionDto= feeFromFeesRegister.getFeeVersionDtos()
+                            .stream().filter(versionDto -> versionDto.getVersion().equals(unPopulatedFee.getVersion())).findFirst();
+                        if(optionalMatchingFeeVersionDto.isPresent()) {
+                            unPopulatedFee.setMemoLine(optionalMatchingFeeVersionDto.get().getMemoLine());
+                            unPopulatedFee.setNaturalAccountCode(optionalMatchingFeeVersionDto.get().getNaturalAccountCode());
                         }
                     }
                 }
