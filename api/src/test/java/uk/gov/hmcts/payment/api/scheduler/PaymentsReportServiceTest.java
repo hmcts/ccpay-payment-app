@@ -5,21 +5,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.CreditAccountReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
+import java.util.List;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,6 +42,9 @@ public class PaymentsReportServiceTest {
     private EmailService emailService;
 
     @Mock
+    private FeesService feesService;
+
+    @Mock
     private CardPaymentDtoMapper cardPaymentDtoMapper;
 
     @Mock
@@ -51,8 +56,6 @@ public class PaymentsReportServiceTest {
     @Mock
     private CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail;
 
-    @Mock
-    private Map<String,Fee2Dto> feesDataMap;
 
     private Date startDate;
     private Date endDate;
@@ -64,7 +67,7 @@ public class PaymentsReportServiceTest {
         endDate = sdf.parse(getTodaysDate("dd-MM-yyyy"));
 
         paymentsReportService = new PaymentsReportService(cardPaymentService,cardPaymentDtoMapper,
-            creditAccountPaymentService,creditAccountDtoMapper,emailService,cardPaymentReconciliationReportEmail,creditAccountReconciliationReportEmail);
+            creditAccountPaymentService,creditAccountDtoMapper,emailService,feesService,cardPaymentReconciliationReportEmail,creditAccountReconciliationReportEmail);
 
     }
 
@@ -76,10 +79,11 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(null,null,feesDataMap);
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(null,null);
 
         // then
         verify(cardPaymentService).search(startDate,endDate);
+        verify(feesService).getMemolineAndNacForReconciliation(Mockito.anyList());
         verify(emailService).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -90,10 +94,11 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(null,null,feesDataMap);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(null,null);
 
         // then
         verify(creditAccountPaymentService).search(startDate,endDate);
+        verify(feesService).getMemolineAndNacForReconciliation(Mockito.any(List.class));
         verify(emailService).sendEmail(creditAccountReconciliationReportEmail);
 
 
@@ -104,10 +109,11 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"),feesDataMap);
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"));
 
         // then
         verify(cardPaymentService,times(0)).search(startDate,startDate);
+        verify(feesService,times(0)).getMemolineAndNacForReconciliation(Mockito.any(List.class));
         verify(emailService,times(0)).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -118,10 +124,11 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"),feesDataMap);
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"));
 
         // then
         verify(cardPaymentService,times(0)).search(endDate,startDate);
+        verify(feesService,times(0)).getMemolineAndNacForReconciliation(Mockito.any(List.class));
         verify(emailService,times(0)).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -134,10 +141,11 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"),feesDataMap);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"));
 
         // then
         verify(creditAccountPaymentService,times(0)).search(startDate,startDate);
+        verify(feesService,times(0)).getMemolineAndNacForReconciliation(Mockito.any(List.class));
         verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
 
 
@@ -149,10 +157,11 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("yyyy-MM-dd"),feesDataMap);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("yyyy-MM-dd"));
 
         // then
         verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
+        verify(feesService,times(0)).getMemolineAndNacForReconciliation(Mockito.any(List.class));
         verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
 
 
@@ -162,7 +171,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate("yyyy-MM-dd"),getYesterdaysDate("dd-MM-yyyy"),feesDataMap);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate("yyyy-MM-dd"),getYesterdaysDate("dd-MM-yyyy"));
 
         // then
         verify(creditAccountPaymentService,times(0)).search(endDate,startDate);

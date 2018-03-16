@@ -6,11 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
-import uk.gov.hmcts.payment.api.fees.client.FeesRegisterClient;
-
-import java.util.Collections;
-import java.util.Map;
+import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -20,6 +17,7 @@ public class CreditAccountPaymentsReportScheduler {
 
     private static final Logger LOG = getLogger(CreditAccountPaymentsReportScheduler.class);
     private PaymentsReportService paymentsReportService;
+    private FeesService feesService;
 
     @Value("${pba.payments.report.startDate}")
     private String startDate;
@@ -27,27 +25,17 @@ public class CreditAccountPaymentsReportScheduler {
     @Value("${pba.payments.report.endDate}")
     private String endDate;
 
-    private FeesRegisterClient feesRegisterClient;
-
-    private Map<String, Fee2Dto> feesDataMap = Collections.emptyMap() ;
-
-
     @Autowired
-    public CreditAccountPaymentsReportScheduler(PaymentsReportService paymentsReportService,FeesRegisterClient feesRegisterClient) {
+    public CreditAccountPaymentsReportScheduler(PaymentsReportService paymentsReportService,FeesService feesService) {
         this.paymentsReportService = paymentsReportService;
-        this.feesRegisterClient=feesRegisterClient;
+        this.feesService = feesService;
     }
 
     @Scheduled(cron = "${pba.payments.report.schedule}")
     public void generateCreditAccountPaymentsReportTask() {
-        try {
-            if (feesRegisterClient.getFeesDataAsMap().isPresent())
-                feesDataMap = feesRegisterClient.getFeesDataAsMap().get();
-        } catch (Exception ex) {
-            LOG.error("CreditAccountPaymentsReportSchedule - Unable to get fees data.");
-        }
         LOG.info("CreditAccountPaymentsReportScheduler -  Start of scheduled job for HMCTS-PBA Payments csv report file.");
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(startDate, endDate,feesDataMap);
+        feesService.dailyRefreshOfFeesData();
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(startDate, endDate);
         LOG.info("CreditAccountPaymentsReportScheduler -  End of scheduled job for HMCTS-PBA Payments csv report file.");
     }
 

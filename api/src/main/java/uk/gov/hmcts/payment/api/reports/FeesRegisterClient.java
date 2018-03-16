@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.fees.client;
+package uk.gov.hmcts.payment.api.reports;
 
 import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
