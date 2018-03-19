@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
@@ -27,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -84,7 +87,7 @@ public class PaymentsReportService {
     @Autowired
     public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, CardPaymentDtoMapper cardPaymentDtoMapper,
                                  @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
-                                 CreditAccountDtoMapper creditAccountDtoMapper, EmailService emailService,FeesService feesService,
+                                 CreditAccountDtoMapper creditAccountDtoMapper, EmailService emailService, FeesService feesService,
                                  CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail,
                                  CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail1) {
         this.cardPaymentService = cardPaymentService;
@@ -113,7 +116,7 @@ public class PaymentsReportService {
             List<PaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
                 .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            List<PaymentDto> cardPaymentsCsvData= feesService.getMemolineAndNacForReconciliation(cardPayments);
+            List<PaymentDto> cardPaymentsCsvData = getFeesMemolineAndNACDataFromFeesRegister(cardPayments);
 
             String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
             String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
@@ -142,7 +145,7 @@ public class PaymentsReportService {
             List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
                 .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            List<PaymentDto> creditAccountPaymentsCsvData= feesService.getMemolineAndNacForReconciliation(creditAccountPayments);
+            List<PaymentDto> creditAccountPaymentsCsvData = getFeesMemolineAndNACDataFromFeesRegister(creditAccountPayments);
 
             String fileNameSuffix = LocalDateTime.now().format(formatter);
             String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
@@ -159,6 +162,14 @@ public class PaymentsReportService {
 
         byte[] paymentsByteArray = createPaymentsCsvByteArray(payments, paymentsCsvFileName, header);
         sendEmail(mail, paymentsByteArray, paymentsCsvFileName);
+
+    }
+
+    private void sendEmail(Email email, byte[] paymentsCsvByteArray, String csvFileName) {
+        email.setAttachments(newArrayList(csv(paymentsCsvByteArray, csvFileName)));
+        emailService.sendEmail(email);
+
+        LOG.info("PaymentsReportService - Payments report email sent to " + Arrays.toString(email.getTo()));
 
     }
 
@@ -189,12 +200,16 @@ public class PaymentsReportService {
 
     }
 
-    private void sendEmail(Email email, byte[] paymentsCsvByteArray, String csvFileName) {
-        email.setAttachments(newArrayList(csv(paymentsCsvByteArray, csvFileName)));
-        emailService.sendEmail(email);
-
-        LOG.info("PaymentsReportService - Payments report email sent to " + Arrays.toString(email.getTo()));
-
+    private List<PaymentDto> getFeesMemolineAndNACDataFromFeesRegister(List<PaymentDto> payments) {
+        for (PaymentDto payment : payments) {
+            for (FeeDto fee : payment.getFees()) {
+                Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+                if(optionalFeeVersionDto.isPresent()){
+                fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
+                fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());}
+            }
+        }
+        return payments;
     }
 
     private String getYesterdaysDate() {
