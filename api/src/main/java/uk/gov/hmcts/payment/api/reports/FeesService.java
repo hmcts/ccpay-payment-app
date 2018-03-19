@@ -30,10 +30,10 @@ public class FeesService {
 
 
     public Optional<FeeVersionDto> getFeeVersion(String feeCode, String version) {
-        Map<String, FeeVersionDto> feeVersionsDtoMapForAFeeCode = getFeesVersionsData().get(feeCode);
+        Optional<Map<String, FeeVersionDto>> feeVersionsDtoMapForAFeeCode = Optional.ofNullable(getFeesVersionsData().get(feeCode));
         FeeVersionDto matchingFeeDtoVersion = null;
-        if (null != feeVersionsDtoMapForAFeeCode) {
-            matchingFeeDtoVersion = feeVersionsDtoMapForAFeeCode.get(version);
+        if (feeVersionsDtoMapForAFeeCode.isPresent()) {
+            matchingFeeDtoVersion = feeVersionsDtoMapForAFeeCode.get().get(version);
         }
         return Optional.ofNullable(matchingFeeDtoVersion);
     }
