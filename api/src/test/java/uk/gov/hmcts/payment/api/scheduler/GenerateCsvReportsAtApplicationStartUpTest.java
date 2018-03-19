@@ -6,13 +6,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
-import uk.gov.hmcts.payment.api.fees.client.FeesRegisterClient;
+import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 
-import java.util.Collections;
-import java.util.Map;
-
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class GenerateCsvReportsAtApplicationStartUpTest {
@@ -25,16 +20,10 @@ public class GenerateCsvReportsAtApplicationStartUpTest {
     @Mock
     ApplicationReadyEvent applicationReadyEvent;
 
-    @Mock
-    FeesRegisterClient feesRegisterClient;
-
-    private Map<String,Fee2Dto> feesDataMap = Collections.emptyMap();
-
-
     @Before
     public void setUp() {
 
-        generateCsvReportsAtApplicationStartUp= new GenerateCsvReportsAtApplicationStartUp(paymentsReportService,feesRegisterClient);
+        generateCsvReportsAtApplicationStartUp= new GenerateCsvReportsAtApplicationStartUp(paymentsReportService);
 
     }
 
@@ -46,9 +35,8 @@ public class GenerateCsvReportsAtApplicationStartUpTest {
         generateCsvReportsAtApplicationStartUp.onApplicationEvent(applicationReadyEvent);
 
         // then
-        verify(feesRegisterClient,times(1)).getFeesDataAsMap();
-        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(null,null,feesDataMap);
-        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(null,null,feesDataMap);
+        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(null,null);
+        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(null,null);
 
 
     }
