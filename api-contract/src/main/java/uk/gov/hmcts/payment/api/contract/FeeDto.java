@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.contract;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -11,7 +12,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
-
 import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -33,4 +33,10 @@ public class FeeDto {
     @NotNull
     @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
     private BigDecimal calculatedAmount;
+
+    @JsonIgnore
+    private String memoLine;
+    @JsonIgnore
+    private String naturalAccountCode;
+
 }

@@ -5,13 +5,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
-import uk.gov.hmcts.payment.api.fees.client.FeesRegisterClient;
+import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 
-import java.util.Collections;
-import java.util.Map;
-
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class CreditAccountPaymentsReportSchedulerTest {
@@ -20,15 +16,13 @@ public class CreditAccountPaymentsReportSchedulerTest {
     private PaymentsReportService paymentsReportService;
 
     @Mock
-    private FeesRegisterClient feesRegisterClient;
-
-    private Map<String,Fee2Dto> feesDataMap = Collections.emptyMap();
+    private FeesService feesService;
 
     private CreditAccountPaymentsReportScheduler creditAccountPaymentsReportScheduler;
 
     @Before
     public void setUp() {
-        creditAccountPaymentsReportScheduler = new CreditAccountPaymentsReportScheduler(paymentsReportService,feesRegisterClient);
+        creditAccountPaymentsReportScheduler = new CreditAccountPaymentsReportScheduler(paymentsReportService,feesService);
     }
 
     @Test
@@ -39,8 +33,8 @@ public class CreditAccountPaymentsReportSchedulerTest {
         creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReportTask();
 
         // then
-        verify(feesRegisterClient,times(1)).getFeesDataAsMap();
-        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(null,null,feesDataMap);
+        verify(feesService).dailyRefreshOfFeesData();
+        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(null,null);
     }
 }
 

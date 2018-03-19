@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.scheduler;
+package uk.gov.hmcts.payment.api.reports;
 
 import org.joda.time.MutableDateTime;
 import org.slf4j.Logger;
@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
-import uk.gov.hmcts.payment.api.contract.FeeCsvDto;
-import uk.gov.hmcts.payment.api.contract.PaymentCsvDto;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -79,6 +79,7 @@ public class PaymentsReportService {
     private CreditAccountDtoMapper creditAccountDtoMapper;
 
     private EmailService emailService;
+    private FeesService feesService;
 
     private CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail;
     private CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail;
@@ -86,12 +87,13 @@ public class PaymentsReportService {
     @Autowired
     public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, CardPaymentDtoMapper cardPaymentDtoMapper,
                                  @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
-                                 CreditAccountDtoMapper creditAccountDtoMapper, EmailService emailService,
+                                 CreditAccountDtoMapper creditAccountDtoMapper, EmailService emailService, FeesService feesService,
                                  CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail,
                                  CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail1) {
         this.cardPaymentService = cardPaymentService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
         this.emailService = emailService;
+        this.feesService = feesService;
         this.cardPaymentReconciliationReportEmail = cardPaymentReconciliationReportEmail;
         this.creditAccountReconciliationReportEmail = creditAccountReconciliationReportEmail1;
         this.creditAccountPaymentService = creditAccountPaymentService;
@@ -99,7 +101,7 @@ public class PaymentsReportService {
 
     }
 
-    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate, Map<String, Fee2Dto> feesDataMap) {
+    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         sdf.setLenient(false);
         try {
@@ -111,19 +113,14 @@ public class PaymentsReportService {
                 return;
 
             }
-            List<PaymentCsvDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
+            List<PaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
                 .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            List populatedCardPayments;
-            if (!feesDataMap.isEmpty()) {
-                populatedCardPayments = populateFeesData(cardPayments, feesDataMap);
-            } else {
-                populatedCardPayments = cardPayments;
-            }
+            List<PaymentDto> cardPaymentsCsvData = getFeesMemolineAndNACDataFromFeesRegister(cardPayments);
 
             String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
             String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
-            generateCsvAndSendEmail(populatedCardPayments, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
+            generateCsvAndSendEmail(cardPaymentsCsvData, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
         } catch (ParseException paex) {
 
             LOG.error("PaymentsReportService - Error while creating card payments csv file." +
@@ -132,7 +129,7 @@ public class PaymentsReportService {
         }
     }
 
-    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate, Map<String, Fee2Dto> feesDataMap) {
+    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         sdf.setLenient(false);
         try {
@@ -145,19 +142,14 @@ public class PaymentsReportService {
 
             }
 
-            List<PaymentCsvDto> creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
+            List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
                 .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            List populatedCreditAccountPayments;
-            if (!feesDataMap.isEmpty()) {
-                populatedCreditAccountPayments = populateFeesData(creditAccountPayments, feesDataMap);
-            } else {
-                populatedCreditAccountPayments = creditAccountPayments;
-            }
+            List<PaymentDto> creditAccountPaymentsCsvData = getFeesMemolineAndNACDataFromFeesRegister(creditAccountPayments);
 
             String fileNameSuffix = LocalDateTime.now().format(formatter);
             String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
-            generateCsvAndSendEmail(populatedCreditAccountPayments, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
+            generateCsvAndSendEmail(creditAccountPaymentsCsvData, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
         } catch (ParseException paex) {
 
             LOG.error("PaymentsReportService - Error while creating credit account payments csv file."
@@ -166,19 +158,27 @@ public class PaymentsReportService {
         }
     }
 
-    private void generateCsvAndSendEmail(List<PaymentCsvDto> payments, String paymentsCsvFileName, String header, Email mail) {
+    private void generateCsvAndSendEmail(List<PaymentDto> payments, String paymentsCsvFileName, String header, Email mail) {
 
         byte[] paymentsByteArray = createPaymentsCsvByteArray(payments, paymentsCsvFileName, header);
         sendEmail(mail, paymentsByteArray, paymentsCsvFileName);
 
     }
 
-    private byte[] createPaymentsCsvByteArray(List<PaymentCsvDto> payments, String paymentsCsvFileName, String header) {
+    private void sendEmail(Email email, byte[] paymentsCsvByteArray, String csvFileName) {
+        email.setAttachments(newArrayList(csv(paymentsCsvByteArray, csvFileName)));
+        emailService.sendEmail(email);
+
+        LOG.info("PaymentsReportService - Payments report email sent to " + Arrays.toString(email.getTo()));
+
+    }
+
+    private byte[] createPaymentsCsvByteArray(List<PaymentDto> payments, String paymentsCsvFileName, String header) {
         byte[] paymentsCsvByteArray = null;
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             bos.write(header.getBytes(utf8));
             bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes(utf8));
-            for (PaymentCsvDto payment : payments) {
+            for (PaymentDto payment : payments) {
                 if (paymentsCsvFileName.startsWith(CARD_PAYMENTS_CSV_FILE_PREFIX)) {
                     bos.write(payment.toCardPaymentCsv().getBytes(utf8));
                 } else if (paymentsCsvFileName.startsWith(CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX)) {
@@ -200,27 +200,16 @@ public class PaymentsReportService {
 
     }
 
-    private List<PaymentCsvDto> populateFeesData(List<PaymentCsvDto> payments, Map<String, Fee2Dto> feesDataMap) {
-        for (PaymentCsvDto payment : payments) {
-            List<FeeCsvDto> fees = payment.getFees();
-            for (FeeCsvDto unPopulatedFee : fees) {
-                Fee2Dto fee = feesDataMap.get(unPopulatedFee.getCode());
-                unPopulatedFee.setMemoLine(fee.getMemoLine());
-                unPopulatedFee.setNaturalAccountCode(fee.getNaturalAccountCode());
+    private List<PaymentDto> getFeesMemolineAndNACDataFromFeesRegister(List<PaymentDto> payments) {
+        for (PaymentDto payment : payments) {
+            for (FeeDto fee : payment.getFees()) {
+                Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+                if(optionalFeeVersionDto.isPresent()){
+                fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
+                fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());}
             }
-            payment.setFees(fees);
-
         }
         return payments;
-    }
-
-
-    private void sendEmail(Email email, byte[] paymentsCsvByteArray, String csvFileName) {
-        email.setAttachments(newArrayList(csv(paymentsCsvByteArray, csvFileName)));
-        emailService.sendEmail(email);
-
-        LOG.info("PaymentsReportService - Payments report email sent to " + Arrays.toString(email.getTo()));
-
     }
 
     private String getYesterdaysDate() {

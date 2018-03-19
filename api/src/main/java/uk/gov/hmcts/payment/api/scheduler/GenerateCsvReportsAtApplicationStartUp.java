@@ -8,11 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
-import uk.gov.hmcts.payment.api.fees.client.FeesRegisterClient;
-
-import java.util.Collections;
-import java.util.Map;
+import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -36,35 +32,21 @@ public class GenerateCsvReportsAtApplicationStartUp implements ApplicationListen
 
     private PaymentsReportService paymentsReportService;
 
-    private FeesRegisterClient feesRegisterClient;
-
-    private Map<String, Fee2Dto> feesDataMap = Collections.emptyMap();
-
-
     @Autowired
-    public GenerateCsvReportsAtApplicationStartUp(PaymentsReportService paymentsReportService, FeesRegisterClient feesRegisterClient) {
+    public GenerateCsvReportsAtApplicationStartUp(PaymentsReportService paymentsReportService) {
         this.paymentsReportService = paymentsReportService;
-        this.feesRegisterClient = feesRegisterClient;
     }
 
 
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
-        try {
-              if (feesRegisterClient.getFeesDataAsMap().isPresent())
-                  feesDataMap = feesRegisterClient.getFeesDataAsMap().get();
-
-        } catch (Exception ex) {
-            LOG.info("GenerateCsvReportsAtApplicationStartUp - Unable to get fees data");
-
-        }
 
         LOG.info("GenerateCsvReportsAtApplicationStartUp -  Start of generation of HMCTS-Card Payments csv report file.");
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(cardPaymentsStartDate, cardPaymentsEndDate, feesDataMap);
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(cardPaymentsStartDate, cardPaymentsEndDate);
         LOG.info("GenerateCsvReportsAtApplicationStartUp -  End of generation of HMCTS-Card Payments csv report file.");
 
         LOG.info("GenerateCsvReportsAtApplicationStartUp -  Start of generation of HMCTS-PBA Payments csv report file.");
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(creditAccountPaymentsStartDate, creditAccountPaymentsEndDate, feesDataMap);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(creditAccountPaymentsStartDate, creditAccountPaymentsEndDate);
         LOG.info("GenerateCsvReportsAtApplicationStartUp -  End of generation of HMCTS-PBA Payments csv report file.");
 
     }

@@ -3,7 +3,9 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.model.Fee;
@@ -67,9 +69,9 @@ public class CardPaymentDtoMapper {
             .build();
     }
 
-    public PaymentCsvDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+    public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return PaymentCsvDto.paymentCsvDtoWith()
+        return PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .serviceName(payment.getServiceType())
@@ -83,7 +85,7 @@ public class CardPaymentDtoMapper {
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
-            .fees(toFeeCsvDtos(paymentFeeLink.getFees()))
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
 
     }
@@ -91,11 +93,6 @@ public class CardPaymentDtoMapper {
     private List<FeeDto> toFeeDtos(List<Fee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
-
-    private List<FeeCsvDto> toFeeCsvDtos(List<Fee> fees) {
-        return fees.stream().map(this::toFeeCsvDto).collect(Collectors.toList());
-    }
-
 
     public List<Fee> toFees(List<FeeDto> feeDtos) {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
@@ -107,12 +104,6 @@ public class CardPaymentDtoMapper {
 
     private FeeDto toFeeDto(Fee fee) {
         return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion()).build();
-    }
-
-
-    private FeeCsvDto toFeeCsvDto(Fee fee) {
-        return FeeCsvDto.feeCsvDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion())
-            .memoLine("").naturalAccountCode("").build();
     }
 
     private List<StatusHistoryDto> toStatusHistoryDtos(List<StatusHistory> statusHistories) {

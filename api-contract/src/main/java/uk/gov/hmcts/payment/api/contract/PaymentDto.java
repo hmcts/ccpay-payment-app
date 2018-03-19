@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.contract;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -111,14 +110,13 @@ public class PaymentDto {
 
     public String toCardPaymentCsv() {
 
+
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
 
         StringJoiner sb = new StringJoiner(",")
             .add(getServiceName())
             .add(getPaymentGroupReference())
             .add(getPaymentReference())
-            .add(getCcdCaseNumber())
-            .add(getCaseReference())
             .add(sdf.format(getDateCreated()))
             .add(sdf.format(getDateUpdated()))
             .add(getStatus())
@@ -130,13 +128,24 @@ public class PaymentDto {
         StringJoiner feeSb = new StringJoiner(",");
 
         for (FeeDto fee : getFees()) {
-
-            feeSb.add(fee.getCode()).add(fee.getVersion()).add(fee.getCalculatedAmount().toString());
+            String memolineWithQuotes="";
+            if (null!=fee.getMemoLine()){
+                memolineWithQuotes = new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString();
+            }
+            String naturalAccountCode="";
+            if (null!=fee.getNaturalAccountCode()){
+                naturalAccountCode= fee.getNaturalAccountCode();
+            }
+            feeSb.add(fee.getCode())
+                .add(fee.getVersion())
+                .add(fee.getCalculatedAmount().toString())
+                .add(memolineWithQuotes)
+                .add(naturalAccountCode);
         }
-
 
         return sb.merge(feeSb).toString();
     }
+
 
 
     public String toCreditAccountPaymentCsv() {
@@ -163,15 +172,22 @@ public class PaymentDto {
         StringJoiner feeSb = new StringJoiner(",");
 
         for (FeeDto fee : getFees()) {
-
-            feeSb.add(fee.getCode()).add(fee.getVersion()).add(fee.getCalculatedAmount().toString());
+            String memolineWithQuotes="";
+            if (null!=fee.getMemoLine()){
+                memolineWithQuotes = new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString();
+            }
+            String naturalAccountCode="";
+            if (null!=fee.getNaturalAccountCode()){
+                naturalAccountCode= fee.getNaturalAccountCode();
+            }
+            feeSb.add(fee.getCode())
+                .add(fee.getVersion())
+                .add(fee.getCalculatedAmount().toString())
+                .add(memolineWithQuotes)
+                .add(naturalAccountCode);
         }
-
-
         return sb.merge(feeSb).toString();
     }
-
-
 
 
 }
