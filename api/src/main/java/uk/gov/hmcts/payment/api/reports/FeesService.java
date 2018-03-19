@@ -5,14 +5,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -24,9 +19,9 @@ public class FeesService {
 
     private FeesRegisterClient feesRegisterClient;
 
-    private Map<String, Fee2Dto> feesDataMap = Collections.emptyMap();
+    private Map<String, Fee2Dto> feesDtoMap = Collections.emptyMap();
 
-    private LocalDate feesDataMapRefreshedDate = LocalDate.now();
+    private LocalDate feesDtoMapRefreshedDate = LocalDate.now();
 
     public FeesService(FeesRegisterClient feesRegisterClient) {
         this.feesRegisterClient = feesRegisterClient;
@@ -34,59 +29,53 @@ public class FeesService {
     }
 
 
-    public FeeVersionDto getFeeVersion(String feeCode, String feeVersion) {
-        Fee2Dto feeFromFeesRegister = getFeesDataMap().get(feeCode);
-        FeeVersionDto matchingFeeVersion = null;
-        if (null != feeFromFeesRegister) {
-            if (feeVersion.equals(feeFromFeesRegister.getCurrentVersion().getVersion().toString())) {
-                matchingFeeVersion = feeFromFeesRegister.getCurrentVersion();
-            } else {
-                Optional<FeeVersionDto> optionalMatchingFeeVersionDto = feeFromFeesRegister.getFeeVersionDtos()
-                    .stream().filter(versionDto -> versionDto.getVersion().equals(feeCode)).findFirst();
-                if (optionalMatchingFeeVersionDto.isPresent())
-                    matchingFeeVersion = optionalMatchingFeeVersionDto.get();
-            }
+    public Optional<FeeVersionDto> getFeeVersion(String feeCode, String version) {
+        Map<String, FeeVersionDto> feeVersionsDtoMapForAFeeCode = getFeesVersionsData().get(feeCode);
+        FeeVersionDto matchingFeeDtoVersion = null;
+        if (null != feeVersionsDtoMapForAFeeCode) {
+            matchingFeeDtoVersion = feeVersionsDtoMapForAFeeCode.get(version);
         }
-        return matchingFeeVersion;
+        return Optional.ofNullable(matchingFeeDtoVersion);
     }
 
-    public List<PaymentDto> getMemolineAndNacForReconciliation(List<PaymentDto> payments) {
-        if (null != payments) {
-            for (PaymentDto payment : payments) {
-                List<FeeDto> fees = payment.getFees();
-                for (FeeDto fee : fees) {
-                    FeeVersionDto versionDto = getFeeVersion(fee.getCode(), fee.getVersion());
-                    if (null != versionDto) {
-                        fee.setMemoLine(versionDto.getMemoLine());
-                        fee.setNaturalAccountCode(versionDto.getNaturalAccountCode());
-                    }
-                }
-                payment.setFees(fees);
-            }
-        }
+    public Map<String, Map<String, FeeVersionDto>> getFeesVersionsData() {
 
-        return payments;
+        Iterator<Map.Entry<String, Fee2Dto>> iterator = getFeesDtoMap().entrySet().iterator();
+        Map<String, Map<String, FeeVersionDto>> mapOfFeeVersionsDtoMap = new HashMap<>();
+
+        while (iterator.hasNext()) {
+            Map.Entry<String, Fee2Dto> entry = iterator.next();
+            Map<String, FeeVersionDto> feeVersionsDtoMap = new HashMap<>();
+            feeVersionsDtoMap.put(entry.getValue().getCurrentVersion().getVersion().toString(),
+                entry.getValue().getCurrentVersion());
+            for (FeeVersionDto feeVersion : entry.getValue().getFeeVersionDtos()) {
+                feeVersionsDtoMap.put(feeVersion.getVersion().toString(), feeVersion);
+            }
+
+            mapOfFeeVersionsDtoMap.put(entry.getKey(), feeVersionsDtoMap);
+
+        }
+        return mapOfFeeVersionsDtoMap;
     }
 
-    public Map<String, Fee2Dto> getFeesDataMap() {
+    public Map<String, Fee2Dto> getFeesDtoMap() {
         try {
-            if (feesDataMap.isEmpty()) {
+            if (feesDtoMap.isEmpty()) {
                 if (feesRegisterClient.getFeesDataAsMap().isPresent())
-                    feesDataMap = feesRegisterClient.getFeesDataAsMap().get();
+                    feesDtoMap = feesRegisterClient.getFeesDataAsMap().get();
             }
         } catch (Exception ex) {
-            LOG.error("CardPaymentsReportScheduler - Unable to get fees data." + ex.getMessage());
+            LOG.error("FeesService  -  Unable to get fees data." + ex.getMessage());
         }
 
-        return feesDataMap;
+        return feesDtoMap;
     }
 
     public void dailyRefreshOfFeesData() {
-        if (feesDataMapRefreshedDate.isBefore(LocalDate.now())) {
-            feesDataMap.clear();
-            System.out.println("***** = clearing fees data");
-            getFeesDataMap();
-            feesDataMapRefreshedDate = LocalDate.now();
+        if (feesDtoMapRefreshedDate.isBefore(LocalDate.now())) {
+            feesDtoMap.clear();
+            getFeesDtoMap();
+            feesDtoMapRefreshedDate = LocalDate.now();
         }
     }
 

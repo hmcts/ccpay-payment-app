@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
@@ -21,8 +20,8 @@ import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -83,7 +82,6 @@ public class PaymentsReportServiceTest {
 
         // then
         verify(cardPaymentService).search(startDate,endDate);
-        verify(feesService).getMemolineAndNacForReconciliation(Mockito.anyList());
         verify(emailService).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -98,7 +96,6 @@ public class PaymentsReportServiceTest {
 
         // then
         verify(creditAccountPaymentService).search(startDate,endDate);
-        verify(feesService).getMemolineAndNacForReconciliation(Mockito.any(List.class));
         verify(emailService).sendEmail(creditAccountReconciliationReportEmail);
 
 
@@ -113,7 +110,7 @@ public class PaymentsReportServiceTest {
 
         // then
         verify(cardPaymentService,times(0)).search(startDate,startDate);
-        verify(feesService,times(0)).getMemolineAndNacForReconciliation(Mockito.any(List.class));
+        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
         verify(emailService,times(0)).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -128,7 +125,7 @@ public class PaymentsReportServiceTest {
 
         // then
         verify(cardPaymentService,times(0)).search(endDate,startDate);
-        verify(feesService,times(0)).getMemolineAndNacForReconciliation(Mockito.any(List.class));
+        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
         verify(emailService,times(0)).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -145,7 +142,7 @@ public class PaymentsReportServiceTest {
 
         // then
         verify(creditAccountPaymentService,times(0)).search(startDate,startDate);
-        verify(feesService,times(0)).getMemolineAndNacForReconciliation(Mockito.any(List.class));
+        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
         verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
 
 
@@ -161,7 +158,7 @@ public class PaymentsReportServiceTest {
 
         // then
         verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
-        verify(feesService,times(0)).getMemolineAndNacForReconciliation(Mockito.any(List.class));
+        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
         verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
 
 

@@ -38,11 +38,11 @@ public class FeesServiceTest {
 
 
     @Test
-    public void shouldGetFeesDataMap()  {
+    public void shouldGetFeesDtoMap()  {
         // given
 
         // when
-        feesService.getFeesDataMap();
+        feesService.getFeesDtoMap();
 
         // then
         verify(feesRegisterClient,times(1)).getFeesDataAsMap();
@@ -50,28 +50,15 @@ public class FeesServiceTest {
     }
 
     @Test
-    public void shouldGetMemolineAndNAc()  {
+    public void shouldGetFeesVersionsData()  {
         // given
 
         // when
-        feesService.getMemolineAndNacForReconciliation(payments);
+        feesService.getFeesVersionsData();
 
         // then
         verify(feesRegisterClient,times(1)).getFeesDataAsMap();
 
     }
-
-    @Test
-    public void checkForNullPayments()  {
-        // given
-
-        // when
-        feesService.getMemolineAndNacForReconciliation(null);
-
-        // then
-        verify(feesRegisterClient,times(0)).getFeesDataAsMap();
-
-        }
-
 
 }
