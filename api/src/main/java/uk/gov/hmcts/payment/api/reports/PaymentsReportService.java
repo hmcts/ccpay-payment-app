@@ -54,7 +54,7 @@ public class PaymentsReportService {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
-    private static final String CARD_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference,"
+    private static final String CARD_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference,CCD reference,Case reference,"
         + "Payment created date,Payment status updated date,Payment status,Payment channel,Payment method,Payment amount,"
         + "Site id,Fee code,Version,Calculated amount,Memoline,Natural account code,"
         + "Fee code,Version,Calculated amount,Memoline,Natural account code,"
