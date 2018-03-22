@@ -61,8 +61,10 @@ public class FeesService {
     public Map<String, Fee2Dto> getFeesDtoMap() {
         try {
             if (feesDtoMap.isEmpty()) {
-                if (feesRegisterClient.getFeesDataAsMap().isPresent())
-                    feesDtoMap = feesRegisterClient.getFeesDataAsMap().get();
+                Optional<Map<String, Fee2Dto>> optionalFeesDtoMap = feesRegisterClient.getFeesDataAsMap();
+                if (optionalFeesDtoMap.isPresent()) {
+                    feesDtoMap = optionalFeesDtoMap.get();
+                }
             }
         } catch (Exception ex) {
             LOG.error("FeesService  -  Unable to get fees data." + ex.getMessage());
