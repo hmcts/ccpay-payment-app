@@ -117,6 +117,8 @@ public class PaymentDto {
             .add(getServiceName())
             .add(getPaymentGroupReference())
             .add(getPaymentReference())
+            .add(getCcdCaseNumber())
+            .add(getCaseReference())
             .add(sdf.format(getDateCreated()))
             .add(sdf.format(getDateUpdated()))
             .add(getStatus())
