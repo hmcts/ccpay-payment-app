@@ -1,0 +1,5 @@
+
+description = ''
+dependencies {
+    compileOnly group: 'org.hibernate', name: 'hibernate-validator', version:'5.3.6.Final'
+}
