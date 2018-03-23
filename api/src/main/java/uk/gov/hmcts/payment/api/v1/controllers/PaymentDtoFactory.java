@@ -31,7 +31,7 @@ public class PaymentDtoFactory {
 
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentOldDto.LinkDto cancellationLink(String userId, Integer paymentId) {
-        Method method = PaymentController.class.getMethod("cancel", String.class, Integer.class);
+        Method method = PaymentOldController.class.getMethod("cancel", String.class, Integer.class);
         return new PaymentOldDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
     }
 
