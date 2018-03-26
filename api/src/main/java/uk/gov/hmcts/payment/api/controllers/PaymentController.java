@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
 
 import java.util.Optional;
 
@@ -29,10 +30,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 public class PaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
 
-    private final CardPaymentService<PaymentFeeLink, String> paymentService;
+    private final PaymentService<PaymentFeeLink, String> paymentService;
 
     @Autowired
-    public PaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> paymentService) {
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService) {
         this.paymentService = paymentService;
     }
 
