@@ -118,4 +118,11 @@
         <gav regex="true">.*$</gav>
         <cve>CVE-2018-7489</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+      Applies to Mac OS X implementation of Java only.
+    ]]></notes>
+        <gav regex="true">^com\.apple:AppleJavaExtensions:.*$</gav>
+        <cve>CVE-2010-0538</cve>
+    </suppress>
 </suppressions>

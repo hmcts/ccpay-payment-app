@@ -1,0 +1,10 @@
+rootProject.name = 'payment-app'
+include ':payment-gov-pay-client'
+include ':payment-model'
+include ':payment-api-contract'
+include ':payment-api'
+
+project(':payment-gov-pay-client').projectDir = "$rootDir/gov-pay-client" as File
+project(':payment-model').projectDir = "$rootDir/model" as File
+project(':payment-api-contract').projectDir = "$rootDir/api-contract" as File
+project(':payment-api').projectDir = "$rootDir/api" as File
