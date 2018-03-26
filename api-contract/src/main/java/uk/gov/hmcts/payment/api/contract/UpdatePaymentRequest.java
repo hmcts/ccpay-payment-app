@@ -1,0 +1,41 @@
+package uk.gov.hmcts.payment.api.contract;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Wither;
+
+import javax.validation.constraints.AssertFalse;
+import javax.validation.constraints.NotNull;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+@JsonInclude(NON_NULL)
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder(builderMethodName = "updatePaymentRequestWith")
+@Wither
+public class UpdatePaymentRequest {
+
+    private String caseReference;
+
+    private String ccdCaseNumber;
+
+    @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
+    private boolean isEitherOneRequired() {
+        return (ccdCaseNumber == null && caseReference == null);
+    }
+
+    @AssertFalse(message = "Either ccdCaseNumber or caseReference cannot be empty.")
+    private boolean isEitherOneEmpty() {
+        return (ccdCaseNumber.isEmpty() || caseReference.isEmpty());
+    }
+
+
+}
