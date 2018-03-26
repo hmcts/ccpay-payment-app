@@ -34,15 +34,15 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @Api(value = "/payment", description = "PaymentOld REST API")
-public class PaymentController {
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
+public class PaymentOldController {
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentOldController.class);
 
     private final PaymentService<PaymentOld, Integer> paymentService;
     private final PaymentDtoFactory paymentDtoFactory;
 
     @Autowired
-    public PaymentController(@Qualifier("loggingPaymentService") PaymentService<PaymentOld, Integer> paymentService,
-                             PaymentDtoFactory paymentDtoFactory) {
+    public PaymentOldController(@Qualifier("loggingPaymentService") PaymentService<PaymentOld, Integer> paymentService,
+                                PaymentDtoFactory paymentDtoFactory) {
         this.paymentService = paymentService;
         this.paymentDtoFactory = paymentDtoFactory;
     }
