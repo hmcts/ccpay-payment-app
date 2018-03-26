@@ -7,7 +7,7 @@ COPY docker/entrypoint.sh /
 
 EXPOSE 8080
 
-COPY api/target/payment-api-*.jar /app.jar
+COPY build/libs/payment-app.jar /app.jar
 
 HEALTHCHECK --interval=10s --timeout=10s --retries=10 CMD http_proxy= curl --silent --fail http://localhost:8080/health
 

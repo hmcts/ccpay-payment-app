@@ -25,28 +25,13 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
                 checkout scm
             }
 
-            def artifactVersion = readFile('version.txt').trim()
-            def versionAlreadyPublished = checkJavaVersionPublished group: 'payment', artifact: 'payment-api', version: artifactVersion
-
-            onPR {
-                if (versionAlreadyPublished) {
-                    print "Artifact version already exists. Please bump it."
-                    error "Artifact version already exists. Please bump it."
-                }
-            }
-
             stage('Build') {
-                def descriptor = Artifactory.mavenDescriptor()
-                descriptor.version = artifactVersion
-                descriptor.transform()
-
-                def rtMaven = Artifactory.newMavenBuild()
-                rtMaven.tool = 'apache-maven-3.3.9'
-                rtMaven.deployer releaseRepo: 'libs-release', snapshotRepo: 'libs-snapshot', server: server
-                rtMaven.deployer.deployArtifacts = (env.BRANCH_NAME == 'master') && !versionAlreadyPublished
-                rtMaven.run pom: 'pom.xml', goals: 'clean install sonar:sonar', buildInfo: buildInfo
+                def rtGradle = Artifactory.newGradleBuild()
+                rtGradle.tool = 'gradle-4.2'
+                rtGradle.deployer repo: 'libs-release', server: server
+                rtGradle.deployer.deployArtifacts = (env.BRANCH_NAME == 'master')
+                rtGradle.run buildFile: 'build.gradle', tasks: 'clean build dependencyCheckAnalyze artifactoryPublish sonarqube', buildInfo: buildInfo
             }
-
 
             def paymentsApiDockerVersion
             def paymentsDatabaseDockerVersion
@@ -71,7 +56,8 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
                 def rpmVersion
 
                 stage("Publish RPM") {
-                    rpmVersion = packager.javaRPM('master', 'payment-api', '$(ls api/target/payment-api-*.jar)', 'springboot', 'api/src/main/resources/application.properties')
+                    rpmVersion = packager.javaRPM('master', 'payment-api', '$(ls build/libs/payment-app.jar)',
+                        'springboot', 'api/src/main/resources/application.properties')
                     packager.publishJavaRPM('payment-api')
                 }
 
