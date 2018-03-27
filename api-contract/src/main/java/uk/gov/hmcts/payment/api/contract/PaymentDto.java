@@ -74,7 +74,7 @@ public class PaymentDto {
 
     private String organisationName;
 
-    @JsonProperty(access= JsonProperty.Access.READ_ONLY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String paymentGroupReference;
 
     //@JsonUnwrapped
@@ -85,7 +85,6 @@ public class PaymentDto {
 
     @JsonProperty("_links")
     private LinksDto links;
-
 
     @Data
     @AllArgsConstructor
@@ -98,7 +97,6 @@ public class PaymentDto {
         private LinkDto cancel;
     }
 
-
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -109,87 +107,77 @@ public class PaymentDto {
     }
 
     public String toCardPaymentCsv() {
-
-
+        StringJoiner result = new StringJoiner("\n");
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
 
-        StringJoiner sb = new StringJoiner(",")
-            .add(getServiceName())
-            .add(getPaymentGroupReference())
-            .add(getPaymentReference())
-            .add(getCcdCaseNumber())
-            .add(getCaseReference())
-            .add(sdf.format(getDateCreated()))
-            .add(sdf.format(getDateUpdated()))
-            .add(getStatus())
-            .add(getChannel())
-            .add(getMethod())
-            .add(getAmount().toString())
-            .add(getSiteId());
-
-        StringJoiner feeSb = new StringJoiner(",");
-
         for (FeeDto fee : getFees()) {
-            String memolineWithQuotes="";
-            if (null!=fee.getMemoLine()){
-                memolineWithQuotes = new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString();
-            }
-            String naturalAccountCode="";
-            if (null!=fee.getNaturalAccountCode()){
-                naturalAccountCode= fee.getNaturalAccountCode();
-            }
-            feeSb.add(fee.getCode())
+            StringJoiner sb = new StringJoiner(",")
+                .add(getServiceName())
+                .add(getPaymentGroupReference())
+                .add(getPaymentReference())
+                .add(getCcdCaseNumber())
+                .add(getCaseReference())
+                .add(sdf.format(getDateCreated()))
+                .add(sdf.format(getDateUpdated()))
+                .add(getStatus())
+                .add(getChannel())
+                .add(getMethod())
+                .add(getAmount().toString())
+                .add(getSiteId());
+
+            String memoLineWithQuotes = fee.getMemoLine() != null ? new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString() : "";
+            String naturalAccountCode = fee.getNaturalAccountCode() != null ? fee.getNaturalAccountCode() : "";
+            String volumeAmount = fee.getVolumeAmount() != null ? fee.getVolumeAmount().toString() : "";
+
+            sb.add(fee.getCode())
                 .add(fee.getVersion())
                 .add(fee.getCalculatedAmount().toString())
-                .add(memolineWithQuotes)
-                .add(naturalAccountCode);
+                .add(memoLineWithQuotes)
+                .add(naturalAccountCode)
+                .add(volumeAmount);
+
+            result.add(sb.toString());
         }
 
-        return sb.merge(feeSb).toString();
+        return result.toString();
     }
-
-
 
     public String toCreditAccountPaymentCsv() {
-
+        StringJoiner result = new StringJoiner("\n");
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
 
-        StringJoiner sb = new StringJoiner(",")
-            .add(getServiceName())
-            .add(getPaymentGroupReference())
-            .add(getPaymentReference())
-            .add(getCcdCaseNumber())
-            .add(getCaseReference())
-            .add(getOrganisationName())
-            .add(getCustomerReference())
-            .add(getAccountNumber())
-            .add(sdf.format(getDateCreated()))
-            .add(sdf.format(getDateUpdated()))
-            .add(getStatus())
-            .add(getChannel())
-            .add(getMethod())
-            .add(getAmount().toString())
-            .add(getSiteId());
-
-        StringJoiner feeSb = new StringJoiner(",");
-
         for (FeeDto fee : getFees()) {
-            String memolineWithQuotes="";
-            if (null!=fee.getMemoLine()){
-                memolineWithQuotes = new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString();
-            }
-            String naturalAccountCode="";
-            if (null!=fee.getNaturalAccountCode()){
-                naturalAccountCode= fee.getNaturalAccountCode();
-            }
-            feeSb.add(fee.getCode())
+            StringJoiner sb = new StringJoiner(",")
+                .add(getServiceName())
+                .add(getPaymentGroupReference())
+                .add(getPaymentReference())
+                .add(getCcdCaseNumber())
+                .add(getCaseReference())
+                .add(getOrganisationName())
+                .add(getCustomerReference())
+                .add(getAccountNumber())
+                .add(sdf.format(getDateCreated()))
+                .add(sdf.format(getDateUpdated()))
+                .add(getStatus())
+                .add(getChannel())
+                .add(getMethod())
+                .add(getAmount().toString())
+                .add(getSiteId());
+
+            String memolineWithQuotes = fee.getMemoLine() != null ? new StringBuffer().append('"').append(fee.getMemoLine()).append('"').toString() : "";
+            String naturalAccountCode = fee.getNaturalAccountCode() != null ? fee.getNaturalAccountCode() : "";
+            String volumeAmount = fee.getVolumeAmount() != null ? fee.getVolumeAmount().toString() : "";
+
+            sb.add(fee.getCode())
                 .add(fee.getVersion())
                 .add(fee.getCalculatedAmount().toString())
                 .add(memolineWithQuotes)
-                .add(naturalAccountCode);
+                .add(naturalAccountCode)
+                .add(volumeAmount);
+
+            result.add(sb.toString());
         }
-        return sb.merge(feeSb).toString();
+
+        return result.toString();
     }
-
-
 }

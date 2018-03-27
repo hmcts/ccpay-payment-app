@@ -146,8 +146,6 @@ public class PaymentControllerTest {
             patch(format("/payments/RC-1519-9028-1909-3111"), updatePaymentRequest)
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
-
-        //assertEquals(result.getResponse().getContentAsString(), "eitherOneEmpty: Either ccdCaseNumber or caseReference is required, and cannot be empty.");
     }
 
 
