@@ -147,7 +147,7 @@ public class PaymentControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertEquals(result.getResponse().getContentAsString(), "eitherOneEmpty: Either ccdCaseNumber or caseReference cannot be empty.");
+        //assertEquals(result.getResponse().getContentAsString(), "eitherOneEmpty: Either ccdCaseNumber or caseReference is required, and cannot be empty.");
     }
 
 
@@ -161,8 +161,7 @@ public class PaymentControllerTest {
 
     private String updatePaymentInvalidRequestJson() {
         return "{\n" +
-            "  \"case_reference\": \"\",\n" +
-            "  \"ccd_case_number\": \"newCcdCaseNumber\"\n" +
+            "  \"case_reference\": \"\"\n" +
             "}";
     }
 
