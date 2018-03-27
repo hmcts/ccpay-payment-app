@@ -54,22 +54,15 @@ public class PaymentsReportService {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
-    private static final String CARD_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference,CCD reference,Case reference,"
-        + "Payment created date,Payment status updated date,Payment status,Payment channel,Payment method,Payment amount,"
-        + "Site id,Fee code,Version,Calculated amount,Memoline,Natural account code,"
-        + "Fee code,Version,Calculated amount,Memoline,Natural account code,"
-        + "Fee code,Version,Calculated amount,Memoline,Natural account code,"
-        + "Fee code,Version,Calculated amount,Memoline,Natural account code,"
-        + "Fee code,Version,Calculated amount,Memoline,Natural account code";
+    private static final String CARD_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
+        "CCD reference,Case reference,Payment created date,Payment status updated date,Payment status," +
+        "Payment channel,Payment method,Payment amount,Site id,Fee code,Version,Calculated amount,Memo line,NAC," +
+        "Fee volume";
 
-    private static final String CREDIT_ACCOUNT_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference,CCD reference,Case reference,"
-        + "Organisation name,Customer internal reference,PBA Number,Payment created date,Payment status updated date,"
-        + "Payment status,Payment channel,Payment method,Payment amount,"
-        + "Site id,Fee code,Version,Calculated amount,Memoline,Natural account code,"
-        + "Fee code,Version,Calculated amount,Memoline,Natural account code,"
-        + "Fee code,Version,Calculated amount,Memoline,Natural account code,"
-        + "Fee code,Version,Calculated amount,Memoline,Natural account code,"
-        + "Fee code,Version,Calculated amount,Memoline,Natural account code";
+    private static final String CREDIT_ACCOUNT_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
+        "CCD reference,Case reference,Organisation name,Customer internal reference,PBA Number,Payment created date," +
+        "Payment status updated date,Payment status,Payment channel,Payment method,Payment amount,Site id,Fee code," +
+        "Version,Calculated amount,Memo line,NAC,Fee volume";
 
     private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
 
@@ -116,7 +109,7 @@ public class PaymentsReportService {
             List<PaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
                 .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            List<PaymentDto> cardPaymentsCsvData = getFeesMemolineAndNACDataFromFeesRegister(cardPayments);
+            List<PaymentDto> cardPaymentsCsvData = getCsvReportData(cardPayments);
 
             String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
             String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
@@ -145,7 +138,7 @@ public class PaymentsReportService {
             List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
                 .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            List<PaymentDto> creditAccountPaymentsCsvData = getFeesMemolineAndNACDataFromFeesRegister(creditAccountPayments);
+            List<PaymentDto> creditAccountPaymentsCsvData = getCsvReportData(creditAccountPayments);
 
             String fileNameSuffix = LocalDateTime.now().format(formatter);
             String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
@@ -200,13 +193,17 @@ public class PaymentsReportService {
 
     }
 
-    private List<PaymentDto> getFeesMemolineAndNACDataFromFeesRegister(List<PaymentDto> payments) {
+    private List<PaymentDto> getCsvReportData(List<PaymentDto> payments) {
         for (PaymentDto payment : payments) {
             for (FeeDto fee : payment.getFees()) {
                 Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
-                if(optionalFeeVersionDto.isPresent()){
-                fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
-                fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());}
+                if (optionalFeeVersionDto.isPresent()) {
+                    fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
+                    fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+                    if (optionalFeeVersionDto.get().getVolumeAmount() != null) {
+                        fee.setVolumeAmount(optionalFeeVersionDto.get().getVolumeAmount().getAmount());
+                    }
+                }
             }
         }
         return payments;
