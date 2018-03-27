@@ -27,14 +27,9 @@ public class UpdatePaymentRequest {
 
     private String ccdCaseNumber;
 
-    @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
+    @AssertFalse(message = "Either ccdCaseNumber or caseReference is required, and cannot be empty.")
     private boolean isEitherOneRequired() {
-        return (ccdCaseNumber == null && caseReference == null);
-    }
-
-    @AssertFalse(message = "Either ccdCaseNumber or caseReference cannot be empty.")
-    private boolean isEitherOneEmpty() {
-        return (ccdCaseNumber.isEmpty() || caseReference.isEmpty());
+        return ((ccdCaseNumber == null || ccdCaseNumber.isEmpty()) && (caseReference == null || caseReference.isEmpty()));
     }
 
 
