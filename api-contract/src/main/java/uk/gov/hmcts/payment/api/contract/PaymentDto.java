@@ -174,6 +174,8 @@ public class PaymentDto {
                 .add(memolineWithQuotes)
                 .add(naturalAccountCode)
                 .add(volumeAmount);
+
+            result.add(sb.toString());
         }
 
         return result.toString();
