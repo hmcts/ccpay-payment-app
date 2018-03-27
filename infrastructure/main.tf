@@ -19,6 +19,14 @@ data "vault_generic_secret" "gov_pay_keys_divorce" {
   path = "secret/${var.vault_section}/cc/payment/api/gov-pay-keys/divorce"
 }
 
+data "vault_generic_secret" "card_payments_email_to" {
+  path = "secret/${var.vault_section}/cc/payment/reports/card-payments/email-to"
+}
+
+data "vault_generic_secret" "pba_payments_email_to" {
+  path = "secret/${var.vault_section}/cc/payment/reports/pba-payments/email-to"
+}
+
 module "payment-api" {
   source   = "git@github.com:hmcts/moj-module-webapp?ref=master"
   product  = "${var.product}-api"
@@ -54,14 +62,14 @@ module "payment-api" {
     CARD_PAYMENTS_REPORT_SCHEDULE = "${var.card_payments_report_schedule}"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.card_payments_report_scheduler_enabled}"
     CARD_PAYMENTS_EMAIL_FROM = "${var.card_payments_email_from}"
-    CARD_PAYMENTS_EMAIL_TO = "${var.card_payments_email_to}"
+    CARD_PAYMENTS_EMAIL_TO = "${data.vault_generic_secret.card_payments_email_to.data["value"]}"
     CARD_PAYMENTS_EMAIL_SUBJECT = "${var.card_payments_email_subject}"
     CARD_PAYMENTS_EMAIL_MESSAGE = "${var.card_payments_email_message}"
 
     PBA_PAYMENTS_REPORT_SCHEDULE = "${var.pba_payments_report_schedule}"
     PBA_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_payments_report_scheduler_enabled}"
     PBA_PAYMENTS_EMAIL_FROM = "${var.pba_payments_email_from}"
-    PBA_PAYMENTS_EMAIL_TO = "${var.pba_payments_email_to}"
+    PBA_PAYMENTS_EMAIL_TO = "${data.vault_generic_secret.pba_payments_email_to.data["value"]}"
     PBA_PAYMENTS_EMAIL_SUBJECT = "${var.pba_payments_email_subject}"
     PBA_PAYMENTS_EMAIL_MESSAGE = "${var.pba_payments_email_message}"
 
@@ -72,7 +80,6 @@ module "payment-api" {
     REFORM_TEAM = "cc"
     REFORM_ENVIRONMENT = "${var.env}"
     ROOT_APPENDER = "JSON_CONSOLE"
-
   }
 }
 
@@ -81,7 +88,7 @@ module "payment-database" {
   product             = "${var.product}"
   location            = "West Europe"
   env                 = "${var.env}"
-  postgresql_user   = "fradmin"
+  postgresql_user   = "paymentadmin"
 }
 
 module "key-vault" {
@@ -91,6 +98,7 @@ module "key-vault" {
   tenant_id           = "${var.tenant_id}"
   object_id           = "${var.jenkins_AAD_objectId}"
   resource_group_name = "${module.payment-api.resource_group_name}"
+  # group id of dcd_reform_dev_azure
   product_group_object_id = "56679aaa-b343-472a-bb46-58bbbfde9c3d"
 }
 

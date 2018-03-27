@@ -66,9 +66,6 @@ variable "card_payments_report_scheduler_enabled" {
 variable "card_payments_email_from" {
   default = "no-reply@reform.hmcts.net"
 }
-variable "card_payments_email_to" {
-  default = "Oluwakemi.Benson@HMCTS.NET,Krishna.Nuthalapati@HMCTS.NET"
-}
 variable "card_payments_email_subject" {
   default = "Test Env: Card Payments Reconciliation Report"
 }
@@ -83,9 +80,6 @@ variable "pba_payments_report_scheduler_enabled" {
 }
 variable "pba_payments_email_from" {
   default = "no-reply@reform.hmcts.net"
-}
-variable "pba_payments_email_to" {
-  default = "Oluwakemi.Benson@HMCTS.NET,Krishna.Nuthalapati@HMCTS.NET"
 }
 variable "pba_payments_email_subject" {
   default = "Test Env : PBA Reconciliation Report'"
