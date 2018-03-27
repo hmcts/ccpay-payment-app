@@ -38,5 +38,8 @@ public class FeeDto {
     private String memoLine;
     @JsonIgnore
     private String naturalAccountCode;
+    @JsonIgnore
+    private BigDecimal volumeAmount;
+
 
 }
