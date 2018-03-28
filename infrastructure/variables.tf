@@ -34,7 +34,7 @@ variable "vault_section" {
 }
 
 variable "idam_api_url" {
-  default = "https://idam-test.dev.ccidam.reform.hmcts.net"
+  default = "http://betaDevBccidamAppLB.reform.hmcts.net"
 }
 
 variable "s2s_url" {
