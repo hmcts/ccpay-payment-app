@@ -119,6 +119,16 @@ sonarqube {
     }
 }
 
+task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
+    buildFile = './api/build.gradle'
+    tasks = ['smokeTest']
+}
+
+task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
+    buildFile = './api/build.gradle'
+    tasks = ['functionalTest']
+}
+
 task printVersion {
     description 'Prints the version of this project'
     doLast {
