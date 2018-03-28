@@ -1,0 +1,18 @@
+#!groovy
+
+properties(
+    [[$class: 'GithubProjectProperty', projectUrlStr: 'https://github.com/hmcts/ccpay-payment-app.git'],
+     pipelineTriggers([[$class: 'GitHubPushTrigger']])]
+)
+
+@Library('Infrastructure')
+
+def type = "java"
+
+def product = "payment"
+
+def app = "api"
+
+withPipeline(type, product, app) {
+    enableSlackNotifications('#cc-payments-tech')
+}
