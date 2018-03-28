@@ -101,3 +101,15 @@ databaseChangeLog:
         - renameTable:
             newTableName: payment_old
             oldTableName: payment
+
+  - changeSet:
+      id: 1520267787930-1
+      author: mateuszs
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              INSERT INTO payment_method (name, description)
+              VALUES
+                ('all pay', 'All Pay'),
+                ('postal order', 'Postal Order')
