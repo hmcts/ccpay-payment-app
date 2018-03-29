@@ -91,3 +91,7 @@ variable "pba_payments_email_message" {
 variable "fees_register_url" {
   default = "https://test.fees-register.reform.hmcts.net:4431"
 }
+
+variable "payment_audit_file" {
+  default = "%HOME%\\LogFiles\\payment-audit.log"
+}
