@@ -80,6 +80,8 @@ module "payment-api" {
     REFORM_TEAM = "cc"
     REFORM_ENVIRONMENT = "${var.env}"
     ROOT_APPENDER = "JSON_CONSOLE"
+
+    PAYMENT_AUDIT_FILE = "${var.payment_audit_file}"
   }
 }
 
