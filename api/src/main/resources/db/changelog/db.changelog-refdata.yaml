@@ -113,3 +113,15 @@ databaseChangeLog:
               VALUES
                 ('all pay', 'All Pay'),
                 ('postal order', 'Postal Order')
+
+
+  - changeSet:
+      id: 1520267787934-1
+      author: tarunp
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              INSERT INTO payment_status (name, description)
+              VALUES
+                ('submitted', 'Payment submitted')
