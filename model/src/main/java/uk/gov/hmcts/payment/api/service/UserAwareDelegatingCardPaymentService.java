@@ -43,6 +43,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final PaymentMethodRepository paymentMethodRepository;
     private final Payment2Repository paymentRespository;
     private final PaymentReferenceUtil paymentReferenceUtil;
+    private final StatusHistoryRepository statusHistoryRepository;
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -51,7 +52,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
                                                  CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
                                                  PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                  PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                                 PaymentReferenceUtil paymentReferenceUtil) {
+                                                 PaymentReferenceUtil paymentReferenceUtil, StatusHistoryRepository statusHistoryRepository) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegate = delegate;
@@ -61,6 +62,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentRespository = paymentRespository;
         this.paymentReferenceUtil = paymentReferenceUtil;
+        this.statusHistoryRepository = statusHistoryRepository;
     }
 
     @Override
@@ -118,14 +120,16 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             .anyMatch(govPayPayment.getState().getStatus()::equals);
         LOG.debug("Payment status exists in status history: {}", statusExists);
 
-
         if (!statusExists) {
-            payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+            StatusHistory history = StatusHistory.statusHistoryWith()
                 .externalStatus(govPayPayment.getState().getStatus())
                 .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
                 .errorCode(govPayPayment.getState().getCode())
                 .message(govPayPayment.getState().getMessage())
-                .build()));
+                .build();
+            statusHistoryRepository.save(history);
+
+            payment.setStatusHistories(Arrays.asList(history));
         }
 
         return paymentFeeLink;

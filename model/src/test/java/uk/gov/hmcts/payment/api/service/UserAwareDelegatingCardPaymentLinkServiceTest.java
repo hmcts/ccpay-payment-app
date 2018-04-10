@@ -52,6 +52,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private PaymentMethodRepository paymentMethodRepository = mock(PaymentMethodRepository.class);
     private PaymentProviderRepository paymentProviderRepository = mock(PaymentProviderRepository.class);
     private PaymentStatusRepository paymentStatusRepository = mock(PaymentStatusRepository.class);
+    private StatusHistoryRepository statusHistoryRepository = mock(StatusHistoryRepository.class);
 
     private CardPaymentService<GovPayPayment, String> govPayCardPaymentService = mock(CardPaymentService.class);
     private Payment2Repository paymentRespository = mock(Payment2Repository.class);
@@ -59,7 +60,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
     private UserAwareDelegatingCardPaymentService cardPaymentService = new UserAwareDelegatingCardPaymentService(() -> USER_ID, paymentFeeLinkRepository,
         govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
-        paymentStatusRepository, paymentRespository, paymentReferenceUtil);
+        paymentStatusRepository, paymentRespository, paymentReferenceUtil, statusHistoryRepository);
 
     @Test
     public void checkCreateWiring() throws CheckDigitException {
