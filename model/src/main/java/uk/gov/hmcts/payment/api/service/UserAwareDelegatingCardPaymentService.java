@@ -115,7 +115,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         // Checking if the gov pay status already exists.
         boolean statusExists = payment.getStatusHistories().stream()
             .map(StatusHistory::getExternalStatus)
-            .anyMatch(govPayPayment.getState().getStatus()::equals);
+            .anyMatch(govPayPayment.getState().getStatus().toLowerCase()::equals);
         LOG.debug("Payment status exists in status history: {}", statusExists);
 
 
