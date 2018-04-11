@@ -76,7 +76,7 @@ variable "pba_payments_report_schedule" {
   default = "0 */30 * * * ?"
 }
 variable "pba_payments_report_scheduler_enabled" {
-  default = "true"
+  default = "false"
 }
 variable "pba_payments_email_from" {
   default = "no-reply@reform.hmcts.net"
