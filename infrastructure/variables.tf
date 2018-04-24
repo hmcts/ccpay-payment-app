@@ -37,10 +37,6 @@ variable "idam_api_url" {
   default = "http://betaDevBccidamAppLB.reform.hmcts.net"
 }
 
-variable "s2s_url" {
-  default = "http://betaDevBccidamS2SLB.reform.hmcts.net"
-}
-
 variable "gov_pay_url" {
   default = "https://publicapi.payments.service.gov.uk/v1/payments"
 }
