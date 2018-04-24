@@ -33,8 +33,6 @@ dependencies {
   compile project(':payment-gov-pay-client')
   compile project(':payment-api-contract')
   compile project(':payment-model')
-    compile group: 'uk.gov.hmcts.reform', name: 'java-logging', version:'1.2.0'
-    compile group: 'uk.gov.hmcts.reform', name: 'java-logging-httpcomponents', version:'1.2.0'
     compile group: 'uk.gov.hmcts.auth.checker', name: 'auth-checker-spring', version:'1.0.1'
     compile group: 'uk.gov.hmcts.reform', name: 'http-proxy-spring-boot-autoconfigure', version:'1.1.0'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version:'1.5.9.RELEASE'
