@@ -37,10 +37,11 @@ dependencies {
     compile group: 'uk.gov.hmcts.reform', name: 'java-logging-httpcomponents', version:'1.2.0'
     compile group: 'uk.gov.hmcts.auth.checker', name: 'auth-checker-spring', version:'1.0.1'
     compile group: 'uk.gov.hmcts.reform', name: 'http-proxy-spring-boot-autoconfigure', version:'1.1.0'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version:'1.5.9.RELEASE'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version:'1.5.9.RELEASE'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version:'1.5.9.RELEASE'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version:'1.5.9.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-autoconfigure'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
     compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version:'0.23.0.RELEASE'
     compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.5'
     compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'4.8'
@@ -53,12 +54,12 @@ exclude(module: 'commons-logging')
 exclude(module: 'slf4j-simple')
     }
     compile group: 'commons-io', name: 'commons-io', version:'2.5'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version:'1.5.10.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail'
     compile group: 'org.springframework.retry', name: 'spring-retry', version:'1.2.2.RELEASE'
-    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-feign', version:'1.4.3.RELEASE'
+    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version:'2.0.0.RC1'
     compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-api-contract', version:'2.0.5'
     compile group: 'com.netflix.feign', name: 'feign-jackson', version:'8.18.0'
-    testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version:'1.5.9.RELEASE') {
+    testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
 exclude(module: 'commons-logging')
     }
     testCompile group: 'org.springframework.security', name: 'spring-security-test', version:'4.2.3.RELEASE'
