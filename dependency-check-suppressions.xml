@@ -133,4 +133,40 @@
         <gav regex="true">^com\.apple:AppleJavaExtensions:.*$</gav>
         <cve>CVE-2010-0538</cve>
     </suppress>
+    <!-- FIXME https://tools.hmcts.net/jira/browse/PAY-782 - spring boot 2 upgrade coming very soon -->
+    <suppress>
+        <notes><![CDATA[
+   temporarily disabled
+   ]]></notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2018-1196</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   temporarily disabled
+   ]]></notes>
+        <gav regex="true">.*$</gav>
+        <cve>CVE-2018-1199</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   temporarily disabled
+   ]]></notes>
+        <gav regex="true">.*$</gav>
+        <cve>CVE-2018-1304</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   temporarily disabled
+   ]]></notes>
+        <gav regex="true">.*$</gav>
+        <cve>CVE-2018-1305</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: tomcat-embed-websocket-8.5.23.jar
+   ]]></notes>
+        <gav regex="true">.*$</gav>
+        <cve>CVE-2017-15706</cve>
+    </suppress>
 </suppressions>
