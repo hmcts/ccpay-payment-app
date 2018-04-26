@@ -106,6 +106,8 @@ dependencyCheck {
     failBuildOnCVSS = 0
     suppressionFile = 'dependency-check-suppressions.xml'
     format='ALL'
+    // Disable scanning of .NET related binaries
+    assemblyEnabled = false
 }
 
 def sonarExclusions = [
