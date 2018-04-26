@@ -27,6 +27,15 @@ data "vault_generic_secret" "pba_payments_email_to" {
   path = "secret/${var.vault_section}/cc/payment/reports/pba-payments/email-to"
 }
 
+locals {
+  aseName = "${data.terraform_remote_state.core_apps_compute.ase_name[0]}"
+
+  local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
+  local_ase = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "core-compute-aat" : "core-compute-saat" : local.aseName}"
+
+  s2sUrl = "http://rpe-service-auth-provider-${local.local_env}.service.${local.local_ase}.internal"
+}
+
 module "payment-api" {
   source   = "git@github.com:hmcts/moj-module-webapp?ref=master"
   product  = "${var.product}-api"
@@ -45,7 +54,7 @@ module "payment-api" {
     # idam
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
     # service-auth-provider
-    AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${var.s2s_url}"
+    AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
 
     # gov pay keys
     GOV_PAY_URL = "${var.gov_pay_url}"
