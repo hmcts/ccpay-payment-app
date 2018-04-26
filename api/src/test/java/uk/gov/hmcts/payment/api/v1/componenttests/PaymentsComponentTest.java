@@ -51,7 +51,7 @@ public class PaymentsComponentTest extends ComponentTestBase {
                 .returnUrl("https://returnUrl")
                 .build();
 
-        tryCreateAndExpect(validRequest.withAmount(null), "amount: may not be null");
+        tryCreateAndExpect(validRequest.withAmount(null), "amount: must not be null");
         tryCreateAndExpect(validRequest.withAmount(0), "amount: must be greater than or equal to 1");
         tryCreateAndExpect(validRequest.withReference(null), "reference: may not be empty");
         tryCreateAndExpect(validRequest.withReference(""), "reference: may not be empty");
