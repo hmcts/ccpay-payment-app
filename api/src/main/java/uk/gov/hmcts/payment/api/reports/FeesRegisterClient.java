@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.reports;
 
-import org.springframework.cloud.netflix.feign.FeignClient;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 

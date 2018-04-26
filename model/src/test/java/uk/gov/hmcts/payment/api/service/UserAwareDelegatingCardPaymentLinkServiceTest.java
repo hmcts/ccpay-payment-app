@@ -1,16 +1,22 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.apache.http.util.Asserts;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -23,7 +29,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaymentWith;
-import static uk.gov.hmcts.payment.api.model.Payment.*;
+import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserAwareDelegatingCardPaymentLinkServiceTest {
@@ -60,24 +66,6 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private UserAwareDelegatingCardPaymentService cardPaymentService = new UserAwareDelegatingCardPaymentService(() -> USER_ID, paymentFeeLinkRepository,
         govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
         paymentStatusRepository, paymentRespository, paymentReferenceUtil);
-
-    @Test
-    public void checkCreateWiring() throws CheckDigitException {
-        when(govPayCardPaymentService.create(10, "paymentReference", "description", "returnUrl",
-            "ccdCaseNo", "caseReference", "GBP", "siteId", "CMC1",
-            Arrays.asList(Fee.feeWith().code("code").version("version").calculatedAmount(new BigDecimal(1000)).build()))).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
-
-        when(paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("paymentReference")
-            .payments(Arrays.asList(Payment.paymentWith().externalReference(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
-                .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
-            .fees(Arrays.asList(Fee.feeWith().code("code").version("version").calculatedAmount(new BigDecimal(1000)).build()))
-            .build()))
-            .thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(999).paymentReference("paymentReference")
-                .payments(Arrays.asList(Payment.paymentWith().id(998).externalReference(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID)
-                    .amount(BigDecimal.valueOf(1000).movePointRight(2)).description("description").returnUrl("returnUrl").build()))
-                .fees(Arrays.asList(Fee.feeWith().id(998).code("feeCode").version("feeVersion").calculatedAmount(new BigDecimal(1000)).build()))
-                .build());
-    }
 
     @Test
     public void testRetrieveCardPaymentForGivenPaymentReference() throws Exception {
