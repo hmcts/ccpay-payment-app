@@ -3,7 +3,7 @@ plugins {
     id 'checkstyle'
     id "org.sonarqube" version "2.6.1"
     id 'org.springframework.boot' version '2.0.1.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.3.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.5.RELEASE'
     id 'org.owasp.dependencycheck' version '3.1.1'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'findbugs'
@@ -11,7 +11,7 @@ plugins {
 }
 
 def springBootVersion = '2.0.1.RELEASE'
-def springCloudVersion = 'Finchley.M9'
+def springCloudVersion = 'Finchley.RC1'
 
 allprojects {
     apply plugin: 'maven'
@@ -34,7 +34,6 @@ allprojects {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            //mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
         }
     }
 }
@@ -92,7 +91,7 @@ dependencies {
 
 mainClassName = 'uk.gov.hmcts.PaymentApiApplication'
 
-jar {
+bootJar {
     archiveName 'payment-app.jar'
     manifest {
         attributes 'Implementation-Title': project.name, 'Implementation-Version': project.version
@@ -106,7 +105,7 @@ springBoot {
 dependencyCheck {
     failBuildOnCVSS = 0
     suppressionFile = 'dependency-check-suppressions.xml'
-    format='XML'
+    format='ALL'
 }
 
 def sonarExclusions = [
