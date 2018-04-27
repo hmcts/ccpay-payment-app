@@ -90,6 +90,10 @@ dependencies {
 
 mainClassName = 'uk.gov.hmcts.PaymentApiApplication'
 
+jar {
+    enabled = true
+}
+
 bootJar {
     archiveName 'payment-app.jar'
     manifest {
