@@ -47,12 +47,6 @@ variable "spring_mail_host" {
 variable "spring_mail_port" {
   default = "25"
 }
-variable "spring_mail_properties_mail_smtp_starttls_enable" {
-  default = "true"
-}
-variable "spring_mail_properties_email_smtp_ssl_trust" {
-  default = "*"
-}
 variable "card_payments_report_schedule" {
   default = "0 */30 * * * ?"
 }
