@@ -66,7 +66,7 @@ module "payment-api" {
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE = "${var.spring_mail_properties_mail_smtp_starttls_enable}"
-    EMAIL_SMTP_SSL_TRUST = "${var.spring_mail_properties_email_smtp_ssl_trust}"
+    SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST = "${var.spring_mail_properties_email_smtp_ssl_trust}"
 
     CARD_PAYMENTS_REPORT_SCHEDULE = "${var.card_payments_report_schedule}"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.card_payments_report_scheduler_enabled}"
