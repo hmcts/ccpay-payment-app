@@ -29,6 +29,16 @@ variable "microservice" {
   default = "payment-app"
 }
 
+variable "database_name" {
+  type    = "string"
+  default = "payment"
+}
+
+variable "postgresql_user" {
+  type    = "string"
+  default = "payment"
+}
+
 variable "vault_section" {
   default = "test"
 }
