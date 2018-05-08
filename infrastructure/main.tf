@@ -95,11 +95,14 @@ module "payment-api" {
 }
 
 module "payment-database" {
-  source              = "git@github.com:hmcts/moj-module-postgres?ref=master"
-  product             = "${var.product}"
-  location            = "West Europe"
-  env                 = "${var.env}"
-  postgresql_user   = "paymentadmin"
+  source = "git@github.com:hmcts/moj-module-postgres?ref=cnp-449-tactical"
+  product = "${var.product}-postgres-db"
+  location = "${var.location}"
+  env = "${var.env}"
+  postgresql_user = "${var.postgresql_user}"
+  database_name = "${var.database_name}"
+  sku_name = "GP_Gen5_2"
+  sku_tier = "GeneralPurpose"
 }
 
 module "key-vault" {
