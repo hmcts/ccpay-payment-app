@@ -136,8 +136,5 @@ databaseChangeLog:
               splitStatements:
               sql: >
                 INSERT INTO payment_provider (name, description)
-                SELECT 'bar card', 'Bar card'
-                WHERE
-                  NOT EXISTS (
-                      SELECT name FROM payment_provider WHERE name = 'bar card'
-                      );
+                VALUES ('bar card', 'Bar card')
+                ON CONFLICT DO NOTHING;
