@@ -135,6 +135,7 @@ databaseChangeLog:
           - sql:
               splitStatements:
               sql: >
+                DELETE FROM payment_provider
+                WHERE name = 'bar card';
                 INSERT INTO payment_provider (name, description)
-                VALUES ('bar card', 'Bar card')
-                ON CONFLICT DO NOTHING;
+                VALUES ('bar card', 'Bar card');
