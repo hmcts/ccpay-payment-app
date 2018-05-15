@@ -6,10 +6,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import uk.gov.hmcts.auth.checker.service.ServiceRequestAuthorizer;
-import uk.gov.hmcts.auth.checker.user.UserRequestAuthorizer;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
+import uk.gov.hmcts.reform.auth.checker.core.service.ServiceRequestAuthorizer;
+import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 

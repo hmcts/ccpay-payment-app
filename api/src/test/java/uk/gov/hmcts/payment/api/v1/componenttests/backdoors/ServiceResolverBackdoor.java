@@ -1,9 +1,10 @@
 package uk.gov.hmcts.payment.api.v1.componenttests.backdoors;
 
+import uk.gov.hmcts.reform.auth.checker.core.SubjectResolver;
+import uk.gov.hmcts.reform.auth.checker.core.exceptions.AuthCheckerException;
+import uk.gov.hmcts.reform.auth.checker.core.service.Service;
+
 import java.util.concurrent.ConcurrentHashMap;
-import uk.gov.hmcts.auth.checker.SubjectResolver;
-import uk.gov.hmcts.auth.checker.exceptions.AuthCheckerException;
-import uk.gov.hmcts.auth.checker.service.Service;
 
 public class ServiceResolverBackdoor implements SubjectResolver<Service> {
     private final ConcurrentHashMap<String, String> tokenToServiceMap = new ConcurrentHashMap<>();
