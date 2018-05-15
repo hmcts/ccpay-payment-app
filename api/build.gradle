@@ -38,7 +38,7 @@ dependencies {
   compile group: 'uk.gov.hmcts.reform', name: 'java-logging', version: javaLoggingVersion
   compile group: 'uk.gov.hmcts.reform', name: 'java-logging-appinsights', version: javaLoggingVersion
   compile group: 'uk.gov.hmcts.reform', name: 'java-logging-spring', version: javaLoggingVersion
-  compile group: 'uk.gov.hmcts.auth.checker', name: 'auth-checker-spring', version:'1.0.1'
+  compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.2'
   compile group: 'uk.gov.hmcts.reform', name: 'http-proxy-spring-boot-autoconfigure', version:'1.1.0'
   compile group: 'org.springframework.boot', name: 'spring-boot-autoconfigure'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
@@ -53,7 +53,7 @@ dependencies {
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version:'2.9.0'
   compile group: 'io.springfox', name: 'springfox-swagger2', version:'2.9.0'
   compile group: 'org.liquibase', name: 'liquibase-core', version:'3.5.3'
-  
+
   compile(group: 'org.postgresql', name: 'postgresql', version:'9.4.1212') {
     exclude(module: 'commons-logging')
     exclude(module: 'slf4j-simple')
