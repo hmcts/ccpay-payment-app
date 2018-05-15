@@ -8,7 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import uk.gov.hmcts.auth.checker.spring.serviceanduser.AuthCheckerServiceAndUserFilter;
+import uk.gov.hmcts.reform.auth.checker.spring.serviceanduser.AuthCheckerServiceAndUserFilter;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 

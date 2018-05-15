@@ -1,10 +1,11 @@
 package uk.gov.hmcts.payment.api.v1.componenttests.backdoors;
 
 import com.google.common.collect.ImmutableSet;
+import uk.gov.hmcts.reform.auth.checker.core.SubjectResolver;
+import uk.gov.hmcts.reform.auth.checker.core.exceptions.AuthCheckerException;
+import uk.gov.hmcts.reform.auth.checker.core.user.User;
+
 import java.util.concurrent.ConcurrentHashMap;
-import uk.gov.hmcts.auth.checker.SubjectResolver;
-import uk.gov.hmcts.auth.checker.exceptions.AuthCheckerException;
-import uk.gov.hmcts.auth.checker.user.User;
 
 public class UserResolverBackdoor implements SubjectResolver<User> {
     private final ConcurrentHashMap<String, String> tokenToUserMap = new ConcurrentHashMap<>();

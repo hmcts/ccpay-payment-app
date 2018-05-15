@@ -30,12 +30,17 @@ public class FeesService {
 
 
     public Optional<FeeVersionDto> getFeeVersion(String feeCode, String version) {
-        Optional<Map<String, FeeVersionDto>> feeVersionsDtoMapForAFeeCode = Optional.ofNullable(getFeesVersionsData().get(feeCode));
-        FeeVersionDto matchingFeeDtoVersion = null;
-        if (feeVersionsDtoMapForAFeeCode.isPresent()) {
-            matchingFeeDtoVersion = feeVersionsDtoMapForAFeeCode.get().get(version);
+        try {
+            Optional<Map<String, FeeVersionDto>> feeVersionsDtoMapForAFeeCode = Optional.ofNullable(getFeesVersionsData().get(feeCode));
+            FeeVersionDto matchingFeeDtoVersion = null;
+            if (feeVersionsDtoMapForAFeeCode.isPresent()) {
+                matchingFeeDtoVersion = feeVersionsDtoMapForAFeeCode.get().get(version);
+            }
+            return Optional.ofNullable(matchingFeeDtoVersion);
+        } catch (Exception ex) {
+            LOG.error("Error fetching FeeVersion by code:{} and version:{}", feeCode,  version, ex);
         }
-        return Optional.ofNullable(matchingFeeDtoVersion);
+        return Optional.empty();
     }
 
     public Map<String, Map<String, FeeVersionDto>> getFeesVersionsData() {
