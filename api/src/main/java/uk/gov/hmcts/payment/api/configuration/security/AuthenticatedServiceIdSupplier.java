@@ -2,8 +2,8 @@ package uk.gov.hmcts.payment.api.configuration.security;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.auth.checker.spring.serviceanduser.ServiceAndUserDetails;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
+import uk.gov.hmcts.reform.auth.checker.spring.serviceanduser.ServiceAndUserDetails;
 
 @Component
 public class AuthenticatedServiceIdSupplier implements ServiceIdSupplier {
