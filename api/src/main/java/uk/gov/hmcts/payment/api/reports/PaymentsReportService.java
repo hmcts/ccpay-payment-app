@@ -94,35 +94,47 @@ public class PaymentsReportService {
 
     }
 
-    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) {
+    public List<PaymentDto> findCardPaymentsBetweenDates(String startDate, String endDate) {
+        List<PaymentDto> cardPayments = null;
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         sdf.setLenient(false);
         try {
             Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
             Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
 
+
+            /** --- handle this at the controller level --- */
             if (fromDate.after(toDate) || fromDate.compareTo(toDate) == 0) {
                 LOG.error("PaymentsReportService - Error while card  payments csv file. Incorrect start and end dates ");
-                return;
 
+                return null;
             }
-            List<PaymentDto> cardPayments = cardPaymentService.search(fromDate, toDate).stream()
+
+            cardPayments = cardPaymentService.search(fromDate, toDate).stream()
                 .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            List<PaymentDto> cardPaymentsCsvData = getCsvReportData(cardPayments);
-
-            String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
-            String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
-            generateCsvAndSendEmail(cardPaymentsCsvData, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
         } catch (ParseException paex) {
 
             LOG.error("PaymentsReportService - Error while creating card payments csv file." +
                 " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
 
         }
+
+        return getCsvReportData(cardPayments);
     }
 
-    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) {
+    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) {
+        List<PaymentDto> cardPayments = findCardPaymentsBetweenDates(startDate, endDate);
+
+        List<PaymentDto> cardPaymentsCsvData = getCsvReportData(cardPayments);
+
+        String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
+        String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
+        generateCsvAndSendEmail(cardPaymentsCsvData, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
+    }
+
+    public List<PaymentDto> findCreditAccountPaymentsBetweenDates(String startDate, String endDate) {
+        List<PaymentDto> creditAccountPayments = null;
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         sdf.setLenient(false);
         try {
@@ -131,24 +143,32 @@ public class PaymentsReportService {
 
             if (fromDate.after(toDate) || fromDate.compareTo(toDate) == 0) {
                 LOG.error("PaymentsReportService - Error while creating credit account payments csv file. Incorrect start and end dates ");
-                return;
 
+                return null;
             }
 
-            List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
+            creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
                 .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            List<PaymentDto> creditAccountPaymentsCsvData = getCsvReportData(creditAccountPayments);
 
-            String fileNameSuffix = LocalDateTime.now().format(formatter);
-            String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
-            generateCsvAndSendEmail(creditAccountPaymentsCsvData, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
         } catch (ParseException paex) {
 
             LOG.error("PaymentsReportService - Error while creating credit account payments csv file."
                 + " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
 
         }
+
+        return getCsvReportData(creditAccountPayments);
+    }
+
+    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) {
+        List<PaymentDto> creditAccountPayments = findCreditAccountPaymentsBetweenDates(startDate, endDate);
+
+        List<PaymentDto> creditAccountPaymentsCsvData = getCsvReportData(creditAccountPayments);
+
+        String fileNameSuffix = LocalDateTime.now().format(formatter);
+        String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
+        generateCsvAndSendEmail(creditAccountPaymentsCsvData, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
     }
 
     private void generateCsvAndSendEmail(List<PaymentDto> payments, String paymentsCsvFileName, String header, Email mail) {

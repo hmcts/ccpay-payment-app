@@ -1,7 +1,12 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -34,8 +39,10 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
@@ -84,6 +91,8 @@ public class CreditAccountPaymentControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -351,6 +360,81 @@ public class CreditAccountPaymentControllerTest {
             "    }\n" +
             "  ]\n" +
             "}";
+    }
+
+    @Test
+    public void searchCardPayment_withEmptyDates() throws Exception{
+        populateCreditAccountPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+        populateCreditAccountPaymentToDb("3");
+
+        MvcResult result = restActions
+            .get("/credit-account-payments")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        List<PaymentDto> payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<List<PaymentDto>>(){});
+        assertThat(payments.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void searchCreditAccountPayments_withValidStartAndEndDates() throws Exception {
+        populateCreditAccountPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+        populateCreditAccountPaymentToDb("3");
+
+        String startDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = LocalDate.now().minus(Period.days(-1)).toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .get("/credit-account-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        List<PaymentDto> payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<List<PaymentDto>>(){});
+        assertThat(payments.size()).isEqualTo(3);
+
+        PaymentDto payment = payments.stream().filter(p -> p.getPaymentReference().equals("RC-1519-9028-1909-0002")).findAny().get();
+        assertThat(payment.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
+        assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+        assertThat(payment.getCaseReference()).isEqualTo("Reference2");
+        assertThat(payment.getAmount()).isEqualTo(new BigDecimal("11.99"));
+        assertThat(payment.getChannel()).isEqualTo("online");
+        assertThat(payment.getMethod()).isEqualTo("payment by account");
+        assertThat(payment.getStatus()).isEqualTo("Initiated");
+        assertThat(payment.getSiteId()).isEqualTo("AA02");
+        assertThat(payment.getDateCreated()).isNotNull();
+        assertThat(payment.getDateUpdated()).isNotNull();
+        payment.getFees().stream().forEach(f -> {
+            assertThat(f.getCode()).isEqualTo("FEE0002");
+            assertThat(f.getVersion()).isEqualTo("1");
+            assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
+        });
+
+    }
+
+
+    private void populateCreditAccountPaymentToDb(String number) throws Exception {
+        //Create a payment in db
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Description" + number)
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference("RC-1519-9028-1909-000" + number)
+            .build();
+        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
     }
 
 }
