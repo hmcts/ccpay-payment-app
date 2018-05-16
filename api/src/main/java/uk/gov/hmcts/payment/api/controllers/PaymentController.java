@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,9 +79,13 @@ public class PaymentController {
     @RequestMapping(value = "/payments", method = GET)
     public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
                                               @RequestParam(name = "end_date", required = false) String endDate,
-                                              @RequestParam(name = "payment_method")PaymentMethodUtil paymentMethodType) {
+                                              @RequestParam(name = "payment_method") String paymentMethodType) {
 
-        return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, paymentMethodType.name()));
+        if (!EnumUtils.isValidEnum(PaymentMethodUtil.class, paymentMethodType)) {
+            throw new PaymentException("Invalid payment method. Valid payment methods are ALL, CARD and PBA");
+        }
+
+        return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.valueOf(paymentMethodType).name()));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

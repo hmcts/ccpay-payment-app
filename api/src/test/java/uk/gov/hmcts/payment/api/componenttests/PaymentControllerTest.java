@@ -290,5 +290,19 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(result.getResponse().getContentAsString()).isEqualTo("Input dates parsing exception, valid date format is dd-MM-yyyy");
     }
 
+    @Test
+    public void searchAllPayments_withInvalidMethodType_shouldReturn400() throws Exception {
+        populateCardPaymentToDb("1");
+
+
+        MvcResult result = restActions
+            .get("/payments?start_date=12/05/2018&end_date=14-05-2018&payment_method=UNKNOWN")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid payment method. Valid payment methods are ALL, CARD and PBA");
+    }
+
+
 
 }
