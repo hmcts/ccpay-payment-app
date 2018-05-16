@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFound
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
+import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -93,7 +94,7 @@ public class CardPaymentController {
     public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
                                              @RequestParam(name = "end_date", required = false) String endDate) {
 
-        return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate));
+        return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.CARD.name()));
     }
 
 

@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
@@ -60,7 +61,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @ActiveProfiles({"embedded", "local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class CreditAccountPaymentControllerTest {
+public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
@@ -438,30 +439,6 @@ public class CreditAccountPaymentControllerTest {
             assertThat(f.getVersion()).isEqualTo("1");
             assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
         });
-
-    }
-
-
-    private void populateCreditAccountPaymentToDb(String number) throws Exception {
-        //Create a payment in db
-        Payment payment = Payment.paymentWith()
-            .amount(new BigDecimal("11.99"))
-            .caseReference("Reference" + number)
-            .ccdCaseNumber("ccdCaseNumber" + number)
-            .description("Description" + number)
-            .serviceType("Probate")
-            .currency("GBP")
-            .siteId("AA0" + number)
-            .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .reference("RC-1519-9028-1909-000" + number)
-            .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).build();
-
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
-        payment.setPaymentLink(paymentFeeLink);
 
     }
 

@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.text.ParseException;
@@ -82,7 +83,7 @@ public class PaymentsReportServiceTest {
         paymentsReportService.generateCardPaymentsCsvAndSendEmail(null,null);
 
         // then
-        verify(cardPaymentService).search(startDate,endDate);
+        verify(cardPaymentService).search(startDate,endDate, PaymentMethodUtil.CARD.name());
         verify(emailService).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -110,7 +111,7 @@ public class PaymentsReportServiceTest {
         paymentsReportService.generateCardPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"));
 
         // then
-        verify(cardPaymentService,times(0)).search(startDate,startDate);
+        verify(cardPaymentService,times(0)).search(startDate,startDate, PaymentMethodUtil.CARD.name());
         verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
         verify(emailService,times(0)).sendEmail(cardPaymentReconciliationReportEmail);
 
@@ -125,7 +126,7 @@ public class PaymentsReportServiceTest {
         paymentsReportService.generateCardPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"));
 
         // then
-        verify(cardPaymentService,times(0)).search(endDate,startDate);
+        verify(cardPaymentService,times(0)).search(endDate,startDate, PaymentMethodUtil.CARD.name());
         verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
         verify(emailService,times(0)).sendEmail(cardPaymentReconciliationReportEmail);
 
