@@ -73,8 +73,7 @@ public class PaymentController {
     @ApiOperation(value = "Get payments for between dates", notes = "Get payments for between dates, enter the date in format dd-MM-yyyy")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 404, message = "Payments not found")
+        @ApiResponse(code = 400, message = "Bad request")
     })
     @RequestMapping(value = "/payments", method = GET)
     public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
