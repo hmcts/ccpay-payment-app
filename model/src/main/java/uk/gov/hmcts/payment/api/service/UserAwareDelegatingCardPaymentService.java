@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
+import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -31,6 +32,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
     private final static String PAYMENT_METHOD = "card";
+    private final static String PAYMENT_BY_ACCOUNT = "payment by account";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD =  "card";
 
@@ -133,8 +135,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate) {
-        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findCardPaymentsByBetweenDates(startDate, endDate));
+    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type) {
+        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findCardPaymentsByBetweenDates(startDate, endDate, type));
 
         // For each payment get the gov pay status.
         // commented b'coz the not efficient to make govPay calls for each payment in reconciliation.
@@ -142,7 +144,18 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return paymentFeeLinks;
     }
 
-    private static Specification findCardPaymentsByBetweenDates(Date fromDate, Date toDate) {
+    private static Specification findCardPaymentsByBetweenDates(Date fromDate, Date toDate, String type) {
+        if (type.equals(PaymentMethodUtil.ALL.name())) {
+
+            return Specification
+                .where(isBetween(fromDate, toDate));
+
+        } else if (type.equals(PaymentMethodUtil.PBA.name())) {
+            return Specification
+                .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_BY_ACCOUNT).build()))
+                .and(isBetween(fromDate, toDate));
+        }
+
         return Specification
             .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
             .and(isBetween(fromDate, toDate));

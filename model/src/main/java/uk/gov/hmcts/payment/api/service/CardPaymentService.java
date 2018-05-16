@@ -13,5 +13,5 @@ public interface CardPaymentService<T, ID> {
 
     T retrieve(ID id);
 
-    List<T> search(Date startDate, Date endDate);
+    List<T> search(Date startDate, Date endDate, String type);
 }
