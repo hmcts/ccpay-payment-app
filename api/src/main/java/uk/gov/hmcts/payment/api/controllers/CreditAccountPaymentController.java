@@ -114,21 +114,10 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 404, message = "Payments not found")
     })
     @RequestMapping(value = "/credit-account-payments", method = GET)
-    public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date") Optional<String> startDate,
-                                              @RequestParam(name = "end_date") Optional<String> endDate) {
-        if (startDate.isPresent() && endDate.isPresent()) {
+    public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
+                                              @RequestParam(name = "end_date", required = false) String endDate) {
 
-            return ResponseEntity.ok().body(paymentsReportService.findCreditAccountPaymentsBetweenDates(startDate.get(), endDate.get()));
-        } else if (startDate.isPresent()) {
-
-            return ResponseEntity.ok().body(paymentsReportService.findCreditAccountPaymentsBetweenDates(startDate.get(), null));
-        } else if (endDate.isPresent()) {
-
-            return ResponseEntity.ok().body(paymentsReportService.findCreditAccountPaymentsBetweenDates(null, endDate.get()));
-        }
-
-        return ResponseEntity.ok().body(paymentsReportService.findCreditAccountPaymentsBetweenDates(null, null));
-
+        return ResponseEntity.ok().body(paymentsReportService.findCreditAccountPaymentsBetweenDates(startDate, endDate));
     }
 
     @ApiOperation(value = "Get credit account payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")

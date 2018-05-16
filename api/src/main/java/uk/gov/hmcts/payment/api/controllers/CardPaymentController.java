@@ -90,21 +90,10 @@ public class CardPaymentController {
         @ApiResponse(code = 404, message = "Payments not found")
     })
     @RequestMapping(value = "/card-payments", method = GET)
-    public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date") Optional<String> startDate,
-                                             @RequestParam(name = "end_date") Optional<String> endDate) {
-        if (startDate.isPresent() && endDate.isPresent()) {
+    public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
+                                             @RequestParam(name = "end_date", required = false) String endDate) {
 
-            return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate.get(), endDate.get()));
-        } else if (startDate.isPresent()) {
-
-            return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate.get(), null));
-        } else if (endDate.isPresent()) {
-
-            return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(null, endDate.get()));
-        }
-
-        return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(null, null));
-
+        return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate));
     }
 
 
