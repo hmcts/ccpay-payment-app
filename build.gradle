@@ -10,7 +10,7 @@ plugins {
     id 'jacoco'
 }
 
-def springBootVersion = '2.0.1.RELEASE'
+def springBootVersion = '2.0.2.RELEASE'
 def springCloudVersion = 'Finchley.RC1'
 
 allprojects {
