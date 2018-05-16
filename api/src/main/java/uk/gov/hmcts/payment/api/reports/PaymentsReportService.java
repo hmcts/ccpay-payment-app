@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.ByteArrayOutputStream;
@@ -95,7 +96,11 @@ public class PaymentsReportService {
 
     }
 
-    public Optional<List<PaymentDto>> findCardPaymentsBetweenDates(String startDate, String endDate) {
+    public Optional<List<PaymentDto>> findPaymentsBetweenDates(String startDate, String endDate, String type) {
+        return findCardPaymentsBetweenDates(startDate, endDate, type);
+    }
+
+    public Optional<List<PaymentDto>> findCardPaymentsBetweenDates(String startDate, String endDate, String type) {
         List<PaymentDto> cardPayments = null;
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         sdf.setLenient(false);
@@ -111,7 +116,7 @@ public class PaymentsReportService {
                 throw new PaymentException("Invalid input dates");
             }
 
-            cardPayments = cardPaymentService.search(fromDate, toDate).stream()
+            cardPayments = cardPaymentService.search(fromDate, toDate, type).stream()
                     .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
         } catch (ParseException paex) {
 
@@ -125,7 +130,7 @@ public class PaymentsReportService {
     }
 
     public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) {
-        List<PaymentDto> cardPaymentsCsvData = findCardPaymentsBetweenDates(startDate, endDate)
+        List<PaymentDto> cardPaymentsCsvData = findCardPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.CARD.name())
             .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
 
         String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);

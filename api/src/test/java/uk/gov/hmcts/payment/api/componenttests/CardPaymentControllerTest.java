@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -54,7 +55,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @ActiveProfiles({"embedded", "local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class CardPaymentControllerTest {
+public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
@@ -494,32 +495,6 @@ public class CardPaymentControllerTest {
             assertThat(f.getVersion()).isEqualTo("1");
             assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
         });
-    }
-
-    private void populateCardPaymentToDb(String number) throws Exception {
-        //Create a payment in db
-        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
-        Payment payment = Payment.paymentWith()
-            .amount(new BigDecimal("99.99"))
-            .caseReference("Reference" + number)
-            .ccdCaseNumber("ccdCaseNumber" + number)
-            .description("Test payments statuses for " + number)
-            .serviceType("PROBATE")
-            .currency("GBP")
-            .siteId("AA0" + number)
-            .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
-            .reference("RC-1519-9028-2432-000" + number)
-            .statusHistories(Arrays.asList(statusHistory))
-            .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).build();
-
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
-        payment.setPaymentLink(paymentFeeLink);
     }
 
 }
