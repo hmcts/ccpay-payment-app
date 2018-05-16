@@ -108,7 +108,7 @@ public class PaymentsReportService {
             if (fromDate.after(toDate) || fromDate.compareTo(toDate) == 0) {
                 LOG.error("PaymentsReportService - Error while card  payments csv file. Incorrect start and end dates ");
 
-                return Optional.ofNullable(cardPayments);
+                throw new PaymentException("Invalid input dates");
             }
 
             cardPayments = cardPaymentService.search(fromDate, toDate).stream()
@@ -118,7 +118,7 @@ public class PaymentsReportService {
             LOG.error("PaymentsReportService - Error while creating card payments csv file." +
                 " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
 
-            return Optional.ofNullable(cardPayments);
+            throw new PaymentException("Input dates parsing exception, valid date format is dd-MM-yyyy");
         }
 
         return Optional.of(getCsvReportData(cardPayments));
@@ -143,7 +143,7 @@ public class PaymentsReportService {
             if (fromDate.after(toDate) || fromDate.compareTo(toDate) == 0) {
                 LOG.error("PaymentsReportService - Error while creating credit account payments csv file. Incorrect start and end dates ");
 
-                return Optional.ofNullable(creditAccountPayments);
+                throw new PaymentException("Invalid input dates");
             }
 
             creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
@@ -155,7 +155,7 @@ public class PaymentsReportService {
             LOG.error("PaymentsReportService - Error while creating credit account payments csv file."
                 + " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
 
-            return Optional.ofNullable(creditAccountPayments);
+            throw new PaymentException("Input dates parsing exception, valid date format is dd-MM-yyyy");
 
         }
 

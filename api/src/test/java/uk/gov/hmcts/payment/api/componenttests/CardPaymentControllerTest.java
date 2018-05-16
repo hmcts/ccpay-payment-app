@@ -419,6 +419,34 @@ public class CardPaymentControllerTest {
     }
 
     @Test
+    public void searchCardPayment_withInvalidDateRanges_shouldReturn400() throws Exception {
+        populateCardPaymentToDb("1");
+
+        String startDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = startDate;
+
+        MvcResult result = restActions
+            .get("/card-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid input dates");
+    }
+
+    @Test
+    public void searchCardPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
+        populateCardPaymentToDb("1");
+
+
+        MvcResult result = restActions
+            .get("/card-payments?start_date=12/05/2018&end_date=14-05-2018")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Input dates parsing exception, valid date format is dd-MM-yyyy");
+    }
+
+    @Test
     public void searchCardPayment_withEmptyDates() throws Exception{
         populateCardPaymentToDb("1");
         populateCardPaymentToDb("2");
