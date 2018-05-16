@@ -163,7 +163,8 @@ public class PaymentsReportService {
     }
 
     public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) {
-        List<PaymentDto> creditAccountPaymentsCsvData = findCreditAccountPaymentsBetweenDates(startDate, endDate).orElseThrow(PaymentException::new);
+        List<PaymentDto> creditAccountPaymentsCsvData = findCreditAccountPaymentsBetweenDates(startDate, endDate)
+            .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
 
         String fileNameSuffix = LocalDateTime.now().format(formatter);
         String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
