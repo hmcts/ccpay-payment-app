@@ -4,6 +4,7 @@ package uk.gov.hmcts.payment.api.configuration.security;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -53,6 +54,7 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .formLogin().disable()
             .logout().disable()
             .authorizeRequests()
+            .antMatchers(HttpMethod.GET, "/card-payments", "/credit-account-payments").permitAll()
             .anyRequest().authenticated();
     }
 }
