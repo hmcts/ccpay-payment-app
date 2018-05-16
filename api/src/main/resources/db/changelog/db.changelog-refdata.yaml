@@ -126,3 +126,16 @@ databaseChangeLog:
               INSERT INTO payment_status (name, description)
               VALUES
                 ('submitted', 'Payment submitted')
+
+
+  - changeSet:
+        id: 1520267787937-1
+        author: mateuszs
+        changes:
+          - sql:
+              splitStatements:
+              sql: >
+                DELETE FROM payment_provider
+                WHERE name = 'bar card';
+                INSERT INTO payment_provider (name, description)
+                VALUES ('bar card', 'Bar card');
