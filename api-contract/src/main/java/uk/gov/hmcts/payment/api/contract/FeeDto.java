@@ -34,10 +34,10 @@ public class FeeDto {
     @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
     private BigDecimal calculatedAmount;
 
-    @JsonIgnore
     private String memoLine;
-    @JsonIgnore
+
     private String naturalAccountCode;
+
     @JsonIgnore
     private BigDecimal volumeAmount;
 

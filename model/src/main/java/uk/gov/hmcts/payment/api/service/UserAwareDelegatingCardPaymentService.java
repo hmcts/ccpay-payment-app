@@ -143,7 +143,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     private static Specification findCardPaymentsByBetweenDates(Date fromDate, Date toDate) {
-        return Specifications
+        return Specification
             .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
             .and(isBetween(fromDate, toDate));
     }

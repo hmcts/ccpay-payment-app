@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -101,7 +102,7 @@ public class PaymentsReportServiceTest {
 
     }
 
-    @Test
+    @Test(expected = PaymentException.class)
     public void shouldNotGenerateCardPaymentsCsvWhenDatesGivenAreEqual()  {
         // given
 
@@ -116,7 +117,7 @@ public class PaymentsReportServiceTest {
 
     }
 
-    @Test
+    @Test(expected = PaymentException.class)
     public void shouldNotGenerateCardPaymentsCsvWhenStartDateGreaterThanEndDate()  {
         // given
 
@@ -133,7 +134,7 @@ public class PaymentsReportServiceTest {
 
 
 
-    @Test
+    @Test(expected = PaymentException.class)
     public void shouldNotGenerateCreditAccountPaymentsCsvWhenDatesGivenAreEqual()  {
         // given
 
@@ -149,7 +150,7 @@ public class PaymentsReportServiceTest {
     }
 
 
-    @Test
+    @Test(expected = PaymentException.class)
     public void shouldNotGenerateCreditAccountPaymentsCsvWhenInCorrectStartDateFormat()  {
         // given
 
@@ -163,7 +164,9 @@ public class PaymentsReportServiceTest {
 
 
     }
-    @Test
+
+
+    @Test(expected = PaymentException.class)
     public void shouldNotGenerateCreditAccountPaymentsCsvWhenInCorrectEndDateFormat()  {
         // given
 
@@ -176,12 +179,6 @@ public class PaymentsReportServiceTest {
 
 
     }
-
-
-
-
-
-
 
     private String getYesterdaysDate(String format) {
         SimpleDateFormat sdf = new SimpleDateFormat(format);
