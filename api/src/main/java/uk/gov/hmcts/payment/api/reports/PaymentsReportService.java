@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.CreditAccountReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
+import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
@@ -226,9 +227,8 @@ public class PaymentsReportService {
                 if (optionalFeeVersionDto.isPresent()) {
                     fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
                     fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
-                    if (optionalFeeVersionDto.get().getVolumeAmount() != null) {
-                        fee.setVolumeAmount(optionalFeeVersionDto.get().getVolumeAmount().getAmount());
-                    }
+                    FeeDto currPaymentFee = payment.getFees().stream().filter(f -> f.getCode().equals(fee.getCode())).findAny().get();
+                    fee.setVolume(currPaymentFee.getVolume());
                 }
             }
         }
