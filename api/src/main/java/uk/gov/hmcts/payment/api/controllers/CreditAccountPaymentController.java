@@ -25,11 +25,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
-
 import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
@@ -105,19 +101,6 @@ public class CreditAccountPaymentController {
             .orElseThrow(PaymentNotFoundException::new);
         List<Fee> fees = paymentFeeLink.getFees();
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), OK);
-    }
-
-    @ApiOperation(value = "Get credit account payments for between dates", notes = "Get credit account payments for between dates, enter the date in format dd-MM-yyyy")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 404, message = "Payments not found")
-    })
-    @RequestMapping(value = "/credit-account-payments", method = GET)
-    public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
-                                              @RequestParam(name = "end_date", required = false) String endDate) {
-
-        return ResponseEntity.ok().body(paymentsReportService.findCreditAccountPaymentsBetweenDates(startDate, endDate));
     }
 
     @ApiOperation(value = "Get credit account payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
