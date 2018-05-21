@@ -258,6 +258,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
                 assertThat(f.getCode()).isEqualTo("FEE0002");
                 assertThat(f.getVersion()).isEqualTo("1");
                 assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
+                assertThat(f.getVolume()).isEqualTo(1);
             });
         });
     }
