@@ -22,7 +22,7 @@ public class PaymentDtoTest {
     private final BigDecimal calculatedAmountForFeeWithVolume;
     private final String memoLine;
     private final String naturalAccountCode;
-    private final BigDecimal feeVolumeAmount;
+    private final Integer volume;
     private final String feeNoVolumeCode;
     private final BigDecimal calculatedAmountForFeeNoVolume;
     private PaymentDto testDto;
@@ -57,15 +57,15 @@ public class PaymentDtoTest {
         calculatedAmountForFeeWithVolume = new BigDecimal(1);
         memoLine = "memoLine";
         naturalAccountCode = "naturalAccountCode";
-        feeVolumeAmount = new BigDecimal(0.5);
+        volume = new Integer(1);
         feeNoVolumeCode = "X0002";
         calculatedAmountForFeeNoVolume = new BigDecimal(1);
 
-        feeWithVolumeDto = new FeeDto(feeWithVolumeCode, feeVersion, calculatedAmountForFeeWithVolume,
-            memoLine, naturalAccountCode, feeVolumeAmount);
+        feeWithVolumeDto = new FeeDto(feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
+            memoLine, naturalAccountCode);
 
-        feeNoVolumeDto = new FeeDto(feeNoVolumeCode, feeVersion, calculatedAmountForFeeNoVolume,
-            memoLine, naturalAccountCode, null);
+        feeNoVolumeDto = new FeeDto(feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
+            memoLine, naturalAccountCode);
     }
 
     @Before
@@ -128,7 +128,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeAmount.toString());
+            .add(volume.toString());
 
         assertThat(testDto.toCardPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -157,7 +157,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add("");
+            .add(volume.toString());
 
         assertThat(testDto.toCardPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -189,7 +189,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeAmount.toString());
+            .add(volume.toString());
 
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -221,7 +221,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add("");
+            .add(volume.toString());
 
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -253,7 +253,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeAmount.toString());
+            .add(volume.toString());
 
         StringJoiner joiner2 = new StringJoiner(",");
         joiner2.add(serviceName)
@@ -273,7 +273,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add("");
+            .add(volume.toString());
 
 
         rowJointer.add(joiner.toString());
@@ -311,7 +311,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeAmount.toString());
+            .add(volume.toString());
 
         StringJoiner joiner2 = new StringJoiner(",");
         joiner2.add(serviceName)
@@ -334,7 +334,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add("");
+            .add(volume.toString());
 
 
         rowJointer.add(joiner.toString());

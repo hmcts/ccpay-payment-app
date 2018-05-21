@@ -34,4 +34,16 @@ databaseChangeLog:
           tableName: status_history
 
 
+- changeSet:
+    id: 1526550938495-1
+    author: tarun
+    changes:
+      - addColumn:
+          columns:
+          - column:
+              name: volume
+              type: int
+              defaultValue: 1
+          tableName: fee
+
 
