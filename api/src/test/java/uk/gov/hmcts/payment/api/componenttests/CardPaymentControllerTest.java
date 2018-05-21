@@ -1,12 +1,8 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import lombok.SneakyThrows;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -40,10 +36,8 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -418,83 +412,4 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "  ]\n" +
             "}";
     }
-
-    @Test
-    public void searchCardPayment_withInvalidDateRanges_shouldReturn400() throws Exception {
-        populateCardPaymentToDb("1");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = startDate;
-
-        MvcResult result = restActions
-            .get("/card-payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid input dates");
-    }
-
-    @Test
-    public void searchCardPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
-        populateCardPaymentToDb("1");
-
-
-        MvcResult result = restActions
-            .get("/card-payments?start_date=12/05/2018&end_date=14-05-2018")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Input dates parsing exception, valid date format is dd-MM-yyyy");
-    }
-
-    @Test
-    public void searchCardPayment_withEmptyDates() throws Exception{
-        populateCardPaymentToDb("1");
-        populateCardPaymentToDb("2");
-        populateCardPaymentToDb("3");
-
-        MvcResult result = restActions
-            .get("/card-payments")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        List<PaymentDto> payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<List<PaymentDto>>(){});
-        assertThat(payments.size()).isEqualTo(0);
-    }
-
-    @Test
-    public void searchCardPayments_withValidStartAndEndDates() throws Exception {
-        populateCardPaymentToDb("1");
-        populateCardPaymentToDb("2");
-        populateCardPaymentToDb("3");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().minus(Period.days(-1)).toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .get("/card-payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        List<PaymentDto> payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<List<PaymentDto>>(){});
-        assertThat(payments.size()).isEqualTo(3);
-
-        PaymentDto payment = payments.stream().filter(p -> p.getPaymentReference().equals("RC-1519-9028-2432-0002")).findAny().get();
-        assertThat(payment.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
-        assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
-        assertThat(payment.getCaseReference()).isEqualTo("Reference2");
-        assertThat(payment.getAmount()).isEqualTo(new BigDecimal("99.99"));
-        assertThat(payment.getChannel()).isEqualTo("online");
-        assertThat(payment.getMethod()).isEqualTo("card");
-        assertThat(payment.getStatus()).isEqualTo("Initiated");
-        assertThat(payment.getSiteId()).isEqualTo("AA02");
-        assertThat(payment.getDateCreated()).isNotNull();
-        assertThat(payment.getDateUpdated()).isNotNull();
-        payment.getFees().stream().forEach(f -> {
-            assertThat(f.getCode()).isEqualTo("FEE0002");
-            assertThat(f.getVersion()).isEqualTo("1");
-            assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
-        });
-    }
-
 }
