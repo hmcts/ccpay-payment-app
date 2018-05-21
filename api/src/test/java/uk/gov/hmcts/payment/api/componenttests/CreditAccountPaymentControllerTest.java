@@ -1,22 +1,15 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.joda.time.LocalDate;
-import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,34 +18,23 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.PaymentRepository;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 
 import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
@@ -362,84 +344,4 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "  ]\n" +
             "}";
     }
-
-    @Test
-    public void searchCardPayment_withInvalidDateRanges_shouldReturn400() throws Exception {
-        populateCreditAccountPaymentToDb("1");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = startDate;
-
-        MvcResult result = restActions
-            .get("/credit-account-payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid input dates");
-    }
-
-    @Test
-    public void searchCardPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
-        populateCreditAccountPaymentToDb("1");
-
-
-        MvcResult result = restActions
-            .get("/credit-account-payments?start_date=12/05/2018&end_date=14-05-2018")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Input dates parsing exception, valid date format is dd-MM-yyyy");
-    }
-
-    @Test
-    public void searchCardPayment_withEmptyDates() throws Exception{
-        populateCreditAccountPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-        populateCreditAccountPaymentToDb("3");
-
-        MvcResult result = restActions
-            .get("/credit-account-payments")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        List<PaymentDto> payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<List<PaymentDto>>(){});
-        assertThat(payments.size()).isEqualTo(0);
-    }
-
-    @Test
-    public void searchCreditAccountPayments_withValidStartAndEndDates() throws Exception {
-        populateCreditAccountPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-        populateCreditAccountPaymentToDb("3");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().minus(Period.days(-1)).toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .get("/credit-account-payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        List<PaymentDto> payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<List<PaymentDto>>(){});
-        assertThat(payments.size()).isEqualTo(3);
-
-        PaymentDto payment = payments.stream().filter(p -> p.getPaymentReference().equals("RC-1519-9028-1909-0002")).findAny().get();
-        assertThat(payment.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
-        assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
-        assertThat(payment.getCaseReference()).isEqualTo("Reference2");
-        assertThat(payment.getAmount()).isEqualTo(new BigDecimal("11.99"));
-        assertThat(payment.getChannel()).isEqualTo("online");
-        assertThat(payment.getMethod()).isEqualTo("payment by account");
-        assertThat(payment.getStatus()).isEqualTo("Initiated");
-        assertThat(payment.getSiteId()).isEqualTo("AA02");
-        assertThat(payment.getDateCreated()).isNotNull();
-        assertThat(payment.getDateUpdated()).isNotNull();
-        payment.getFees().stream().forEach(f -> {
-            assertThat(f.getCode()).isEqualTo("FEE0002");
-            assertThat(f.getVersion()).isEqualTo("1");
-            assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
-        });
-
-    }
-
 }
