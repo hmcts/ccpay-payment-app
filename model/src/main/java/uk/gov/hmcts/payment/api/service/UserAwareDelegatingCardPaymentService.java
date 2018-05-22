@@ -12,17 +12,17 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 @Service
 public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
@@ -30,10 +30,12 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
-    private final static String PAYMENT_METHOD = "card";
+    private final static String PAYMENT_BY_ALL = "all";
+    private final static String PAYMENT_BY_CARD = "card";
     private final static String PAYMENT_BY_ACCOUNT = "payment by account";
+    private final static String PAYMENT_BY_ACCOUNT_SHORT_ALIAS = "pba";
     private final static String PAYMENT_STATUS_CREATED = "created";
-    private final static String PAYMENT_METHOD_CARD =  "card";
+    private final static String PAYMENT_METHOD_CARD = "card";
 
     private final UserIdSupplier userIdSupplier;
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -75,16 +77,16 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         //Build PaymentLink obj
         Payment payment = Payment.paymentWith().userId(userIdSupplier.get())
-                                .amount(BigDecimal.valueOf(amount).movePointRight(2))
-                                .description(description).returnUrl(returnUrl).ccdCaseNumber(ccdCaseNumber)
-                                .caseReference(caseReference).currency(currency).siteId(siteId)
-                                .serviceType(serviceType)
-                                .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
-                                .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CARD))
-                                .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_GOVPAY))
-                                .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
-                                .reference(paymentReference)
-                                .build();
+            .amount(BigDecimal.valueOf(amount).movePointRight(2))
+            .description(description).returnUrl(returnUrl).ccdCaseNumber(ccdCaseNumber)
+            .caseReference(caseReference).currency(currency).siteId(siteId)
+            .serviceType(serviceType)
+            .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
+            .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CARD))
+            .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_GOVPAY))
+            .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
+            .reference(paymentReference)
+            .build();
         fillTransientDetails(payment, govPayPayment);
 
         payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
@@ -134,66 +136,45 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type) {
-        List<PaymentFeeLink> paymentFeeLinks = paymentFeeLinkRepository.findAll(findCardPaymentsByBetweenDates(startDate, endDate, type));
-
-        // For each payment get the gov pay status.
-        // commented b'coz the not efficient to make govPay calls for each payment in reconciliation.
-
-        return paymentFeeLinks;
+    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
+        return paymentFeeLinkRepository.findAll(findCardPayments(startDate, endDate, type, ccdCaseNumber));
     }
 
-    @Override
-    public List<PaymentFeeLink> searchByCase(String ccdCaseNumber) {
-        return paymentFeeLinkRepository.findAll(
-            isCcdCaseNumberEqualsTo(ccdCaseNumber)
-        );
+    private static Specification findCardPayments(Date fromDate, Date toDate, String type, String ccdCaseNumber) {
+        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, type, ccdCaseNumber));
     }
 
-    private static Specification findCardPaymentsByBetweenDates(Date fromDate, Date toDate, String type) {
-        if (type.equals(PaymentMethodUtil.ALL.name())) {
+    private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String type, String ccdCaseNumber) {
 
-            return Specification
-                .where(isBetween(fromDate, toDate));
+        List<Predicate> predicates = new ArrayList<>();
 
-        } else if (type.equals(PaymentMethodUtil.PBA.name())) {
-            return Specification
-                .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_BY_ACCOUNT).build()))
-                .and(isBetween(fromDate, toDate));
+        Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
+
+        if (type != null) {
+
+            type = type.toLowerCase();
+
+            if(type.equals(PAYMENT_BY_ACCOUNT_SHORT_ALIAS)) {
+                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(PAYMENT_BY_ACCOUNT, null)));
+            }else if (!type.equals(PAYMENT_BY_ALL)) {
+                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(type, null)));
+            }
         }
 
-        return Specification
-            .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
-            .and(isBetween(fromDate, toDate));
-    }
+        if (fromDate != null) {
+            predicates.add(cb.between(paymentJoin.get("dateUpdated"), fromDate, toDate));
+        }
 
-    private static Specification isEquals(PaymentMethod paymentMethod) {
-        return ((root, query, cb) -> {
-            Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-            return cb.equal(paymentJoin.get("paymentMethod").get("name"), paymentMethod.getName());
-        });
+        if (ccdCaseNumber != null) {
+            predicates.add(cb.equal(paymentJoin.get("ccdCaseNumber"), ccdCaseNumber));
+        }
 
-    }
-
-    private static Specification isBetween(Date startDate, Date endDate) {
-
-        return ((root, query, cb) -> {
-            Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-            return cb.between(paymentJoin.get("dateUpdated"), startDate, endDate);
-        });
-    }
-
-    private static Specification isCcdCaseNumberEqualsTo(String ccdCaseNumber) {
-        return ((root, query, cb) -> {
-            Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
-            return cb.equal(paymentJoin.get("ccdCaseNumber"), ccdCaseNumber);
-        });
-
+        return cb.and(predicates.toArray(REF));
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRespository.findByReferenceAndPaymentMethod(paymentReference,
-            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
+            PaymentMethod.paymentMethodWith().name(PAYMENT_BY_CARD).build()).orElseThrow(PaymentNotFoundException::new);
     }
 
     private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {
