@@ -131,7 +131,8 @@ public class PaymentDto {
                 .add(fee.getVersion())
                 .add(fee.getCalculatedAmount().toString())
                 .add(memoLineWithQuotes)
-                .add(naturalAccountCode);
+                .add(naturalAccountCode)
+                .add(fee.getVolume().toString());
 
             result.add(sb.toString());
         }
@@ -168,7 +169,8 @@ public class PaymentDto {
                 .add(fee.getVersion())
                 .add(fee.getCalculatedAmount().toString())
                 .add(memolineWithQuotes)
-                .add(naturalAccountCode);
+                .add(naturalAccountCode)
+                .add(fee.getVolume().toString());
             result.add(sb.toString());
         }
 
