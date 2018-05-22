@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,18 +14,14 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -83,20 +78,6 @@ public class CardPaymentController {
     public PaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
-
-    @ApiOperation(value = "Get card payment for between dates", notes = "Get card payment for between dates, enter the date in format dd-MM-yyyy")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 404, message = "Payments not found")
-    })
-    @RequestMapping(value = "/card-payments", method = GET)
-    public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
-                                             @RequestParam(name = "end_date", required = false) String endDate) {
-
-        return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.CARD.name()));
-    }
-
 
     @ApiOperation(value = "Get card payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
     @ApiResponses(value = {

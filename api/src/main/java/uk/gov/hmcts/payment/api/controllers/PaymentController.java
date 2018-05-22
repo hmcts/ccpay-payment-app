@@ -1,30 +1,30 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
-import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
-import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @RestController
 @Api(tags = {"PaymentController"})
@@ -76,20 +76,24 @@ public class PaymentController {
         @ApiResponse(code = 400, message = "Bad request")
     })
     @RequestMapping(value = "/payments", method = GET)
-    public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
-                                              @RequestParam(name = "end_date", required = false) String endDate,
-                                              @RequestParam(name = "payment_method", required = false) String paymentMethodType,
-                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber ) {
 
-        if (paymentMethodType != null && !EnumUtils.isValidEnum(PaymentMethodUtil.class, paymentMethodType)) {
-            throw new PaymentException("Invalid payment method. Valid payment methods are ALL, CARD and PBA");
-        }
+    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
+                                             @RequestParam(name = "end_date", required = false) String endDate,
+                                             @RequestParam(name = "payment_method", required = false) String paymentMethodType,
+                                             @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
 
         if (ccdCaseNumber != null) {
-            return ResponseEntity.ok().body(paymentsReportService.findPaymentsByCcdCaseNumber(ccdCaseNumber));
+            return new PaymentsResponse(paymentsReportService.findPaymentsByCcdCaseNumber(ccdCaseNumber).orElse(Collections.emptyList()));
         }
 
-        return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.valueOf(paymentMethodType).name()));
+        PaymentMethodUtil paymentMethod = Optional.ofNullable(paymentMethodType)
+            .map(p -> PaymentMethodUtil.valueOf(p.toUpperCase()))
+            .orElse(PaymentMethodUtil.ALL);
+
+        Optional<List<PaymentDto>> paymentDtos = paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, paymentMethod.name());
+
+        return new PaymentsResponse(paymentDtos.orElse(Collections.emptyList()));
+
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

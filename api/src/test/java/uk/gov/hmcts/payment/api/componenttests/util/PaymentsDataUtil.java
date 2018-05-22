@@ -86,7 +86,8 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-2432-000" + number)
             .statusHistories(Arrays.asList(statusHistory))
             .build();
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).build();
+
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -109,7 +110,8 @@ public class PaymentsDataUtil {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .reference("RC-1519-9028-1909-000" + number)
             .build();
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).build();
+
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);

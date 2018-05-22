@@ -26,6 +26,9 @@ public class PaymentFee {
     @Column(name = "version")
     private String version;
 
+    @Column(name = "volume")
+    private Integer volume;
+
     @Column(name = "calculated_amount")
     private BigDecimal calculatedAmount;
 
