@@ -1,9 +1,8 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -28,7 +27,7 @@ public class CreditAccountPaymentComponentTest extends ComponentTestBase {
 
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
-        List<Fee> fees = Arrays.asList(getFee());
+        List<PaymentFee> fees = Arrays.asList(getFee());
         List<Payment> payments = new ArrayList<>(3);
         payments.add(getPayment(1));
         payments.add(getPayment(2));
@@ -43,7 +42,7 @@ public class CreditAccountPaymentComponentTest extends ComponentTestBase {
 
     @Test
     public void retrieveCreditAccountPayment_byPaymentGroupReferenceTest() throws Exception {
-        List<Fee> fees = Arrays.asList(getFee());
+        List<PaymentFee> fees = Arrays.asList(getFee());
         List<Payment> payments = new ArrayList<>(3);
         payments.add(getPayment(1));
         payments.add(getPayment(2));
@@ -84,8 +83,8 @@ public class CreditAccountPaymentComponentTest extends ComponentTestBase {
     }
 
 
-    private Fee getFee() {
-        return Fee.feeWith()
+    private PaymentFee getFee() {
+        return PaymentFee.feeWith()
             .calculatedAmount(new BigDecimal("10000.00"))
             .code("X0123")
             .version("1")

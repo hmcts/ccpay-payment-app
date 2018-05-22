@@ -9,9 +9,7 @@ import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
-import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.persistence.criteria.Join;
@@ -20,7 +18,6 @@ import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -59,7 +56,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     @Override
     @Transactional
-    public PaymentFeeLink create(Payment creditAccount, List<Fee> fees, String paymentGroupRef) throws CheckDigitException {
+    public PaymentFeeLink create(Payment creditAccount, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
         LOG.debug("Create credit account payment with PaymentGroupReference: {}", paymentGroupRef);
 
             Payment payment = null;

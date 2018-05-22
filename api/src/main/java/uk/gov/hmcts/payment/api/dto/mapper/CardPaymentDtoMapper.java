@@ -8,7 +8,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
@@ -36,7 +36,7 @@ public class CardPaymentDtoMapper {
 
     public PaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        List<Fee> fees = paymentFeeLink.getFees();
+        List<PaymentFee> fees = paymentFeeLink.getFees();
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
@@ -90,19 +90,19 @@ public class CardPaymentDtoMapper {
 
     }
 
-    private List<FeeDto> toFeeDtos(List<Fee> fees) {
+    private List<FeeDto> toFeeDtos(List<PaymentFee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
-    public List<Fee> toFees(List<FeeDto> feeDtos) {
+    public List<PaymentFee> toFees(List<FeeDto> feeDtos) {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
-    private Fee toFee(FeeDto feeDto) {
-        return Fee.feeWith().calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
+    private PaymentFee toFee(FeeDto feeDto) {
+        return PaymentFee.feeWith().calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
     }
 
-    private FeeDto toFeeDto(Fee fee) {
+    private FeeDto toFeeDto(PaymentFee fee) {
         return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion()).build();
     }
 

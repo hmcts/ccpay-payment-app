@@ -194,6 +194,4 @@ public class PaymentsReportServiceTest {
         return sdf.format(new Date());
     }
 
-
-
 }

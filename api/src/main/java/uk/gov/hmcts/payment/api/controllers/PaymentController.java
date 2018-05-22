@@ -78,10 +78,15 @@ public class PaymentController {
     @RequestMapping(value = "/payments", method = GET)
     public ResponseEntity<?> retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
                                               @RequestParam(name = "end_date", required = false) String endDate,
-                                              @RequestParam(name = "payment_method") String paymentMethodType) {
+                                              @RequestParam(name = "payment_method", required = false) String paymentMethodType,
+                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber ) {
 
-        if (!EnumUtils.isValidEnum(PaymentMethodUtil.class, paymentMethodType)) {
+        if (paymentMethodType != null && !EnumUtils.isValidEnum(PaymentMethodUtil.class, paymentMethodType)) {
             throw new PaymentException("Invalid payment method. Valid payment methods are ALL, CARD and PBA");
+        }
+
+        if (ccdCaseNumber != null) {
+            return ResponseEntity.ok().body(paymentsReportService.findPaymentsByCcdCaseNumber(ccdCaseNumber));
         }
 
         return ResponseEntity.ok().body(paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.valueOf(paymentMethodType).name()));

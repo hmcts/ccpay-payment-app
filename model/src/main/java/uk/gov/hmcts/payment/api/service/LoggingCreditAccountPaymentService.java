@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -41,7 +41,7 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
     }
 
     @Override
-    public PaymentFeeLink create(Payment payment, List<Fee> fees, String paymentGroupReference) throws CheckDigitException {
+    public PaymentFeeLink create(Payment payment, List<PaymentFee> fees, String paymentGroupReference) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = delegate.create(payment, fees, paymentGroupReference);
 
         paymentFeeLink.getPayments().forEach(p -> {

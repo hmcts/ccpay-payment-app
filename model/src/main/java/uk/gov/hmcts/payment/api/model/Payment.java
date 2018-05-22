@@ -18,7 +18,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name = "payment")
+@Table(name = "payment", indexes = {
+    @Index(name = "ix_pay_ccd_case_number", columnList = "ccd_case_number")
+})
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

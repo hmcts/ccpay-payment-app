@@ -42,6 +42,6 @@ public class PaymentFeeLink {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
-    private List<Fee> fees;
+    private List<PaymentFee> fees;
 
 }
