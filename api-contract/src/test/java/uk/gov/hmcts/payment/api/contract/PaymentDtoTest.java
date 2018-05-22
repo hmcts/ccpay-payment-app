@@ -127,7 +127,8 @@ public class PaymentDtoTest {
             .add(feeVersion)
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
-            .add(naturalAccountCode);
+            .add(naturalAccountCode)
+            .add(volume.toString());
 
         assertThat(testDto.toCardPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -155,7 +156,8 @@ public class PaymentDtoTest {
             .add(feeVersion)
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
-            .add(naturalAccountCode);
+            .add(naturalAccountCode)
+            .add(volume.toString());
 
         assertThat(testDto.toCardPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -186,7 +188,8 @@ public class PaymentDtoTest {
             .add(feeVersion)
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
-            .add(naturalAccountCode);
+            .add(naturalAccountCode)
+            .add(volume.toString());
 
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -217,7 +220,8 @@ public class PaymentDtoTest {
             .add(feeVersion)
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
-            .add(naturalAccountCode);
+            .add(naturalAccountCode)
+            .add(volume.toString());
 
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -248,7 +252,8 @@ public class PaymentDtoTest {
             .add(feeVersion)
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
-            .add(naturalAccountCode);
+            .add(naturalAccountCode)
+            .add(volume.toString());
 
         StringJoiner joiner2 = new StringJoiner(",");
         joiner2.add(serviceName)
@@ -267,7 +272,8 @@ public class PaymentDtoTest {
             .add(feeVersion)
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
-            .add(naturalAccountCode);
+            .add(naturalAccountCode)
+            .add(volume.toString());
 
 
         rowJointer.add(joiner.toString());
@@ -304,7 +310,8 @@ public class PaymentDtoTest {
             .add(feeVersion)
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
-            .add(naturalAccountCode);
+            .add(naturalAccountCode)
+            .add(volume.toString());
 
         StringJoiner joiner2 = new StringJoiner(",");
         joiner2.add(serviceName)
@@ -326,7 +333,8 @@ public class PaymentDtoTest {
             .add(feeVersion)
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
-            .add(naturalAccountCode);
+            .add(naturalAccountCode)
+            .add(volume.toString());
 
 
         rowJointer.add(joiner.toString());
