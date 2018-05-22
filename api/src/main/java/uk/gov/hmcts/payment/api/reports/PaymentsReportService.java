@@ -238,9 +238,8 @@ public class PaymentsReportService {
                 if (optionalFeeVersionDto.isPresent()) {
                     fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
                     fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
-                    if (optionalFeeVersionDto.get().getVolumeAmount() != null) {
-                        fee.setVolumeAmount(optionalFeeVersionDto.get().getVolumeAmount().getAmount());
-                    }
+                    FeeDto currPaymentFee = payment.getFees().stream().filter(f -> f.getCode().equals(fee.getCode())).findAny().get();
+                    fee.setVolume(currPaymentFee.getVolume());
                 }
             }
         }
