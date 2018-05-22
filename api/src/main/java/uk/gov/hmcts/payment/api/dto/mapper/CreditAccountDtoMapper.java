@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
@@ -51,7 +51,7 @@ public class CreditAccountDtoMapper {
             .build();
     }
 
-    public PaymentDto toRetrievePaymentResponse(Payment payment, List<Fee> fees) {
+    public PaymentDto toRetrievePaymentResponse(Payment payment, List<PaymentFee> fees) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
@@ -158,20 +158,20 @@ public class CreditAccountDtoMapper {
     }
 
 
-    public List<FeeDto> toFeeDtos(List<Fee> fees) {
+    public List<FeeDto> toFeeDtos(List<PaymentFee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
 
-    public List<Fee> toFees(List<FeeDto> feeDtos) {
+    public List<PaymentFee> toFees(List<FeeDto> feeDtos) {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
-    public Fee toFee(FeeDto feeDto) {
-        return Fee.feeWith().calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
+    public PaymentFee toFee(FeeDto feeDto) {
+        return PaymentFee.feeWith().calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode()).version(feeDto.getVersion()).build();
     }
 
-    public FeeDto toFeeDto(Fee fee) {
+    public FeeDto toFeeDto(PaymentFee fee) {
         return FeeDto.feeDtoWith().calculatedAmount(fee.getCalculatedAmount()).code(fee.getCode()).version(fee.getVersion()).build();
     }
 

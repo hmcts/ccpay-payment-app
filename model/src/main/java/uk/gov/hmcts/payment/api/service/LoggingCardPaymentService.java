@@ -7,7 +7,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -41,7 +41,7 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
 
     @Override
     public PaymentFeeLink create(int amount, @NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) throws CheckDigitException {
+                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = delegate.create(amount, paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
 
         Payment payment = paymentFeeLink.getPayments().get(0);
@@ -69,4 +69,12 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
         return paymentFeeLinks;
     }
 
+    @Override
+    public List<PaymentFeeLink> searchByCase(String ccdCaseNumber) {
+        LOG.info("Searching for payments for case {}", ccdCaseNumber);
+
+        List<PaymentFeeLink> paymentFeeLinks =  delegate.searchByCase(ccdCaseNumber);
+        LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
+        return paymentFeeLinks;
+    }
 }

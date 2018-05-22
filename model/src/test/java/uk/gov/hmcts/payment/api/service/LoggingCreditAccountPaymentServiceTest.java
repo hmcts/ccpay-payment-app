@@ -1,13 +1,11 @@
 package uk.gov.hmcts.payment.api.service;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -49,7 +47,7 @@ public class LoggingCreditAccountPaymentServiceTest {
             .status("Initiated")
             .organisationName("organisationName")
             .build();
-        List<Fee> fees = Arrays.asList(Fee.feeWith()
+        List<PaymentFee> fees = Arrays.asList(PaymentFee.feeWith()
             .calculatedAmount(new BigDecimal("10000"))
             .code("X0001")
             .version("1")
@@ -69,7 +67,7 @@ public class LoggingCreditAccountPaymentServiceTest {
                 .status("Initiated")
                 .organisationName("organisationName")
                 .build()))
-            .fees(Arrays.asList(Fee.feeWith()
+            .fees(Arrays.asList(PaymentFee.feeWith()
                 .id(1)
                 .calculatedAmount(new BigDecimal("10000"))
                 .code("X0001")

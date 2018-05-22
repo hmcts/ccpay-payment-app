@@ -7,7 +7,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -57,7 +56,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
         String reference = paymentReferenceUtil.getNext();
 
         List<Payment> payments = Arrays.asList(getPayment(1, reference));
-        List<Fee> fees = Arrays.asList(getFee(1));
+        List<PaymentFee> fees = Arrays.asList(getFee(1));
 
         List<StatusHistory> statusHistories = Arrays.asList(StatusHistory.statusHistoryWith().status("pending").build());
         payments.stream().forEach(p -> p.setStatusHistories(statusHistories));
@@ -78,7 +77,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
                 .reference(reference)
                 .amount(new BigDecimal("6000.00"))
                 .build()))
-            .fees(Arrays.asList(Fee.feeWith()
+            .fees(Arrays.asList(PaymentFee.feeWith()
                 .id(1)
                 .calculatedAmount(new BigDecimal("6000.00"))
                 .code("X0001")
@@ -102,7 +101,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             p.setPaymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build());
             p.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
         });
-        List<Fee> fees = Arrays.asList(getFee(1));
+        List<PaymentFee> fees = Arrays.asList(getFee(1));
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
@@ -138,7 +137,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
         String reference = paymentReferenceUtil.getNext();
 
         List<Payment> payments = Arrays.asList(getPayment(1, reference));
-        List<Fee> fees = Arrays.asList(getFee(1));
+        List<PaymentFee> fees = Arrays.asList(getFee(1));
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
@@ -171,8 +170,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
     }
 
 
-    private Fee getFee(int number) {
-        return Fee.feeWith()
+    private PaymentFee getFee(int number) {
+        return PaymentFee.feeWith()
             .calculatedAmount(new BigDecimal("6000.00"))
             .code("X0123")
             .version("1")

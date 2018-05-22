@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -68,7 +67,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     @Override
     @Transactional
     public PaymentFeeLink create(int amount, @NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) throws CheckDigitException {
+                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees) throws CheckDigitException {
         String paymentReference = paymentReferenceUtil.getNext();
 
         GovPayPayment govPayPayment = delegate.create(amount, paymentReference, description, returnUrl,
@@ -144,6 +143,13 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return paymentFeeLinks;
     }
 
+    @Override
+    public List<PaymentFeeLink> searchByCase(String ccdCaseNumber) {
+        return paymentFeeLinkRepository.findAll(
+            isCcdCaseNumberEqualsTo(ccdCaseNumber)
+        );
+    }
+
     private static Specification findCardPaymentsByBetweenDates(Date fromDate, Date toDate, String type) {
         if (type.equals(PaymentMethodUtil.ALL.name())) {
 
@@ -177,6 +183,13 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         });
     }
 
+    private static Specification isCcdCaseNumberEqualsTo(String ccdCaseNumber) {
+        return ((root, query, cb) -> {
+            Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
+            return cb.equal(paymentJoin.get("ccdCaseNumber"), ccdCaseNumber);
+        });
+
+    }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRespository.findByReferenceAndPaymentMethod(paymentReference,

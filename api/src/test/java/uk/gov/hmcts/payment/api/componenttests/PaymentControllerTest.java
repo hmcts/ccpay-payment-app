@@ -1,15 +1,12 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.assertj.core.api.Assertions;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,10 +19,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.model.*;
@@ -40,7 +35,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.fasterxml.jackson.core.JsonParser.*;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -127,7 +121,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .reference("RC-1519-9028-1909-3890")
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -190,6 +184,30 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         List<PaymentDto> payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<List<PaymentDto>>(){});
 
         assertThat(payments.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("1");
+
+        MvcResult result = restActions
+            .get("/payments?ccd_case_number=ccdCaseNumber1")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        List<PaymentDto> payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<List<PaymentDto>>(){});
+
+        assertThat(payments.size()).isEqualTo(2);
+
+        PaymentDto payment = payments.get(0);
+
+        assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
+
+        assertThat(payment.getReference()).isNotBlank();
+        assertThat(payment.getAmount()).isPositive();
+        assertThat(payment.getDateCreated()).isNotNull();
+        assertThat(payment.getCustomerReference()).isNotBlank();
     }
 
     @Test
