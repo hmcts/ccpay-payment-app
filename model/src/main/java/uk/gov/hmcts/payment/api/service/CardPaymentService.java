@@ -13,7 +13,6 @@ public interface CardPaymentService<T, ID> {
 
     T retrieve(ID id);
 
-    List<T> search(Date startDate, Date endDate, String type);
+    List<T> search(Date startDate, Date endDate, String type, String ccdCaseNumber);
 
-    List<T> searchByCase(String ccdCaseNumber);
 }

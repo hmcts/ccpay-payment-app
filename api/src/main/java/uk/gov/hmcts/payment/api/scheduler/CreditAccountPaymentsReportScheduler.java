@@ -8,6 +8,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -26,17 +31,36 @@ public class CreditAccountPaymentsReportScheduler {
     private String endDate;
 
     @Autowired
-    public CreditAccountPaymentsReportScheduler(PaymentsReportService paymentsReportService,FeesService feesService) {
+    public CreditAccountPaymentsReportScheduler(PaymentsReportService paymentsReportService, FeesService feesService) {
         this.paymentsReportService = paymentsReportService;
         this.feesService = feesService;
     }
 
     @Scheduled(cron = "${pba.payments.report.schedule}")
     public void generateCreditAccountPaymentsReportTask() {
-        LOG.info("CreditAccountPaymentsReportScheduler -  Start of scheduled job for HMCTS-PBA Payments csv report file.");
-        feesService.dailyRefreshOfFeesData();
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(startDate, endDate);
-        LOG.info("CreditAccountPaymentsReportScheduler -  End of scheduled job for HMCTS-PBA Payments csv report file.");
+
+        try {
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+            sdf.setLenient(false);
+
+            Date fromDate = startDate == null ? paymentsReportService.getYesterdaysDate() : sdf.parse(startDate);
+            Date toDate = endDate == null ? new Date() : sdf.parse(endDate);
+
+            LOG.info("CreditAccountPaymentsReportScheduler -  Start of scheduled job for HMCTS-PBA Payments csv report file.");
+            feesService.dailyRefreshOfFeesData();
+            paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(fromDate, toDate);
+            LOG.info("CreditAccountPaymentsReportScheduler -  End of scheduled job for HMCTS-PBA Payments csv report file.");
+
+        } catch (ParseException paex) {
+
+            LOG.error("CreditAccountPaymentsReportScheduler - Error while creating credit account payments csv file."
+                + " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
+
+            throw new PaymentException("Input dates parsing exception, valid date format is dd-MM-yyyy");
+
+        }
+
     }
 
 }

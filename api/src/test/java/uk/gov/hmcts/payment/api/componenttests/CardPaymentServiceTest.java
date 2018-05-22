@@ -45,7 +45,7 @@ public class CardPaymentServiceTest extends ComponentTestBase {
         MutableDateTime mToDate = new MutableDateTime(toDate);
         mToDate.addDays(2);
 
-        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodUtil.CARD.name());
+        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodUtil.CARD.name(), null);
 
         assertNotNull(result);
         result.stream().forEach(g -> {

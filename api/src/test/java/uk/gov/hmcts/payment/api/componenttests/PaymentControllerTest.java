@@ -213,11 +213,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void searchCardPayments_withValidBetweenDates_shouldReturnOnlyCardPayments() throws Exception {
-        populateCardPaymentToDb("2");
-        populateCreditAccountPaymentToDb("1");
 
         String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().minus(Period.days(-1)).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().plusDays(1).toString(DATE_FORMAT);
+
+        populateCardPaymentToDb("2");
+        populateCreditAccountPaymentToDb("1");
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
@@ -249,11 +250,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void searchCreditPayments_withValidBetweenDates_shouldReturnOnlyPbaPayments() throws Exception {
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
 
         String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().minus(Period.days(-1)).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().plusDays(1).toString(DATE_FORMAT);
+
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=PBA")

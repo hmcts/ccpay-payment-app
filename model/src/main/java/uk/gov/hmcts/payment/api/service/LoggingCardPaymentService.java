@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.util.Date;
@@ -61,20 +62,12 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type) {
+    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
         LOG.info("Searching for payments between {} and {}", startDate, endDate);
 
-        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate, type);
+        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate, type, ccdCaseNumber);
         LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
         return paymentFeeLinks;
     }
 
-    @Override
-    public List<PaymentFeeLink> searchByCase(String ccdCaseNumber) {
-        LOG.info("Searching for payments for case {}", ccdCaseNumber);
-
-        List<PaymentFeeLink> paymentFeeLinks =  delegate.searchByCase(ccdCaseNumber);
-        LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
-        return paymentFeeLinks;
-    }
 }

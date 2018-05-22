@@ -63,27 +63,24 @@ public class PaymentsReportServiceTest {
 
     @Before
     public void setUp() throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        startDate =  sdf.parse(getYesterdaysDate("dd-MM-yyyy")) ;
-        endDate = sdf.parse(getTodaysDate("dd-MM-yyyy"));
+
+        startDate = getYesterdaysDate();
+        endDate = getTodaysDate();
 
         paymentsReportService = new PaymentsReportService(cardPaymentService,cardPaymentDtoMapper,
             creditAccountPaymentService,creditAccountDtoMapper,emailService,feesService,cardPaymentReconciliationReportEmail,creditAccountReconciliationReportEmail);
 
     }
 
-
-
-
     @Test
     public void shouldGenerateCardPaymentsCsvAndSendEmail()  {
         // given
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(null,null);
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(startDate,endDate);
 
         // then
-        verify(cardPaymentService).search(startDate,endDate, PaymentMethodUtil.CARD.name());
+        verify(cardPaymentService).search(startDate,endDate, "card", null);
         verify(emailService).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -94,7 +91,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(null,null);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(startDate,endDate);
 
         // then
         verify(creditAccountPaymentService).search(startDate,endDate);
@@ -104,43 +101,11 @@ public class PaymentsReportServiceTest {
     }
 
     @Test(expected = PaymentException.class)
-    public void shouldNotGenerateCardPaymentsCsvWhenDatesGivenAreEqual()  {
-        // given
-
-        // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"));
-
-        // then
-        verify(cardPaymentService,times(0)).search(startDate,startDate, PaymentMethodUtil.CARD.name());
-        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
-        verify(emailService,times(0)).sendEmail(cardPaymentReconciliationReportEmail);
-
-
-    }
-
-    @Test(expected = PaymentException.class)
-    public void shouldNotGenerateCardPaymentsCsvWhenStartDateGreaterThanEndDate()  {
-        // given
-
-        // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"));
-
-        // then
-        verify(cardPaymentService,times(0)).search(endDate,startDate, PaymentMethodUtil.CARD.name());
-        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
-        verify(emailService,times(0)).sendEmail(cardPaymentReconciliationReportEmail);
-
-
-    }
-
-
-
-    @Test(expected = PaymentException.class)
     public void shouldNotGenerateCreditAccountPaymentsCsvWhenDatesGivenAreEqual()  {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getYesterdaysDate("dd-MM-yyyy"),getYesterdaysDate("dd-MM-yyyy"));
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getYesterdaysDate(),getYesterdaysDate());
 
         // then
         verify(creditAccountPaymentService,times(0)).search(startDate,startDate);
@@ -156,7 +121,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate("dd-MM-yyyy"),getYesterdaysDate("yyyy-MM-dd"));
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate(),getYesterdaysDate());
 
         // then
         verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
@@ -172,7 +137,7 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate("yyyy-MM-dd"),getYesterdaysDate("dd-MM-yyyy"));
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate(),getYesterdaysDate());
 
         // then
         verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
@@ -181,17 +146,15 @@ public class PaymentsReportServiceTest {
 
     }
 
-    private String getYesterdaysDate(String format) {
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
+    private Date getYesterdaysDate() {
         Date now = new Date();
         MutableDateTime mtDtNow = new MutableDateTime(now);
         mtDtNow.addDays(-1);
-        return sdf.format(mtDtNow.toDate());
+        return mtDtNow.toDate();
     }
 
-    private String getTodaysDate(String format) {
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
-        return sdf.format(new Date());
+    private Date getTodaysDate() {
+        return new Date();
     }
 
 }

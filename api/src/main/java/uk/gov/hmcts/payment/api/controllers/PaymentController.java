@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.fees2.register.data.exceptions.BadRequestException;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
@@ -19,7 +20,10 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,17 +86,37 @@ public class PaymentController {
                                              @RequestParam(name = "payment_method", required = false) String paymentMethodType,
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
 
-        if (ccdCaseNumber != null) {
-            return new PaymentsResponse(paymentsReportService.findPaymentsByCcdCaseNumber(ccdCaseNumber).orElse(Collections.emptyList()));
+        try{
+            Date fromDate = null, toDate = null;
+
+            if(startDate != null) {
+
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                sdf.setLenient(false);
+
+                fromDate = sdf.parse(startDate);
+                toDate = endDate != null ? sdf.parse(endDate) : sdf.parse(paymentsReportService.getTodaysDate());
+
+                if(!fromDate.before(toDate)) {
+                    throw new PaymentException("Invalid input dates");
+                }
+
+            }
+
+            return new PaymentsResponse(
+                paymentsReportService
+                    .findCardPayments(fromDate, toDate, paymentMethodType, ccdCaseNumber)
+                    .orElse(Collections.emptyList())
+            );
+
+
+        } catch (ParseException paex) {
+
+            LOG.error("PaymentsReportService - Error while creating card payments csv file." +
+                " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
+
+            throw new PaymentException("Input dates parsing exception, valid date format is dd-MM-yyyy");
         }
-
-        PaymentMethodUtil paymentMethod = Optional.ofNullable(paymentMethodType)
-            .map(p -> PaymentMethodUtil.valueOf(p.toUpperCase()))
-            .orElse(PaymentMethodUtil.ALL);
-
-        Optional<List<PaymentDto>> paymentDtos = paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, paymentMethod.name());
-
-        return new PaymentsResponse(paymentDtos.orElse(Collections.emptyList()));
 
     }
 
