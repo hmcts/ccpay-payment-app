@@ -2,11 +2,12 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
-import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -74,7 +76,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -173,8 +175,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().minus(Period.days(-1)).toString(DATE_FORMAT);
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=ALL")
@@ -191,8 +194,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("2");
         populateCreditAccountPaymentToDb("1");
 
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().minus(Period.days(-1)).toString(DATE_FORMAT);
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
@@ -228,7 +231,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCreditAccountPaymentToDb("2");
 
         String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().minus(Period.days(-1)).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=PBA")
@@ -258,21 +261,44 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void searchAllPayment_withInvalidDateRanges_shouldReturn400() throws Exception {
+    public void searchAllPayments_withInvalidMethodType_shouldReturn400() throws Exception {
         populateCardPaymentToDb("1");
 
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = startDate;
 
         MvcResult result = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=UNKNOWN")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
+        assertThat(errorDTO.hasErrors()).isTrue();
+        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
+        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid payment method requested");
+    }
+
+    @Test
+    public void searchAllPayment_withFutureDate_shouldReturn400() throws Exception {
+        populateCardPaymentToDb("1");
+
+        String startDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = LocalDate.now().plusDays(1).toString(DATE_FORMAT);
+
+        MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=ALL")
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid input dates");
+        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
+        assertThat(errorDTO.hasErrors()).isTrue();
+        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
+        assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("end_date");
+        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Date cannot be in the future");
     }
 
     @Test
+    @Ignore
     public void searchAllPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
         populateCardPaymentToDb("1");
 

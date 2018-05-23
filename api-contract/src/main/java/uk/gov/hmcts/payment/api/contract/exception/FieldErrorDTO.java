@@ -1,5 +1,10 @@
 package uk.gov.hmcts.payment.api.contract.exception;
 
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@ToString
+@NoArgsConstructor
 public class FieldErrorDTO {
 
     private String field;
