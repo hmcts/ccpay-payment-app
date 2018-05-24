@@ -298,17 +298,21 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Ignore
     public void searchAllPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
         populateCardPaymentToDb("1");
-
 
         MvcResult result = restActions
             .get("/payments?start_date=12/05/2018&end_date=14-05-2018&payment_method=ALL")
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Input dates parsing exception, valid date format is dd-MM-yyyy");
+        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
+        assertThat(errorDTO.hasErrors()).isTrue();
+        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(2);
+        assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("start_date");
+        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid date format received");
+        assertThat(errorDTO.getFieldErrors().get(1).getField()).isEqualTo("end_date");
+        assertThat(errorDTO.getFieldErrors().get(1).getMessage()).isEqualTo("Invalid date format received");
     }
 
 }

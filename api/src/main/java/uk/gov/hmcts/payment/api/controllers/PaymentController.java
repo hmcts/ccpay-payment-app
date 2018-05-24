@@ -4,7 +4,6 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +21,11 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 import static uk.gov.hmcts.payment.api.util.PaymentMethodUtil.valueOf;
@@ -36,6 +35,8 @@ import static uk.gov.hmcts.payment.api.util.PaymentMethodUtil.valueOf;
 @SwaggerDefinition(tags = {@Tag(name = "PaymentController", description = "Payment API")})
 public class PaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
+
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentsReportService paymentsReportService;
@@ -84,14 +85,14 @@ public class PaymentController {
         @ApiResponse(code = 400, message = "Bad request")
     })
     @RequestMapping(value = "/payments", method = GET)
-    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) @DateTimeFormat(iso = DATE) Optional<LocalDate> startDateOptional,
-                                             @RequestParam(name = "end_date", required = false) @DateTimeFormat(iso = DATE) Optional<LocalDate> endDateOptional ,
+    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
+                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateString ,
                                              @RequestParam(name = "payment_method", required = false, defaultValue = "ALL") String paymentMethodType) {
 
-        LocalDate startDate = startDateOptional.orElse(LocalDate.now().minusDays(1));
-        LocalDate endDate = endDateOptional.orElse(LocalDate.now());
+        validator.validate(paymentMethodType, startDateString, endDateString);
 
-        validator.validate(paymentMethodType, startDate, endDate);
+        LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(LocalDate.now().minusDays(1));
+        LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(LocalDate.now());
 
         List<PaymentFeeLink>  paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()));
         List<PaymentDto> paymentDto = paymentFeeLinks.stream()
