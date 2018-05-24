@@ -127,7 +127,7 @@ public class PaymentsReportService {
             throw new PaymentException("Input dates parsing exception, valid date format is dd-MM-yyyy");
         }
 
-        return Optional.of(getCsvReportData(cardPayments));
+        return Optional.of(enrichWithFeeData(cardPayments));
     }
 
     public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) {
@@ -166,7 +166,7 @@ public class PaymentsReportService {
 
         }
 
-        return Optional.of(getCsvReportData(creditAccountPayments));
+        return Optional.of(enrichWithFeeData(creditAccountPayments));
     }
 
     public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) {
@@ -220,7 +220,7 @@ public class PaymentsReportService {
 
     }
 
-    private List<PaymentDto> getCsvReportData(List<PaymentDto> payments) {
+    public List<PaymentDto> enrichWithFeeData(List<PaymentDto> payments) {
         for (PaymentDto payment : payments) {
             for (FeeDto fee : payment.getFees()) {
                 Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());

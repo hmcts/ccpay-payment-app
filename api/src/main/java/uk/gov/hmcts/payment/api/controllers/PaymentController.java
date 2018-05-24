@@ -12,19 +12,23 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
-import java.util.Collections;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
+import static uk.gov.hmcts.payment.api.util.PaymentMethodUtil.valueOf;
 
 @RestController
 @Api(tags = {"PaymentController"})
@@ -32,14 +36,19 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
 
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
+
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentsReportService paymentsReportService;
+    private final CardPaymentDtoMapper cardPaymentDtoMapper;
+    private final PaymentValidator validator;
 
     @Autowired
-    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
-                             PaymentsReportService paymentsReportService) {
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService, CardPaymentDtoMapper cardPaymentDtoMapper, PaymentValidator paymentValidator) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
+        this.cardPaymentDtoMapper = cardPaymentDtoMapper;
+        this.validator = paymentValidator;
     }
 
 
@@ -76,17 +85,20 @@ public class PaymentController {
         @ApiResponse(code = 400, message = "Bad request")
     })
     @RequestMapping(value = "/payments", method = GET)
-    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) String startDate,
-                                             @RequestParam(name = "end_date", required = false) String endDate,
-                                             @RequestParam(name = "payment_method", required = false) String paymentMethodType) {
+    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
+                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateString ,
+                                             @RequestParam(name = "payment_method", required = false, defaultValue = "ALL") String paymentMethodType) {
 
-        PaymentMethodUtil paymentMethod =  Optional.ofNullable(paymentMethodType)
-            .map(p -> PaymentMethodUtil.valueOf(p.toUpperCase()))
-            .orElse(PaymentMethodUtil.ALL);
+        validator.validate(paymentMethodType, startDateString, endDateString);
 
-        Optional<List<PaymentDto>> paymentDtos = paymentsReportService.findCardPaymentsBetweenDates(startDate, endDate, paymentMethod.name());
+        LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(LocalDate.now().minusDays(1));
+        LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(LocalDate.now());
 
-        return new PaymentsResponse(paymentDtos.orElse(Collections.emptyList()));
+        List<PaymentFeeLink>  paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()));
+        List<PaymentDto> paymentDto = paymentFeeLinks.stream()
+            .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+
+        return new PaymentsResponse(paymentsReportService.enrichWithFeeData(paymentDto));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
