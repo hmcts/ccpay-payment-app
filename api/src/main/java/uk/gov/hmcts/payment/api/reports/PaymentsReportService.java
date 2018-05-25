@@ -18,13 +18,11 @@ import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -98,7 +96,7 @@ public class PaymentsReportService {
     public Optional<List<PaymentDto>> findCardPayments(Date startDate, Date endDate, String type, String ccdCaseNumber) {
 
         return Optional.of(
-            getCsvReportData(
+            enrichWithFeeData(
                 cardPaymentService
                     .search(startDate, endDate, type, ccdCaseNumber)
                     .stream()
@@ -106,7 +104,6 @@ public class PaymentsReportService {
                     .collect(Collectors.toList())
             )
         );
-
     }
 
     public void generateCardPaymentsCsvAndSendEmail(Date startDate, Date endDate) {
@@ -130,7 +127,8 @@ public class PaymentsReportService {
         List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(startDate, endDate).stream()
             .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-        return Optional.of(getCsvReportData(creditAccountPayments));
+        return Optional.of(enrichWithFeeData(creditAccountPayments));
+
     }
 
     public void generateCreditAccountPaymentsCsvAndSendEmail(Date startDate, Date endDate) {
@@ -184,15 +182,13 @@ public class PaymentsReportService {
 
     }
 
-    private List<PaymentDto> getCsvReportData(List<PaymentDto> payments) {
+    public List<PaymentDto> enrichWithFeeData(List<PaymentDto> payments) {
         for (PaymentDto payment : payments) {
             for (FeeDto fee : payment.getFees()) {
                 Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
                 if (optionalFeeVersionDto.isPresent()) {
                     fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
                     fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
-                    FeeDto currPaymentFee = payment.getFees().stream().filter(f -> f.getCode().equals(fee.getCode())).findAny().get();
-                    fee.setVolume(currPaymentFee.getVolume());
                 }
             }
         }
@@ -203,11 +199,6 @@ public class PaymentsReportService {
         MutableDateTime mtDtNow = new MutableDateTime(new Date());
         mtDtNow.addDays(-1);
         return mtDtNow.toDate();
-    }
-
-    public String getTodaysDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        return sdf.format(new Date());
     }
 
 }
