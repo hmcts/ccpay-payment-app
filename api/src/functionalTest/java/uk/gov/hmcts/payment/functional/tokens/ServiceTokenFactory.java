@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional.tokens;
 
 
+import io.restassured.RestAssured;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
@@ -18,6 +19,6 @@ public class ServiceTokenFactory {
     }
 
     public String validTokenForService(String microservice) {
-        return "Bearer " + post(baseUrl + "/testing-support/lease?microservice={microservice}", microservice).body().asString();
+        return "Bearer " + RestAssured.given().relaxedHTTPSValidation().post(baseUrl + "/testing-support/lease?microservice={microservice}", microservice).body().asString();
     }
 }
