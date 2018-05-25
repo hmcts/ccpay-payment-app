@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String> {
@@ -37,8 +38,12 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     public List<PaymentFeeLink> search(LocalDate startDate, LocalDate endDate, PaymentMethodUtil type) {
-        Date fromDateTime = Date.from(startDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        Date toDateTime = Date.from(endDate.atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
+        Date fromDateTime = Optional.ofNullable(startDate)
+            .map(s -> Date.from(s.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()))
+            .orElse(null);
+        Date toDateTime = Optional.ofNullable(endDate)
+            .map(s -> Date.from(s.atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant()))
+            .orElse(null);
         return cardPaymentService.search(fromDateTime, toDateTime, type.name());
     }
 

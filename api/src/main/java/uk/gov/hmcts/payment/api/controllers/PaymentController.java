@@ -91,8 +91,8 @@ public class PaymentController {
 
         validator.validate(paymentMethodType, startDateString, endDateString);
 
-        LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(LocalDate.now().minusDays(1));
-        LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(LocalDate.now());
+        LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
+        LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
 
         List<PaymentFeeLink>  paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()));
         List<PaymentDto> paymentDto = paymentFeeLinks.stream()
