@@ -9,13 +9,16 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 
+import javax.validation.ValidationException;
 import java.util.List;
 import java.util.Locale;
-
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @ControllerAdvice
 public class RestErrorHandler {
@@ -35,6 +38,14 @@ public class RestErrorHandler {
 
         return processFieldErrors(fieldErrors);
 
+    }
+
+    @ExceptionHandler(ValidationErrorException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ValidationErrorDTO validationException(ValidationErrorException ex) {
+        LOG.debug("ValidationErrors are :{}", ex.getErrors(), ex);
+        return ex.getErrors();
     }
 
     private ValidationErrorDTO processFieldErrors(List<FieldError> fieldErrors) {
