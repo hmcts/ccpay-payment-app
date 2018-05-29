@@ -41,6 +41,18 @@ databaseChangeLog:
               type: varchar(255)
           tableName: status_history
 
+- changeSet:
+    id: 1520495787680-4
+    author: eduardo
+    changes:
+      - createIndex:
+          indexName: ix_pay_ccd_case_number
+          tableName: payment
+          unique: false
+          columns:
+          - column:
+              name: ccd_case_number
+              type: varchar(255)
 
 - changeSet:
     id: 1526550938495-1
@@ -53,5 +65,6 @@ databaseChangeLog:
               type: int
               defaultValue: 1
           tableName: fee
+
 
 

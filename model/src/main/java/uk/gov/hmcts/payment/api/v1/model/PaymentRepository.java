@@ -10,4 +10,6 @@ public interface PaymentRepository extends CrudRepository<PaymentOld, Integer> {
     <S extends PaymentOld> S save(S entity);
 
     Optional<PaymentOld> findByUserIdAndId(String userId, Integer id);
+
+
 }

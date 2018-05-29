@@ -7,9 +7,10 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.util.Date;
@@ -41,7 +42,7 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
 
     @Override
     public PaymentFeeLink create(int amount, @NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<Fee> fees) throws CheckDigitException {
+                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = delegate.create(amount, paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
 
         Payment payment = paymentFeeLink.getPayments().get(0);
@@ -61,10 +62,10 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type) {
+    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
         LOG.info("Searching for payments between {} and {}", startDate, endDate);
 
-        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate, type);
+        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate, type, ccdCaseNumber);
         LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
         return paymentFeeLinks;
     }

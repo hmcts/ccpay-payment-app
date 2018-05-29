@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
@@ -77,7 +77,7 @@ public class CreditAccountPaymentController {
             .siteId(creditAccountPaymentRequest.getSiteId())
             .build();
 
-        List<Fee> fees = creditAccountPaymentRequest.getFees().stream()
+        List<PaymentFee> fees = creditAccountPaymentRequest.getFees().stream()
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
@@ -99,7 +99,7 @@ public class CreditAccountPaymentController {
         Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
             .findAny()
             .orElseThrow(PaymentNotFoundException::new);
-        List<Fee> fees = paymentFeeLink.getFees();
+        List<PaymentFee> fees = paymentFeeLink.getFees();
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), OK);
     }
 

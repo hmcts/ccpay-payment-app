@@ -10,6 +10,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component
@@ -41,13 +45,23 @@ public class GenerateCsvReportsAtApplicationStartUp implements ApplicationListen
     @Override
     public void onApplicationEvent(final ApplicationReadyEvent event) {
 
-        LOG.info("GenerateCsvReportsAtApplicationStartUp -  Start of generation of HMCTS-Card Payments csv report file.");
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(cardPaymentsStartDate, cardPaymentsEndDate);
-        LOG.info("GenerateCsvReportsAtApplicationStartUp -  End of generation of HMCTS-Card Payments csv report file.");
+        try {
 
-        LOG.info("GenerateCsvReportsAtApplicationStartUp -  Start of generation of HMCTS-PBA Payments csv report file.");
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(creditAccountPaymentsStartDate, creditAccountPaymentsEndDate);
-        LOG.info("GenerateCsvReportsAtApplicationStartUp -  End of generation of HMCTS-PBA Payments csv report file.");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+            sdf.setLenient(false);
 
+            Date fromDate = cardPaymentsStartDate == null ? null : sdf.parse(cardPaymentsStartDate);
+            Date toDate = cardPaymentsEndDate == null ? null : sdf.parse(cardPaymentsEndDate);
+
+            LOG.info("GenerateCsvReportsAtApplicationStartUp -  Start of generation of HMCTS-Card Payments csv report file.");
+            paymentsReportService.generateCardPaymentsCsvAndSendEmail(fromDate, toDate);
+            LOG.info("GenerateCsvReportsAtApplicationStartUp -  End of generation of HMCTS-Card Payments csv report file.");
+
+            LOG.info("GenerateCsvReportsAtApplicationStartUp -  Start of generation of HMCTS-PBA Payments csv report file.");
+            paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(fromDate, toDate);
+            LOG.info("GenerateCsvReportsAtApplicationStartUp -  End of generation of HMCTS-PBA Payments csv report file.");
+        } catch (ParseException ex) {
+            LOG.error("Bad date provided at application startup: " + ex.getMessage(), ex);
+        }
     }
 }

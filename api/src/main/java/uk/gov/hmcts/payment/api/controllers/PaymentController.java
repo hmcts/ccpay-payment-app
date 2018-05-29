@@ -20,6 +20,7 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
+import javax.xml.stream.events.StartDocument;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -86,19 +87,22 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method = GET)
     public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
-                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateString ,
-                                             @RequestParam(name = "payment_method", required = false, defaultValue = "ALL") String paymentMethodType) {
+                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateString,
+                                             @RequestParam(name = "payment_method", required = false, defaultValue = "ALL") String paymentMethodType,
+                                             @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
 
         validator.validate(paymentMethodType, startDateString, endDateString);
 
         LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
         LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
 
-        List<PaymentFeeLink>  paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()));
+        List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()), ccdCaseNumber);
+
         List<PaymentDto> paymentDto = paymentFeeLinks.stream()
             .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
         return new PaymentsResponse(paymentsReportService.enrichWithFeeData(paymentDto));
+
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

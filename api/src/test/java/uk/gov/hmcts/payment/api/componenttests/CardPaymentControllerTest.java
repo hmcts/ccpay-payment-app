@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import lombok.SneakyThrows;
+
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -194,7 +195,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .externalStatus("created")
                 .build()))
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162001").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -240,7 +241,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .reference("RC-1519-9028-2432-9115")
             .statusHistories(Arrays.asList(statusHistory))
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("499.99")).version("1").code("X0123").build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("499.99")).version("1").code("X0123").build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162002").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -297,7 +298,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .reference("RC-1518-9429-1432-7825")
             .statusHistories(Arrays.asList(statusHistory))
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("X0011").build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("X0011").build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162003").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);

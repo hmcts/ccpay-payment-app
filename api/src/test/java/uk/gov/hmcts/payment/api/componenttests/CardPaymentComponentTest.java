@@ -2,9 +2,9 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 
 import org.junit.Test;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBase;
-import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static uk.gov.hmcts.payment.api.model.Fee.*;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.*;
 import static uk.gov.hmcts.payment.api.model.Payment.*;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.*;
 
@@ -120,8 +120,8 @@ public class CardPaymentComponentTest extends ComponentTestBase {
         return payments;
     }
 
-    private List<Fee> getFeesData() {
-        List<Fee> fees = new ArrayList<>();
+    private List<PaymentFee> getFeesData() {
+        List<PaymentFee> fees = new ArrayList<>();
         fees.add(feeWith().code("X0011").version("1").build());
         fees.add(feeWith().code("X0022").version("2").build());
         fees.add(feeWith().code("X0033").version("3").build());
