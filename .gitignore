@@ -18,9 +18,10 @@ build/
 *.iml
 *.ipr
 *.class
-<<<<<<< HEAD
-
 
 #### Payment audit log ####
 payment-audit.log
 api/src/main/resources/application.properties
+
+api/out/
+gov-pay-client/out/

@@ -1,4 +1,12 @@
 databaseChangeLog:
+
+- changeSet:
+    id: 1520495787677-999
+    author: Eduardo
+    changes:
+      - sql:
+          sql: CREATE INDEX ix_pay_date_updated ON payment (date_updated DESC);
+
 - changeSet:
     id: 1520495787678-1
     author: Jalal (generated)
