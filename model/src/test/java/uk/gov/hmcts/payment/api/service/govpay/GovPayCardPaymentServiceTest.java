@@ -7,7 +7,7 @@ import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
-import uk.gov.hmcts.payment.api.model.Fee;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 
@@ -58,7 +58,7 @@ public class GovPayCardPaymentServiceTest {
 
         GovPayPayment govPayPayment = govPayCardPaymentService.create(10000, "reference", "description", "https://www.google.com",
             "ccdCaseNumer", "caseReference", "GBP", "siteId", "divorce",
-            Arrays.asList(Fee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode").version("1")
+            Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode").version("1")
                 .build()));
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getAmount(), new Integer(10000));

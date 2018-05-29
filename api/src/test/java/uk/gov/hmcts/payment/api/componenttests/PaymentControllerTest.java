@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.joda.time.DateTimeUtils;
@@ -123,7 +124,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .reference("RC-1519-9028-1909-3890")
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -190,7 +191,32 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("1");
+
+        MvcResult result = restActions
+            .get("/payments?ccd_case_number=ccdCaseNumber1")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>(){});
+
+        assertThat(payments.getPayments().size()).isEqualTo(2);
+
+        PaymentDto payment = payments.getPayments().get(0);
+
+        assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
+
+        assertThat(payment.getReference()).isNotBlank();
+        assertThat(payment.getAmount()).isPositive();
+        assertThat(payment.getDateCreated()).isNotNull();
+        assertThat(payment.getCustomerReference()).isNotBlank();
+    }
+
+    @Test
     public void searchCardPayments_withValidBetweenDates_shouldReturnOnlyCardPayments() throws Exception {
+
         populateCardPaymentToDb("2");
         populateCreditAccountPaymentToDb("1");
 
@@ -227,10 +253,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void searchCreditPayments_withValidBetweenDates_shouldReturnOnlyPbaPayments() throws Exception {
+
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
 
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions

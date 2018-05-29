@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static uk.gov.hmcts.payment.api.model.Fee.feeWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
@@ -56,8 +56,8 @@ public class PaymentsDataUtil {
         return payments;
     }
 
-    public List<Fee> getFeesData() {
-        List<Fee> fees = new ArrayList<>();
+    public List<PaymentFee> getFeesData() {
+        List<PaymentFee> fees = new ArrayList<>();
         fees.add(feeWith().code("X0011").version("1").build());
         fees.add(feeWith().code("X0022").version("2").build());
         fees.add(feeWith().code("X0033").version("3").build());
@@ -86,7 +86,8 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-2432-000" + number)
             .statusHistories(Arrays.asList(statusHistory))
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -109,7 +110,8 @@ public class PaymentsDataUtil {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .reference("RC-1519-9028-1909-000" + number)
             .build();
-        Fee fee = Fee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);

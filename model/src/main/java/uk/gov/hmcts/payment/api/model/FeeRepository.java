@@ -2,8 +2,8 @@ package uk.gov.hmcts.payment.api.model;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface FeeRepository  extends CrudRepository<Fee, Integer> {
+public interface FeeRepository  extends CrudRepository<PaymentFee, Integer> {
 
-    <S extends Fee> S save(S entity);
+    <S extends PaymentFee> S save(S entity);
 
 }

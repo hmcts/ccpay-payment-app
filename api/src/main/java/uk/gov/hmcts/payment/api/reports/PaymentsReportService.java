@@ -15,18 +15,14 @@ import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.CreditAccountReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
-import uk.gov.hmcts.payment.api.model.Fee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -60,7 +56,7 @@ public class PaymentsReportService {
     private static final String CARD_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
         "CCD reference,Case reference,Payment created date,Payment status updated date,Payment status," +
         "Payment channel,Payment method,Payment amount,Site id,Fee code,Version,Calculated amount,Memo line,NAC," +
-        "Fee volume";
+        "PaymentFee volume";
 
     private static final String CREDIT_ACCOUNT_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
         "CCD reference,Case reference,Organisation name,Customer internal reference,PBA Number,Payment created date," +
@@ -97,41 +93,22 @@ public class PaymentsReportService {
 
     }
 
-    public Optional<List<PaymentDto>> findPaymentsBetweenDates(String startDate, String endDate, String type) {
-        return findCardPaymentsBetweenDates(startDate, endDate, type);
+    public Optional<List<PaymentDto>> findCardPayments(Date startDate, Date endDate, String type, String ccdCaseNumber) {
+
+        return Optional.of(
+            enrichWithFeeData(
+                cardPaymentService
+                    .search(startDate, endDate, type, ccdCaseNumber)
+                    .stream()
+                    .map(cardPaymentDtoMapper::toReconciliationResponseDto)
+                    .collect(Collectors.toList())
+            )
+        );
     }
 
-    public Optional<List<PaymentDto>> findCardPaymentsBetweenDates(String startDate, String endDate, String type) {
-        List<PaymentDto> cardPayments = null;
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        sdf.setLenient(false);
-        try {
-            Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
-            Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
+    public void generateCardPaymentsCsvAndSendEmail(Date startDate, Date endDate) {
 
-
-            /** --- handle this at the controller level --- */
-            if (fromDate.after(toDate) || fromDate.compareTo(toDate) == 0) {
-                LOG.error("PaymentsReportService - Error while card  payments csv file. Incorrect start and end dates ");
-
-                throw new PaymentException("Invalid input dates");
-            }
-
-            cardPayments = cardPaymentService.search(fromDate, toDate, type).stream()
-                    .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
-        } catch (ParseException paex) {
-
-            LOG.error("PaymentsReportService - Error while creating card payments csv file." +
-                " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
-
-            throw new PaymentException("Input dates parsing exception, valid date format is dd-MM-yyyy");
-        }
-
-        return Optional.of(enrichWithFeeData(cardPayments));
-    }
-
-    public void generateCardPaymentsCsvAndSendEmail(String startDate, String endDate) {
-        List<PaymentDto> cardPaymentsCsvData = findCardPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.CARD.name())
+        List<PaymentDto> cardPaymentsCsvData = findCardPayments(startDate, endDate, "card", null)
             .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
 
         String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
@@ -139,37 +116,22 @@ public class PaymentsReportService {
         generateCsvAndSendEmail(cardPaymentsCsvData, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
     }
 
-    public Optional<List<PaymentDto>> findCreditAccountPaymentsBetweenDates(String startDate, String endDate) {
-        List<PaymentDto> creditAccountPayments = null;
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        sdf.setLenient(false);
-        try {
-            Date fromDate = startDate == null ? sdf.parse(getYesterdaysDate()) : sdf.parse(startDate);
-            Date toDate = endDate == null ? sdf.parse(getTodaysDate()) : sdf.parse(endDate);
+    public Optional<List<PaymentDto>> findCreditAccountPaymentsBetweenDates(Date startDate, Date endDate) {
 
-            if (fromDate.after(toDate) || fromDate.compareTo(toDate) == 0) {
-                LOG.error("PaymentsReportService - Error while creating credit account payments csv file. Incorrect start and end dates ");
+        if (startDate.after(endDate) || startDate.compareTo(endDate) == 0) {
+            LOG.error("PaymentsReportService - Error while creating credit account payments csv file. Incorrect start and end dates ");
 
-                throw new PaymentException("Invalid input dates");
-            }
-
-            creditAccountPayments = creditAccountPaymentService.search(fromDate, toDate).stream()
-                .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
-
-
-        } catch (ParseException paex) {
-
-            LOG.error("PaymentsReportService - Error while creating credit account payments csv file."
-                + " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
-
-            throw new PaymentException("Input dates parsing exception, valid date format is dd-MM-yyyy");
-
+            throw new PaymentException("Invalid input dates");
         }
 
+        List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(startDate, endDate).stream()
+            .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+
         return Optional.of(enrichWithFeeData(creditAccountPayments));
+
     }
 
-    public void generateCreditAccountPaymentsCsvAndSendEmail(String startDate, String endDate) {
+    public void generateCreditAccountPaymentsCsvAndSendEmail(Date startDate, Date endDate) {
         List<PaymentDto> creditAccountPaymentsCsvData = findCreditAccountPaymentsBetweenDates(startDate, endDate)
             .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
 
@@ -233,17 +195,10 @@ public class PaymentsReportService {
         return payments;
     }
 
-    private String getYesterdaysDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        Date now = new Date();
-        MutableDateTime mtDtNow = new MutableDateTime(now);
+    public Date getYesterdaysDate() {
+        MutableDateTime mtDtNow = new MutableDateTime(new Date());
         mtDtNow.addDays(-1);
-        return sdf.format(mtDtNow.toDate());
-    }
-
-    private String getTodaysDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        return sdf.format(new Date());
+        return mtDtNow.toDate();
     }
 
 }

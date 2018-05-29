@@ -34,7 +34,6 @@ public class CreditAccountPaymentsReportSchedulerTest {
 
         // then
         verify(feesService).dailyRefreshOfFeesData();
-        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(null,null);
     }
 }
 

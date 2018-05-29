@@ -10,4 +10,6 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>{
 
     Optional<Payment> findByReference(String reference);
 
+    Optional<Payment> findByCcdCaseNumber(String ccdCaseNumber);
+
 }

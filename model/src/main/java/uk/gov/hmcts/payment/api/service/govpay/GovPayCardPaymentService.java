@@ -7,11 +7,11 @@ import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
-import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
-import uk.gov.hmcts.payment.api.model.Fee;
 
 import java.util.Date;
 import java.util.List;
@@ -40,7 +40,7 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
                                 String currency,
                                 String siteId,
                                 String serviceType,
-                                List<Fee> fees) {
+                                List<PaymentFee> fees) {
         String key = keyForCurrentService();
         return govPayClient.createPayment(key, new CreatePaymentRequest(amount, reference, description, returnUrl));
     }
@@ -51,7 +51,7 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     }
 
     @Override
-    public List<GovPayPayment> search(Date startDate, Date endDate, String type) {
+    public List<GovPayPayment> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
         return null;
     }
 

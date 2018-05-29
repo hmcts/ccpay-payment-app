@@ -9,5 +9,5 @@ public interface PaymentService<T, ID> {
 
     T retrieve(ID id);
 
-    List<T> search(LocalDate startDate, LocalDate endDate, PaymentMethodUtil type);
+    List<T> search(LocalDate startDate, LocalDate endDate, PaymentMethodUtil type, String ccdCaseNumber);
 }
