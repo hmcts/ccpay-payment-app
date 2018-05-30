@@ -3,12 +3,11 @@ package uk.gov.hmcts.payment.api.componenttests;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.joda.time.DateTimeUtils;
+import org.ff4j.services.domain.FeatureApiBean;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -172,9 +171,14 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void searchAllPayments_withValidBetweenDates_shouldReturn200() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
 
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
@@ -191,9 +195,14 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
 
         MvcResult result = restActions
             .get("/payments?ccd_case_number=ccdCaseNumber1")
@@ -215,6 +224,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void searchCardPayments_withValidBetweenDates_shouldReturnOnlyCardPayments() throws Exception {
 
         populateCardPaymentToDb("2");
@@ -222,6 +232,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
@@ -252,6 +266,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
 
     @Test
+    @Transactional
     public void searchCreditPayments_withValidBetweenDates_shouldReturnOnlyPbaPayments() throws Exception {
 
         populateCardPaymentToDb("1");
@@ -259,6 +274,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=PBA")
@@ -288,11 +307,16 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void searchAllPayments_withInvalidMethodType_shouldReturn400() throws Exception {
         populateCardPaymentToDb("1");
 
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = startDate;
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=UNKNOWN")
@@ -306,11 +330,16 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void searchAllPayment_withFutureDate_shouldReturn400() throws Exception {
         populateCardPaymentToDb("1");
 
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().plusDays(1).toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
 
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=ALL")
@@ -325,8 +354,13 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void searchAllPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
         populateCardPaymentToDb("1");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
 
         MvcResult result = restActions
             .get("/payments?start_date=12/05/2018&end_date=14-05-2018&payment_method=ALL")
@@ -340,6 +374,58 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid date format received");
         assertThat(errorDTO.getFieldErrors().get(1).getField()).isEqualTo("end_date");
         assertThat(errorDTO.getFieldErrors().get(1).getMessage()).isEqualTo("Invalid date format received");
+    }
+
+    @Test
+    public void testFindFeatureFlag_withCorrectUID() throws Exception {
+        MvcResult result = restActions
+            .get("/api/ff4j/store/features/payment-search")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
+        assertThat(feature.getUid()).isEqualTo("payment-search");
+        assertThat(feature.isEnable()).isEqualTo(false);
+        assertThat(feature.getDescription()).isEqualTo("Payments search API");
+    }
+
+    @Test
+    public void testFindFeatureFlag_withIncorrectUID_shouldReturn404() throws Exception {
+        restActions
+            .get("/api/ff4j/store/features/my-feature")
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
+    public void testEnableFeatureFlag_withCorrectUID() throws Exception {
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/api/ff4j/store/features/payment-search")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        FeatureApiBean feature = objectMapper.readValue(result.getResponse().getContentAsByteArray(), FeatureApiBean.class);
+        assertThat(feature.getUid()).isEqualTo("payment-search");
+        assertThat(feature.isEnable()).isEqualTo(true);
+        assertThat(feature.getDescription()).isEqualTo("Payments search API");
+    }
+
+    @Test
+    public void testRetrievePayments_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
+        restActions
+            .post("/api/ff4j/store/features/payment-search/disable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?payment_method=ALL")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Payment search feature is not available for usage.");
     }
 
 }
