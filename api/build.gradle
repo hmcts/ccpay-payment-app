@@ -54,7 +54,11 @@ dependencies {
   compile group: 'io.springfox', name: 'springfox-swagger2', version:'2.9.0'
   compile group: 'org.liquibase', name: 'liquibase-core', version:'3.5.3'
 
-  compile(group: 'org.postgresql', name: 'postgresql', version:'9.4.1212') {
+    compile group: 'org.ff4j', name: 'ff4j-spring-boot-web-api', version: '1.7.1'
+    compile group: 'org.ff4j', name: 'ff4j-web', version: '1.7.1'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
+
+    compile(group: 'org.postgresql', name: 'postgresql', version:'9.4.1212') {
     exclude(module: 'commons-logging')
     exclude(module: 'slf4j-simple')
   }
@@ -75,6 +79,7 @@ dependencies {
 
     testCompile group: 'org.projectlombok', name: 'lombok', version: '1.16.10'
     testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.0.7'
+    testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
 
     // smoke
     smokeTestCompile sourceSets.test.runtimeClasspath

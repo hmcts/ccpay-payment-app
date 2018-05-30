@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
+import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,13 +44,16 @@ public class PaymentController {
     private final PaymentsReportService paymentsReportService;
     private final CardPaymentDtoMapper cardPaymentDtoMapper;
     private final PaymentValidator validator;
+    private final FF4j ff4j;
 
     @Autowired
-    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService, CardPaymentDtoMapper cardPaymentDtoMapper, PaymentValidator paymentValidator) {
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
+                             CardPaymentDtoMapper cardPaymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
         this.validator = paymentValidator;
+        this.ff4j = ff4j;
     }
 
 
@@ -91,17 +95,22 @@ public class PaymentController {
                                              @RequestParam(name = "payment_method", required = false, defaultValue = "ALL") String paymentMethodType,
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
 
-        validator.validate(paymentMethodType, startDateString, endDateString);
+        if (!ff4j.check("payment-search")) {
+            throw new PaymentException("Payment search feature is not available for usage.");
+        } else {
+            validator.validate(paymentMethodType, startDateString, endDateString);
 
-        LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
-        LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
+            LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
+            LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
 
-        List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()), ccdCaseNumber);
+            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()), ccdCaseNumber);
 
-        List<PaymentDto> paymentDto = paymentFeeLinks.stream()
-            .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+            List<PaymentDto> paymentDto = paymentFeeLinks.stream()
+                .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-        return new PaymentsResponse(paymentsReportService.enrichWithFeeData(paymentDto));
+            return new PaymentsResponse(paymentsReportService.enrichWithFeeData(paymentDto));
+        }
+
 
     }
 
