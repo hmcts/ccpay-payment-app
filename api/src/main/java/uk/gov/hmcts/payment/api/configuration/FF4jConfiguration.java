@@ -24,8 +24,6 @@ public class FF4jConfiguration {
     @Bean
     public FF4j getFf4j() {
         Feature paymentSearchFeature = new Feature("payment-search", paymentSearch, "Payments search API");
-
-
         FF4j ff4j = new FF4j()
             .createFeature(paymentSearchFeature);
 
