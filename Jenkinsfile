@@ -23,6 +23,9 @@ lock(resource: "payment-app-${env.BRANCH_NAME}", inversePrecedence: true) {
             stage('Checkout') {
                 deleteDir()
                 checkout scm
+                dir('ansible-management') {
++                   git url: "https://github.com/hmcts/ansible-management", branch: "master", credentialsId: "jenkins-public-github-api-token"
++               }
             }
 
             stage('Build') {
