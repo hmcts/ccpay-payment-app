@@ -136,7 +136,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCardPaymentWithInValidInputData_shouldReturnStatusBadRequestTest() throws Exception {
+    public void createCardPaymentWithInvalidInputDataShouldReturnStatusBadRequestTest() throws Exception {
         restActions
             .withReturnUrl("https://www.google.com")
             .post("/card-payments", cardPaymentInvalidRequestJson())

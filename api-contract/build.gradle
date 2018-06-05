@@ -1,5 +1,6 @@
 
 description = ''
 dependencies {
-    compileOnly group: 'org.hibernate', name: 'hibernate-validator', version:'5.3.6.Final'
+    compile group: 'org.hibernate', name: 'hibernate-validator', version:'6.0.10.Final'
+    compile group: 'org.glassfish', name: 'javax.el', version: '3.0.1-b09'
 }
