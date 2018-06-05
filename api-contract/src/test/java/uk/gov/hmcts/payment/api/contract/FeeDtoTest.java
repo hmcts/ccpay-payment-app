@@ -1,13 +1,16 @@
 package uk.gov.hmcts.payment.api.contract;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import javax.validation.constraints.Positive;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +30,14 @@ public class FeeDtoTest {
         feeDto.setVolume(-1);
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
-        assertFalse(violations.isEmpty());
+        Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getMessage().equals("must be greater than 0")) {
+                assertTrue(true);
+                return;
+            }
+        }
+        assertTrue("Validation should catch a negative fee volume number", false);
     }
 
     @Test
@@ -36,7 +46,16 @@ public class FeeDtoTest {
         feeDto.setVolume(0);
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
-        assertFalse(violations.isEmpty());
+
+        Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getMessage().equals("must be greater than 0")) {
+                assertTrue(true);
+                return;
+            }
+        }
+
+        assertTrue("Validation should catch fee volume set to zero", false);
     }
 
 
