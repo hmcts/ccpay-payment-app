@@ -53,12 +53,12 @@ public class PaymentsComponentTest extends ComponentTestBase {
 
         tryCreateAndExpect(validRequest.withAmount(null), "amount: must not be null");
         tryCreateAndExpect(validRequest.withAmount(0), "amount: must be greater than or equal to 1");
-        tryCreateAndExpect(validRequest.withReference(null), "reference: may not be empty");
-        tryCreateAndExpect(validRequest.withReference(""), "reference: may not be empty");
-        tryCreateAndExpect(validRequest.withDescription(null), "description: may not be empty");
-        tryCreateAndExpect(validRequest.withDescription(""), "description: may not be empty");
-        tryCreateAndExpect(validRequest.withReturnUrl(null), "returnUrl: may not be empty");
-        tryCreateAndExpect(validRequest.withReturnUrl(""), "returnUrl: may not be empty");
+        tryCreateAndExpect(validRequest.withReference(null), "reference: must not be empty");
+        tryCreateAndExpect(validRequest.withReference(""), "reference: must not be empty");
+        tryCreateAndExpect(validRequest.withDescription(null), "description: must not be empty");
+        tryCreateAndExpect(validRequest.withDescription(""), "description: must not be empty");
+        tryCreateAndExpect(validRequest.withReturnUrl(null), "returnUrl: must not be empty");
+        tryCreateAndExpect(validRequest.withReturnUrl(""), "returnUrl: must not be empty");
         tryCreateAndExpect(validRequest.withReturnUrl("invalid"), "returnUrl: must be a valid URL");
         tryCreateAndExpect(validRequest.withReturnUrl("http://invalid"), "returnUrl: must be a valid URL");
     }
