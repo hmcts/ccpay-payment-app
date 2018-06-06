@@ -94,10 +94,10 @@ variable "pba_payments_email_message" {
   default = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 }
 
-variable "fees_register_url" {
-  default = "https://test.fees-register.reform.hmcts.net:4431"
-}
-
 variable "payment_audit_file" {
   default = "%HOME%\\LogFiles\\payment-audit.log"
+}
+
+variable "capacity" {
+  default = "1"
 }
