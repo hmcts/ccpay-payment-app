@@ -151,4 +151,9 @@ See: https://github.com/ff4j/ff4j/commit/bb62e6c133c1d3f56a6e4f67d8cc613fe69e25d
         <gav regex="true">.*</gav>
         <cve>CVE-2018-1196</cve>
     </suppress>
+    <suppress>
+    	<notes><![CDATA[Allows remote attackers to execute arbitrary code or conduct external XML entity (XXE) attacks]]></notes>
+    	<gav regex="true">^javax\.servlet:jstl:1\.2$</gav>
+    	<cve>CVE-2015-0254</cve>
+   </suppress>
 </suppressions>
