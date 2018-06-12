@@ -10,6 +10,7 @@ import springfox.documentation.RequestHandler;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.ResolvedMethodParameter;
@@ -18,6 +19,7 @@ import springfox.documentation.spi.service.ParameterBuilderPlugin;
 import springfox.documentation.spi.service.contexts.ParameterContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import uk.gov.hmcts.payment.api.controllers.PublicApi;
 
 import static org.apache.commons.lang3.StringUtils.*;
 import static springfox.documentation.builders.PathSelectors.regex;
@@ -82,6 +84,18 @@ public class SwaggerConfiguration {
             .build();
     }
 
+    @Bean
+    public Docket externalApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+            .groupName("payment-external")
+            .useDefaultResponseMessages(false)
+            .apiInfo(publicApiInfo())
+            .select()
+            .apis(RequestHandlerSelectors.withMethodAnnotation(PublicApi.class))
+            .paths(PathSelectors.any())
+            .build();
+    }
+
     private static Predicate<RequestHandler> packagesLike(final String pkg) {
         return input -> input.declaringClass().getPackage().getName().equals(pkg);
     }
@@ -97,6 +111,13 @@ public class SwaggerConfiguration {
         return new ApiInfoBuilder()
             .title("New payment API documentation")
             .description("New payment API documentation")
+            .build();
+    }
+
+    private ApiInfo publicApiInfo() {
+        return new ApiInfoBuilder()
+            .title("Payment public API documentation")
+            .description("Payment API exposed to external systems")
             .build();
     }
 
