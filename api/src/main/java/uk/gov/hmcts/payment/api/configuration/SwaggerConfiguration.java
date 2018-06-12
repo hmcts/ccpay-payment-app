@@ -19,10 +19,9 @@ import springfox.documentation.spi.service.ParameterBuilderPlugin;
 import springfox.documentation.spi.service.contexts.ParameterContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-import uk.gov.hmcts.payment.api.controllers.PublicApi;
+import uk.gov.hmcts.payment.api.controllers.PaymentExternalAPi;
 
 import static org.apache.commons.lang3.StringUtils.*;
-import static springfox.documentation.builders.PathSelectors.regex;
 
 @Configuration
 @EnableSwagger2
@@ -87,11 +86,11 @@ public class SwaggerConfiguration {
     @Bean
     public Docket externalApi() {
         return new Docket(DocumentationType.SWAGGER_2)
-            .groupName("payment-external")
+            .groupName("payment-external-api")
             .useDefaultResponseMessages(false)
             .apiInfo(publicApiInfo())
             .select()
-            .apis(RequestHandlerSelectors.withMethodAnnotation(PublicApi.class))
+            .apis(RequestHandlerSelectors.withMethodAnnotation(PaymentExternalAPi.class))
             .paths(PathSelectors.any())
             .build();
     }
