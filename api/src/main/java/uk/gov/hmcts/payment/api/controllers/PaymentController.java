@@ -100,7 +100,7 @@ public class PaymentController {
         @ApiResponse(code = 400, message = "Bad request")
     })
     @RequestMapping(value = "/payments", method = GET)
-    @PublicApi
+    @PaymentExternalAPI
     public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                              @RequestParam(name = "end_date", required = false) Optional<String> endDateString,
                                              @RequestParam(name = "payment_method", required = false, defaultValue = "ALL") String paymentMethodType,
