@@ -19,7 +19,7 @@ import springfox.documentation.spi.service.ParameterBuilderPlugin;
 import springfox.documentation.spi.service.contexts.ParameterContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-import uk.gov.hmcts.payment.api.controllers.PaymentExternalAPi;
+import uk.gov.hmcts.payment.api.controllers.PaymentExternalAPI;
 
 import static org.apache.commons.lang3.StringUtils.*;
 
@@ -90,7 +90,7 @@ public class SwaggerConfiguration {
             .useDefaultResponseMessages(false)
             .apiInfo(publicApiInfo())
             .select()
-            .apis(RequestHandlerSelectors.withMethodAnnotation(PaymentExternalAPi.class))
+            .apis(RequestHandlerSelectors.withMethodAnnotation(PaymentExternalAPI.class))
             .paths(PathSelectors.any())
             .build();
     }
