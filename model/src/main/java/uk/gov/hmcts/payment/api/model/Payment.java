@@ -52,6 +52,9 @@ public class Payment {
     @Column(name = "site_id")
     private String siteId;
 
+    @Column(name = "giro")
+    private String giro;
+
     @Transient
     private String status;
     @Transient

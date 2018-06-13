@@ -35,9 +35,9 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     private final UserIdSupplier userIdSupplier;
     private final CardPaymentService<PaymentFeeLink, String> delegate;
 
-    public LoggingCardPaymentService(UserIdSupplier userIdSupplier, CardPaymentService<PaymentFeeLink, String> delete) {
+    public LoggingCardPaymentService(UserIdSupplier userIdSupplier, CardPaymentService<PaymentFeeLink, String> delegate) {
         this.userIdSupplier = userIdSupplier;
-        this.delegate = delete;
+        this.delegate = delegate;
     }
 
     @Override
