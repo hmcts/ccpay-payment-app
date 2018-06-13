@@ -35,4 +35,12 @@ public class PaymentFee {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentLink;
+
+    @Column(name = "ccd_case_number")
+    private String ccdCaseNumber;
+
+    @Column(name = "case_reference")
+    private String caseReference;
+
+
 }
