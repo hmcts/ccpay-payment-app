@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.util;
 
+import org.apache.commons.validator.routines.checkdigit.CheckDigit;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.stereotype.Component;
@@ -23,7 +25,7 @@ public class PaymentReferenceUtil {
         SecureRandom random = new SecureRandom();
         sb.append(String.format("%04d", random.nextInt(10000)));
 
-        CheckDigitUtil checkDigit = new CheckDigitUtil(11);
+        CheckDigit checkDigit = new LuhnCheckDigit();
         sb.append(checkDigit.calculate(sb.toString()));
 
         String[] parts = sb.toString().split(PAYMENT_REF_REGEX);
