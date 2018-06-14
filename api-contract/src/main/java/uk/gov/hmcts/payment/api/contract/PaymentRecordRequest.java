@@ -41,7 +41,6 @@ public class PaymentRecordRequest {
 
     private CurrencyCode currency;
 
-    @NotEmpty
     private String giro;
 
     @NotEmpty

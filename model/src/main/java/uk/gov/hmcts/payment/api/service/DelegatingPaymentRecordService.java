@@ -24,20 +24,17 @@ public class DelegatingPaymentRecordService implements PaymentRecordService<Paym
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentMethodRepository paymentMethodRepository;
-    private final Payment2Repository paymentRespository;
     private final PaymentReferenceUtil paymentReferenceUtil;
 
     @Autowired
     public DelegatingPaymentRecordService(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                           PaymentChannelRepository paymentChannelRepository,
                                           PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                          PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                          PaymentReferenceUtil paymentReferenceUtil) {
+                                          PaymentStatusRepository paymentStatusRepository, PaymentReferenceUtil paymentReferenceUtil) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentStatusRepository = paymentStatusRepository;
-        this.paymentRespository = paymentRespository;
         this.paymentReferenceUtil = paymentReferenceUtil;
     }
 
@@ -46,17 +43,21 @@ public class DelegatingPaymentRecordService implements PaymentRecordService<Paym
     public PaymentFeeLink recordPayment(Payment recordPayment, List<PaymentFee> fees, String paymentGroupReference) throws CheckDigitException {
         LOG.debug("Record payment with PaymentGroupReference: {}", paymentGroupReference);
 
+        PaymentFeeLink paymentFeeLink = populatePaymentDetails(recordPayment, fees, paymentGroupReference);
+        return  paymentFeeLinkRepository.save(paymentFeeLink);
+    }
 
-        Payment payment = null;
-        try {
-            payment = Payment.paymentWith()
-                .amount(recordPayment.getAmount())
-                .ccdCaseNumber(recordPayment.getCcdCaseNumber())
-                .caseReference(recordPayment.getCaseReference())
-                .currency(recordPayment.getCurrency())
-                .siteId(recordPayment.getSiteId())
-                .giro(recordPayment.getGiro())
-                .serviceType(recordPayment.getServiceType())
+    protected PaymentFeeLink populatePaymentDetails(Payment payment, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
+
+        return PaymentFeeLink.paymentFeeLinkWith()
+            .payments(Arrays.asList(Payment.paymentWith()
+                .amount(payment.getAmount())
+                .ccdCaseNumber(payment.getCcdCaseNumber())
+                .caseReference(payment.getCaseReference())
+                .currency(payment.getCurrency())
+                .siteId(payment.getSiteId())
+                .giro(payment.getGiro())
+                .serviceType(payment.getServiceType())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_SUCCESS))
                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CASH))
@@ -64,17 +65,8 @@ public class DelegatingPaymentRecordService implements PaymentRecordService<Paym
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                     .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_SUCCESS).getName())
                     .build()))
-                .build();
-        } catch (CheckDigitException e) {
-            LOG.error("Error in generating check digit for the payment reference, {}", e);
-        }
-
-        PaymentFeeLink result =  paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
-            .paymentReference(paymentGroupReference)
-            .payments(Arrays.asList(payment))
+                .build()))
             .fees(fees)
-            .build());
-
-        return result;
+            .build();
     }
 }
