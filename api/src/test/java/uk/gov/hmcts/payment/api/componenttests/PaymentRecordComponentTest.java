@@ -6,14 +6,14 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBase;
+import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBaseUtil;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class PaymentRecordComponentTest extends ComponentTestBase {
+public class PaymentRecordComponentTest extends ComponentTestBaseUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
