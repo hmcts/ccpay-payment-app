@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +8,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBaseUtil;
 
 import java.math.BigDecimal;
 import java.util.Arrays;

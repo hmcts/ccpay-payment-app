@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class SpringConfigurationComponentTest extends ComponentTestBaseUtil {
+public class SpringConfigurationComponentTest extends ComponentTestUtil {
 
     @Test
     public void invalidRequestShouldResultIn400() throws Exception {
