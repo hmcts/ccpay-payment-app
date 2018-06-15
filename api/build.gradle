@@ -89,7 +89,6 @@ dependencies {
 
 test {
     // Base test class for other tests - has no runnable test methods
-    exclude '**/ComponentTestBase*'
     exclude 'uk/gov/hmcts/payment/api/v1/**'
 }
 
