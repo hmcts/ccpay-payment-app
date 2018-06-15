@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
     <suppress>
+        <notes>Temporary postgres vulnerability suppression</notes>
+        <gav regex="true">^org\.postgresql:postgresql.*:.*$</gav>
+        <cve>CVE-2018-1115</cve>
+    </suppress>
+    <suppress>
         <notes>Suppress spring-boot-starter-data-jpa being matched as spring-data-jpa</notes>
         <gav regex="true">^org\.springframework\.boot:spring-boot-starter-data-jpa:.*$</gav>
         <cpe>cpe:/a:pivotal_software:spring_data_jpa</cpe>
