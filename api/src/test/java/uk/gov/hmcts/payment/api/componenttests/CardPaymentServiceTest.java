@@ -6,7 +6,7 @@ import org.junit.Test;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
-import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestUtil;
+import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class CardPaymentServiceTest extends ComponentTestUtil {
+public class CardPaymentServiceTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
 
