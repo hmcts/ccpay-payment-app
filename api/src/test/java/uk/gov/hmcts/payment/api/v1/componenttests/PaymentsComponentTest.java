@@ -22,7 +22,7 @@ import static uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.paymentDtoWith;
 import static uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
 import static uk.gov.hmcts.payment.api.v1.model.PaymentOld.paymentWith;
 
-public class PaymentsComponentTest extends ComponentTestBaseUtil {
+public class PaymentsComponentTest extends ComponentTestUtil {
 
     private static final String USER_ID = "userId";
 
