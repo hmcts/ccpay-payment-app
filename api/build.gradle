@@ -59,7 +59,10 @@ dependencies {
     compile group: 'commons-fileupload', name: 'commons-fileupload', version: '1.3.3'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
 
-  runtime group: 'org.postgresql', name: 'postgresql', version: '42.2.2'
+  compile(group: 'org.postgresql', name: 'postgresql', version: '9.4.1212') {
+      exclude(module: 'commons-logging')
+      exclude(module: 'slf4j-simple')
+  }
 
   compile group: 'commons-io', name: 'commons-io', version:'2.5'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail'
