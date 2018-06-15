@@ -66,5 +66,31 @@ databaseChangeLog:
               defaultValue: 1
           tableName: fee
 
+- changeSet:
+    id: 1528803196029-1
+    author: tarun
+    changes:
+      - addColumn:
+          columns:
+          - column:
+              name: giro_slip_no
+              type: varchar(255)
+          tableName: payment
+
+- changeSet:
+    id: 1528803196029-2
+    author: tarun
+    changes:
+      - addColumn:
+          columns:
+          - column:
+              name: ccd_case_number
+              type: varchar(255)
+          - column:
+              name: reference
+              type: varchar(255)
+          tableName: fee
+
+
 
 

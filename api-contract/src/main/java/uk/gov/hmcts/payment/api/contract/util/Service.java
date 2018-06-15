@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 public enum Service {
     CMC("Civil Money Claims"),
     DIVORCE("Divorce"),
-    PROBATE("Probate");
+    PROBATE("Probate"),
+    DIGITAL_BAR("Digital Bar");
 
     private String name;
 

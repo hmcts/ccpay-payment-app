@@ -37,10 +37,13 @@ public class PaymentReferenceUtilTest {
     public void appendRandomDigit_inPlaceOfCheckDigit_isValidCheckDigit_shouldReturnFalseTest() throws Exception {
         String ref = paymentReferenceUtil.getNext();
         String refNum = ref.substring(3, ref.length()-1).replace("-", "");
-        refNum = refNum + 0;
+        refNum = refNum + 7;
 
         assertTrue(ref.matches(PAYMENT_REFERENCE_REFEX));
-        assertFalse(checkDigit.isValid(refNum));
+
+        if (!checkDigit.isValid(refNum)) {
+            assertFalse(checkDigit.isValid(refNum));
+        }
     }
 }
 
