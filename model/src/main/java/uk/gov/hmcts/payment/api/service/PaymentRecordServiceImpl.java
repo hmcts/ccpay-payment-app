@@ -12,9 +12,9 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class DelegatingPaymentRecordService implements PaymentRecordService<PaymentFeeLink, String> {
+public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFeeLink, String> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DelegatingPaymentRecordService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordServiceImpl.class);
 
     private final static String PAYMENT_CHANNEL_DIGITAL_BAR = "digital bar";
     private final static String PAYMENT_METHOD_CASH = "cash";
@@ -27,10 +27,10 @@ public class DelegatingPaymentRecordService implements PaymentRecordService<Paym
     private final PaymentReferenceUtil paymentReferenceUtil;
 
     @Autowired
-    public DelegatingPaymentRecordService(PaymentFeeLinkRepository paymentFeeLinkRepository,
-                                          PaymentChannelRepository paymentChannelRepository,
-                                          PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                          PaymentStatusRepository paymentStatusRepository, PaymentReferenceUtil paymentReferenceUtil) {
+    public PaymentRecordServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
+                                    PaymentChannelRepository paymentChannelRepository,
+                                    PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
+                                    PaymentStatusRepository paymentStatusRepository, PaymentReferenceUtil paymentReferenceUtil) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
