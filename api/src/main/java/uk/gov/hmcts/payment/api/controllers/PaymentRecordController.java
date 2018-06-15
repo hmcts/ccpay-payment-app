@@ -39,7 +39,7 @@ public class PaymentRecordController {
     private final PaymentRecordDtoMapper paymentRecordDtoMapper;
 
     @Autowired
-    public PaymentRecordController(@Qualifier("loggingPaymentRecordService")PaymentRecordService<PaymentFeeLink, String> paymentRecordService,
+    public PaymentRecordController(PaymentRecordService<PaymentFeeLink, String> paymentRecordService,
                                    PaymentRecordDtoMapper paymentRecordDtoMapper) {
         this.paymentRecordService = paymentRecordService;
         this.paymentRecordDtoMapper = paymentRecordDtoMapper;
