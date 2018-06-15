@@ -11,11 +11,8 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class PaymentRecordComponentTest {
+public class PaymentRecordComponentTest extends ComponentTestBaseUtil{
 
-
-    @Autowired
-    private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
