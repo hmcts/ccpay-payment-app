@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"embedded", "local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
+@Component
 public class ComponentTestBaseUtil {
 
     @ClassRule
