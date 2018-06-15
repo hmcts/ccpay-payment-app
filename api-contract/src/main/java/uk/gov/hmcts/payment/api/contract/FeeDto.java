@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.contract;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -41,5 +42,11 @@ public class FeeDto {
     private String memoLine;
 
     private String naturalAccountCode;
+
+    @JsonIgnore
+    private String ccdCaseNumber;
+
+    @JsonIgnore
+    private String reference;
 
 }
