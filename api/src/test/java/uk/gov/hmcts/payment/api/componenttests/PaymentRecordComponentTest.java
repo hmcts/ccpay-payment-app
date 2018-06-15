@@ -2,7 +2,12 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBaseUtil;
 
@@ -10,9 +15,16 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
-public class PaymentRecordComponentTest extends ComponentTestBaseUtil {
+@RunWith(SpringRunner.class)
+@ActiveProfiles({"embedded", "local", "componenttest"})
+@SpringBootTest(webEnvironment = MOCK)
+@Transactional
+public class PaymentRecordComponentTest {
 
+    @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
