@@ -7,7 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBase;
+import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBaseUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
-public class PaymentReconciliationComponentTest extends ComponentTestBase {
+public class PaymentReconciliationComponentTest extends ComponentTestBaseUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
     @Before

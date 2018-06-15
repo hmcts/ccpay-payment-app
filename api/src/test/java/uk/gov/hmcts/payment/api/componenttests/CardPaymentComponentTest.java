@@ -4,7 +4,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
-import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBase;
+import uk.gov.hmcts.payment.api.v1.componenttests.ComponentTestBaseUtil;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -21,7 +21,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CardPaymentComponentTest extends ComponentTestBase {
+public class CardPaymentComponentTest extends ComponentTestBaseUtil {
 
     @Test
     public void testSaveOfSinglePaymentWithSingleFee() {

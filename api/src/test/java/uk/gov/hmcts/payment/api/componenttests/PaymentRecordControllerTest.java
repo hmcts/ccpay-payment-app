@@ -110,7 +110,7 @@ public class PaymentRecordControllerTest {
         PaymentRecordRequest request = getPaymentRecordRequest(getCashPaymentPayload());
 
         MvcResult result = restActions
-            .post("/payment-record", request)
+            .post("/payment-records", request)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -132,7 +132,7 @@ public class PaymentRecordControllerTest {
         PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
 
         restActions
-            .post("/payment-record", request)
+            .post("/payment-records", request)
             .andExpect(status().isUnprocessableEntity());
     }
 
