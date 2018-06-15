@@ -52,7 +52,7 @@ public class PaymentRecordController {
         @ApiResponse(code = 400, message = "Payment creation failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @RequestMapping(value = "/payment-record", method = POST)
+    @RequestMapping(value = "/payment-records", method = POST)
     @ResponseBody
     public ResponseEntity<PaymentDto> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
