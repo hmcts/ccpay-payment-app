@@ -39,8 +39,8 @@ public class PaymentFee {
     @Column(name = "ccd_case_number")
     private String ccdCaseNumber;
 
-    @Column(name = "case_reference")
-    private String caseReference;
+    @Column(name = "reference")
+    private String reference;
 
 
 }

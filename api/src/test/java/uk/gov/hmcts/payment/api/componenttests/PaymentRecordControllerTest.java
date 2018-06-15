@@ -143,7 +143,7 @@ public class PaymentRecordControllerTest {
             "  \"ccd_case_number\": \"CCD_322\",\n" +
             "  \"service\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
-            "  \"giro\": \"12345\",\n" +
+            "  \"giro_slip_no\": \"12345\",\n" +
             "  \"site_id\": \"AA99\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
@@ -164,7 +164,7 @@ public class PaymentRecordControllerTest {
             "  \"amount\": 32.19,\n" +
             "  \"service\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
-            "  \"giro\": \"12345\",\n" +
+            "  \"giro_slip_no\": \"12345\",\n" +
             "  \"site_id\": \"AA99\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +

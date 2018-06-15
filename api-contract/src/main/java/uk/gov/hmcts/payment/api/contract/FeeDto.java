@@ -47,6 +47,6 @@ public class FeeDto {
     private String ccdCaseNumber;
 
     @JsonIgnore
-    private String caseReference;
+    private String reference;
 
 }

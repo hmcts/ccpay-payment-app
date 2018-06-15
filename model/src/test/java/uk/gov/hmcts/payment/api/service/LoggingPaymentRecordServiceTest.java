@@ -55,7 +55,7 @@ public class LoggingPaymentRecordServiceTest {
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
         assertThat(savedPayment.getAmount()).isEqualTo(new BigDecimal("100.11"));
         assertThat(savedPayment.getReference()).isEqualTo("RC-1528-8964-9212-8451");
-        assertThat(savedPayment.getGiro()).isEqualTo("G12345");
+        assertThat(savedPayment.getGiroSlipNo()).isEqualTo("G12345");
 
         PaymentFee savedFee = paymentFeeLink.getFees().get(0);
         assertThat(savedFee.getCalculatedAmount()).isEqualTo(new BigDecimal("100.11"));
@@ -81,7 +81,7 @@ public class LoggingPaymentRecordServiceTest {
             .amount(new BigDecimal("100.11"))
             .ccdCaseNumber("ccdCaseNumber")
             .currency("GBP")
-            .giro("G12345")
+            .giroSlipNo("G12345")
             .siteId("siteID")
             .userId("userId")
             .build();

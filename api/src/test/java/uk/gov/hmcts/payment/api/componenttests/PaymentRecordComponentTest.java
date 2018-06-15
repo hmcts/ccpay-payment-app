@@ -50,7 +50,7 @@ public class PaymentRecordComponentTest extends ComponentTestBase {
             .siteId("AA_001")
             .serviceType("DIGITAL_BAR")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("digital bar").build())
-            .giro("giro123")
+            .giroSlipNo("giro123")
             .build();
     }
 

@@ -56,7 +56,7 @@ public class DelegatingPaymentRecordService implements PaymentRecordService<Paym
                 .caseReference(payment.getCaseReference())
                 .currency(payment.getCurrency())
                 .siteId(payment.getSiteId())
-                .giro(payment.getGiro())
+                .giroSlipNo(payment.getGiroSlipNo())
                 .serviceType(payment.getServiceType())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_SUCCESS))

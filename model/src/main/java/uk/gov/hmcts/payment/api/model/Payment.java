@@ -52,8 +52,8 @@ public class Payment {
     @Column(name = "site_id")
     private String siteId;
 
-    @Column(name = "giro")
-    private String giro;
+    @Column(name = "giro_slip_no")
+    private String giroSlipNo;
 
     @Transient
     private String status;

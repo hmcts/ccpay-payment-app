@@ -31,7 +31,7 @@ public class PaymentRecordDtoMapper {
             .serviceType(paymentRecordRequest.getService().getName())
             .currency(paymentRecordRequest.getCurrency().getCode())
             .siteId(paymentRecordRequest.getSiteId())
-            .giro(paymentRecordRequest.getGiro())
+            .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
             .build();
     }
 
@@ -41,7 +41,7 @@ public class PaymentRecordDtoMapper {
             .version(feeDto.getVersion())
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .caseReference(payment.getCaseReference())
+            .reference(payment.getCaseReference())
             .build();
     }
 }
