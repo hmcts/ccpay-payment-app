@@ -73,7 +73,7 @@ databaseChangeLog:
       - addColumn:
           columns:
           - column:
-              name: giro
+              name: giro_slip_no
               type: varchar(255)
           tableName: payment
 
@@ -87,7 +87,7 @@ databaseChangeLog:
               name: ccd_case_number
               type: varchar(255)
           - column:
-              name: case_reference
+              name: reference
               type: varchar(255)
           tableName: fee
 

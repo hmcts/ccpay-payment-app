@@ -64,7 +64,7 @@ public class PaymentRecordController {
             .currency(paymentRecordRequest.getCurrency().getCode())
             .serviceType(paymentRecordRequest.getService().getName())
             .siteId(paymentRecordRequest.getSiteId())
-            .giro(paymentRecordRequest.getGiro())
+            .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
             .build();
 
         List<PaymentFee> fees = paymentRecordRequest.getFees().stream()

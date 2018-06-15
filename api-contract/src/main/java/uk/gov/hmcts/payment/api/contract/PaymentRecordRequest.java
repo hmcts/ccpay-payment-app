@@ -41,7 +41,7 @@ public class PaymentRecordRequest {
 
     private CurrencyCode currency;
 
-    private String giro;
+    private String giroSlipNo;
 
     @NotEmpty
     @JsonProperty("site_id")
