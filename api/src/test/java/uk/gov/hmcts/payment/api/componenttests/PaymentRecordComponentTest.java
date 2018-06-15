@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class PaymentRecordComponentTest extends ComponentTestBaseUtil{
+public class PaymentRecordComponentTest extends ComponentTestBaseUtil {
 
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
