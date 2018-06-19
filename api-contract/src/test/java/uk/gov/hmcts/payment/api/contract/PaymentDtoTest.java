@@ -62,10 +62,10 @@ public class PaymentDtoTest {
         calculatedAmountForFeeNoVolume = new BigDecimal(1);
 
         feeWithVolumeDto = new FeeDto(feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            memoLine, naturalAccountCode);
+            memoLine, naturalAccountCode, null, null);
 
         feeNoVolumeDto = new FeeDto(feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            memoLine, naturalAccountCode);
+            memoLine, naturalAccountCode, null, null);
     }
 
     @Before

@@ -73,11 +73,6 @@
         <cve>CVE-2017-17485</cve>
     </suppress>
     <suppress>
-        <notes>Does not apply as postgresql</notes>
-        <gav regex="true">^org\.postgresql:postgresql.*:.*$</gav>
-        <cve>CVE-2017-8806</cve>
-    </suppress>
-    <suppress>
         <notes>Suppress spring-boot-starter-mail as it doesn't apply to java mail</notes>
         <gav regex="true">^org\.springframework\.boot:spring-boot-starter-mail:.*$</gav>
         <cpe>cpe:/a:mail_project:mail:1.5.9</cpe>
@@ -127,9 +122,19 @@
     <suppress>
         <notes><![CDATA[
 			A race condition in the postgresql init script could be used by attackers able to access the postgresql account to escalate their privileges to root.
+			Related to PostgreSQL server startup script, also up to 9.4 while we are using 9.6
 			]]></notes>
-        <gav regex="true">.*$</gav>
+        <gav regex="true">^org\.postgresql:postgresql:.*$</gav>
         <cve>CVE-2017-14798</cve>
+    </suppress>
+    <!-- https://tools.hmcts.net/jira/browse/PAY-960 -->
+    <suppress>
+        <notes><![CDATA[
+			A race condition in the postgresql init script could be used by attackers able to access the postgresql account to escalate their privileges to root.
+			Related to PostgreSQL server startup script, also up to 9.4 while we are using 9.6
+			]]></notes>
+        <gav regex="true">^org\.postgresql:postgresql:.*$</gav>
+        <cve>CVE-2018-1115</cve>
     </suppress>
     <suppress>
         <notes><![CDATA[
