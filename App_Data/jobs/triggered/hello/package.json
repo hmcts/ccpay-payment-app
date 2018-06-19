@@ -1,0 +1,14 @@
+{
+  "name": "PostgresConnection",
+  "version": "1.0.0",
+  "main": "run.js",
+  "author": "mateusz swirski",
+  "license": "MIT",
+  "dependencies": {
+    "csv": "^3.1.0",
+    "moment": "^2.22.2",
+    "pg": "^7.4.3",
+    "request": "^2.87.0",
+    "standard": "^11.0.1"
+  }
+}
