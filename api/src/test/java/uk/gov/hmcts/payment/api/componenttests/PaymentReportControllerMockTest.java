@@ -40,7 +40,7 @@ public class PaymentReportControllerMockTest {
         // given
         ReflectionTestUtils.setField(controller, "cardReportsEnabled", true);
         // when & then
-        this.mockMvc.perform(post("/payment-csv-reports"))
+        this.mockMvc.perform(post("/payments/email-pay-reports"))
             .andExpect(status().isOk());
 
         verify(cardPaymentsReportScheduler).generateCardPaymentsReportTask();
@@ -51,7 +51,7 @@ public class PaymentReportControllerMockTest {
         // given
         ReflectionTestUtils.setField(controller, "pbaReportsEnabled", true);
         // when & then
-        this.mockMvc.perform(post("/payment-csv-reports"))
+        this.mockMvc.perform(post("/payments/email-pay-reports"))
             .andExpect(status().isOk());
 
         verify(creditAccountPaymentsReportScheduler).generateCreditAccountPaymentsReportTask();

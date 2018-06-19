@@ -34,7 +34,7 @@ public class PaymentReportController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Reports sent")
     })
-    @RequestMapping(value = "/payment-csv-reports", method = POST)
+    @RequestMapping(value = "/payments/email-pay-reports", method = POST)
     public void retrievePayments() {
         if (cardReportsEnabled) {
             cardPaymentsReportScheduler.generateCardPaymentsReportTask();
