@@ -85,6 +85,7 @@ module "payment-api" {
     PBA_PAYMENTS_EMAIL_MESSAGE = "${var.pba_payments_email_message}"
 
     FEES_REGISTER_URL = "${local.fees_register_url}"
+    FEATURE_PAYMENTS_SEARCH = "${var.feature_payments_search}"
 
     # logging vars
     REFORM_SERVICE_NAME = "payment-api"
