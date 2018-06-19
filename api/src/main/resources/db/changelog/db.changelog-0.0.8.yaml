@@ -91,6 +91,17 @@ databaseChangeLog:
               type: varchar(255)
           tableName: fee
 
+- changeSet:
+    id: 1529403181451-1
+    author: tarun
+    changes:
+      - sql:
+          splitStatements: true
+          sql: >
+            INSERT INTO payment_provider (name, description)
+              VALUES ('cheque provider', 'Cheque provider');
+
+
 
 
 
