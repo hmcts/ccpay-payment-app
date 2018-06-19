@@ -56,9 +56,6 @@ function preparePaymentsForCSV (payments) {
 let yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
 let today = moment().format('YYYY-MM-DD')
 
-yesterday = '2018-02-20'
-today = '2018-02-21'
-
 // let host = process.env.WEBSITE_HOSTNAME
 let host = 'http://localhost:8080'
 let paymentMethod = 'card'
