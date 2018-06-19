@@ -16,3 +16,4 @@ card_payments_email_message = "Hi <br/><br/>Please find attached today''s reconc
 pba_payments_email_from = "no-reply@reform.hmcts.net"
 pba_payments_email_subject = "PBA Reconciliation Report"
 pba_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+feature_payments_search = false
