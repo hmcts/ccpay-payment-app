@@ -22,7 +22,7 @@ public class PaymentDtoTest {
     private final BigDecimal calculatedAmountForFeeWithVolume;
     private final String memoLine;
     private final String naturalAccountCode;
-    private final Integer volume;
+    private final Double volume;
     private final String feeNoVolumeCode;
     private final BigDecimal calculatedAmountForFeeNoVolume;
     private PaymentDto testDto;
@@ -57,7 +57,7 @@ public class PaymentDtoTest {
         calculatedAmountForFeeWithVolume = new BigDecimal(1);
         memoLine = "memoLine";
         naturalAccountCode = "naturalAccountCode";
-        volume = new Integer(1);
+        volume = new Double(1.0);
         feeNoVolumeCode = "X0002";
         calculatedAmountForFeeNoVolume = new BigDecimal(1);
 

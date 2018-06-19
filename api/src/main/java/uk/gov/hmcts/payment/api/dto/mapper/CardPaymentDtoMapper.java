@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -103,7 +104,7 @@ public class CardPaymentDtoMapper {
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())
             .version(feeDto.getVersion())
-            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume())
+            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .build();
     }
 
@@ -112,7 +113,9 @@ public class CardPaymentDtoMapper {
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
             .version(fee.getVersion())
-            .volume(fee.getVolume())
+            .volume(Optional.ofNullable(fee.getVolume())
+                .map(v -> v.doubleValue())
+                .orElse(null))
             .build();
 
     }
