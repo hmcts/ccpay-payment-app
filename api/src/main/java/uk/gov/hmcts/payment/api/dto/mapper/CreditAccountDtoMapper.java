@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -179,7 +180,9 @@ public class CreditAccountDtoMapper {
         return FeeDto.feeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode()).version(fee.getVersion())
-            .volume(fee.getVolume().doubleValue())
+            .volume(Optional.ofNullable(fee.getVolume())
+                .map(v -> v.doubleValue())
+                .orElse(null))
             .build();
 
     }
