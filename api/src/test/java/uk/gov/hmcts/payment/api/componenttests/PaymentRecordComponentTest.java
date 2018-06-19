@@ -50,6 +50,30 @@ public class PaymentRecordComponentTest {
 
     }
 
+    @Test
+    public void recordChequePaymentTest() throws Exception {
+        String paymentGroupRef = "2018-1234567891";
+        Payment payment = getPayment();
+        payment.setExternalReference("4412124");
+        payment.setPaymentProvider(PaymentProvider.paymentProviderWith().name("cheque provider").build());
+        payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference(paymentGroupRef)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(getFee())).build();
+
+        PaymentFeeLink savedPaymentGroup = paymentFeeLinkRepository.save(paymentFeeLink);
+        assertThat(savedPaymentGroup.getPaymentReference()).isEqualTo(paymentGroupRef);
+        savedPaymentGroup.getPayments().forEach(p -> {
+            assertThat(p.getExternalReference()).isEqualTo("4412124");
+            assertThat(p.getPaymentStatus().getName()).isEqualTo("pending");
+            assertThat(p.getPaymentProvider().getName()).isEqualTo("cheque provider");
+        });
+
+
+
+    }
+
     private Payment getPayment() {
         return Payment.paymentWith()
             .amount(new BigDecimal("6000.00"))

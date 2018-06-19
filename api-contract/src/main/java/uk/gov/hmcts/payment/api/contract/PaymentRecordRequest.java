@@ -41,6 +41,8 @@ public class PaymentRecordRequest {
 
     private CurrencyCode currency;
 
+    private String chequeNo;
+
     private String giroSlipNo;
 
     @NotEmpty

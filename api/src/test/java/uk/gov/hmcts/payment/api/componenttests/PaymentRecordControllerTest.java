@@ -128,6 +128,25 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
+    public void testRecordChequePayment_withValidData() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getChequePaymentPayload());
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Pending");
+
+        String reference = response.getReference().substring(3, response.getReference().length());
+        assertThat(cd.isValid(reference.replace("-", ""))).isEqualTo(true);
+
+    }
+
+    @Test
     public void testRecordCashPayment_withInvalidRequest() throws Exception {
         PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
 
@@ -144,6 +163,30 @@ public class PaymentRecordControllerTest {
             "  \"service\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"giro_slip_no\": \"12345\",\n" +
+            "  \"site_id\": \"AA99\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 32.19,\n" +
+            "      \"code\": \"FEE0123\",\n" +
+            "      \"memo_line\": \"Bar Cash\",\n" +
+            "      \"natural_account_code\": \"21245654433\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 1\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+
+    private String getChequePaymentPayload() {
+
+        return "{\n" +
+            "  \"amount\": 32.19,\n" +
+            "  \"ccd_case_number\": \"CCD_322\",\n" +
+            "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"giro_slip_no\": \"12345\",\n" +
+            "  \"cheque_no\": \"543346\",\n" +
             "  \"site_id\": \"AA99\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
