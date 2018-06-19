@@ -103,7 +103,7 @@ public class CardPaymentDtoMapper {
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())
             .version(feeDto.getVersion())
-            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume())
+            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .build();
     }
 
@@ -112,7 +112,7 @@ public class CardPaymentDtoMapper {
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
             .version(fee.getVersion())
-            .volume(fee.getVolume())
+            .volume(fee.getVolume().doubleValue())
             .build();
 
     }

@@ -171,7 +171,7 @@ public class CreditAccountDtoMapper {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode())
             .version(feeDto.getVersion())
-            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume())
+            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .build();
     }
 
@@ -179,7 +179,7 @@ public class CreditAccountDtoMapper {
         return FeeDto.feeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode()).version(fee.getVersion())
-            .volume(fee.getVolume())
+            .volume(fee.getVolume().doubleValue())
             .build();
 
     }
