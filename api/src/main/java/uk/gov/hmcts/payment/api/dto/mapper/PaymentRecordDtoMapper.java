@@ -39,7 +39,7 @@ public class PaymentRecordDtoMapper {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode())
             .version(feeDto.getVersion())
-            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume())
+            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .reference(payment.getCaseReference())
             .build();
