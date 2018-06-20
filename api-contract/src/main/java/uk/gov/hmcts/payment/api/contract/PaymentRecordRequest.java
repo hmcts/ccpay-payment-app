@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Method;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.Valid;
@@ -33,6 +34,9 @@ public class PaymentRecordRequest {
     @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 
+    @NotNull
+    private Method paymentMethod;
+
     private String ccdCaseNumber;
 
     private String caseReference;
@@ -41,7 +45,9 @@ public class PaymentRecordRequest {
 
     private CurrencyCode currency;
 
-    private String chequeNo;
+    private String externalReference;
+
+    private String externalProvider;
 
     private String giroSlipNo;
 
@@ -57,4 +63,5 @@ public class PaymentRecordRequest {
     private boolean isEitherOneRequired() {
         return (ccdCaseNumber == null && caseReference == null);
     }
+
 }
