@@ -54,9 +54,9 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
     protected PaymentFeeLink populatePaymentDetails(Payment payment, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
 
         return PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference(paymentGroupRef)
             .payments(Arrays.asList(Payment.paymentWith()
                 .amount(payment.getAmount())
-                .ccdCaseNumber(payment.getCcdCaseNumber())
                 .caseReference(payment.getCaseReference())
                 .currency(payment.getCurrency())
                 .siteId(payment.getSiteId())

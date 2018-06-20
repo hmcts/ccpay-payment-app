@@ -26,8 +26,7 @@ public class PaymentRecordDtoMapper {
     public Payment toPaymentRequest(PaymentRecordRequest paymentRecordRequest) {
         return Payment.paymentWith()
             .amount(paymentRecordRequest.getAmount())
-            .ccdCaseNumber(paymentRecordRequest.getCcdCaseNumber())
-            .caseReference(paymentRecordRequest.getCaseReference())
+            .caseReference(paymentRecordRequest.getReference())
             .serviceType(paymentRecordRequest.getService().getName())
             .currency(paymentRecordRequest.getCurrency().getCode())
             .siteId(paymentRecordRequest.getSiteId())
@@ -35,7 +34,7 @@ public class PaymentRecordDtoMapper {
             .build();
     }
 
-    public PaymentFee toFee(FeeDto feeDto, Payment payment) {
+    public PaymentFee toFee(FeeDto feeDto) {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode())
             .version(feeDto.getVersion())

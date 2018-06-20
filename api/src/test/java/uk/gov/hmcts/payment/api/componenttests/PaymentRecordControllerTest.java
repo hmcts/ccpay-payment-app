@@ -160,7 +160,7 @@ public class PaymentRecordControllerTest {
         return "{\n" +
             "  \"amount\": 32.19,\n" +
             "  \"payment_method\": \"CASH\",\n" +
-            "  \"case_reference\": \"ref_123\",\n" +
+            "  \"reference\": \"ref_123\",\n" +
             "  \"service\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"giro_slip_no\": \"12345\",\n" +
@@ -185,7 +185,7 @@ public class PaymentRecordControllerTest {
         return "{\n" +
             "  \"amount\": 99.99,\n" +
             "  \"payment_method\": \"CHEQUE\",\n" +
-            "  \"case_reference\": \"ref_122\",\n" +
+            "  \"reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"external_provider\": \"cheque provider\",\n" +
             "  \"external_reference\": \"1000012\",\n" +
