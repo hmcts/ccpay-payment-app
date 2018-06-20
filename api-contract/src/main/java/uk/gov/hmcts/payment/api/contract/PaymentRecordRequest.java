@@ -37,9 +37,8 @@ public class PaymentRecordRequest {
     @NotNull
     private Method paymentMethod;
 
-    private String ccdCaseNumber;
-
-    private String caseReference;
+    @NotEmpty
+    private String reference;
 
     private Service service;
 
@@ -58,10 +57,5 @@ public class PaymentRecordRequest {
     @NotEmpty
     @Valid
     private List<FeeDto> fees;
-
-    @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
-    private boolean isEitherOneRequired() {
-        return (ccdCaseNumber == null && caseReference == null);
-    }
 
 }

@@ -57,8 +57,7 @@ public class PaymentRecordController {
 
         Payment payment = Payment.paymentWith()
             .amount(paymentRecordRequest.getAmount())
-            .ccdCaseNumber(paymentRecordRequest.getCcdCaseNumber())
-            .caseReference(paymentRecordRequest.getCaseReference())
+            .caseReference(paymentRecordRequest.getReference())
             .currency(paymentRecordRequest.getCurrency().getCode())
             .externalProvider(paymentRecordRequest.getExternalProvider())
             .externalReference(paymentRecordRequest.getExternalReference())
@@ -68,7 +67,7 @@ public class PaymentRecordController {
             .build();
 
         List<PaymentFee> fees = paymentRecordRequest.getFees().stream()
-            .map(f -> paymentRecordDtoMapper.toFee(f, payment))
+            .map(f -> paymentRecordDtoMapper.toFee(f))
             .collect(Collectors.toList());
 
         LOG.debug("Record payment for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
