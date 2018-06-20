@@ -39,11 +39,12 @@ public class PaymentRecordComponentTest {
         savedPaymentGroup.getPayments().stream().forEach(p -> {
             assertThat(p.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
             assertThat(p.getAmount()).isEqualTo(new BigDecimal("6000.00"));
-            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNo_123");
+            assertThat(p.getCaseReference()).isEqualTo("caseRef_123");
         });
         savedPaymentGroup.getFees().stream().forEach(f -> {
             assertThat(f.getCode()).isEqualTo("FEE0123");
             assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("6000.00"));
+            assertThat(f.getReference()).isEqualTo("caseRef_123");
             assertThat(f.getVolume()).isEqualTo(1);
             assertThat(f.getVersion()).isEqualTo("1");
         });
@@ -54,9 +55,9 @@ public class PaymentRecordComponentTest {
     public void recordChequePaymentTest() throws Exception {
         String paymentGroupRef = "2018-1234567891";
         Payment payment = getPayment();
-        payment.setExternalReference("4412124");
-        payment.setPaymentProvider(PaymentProvider.paymentProviderWith().name("cheque provider").build());
-        payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
+        payment.setExternalReference("1000012");
+        payment.setExternalProvider("cheque provider");
+        payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("created").build());
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
@@ -65,9 +66,9 @@ public class PaymentRecordComponentTest {
         PaymentFeeLink savedPaymentGroup = paymentFeeLinkRepository.save(paymentFeeLink);
         assertThat(savedPaymentGroup.getPaymentReference()).isEqualTo(paymentGroupRef);
         savedPaymentGroup.getPayments().forEach(p -> {
-            assertThat(p.getExternalReference()).isEqualTo("4412124");
-            assertThat(p.getPaymentStatus().getName()).isEqualTo("pending");
-            assertThat(p.getPaymentProvider().getName()).isEqualTo("cheque provider");
+            assertThat(p.getExternalReference()).isEqualTo("1000012");
+            assertThat(p.getPaymentStatus().getName()).isEqualTo("created");
+            assertThat(p.getExternalProvider()).isEqualTo("cheque provider");
         });
 
 
@@ -78,7 +79,7 @@ public class PaymentRecordComponentTest {
         return Payment.paymentWith()
             .amount(new BigDecimal("6000.00"))
             .reference("RC-1234-1234-1234-1112")
-            .ccdCaseNumber("ccdCaseNo_123")
+            .caseReference("caseRef_123")
             .currency("GBP")
             .siteId("AA_001")
             .serviceType("DIGITAL_BAR")
@@ -94,6 +95,7 @@ public class PaymentRecordComponentTest {
             .code("FEE0123")
             .version("1")
             .volume(1)
+            .reference("caseRef_123")
             .build();
 
     }

@@ -18,8 +18,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
 
     private final static String PAYMENT_CHANNEL_DIGITAL_BAR = "digital bar";
     private final static String PAYMENT_METHOD_CASH = "cash";
-    private final static String PAYMENT_STATUS_SUCCESS = "success";
-    private final static String PAYMENT_STATUS_PENDING = "pending";
+    private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_PROVIDER_CHEQUE = "cheque provider";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -61,20 +60,16 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                 .caseReference(payment.getCaseReference())
                 .currency(payment.getCurrency())
                 .siteId(payment.getSiteId())
+                .externalProvider(payment.getExternalProvider())
                 .externalReference(payment.getExternalReference())
                 .giroSlipNo(payment.getGiroSlipNo())
                 .serviceType(payment.getServiceType())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
-                .paymentStatus(payment.getExternalReference() != null ?
-                    paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING) :
-                    paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_SUCCESS))
-                .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CASH))
-                .paymentProvider(payment.getExternalReference() != null ? paymentProviderRepository.findByNameOrThrow(PAYMENT_PROVIDER_CHEQUE) : null)
+                .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
+                .paymentMethod(paymentMethodRepository.findByNameOrThrow(payment.getPaymentMethod().getName()))
                 .reference(paymentReferenceUtil.getNext())
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                    .status(payment.getExternalReference() != null ?
-                        paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName() :
-                        paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_SUCCESS).getName())
+                    .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED).getName())
                     .build()))
                 .build()))
             .fees(fees)
