@@ -1,3 +1,3 @@
 {
-  "schedule": "$CARD_PAYMENTS_REPORT_SCHEDULE"
+  "schedule": "%CARD_PAYMENTS_REPORT_SCHEDULE%"
 }
