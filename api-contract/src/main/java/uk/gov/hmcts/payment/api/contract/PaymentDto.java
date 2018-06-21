@@ -74,6 +74,7 @@ public class PaymentDto {
 
     private String organisationName;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String paymentGroupReference;
 
     //@JsonUnwrapped
