@@ -1,5 +1,5 @@
 #!/bin/sh
 
-curl -X POST http://$WEBSITE_HOSTNAME/payments/email-pay-reports
+curl -X POST http://$WEBSITE_HOSTNAME/payments/email-pay-reports -d {}
 
-echo "finished generating csv reports"
+printf "\nFinished generating csv reports"
