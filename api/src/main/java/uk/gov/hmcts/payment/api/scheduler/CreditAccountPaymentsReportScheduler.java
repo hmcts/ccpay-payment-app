@@ -3,8 +3,6 @@ package uk.gov.hmcts.payment.api.scheduler;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
@@ -17,7 +15,6 @@ import java.util.Date;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component
-@ConditionalOnProperty("pba.payments.report.scheduler.enabled")
 public class CreditAccountPaymentsReportScheduler {
 
     private static final Logger LOG = getLogger(CreditAccountPaymentsReportScheduler.class);
@@ -36,7 +33,6 @@ public class CreditAccountPaymentsReportScheduler {
         this.feesService = feesService;
     }
 
-    @Scheduled(cron = "${pba.payments.report.schedule}")
     public void generateCreditAccountPaymentsReportTask() {
 
         try {
