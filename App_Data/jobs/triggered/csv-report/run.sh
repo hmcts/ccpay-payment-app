@@ -1,5 +1,7 @@
 #!/bin/sh
 
-curl -X POST http://$WEBSITE_HOSTNAME/payments/email-pay-reports -d {}
+printf "Invoke email-pay-reports endpoint on :%s\n" $PAYMENT_SERVER_URL
 
-printf "\nFinished generating csv reports"
+curl -X POST $PAYMENT_SERVER_URL/payments/email-pay-reports -d {}
+
+printf "\nFinished emailing csv reports"
