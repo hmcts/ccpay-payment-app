@@ -14,9 +14,7 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentRecordDtoMapper;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentRecordService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
@@ -59,16 +57,17 @@ public class PaymentRecordController {
 
         Payment payment = Payment.paymentWith()
             .amount(paymentRecordRequest.getAmount())
-            .ccdCaseNumber(paymentRecordRequest.getCcdCaseNumber())
-            .caseReference(paymentRecordRequest.getCaseReference())
+            .caseReference(paymentRecordRequest.getReference())
             .currency(paymentRecordRequest.getCurrency().getCode())
-            .serviceType(paymentRecordRequest.getService().getName())
+            .externalProvider(paymentRecordRequest.getExternalProvider())
+            .externalReference(paymentRecordRequest.getExternalReference())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name(paymentRecordRequest.getPaymentMethod().getType()).build())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
             .build();
 
         List<PaymentFee> fees = paymentRecordRequest.getFees().stream()
-            .map(f -> paymentRecordDtoMapper.toFee(f, payment))
+            .map(f -> paymentRecordDtoMapper.toFee(f))
             .collect(Collectors.toList());
 
         LOG.debug("Record payment for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");

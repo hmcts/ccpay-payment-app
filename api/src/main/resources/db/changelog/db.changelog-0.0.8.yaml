@@ -91,6 +91,19 @@ databaseChangeLog:
               type: varchar(255)
           tableName: fee
 
+- changeSet:
+    id: 1529403181451-1
+    author: tarun
+    changes:
+      - addColumn:
+          columns:
+          - column:
+              name: external_provider
+              type: varchar(255)
+          tableName: payment
+
+
+
 
 
 
