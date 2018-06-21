@@ -68,6 +68,15 @@ public class PaymentRecordServiceTest {
             assertEquals(p.getPaymentStatus().getName(), "created");
             assertEquals(p.getPaymentChannel().getName(), "digital bar");
             assertEquals(p.getPaymentMethod().getName(), "cheque");
+            assertEquals(p.getCaseReference(), "caseReference");
+        });
+
+        savedPayment.getFees().forEach(f -> {
+            assertEquals(f.getCode(), "FEE0001");
+            assertEquals(f.getCalculatedAmount(), new BigDecimal("100.11"));
+            assertEquals(f.getVolume(), new Integer(1));
+            assertEquals(f.getReference(), "caseReference");
+
         });
     }
 
