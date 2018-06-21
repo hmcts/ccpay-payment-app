@@ -35,6 +35,8 @@ locals {
 
   s2sUrl = "http://rpe-service-auth-provider-${local.local_env}.service.${local.local_ase}.internal"
   fees_register_url = "http://fees-register-api-${local.local_env}.service.${local.local_ase}.internal"
+
+  website_url = "http://${var.product}-api-${local.local_env}.service.${local.local_ase}.internal"
 }
 
 module "payment-api" {
@@ -85,6 +87,8 @@ module "payment-api" {
     PBA_PAYMENTS_EMAIL_MESSAGE = "${var.pba_payments_email_message}"
 
     FEES_REGISTER_URL = "${local.fees_register_url}"
+
+    PAYMENT_SERVER_URL = "${local.website_url}"
 
     # logging vars
     REFORM_SERVICE_NAME = "payment-api"
