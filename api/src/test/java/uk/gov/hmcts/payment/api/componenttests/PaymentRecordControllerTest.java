@@ -27,6 +27,7 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.contract.util.Method;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -116,6 +117,7 @@ public class PaymentRecordControllerTest {
 
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response).isNotNull();
+        assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
         assertThat(response.getStatus()).isEqualTo("Initiated");
 
@@ -128,22 +130,29 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    public void testRecordChequePayment_withValidData() throws Exception {
-        PaymentRecordRequest request = getPaymentRecordRequest(getChequePaymentPayload());
+    public void testRecordPayment_withoutPaymentMethod() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
+        request.setReference("ref_123");
 
         MvcResult result = restActions
             .post("/payment-records", request)
-            .andExpect(status().isCreated())
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-        assertThat(response).isNotNull();
-        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("paymentMethod: must not be null");
+    }
 
-        String reference = response.getReference().substring(3, response.getReference().length());
-        assertThat(cd.isValid(reference.replace("-", ""))).isEqualTo(true);
+    @Test
+    public void testRecordChequePayment_withoutReference() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
+        request.setPaymentMethod(Method.CHEQUE);
 
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("reference: must not be empty");
     }
 
     @Test
