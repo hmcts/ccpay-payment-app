@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
     <suppress>
+        <notes>
+            <![CDATA[
+Apache Standard Taglibs before 1.2.3 allows remote attackers to execute arbitrary code or conduct external XML entity (XXE) attacks via a crafted XSLT extension in a (1) <x:parse> or (2) <x:transform> JSTL XML tag.
+The project has been moved to `taglibs-standard-impl` cannot override via dependency management.
+See: https://github.com/ff4j/ff4j/commit/bb62e6c133c1d3f56a6e4f67d8cc613fe69e25d0
+]]>
+        </notes>
+        <gav regex="true">taglibs:standard:1\.1\.2</gav>
+        <cve>CVE-2015-0254</cve>
+    </suppress>
+    <suppress>
         <notes>Suppress spring-boot-starter-data-jpa being matched as spring-data-jpa</notes>
         <gav regex="true">^org\.springframework\.boot:spring-boot-starter-data-jpa:.*$</gav>
         <cpe>cpe:/a:pivotal_software:spring_data_jpa</cpe>

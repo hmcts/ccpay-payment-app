@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/govPayId1/refunds",
+    "bodyPatterns": [
+      {
+        "equalToJson": "{ \"amount\": 5, \"refund_amount_available\": 100 }"
+      }
+    ]
+  },
+  "response": {
+    "status": 204,
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
