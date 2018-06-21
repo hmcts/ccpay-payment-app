@@ -60,7 +60,6 @@ public class PaymentRecordServiceTest {
         when(paymentFeeLinkRepository.save(any(PaymentFeeLink.class))).thenReturn(paymentFeeLink);
 
         PaymentFeeLink savedPayment = paymentRecordService.recordPayment(payment, fees, "2018-10000001");
-        System.out.println("PaymentGroupReference: " + savedPayment.getPaymentReference());
 
         verify(paymentFeeLinkRepository).save(argumentCaptor.capture());
         assertEquals(savedPayment.getPaymentReference(), paymentFeeLink.getPaymentReference());
