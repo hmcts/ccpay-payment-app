@@ -13,6 +13,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static uk.gov.hmcts.payment.api.scheduler.DateUtils.getTodayDate;
+import static uk.gov.hmcts.payment.api.scheduler.DateUtils.getYesterdayDate;
 
 @Component
 public class CreditAccountPaymentsReportScheduler {
@@ -40,8 +42,8 @@ public class CreditAccountPaymentsReportScheduler {
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
             sdf.setLenient(false);
 
-            Date fromDate = startDate == null ? paymentsReportService.getYesterdaysDate() : sdf.parse(startDate);
-            Date toDate = endDate == null ? new Date() : sdf.parse(endDate);
+            Date fromDate = startDate == null ? getYesterdayDate() : sdf.parse(startDate);
+            Date toDate = endDate == null ? getTodayDate() : sdf.parse(endDate);
 
             LOG.info("CreditAccountPaymentsReportScheduler -  Start of scheduled job for HMCTS-PBA Payments csv report file.");
             feesService.dailyRefreshOfFeesData();

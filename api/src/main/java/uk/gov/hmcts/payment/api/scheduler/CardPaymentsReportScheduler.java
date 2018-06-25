@@ -12,6 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static uk.gov.hmcts.payment.api.scheduler.DateUtils.getTodayDate;
+import static uk.gov.hmcts.payment.api.scheduler.DateUtils.getYesterdayDate;
 
 @Component
 public class CardPaymentsReportScheduler {
@@ -39,8 +41,8 @@ public class CardPaymentsReportScheduler {
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
             sdf.setLenient(false);
 
-            Date fromDate = startDate != null ? sdf.parse(startDate) : null;
-            Date toDate = endDate != null ? sdf.parse(endDate) : null;
+            Date fromDate = startDate != null ? sdf.parse(startDate) : getYesterdayDate();
+            Date toDate = endDate != null ? sdf.parse(endDate) : getTodayDate();
 
             LOG.info("CardPaymentsReportScheduler -  Start of scheduled job for HMCTS-Card Payments csv report file.");
             feesService.dailyRefreshOfFeesData();
