@@ -101,3 +101,7 @@ variable "payment_audit_file" {
 variable "capacity" {
   default = "1"
 }
+
+variable "feature_payments_search" {
+  default = "true"
+}
