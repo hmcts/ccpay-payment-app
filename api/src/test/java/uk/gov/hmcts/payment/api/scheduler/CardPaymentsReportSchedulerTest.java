@@ -8,6 +8,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 
+import java.util.Date;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class CardPaymentsReportSchedulerTest {
@@ -36,7 +39,7 @@ public class CardPaymentsReportSchedulerTest {
 
         // then
         verify(feesService).dailyRefreshOfFeesData();
-        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(null, null);
+        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(any(Date.class), any(Date.class));
     }
 
 }
