@@ -27,12 +27,13 @@ public class GovPayPayment {
     private String email;
     private String paymentId;
     private String paymentProvider;
-    private String cardBrand;
     private String returnUrl;
     private String createdDate;
     private RefundSummary refundSummary;
+    private CardDetails cardDetails;
     @JsonProperty("_links")
     private Links links;
+
 
     @Data
     @JsonNaming(SnakeCaseStrategy.class)

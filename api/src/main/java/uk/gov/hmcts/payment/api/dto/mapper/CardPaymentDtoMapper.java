@@ -52,6 +52,11 @@ public class CardPaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider().getName())
+            .email(payment.getEmail())
+            .cardType(payment.getCardBrand())
+            .cardHolderName(payment.getCardholderName())
+            .lastDigitsCardNumber(payment.getLastDigitsCardNumber())
+            .cardExpiryDate(payment.getCardExpiryDate())
             .fees(toFeeDtos(fees))
             .links(new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
