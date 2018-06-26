@@ -76,6 +76,16 @@ public class PaymentDto {
 
     private String paymentGroupReference;
 
+    private String cardType;
+
+    private String cardHolderName;
+
+    private String cardExpiryDate;
+
+    private String lastDigitsCardNumber;
+
+    private String email;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;

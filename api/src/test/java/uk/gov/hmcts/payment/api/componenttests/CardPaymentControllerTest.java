@@ -212,6 +212,11 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(paymentDto.getReference(), payment.getReference());
         assertEquals(paymentDto.getExternalReference(), payment.getExternalReference());
         assertEquals("Success", paymentDto.getStatus());
+        assertEquals(paymentDto.getCardType(), payment.getCardBrand());
+        assertEquals(paymentDto.getCardHolderName(), payment.getCardholderName());
+        assertEquals(paymentDto.getLastDigitsCardNumber(), payment.getLastDigitsCardNumber());
+        assertEquals(paymentDto.getCardExpiryDate(), payment.getCardExpiryDate());
+        assertEquals(paymentDto.getEmail(), payment.getEmail());
     }
 
     @Test

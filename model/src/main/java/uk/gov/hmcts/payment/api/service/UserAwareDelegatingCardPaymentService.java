@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.*;
@@ -19,10 +20,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
@@ -190,6 +188,16 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         payment.setNextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()));
         payment.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
         payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
+
+        Optional<CardDetails> cardDetails = Optional.ofNullable(govPayPayment.getCardDetails());
+        if (cardDetails.isPresent()) {
+            payment.setEmail(govPayPayment.getEmail());
+            payment.setCardBrand(govPayPayment.getCardDetails().getCardBrand());
+            payment.setLastDigitsCardNumber(govPayPayment.getCardDetails().getLastDigitsCardNumber());
+            payment.setCardholderName(govPayPayment.getCardDetails().getCardholderName());
+            payment.setCardExpiryDate(govPayPayment.getCardDetails().getExpiryDate());
+        }
+
     }
 
     private String hrefFor(Link url) {

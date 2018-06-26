@@ -17,6 +17,19 @@
     "amount_available": 1199,
     "amount_submitted": 0
   },
+  "card_details": {
+    "last_digits_card_number": "1111",
+    "cardholder_name": "TEST CARD",
+    "expiry_date": "11/18",
+    "billing_address": {
+      "line1": "98, Connecticut Ave Nw",
+      "line2": "Connecticut Ave Nw",
+      "postcode": "WV2 1AT",
+      "city": "Geauga",
+      "country": "GB"
+    },
+    "card_brand": "Visa"
+  },
   "settlement_summary": {},
   "_links": {
     "self": {
