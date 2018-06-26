@@ -45,6 +45,11 @@ public class PaymentDtoTest {
     private String accountNumber;
     private String organisationName;
     private String paymentGroupReference;
+    private String cardType;
+    private String cardHolderName;
+    private String cardExpiryDate;
+    private String lastDigitsCardNumber;
+    private String email;
     private Date dateCreated;
     private Date dateUpdated;
     private BigDecimal amount;
@@ -96,11 +101,16 @@ public class PaymentDtoTest {
         accountNumber = "accountNumber";
         organisationName = "organisationName";
         paymentGroupReference = "paymentGroupReference";
+        cardType = "cardType";
+        cardHolderName = "cardHolderName";
+        cardExpiryDate = "cardExpiryDate";
+        lastDigitsCardNumber = "lastDigitsCardNumber";
+        email = "email";
 
         testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference,
+            organisationName, paymentGroupReference, cardType, cardHolderName, cardExpiryDate, lastDigitsCardNumber, email,
             null, statusHistories, links);
     }
 

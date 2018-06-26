@@ -8,7 +8,6 @@
   "reference": "Payment reference",
   "payment_id": "GOV_PAY_ID",
   "payment_provider": "sandbox",
-  "card_brand": "",
   "return_url": "https://service-name.gov.uk/transactions/12345",
   "created_date": "2016-09-29T09:12:38.413Z",
   "refund_summary": {
