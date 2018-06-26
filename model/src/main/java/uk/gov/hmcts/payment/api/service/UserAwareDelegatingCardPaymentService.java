@@ -191,12 +191,15 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         payment.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
         payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
 
-        //Card details
-        payment.setEmail(govPayPayment.getEmail());
-        payment.setCardBrand(govPayPayment.getCardDetails().getCardBrand());
-        payment.setLastDigitsCardNumber(govPayPayment.getCardDetails().getLastDigitsCardNumber());
-        payment.setCardholderName(govPayPayment.getCardDetails().getCardholderName());
-        payment.setCardExpiryDate(govPayPayment.getCardDetails().getExpiryDate());
+        //If the card details are present
+        if (govPayPayment.getCardDetails() != null) {
+            payment.setEmail(govPayPayment.getEmail());
+            payment.setCardBrand(govPayPayment.getCardDetails().getCardBrand());
+            payment.setLastDigitsCardNumber(govPayPayment.getCardDetails().getLastDigitsCardNumber());
+            payment.setCardholderName(govPayPayment.getCardDetails().getCardholderName());
+            payment.setCardExpiryDate(govPayPayment.getCardDetails().getExpiryDate());
+        }
+
     }
 
     private String hrefFor(Link url) {
