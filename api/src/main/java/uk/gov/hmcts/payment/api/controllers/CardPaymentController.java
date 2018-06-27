@@ -17,8 +17,10 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFound
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentCardDetailsNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentRefDataNotFoundException;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
@@ -79,6 +81,16 @@ public class CardPaymentController {
         return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
 
+    @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card detaisl for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment card details retrieved"),
+        @ApiResponse(code = 404, message = "Payment card details not found")
+    })
+    @RequestMapping(value = "/card-payments/{reference}/card-details", method = GET)
+    public PaymentDto retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
+        return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieveWithCardDetails(paymentReference));
+    }
+
     @ApiOperation(value = "Get card payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment retrieved"),
@@ -90,7 +102,7 @@ public class CardPaymentController {
     }
 
 
-    @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
+    @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class, PaymentCardDetailsNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
         return new ResponseEntity(NOT_FOUND);
     }

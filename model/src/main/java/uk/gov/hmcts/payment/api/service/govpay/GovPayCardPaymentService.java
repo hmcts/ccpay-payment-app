@@ -51,6 +51,11 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     }
 
     @Override
+    public GovPayPayment retrieveWithCardDetails(@NonNull String id) {
+        return null;
+    }
+
+    @Override
     public List<GovPayPayment> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
         return null;
     }

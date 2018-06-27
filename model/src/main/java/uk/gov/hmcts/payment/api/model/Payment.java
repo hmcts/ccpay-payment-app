@@ -70,6 +70,15 @@ public class Payment {
     private String cancelUrl;
     @Transient
     private String refundsUrl;
+    @Transient
+    private String lastDigitsCardNumber;
+    @Transient
+    private String cardholderName;
+    @Transient
+    private String expiryDate;
+    @Transient
+    private String cardBrand;
+
 
     @Column(name = "currency")
     private String currency;
