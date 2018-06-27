@@ -118,11 +118,6 @@ public class PaymentsReportService {
 
     public Optional<List<PaymentDto>> findCreditAccountPaymentsBetweenDates(Date startDate, Date endDate) {
 
-        if (startDate == null && endDate == null) {
-            LOG.warn("PaymentsReportService - Start and End Dates are null");
-            return Optional.empty();
-        }
-
         if (startDate.after(endDate) || startDate.compareTo(endDate) == 0) {
             LOG.error("PaymentsReportService - Error while creating credit account payments csv file. Incorrect start and end dates ");
 
