@@ -1,4 +1,4 @@
-Y=package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
