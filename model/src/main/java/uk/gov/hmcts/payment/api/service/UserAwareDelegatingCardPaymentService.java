@@ -15,7 +15,6 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentCardDetailsNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.persistence.criteria.*;
@@ -147,7 +146,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             fillCardDetails(payment, govPayPayment);
         } else {
             LOG.error("Payment card details not found for the reference: {}", payment.getReference());
-            throw new PaymentCardDetailsNotFoundException("Payment card details not found.");
+            throw new PaymentNotFoundException("Payment card details not found.");
         }
 
 
