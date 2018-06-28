@@ -5,6 +5,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -46,10 +47,7 @@ public class PaymentDtoTest {
     private String organisationName;
     private String paymentGroupReference;
     private String email;
-    private String cardType;
-    private String cardExpiryDate;
-    private String lastDigitsCardNumber;
-    private String cardholderName;
+    private CardDetails cardDetails;
     private Date dateCreated;
     private Date dateUpdated;
     private BigDecimal amount;
@@ -102,15 +100,16 @@ public class PaymentDtoTest {
         organisationName = "organisationName";
         paymentGroupReference = "paymentGroupReference";
         email= "email";
-        cardType = "cardType";
-        cardExpiryDate = "cardExpiryDate";
-        lastDigitsCardNumber = "lastDigitsCardNumber";
-        cardholderName = "cardholderName";
+        cardDetails = CardDetails.cardDetailsWith().cardBrand("cardBrand")
+            .expiryDate("expiryDate")
+            .cardholderName("cardholderName")
+            .lastDigitsCardNumber("lastFourDigitsCardNumber")
+            .build();
 
         testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference, email, cardType, cardExpiryDate, lastDigitsCardNumber, cardholderName,
+            organisationName, paymentGroupReference, email, cardDetails,
             null, statusHistories, links);
     }
 
