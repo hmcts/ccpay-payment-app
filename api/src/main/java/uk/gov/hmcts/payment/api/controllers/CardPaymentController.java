@@ -17,10 +17,8 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFound
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentCardDetailsNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentRefDataNotFoundException;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
@@ -102,7 +100,7 @@ public class CardPaymentController {
     }
 
 
-    @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class, PaymentCardDetailsNotFoundException.class})
+    @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
         return new ResponseEntity(NOT_FOUND);
     }
