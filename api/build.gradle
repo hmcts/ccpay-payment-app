@@ -32,7 +32,6 @@ idea {
 def javaLoggingVersion = '3.0.1'
 
 dependencies {
-  compile project(':payment-gov-pay-client')
   compile project(':payment-api-contract')
   compile project(':payment-model')
   compile group: 'uk.gov.hmcts.reform', name: 'java-logging', version: javaLoggingVersion
