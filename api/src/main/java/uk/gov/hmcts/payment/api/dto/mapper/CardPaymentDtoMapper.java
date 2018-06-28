@@ -8,6 +8,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -53,15 +54,21 @@ public class CardPaymentDtoMapper {
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider().getName())
             .email(payment.getEmail())
-            .cardType(payment.getCardBrand())
-            .cardholderName(payment.getCardholderName())
-            .cardExpiryDate(payment.getExpiryDate())
-            .lastDigitsCardNumber(payment.getLastDigitsCardNumber())
+            .cardDetails(populateCardDetails(payment))
             .fees(toFeeDtos(fees))
             .links(new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
             ))
+            .build();
+    }
+
+    private CardDetails populateCardDetails(Payment payment) {
+        return CardDetails.cardDetailsWith()
+            .cardBrand(payment.getCardBrand())
+            .cardholderName(payment.getCardholderName())
+            .expiryDate(payment.getExpiryDate())
+            .lastDigitsCardNumber(payment.getLastDigitsCardNumber())
             .build();
     }
 

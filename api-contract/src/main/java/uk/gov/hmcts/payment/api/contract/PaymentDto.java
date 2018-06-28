@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotEmpty;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -78,13 +79,7 @@ public class PaymentDto {
 
     private String email;
 
-    private String cardType;
-
-    private String cardExpiryDate;
-
-    private String lastDigitsCardNumber;
-
-    private String cardholderName;
+    private CardDetails cardDetails;
 
     //@JsonUnwrapped
     @NotNull

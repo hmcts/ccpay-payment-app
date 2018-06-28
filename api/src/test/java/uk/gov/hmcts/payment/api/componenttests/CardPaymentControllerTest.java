@@ -27,6 +27,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -308,12 +309,14 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         assertEquals(paymentDto.getReference(), payment.getReference());
         assertEquals(paymentDto.getExternalReference(), payment.getExternalReference());
-        assertEquals(paymentDto.getCardExpiryDate(), "11/18");
-        assertEquals(paymentDto.getCardType(), "Visa");
-        assertEquals(paymentDto.getCardholderName(), "TEST CARD");
-        assertEquals(paymentDto.getLastDigitsCardNumber(), "1111");
         assertEquals(paymentDto.getAmount(), new BigDecimal("121.11"));
         assertEquals(paymentDto.getStatus(), "Success");
+
+        CardDetails cardDetails = paymentDto.getCardDetails();
+        assertEquals(cardDetails.getExpiryDate(), "11/18");
+        assertEquals(cardDetails.getCardBrand(), "Visa");
+        assertEquals(cardDetails.getCardholderName(), "TEST CARD");
+        assertEquals(cardDetails.getLastDigitsCardNumber(), "1111");
 
     }
 
