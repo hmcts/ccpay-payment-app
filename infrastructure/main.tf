@@ -16,7 +16,7 @@ locals {
 
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
-  resource_group_name = "${local.vaultName}"
+  resource_group_name = "${var.product}-${var.env}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_reference" {
