@@ -66,6 +66,7 @@ module "payment-api" {
     GOV_PAY_AUTH_KEY_CMC = "${data.vault_generic_secret.gov_pay_keys_cmc.data["value"]}"
     GOV_PAY_AUTH_KEY_PROBATE_FRONTEND = "${data.vault_generic_secret.gov_pay_keys_probate.data["value"]}"
     GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND = "${data.vault_generic_secret.gov_pay_keys_divorce.data["value"]}"
+    GOV_PAY_OPERATIONAL_SERVICES = "${var.gov_pay_operational_services}"
 
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"
