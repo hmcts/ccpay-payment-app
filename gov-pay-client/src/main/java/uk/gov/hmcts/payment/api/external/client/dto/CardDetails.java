@@ -25,4 +25,6 @@ public class CardDetails {
     private String expiryDate;
 
     private String cardBrand;
+
+    private String email;
 }

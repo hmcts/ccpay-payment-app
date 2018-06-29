@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -86,8 +87,8 @@ public class CardPaymentController {
         @ApiResponse(code = 404, message = "Payment card details not found")
     })
     @RequestMapping(value = "/card-payments/{reference}/card-details", method = GET)
-    public PaymentDto retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
-        return cardPaymentDtoMapper.toRetrievePaymentCardDetails(cardPaymentService.retrieveWithCardDetails(paymentReference));
+    public CardDetails retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
+        return cardPaymentDtoMapper.toRetrieveCardDetails(cardPaymentService.retrieveWithCardDetails(paymentReference));
     }
 
     @ApiOperation(value = "Get card payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
