@@ -30,6 +30,12 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 
+/**
+ *
+ * Card payment controller
+ *
+ * */
+
 @RestController
 @Api(tags = {"CardPaymentController"})
 @SwaggerDefinition(tags = {@Tag(name = "CardPaymentController", description = "Card Payment API")})
