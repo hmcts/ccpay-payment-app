@@ -63,6 +63,15 @@ public class CardPaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toRetrievePaymentCardDetails(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+
+        return PaymentDto.payment2DtoWith()
+            .email(payment.getEmail())
+            .cardDetails(populateCardDetails(payment))
+            .build();
+    }
+
     private CardDetails populateCardDetails(Payment payment) {
         return CardDetails.cardDetailsWith()
             .cardBrand(payment.getCardBrand())
