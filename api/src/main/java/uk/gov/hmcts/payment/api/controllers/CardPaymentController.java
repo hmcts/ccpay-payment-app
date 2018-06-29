@@ -87,7 +87,7 @@ public class CardPaymentController {
     })
     @RequestMapping(value = "/card-payments/{reference}/card-details", method = GET)
     public PaymentDto retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
-        return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieveWithCardDetails(paymentReference));
+        return cardPaymentDtoMapper.toRetrievePaymentCardDetails(cardPaymentService.retrieveWithCardDetails(paymentReference));
     }
 
     @ApiOperation(value = "Get card payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")

@@ -138,8 +138,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
         GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
 
-        fillTransientDetails(payment, govPayPayment);
-
         Optional<CardDetails> cardDetails = Optional.ofNullable(govPayPayment.getCardDetails());
         if (cardDetails.isPresent()) {
             LOG.debug("Payment card details found for the reference: {}", payment.getReference());

@@ -307,10 +307,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        assertEquals(paymentDto.getReference(), payment.getReference());
-        assertEquals(paymentDto.getExternalReference(), payment.getExternalReference());
-        assertEquals(paymentDto.getAmount(), new BigDecimal("121.11"));
-        assertEquals(paymentDto.getStatus(), "Success");
 
         CardDetails cardDetails = paymentDto.getCardDetails();
         assertEquals(cardDetails.getExpiryDate(), "11/18");
