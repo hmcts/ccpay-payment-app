@@ -53,8 +53,6 @@ public class CardPaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider().getName())
-            .email(payment.getEmail())
-            .cardDetails(populateCardDetails(payment))
             .fees(toFeeDtos(fees))
             .links(new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
@@ -63,21 +61,15 @@ public class CardPaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toRetrievePaymentCardDetails(PaymentFeeLink paymentFeeLink) {
+    public CardDetails toRetrieveCardDetails(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
 
-        return PaymentDto.payment2DtoWith()
-            .email(payment.getEmail())
-            .cardDetails(populateCardDetails(payment))
-            .build();
-    }
-
-    private CardDetails populateCardDetails(Payment payment) {
         return CardDetails.cardDetailsWith()
             .cardBrand(payment.getCardBrand())
             .cardholderName(payment.getCardholderName())
             .expiryDate(payment.getExpiryDate())
             .lastDigitsCardNumber(payment.getLastDigitsCardNumber())
+            .email(payment.getEmail())
             .build();
     }
 
