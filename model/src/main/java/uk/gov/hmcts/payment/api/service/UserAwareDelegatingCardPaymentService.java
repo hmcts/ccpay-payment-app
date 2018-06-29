@@ -178,8 +178,12 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             }
         }
 
-        if (fromDate != null) {
+        if (fromDate != null && toDate != null) {
             predicates.add(cb.between(paymentJoin.get("dateUpdated"), fromDate, toDate));
+        }else if (fromDate != null) {
+            predicates.add(cb.greaterThanOrEqualTo(paymentJoin.get("dateUpdated"), fromDate));
+        }else if (toDate != null) {
+            predicates.add(cb.lessThanOrEqualTo(paymentJoin.get("dateUpdated"), toDate));
         }
 
         if (ccdCaseNumber != null) {
