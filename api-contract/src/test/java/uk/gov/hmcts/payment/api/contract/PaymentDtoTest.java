@@ -5,7 +5,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
