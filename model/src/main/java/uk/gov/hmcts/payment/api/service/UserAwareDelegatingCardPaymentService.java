@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.*;
@@ -20,7 +19,10 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 @Service
 public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
@@ -132,25 +134,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return paymentFeeLink;
     }
 
-    @Override
-    public PaymentFeeLink retrieveWithCardDetails(String paymentReference) {
-        Payment payment = findSavedPayment(paymentReference);
-        PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
-
-        Optional<CardDetails> cardDetails = Optional.ofNullable(govPayPayment.getCardDetails());
-        if (cardDetails.isPresent()) {
-            LOG.debug("Payment card details found for the reference: {}", payment.getReference());
-            fillCardDetails(payment, govPayPayment);
-        } else {
-            LOG.error("Payment card details not found for the reference: {}", payment.getReference());
-            throw new PaymentNotFoundException("Payment card details not found.");
-        }
-
-
-        return paymentFeeLink;
-    }
-
 
     @Override
     public List<PaymentFeeLink> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
@@ -212,16 +195,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         payment.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
         payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
     }
-
-    private void fillCardDetails(Payment payment, GovPayPayment govPayPayment) {
-        payment.setEmail(govPayPayment.getEmail());
-        payment.setCardBrand(govPayPayment.getCardDetails().getCardBrand());
-        payment.setExpiryDate(govPayPayment.getCardDetails().getExpiryDate());
-        payment.setLastDigitsCardNumber(govPayPayment.getCardDetails().getLastDigitsCardNumber());
-        payment.setCardholderName(govPayPayment.getCardDetails().getCardholderName());
-
-    }
-
 
     private String hrefFor(Link url) {
         return url == null ? null : url.getHref();

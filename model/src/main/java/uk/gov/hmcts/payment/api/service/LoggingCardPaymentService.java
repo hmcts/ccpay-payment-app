@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.util.Date;
@@ -59,11 +58,6 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     @Override
     public PaymentFeeLink retrieve(String paymentReference) {
         return delegate.retrieve(paymentReference);
-    }
-
-    @Override
-    public PaymentFeeLink retrieveWithCardDetails(String paymentReference) {
-        return delegate.retrieveWithCardDetails(paymentReference);
     }
 
     @Override
