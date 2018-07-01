@@ -14,10 +14,12 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
+import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -45,14 +47,17 @@ public class CardPaymentController {
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
     private final CardPaymentDtoMapper cardPaymentDtoMapper;
     private final PaymentsReportService paymentsReportService;
+    private final CardDetailsService<CardDetails, String> cardDetailsService;
 
     @Autowired
     public CardPaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardCardPaymentService,
                                  CardPaymentDtoMapper cardPaymentDtoMapper,
-                                 PaymentsReportService paymentsReportService) {
+                                 PaymentsReportService paymentsReportService,
+                                 CardDetailsService<CardDetails, String> cardDetailsService) {
         this.cardPaymentService = cardCardPaymentService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
         this.paymentsReportService = paymentsReportService;
+        this.cardDetailsService = cardDetailsService;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -94,7 +99,7 @@ public class CardPaymentController {
     })
     @RequestMapping(value = "/card-payments/{reference}/card-details", method = GET)
     public CardDetails retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
-        return cardPaymentDtoMapper.toRetrieveCardDetails(cardPaymentService.retrieveWithCardDetails(paymentReference));
+        return cardDetailsService.retrieve(paymentReference);
     }
 
     @ApiOperation(value = "Get card payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
