@@ -301,7 +301,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 
         MvcResult result = restActions
-            .get("/card-payments/RC-1529-9159-9129-3183/card-details")
+            .get("/card-payments/RC-1529-9159-9129-3183/details")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -349,7 +349,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 
         restActions
-            .get("/card-payments/RC-1518-9429-1432-7825/card-details")
+            .get("/card-payments/RC-1518-9429-1432-7825/details")
             .andExpect(status().isNotFound());
     }
 

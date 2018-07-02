@@ -97,7 +97,7 @@ public class CardPaymentController {
         @ApiResponse(code = 200, message = "Payment card details retrieved"),
         @ApiResponse(code = 404, message = "Payment card details not found")
     })
-    @RequestMapping(value = "/card-payments/{reference}/card-details", method = GET)
+    @RequestMapping(value = "/card-payments/{reference}/details", method = GET)
     public CardDetails retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
         return cardDetailsService.retrieve(paymentReference);
     }
