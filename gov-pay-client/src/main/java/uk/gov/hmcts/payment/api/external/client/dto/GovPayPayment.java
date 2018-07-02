@@ -31,6 +31,7 @@ public class GovPayPayment {
     private String returnUrl;
     private String createdDate;
     private RefundSummary refundSummary;
+    private CardDetails cardDetails;
     @JsonProperty("_links")
     private Links links;
 

@@ -27,6 +27,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -262,6 +263,94 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             assertEquals(h.getStatus(), "Success");
             assertEquals(h.getExternalStatus(), "success");
         });
+    }
+
+    @Test
+    public void retrieveCardDetails_byPaymentReferenceTest() throws Exception {
+        stubFor(get(urlPathMatching("/v1/payments/ah0288ctvgqgcmbatdp1viu61j"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-card-details-response.json"))));
+
+
+        //Create a payment in db
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Success").externalStatus("success").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("121.11"))
+            .caseReference("Reference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Test payments statuses")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA011")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("ah0288ctvgqgcmbatdp1viu61j")
+            .reference("RC-1529-9159-9129-3183")
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("121.11")).version("1").code("FEE0123").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186161221").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result = restActions
+            .get("/card-payments/RC-1529-9159-9129-3183/details")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        CardDetails cardDetails = objectMapper.readValue(result.getResponse().getContentAsByteArray(), CardDetails.class);
+        assertEquals(cardDetails.getExpiryDate(), "11/18");
+        assertEquals(cardDetails.getCardBrand(), "Visa");
+        assertEquals(cardDetails.getCardholderName(), "TEST CARD");
+        assertEquals(cardDetails.getLastDigitsCardNumber(), "1111");
+
+    }
+
+    @Test
+    public void retrieveCardDetails_shouldReturn404_ifDetailsNotFoundTest() throws Exception {
+        stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-error-response.json"))));
+
+
+        //Create a payment in db
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Failed").externalStatus("error").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("22.89"))
+            .caseReference("Reference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Test payments statuses")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA001")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("error").build())
+            .externalReference("ia2mv22nl5o880rct0vqfa7k76")
+            .reference("RC-1518-9429-1432-7825")
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("22.89")).version("1").code("FEE0112").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186161221").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        restActions
+            .get("/card-payments/RC-1518-9429-1432-7825/details")
+            .andExpect(status().isNotFound());
     }
 
     @Test
