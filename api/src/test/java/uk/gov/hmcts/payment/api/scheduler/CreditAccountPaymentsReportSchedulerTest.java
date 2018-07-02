@@ -8,6 +8,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 
+import java.util.Date;
+
 import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class CreditAccountPaymentsReportSchedulerTest {
@@ -29,11 +31,15 @@ public class CreditAccountPaymentsReportSchedulerTest {
     public void shouldInvokeGenerateCreditAccountPaymentsReport()  {
         // given
 
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
         // when
-        creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReportTask();
+        creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReportTask(fromDate, toDate);
 
         // then
         verify(feesService).dailyRefreshOfFeesData();
+        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(fromDate, toDate);
     }
 }
 
