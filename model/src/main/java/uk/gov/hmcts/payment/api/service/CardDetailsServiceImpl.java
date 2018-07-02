@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.util.Optional;
@@ -45,7 +46,7 @@ public class CardDetailsServiceImpl implements CardDetailsService<CardDetails, S
             cardDetails.setEmail(govPayPayment.getEmail());
         } else {
             LOG.error("Payment card details not found for the reference: {}", payment.getReference());
-            throw new PaymentNotFoundException("Payment card details not found.");
+            throw new PaymentException("Payment card details not found.");
         }
 
         return cardDetails;
