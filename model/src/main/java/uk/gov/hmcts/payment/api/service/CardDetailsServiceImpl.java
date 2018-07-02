@@ -46,7 +46,7 @@ public class CardDetailsServiceImpl implements CardDetailsService<CardDetails, S
             cardDetails.setEmail(govPayPayment.getEmail());
         } else {
             LOG.error("Payment card details not found for the reference: {}", payment.getReference());
-            throw new PaymentException("Payment card details not found.");
+            throw new PaymentNotFoundException("Payment card details not found.");
         }
 
         return cardDetails;
