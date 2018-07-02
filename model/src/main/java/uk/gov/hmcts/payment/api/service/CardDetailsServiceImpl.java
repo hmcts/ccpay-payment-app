@@ -11,7 +11,6 @@ import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import javax.smartcardio.Card;
 import java.util.Optional;
 
 @Service
