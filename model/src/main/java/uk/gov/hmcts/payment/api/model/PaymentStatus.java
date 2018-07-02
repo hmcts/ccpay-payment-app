@@ -16,6 +16,8 @@ import javax.persistence.*;
 @Table(name = "payment_status")
 public class PaymentStatus {
 
+    public final static PaymentStatus CREATED = new PaymentStatus("created", "created");
+
     @Id
     @Column(name = "name", nullable = false)
     private String name;

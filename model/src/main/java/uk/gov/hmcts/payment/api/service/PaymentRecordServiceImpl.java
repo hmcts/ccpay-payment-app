@@ -18,12 +18,14 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
 
     private final static String PAYMENT_CHANNEL_DIGITAL_BAR = "digital bar";
     private final static String PAYMENT_METHOD_CASH = "cash";
-    private final static String PAYMENT_STATUS_SUCCESS = "success";
+    private final static String PAYMENT_STATUS_CREATED = "created";
+    private final static String PAYMENT_PROVIDER_CHEQUE = "cheque provider";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final PaymentProviderRepository paymentProviderRepository;
     private final PaymentReferenceUtil paymentReferenceUtil;
 
     @Autowired
@@ -35,6 +37,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentStatusRepository = paymentStatusRepository;
+        this.paymentProviderRepository = paymentProviderRepository;
         this.paymentReferenceUtil = paymentReferenceUtil;
     }
 
@@ -44,26 +47,29 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
         LOG.debug("Record payment with PaymentGroupReference: {}", paymentGroupReference);
 
         PaymentFeeLink paymentFeeLink = populatePaymentDetails(recordPayment, fees, paymentGroupReference);
+
         return  paymentFeeLinkRepository.save(paymentFeeLink);
     }
 
     protected PaymentFeeLink populatePaymentDetails(Payment payment, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
 
         return PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference(paymentGroupRef)
             .payments(Arrays.asList(Payment.paymentWith()
                 .amount(payment.getAmount())
-                .ccdCaseNumber(payment.getCcdCaseNumber())
                 .caseReference(payment.getCaseReference())
                 .currency(payment.getCurrency())
                 .siteId(payment.getSiteId())
+                .externalProvider(payment.getExternalProvider())
+                .externalReference(payment.getExternalReference())
                 .giroSlipNo(payment.getGiroSlipNo())
                 .serviceType(payment.getServiceType())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
-                .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_SUCCESS))
-                .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CASH))
+                .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
+                .paymentMethod(paymentMethodRepository.findByNameOrThrow(payment.getPaymentMethod().getName()))
                 .reference(paymentReferenceUtil.getNext())
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                    .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_SUCCESS).getName())
+                    .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED).getName())
                     .build()))
                 .build()))
             .fees(fees)

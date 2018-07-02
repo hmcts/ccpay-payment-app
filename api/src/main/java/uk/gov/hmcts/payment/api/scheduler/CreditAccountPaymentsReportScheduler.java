@@ -3,8 +3,6 @@ package uk.gov.hmcts.payment.api.scheduler;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
@@ -15,9 +13,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static uk.gov.hmcts.payment.api.scheduler.DateUtils.getTodayDate;
+import static uk.gov.hmcts.payment.api.scheduler.DateUtils.getYesterdayDate;
 
 @Component
-@ConditionalOnProperty("pba.payments.report.scheduler.enabled")
 public class CreditAccountPaymentsReportScheduler {
 
     private static final Logger LOG = getLogger(CreditAccountPaymentsReportScheduler.class);
@@ -36,7 +35,6 @@ public class CreditAccountPaymentsReportScheduler {
         this.feesService = feesService;
     }
 
-    @Scheduled(cron = "${pba.payments.report.schedule}")
     public void generateCreditAccountPaymentsReportTask() {
 
         try {
@@ -44,8 +42,8 @@ public class CreditAccountPaymentsReportScheduler {
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
             sdf.setLenient(false);
 
-            Date fromDate = startDate == null ? paymentsReportService.getYesterdaysDate() : sdf.parse(startDate);
-            Date toDate = endDate == null ? new Date() : sdf.parse(endDate);
+            Date fromDate = startDate == null ? getYesterdayDate() : sdf.parse(startDate);
+            Date toDate = endDate == null ? getTodayDate() : sdf.parse(endDate);
 
             LOG.info("CreditAccountPaymentsReportScheduler -  Start of scheduled job for HMCTS-PBA Payments csv report file.");
             feesService.dailyRefreshOfFeesData();

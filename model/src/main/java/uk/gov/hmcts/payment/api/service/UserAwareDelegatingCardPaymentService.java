@@ -5,6 +5,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@Primary
 public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
     private static final Logger LOG = LoggerFactory.getLogger(UserAwareDelegatingCardPaymentService.class);
 
@@ -161,8 +163,12 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             }
         }
 
-        if (fromDate != null) {
+        if (fromDate != null && toDate != null) {
             predicates.add(cb.between(paymentJoin.get("dateUpdated"), fromDate, toDate));
+        }else if (fromDate != null) {
+            predicates.add(cb.greaterThanOrEqualTo(paymentJoin.get("dateUpdated"), fromDate));
+        }else if (toDate != null) {
+            predicates.add(cb.lessThanOrEqualTo(paymentJoin.get("dateUpdated"), toDate));
         }
 
         if (ccdCaseNumber != null) {

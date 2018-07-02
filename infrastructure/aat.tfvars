@@ -1,3 +1,3 @@
 vault_section = "test"
 capacity = "2"
-idam_api_url = "http://betaDevBccidamAppLB.reform.hmcts.net"
+idam_api_url = "https://preprod-idamapi.reform.hmcts.net:3511"

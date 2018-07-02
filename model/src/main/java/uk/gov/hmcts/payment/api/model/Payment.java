@@ -19,7 +19,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "payment", indexes = {
-    @Index(name = "ix_pay_ccd_case_number", columnList = "ccd_case_number")
+    @Index(name = "ix_pay_ccd_case_number", columnList = "ccd_case_number"),
+    @Index(name = "ix_pay_payment_status", columnList = "payment_status")
 })
 public class Payment {
     @Id
@@ -31,6 +32,9 @@ public class Payment {
 
     @Column(name = "external_reference")
     private String externalReference;
+
+    @Column(name = "external_provider")
+    private String externalProvider;
 
     @CreationTimestamp
     @Column(name = "date_created")

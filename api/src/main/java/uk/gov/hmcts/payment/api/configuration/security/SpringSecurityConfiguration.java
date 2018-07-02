@@ -43,7 +43,8 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             "/v2/**",
             "/refdata/**",
             "/health",
-            "/info");
+            "/info",
+            "/favicon.ico");
     }
 
     @Override
@@ -60,6 +61,8 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
             .antMatchers(HttpMethod.GET, "/payments", "/api/**").permitAll()
             .antMatchers(HttpMethod.POST, "/api/**").permitAll()
+            .antMatchers(HttpMethod.POST, "/payments/email-pay-reports").permitAll()
+            .antMatchers(HttpMethod.POST, "/payments/update").permitAll()
             .anyRequest().authenticated();
     }
 }

@@ -43,10 +43,8 @@ public class FeeDto {
 
     private String naturalAccountCode;
 
-    @JsonIgnore
     private String ccdCaseNumber;
 
-    @JsonIgnore
     private String reference;
 
 }
