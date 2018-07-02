@@ -103,7 +103,7 @@ module "payment-api" {
 }
 
 module "payment-database" {
-  source = "git@github.com:hmcts/moj-module-postgres?ref=cnp-449-tactical"
+  source = "git@github.com:hmcts/moj-module-postgres?ref=master"
   product = "${var.product}-postgres-db"
   location = "${var.location}"
   env = "${var.env}"
