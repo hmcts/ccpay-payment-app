@@ -1,0 +1,54 @@
+{
+  "amount": 12111,
+  "state": {
+    "status": "success",
+    "finished": true
+  },
+  "description": "probate description",
+  "reference": "RC-1529-9159-9129-3183",
+  "email": "probate.user@hmcts.com",
+  "payment_id": "ah0288ctvgqgcmbatdp1viu61j",
+  "payment_provider": "sandbox",
+  "return_url": "https://localhost",
+  "created_date": "2018-06-25T08:39:53.729Z",
+  "refund_summary": {
+    "status": "available",
+    "amount_available": 12111,
+    "amount_submitted": 0
+  },
+  "settlement_summary": {
+    "capture_submit_time": "2018-06-25T08:58:19.800Z",
+    "captured_date": "2018-06-25"
+  },
+  "card_details": {
+    "last_digits_card_number": "1111",
+    "cardholder_name": "TEST CARD",
+    "expiry_date": "11/18",
+    "billing_address": {
+      "line1": "98, Connecticut Ave Nw",
+      "line2": "Connecticut Ave Nw",
+      "postcode": "WV2 1AT",
+      "city": "Geauga",
+      "country": "GB"
+    },
+    "card_brand": "Visa"
+  },
+  "card_brand": "Visa",
+  "_links": {
+    "self": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ah0288ctvgqgcmbatdp1viu61j",
+      "method": "GET"
+    },
+    "next_url": null,
+    "next_url_post": null,
+    "events": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ah0288ctvgqgcmbatdp1viu61j/events",
+      "method": "GET"
+    },
+    "refunds": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ah0288ctvgqgcmbatdp1viu61j/refunds",
+      "method": "GET"
+    },
+    "cancel": null
+  }
+}
