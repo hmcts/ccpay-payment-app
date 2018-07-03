@@ -15,13 +15,13 @@ public class GovPayAuthUtil {
     private List<String> operationalServices;
 
     @Autowired
-    private GovPayConfig govPayConfig;
+    private GovPayKeyRepository govPayKeyRepository;
 
-    public String getServiceToken(String callingService, String paymentService) throws Exception {
+    public String getServiceToken(String callingService, String paymentService) {
         if (!callingService.equals(paymentService) && !operationalServices.contains(callingService)) {
-            throw new AccessDeniedException("Unable to fetch information due to caller being forbidden to look up given payment");
+            return govPayKeyRepository.getKey(callingService);
         }
 
-        return govPayConfig.getKey().get(paymentService);
+        return govPayKeyRepository.getKey(paymentService);
     }
 }

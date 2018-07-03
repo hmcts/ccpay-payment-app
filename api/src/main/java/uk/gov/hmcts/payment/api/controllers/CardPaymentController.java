@@ -73,6 +73,7 @@ public class CardPaymentController {
     @ApiOperation(value = "Get card payment details by payment reference", notes = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment retrieved"),
+        @ApiResponse(code = 403, message = "Payment info forbidden"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/card-payments/{reference}", method = GET)

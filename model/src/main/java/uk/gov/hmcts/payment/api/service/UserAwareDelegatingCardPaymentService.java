@@ -111,7 +111,9 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
+        String paymentTargetService = payment.getServiceType();
+
+        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentTargetService);
 
         fillTransientDetails(payment, govPayPayment);
 
@@ -134,6 +136,10 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return paymentFeeLink;
     }
 
+    @Override
+    public PaymentFeeLink retrieve(String s, String paymentTargetService) {
+        return null;
+    }
 
     @Override
     public List<PaymentFeeLink> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {

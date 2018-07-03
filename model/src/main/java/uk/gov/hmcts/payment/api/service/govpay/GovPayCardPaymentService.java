@@ -11,8 +11,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Date;
 import java.util.List;
 
@@ -22,12 +24,14 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     private final GovPayKeyRepository govPayKeyRepository;
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
+    private final GovPayAuthUtil govPayAuthUtil;
 
     @Autowired
-    public GovPayCardPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier) {
+    public GovPayCardPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil) {
         this.govPayKeyRepository = govPayKeyRepository;
         this.govPayClient = govPayClient;
         this.serviceIdSupplier = serviceIdSupplier;
+        this.govPayAuthUtil = govPayAuthUtil;
     }
 
     @Override
@@ -51,6 +55,11 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     }
 
     @Override
+    public GovPayPayment retrieve(@NonNull String id, @NonNull String paymentTargetService) {
+        return govPayClient.retrievePayment(keyForCurrentService(paymentTargetService), id);
+    }
+
+    @Override
     public List<GovPayPayment> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
         return null;
     }
@@ -63,9 +72,11 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
         return link.getHref();
     }
 
-    private String keyForCurrentService() {
+    private String keyForCurrentService(String paymentTargetService) {
+        return govPayAuthUtil.getServiceToken(serviceIdSupplier.get(), paymentTargetService);
+    }
 
-        String key = govPayKeyRepository.getKey(serviceIdSupplier.get());
-        return key;
+    private String keyForCurrentService() {
+        return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 }
