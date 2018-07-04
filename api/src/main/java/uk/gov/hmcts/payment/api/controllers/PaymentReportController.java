@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Api(tags = {"PaymentReportController"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentReportController", description = "Payment Report API")})
 public class PaymentReportController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentReportController.class);
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE;
 
@@ -53,10 +57,14 @@ public class PaymentReportController {
 
         if (cardReportsEnabled) {
             cardPaymentsReportScheduler.generateCardPaymentsReportTask(fromDate, toDate);
+        } else {
+            LOG.info("Card payments report is disabled");
         }
 
         if (pbaReportsEnabled) {
             creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReportTask(fromDate, toDate);
+        } else {
+            LOG.info("Pba credit account payments report is disabled");
         }
     }
 
