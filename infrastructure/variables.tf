@@ -51,6 +51,10 @@ variable "gov_pay_url" {
   default = "https://publicapi.payments.service.gov.uk/v1/payments"
 }
 
+variable "gov_pay_operational_services" {
+  default = "ccd"
+}
+
 variable "spring_mail_host" {
   default = "mta.reform.hmcts.net"
 }
@@ -100,4 +104,8 @@ variable "payment_audit_file" {
 
 variable "capacity" {
   default = "1"
+}
+
+variable "feature_payments_search" {
+  default = "true"
 }

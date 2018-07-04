@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -33,30 +30,11 @@ public class CreditAccountPaymentsReportScheduler {
         this.feesService = feesService;
     }
 
-    public void generateCreditAccountPaymentsReportTask() {
-
-        try {
-
-            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-            sdf.setLenient(false);
-
-            Date fromDate = startDate == null ? paymentsReportService.getYesterdaysDate() : sdf.parse(startDate);
-            Date toDate = endDate == null ? new Date() : sdf.parse(endDate);
-
-            LOG.info("CreditAccountPaymentsReportScheduler -  Start of scheduled job for HMCTS-PBA Payments csv report file.");
-            feesService.dailyRefreshOfFeesData();
-            paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(fromDate, toDate);
-            LOG.info("CreditAccountPaymentsReportScheduler -  End of scheduled job for HMCTS-PBA Payments csv report file.");
-
-        } catch (ParseException paex) {
-
-            LOG.error("CreditAccountPaymentsReportScheduler - Error while creating credit account payments csv file."
-                + " Error message is " + paex.getMessage() + ". Expected format is dd-mm-yyyy.");
-
-            throw new PaymentException("Input dates parsing exception, valid date format is dd-MM-yyyy");
-
-        }
-
+    public void generateCreditAccountPaymentsReportTask(Date fromDate, Date toDate) {
+        LOG.info("CreditAccountPaymentsReportScheduler -  Start of scheduled job for HMCTS-PBA Payments csv report file.");
+        feesService.dailyRefreshOfFeesData();
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(fromDate, toDate);
+        LOG.info("CreditAccountPaymentsReportScheduler -  End of scheduled job for HMCTS-PBA Payments csv report file.");
     }
 
 }

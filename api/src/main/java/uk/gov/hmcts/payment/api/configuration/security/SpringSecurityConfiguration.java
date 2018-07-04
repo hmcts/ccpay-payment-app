@@ -43,7 +43,8 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             "/v2/**",
             "/refdata/**",
             "/health",
-            "/info");
+            "/info",
+            "/favicon.ico");
     }
 
     @Override

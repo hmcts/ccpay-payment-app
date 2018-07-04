@@ -2,41 +2,53 @@ provider "vault" {
   // # tactical vault - for example: use `data "vault_generic_secret" "s2s_secret" {`
   address = "https://vault.reform.hmcts.net:6200"
 }
-
-data "vault_generic_secret" "gov_pay_keys_reference" {
-  path = "secret/${var.vault_section}/cc/payment/api/gov-pay-keys/reference"
-}
-
-data "vault_generic_secret" "gov_pay_keys_cmc" {
-  path = "secret/${var.vault_section}/cc/payment/api/gov-pay-keys/cmc"
-}
-
-data "vault_generic_secret" "gov_pay_keys_probate" {
-  path = "secret/${var.vault_section}/cc/payment/api/gov-pay-keys/probate"
-}
-
-data "vault_generic_secret" "gov_pay_keys_divorce" {
-  path = "secret/${var.vault_section}/cc/payment/api/gov-pay-keys/divorce"
-}
-
-data "vault_generic_secret" "card_payments_email_to" {
-  path = "secret/${var.vault_section}/cc/payment/reports/card-payments/email-to"
-}
-
-data "vault_generic_secret" "pba_payments_email_to" {
-  path = "secret/${var.vault_section}/cc/payment/reports/pba-payments/email-to"
-}
-
 locals {
   aseName = "${data.terraform_remote_state.core_apps_compute.ase_name[0]}"
 
   local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
   local_ase = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "core-compute-aat" : "core-compute-saat" : local.aseName}"
 
+  previewVaultName = "payment-shared-aat"
+  nonPreviewVaultName = "payment-shared-${var.env}"
+  vaultName = "${(var.env == "preview" || var.env == "spreview") ? local.previewVaultName : local.nonPreviewVaultName}"
+
   s2sUrl = "http://rpe-service-auth-provider-${local.local_env}.service.${local.local_ase}.internal"
   fees_register_url = "http://fees-register-api-${local.local_env}.service.${local.local_ase}.internal"
 
   website_url = "http://${var.product}-api-${local.local_env}.service.${local.local_ase}.internal"
+}
+
+data "azurerm_key_vault" "payment_key_vault" {
+  name = "${local.vaultName}"
+  resource_group_name = "payment-${local.local_env}"
+}
+
+data "azurerm_key_vault_secret" "gov_pay_keys_reference" {
+  name = "gov-pay-keys-reference"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "gov_pay_keys_cmc" {
+  name = "gov-pay-keys-cmc"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "gov_pay_keys_probate" {
+  name = "gov-pay-keys-probate"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "gov_pay_keys_divorce" {
+  name = "gov-pay-keys-divorce"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+data "azurerm_key_vault_secret" "card_payments_email_to" {
+  name = "card-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+data "azurerm_key_vault_secret" "pba_payments_email_to" {
+  name = "pba-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 module "payment-api" {
@@ -62,10 +74,11 @@ module "payment-api" {
 
     # gov pay keys
     GOV_PAY_URL = "${var.gov_pay_url}"
-    GOV_PAY_AUTH_KEY_REFERENCE = "${data.vault_generic_secret.gov_pay_keys_reference.data["value"]}"
-    GOV_PAY_AUTH_KEY_CMC = "${data.vault_generic_secret.gov_pay_keys_cmc.data["value"]}"
-    GOV_PAY_AUTH_KEY_PROBATE_FRONTEND = "${data.vault_generic_secret.gov_pay_keys_probate.data["value"]}"
-    GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND = "${data.vault_generic_secret.gov_pay_keys_divorce.data["value"]}"
+    GOV_PAY_AUTH_KEY_REFERENCE = "${data.azurerm_key_vault_secret.gov_pay_keys_reference.value}"
+    GOV_PAY_AUTH_KEY_CMC = "${data.azurerm_key_vault_secret.gov_pay_keys_cmc.value}"
+    GOV_PAY_AUTH_KEY_PROBATE_FRONTEND = "${data.azurerm_key_vault_secret.gov_pay_keys_probate.value}"
+    GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND = "${data.azurerm_key_vault_secret.gov_pay_keys_divorce.value}"
+    GOV_PAY_OPERATIONAL_SERVICES = "${var.gov_pay_operational_services}"
 
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"
@@ -75,18 +88,19 @@ module "payment-api" {
     CARD_PAYMENTS_REPORT_SCHEDULE = "${var.card_payments_report_schedule}"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.card_payments_report_scheduler_enabled}"
     CARD_PAYMENTS_EMAIL_FROM = "${var.card_payments_email_from}"
-    CARD_PAYMENTS_EMAIL_TO = "${data.vault_generic_secret.card_payments_email_to.data["value"]}"
+    CARD_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.card_payments_email_to.value}"
     CARD_PAYMENTS_EMAIL_SUBJECT = "${var.card_payments_email_subject}"
     CARD_PAYMENTS_EMAIL_MESSAGE = "${var.card_payments_email_message}"
 
     PBA_PAYMENTS_REPORT_SCHEDULE = "${var.pba_payments_report_schedule}"
     PBA_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_payments_report_scheduler_enabled}"
     PBA_PAYMENTS_EMAIL_FROM = "${var.pba_payments_email_from}"
-    PBA_PAYMENTS_EMAIL_TO = "${data.vault_generic_secret.pba_payments_email_to.data["value"]}"
+    PBA_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_payments_email_to.value}"
     PBA_PAYMENTS_EMAIL_SUBJECT = "${var.pba_payments_email_subject}"
     PBA_PAYMENTS_EMAIL_MESSAGE = "${var.pba_payments_email_message}"
 
     FEES_REGISTER_URL = "${local.fees_register_url}"
+    FEATURE_PAYMENTS_SEARCH = "${var.feature_payments_search}"
 
     PAYMENT_SERVER_URL = "${local.website_url}"
 
@@ -101,7 +115,7 @@ module "payment-api" {
 }
 
 module "payment-database" {
-  source = "git@github.com:hmcts/moj-module-postgres?ref=cnp-449-tactical"
+  source = "git@github.com:hmcts/moj-module-postgres?ref=master"
   product = "${var.product}-postgres-db"
   location = "${var.location}"
   env = "${var.env}"
@@ -110,45 +124,3 @@ module "payment-database" {
   sku_name = "GP_Gen5_2"
   sku_tier = "GeneralPurpose"
 }
-
-module "key-vault" {
-  source              = "git@github.com:hmcts/moj-module-key-vault?ref=master"
-  product             = "${var.product}"
-  env                 = "${var.env}"
-  tenant_id           = "${var.tenant_id}"
-  object_id           = "${var.jenkins_AAD_objectId}"
-  resource_group_name = "${module.payment-api.resource_group_name}"
-  # group id of dcd_reform_dev_azure
-  product_group_object_id = "56679aaa-b343-472a-bb46-58bbbfde9c3d"
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES-USER" {
-  name      = "payment-POSTGRES-USER"
-  value     = "${module.payment-database.user_name}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
-  name      = "payment-POSTGRES-PASS"
-  value     = "${module.payment-database.postgresql_password}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
-  name      = "payment-POSTGRES-HOST"
-  value     = "${module.payment-database.host_name}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
-  name      = "payment-POSTGRES-PORT"
-  value     = "${module.payment-database.postgresql_listen_port}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
-}
-
-resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
-  name      = "payment-POSTGRES-DATABASE"
-  value     = "${module.payment-database.postgresql_database}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
-}
-

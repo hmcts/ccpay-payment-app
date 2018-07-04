@@ -8,14 +8,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
+import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -28,6 +32,12 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 
+/**
+ *
+ * Card payment controller
+ *
+ * */
+
 @RestController
 @Api(tags = {"CardPaymentController"})
 @SwaggerDefinition(tags = {@Tag(name = "CardPaymentController", description = "Card Payment API")})
@@ -37,14 +47,17 @@ public class CardPaymentController {
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
     private final CardPaymentDtoMapper cardPaymentDtoMapper;
     private final PaymentsReportService paymentsReportService;
+    private final CardDetailsService<CardDetails, String> cardDetailsService;
 
     @Autowired
     public CardPaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardCardPaymentService,
                                  CardPaymentDtoMapper cardPaymentDtoMapper,
-                                 PaymentsReportService paymentsReportService) {
+                                 PaymentsReportService paymentsReportService,
+                                 CardDetailsService<CardDetails, String> cardDetailsService) {
         this.cardPaymentService = cardCardPaymentService;
         this.cardPaymentDtoMapper = cardPaymentDtoMapper;
         this.paymentsReportService = paymentsReportService;
+        this.cardDetailsService = cardDetailsService;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -79,6 +92,16 @@ public class CardPaymentController {
         return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
 
+    @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card detaisl for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment card details retrieved"),
+        @ApiResponse(code = 404, message = "Payment card details not found")
+    })
+    @RequestMapping(value = "/card-payments/{reference}/details", method = GET)
+    public CardDetails retrieveWithCardDetails(@PathVariable("reference") String paymentReference) {
+        return cardDetailsService.retrieve(paymentReference);
+    }
+
     @ApiOperation(value = "Get card payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment retrieved"),
@@ -107,4 +130,9 @@ public class CardPaymentController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public String return403(AccessDeniedException ex) {
+        return ex.getMessage();
+    }
 }
