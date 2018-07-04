@@ -58,13 +58,13 @@ public class PaymentReportController {
         if (cardReportsEnabled) {
             cardPaymentsReportScheduler.generateCardPaymentsReportTask(fromDate, toDate);
         } else {
-            LOG.info("Card payments report is disabled");
+            LOG.info("Card payments report flag is disabled. So, system will not send CSV email");
         }
 
         if (pbaReportsEnabled) {
             creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReportTask(fromDate, toDate);
         } else {
-            LOG.info("Pba credit account payments report is disabled");
+            LOG.info("Pba credit account payments report flag is disabled. So, system will not send CSV email");
         }
     }
 
