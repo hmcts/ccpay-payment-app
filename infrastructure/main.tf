@@ -58,7 +58,9 @@ module "payment-api" {
   env      = "${var.env}"
   ilbIp = "${var.ilbIp}"
   subscription = "${var.subscription}"
-  is_frontend  = false
+  is_frontend  = "${var.env != "preview" ? 1: 0}"
+  additional_host_name = "${var.env != "preview" ? var.external_host_name : "null"}"
+  https_only="false"
   capacity = "${var.capacity}"
 
   app_settings = {
