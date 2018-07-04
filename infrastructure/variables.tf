@@ -109,3 +109,7 @@ variable "capacity" {
 variable "feature_payments_search" {
   default = "true"
 }
+
+variable "external_host_name" {
+  default = "payment.nonprod.platform.hmcts.net"
+}
