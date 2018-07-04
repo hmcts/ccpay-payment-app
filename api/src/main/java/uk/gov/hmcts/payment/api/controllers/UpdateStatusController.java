@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.controllers.jobs;
+package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
