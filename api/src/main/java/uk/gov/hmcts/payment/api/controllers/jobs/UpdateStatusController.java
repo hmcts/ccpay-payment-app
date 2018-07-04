@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
+import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
@@ -30,11 +31,11 @@ public class UpdateStatusController {
         this.cardPaymentService = cardPaymentService;
     }
 
-    @ApiOperation(value = "Update payment status", notes = "Updates the payment status on all pending payments")
+    @ApiOperation(value = "Update payment status", notes = "Updates the payment status on all gov pay pending card payments")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Reports sent")
     })
-    @RequestMapping(value = "/payments/update", method = POST)
+    @RequestMapping(value = "/card-payments/update", method = PATCH)
     public void updatePaymentsStatus() throws ExecutionException, InterruptedException {
 
         ForkJoinPool updatePool = new ForkJoinPool(5);
