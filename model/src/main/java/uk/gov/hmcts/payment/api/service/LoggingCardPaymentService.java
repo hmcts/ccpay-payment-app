@@ -61,6 +61,11 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     }
 
     @Override
+    public PaymentFeeLink retrieve(String s, String paymentTargetService) {
+        return delegate.retrieve(s, paymentTargetService);
+    }
+
+    @Override
     public List<PaymentFeeLink> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
         LOG.info("Searching for payments between {} and {}", startDate, endDate);
 
