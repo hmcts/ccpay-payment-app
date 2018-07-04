@@ -2,7 +2,12 @@
 
 printf "Invoke email-pay-reports endpoint on :%s\n" $PAYMENT_SERVER_URL
 
-curl -X POST $PAYMENT_SERVER_URL/payments/email-pay-reports -d {}
+if [ "$SLOT" == "PRODUCTION" ]
+then
+    curl -X POST $PAYMENT_SERVER_URL/payments/email-pay-reports -d {}
+    printf "\nFinished emailing csv reports"
+else
+    printf "Unsupported app slot:%s to run this job. \n" $SLOT
+fi
 
-printf "\nFinished emailing csv reports"
 
