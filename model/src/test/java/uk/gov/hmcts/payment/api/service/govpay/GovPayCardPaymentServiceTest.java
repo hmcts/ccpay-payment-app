@@ -88,8 +88,6 @@ public class GovPayCardPaymentServiceTest {
         assertEquals(govPayPayment.getReference(), "RC-1518-9479-8089-4415");
     }
 
-
-    // TODO: create the tests here for matching and not matching operational services
     @Test
     public void retrieveWithTargetServiceShouldRetrievePaymentFromAnyServiceTypeWhenOperationalServiceIsTheCaller() {
         String govPayReference = "RC-1518-9479-8089-4416";
