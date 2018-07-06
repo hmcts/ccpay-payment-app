@@ -113,3 +113,7 @@ variable "feature_payments_search" {
 variable "external_host_name" {
   default = "payment.nonprod.platform.hmcts.net"
 }
+
+variable "common_tags" {
+  type = "map"
+}
