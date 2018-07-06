@@ -4,10 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.Reference;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -40,7 +37,10 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     public List<Reference> listCreatedStatusPaymentsReferences() {
-        return paymentRepository.findReferencesByPaymentStatus(PaymentStatus.CREATED);
+        return paymentRepository.findReferencesByPaymentStatusAndPaymentProvider(
+            PaymentStatus.CREATED,
+            PaymentProvider.GOV_PAY
+        );
     }
 
     @Override
