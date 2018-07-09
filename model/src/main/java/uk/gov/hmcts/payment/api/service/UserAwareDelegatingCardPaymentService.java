@@ -159,28 +159,28 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
-        return paymentFeeLinkRepository.findAll(findCardPayments(startDate, endDate, type, ccdCaseNumber));
+    public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
+        return paymentFeeLinkRepository.findAll(findCardPayments(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber));
     }
 
-    private static Specification findCardPayments(Date fromDate, Date toDate, String type, String ccdCaseNumber) {
-        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, type, ccdCaseNumber));
+    private static Specification findCardPayments(Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
+        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, paymentMethod, serviceName, ccdCaseNumber));
     }
 
-    private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String type, String ccdCaseNumber) {
+    private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
 
         List<Predicate> predicates = new ArrayList<>();
 
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
-        if (type != null) {
+        if (paymentMethod != null) {
 
-            type = type.toLowerCase();
+            paymentMethod = paymentMethod.toLowerCase();
 
-            if(type.equals(PAYMENT_BY_ACCOUNT_SHORT_ALIAS)) {
+            if(paymentMethod.equals(PAYMENT_BY_ACCOUNT_SHORT_ALIAS)) {
                 predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(PAYMENT_BY_ACCOUNT, null)));
-            }else if (!type.equals(PAYMENT_BY_ALL)) {
-                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(type, null)));
+            }else if (!paymentMethod.equals(PAYMENT_BY_ALL)) {
+                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(paymentMethod, null)));
             }
         }
 
@@ -194,6 +194,10 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         if (ccdCaseNumber != null) {
             predicates.add(cb.equal(paymentJoin.get("ccdCaseNumber"), ccdCaseNumber));
+        }
+
+        if (serviceName != null) {
+            predicates.add(cb.equal(paymentJoin.get("serviceType"), serviceName));
         }
 
         return cb.and(predicates.toArray(REF));

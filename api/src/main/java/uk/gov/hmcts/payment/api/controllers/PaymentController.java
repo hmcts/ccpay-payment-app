@@ -104,6 +104,7 @@ public class PaymentController {
     public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                              @RequestParam(name = "end_date", required = false) Optional<String> endDateString,
                                              @RequestParam(name = "payment_method", required = false, defaultValue = "ALL") String paymentMethodType,
+                                             @RequestParam(name = "service_name", required = false) String serviceName,
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
 
         if (!ff4j.check("payment-search")) {
@@ -114,7 +115,7 @@ public class PaymentController {
             LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
             LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
 
-            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()), ccdCaseNumber);
+            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()), serviceName, ccdCaseNumber);
 
             List<PaymentDto> paymentDto = paymentFeeLinks.stream()
                 .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());

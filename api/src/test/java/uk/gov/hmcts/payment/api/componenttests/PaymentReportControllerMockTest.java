@@ -10,14 +10,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.hmcts.payment.api.controllers.PaymentReportController;
-import uk.gov.hmcts.payment.api.scheduler.CardPaymentsReportScheduler;
+import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.scheduler.Clock;
-import uk.gov.hmcts.payment.api.scheduler.CreditAccountPaymentsReportScheduler;
+import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,9 +31,9 @@ public class PaymentReportControllerMockTest {
     private MockMvc mockMvc;
 
     @Mock
-    private CardPaymentsReportScheduler cardPaymentsReportScheduler;
+    private PaymentsReportService paymentsReportService;
     @Mock
-    private CreditAccountPaymentsReportScheduler creditAccountPaymentsReportScheduler;
+    private PaymentValidator validator;
     @Mock
     private Clock clock;
 
@@ -57,7 +56,7 @@ public class PaymentReportControllerMockTest {
         this.mockMvc.perform(post("/payments/email-pay-reports"))
             .andExpect(status().isOk());
 
-        verify(cardPaymentsReportScheduler).generateCardPaymentsReportTask(FROM_DATE, TO_DATE);
+        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(FROM_DATE, TO_DATE, null);
     }
 
     @Test
@@ -71,10 +70,11 @@ public class PaymentReportControllerMockTest {
         // when & then
         this.mockMvc.perform(post("/payments/email-pay-reports")
             .param("start_date", "2018-06-30")
-            .param("end_date", "2018-07-01"))
+            .param("end_date", "2018-07-01")
+            .param("service_name", "divorce"))
             .andExpect(status().isOk());
 
-        verify(cardPaymentsReportScheduler).generateCardPaymentsReportTask(FROM_DATE, TO_DATE);
+        verify(paymentsReportService).generateCardPaymentsCsvAndSendEmail(FROM_DATE, TO_DATE, "divorce");
     }
 
     @Test
@@ -87,7 +87,7 @@ public class PaymentReportControllerMockTest {
         this.mockMvc.perform(post("/payments/email-pay-reports"))
             .andExpect(status().isOk());
 
-        verify(creditAccountPaymentsReportScheduler).generateCreditAccountPaymentsReportTask(FROM_DATE, TO_DATE);
+        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(FROM_DATE, TO_DATE, null);
     }
 
     @Test
@@ -99,9 +99,10 @@ public class PaymentReportControllerMockTest {
         // when & then
         this.mockMvc.perform(post("/payments/email-pay-reports")
             .param("start_date", "2018-06-30")
-            .param("end_date", "2018-07-01"))
+            .param("end_date", "2018-07-01")
+            .param("service_name", "cmc"))
             .andExpect(status().isOk());
 
-        verify(creditAccountPaymentsReportScheduler).generateCreditAccountPaymentsReportTask(FROM_DATE, TO_DATE);
+        verify(paymentsReportService).generateCreditAccountPaymentsCsvAndSendEmail(FROM_DATE, TO_DATE, "cmc");
     }
 }

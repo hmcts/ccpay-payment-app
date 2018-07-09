@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
 import java.util.Date;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -45,7 +46,7 @@ public class CardPaymentServiceTest extends TestUtil {
         MutableDateTime mToDate = new MutableDateTime(toDate);
         mToDate.addDays(2);
 
-        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodUtil.CARD.name(), null);
+        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodUtil.CARD.name(), null, null);
 
         assertNotNull(result);
         result.stream().forEach(g -> {
@@ -55,6 +56,21 @@ public class CardPaymentServiceTest extends TestUtil {
             });
         });
 
+    }
+
+    @Test
+    public void retrieveCardPayments_forCMC() throws Exception {
+        Date fromDate = new Date();
+        MutableDateTime mFromDate = new MutableDateTime(fromDate);
+        mFromDate.addDays(-1);
+        Date toDate = new Date();
+        MutableDateTime mToDate = new MutableDateTime(toDate);
+        mToDate.addDays(2);
+
+        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodUtil.CARD.name(), "cmc", null);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getPayments()).extracting("serviceType").contains("cmc");
     }
 
 }
