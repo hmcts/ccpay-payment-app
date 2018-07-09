@@ -56,7 +56,7 @@ public class PaymentsReportService {
     private static final String CARD_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
         "CCD reference,Case reference,Payment created date,Payment status updated date,Payment status," +
         "Payment channel,Payment method,Payment amount,Site id,Fee code,Version,Calculated amount,Memo line,NAC," +
-        "PaymentFee volume";
+        "Fee volume";
 
     private static final String CREDIT_ACCOUNT_PAYMENTS_HEADER = "Service,Payment Group reference,Payment reference," +
         "CCD reference,Case reference,Organisation name,Customer internal reference,PBA Number,Payment created date," +
