@@ -16,15 +16,10 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -77,10 +72,10 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(startDate,endDate);
+        paymentsReportService.generateCardPaymentsCsvAndSendEmail(startDate, endDate, "cmc");
 
         // then
-        verify(cardPaymentService).search(startDate,endDate, "card", null);
+        verify(cardPaymentService).search(startDate,endDate, "card", "cmc", null);
         verify(emailService).sendEmail(cardPaymentReconciliationReportEmail);
 
 
@@ -91,57 +86,11 @@ public class PaymentsReportServiceTest {
         // given
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(startDate,endDate);
+        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(startDate,endDate, "cmc");
 
         // then
-        verify(creditAccountPaymentService).search(startDate,endDate);
+        verify(cardPaymentService).search(startDate,endDate, "payment by account", "cmc", null);
         verify(emailService).sendEmail(creditAccountReconciliationReportEmail);
-
-
-    }
-
-    @Test(expected = PaymentException.class)
-    public void shouldNotGenerateCreditAccountPaymentsCsvWhenDatesGivenAreEqual()  {
-        // given
-
-        // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getYesterdaysDate(),getYesterdaysDate());
-
-        // then
-        verify(creditAccountPaymentService,times(0)).search(startDate,startDate);
-        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
-        verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
-
-
-    }
-
-
-    @Test(expected = PaymentException.class)
-    public void shouldNotGenerateCreditAccountPaymentsCsvWhenInCorrectStartDateFormat()  {
-        // given
-
-        // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate(),getYesterdaysDate());
-
-        // then
-        verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
-        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
-        verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
-
-
-    }
-
-
-    @Test(expected = PaymentException.class)
-    public void shouldNotGenerateCreditAccountPaymentsCsvWhenInCorrectEndDateFormat()  {
-        // given
-
-        // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate(),getYesterdaysDate());
-
-        // then
-        verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
-        verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
 
 
     }
