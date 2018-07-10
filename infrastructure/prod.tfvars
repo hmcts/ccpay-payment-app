@@ -18,4 +18,4 @@ pba_payments_email_subject = "PBA Reconciliation Report"
 pba_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 feature_payments_search = false
 
-external_host_name ="www.payment.platform.hmcts.net"
+external_host_name ="payment.platform.hmcts.net"
