@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.reports;
 
-import org.joda.time.MutableDateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,6 +17,7 @@ import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.ByteArrayOutputStream;
@@ -93,12 +93,37 @@ public class PaymentsReportService {
 
     }
 
-    public Optional<List<PaymentDto>> findCardPayments(Date startDate, Date endDate, String type, String ccdCaseNumber) {
+    public void generateCardPaymentsCsvAndSendEmail(Date startDate, Date endDate, String serviceName) {
+        LOG.info("CardPaymentsCSVReport -  Start of csv report for Card Payments of service:{}", serviceName);
+        feesService.dailyRefreshOfFeesData();
 
+        List<PaymentDto> cardPaymentsCsvData = findCardPayments(startDate, endDate, PaymentMethodUtil.CARD.getType(), serviceName, null)
+            .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
+
+        String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
+        String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
+        generateCsvAndSendEmail(cardPaymentsCsvData, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
+        LOG.info("CardPaymentsCSVReport -  End of csv report for Card Payments of service:{}", serviceName);
+    }
+
+    public void generateCreditAccountPaymentsCsvAndSendEmail(Date startDate, Date endDate, String serviceName) {
+        LOG.info("CreditAccountPaymentsCSVReport -  Start of csv report for PBA Payments of service:{}", serviceName);
+        feesService.dailyRefreshOfFeesData();
+        List<PaymentDto> creditAccountPaymentsCsvData = findCreditAccountPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.PBA.getType(), serviceName, null)
+            .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
+
+        String fileNameSuffix = LocalDateTime.now().format(formatter);
+        String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
+        generateCsvAndSendEmail(creditAccountPaymentsCsvData, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
+        LOG.info("CreditAccountPaymentsCSVReport -  End of csv report job for PBA Payments of service:{}", serviceName);
+    }
+
+    private Optional<List<PaymentDto>> findCardPayments(Date startDate, Date endDate, String paymentMethod,
+                                                        String serviceName, String ccdCaseNumber) {
         return Optional.of(
             enrichWithFeeData(
                 cardPaymentService
-                    .search(startDate, endDate, type, ccdCaseNumber)
+                    .search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber)
                     .stream()
                     .map(cardPaymentDtoMapper::toReconciliationResponseDto)
                     .collect(Collectors.toList())
@@ -106,38 +131,11 @@ public class PaymentsReportService {
         );
     }
 
-    public void generateCardPaymentsCsvAndSendEmail(Date startDate, Date endDate) {
-
-        List<PaymentDto> cardPaymentsCsvData = findCardPayments(startDate, endDate, "card", null)
-            .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
-
-        String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
-        String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
-        generateCsvAndSendEmail(cardPaymentsCsvData, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
-    }
-
-    public Optional<List<PaymentDto>> findCreditAccountPaymentsBetweenDates(Date startDate, Date endDate) {
-
-        if (startDate.after(endDate) || startDate.compareTo(endDate) == 0) {
-            LOG.error("PaymentsReportService - Error while creating credit account payments csv file. Incorrect start and end dates ");
-
-            throw new PaymentException("Invalid input dates");
-        }
-
-        List<PaymentDto> creditAccountPayments = creditAccountPaymentService.search(startDate, endDate).stream()
+    private Optional<List<PaymentDto>> findCreditAccountPaymentsBetweenDates(Date startDate, Date endDate, String paymentMethod,
+                                                                             String serviceName, String ccdCaseNumber) {
+        List<PaymentDto> creditAccountPayments = cardPaymentService.search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber).stream()
             .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
-
         return Optional.of(enrichWithFeeData(creditAccountPayments));
-
-    }
-
-    public void generateCreditAccountPaymentsCsvAndSendEmail(Date startDate, Date endDate) {
-        List<PaymentDto> creditAccountPaymentsCsvData = findCreditAccountPaymentsBetweenDates(startDate, endDate)
-            .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
-
-        String fileNameSuffix = LocalDateTime.now().format(formatter);
-        String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
-        generateCsvAndSendEmail(creditAccountPaymentsCsvData, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
     }
 
     private void generateCsvAndSendEmail(List<PaymentDto> payments, String paymentsCsvFileName, String header, Email mail) {
@@ -194,12 +192,5 @@ public class PaymentsReportService {
         }
         return payments;
     }
-
-    public Date getYesterdaysDate() {
-        MutableDateTime mtDtNow = new MutableDateTime(new Date());
-        mtDtNow.addDays(-1);
-        return mtDtNow.toDate();
-    }
-
 }
 

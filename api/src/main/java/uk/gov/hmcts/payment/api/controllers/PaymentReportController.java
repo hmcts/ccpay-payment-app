@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.payment.api.scheduler.CardPaymentsReportScheduler;
-import uk.gov.hmcts.payment.api.scheduler.CreditAccountPaymentsReportScheduler;
+import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.scheduler.Clock;
+import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -27,8 +27,8 @@ public class PaymentReportController {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE;
 
-    private final CardPaymentsReportScheduler cardPaymentsReportScheduler;
-    private final CreditAccountPaymentsReportScheduler creditAccountPaymentsReportScheduler;
+    private final PaymentsReportService paymentsReportService;
+    private final PaymentValidator validator;
     private final Clock clock;
 
     @Value("${pba.payments.report.scheduler.enabled:true}")
@@ -37,10 +37,9 @@ public class PaymentReportController {
     private boolean cardReportsEnabled;
 
     @Autowired
-    public PaymentReportController(CardPaymentsReportScheduler cardPaymentsReportScheduler,
-                                   CreditAccountPaymentsReportScheduler creditAccountPaymentsReportScheduler, Clock clock) {
-        this.cardPaymentsReportScheduler = cardPaymentsReportScheduler;
-        this.creditAccountPaymentsReportScheduler = creditAccountPaymentsReportScheduler;
+    public PaymentReportController(PaymentsReportService paymentsReportService, PaymentValidator validator, Clock clock) {
+        this.paymentsReportService = paymentsReportService;
+        this.validator = validator;
         this.clock = clock;
     }
 
@@ -49,20 +48,24 @@ public class PaymentReportController {
         @ApiResponse(code = 200, message = "Reports sent")
     })
     @RequestMapping(value = "/payments/email-pay-reports", method = POST)
-    public void retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
+    public void generateAndEmailReport(@RequestParam(name = "payment_method", required = false) String paymentMethodType,
+                                 @RequestParam(name = "service_name", required = false) String serviceName,
+                                 @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                  @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
+
+        validator.validate(paymentMethodType, startDateString, endDateString);
 
         Date fromDate = startDateString.map(s -> clock.atStartOfDay(s, FORMATTER)).orElseGet(clock::getYesterdayDate);
         Date toDate = endDateString.map(s -> clock.atEndOfDay(s, FORMATTER)).orElseGet(clock::getTodayDate);
 
         if (cardReportsEnabled) {
-            cardPaymentsReportScheduler.generateCardPaymentsReportTask(fromDate, toDate);
+            paymentsReportService.generateCardPaymentsCsvAndSendEmail(fromDate, toDate, serviceName);
         } else {
             LOG.info("Card payments report flag is disabled. So, system will not send CSV email");
         }
 
         if (pbaReportsEnabled) {
-            creditAccountPaymentsReportScheduler.generateCreditAccountPaymentsReportTask(fromDate, toDate);
+            paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(fromDate, toDate, serviceName);
         } else {
             LOG.info("Pba credit account payments report flag is disabled. So, system will not send CSV email");
         }

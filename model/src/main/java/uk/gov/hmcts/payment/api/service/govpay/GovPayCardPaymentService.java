@@ -58,7 +58,7 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     }
 
     @Override
-    public List<GovPayPayment> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
+    public List<GovPayPayment> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
         return null;
     }
 

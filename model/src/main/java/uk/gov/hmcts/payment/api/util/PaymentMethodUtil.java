@@ -12,7 +12,7 @@ public enum PaymentMethodUtil {
         this.type = type;
     }
 
-    String getType() {
+    public String getType() {
          return type;
     }
 }

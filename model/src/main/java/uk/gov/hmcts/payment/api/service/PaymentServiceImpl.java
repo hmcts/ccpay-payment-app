@@ -44,14 +44,14 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public List<PaymentFeeLink> search(LocalDate startDate, LocalDate endDate, PaymentMethodUtil type, String ccdCaseNumber) {
+    public List<PaymentFeeLink> search(LocalDate startDate, LocalDate endDate, PaymentMethodUtil paymentMethod, String serviceName, String ccdCaseNumber) {
         Date fromDateTime = Optional.ofNullable(startDate)
             .map(s -> Date.from(s.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()))
             .orElse(null);
         Date toDateTime = Optional.ofNullable(endDate)
             .map(s -> Date.from(s.atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant()))
             .orElse(null);
-        return cardPaymentService.search(fromDateTime, toDateTime, type.name(), ccdCaseNumber);
+        return cardPaymentService.search(fromDateTime, toDateTime, paymentMethod.name(), serviceName, ccdCaseNumber);
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
