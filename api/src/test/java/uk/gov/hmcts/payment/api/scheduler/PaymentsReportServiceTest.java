@@ -63,7 +63,7 @@ public class PaymentsReportServiceTest {
         endDate = getTodaysDate();
 
         paymentsReportService = new PaymentsReportService(cardPaymentService,cardPaymentDtoMapper,
-            creditAccountPaymentService,creditAccountDtoMapper,emailService,feesService,cardPaymentReconciliationReportEmail,creditAccountReconciliationReportEmail);
+            emailService,feesService,cardPaymentReconciliationReportEmail,creditAccountReconciliationReportEmail);
 
     }
 

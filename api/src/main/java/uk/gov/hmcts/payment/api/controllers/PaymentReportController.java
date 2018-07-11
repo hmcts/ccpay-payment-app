@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.scheduler.Clock;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
@@ -17,6 +18,8 @@ import java.util.Date;
 import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static uk.gov.hmcts.payment.api.util.PaymentMethodType.CARD;
+import static uk.gov.hmcts.payment.api.util.PaymentMethodType.PBA;
 
 @RestController
 @Api(tags = {"PaymentReportController"})
@@ -48,28 +51,23 @@ public class PaymentReportController {
         @ApiResponse(code = 200, message = "Reports sent")
     })
     @RequestMapping(value = "/payments/email-pay-reports", method = POST)
-    public void generateAndEmailReport(@RequestParam(name = "payment_method", required = false) String paymentMethodType,
-                                 @RequestParam(name = "service_name", required = false) String serviceName,
-                                 @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
-                                 @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
+    public void generateAndEmailReport(@RequestParam(name = "payment_method") String paymentMethodType,
+                                       @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
+                                       @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
+                                       @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
 
-        validator.validate(paymentMethodType, startDateString, endDateString);
+        validator.validate(Optional.of(paymentMethodType), serviceType, startDateString, endDateString);
 
         Date fromDate = startDateString.map(s -> clock.atStartOfDay(s, FORMATTER)).orElseGet(clock::getYesterdayDate);
         Date toDate = endDateString.map(s -> clock.atEndOfDay(s, FORMATTER)).orElseGet(clock::getTodayDate);
+        String serviceName = serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null);
 
-        if (cardReportsEnabled) {
+        if (CARD.name().equalsIgnoreCase(paymentMethodType) && cardReportsEnabled) {
             paymentsReportService.generateCardPaymentsCsvAndSendEmail(fromDate, toDate, serviceName);
-        } else {
-            LOG.info("Card payments report flag is disabled. So, system will not send CSV email");
-        }
-
-        if (pbaReportsEnabled) {
+        } else if (PBA.name().equalsIgnoreCase(paymentMethodType) && pbaReportsEnabled) {
             paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(fromDate, toDate, serviceName);
         } else {
-            LOG.info("Pba credit account payments report flag is disabled. So, system will not send CSV email");
+            LOG.info("payments report flag is disabled for type :{}. So, system will not send CSV email", paymentMethodType);
         }
     }
-
-
 }

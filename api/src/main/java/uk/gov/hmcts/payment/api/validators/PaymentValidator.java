@@ -3,8 +3,9 @@ package uk.gov.hmcts.payment.api.validators;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,10 +19,14 @@ public class PaymentValidator {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
 
-    public void validate(String paymentMethodType, Optional<String> startDateString, Optional<String> endDateString) {
+    public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
-        if (!EnumUtils.isValidEnum(PaymentMethodUtil.class, paymentMethodType.toUpperCase())) {
+        if (paymentMethodType.isPresent() && !EnumUtils.isValidEnum(PaymentMethodType.class, paymentMethodType.get().toUpperCase())) {
             dto.addFieldError("payment_method", "Invalid payment method requested");
+        }
+
+        if (serviceType.isPresent() && !EnumUtils.isValidEnum(Service.class, serviceType.get().toUpperCase())) {
+            dto.addFieldError("service_name", "Invalid service name requested");
         }
 
         Optional<LocalDate> startDate = parseAndValidateDate(startDateString, "start_date", dto);

@@ -3,22 +3,18 @@ package uk.gov.hmcts.payment.api.reports;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.CreditAccountReconciliationReportEmail;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
-import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,7 +31,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static uk.gov.hmcts.payment.api.email.EmailAttachment.csv;
 
-@Service
+@org.springframework.stereotype.Service
 @Transactional
 public class PaymentsReportService {
 
@@ -65,10 +61,7 @@ public class PaymentsReportService {
 
     private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
 
-    private CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
-
     private CardPaymentDtoMapper cardPaymentDtoMapper;
-    private CreditAccountDtoMapper creditAccountDtoMapper;
 
     private EmailService emailService;
     private FeesService feesService;
@@ -78,8 +71,7 @@ public class PaymentsReportService {
 
     @Autowired
     public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, CardPaymentDtoMapper cardPaymentDtoMapper,
-                                 @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
-                                 CreditAccountDtoMapper creditAccountDtoMapper, EmailService emailService, FeesService feesService,
+                                 EmailService emailService, FeesService feesService,
                                  CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail,
                                  CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail1) {
         this.cardPaymentService = cardPaymentService;
@@ -88,69 +80,50 @@ public class PaymentsReportService {
         this.feesService = feesService;
         this.cardPaymentReconciliationReportEmail = cardPaymentReconciliationReportEmail;
         this.creditAccountReconciliationReportEmail = creditAccountReconciliationReportEmail1;
-        this.creditAccountPaymentService = creditAccountPaymentService;
-        this.creditAccountDtoMapper = creditAccountDtoMapper;
-
     }
 
     public void generateCardPaymentsCsvAndSendEmail(Date startDate, Date endDate, String serviceName) {
         LOG.info("CardPaymentsCSVReport -  Start of csv report for Card Payments of service:{}", serviceName);
+
         feesService.dailyRefreshOfFeesData();
+        List<PaymentDto> cardPaymentsCsvData = findPaymentsBy(startDate, endDate, PaymentMethodType.CARD.getType(), serviceName, null);
 
-        List<PaymentDto> cardPaymentsCsvData = findCardPayments(startDate, endDate, PaymentMethodUtil.CARD.getType(), serviceName, null)
-            .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
-
-        String cardPaymentCsvFileNameSuffix = LocalDateTime.now().format(formatter);
-        String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + cardPaymentCsvFileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
+        String paymentsCsvFileName = CARD_PAYMENTS_CSV_FILE_PREFIX + LocalDateTime.now().format(formatter) + PAYMENTS_CSV_FILE_EXTENSION;
         generateCsvAndSendEmail(cardPaymentsCsvData, paymentsCsvFileName, CARD_PAYMENTS_HEADER, cardPaymentReconciliationReportEmail);
         LOG.info("CardPaymentsCSVReport -  End of csv report for Card Payments of service:{}", serviceName);
     }
 
     public void generateCreditAccountPaymentsCsvAndSendEmail(Date startDate, Date endDate, String serviceName) {
         LOG.info("CreditAccountPaymentsCSVReport -  Start of csv report for PBA Payments of service:{}", serviceName);
-        feesService.dailyRefreshOfFeesData();
-        List<PaymentDto> creditAccountPaymentsCsvData = findCreditAccountPaymentsBetweenDates(startDate, endDate, PaymentMethodUtil.PBA.getType(), serviceName, null)
-            .orElseThrow(() -> new PaymentException("No payments are found for the given date range."));
 
-        String fileNameSuffix = LocalDateTime.now().format(formatter);
-        String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + fileNameSuffix + PAYMENTS_CSV_FILE_EXTENSION;
+        feesService.dailyRefreshOfFeesData();
+        List<PaymentDto> creditAccountPaymentsCsvData = findPaymentsBy(startDate, endDate, PaymentMethodType.PBA.getType(), serviceName, null);
+
+        String paymentsCsvFileName = CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX + LocalDateTime.now().format(formatter) + PAYMENTS_CSV_FILE_EXTENSION;
         generateCsvAndSendEmail(creditAccountPaymentsCsvData, paymentsCsvFileName, CREDIT_ACCOUNT_PAYMENTS_HEADER, creditAccountReconciliationReportEmail);
         LOG.info("CreditAccountPaymentsCSVReport -  End of csv report job for PBA Payments of service:{}", serviceName);
     }
 
-    private Optional<List<PaymentDto>> findCardPayments(Date startDate, Date endDate, String paymentMethod,
-                                                        String serviceName, String ccdCaseNumber) {
-        return Optional.of(
-            enrichWithFeeData(
-                cardPaymentService
-                    .search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber)
-                    .stream()
-                    .map(cardPaymentDtoMapper::toReconciliationResponseDto)
-                    .collect(Collectors.toList())
-            )
-        );
-    }
-
-    private Optional<List<PaymentDto>> findCreditAccountPaymentsBetweenDates(Date startDate, Date endDate, String paymentMethod,
-                                                                             String serviceName, String ccdCaseNumber) {
-        List<PaymentDto> creditAccountPayments = cardPaymentService.search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber).stream()
-            .map(creditAccountDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
-        return Optional.of(enrichWithFeeData(creditAccountPayments));
+    private List<PaymentDto> findPaymentsBy(Date startDate, Date endDate, String paymentMethod,
+                                            String serviceName, String ccdCaseNumber) {
+        List<PaymentDto> paymentDtos = cardPaymentService
+            .search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber)
+            .stream()
+            .map(cardPaymentDtoMapper::toReconciliationResponseDto)
+            .collect(Collectors.toList());
+        return enrichWithFeeData(paymentDtos);
     }
 
     private void generateCsvAndSendEmail(List<PaymentDto> payments, String paymentsCsvFileName, String header, Email mail) {
 
         byte[] paymentsByteArray = createPaymentsCsvByteArray(payments, paymentsCsvFileName, header);
         sendEmail(mail, paymentsByteArray, paymentsCsvFileName);
-
     }
 
     private void sendEmail(Email email, byte[] paymentsCsvByteArray, String csvFileName) {
         email.setAttachments(newArrayList(csv(paymentsCsvByteArray, csvFileName)));
         emailService.sendEmail(email);
-
         LOG.info("PaymentsReportService - Payments report email sent to " + Arrays.toString(email.getTo()));
-
     }
 
     private byte[] createPaymentsCsvByteArray(List<PaymentDto> payments, String paymentsCsvFileName, String header) {
