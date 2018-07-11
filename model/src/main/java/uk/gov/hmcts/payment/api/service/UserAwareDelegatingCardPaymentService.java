@@ -47,10 +47,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
-    private final static String PAYMENT_BY_ALL = "all";
     private final static String PAYMENT_BY_CARD = "card";
-    private final static String PAYMENT_BY_ACCOUNT = "payment by account";
-    private final static String PAYMENT_BY_ACCOUNT_SHORT_ALIAS = "pba";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD = "card";
 
@@ -174,14 +171,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
         if (paymentMethod != null) {
-
-            paymentMethod = paymentMethod.toLowerCase();
-
-            if(paymentMethod.equals(PAYMENT_BY_ACCOUNT_SHORT_ALIAS)) {
-                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(PAYMENT_BY_ACCOUNT, null)));
-            }else if (!paymentMethod.equals(PAYMENT_BY_ALL)) {
-                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(paymentMethod, null)));
-            }
+            predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(paymentMethod).build()));
         }
 
         if (fromDate != null && toDate != null) {
