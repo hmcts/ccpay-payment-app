@@ -39,7 +39,7 @@ public class PaymentReportController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Reports sent")
     })
-    @RequestMapping(value = "/payments/email-pay-reports", method = POST)
+    @RequestMapping(value = "/jobs/email-pay-reports", method = POST)
     public void generateAndEmailReport(@RequestParam(name = "payment_method") String paymentMethodType,
                                        @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                        @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
@@ -51,6 +51,6 @@ public class PaymentReportController {
         Date toDate = endDateString.map(s -> clock.atEndOfDay(s, FORMATTER)).orElseGet(clock::getTodayDate);
         Service service = serviceType.map(value -> Service.valueOf(value.toUpperCase())).orElse(null);
 
-        paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, PaymentMethodType.valueOf(paymentMethodType), service);
+        paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, PaymentMethodType.valueOf(paymentMethodType.toUpperCase()), service);
     }
 }

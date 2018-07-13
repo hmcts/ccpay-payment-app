@@ -58,7 +58,7 @@ public class PaymentReportControllerMockTest {
         given(clock.getYesterdayDate()).willReturn(FROM_DATE);
         given(clock.getTodayDate()).willReturn(TO_DATE);
         // when & then
-        this.mockMvc.perform(post("/payments/email-pay-reports")
+        this.mockMvc.perform(post("/jobs/email-pay-reports")
             .param("payment_method", "CARD"))
             .andExpect(status().isOk());
 
@@ -72,7 +72,7 @@ public class PaymentReportControllerMockTest {
         given(clock.atEndOfDay("2018-07-01", DateTimeFormatter.ISO_DATE)).willReturn(TO_DATE);
 
         // when & then
-        this.mockMvc.perform(post("/payments/email-pay-reports")
+        this.mockMvc.perform(post("/jobs/email-pay-reports")
             .param("payment_method", "CARD")
             .param("start_date", "2018-06-30")
             .param("end_date", "2018-07-01")
@@ -89,7 +89,7 @@ public class PaymentReportControllerMockTest {
         doThrow(new ValidationErrorException("validation failed", null))
             .when(validator).validate(Optional.of("CARD"), Optional.of("UNKNOWN"), Optional.of("2018-06-30"), Optional.of("2018-07-01"));
         // when & then
-        this.mockMvc.perform(post("/payments/email-pay-reports")
+        this.mockMvc.perform(post("/jobs/email-pay-reports")
             .param("payment_method", "CARD")
             .param("start_date", "2018-06-30")
             .param("end_date", "2018-07-01")
