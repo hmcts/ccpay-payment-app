@@ -14,7 +14,7 @@ public enum PaymentReportType {
         try {
             return PaymentReportType.valueOf(value);
         } catch (IllegalArgumentException ex) {
-            throw new  UnsupportedOperationException(String.format("No config defined as the report type is not supported for " +
+            throw new UnsupportedOperationException(String.format("No config defined as the report type is not supported for " +
                 "paymentMethod %s and service %s ", paymentMethodType, serviceType));
         }
     }
