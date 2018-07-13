@@ -123,10 +123,8 @@ public class PaymentController {
             List<PaymentDto> paymentDto = paymentFeeLinks.stream()
                 .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            return new PaymentsResponse(paymentsReportService.enrichWithFeeData(paymentDto));
+            return new PaymentsResponse(paymentDto);
         }
-
-
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
