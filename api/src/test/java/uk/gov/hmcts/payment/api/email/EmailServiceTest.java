@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,7 +52,12 @@ public class EmailServiceTest {
 
     @Test
     public void testSendEmailWithNoAttachments() throws MessagingException {
-        TestEmail testEmail = new TestEmail(EMAIL_FROM, EMAIL_TO, EMAIL_SUBJECT, EMAIL_MESSAGE);
+        Email testEmail = Email.emailWith()
+            .from(EMAIL_FROM)
+            .to(EMAIL_TO)
+            .subject(EMAIL_SUBJECT)
+            .message(EMAIL_MESSAGE)
+            .build();
         doNothing().when(javaMailSender).send(any(MimeMessage.class));
         emailService.sendEmail(testEmail);
         verify(javaMailSender).send(mimeMessage);
@@ -67,25 +72,26 @@ public class EmailServiceTest {
 
     @Test(expected = EmailFailedException.class)
     public void testSendEmailThrowsInvalidArgumentExceptionForInvalidTo() {
-        Email emailData = SampleEmailData.getWithToNull();
+        Email emailData = Email.emailWith()
+            .from(EMAIL_FROM)
+            .to(null)
+            .subject(EMAIL_SUBJECT)
+            .message(EMAIL_MESSAGE)
+            .build();
         emailService.sendEmail(emailData);
     }
 
     @Test(expected = EmailFailedException.class)
     public void testSendEmailThrowsInvalidArgumentExceptionForInvalidSubject() {
-        Email emailData = SampleEmailData.getWithSubjectNull();
+        Email emailData = Email.emailWith()
+            .from(EMAIL_FROM)
+            .to(EMAIL_TO)
+            .subject(null)
+            .message(EMAIL_MESSAGE)
+            .build();
         emailService.sendEmail(emailData);
     }
 
-    public static class TestEmail extends Email {
-
-        public TestEmail(String from, String[] to, String subject, String message) {
-            this.from = from;
-            this.to = to;
-            this.subject = subject;
-            this.message = message;
-        }
-    }
     public static class SampleEmailData {
 
         static Email getDefault() {
@@ -93,17 +99,14 @@ public class EmailServiceTest {
             EmailAttachment emailAttachment =
                 EmailAttachment.csv("hello".getBytes(), "Hello.csv");
             emailAttachmentList.add(emailAttachment);
-            TestEmail testEmail = new TestEmail(EMAIL_FROM, EMAIL_TO, EMAIL_SUBJECT, EMAIL_MESSAGE);
+            Email testEmail = Email.emailWith()
+                .from(EMAIL_FROM)
+                .to(EMAIL_TO)
+                .subject(EMAIL_SUBJECT)
+                .message(EMAIL_MESSAGE)
+                .build();
             testEmail.setAttachments(emailAttachmentList);
             return testEmail;
-        }
-
-        static Email getWithToNull() {
-            return new TestEmail(EMAIL_FROM, null, EMAIL_SUBJECT, EMAIL_MESSAGE);
-        }
-
-        static Email getWithSubjectNull() {
-            return new TestEmail(EMAIL_FROM, EMAIL_TO, null, EMAIL_MESSAGE);
         }
     }
 }
