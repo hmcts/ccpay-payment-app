@@ -67,9 +67,7 @@ variable "spring_mail_properties_mail_smtp_starttls_enable" {
 variable "spring_mail_properties_email_smtp_ssl_trust" {
   default = "*"
 }
-variable "card_payments_report_schedule" {
-  default = "0 */30 * * * ?"
-}
+
 variable "card_payments_report_scheduler_enabled" {
   default = "true"
 }
@@ -77,24 +75,35 @@ variable "card_payments_email_from" {
   default = "no-reply@reform.hmcts.net"
 }
 variable "card_payments_email_subject" {
-  default = "Test Env: Card Payments Reconciliation Report"
+  default = "CNP Test Env: Card Payments Reconciliation Report"
 }
 variable "card_payments_email_message" {
   default = "Hi <br/><br/>Please find attached today''s reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 }
-variable "pba_payments_report_schedule" {
-  default = "0 */30 * * * ?"
-}
-variable "pba_payments_report_scheduler_enabled" {
+
+variable "pba_cmc_payments_report_scheduler_enabled" {
   default = "true"
 }
-variable "pba_payments_email_from" {
+variable "pba_cmc_payments_email_from" {
   default = "no-reply@reform.hmcts.net"
 }
-variable "pba_payments_email_subject" {
-  default = "Test Env : PBA Reconciliation Report'"
+variable "pba_cmc_payments_email_subject" {
+  default = "CNP Test Env : PBA CMC Reconciliation Report'"
 }
-variable "pba_payments_email_message" {
+variable "pba_cmc_payments_email_message" {
+  default = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+}
+
+variable "pba_divorce_payments_report_scheduler_enabled" {
+  default = "true"
+}
+variable "pba_divorce_payments_email_from" {
+  default = "no-reply@reform.hmcts.net"
+}
+variable "pba_divorce_payments_email_subject" {
+  default = "CNP Test Env : PBA Divorce Reconciliation Report'"
+}
+variable "pba_divorce_payments_email_message" {
   default = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 }
 

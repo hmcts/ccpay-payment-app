@@ -21,15 +21,15 @@ public class PbaCmcPaymentReportConfig implements PaymentReportConfig {
 
     private static final String CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX = "hmcts_credit_account_payments_";
 
-    @Value("${pba.payments.email.from}")
+    @Value("${pba.cmc.payments.email.from}")
     private String from;
-    @Value("${pba.payments.email.to}")
+    @Value("${pba.cmc.payments.email.to}")
     private String[] to;
-    @Value("${pba.payments.email.subject}")
+    @Value("${pba.cmc.payments.email.subject}")
     private String subject;
-    @Value("${pba.payments.email.message}")
+    @Value("${pba.cmc.payments.email.message}")
     private String message;
-    @Value("${pba.payments.report.scheduler.enabled:true}")
+    @Value("${pba.cmc.payments.report.scheduler.enabled}")
     private boolean enabled;
 
     @Override
