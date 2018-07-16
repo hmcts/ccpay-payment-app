@@ -13,20 +13,19 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
-@Api(tags = {"UpdateStatusController"})
-@SwaggerDefinition(tags = {@Tag(name = "UpdateStatusController", description = "Update Payment Status API")})
-public class UpdateStatusController {
+@Api(tags = {"MaintenanceJobsController"})
+@SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintenance Jobs API")})
+public class MaintenanceJobsController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
 
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
 
     @Autowired
-    public UpdateStatusController(PaymentService<PaymentFeeLink, String> paymentService,
-                                  CardPaymentService<PaymentFeeLink, String> cardPaymentService) {
+    public MaintenanceJobsController(PaymentService<PaymentFeeLink, String> paymentService,
+                                     CardPaymentService<PaymentFeeLink, String> cardPaymentService) {
         this.paymentService = paymentService;
         this.cardPaymentService = cardPaymentService;
     }
@@ -35,7 +34,7 @@ public class UpdateStatusController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Reports sent")
     })
-    @RequestMapping(value = "/card-payments/update", method = PATCH)
+    @RequestMapping(value = "/jobs/card-payments-status-update", method = PATCH)
     public void updatePaymentsStatus() throws ExecutionException, InterruptedException {
 
         ForkJoinPool updatePool = new ForkJoinPool(5);

@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import uk.gov.hmcts.payment.api.controllers.UpdateStatusController;
+import uk.gov.hmcts.payment.api.controllers.MaintenanceJobsController;
 import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UpdateStatusControllerMockTest {
+public class MaintenanceJobsControllerMockTest {
 
     private MockMvc mockMvc;
 
@@ -33,7 +33,7 @@ public class UpdateStatusControllerMockTest {
     private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
 
     @InjectMocks
-    private UpdateStatusController controller;
+    private MaintenanceJobsController controller;
 
     @Before
     public void setUp() {
@@ -44,7 +44,7 @@ public class UpdateStatusControllerMockTest {
     public void testThatNoPaymentsReturn200() throws Exception{
 
         // when & then
-        this.mockMvc.perform(patch("/card-payments/update"))
+        this.mockMvc.perform(patch("/jobs/card-payments-status-update"))
             .andExpect(status().isOk());
 
         verify(paymentService).listCreatedStatusPaymentsReferences();
@@ -59,7 +59,7 @@ public class UpdateStatusControllerMockTest {
         doReturn(Arrays.asList(reference, reference)).when(paymentService).listCreatedStatusPaymentsReferences();
 
         // when & then
-        this.mockMvc.perform(patch("/card-payments/update"))
+        this.mockMvc.perform(patch("/jobs/card-payments-status-update"))
             .andExpect(status().isOk());
 
         verify(paymentService).listCreatedStatusPaymentsReferences();
