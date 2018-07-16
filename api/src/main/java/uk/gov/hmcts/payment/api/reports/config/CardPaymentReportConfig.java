@@ -29,7 +29,7 @@ public class CardPaymentReportConfig implements PaymentReportConfig {
     private String subject;
     @Value("${card.payments.email.message}")
     private String message;
-    @Value("${card.payments.report.scheduler.enabled:true}")
+    @Value("${card.payments.report.scheduler.enabled}")
     private boolean enabled;
 
     @Override

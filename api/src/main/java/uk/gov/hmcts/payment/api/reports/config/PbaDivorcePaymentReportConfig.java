@@ -21,15 +21,15 @@ public class PbaDivorcePaymentReportConfig implements PaymentReportConfig {
 
     private static final String CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX = "hmcts_credit_account_payments_";
 
-    @Value("${pba.payments.email.from}")
+    @Value("${pba.divorce.payments.email.from}")
     private String from;
-    @Value("${pba.payments.email.to}")
+    @Value("${pba.divorce.payments.email.to}")
     private String[] to;
-    @Value("${pba.payments.email.subject}")
+    @Value("${pba.divorce.payments.email.subject}")
     private String subject;
-    @Value("${pba.payments.email.message}")
+    @Value("${pba.divorce.payments.email.message}")
     private String message;
-    @Value("${pba.payments.report.scheduler.enabled:true}")
+    @Value("${pba.divorce.payments.report.scheduler.enabled}")
     private boolean enabled;
 
     @Override
