@@ -51,8 +51,10 @@ public class FeesService {
         while (iterator.hasNext()) {
             Map.Entry<String, Fee2Dto> entry = iterator.next();
             Map<String, FeeVersionDto> feeVersionsDtoMap = new HashMap<>();
-            feeVersionsDtoMap.put(entry.getValue().getCurrentVersion().getVersion().toString(),
-                entry.getValue().getCurrentVersion());
+            if (entry.getValue().getCurrentVersion() != null) {
+                feeVersionsDtoMap.put(entry.getValue().getCurrentVersion().getVersion().toString(),
+                    entry.getValue().getCurrentVersion());
+            }
             for (FeeVersionDto feeVersion : entry.getValue().getFeeVersionDtos()) {
                 feeVersionsDtoMap.put(feeVersion.getVersion().toString(), feeVersion);
             }
