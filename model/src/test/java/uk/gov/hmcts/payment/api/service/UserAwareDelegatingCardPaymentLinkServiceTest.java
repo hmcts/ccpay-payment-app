@@ -18,7 +18,9 @@ import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -31,7 +33,6 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaymentWith;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 
-@RunWith(MockitoJUnitRunner.class)
 public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
     private final static String PAYMENT_METHOD = "card";
@@ -63,19 +64,23 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private Payment2Repository paymentRespository = mock(Payment2Repository.class);
     private PaymentFeeLinkRepository paymentFeeLinkRepository = mock(PaymentFeeLinkRepository.class);
 
+    private GovPayAuthUtil govPayAuthUtil = mock(GovPayAuthUtil.class);
+    private ServiceIdSupplier serviceIdSupplier = mock(ServiceIdSupplier.class);
     private UserAwareDelegatingCardPaymentService cardPaymentService = new UserAwareDelegatingCardPaymentService(() -> USER_ID, paymentFeeLinkRepository,
         govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
-        paymentStatusRepository, paymentRespository, paymentReferenceUtil);
+        paymentStatusRepository, paymentRespository, paymentReferenceUtil, govPayAuthUtil, serviceIdSupplier);
 
     @Test
     public void testRetrieveCardPaymentForGivenPaymentReference() throws Exception {
+        String serviceName = "cmc";
         when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-123C");
+        when(govPayAuthUtil.getServiceName(null,serviceName)).thenReturn(serviceName);
         String reference = paymentReferenceUtil.getNext();
 
         when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).paymentReference("payGroupRef")
             .payments(Arrays.asList(Payment.paymentWith().id(1)
                 .externalReference("govPayId")
-                .serviceType("cmc")
+                .serviceType(serviceName)
                 .reference(reference)
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                     .id(1)
