@@ -11,28 +11,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -63,6 +50,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final PaymentMethodRepository paymentMethodRepository;
     private final Payment2Repository paymentRespository;
     private final PaymentReferenceUtil paymentReferenceUtil;
+    private final GovPayAuthUtil govPayAuthUtil;
+    private final ServiceIdSupplier serviceIdSupplier;
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -71,7 +60,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
                                                  CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
                                                  PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                  PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                                 PaymentReferenceUtil paymentReferenceUtil) {
+                                                 PaymentReferenceUtil paymentReferenceUtil, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegate = delegate;
@@ -81,6 +70,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentRespository = paymentRespository;
         this.paymentReferenceUtil = paymentReferenceUtil;
+        this.govPayAuthUtil = govPayAuthUtil;
+        this.serviceIdSupplier = serviceIdSupplier;
     }
 
     @Override
@@ -128,9 +119,23 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
-        String paymentTargetService = payment.getServiceType();
+        String paymentService = payment.getServiceType();
 
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentTargetService);
+        if (null == paymentService || paymentService.trim().equals("")) {
+            LOG.error("Unable to determine the payment service which created this payment-Ref:" + paymentReference);
+        }
+
+        String callingService = null;
+
+        try {
+            callingService = serviceIdSupplier.get();
+        } catch (NullPointerException exp) {
+            //where some endpoints are not using S2S, in those scenarios it should continue as is.
+        }
+
+        paymentService = govPayAuthUtil.getServiceName(callingService, paymentService);
+
+        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentService);
 
         fillTransientDetails(payment, govPayPayment);
 
@@ -177,18 +182,18 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
             paymentMethod = paymentMethod.toLowerCase();
 
-            if(paymentMethod.equals(PAYMENT_BY_ACCOUNT_SHORT_ALIAS)) {
+            if (paymentMethod.equals(PAYMENT_BY_ACCOUNT_SHORT_ALIAS)) {
                 predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(PAYMENT_BY_ACCOUNT, null)));
-            }else if (!paymentMethod.equals(PAYMENT_BY_ALL)) {
+            } else if (!paymentMethod.equals(PAYMENT_BY_ALL)) {
                 predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(paymentMethod, null)));
             }
         }
 
         if (fromDate != null && toDate != null) {
             predicates.add(cb.between(paymentJoin.get("dateUpdated"), fromDate, toDate));
-        }else if (fromDate != null) {
+        } else if (fromDate != null) {
             predicates.add(cb.greaterThanOrEqualTo(paymentJoin.get("dateUpdated"), fromDate));
-        }else if (toDate != null) {
+        } else if (toDate != null) {
             predicates.add(cb.lessThanOrEqualTo(paymentJoin.get("dateUpdated"), toDate));
         }
 

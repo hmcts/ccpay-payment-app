@@ -99,7 +99,8 @@ public class GovPayCardPaymentServiceTest {
 
         String targetServiceKey = govPayKeyRepository.getKey(paymentTargetService);
 
-        when(govPayAuthUtil.getServiceToken(serviceCaller, paymentTargetService)).thenReturn(targetServiceKey);
+        when(govPayAuthUtil.getServiceName(serviceCaller, paymentTargetService)).thenReturn(paymentTargetService);
+        when(govPayAuthUtil.getServiceToken(paymentTargetService)).thenReturn(targetServiceKey);
         when(govPayClient.retrievePayment(targetServiceKey, govPayReference)).thenReturn(GovPayPayment.govPaymentWith()
             .amount(112233)
             .state(new State("Success", true, "payment expired", "P0020"))
