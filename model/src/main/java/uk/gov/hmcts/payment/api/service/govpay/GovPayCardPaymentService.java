@@ -43,18 +43,18 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
                                 String siteId,
                                 String serviceType,
                                 List<PaymentFee> fees) {
-        String key = keyForCurrentService();
+        String key = keyForService();
         return govPayClient.createPayment(key, new CreatePaymentRequest(amount, reference, description, returnUrl));
     }
 
     @Override
     public GovPayPayment retrieve(@NonNull String id) {
-        return govPayClient.retrievePayment(keyForCurrentService(), id);
+        return govPayClient.retrievePayment(keyForService(), id);
     }
 
     @Override
-    public GovPayPayment retrieve(@NonNull String id, @NonNull String paymentTargetService) {
-        return govPayClient.retrievePayment(keyForCurrentService(paymentTargetService), id);
+    public GovPayPayment retrieve(@NonNull String id, @NonNull String service) {
+        return govPayClient.retrievePayment(keyForService(service), id);
     }
 
     @Override
@@ -70,11 +70,11 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
         return link.getHref();
     }
 
-    private String keyForCurrentService(String paymentTargetService) {
-        return govPayAuthUtil.getServiceToken(serviceIdSupplier.get(), paymentTargetService);
+    private String keyForService(String service) {
+        return govPayAuthUtil.getServiceToken(service);
     }
 
-    private String keyForCurrentService() {
+    private String keyForService() {
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 }
