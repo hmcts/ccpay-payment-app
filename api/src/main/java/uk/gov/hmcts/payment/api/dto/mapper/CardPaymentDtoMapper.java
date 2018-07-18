@@ -1,18 +1,20 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
@@ -22,6 +24,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class CardPaymentDtoMapper {
+
+    @Autowired
+    private FeesService feesService;
 
     public PaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
@@ -73,7 +78,7 @@ public class CardPaymentDtoMapper {
 
     public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return PaymentDto.payment2DtoWith()
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .serviceName(payment.getServiceType())
@@ -81,6 +86,9 @@ public class CardPaymentDtoMapper {
             .amount(payment.getAmount())
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
+            .accountNumber(payment.getPbaNumber())
+            .organisationName(payment.getOrganisationName())
+            .customerReference(payment.getCustomerReference())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
@@ -89,7 +97,18 @@ public class CardPaymentDtoMapper {
             .method(payment.getPaymentMethod().getName())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
+        return enrichWithFeeData(paymentDto);
+    }
 
+    private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
+        paymentDto.getFees().forEach(fee -> {
+            Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+            if (optionalFeeVersionDto.isPresent()) {
+                fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
+                fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+            }
+        });
+        return paymentDto;
     }
 
     private List<FeeDto> toFeeDtos(List<PaymentFee> fees) {

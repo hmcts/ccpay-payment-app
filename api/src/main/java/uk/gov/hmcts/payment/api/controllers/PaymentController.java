@@ -24,11 +24,13 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
@@ -40,7 +42,6 @@ import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
-import static uk.gov.hmcts.payment.api.util.PaymentMethodUtil.valueOf;
 
 @RestController
 @Api(tags = {"PaymentController"})
@@ -103,27 +104,27 @@ public class PaymentController {
     @PaymentExternalAPI
     public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                              @RequestParam(name = "end_date", required = false) Optional<String> endDateString,
-                                             @RequestParam(name = "payment_method", required = false, defaultValue = "ALL") String paymentMethodType,
-                                             @RequestParam(name = "service_name", required = false) String serviceName,
+                                             @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
+                                             @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
 
         if (!ff4j.check("payment-search")) {
             throw new PaymentException("Payment search feature is not available for usage.");
         } else {
-            validator.validate(paymentMethodType, startDateString, endDateString);
+            validator.validate(paymentMethodType, serviceType, startDateString, endDateString);
 
             LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
             LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
+            String paymentType = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null);
+            String serviceName = serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null);
 
-            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, valueOf(paymentMethodType.toUpperCase()), serviceName, ccdCaseNumber);
+            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, paymentType, serviceName, ccdCaseNumber);
 
             List<PaymentDto> paymentDto = paymentFeeLinks.stream()
                 .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
-            return new PaymentsResponse(paymentsReportService.enrichWithFeeData(paymentDto));
+            return new PaymentsResponse(paymentDto);
         }
-
-
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
