@@ -56,6 +56,7 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .formLogin().disable()
             .logout().disable()
             .authorizeRequests()
+            .antMatchers(HttpMethod.GET, "/payments").permitAll()
             .antMatchers(HttpMethod.POST, "/api/**").permitAll()
             .anyRequest().authenticated();
     }
