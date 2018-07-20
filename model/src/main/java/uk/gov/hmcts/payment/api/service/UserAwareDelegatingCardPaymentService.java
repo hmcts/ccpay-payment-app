@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
@@ -22,10 +23,7 @@ import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Primary
@@ -54,6 +52,13 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final ServiceIdSupplier serviceIdSupplier;
 
     private static final Predicate[] REF = new Predicate[0];
+    private final static HashMap<String, String> serviceNames = new HashMap<String, String>();
+
+    static{
+        serviceNames.put("Civil Money Claims", "cmc");
+        serviceNames.put("Divorce", "divorce_frontend");
+        serviceNames.put("Probate", "probate_frontend");
+    }
 
     @Autowired
     public UserAwareDelegatingCardPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
@@ -132,29 +137,33 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         } catch (NullPointerException exp) {
             //where some endpoints are not using S2S, in those scenarios it should continue as is.
         }
+        paymentService = serviceNames.get(paymentService);
 
         paymentService = govPayAuthUtil.getServiceName(callingService, paymentService);
 
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentService);
+        try {
+            GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentService);
 
-        fillTransientDetails(payment, govPayPayment);
+            fillTransientDetails(payment, govPayPayment);
 
-        // Checking if the gov pay status already exists.
-        boolean statusExists = payment.getStatusHistories().stream()
-            .map(StatusHistory::getExternalStatus)
-            .anyMatch(govPayPayment.getState().getStatus().toLowerCase()::equals);
-        LOG.debug("Payment status exists in status history: {}", statusExists);
+            // Checking if the gov pay status already exists.
+            boolean statusExists = payment.getStatusHistories().stream()
+                .map(StatusHistory::getExternalStatus)
+                .anyMatch(govPayPayment.getState().getStatus().toLowerCase()::equals);
+            LOG.debug("Payment status exists in status history: {}", statusExists);
 
 
-        if (!statusExists) {
-            payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                .externalStatus(govPayPayment.getState().getStatus())
-                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
-                .errorCode(govPayPayment.getState().getCode())
-                .message(govPayPayment.getState().getMessage())
-                .build()));
+            if (!statusExists) {
+                payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                    .externalStatus(govPayPayment.getState().getStatus())
+                    .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                    .errorCode(govPayPayment.getState().getCode())
+                    .message(govPayPayment.getState().getMessage())
+                    .build()));
+            }
+        } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
+            LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
         }
-
         return paymentFeeLink;
     }
 
@@ -232,4 +241,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return url == null ? null : url.getHref();
     }
 
+
 }
+
