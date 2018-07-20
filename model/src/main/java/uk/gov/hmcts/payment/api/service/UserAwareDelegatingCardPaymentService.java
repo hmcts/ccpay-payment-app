@@ -127,13 +127,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             LOG.error("Unable to determine the payment service which created this payment-Ref:" + paymentReference);
         }
 
-        String callingService = null;
-
-        try {
-            callingService = serviceIdSupplier.get();
-        } catch (NullPointerException exp) {
-            //where some endpoints are not using S2S, in those scenarios it should continue as is.
-        }
+        String callingService = serviceIdSupplier.get();
         paymentService = serviceNames.get(paymentService);
 
         paymentService = govPayAuthUtil.getServiceName(callingService, paymentService);
