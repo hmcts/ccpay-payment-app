@@ -49,12 +49,12 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final ServiceIdSupplier serviceIdSupplier;
 
     private static final Predicate[] REF = new Predicate[0];
-    private final static HashMap<String, String> serviceNames = new HashMap<String, String>();
+    private final static HashMap<String, String> SERVICE_NAMES = new HashMap<String, String>();
 
     static{
-        serviceNames.put("Civil Money Claims", "cmc");
-        serviceNames.put("Divorce", "divorce_frontend");
-        serviceNames.put("Probate", "probate_frontend");
+        SERVICE_NAMES.put("Civil Money Claims", "cmc");
+        SERVICE_NAMES.put("Divorce", "divorce_frontend");
+        SERVICE_NAMES.put("Probate", "probate_frontend");
     }
 
     @Autowired
@@ -134,7 +134,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         } catch (NullPointerException exp) {
             //where some endpoints are not using S2S, in those scenarios it should continue as is.
         }
-        paymentService = serviceNames.get(paymentService);
+        paymentService = SERVICE_NAMES.get(paymentService);
 
         paymentService = govPayAuthUtil.getServiceName(callingService, paymentService);
 
