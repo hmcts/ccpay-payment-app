@@ -32,10 +32,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
-    private final static String PAYMENT_BY_ALL = "all";
     private final static String PAYMENT_BY_CARD = "card";
-    private final static String PAYMENT_BY_ACCOUNT = "payment by account";
-    private final static String PAYMENT_BY_ACCOUNT_SHORT_ALIAS = "pba";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD = "card";
 
@@ -164,6 +161,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
         }
+
         return paymentFeeLink;
     }
 
@@ -188,21 +186,14 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
         if (paymentMethod != null) {
-
-            paymentMethod = paymentMethod.toLowerCase();
-
-            if (paymentMethod.equals(PAYMENT_BY_ACCOUNT_SHORT_ALIAS)) {
-                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(PAYMENT_BY_ACCOUNT, null)));
-            } else if (!paymentMethod.equals(PAYMENT_BY_ALL)) {
-                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(paymentMethod, null)));
-            }
+            predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(paymentMethod).build()));
         }
 
         if (fromDate != null && toDate != null) {
             predicates.add(cb.between(paymentJoin.get("dateUpdated"), fromDate, toDate));
-        } else if (fromDate != null) {
+        }else if (fromDate != null) {
             predicates.add(cb.greaterThanOrEqualTo(paymentJoin.get("dateUpdated"), fromDate));
-        } else if (toDate != null) {
+        }else if (toDate != null) {
             predicates.add(cb.lessThanOrEqualTo(paymentJoin.get("dateUpdated"), toDate));
         }
 
@@ -241,6 +232,4 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return url == null ? null : url.getHref();
     }
 
-
 }
-
