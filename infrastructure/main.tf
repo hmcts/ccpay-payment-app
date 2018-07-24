@@ -74,9 +74,6 @@ module "payment-api" {
     SPRING_DATASOURCE_PASSWORD = "${module.payment-database.postgresql_password}"
     SPRING_DATASOURCE_URL = "jdbc:postgresql://${module.payment-database.host_name}:${module.payment-database.postgresql_listen_port}/${module.payment-database.postgresql_database}?ssl=true"
 
-    # enable/disables liquibase run
-    SPRING_LIQUIBASE_ENABLED = "${var.liquibase_enabled}"
-
     # idam
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
     # service-auth-provider
