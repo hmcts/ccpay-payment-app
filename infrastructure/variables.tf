@@ -29,9 +29,14 @@ variable "microservice" {
   default = "payment-app"
 }
 
-// disabled liquibase temporarily - enable for new db changes build and then disable again
-variable "liquibase_enabled" {
-  default = "false"
+variable "staging_slot_app_settings" {
+  type = "map"
+
+  default = {
+    SLOT = "STAGING"
+    // enables liquibase only in staging slot
+    SPRING_LIQUIBASE_ENABLED = "true"
+  }
 }
 
 variable "database_name" {
