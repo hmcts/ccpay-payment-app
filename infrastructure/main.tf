@@ -126,7 +126,7 @@ module "payment-api" {
 
   // overrided to enable liquibase run in staging slot only.
   staging_slot_app_settings = {
-    SLOT = "STAGING"
+    SLOT = "NON-PROD"
     SPRING_LIQUIBASE_ENABLED = "true"
   }
 }
