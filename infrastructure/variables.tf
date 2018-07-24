@@ -29,16 +29,6 @@ variable "microservice" {
   default = "payment-app"
 }
 
-variable "staging_slot_app_settings" {
-  type = "map"
-
-  default = {
-    SLOT = "STAGING"
-    // enables liquibase only in staging slot
-    SPRING_LIQUIBASE_ENABLED = "true"
-  }
-}
-
 variable "database_name" {
   type    = "string"
   default = "payment"

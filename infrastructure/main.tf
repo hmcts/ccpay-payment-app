@@ -123,6 +123,12 @@ module "payment-api" {
 
     PAYMENT_AUDIT_FILE = "${var.payment_audit_file}"
   }
+
+  // overrided to enable liquibase run in staging slot only.
+  staging_slot_app_settings = {
+    SLOT = "STAGING"
+    SPRING_LIQUIBASE_ENABLED = "true"
+  }
 }
 
 module "payment-database" {
