@@ -104,7 +104,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             .fees(fees)
             .build());
 
-        auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment);
+        auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, fees);
         return paymentFeeLink;
     }
 
