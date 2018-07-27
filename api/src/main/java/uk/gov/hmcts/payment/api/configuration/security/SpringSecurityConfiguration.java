@@ -3,13 +3,9 @@ package uk.gov.hmcts.payment.api.configuration.security;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -44,6 +40,7 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             "/refdata/**",
             "/health",
             "/info",
+            "/jobs/**",
             "/favicon.ico");
     }
 
@@ -59,10 +56,8 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .formLogin().disable()
             .logout().disable()
             .authorizeRequests()
-            .antMatchers(HttpMethod.GET, "/payments", "/api/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/payments").permitAll()
             .antMatchers(HttpMethod.POST, "/api/**").permitAll()
-            .antMatchers(HttpMethod.POST, "/payments/email-pay-reports").permitAll()
-            .antMatchers(HttpMethod.POST, "/payments/update").permitAll()
             .anyRequest().authenticated();
     }
 }

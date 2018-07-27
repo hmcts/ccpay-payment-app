@@ -4,157 +4,104 @@ import org.joda.time.MutableDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.email.CardPaymentReconciliationReportEmail;
-import uk.gov.hmcts.payment.api.email.CreditAccountReconciliationReportEmail;
+import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
+import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
-import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.times;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(org.mockito.junit.MockitoJUnitRunner.class)
 public class PaymentsReportServiceTest {
 
-
+    @InjectMocks
     private PaymentsReportService paymentsReportService;
 
     @Mock
     private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
-
-    @Mock
-    private CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
-
     @Mock
     private EmailService emailService;
-
     @Mock
     private FeesService feesService;
-
     @Mock
     private CardPaymentDtoMapper cardPaymentDtoMapper;
 
-    @Mock
-    private CreditAccountDtoMapper creditAccountDtoMapper;
-
-    @Mock
-    private CardPaymentReconciliationReportEmail cardPaymentReconciliationReportEmail;
-
-    @Mock
-    private CreditAccountReconciliationReportEmail creditAccountReconciliationReportEmail;
-
-
-    private Date startDate;
-    private Date endDate;
+    private PaymentReportConfig paymentReportConfig;
 
     @Before
-    public void setUp() throws ParseException {
-
-        startDate = getYesterdaysDate();
-        endDate = getTodaysDate();
-
-        paymentsReportService = new PaymentsReportService(cardPaymentService,cardPaymentDtoMapper,
-            creditAccountPaymentService,creditAccountDtoMapper,emailService,feesService,cardPaymentReconciliationReportEmail,creditAccountReconciliationReportEmail);
-
+    public void setUp() {
+        paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String []{"toEmail"}, "emailSubject", "emailMessage", true);
     }
 
     @Test
-    public void shouldGenerateCardPaymentsCsvAndSendEmail()  {
+    public void shouldDelegateToCardSearch()  {
         // given
+        Date startDate = new Date();
+        Date endDate = new Date();
 
         // when
-        paymentsReportService.generateCardPaymentsCsvAndSendEmail(startDate,endDate);
+        paymentsReportService.generateCsvAndSendEmail(startDate, endDate, PaymentMethodType.CARD, null, paymentReportConfig);
 
         // then
-        verify(cardPaymentService).search(startDate,endDate, "card", null);
-        verify(emailService).sendEmail(cardPaymentReconciliationReportEmail);
-
-
+        verify(cardPaymentService).search(startDate,endDate, "card", null, null);
     }
 
     @Test
-    public void shouldGenerateCreditAccountPaymentsCsvAndSendEmail()  {
+    public void shouldDelegateToPbaSearch()  {
         // given
+        Date startDate = new Date();
+        Date endDate = new Date();
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(startDate,endDate);
+        paymentsReportService.generateCsvAndSendEmail(startDate, endDate, PaymentMethodType.PBA, Service.DIVORCE, paymentReportConfig);
 
         // then
-        verify(creditAccountPaymentService).search(startDate,endDate);
-        verify(emailService).sendEmail(creditAccountReconciliationReportEmail);
-
-
+        verify(cardPaymentService).search(startDate,endDate, "payment by account", "Divorce", null);
     }
 
-    @Test(expected = PaymentException.class)
-    public void shouldNotGenerateCreditAccountPaymentsCsvWhenDatesGivenAreEqual()  {
+    @Test
+    public void shouldInvokeFreeRefresh()  {
         // given
+        Date startDate = new Date();
+        Date endDate = new Date();
 
         // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getYesterdaysDate(),getYesterdaysDate());
+        paymentsReportService.generateCsvAndSendEmail(startDate, endDate, PaymentMethodType.PBA, Service.DIVORCE, paymentReportConfig);
 
         // then
-        verify(creditAccountPaymentService,times(0)).search(startDate,startDate);
-        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
-        verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
-
-
+        verify(feesService).dailyRefreshOfFeesData();
     }
 
-
-    @Test(expected = PaymentException.class)
-    public void shouldNotGenerateCreditAccountPaymentsCsvWhenInCorrectStartDateFormat()  {
+    @Test
+    public void shouldDelegateToEmailService()  {
         // given
+        paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String []{"toEmail"}, "emailSubject", "emailMessage", true);
 
-        // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate(),getYesterdaysDate());
-
-        // then
-        verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
-        verify(feesService,times(0)).getFeeVersion(anyString(),anyString());
-        verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
-
-
-    }
-
-
-    @Test(expected = PaymentException.class)
-    public void shouldNotGenerateCreditAccountPaymentsCsvWhenInCorrectEndDateFormat()  {
-        // given
-
-        // when
-        paymentsReportService.generateCreditAccountPaymentsCsvAndSendEmail(getTodaysDate(),getYesterdaysDate());
+         // when
+        paymentsReportService.generateCsvAndSendEmail(new Date(), new Date(), PaymentMethodType.CARD, null, paymentReportConfig);
 
         // then
-        verify(creditAccountPaymentService,times(0)).search(endDate,startDate);
-        verify(emailService,times(0)).sendEmail(creditAccountReconciliationReportEmail);
-
-
-    }
-
-    private Date getYesterdaysDate() {
-        Date now = new Date();
-        MutableDateTime mtDtNow = new MutableDateTime(now);
-        mtDtNow.addDays(-1);
-        return mtDtNow.toDate();
-    }
-
-    private Date getTodaysDate() {
-        return new Date();
+        ArgumentCaptor<Email> argument = ArgumentCaptor.forClass(Email.class);
+        verify(emailService).sendEmail(argument.capture());
+        assertThat(argument.getValue().getFrom()).isEqualTo("fromEmail");
+        assertThat(argument.getValue().getTo()).containsExactly("toEmail");
+        assertThat(argument.getValue().getSubject()).isEqualTo("emailSubject");
+        assertThat(argument.getValue().getMessage()).isEqualTo("emailMessage");
+        assertThat(argument.getValue().hasAttachments()).isTrue();
+        assertThat(argument.getValue().getAttachments().get(0).getFilename()).startsWith(paymentReportConfig.getCsvFileNamePrefix());
     }
 
 }

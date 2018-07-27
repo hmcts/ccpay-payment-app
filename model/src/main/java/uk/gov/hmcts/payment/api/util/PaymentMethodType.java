@@ -1,18 +1,17 @@
 package uk.gov.hmcts.payment.api.util;
 
-public enum PaymentMethodUtil {
+public enum PaymentMethodType {
 
-    ALL("all"),
     CARD("card"),
     PBA("payment by account");
 
     String type;
 
-    PaymentMethodUtil(String type) {
+    PaymentMethodType(String type) {
         this.type = type;
     }
 
-    String getType() {
+    public String getType() {
          return type;
     }
 }

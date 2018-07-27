@@ -4,11 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.Reference;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.util.PaymentMethodUtil;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
@@ -40,18 +36,21 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     public List<Reference> listCreatedStatusPaymentsReferences() {
-        return paymentRepository.findReferencesByPaymentStatus(PaymentStatus.CREATED);
+        return paymentRepository.findReferencesByPaymentStatusAndPaymentProvider(
+            PaymentStatus.CREATED,
+            PaymentProvider.GOV_PAY
+        );
     }
 
     @Override
-    public List<PaymentFeeLink> search(LocalDate startDate, LocalDate endDate, PaymentMethodUtil type, String ccdCaseNumber) {
+    public List<PaymentFeeLink> search(LocalDate startDate, LocalDate endDate, String paymentMethod, String serviceType, String ccdCaseNumber) {
         Date fromDateTime = Optional.ofNullable(startDate)
             .map(s -> Date.from(s.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()))
             .orElse(null);
         Date toDateTime = Optional.ofNullable(endDate)
             .map(s -> Date.from(s.atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant()))
             .orElse(null);
-        return cardPaymentService.search(fromDateTime, toDateTime, type.name(), ccdCaseNumber);
+        return cardPaymentService.search(fromDateTime, toDateTime, paymentMethod, serviceType, ccdCaseNumber);
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {

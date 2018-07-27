@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static uk.gov.hmcts.payment.api.util.PaymentMethodUtil.CARD;
+import static uk.gov.hmcts.payment.api.util.PaymentMethodType.CARD;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PaymentServiceTest {
@@ -32,15 +32,15 @@ public class PaymentServiceTest {
     private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
 
     @Test
-    public void shouldDelegateSearchToCardService() {
+    public void shouldDelegateSearchToCardPaymentType() {
         // given
         LocalDate startDate = LocalDate.now().minusDays(2);
         LocalDate endDate = LocalDate.now();
         List<PaymentFeeLink> paymentFeeLinks = Collections.emptyList();
-        given(cardPaymentService.search(any(Date.class), any(Date.class), eq(CARD.name()), eq(null)))
+        given(cardPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq(null), eq(null)))
             .willReturn(paymentFeeLinks);
         // when
-        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD, null);
+        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD.getType(), null, null);
         // then
         assertThat(result).isSameAs(paymentFeeLinks);
     }
@@ -50,10 +50,10 @@ public class PaymentServiceTest {
         // given
         LocalDate startDate = LocalDate.now();
         // when
-        service.search(startDate, LocalDate.now(), CARD, null);
+        service.search(startDate, LocalDate.now(), CARD.getType(), null, null);
         // then
         Date fromDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        verify(cardPaymentService).search(eq(fromDate), any(Date.class), eq(CARD.name()), eq(null));
+        verify(cardPaymentService).search(eq(fromDate), any(Date.class), eq(CARD.getType()), eq(null), eq(null));
     }
 
     @Test
@@ -61,10 +61,24 @@ public class PaymentServiceTest {
         // given
         LocalDate startDate = LocalDate.now();
         // when
-        service.search(startDate, LocalDate.now(), CARD, null);
+        service.search(startDate, LocalDate.now(), CARD.getType(), null, null);
         // then
         Date toDate = Date.from(LocalDate.now().atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
-        verify(cardPaymentService).search(any(Date.class), eq(toDate), eq(CARD.name()), eq(null));
+        verify(cardPaymentService).search(any(Date.class), eq(toDate), eq(CARD.getType()), eq(null), eq(null));
+    }
+
+    @Test
+    public void shouldDelegateSearchToCMCService() {
+        // given
+        LocalDate startDate = LocalDate.now().minusDays(2);
+        LocalDate endDate = LocalDate.now();
+        List<PaymentFeeLink> paymentFeeLinks = Collections.emptyList();
+        given(cardPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq("cmc"), eq(null)))
+            .willReturn(paymentFeeLinks);
+        // when
+        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD.getType(), "cmc", null);
+        // then
+        assertThat(result).isSameAs(paymentFeeLinks);
     }
 
 }

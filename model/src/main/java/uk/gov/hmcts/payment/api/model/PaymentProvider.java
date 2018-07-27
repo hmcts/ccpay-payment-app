@@ -16,6 +16,8 @@ import javax.persistence.*;
 @Table(name = "payment_provider")
 public class PaymentProvider {
 
+    public final static PaymentProvider GOV_PAY = new PaymentProvider("gov pay","Gov pay");
+
     @Id
     @Column(name = "name", nullable = false)
     private String name;

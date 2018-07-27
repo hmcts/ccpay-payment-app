@@ -11,13 +11,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -32,10 +47,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
-    private final static String PAYMENT_BY_ALL = "all";
     private final static String PAYMENT_BY_CARD = "card";
-    private final static String PAYMENT_BY_ACCOUNT = "payment by account";
-    private final static String PAYMENT_BY_ACCOUNT_SHORT_ALIAS = "pba";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD = "card";
 
@@ -113,7 +125,9 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
+        String paymentTargetService = payment.getServiceType();
+
+        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentTargetService);
 
         fillTransientDetails(payment, govPayPayment);
 
@@ -136,31 +150,28 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         return paymentFeeLink;
     }
 
+    @Override
+    public PaymentFeeLink retrieve(String s, String paymentTargetService) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String type, String ccdCaseNumber) {
-        return paymentFeeLinkRepository.findAll(findCardPayments(startDate, endDate, type, ccdCaseNumber));
+    public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
+        return paymentFeeLinkRepository.findAll(findCardPayments(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber));
     }
 
-    private static Specification findCardPayments(Date fromDate, Date toDate, String type, String ccdCaseNumber) {
-        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, type, ccdCaseNumber));
+    private static Specification findCardPayments(Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
+        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, paymentMethod, serviceName, ccdCaseNumber));
     }
 
-    private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String type, String ccdCaseNumber) {
+    private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
 
         List<Predicate> predicates = new ArrayList<>();
 
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
-        if (type != null) {
-
-            type = type.toLowerCase();
-
-            if(type.equals(PAYMENT_BY_ACCOUNT_SHORT_ALIAS)) {
-                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(PAYMENT_BY_ACCOUNT, null)));
-            }else if (!type.equals(PAYMENT_BY_ALL)) {
-                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), new PaymentMethod(type, null)));
-            }
+        if (paymentMethod != null) {
+            predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(paymentMethod).build()));
         }
 
         if (fromDate != null && toDate != null) {
@@ -173,6 +184,10 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         if (ccdCaseNumber != null) {
             predicates.add(cb.equal(paymentJoin.get("ccdCaseNumber"), ccdCaseNumber));
+        }
+
+        if (serviceName != null) {
+            predicates.add(cb.equal(paymentJoin.get("serviceType"), serviceName));
         }
 
         return cb.and(predicates.toArray(REF));

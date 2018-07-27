@@ -46,8 +46,12 @@ data "azurerm_key_vault_secret" "card_payments_email_to" {
   name = "card-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
-data "azurerm_key_vault_secret" "pba_payments_email_to" {
+data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
   name = "pba-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+data "azurerm_key_vault_secret" "pba_divorce_payments_email_to" {
+  name = "pba-divorce-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
@@ -58,14 +62,20 @@ module "payment-api" {
   env      = "${var.env}"
   ilbIp = "${var.ilbIp}"
   subscription = "${var.subscription}"
-  is_frontend  = false
+  is_frontend  = "${var.env != "preview" ? 1: 0}"
+  additional_host_name = "${var.env != "preview" ? var.external_host_name : "null"}"
+  https_only="false"
   capacity = "${var.capacity}"
+  common_tags     = "${var.common_tags}"
 
   app_settings = {
     # db
     SPRING_DATASOURCE_USERNAME = "${module.payment-database.user_name}"
     SPRING_DATASOURCE_PASSWORD = "${module.payment-database.postgresql_password}"
     SPRING_DATASOURCE_URL = "jdbc:postgresql://${module.payment-database.host_name}:${module.payment-database.postgresql_listen_port}/${module.payment-database.postgresql_database}?ssl=true"
+
+    # enable/disables liquibase run
+    SPRING_LIQUIBASE_ENABLED = "${var.liquibase_enabled}"
 
     # idam
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
@@ -85,19 +95,23 @@ module "payment-api" {
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE = "${var.spring_mail_properties_mail_smtp_starttls_enable}"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST = "${var.spring_mail_properties_email_smtp_ssl_trust}"
 
-    CARD_PAYMENTS_REPORT_SCHEDULE = "${var.card_payments_report_schedule}"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.card_payments_report_scheduler_enabled}"
     CARD_PAYMENTS_EMAIL_FROM = "${var.card_payments_email_from}"
     CARD_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.card_payments_email_to.value}"
     CARD_PAYMENTS_EMAIL_SUBJECT = "${var.card_payments_email_subject}"
     CARD_PAYMENTS_EMAIL_MESSAGE = "${var.card_payments_email_message}"
 
-    PBA_PAYMENTS_REPORT_SCHEDULE = "${var.pba_payments_report_schedule}"
-    PBA_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_payments_report_scheduler_enabled}"
-    PBA_PAYMENTS_EMAIL_FROM = "${var.pba_payments_email_from}"
-    PBA_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_payments_email_to.value}"
-    PBA_PAYMENTS_EMAIL_SUBJECT = "${var.pba_payments_email_subject}"
-    PBA_PAYMENTS_EMAIL_MESSAGE = "${var.pba_payments_email_message}"
+    PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_cmc_payments_report_scheduler_enabled}"
+    PBA_CMC_PAYMENTS_EMAIL_FROM = "${var.pba_cmc_payments_email_from}"
+    PBA_CMC_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_cmc_payments_email_to.value}"
+    PBA_CMC_PAYMENTS_EMAIL_SUBJECT = "${var.pba_cmc_payments_email_subject}"
+    PBA_CMC_PAYMENTS_EMAIL_MESSAGE = "${var.pba_cmc_payments_email_message}"
+
+    PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_divorce_payments_report_scheduler_enabled}"
+    PBA_DIVORCE_PAYMENTS_EMAIL_FROM = "${var.pba_divorce_payments_email_from}"
+    PBA_DIVORCE_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_divorce_payments_email_to.value}"
+    PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT = "${var.pba_divorce_payments_email_subject}"
+    PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE = "${var.pba_divorce_payments_email_message}"
 
     FEES_REGISTER_URL = "${local.fees_register_url}"
     FEATURE_PAYMENTS_SEARCH = "${var.feature_payments_search}"
@@ -123,4 +137,5 @@ module "payment-database" {
   database_name = "${var.database_name}"
   sku_name = "GP_Gen5_2"
   sku_tier = "GeneralPurpose"
+  common_tags     = "${var.common_tags}"
 }

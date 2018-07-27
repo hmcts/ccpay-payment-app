@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.controllers.jobs;
+package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,29 +12,29 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
-@Api(tags = {"UpdateStatusController"})
-@SwaggerDefinition(tags = {@Tag(name = "UpdateStatusController", description = "Update Payment Status API")})
-public class UpdateStatusController {
+@Api(tags = {"MaintenanceJobsController"})
+@SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintenance Jobs API")})
+public class MaintenanceJobsController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
 
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
 
     @Autowired
-    public UpdateStatusController(PaymentService<PaymentFeeLink, String> paymentService,
-                                  CardPaymentService<PaymentFeeLink, String> cardPaymentService) {
+    public MaintenanceJobsController(PaymentService<PaymentFeeLink, String> paymentService,
+                                     CardPaymentService<PaymentFeeLink, String> cardPaymentService) {
         this.paymentService = paymentService;
         this.cardPaymentService = cardPaymentService;
     }
 
-    @ApiOperation(value = "Update payment status", notes = "Updates the payment status on all pending payments")
+    @ApiOperation(value = "Update payment status", notes = "Updates the payment status on all gov pay pending card payments")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Reports sent")
     })
-    @RequestMapping(value = "/payments/update", method = POST)
+    @RequestMapping(value = "/jobs/card-payments-status-update", method = PATCH)
     public void updatePaymentsStatus() throws ExecutionException, InterruptedException {
 
         ForkJoinPool updatePool = new ForkJoinPool(5);

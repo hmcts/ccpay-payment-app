@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 
 import java.math.BigDecimal;
@@ -28,6 +29,9 @@ public class GovPayCardPaymentServiceTest {
     @Mock
     private ServiceIdSupplier serviceIdSupplier;
 
+    @Mock
+    private GovPayAuthUtil govPayAuthUtil;
+
     @InjectMocks
     private GovPayCardPaymentService govPayCardPaymentService;
 
@@ -35,14 +39,13 @@ public class GovPayCardPaymentServiceTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        when(serviceIdSupplier.get()).thenReturn("divorce");
-        String serviceId = serviceIdSupplier.get();
-
-        when(govPayKeyRepository.getKey(serviceId)).thenReturn("divorce-gov-pay-key");
+        when(govPayKeyRepository.getKey("divorce")).thenReturn("divorce-gov-pay-key");
+        when(govPayKeyRepository.getKey("ccd")).thenReturn("ccd-gov-pay-key");
     }
 
     @Test
     public void createPaymentTest() throws Exception {
+        when(serviceIdSupplier.get()).thenReturn("divorce");
         String key = govPayKeyRepository.getKey("divorce");
 
         CreatePaymentRequest createPaymentRequest = new CreatePaymentRequest(10000, "reference", "description", "https://www.google.com");
@@ -67,6 +70,7 @@ public class GovPayCardPaymentServiceTest {
 
     @Test
     public void retrieveGovPaymentTest() throws Exception {
+        when(serviceIdSupplier.get()).thenReturn("divorce");
         String key = govPayKeyRepository.getKey("divorce");
 
         when(govPayClient.retrievePayment(key, "RC-1518-9479-8089-4415")).thenReturn(GovPayPayment.govPaymentWith()
@@ -82,6 +86,33 @@ public class GovPayCardPaymentServiceTest {
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getPaymentId(), "ia2mv22nl5o880rct0vqfa7k76");
         assertEquals(govPayPayment.getReference(), "RC-1518-9479-8089-4415");
+    }
+
+    @Test
+    public void retrieveWithTargetServiceShouldRetrievePaymentFromAnyServiceTypeWhenOperationalServiceIsTheCaller() {
+        String govPayReference = "RC-1518-9479-8089-4416";
+        String serviceCaller = "ccd";
+        String paymentTargetService = "divorce";
+        String paymentId = "ia2mv22nl5o880rct0vqfa7k76";
+
+        when(serviceIdSupplier.get()).thenReturn(serviceCaller);
+
+        String targetServiceKey = govPayKeyRepository.getKey(paymentTargetService);
+
+        when(govPayAuthUtil.getServiceToken(serviceCaller, paymentTargetService)).thenReturn(targetServiceKey);
+        when(govPayClient.retrievePayment(targetServiceKey, govPayReference)).thenReturn(GovPayPayment.govPaymentWith()
+            .amount(112233)
+            .state(new State("Success", true, "payment expired", "P0020"))
+            .description("description")
+            .reference(govPayReference)
+            .paymentId(paymentId)
+            .returnUrl("https://www.google.com")
+            .build());
+
+        GovPayPayment govPayPayment = govPayCardPaymentService.retrieve(govPayReference, paymentTargetService);
+        assertNotNull(govPayPayment);
+        assertEquals(govPayPayment.getPaymentId(), paymentId);
+        assertEquals(govPayPayment.getReference(), govPayReference);
     }
 
 }

@@ -75,6 +75,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).paymentReference("payGroupRef")
             .payments(Arrays.asList(Payment.paymentWith().id(1)
                 .externalReference("govPayId")
+                .serviceType("cmc")
                 .reference(reference)
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                     .id(1)
@@ -87,6 +88,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference("1").orElseThrow(PaymentNotFoundException::new);
         when(paymentRespository.findByReferenceAndPaymentMethod(reference, PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build())).thenReturn(Optional.of(Payment.paymentWith().id(1)
             .externalReference("govPayId")
+            .serviceType("cmc")
             .reference(reference)
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                 .id(1)
@@ -99,7 +101,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         Payment payment = paymentRespository.findByReferenceAndPaymentMethod(reference,
             PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
 
-        when(govPayCardPaymentService.retrieve("govPayId")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
+        when(govPayCardPaymentService.retrieve("govPayId", "cmc")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
         PaymentFeeLink result = cardPaymentService.retrieve(reference);
         assertNotNull(result.getPayments().get(0));
