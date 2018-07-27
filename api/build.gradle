@@ -34,7 +34,6 @@ idea {
 
 sonarqube {
     properties {
-        property "sonar.host.url", "https://sonar.reform.hmcts.net/"
         property "sonar.pitest.mode", "reuseReport"
         property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     }
@@ -132,5 +131,5 @@ pitest {
     threads = 10
     outputFormats = ['XML', 'HTML']
     timestampedReports = false
-    mutationThreshold = 50
+    mutationThreshold = 75
 }
