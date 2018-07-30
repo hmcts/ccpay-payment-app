@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.TimeZone;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -108,6 +109,7 @@ public class PaymentDto {
     public String toCardPaymentCsv() {
         StringJoiner result = new StringJoiner("\n");
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         for (FeeDto fee : getFees()) {
             StringJoiner sb = new StringJoiner(",")
@@ -142,6 +144,7 @@ public class PaymentDto {
     public String toCreditAccountPaymentCsv() {
         StringJoiner result = new StringJoiner("\n");
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         for (FeeDto fee : getFees()) {
             StringJoiner sb = new StringJoiner(",")
