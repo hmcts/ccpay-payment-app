@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
@@ -62,10 +63,11 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private CardPaymentService<GovPayPayment, String> govPayCardPaymentService = mock(CardPaymentService.class);
     private Payment2Repository paymentRespository = mock(Payment2Repository.class);
     private PaymentFeeLinkRepository paymentFeeLinkRepository = mock(PaymentFeeLinkRepository.class);
+    private AuditRepository auditRepository = mock(AuditRepository.class);
 
     private UserAwareDelegatingCardPaymentService cardPaymentService = new UserAwareDelegatingCardPaymentService(() -> USER_ID, paymentFeeLinkRepository,
         govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
-        paymentStatusRepository, paymentRespository, paymentReferenceUtil);
+        paymentStatusRepository, paymentRespository, paymentReferenceUtil, auditRepository);
 
     @Test
     public void testRetrieveCardPaymentForGivenPaymentReference() throws Exception {
