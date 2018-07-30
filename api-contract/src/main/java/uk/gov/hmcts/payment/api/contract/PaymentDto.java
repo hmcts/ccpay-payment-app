@@ -133,7 +133,7 @@ public class PaymentDto {
                 .add(fee.getCalculatedAmount().toString())
                 .add(memoLineWithQuotes)
                 .add(naturalAccountCode)
-                .add(fee.getVolume().toString());
+                .add(feeVolumeWithoutFractions(fee.getVolume()));
 
             result.add(sb.toString());
         }
@@ -172,10 +172,14 @@ public class PaymentDto {
                 .add(fee.getCalculatedAmount().toString())
                 .add(memolineWithQuotes)
                 .add(naturalAccountCode)
-                .add(fee.getVolume().toString());
+                .add(feeVolumeWithoutFractions(fee.getVolume()));
             result.add(sb.toString());
         }
 
         return result.toString();
+    }
+
+    private String feeVolumeWithoutFractions(Double feeVolume) {
+        return feeVolume == null ? "" : String.valueOf(feeVolume.intValue());
     }
 }
