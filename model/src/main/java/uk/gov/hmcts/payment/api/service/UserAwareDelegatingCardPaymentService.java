@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
@@ -47,6 +48,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final PaymentReferenceUtil paymentReferenceUtil;
     private final GovPayAuthUtil govPayAuthUtil;
     private final ServiceIdSupplier serviceIdSupplier;
+    private final AuditRepository auditRepository;
 
     private static final Predicate[] REF = new Predicate[0];
     private final static HashMap<String, String> SERVICE_NAMES = new HashMap<String, String>();
@@ -62,7 +64,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
                                                  CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
                                                  PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                  PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                                 PaymentReferenceUtil paymentReferenceUtil, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier) {
+                                                 PaymentReferenceUtil paymentReferenceUtil, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier, AuditRepository auditRepository) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegate = delegate;
@@ -74,6 +76,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         this.paymentReferenceUtil = paymentReferenceUtil;
         this.govPayAuthUtil = govPayAuthUtil;
         this.serviceIdSupplier = serviceIdSupplier;
+        this.auditRepository = auditRepository;
     }
 
     @Override
@@ -111,6 +114,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             .fees(fees)
             .build());
 
+        auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, fees);
         return paymentFeeLink;
     }
 
