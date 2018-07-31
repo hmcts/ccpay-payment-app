@@ -40,6 +40,7 @@ public class PaymentRecordRequest {
     @NotEmpty
     private String reference;
 
+    @NotNull
     private Service service;
 
     private CurrencyCode currency;

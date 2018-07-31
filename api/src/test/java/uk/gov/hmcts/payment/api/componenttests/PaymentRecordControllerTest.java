@@ -1,27 +1,21 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import lombok.SneakyThrows;
 import org.apache.commons.validator.routines.checkdigit.CheckDigit;
 import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
-import org.assertj.core.api.Assertions;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
@@ -36,10 +30,10 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringRunner.class)
@@ -164,6 +158,37 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity());
     }
 
+    @Test
+    public void testRecordPostOrderPayment() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getPostalOrderPaymentPayload());
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response).isNotNull();
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Initiated");
+    }
+
+    @Test
+    public void testRecordBarclaycardPayment() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getBarclayCardPaymentPayload());
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Initiated");
+    }
+
     private String getCashPaymentPayload() {
 
         return "{\n" +
@@ -194,6 +219,7 @@ public class PaymentRecordControllerTest {
         return "{\n" +
             "  \"amount\": 99.99,\n" +
             "  \"payment_method\": \"CHEQUE\",\n" +
+            "  \"service\": \"DIGITAL_BAR\",\n" +
             "  \"reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"external_provider\": \"cheque provider\",\n" +
@@ -232,4 +258,51 @@ public class PaymentRecordControllerTest {
             "  ]\n" +
             "}";
     }
+
+    private String getPostalOrderPaymentPayload() {
+
+        return "{\n" +
+            "  \"amount\": 99.99,\n" +
+            "  \"payment_method\": \"POSTAL_ORDER\",\n" +
+            "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"reference\": \"ref_122\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"external_reference\": \"postal_1000012\",\n" +
+            "  \"giro_slip_no\": \"434567\",\n" +
+            "  \"site_id\": \"AA001\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 99.99,\n" +
+            "      \"code\": \"FEE0111\",\n" +
+            "      \"reference\": \"ref_122\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 1\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String getBarclayCardPaymentPayload() {
+
+        return "{\n" +
+            "  \"amount\": 99.99,\n" +
+            "  \"payment_method\": \"CARD\",\n" +
+            "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"reference\": \"ref_122\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"external_provider\": \"bar card\",\n" +
+            "  \"external_reference\": \"bar_card_1000012\",\n" +
+            "  \"site_id\": \"AA001\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 99.99,\n" +
+            "      \"code\": \"FEE0111\",\n" +
+            "      \"reference\": \"ref_122\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 1\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
 }
