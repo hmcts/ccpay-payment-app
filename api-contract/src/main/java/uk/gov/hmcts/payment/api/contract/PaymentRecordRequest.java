@@ -41,6 +41,7 @@ public class PaymentRecordRequest {
     private String reference;
 
     @NotNull
+    @JsonProperty("requestor")
     private Service service;
 
     private CurrencyCode currency;

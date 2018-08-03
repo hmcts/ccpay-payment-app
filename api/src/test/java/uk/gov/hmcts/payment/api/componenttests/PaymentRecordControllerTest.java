@@ -195,7 +195,7 @@ public class PaymentRecordControllerTest {
             "  \"amount\": 32.19,\n" +
             "  \"payment_method\": \"CASH\",\n" +
             "  \"reference\": \"ref_123\",\n" +
-            "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"giro_slip_no\": \"12345\",\n" +
             "  \"site_id\": \"AA99\",\n" +
@@ -220,6 +220,7 @@ public class PaymentRecordControllerTest {
             "  \"amount\": 99.99,\n" +
             "  \"payment_method\": \"CHEQUE\",\n" +
             "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"external_provider\": \"cheque provider\",\n" +
@@ -242,7 +243,7 @@ public class PaymentRecordControllerTest {
 
         return "{\n" +
             "  \"amount\": 32.19,\n" +
-            "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"giro_slip_no\": \"12345\",\n" +
             "  \"site_id\": \"AA99\",\n" +
@@ -264,7 +265,7 @@ public class PaymentRecordControllerTest {
         return "{\n" +
             "  \"amount\": 99.99,\n" +
             "  \"payment_method\": \"POSTAL_ORDER\",\n" +
-            "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"external_reference\": \"postal_1000012\",\n" +
@@ -287,7 +288,7 @@ public class PaymentRecordControllerTest {
         return "{\n" +
             "  \"amount\": 99.99,\n" +
             "  \"payment_method\": \"CARD\",\n" +
-            "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"external_provider\": \"bar card\",\n" +
