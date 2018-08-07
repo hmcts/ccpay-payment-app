@@ -203,7 +203,7 @@ public class PaymentRecordControllerTest {
 
         return "{\n" +
             "  \"amount\": 32.19,\n" +
-            "  \"payment_method\": \"cash\",\n" +
+            "  \"payment_method\": \"CASH\",\n" +
             "  \"requestor_reference\": \"ref_123\",\n" +
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
@@ -228,7 +228,7 @@ public class PaymentRecordControllerTest {
 
         return "{\n" +
             "  \"amount\": 99.99,\n" +
-            "  \"payment_method\": \"cheque\",\n" +
+            "  \"payment_method\": \"CHEQUE\",\n" +
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"requestor_reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
