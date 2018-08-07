@@ -61,6 +61,7 @@ public class PaymentRecordController {
             .currency(paymentRecordRequest.getCurrency().getCode())
             .externalProvider(paymentRecordRequest.getExternalProvider())
             .externalReference(paymentRecordRequest.getExternalReference())
+            .serviceType(paymentRecordRequest.getService().getName())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(paymentRecordRequest.getPaymentMethod().getType()).build())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
