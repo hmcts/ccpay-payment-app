@@ -128,19 +128,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    public void testRecordPayment_withoutPaymentMethod() throws Exception {
-        PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
-        request.setReference("ref_123");
-
-        MvcResult result = restActions
-            .post("/payment-records", request)
-            .andExpect(status().isUnprocessableEntity())
-            .andReturn();
-
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("paymentMethod: must not be null");
-    }
-
-    @Test
     public void testRecordChequePayment_withoutReference() throws Exception {
         PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
         request.setPaymentMethod(PaymentMethodType.CHEQUE.getType());
@@ -216,7 +203,7 @@ public class PaymentRecordControllerTest {
 
         return "{\n" +
             "  \"amount\": 32.19,\n" +
-            "  \"payment_method\": \"CASH\",\n" +
+            "  \"payment_method\": \"cash\",\n" +
             "  \"requestor_reference\": \"ref_123\",\n" +
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
@@ -241,7 +228,7 @@ public class PaymentRecordControllerTest {
 
         return "{\n" +
             "  \"amount\": 99.99,\n" +
-            "  \"payment_method\": \"CHEQUE\",\n" +
+            "  \"payment_method\": \"cheque\",\n" +
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"requestor_reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
