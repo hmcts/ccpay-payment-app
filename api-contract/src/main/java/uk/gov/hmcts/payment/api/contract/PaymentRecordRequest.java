@@ -10,7 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Method;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.Valid;
@@ -34,8 +33,8 @@ public class PaymentRecordRequest {
     @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 
-    @NotNull
-    private Method paymentMethod;
+    @NotEmpty
+    private String paymentMethod;
 
     @NotEmpty
     private String reference;
@@ -58,5 +57,14 @@ public class PaymentRecordRequest {
     @NotEmpty
     @Valid
     private List<FeeDto> fees;
+
+    @AssertFalse(message = "Invalid payment method type")
+    private boolean isPaymentMethodValid() {
+        return (paymentMethod != null && !paymentMethod.isEmpty())
+            && (!paymentMethod.toUpperCase().equals("CASH") &&
+                !paymentMethod.toUpperCase().equals("CHEQUE") &&
+                !paymentMethod.toUpperCase().equals("POSTAL_ORDER") &&
+                !paymentMethod.toUpperCase().equals("BARCLAY_CARD"));
+    }
 
 }
