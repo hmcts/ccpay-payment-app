@@ -62,10 +62,10 @@ public class PaymentRecordRequest {
     @AssertFalse(message = "Invalid payment method type")
     private boolean isPaymentMethodValid() {
         return (paymentMethod != null && !paymentMethod.isEmpty())
-            && (!paymentMethod.toUpperCase().equals("CASH") &&
-                !paymentMethod.toUpperCase().equals("CHEQUE") &&
-                !paymentMethod.toUpperCase().equals("POSTAL_ORDER") &&
-                !paymentMethod.toUpperCase().equals("BARCLAY_CARD"));
+            && (!paymentMethod.equalsIgnoreCase("CASH") &&
+                !paymentMethod.equalsIgnoreCase("CHEQUE") &&
+                !paymentMethod.equalsIgnoreCase("POSTAL_ORDER") &&
+                !paymentMethod.equalsIgnoreCase("BARCLAY_CARD"));
     }
 
 }
