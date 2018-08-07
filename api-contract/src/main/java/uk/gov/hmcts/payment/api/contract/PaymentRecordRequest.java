@@ -37,6 +37,7 @@ public class PaymentRecordRequest {
     private String paymentMethod;
 
     @NotEmpty
+    @JsonProperty("requestor_reference")
     private String reference;
 
     @JsonProperty("requestor")
