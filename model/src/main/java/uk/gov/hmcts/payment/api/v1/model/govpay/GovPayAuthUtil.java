@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class GovPayAuthUtil {
@@ -15,11 +16,14 @@ public class GovPayAuthUtil {
     @Autowired
     private GovPayKeyRepository govPayKeyRepository;
 
-    public String getServiceToken(String callingService, String paymentService) {
-        if (!callingService.equals(paymentService) && !operationalServices.contains(callingService)) {
-            return govPayKeyRepository.getKey(callingService);
-        }
+    public String getServiceName(final String callingService, final String paymentService) {
+        return Optional.ofNullable(callingService)
+            .filter(p -> !p.equals(paymentService))
+            .filter(p -> !operationalServices.contains(p))
+            .orElse(paymentService);
+    }
 
-        return govPayKeyRepository.getKey(paymentService);
+    public String getServiceToken(String serviceName) {
+        return govPayKeyRepository.getKey(serviceName);
     }
 }
