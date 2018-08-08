@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.contract;
+package uk.gov.hmcts.payment.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,8 +9,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -33,8 +35,8 @@ public class PaymentRecordRequest {
     @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 
-    @NotEmpty
-    private String paymentMethod;
+    @NotNull
+    private PaymentMethodType paymentMethod;
 
     @NotEmpty
     @JsonProperty("requestor_reference")
@@ -58,14 +60,4 @@ public class PaymentRecordRequest {
     @NotEmpty
     @Valid
     private List<FeeDto> fees;
-
-    @AssertFalse(message = "Invalid payment method type")
-    private boolean isPaymentMethodValid() {
-        return (paymentMethod != null && !paymentMethod.isEmpty())
-            && (!paymentMethod.equalsIgnoreCase("CASH") &&
-                !paymentMethod.equalsIgnoreCase("CHEQUE") &&
-                !paymentMethod.equalsIgnoreCase("POSTAL_ORDER") &&
-                !paymentMethod.equalsIgnoreCase("BARCLAY_CARD"));
-    }
-
 }
