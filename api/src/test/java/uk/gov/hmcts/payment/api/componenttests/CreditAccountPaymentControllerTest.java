@@ -22,7 +22,7 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoorImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
@@ -61,7 +61,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
-    protected UserResolverBackdoor userRequestAuthorizer;
+    protected UserResolverBackdoorImpl userRequestAuthorizer;
 
     @Autowired
     protected PaymentDbBackdoor db;
@@ -70,7 +70,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected Payment2Repository paymentRepository;
 
 
-    private static final String USER_ID = "user-id";
+    private static final String USER_ID = "1";
 
     private final static String PAYMENT_METHOD = "payment by account";
 
