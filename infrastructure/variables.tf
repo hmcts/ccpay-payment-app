@@ -29,11 +29,6 @@ variable "microservice" {
   default = "payment-app"
 }
 
-// disabled liquibase temporarily - enable for new db changes build and then disable again
-variable "liquibase_enabled" {
-  default = "false"
-}
-
 variable "database_name" {
   type    = "string"
   default = "payment"
