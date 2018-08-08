@@ -266,7 +266,7 @@ public class PaymentRecordControllerTest {
             "  \"amount\": 99.99,\n" +
             "  \"payment_method\": \"POSTAL_ORDER\",\n" +
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
-            "  \"reference\": \"ref_122\",\n" +
+            "  \"requestor_reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"external_reference\": \"postal_1000012\",\n" +
             "  \"giro_slip_no\": \"434567\",\n" +
@@ -289,7 +289,7 @@ public class PaymentRecordControllerTest {
             "  \"amount\": 99.99,\n" +
             "  \"payment_method\": \"CARD\",\n" +
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
-            "  \"reference\": \"ref_122\",\n" +
+            "  \"requestor_reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"external_provider\": \"bar card\",\n" +
             "  \"external_reference\": \"bar_card_1000012\",\n" +
