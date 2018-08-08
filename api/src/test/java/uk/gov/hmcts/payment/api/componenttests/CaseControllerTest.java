@@ -18,7 +18,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoorImpl;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +40,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
-    protected UserResolverBackdoorImpl userRequestAuthorizer;
+    protected UserResolverBackdoor userRequestAuthorizer;
 
     private static final String USER_ID = "2";
 
