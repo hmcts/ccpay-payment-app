@@ -3,7 +3,9 @@ package uk.gov.hmcts.payment.api.contract.util;
 public enum Method {
 
     CASH("cash"),
-    CHEQUE("cheque");
+    CHEQUE("cheque"),
+    POSTAL_ORDER("postal order"),
+    CARD("card");
 
     Method(String type) {
         this.type = type;
