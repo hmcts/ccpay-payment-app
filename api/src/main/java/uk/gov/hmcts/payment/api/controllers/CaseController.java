@@ -36,7 +36,7 @@ public class CaseController {
         @ApiResponse(code = 200, message = "Payments retrieved"),
         @ApiResponse(code = 400, message = "Bad request")
     })
-    @RequestMapping(value = "/case/{case}/payments", method = GET)
+    @RequestMapping(value = "/cases/{case}/payments", method = GET)
     @PaymentExternalAPI
     public PaymentsResponse retrieveCasePayments(@RequestParam(name = "case", required = false) String ccdCaseNumber) {
 
