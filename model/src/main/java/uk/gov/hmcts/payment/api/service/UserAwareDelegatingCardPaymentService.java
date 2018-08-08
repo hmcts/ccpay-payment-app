@@ -12,19 +12,19 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Primary
@@ -46,17 +46,25 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final PaymentMethodRepository paymentMethodRepository;
     private final Payment2Repository paymentRespository;
     private final PaymentReferenceUtil paymentReferenceUtil;
-
+    private final GovPayAuthUtil govPayAuthUtil;
+    private final ServiceIdSupplier serviceIdSupplier;
     private final AuditRepository auditRepository;
 
     private static final Predicate[] REF = new Predicate[0];
+    private final static HashMap<String, String> SERVICE_NAMES = new HashMap<String, String>();
+
+    static{
+        SERVICE_NAMES.put("Civil Money Claims", "cmc");
+        SERVICE_NAMES.put("Divorce", "divorce_frontend");
+        SERVICE_NAMES.put("Probate", "probate_frontend");
+    }
 
     @Autowired
     public UserAwareDelegatingCardPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
                                                  CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
                                                  PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                  PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                                 PaymentReferenceUtil paymentReferenceUtil, AuditRepository auditRepository) {
+                                                 PaymentReferenceUtil paymentReferenceUtil, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier, AuditRepository auditRepository) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegate = delegate;
@@ -66,6 +74,8 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentRespository = paymentRespository;
         this.paymentReferenceUtil = paymentReferenceUtil;
+        this.govPayAuthUtil = govPayAuthUtil;
+        this.serviceIdSupplier = serviceIdSupplier;
         this.auditRepository = auditRepository;
     }
 
@@ -115,26 +125,39 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
-        String paymentTargetService = payment.getServiceType();
+        String paymentService = payment.getServiceType();
 
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentTargetService);
+        if (null == paymentService || paymentService.trim().equals("")) {
+            LOG.error("Unable to determine the payment service which created this payment-Ref:" + paymentReference);
+        }
 
-        fillTransientDetails(payment, govPayPayment);
+        String callingService = serviceIdSupplier.get();
+        paymentService = SERVICE_NAMES.get(paymentService);
 
-        // Checking if the gov pay status already exists.
-        boolean statusExists = payment.getStatusHistories().stream()
-            .map(StatusHistory::getExternalStatus)
-            .anyMatch(govPayPayment.getState().getStatus().toLowerCase()::equals);
-        LOG.debug("Payment status exists in status history: {}", statusExists);
+        paymentService = govPayAuthUtil.getServiceName(callingService, paymentService);
+
+        try {
+            GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentService);
+
+            fillTransientDetails(payment, govPayPayment);
+
+            // Checking if the gov pay status already exists.
+            boolean statusExists = payment.getStatusHistories().stream()
+                .map(StatusHistory::getExternalStatus)
+                .anyMatch(govPayPayment.getState().getStatus().toLowerCase()::equals);
+            LOG.debug("Payment status exists in status history: {}", statusExists);
 
 
-        if (!statusExists) {
-            payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                .externalStatus(govPayPayment.getState().getStatus())
-                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
-                .errorCode(govPayPayment.getState().getCode())
-                .message(govPayPayment.getState().getMessage())
-                .build()));
+            if (!statusExists) {
+                payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                    .externalStatus(govPayPayment.getState().getStatus())
+                    .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                    .errorCode(govPayPayment.getState().getCode())
+                    .message(govPayPayment.getState().getMessage())
+                    .build()));
+            }
+        } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
+            LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);
         }
 
         return paymentFeeLink;
