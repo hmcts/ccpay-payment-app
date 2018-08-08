@@ -6,7 +6,7 @@
 HMCTS Payment Gateway is a small wrapper around GOV.UK Pay service adding some basic user/service authorization, 
 enforcing useful payment reference structure and collecting data across multiple GOV.UK Pay accounts that will allow 
 better financial reporting and reconciliation.   
-
+ 
 ### Integration prerequisites
 
 For a successful integration with HMCTS Payment Gateway you will require the following:
@@ -51,3 +51,9 @@ Liquibase is used to update the database changes. Perform following steps to cre
 3. this will generate a new yaml file e.g. api/src/main/resources/db/changelog/db.changelog-0.0.5.yaml
 5. Add this file to pom.xml in diffChangeLogFile section under configuration
 6. Add this file to db.changelog-master.xml's diff files list
+
+#### Environment variables
+
+The following environment variables are required:
+
+- `APPINSIGHTS_INSTRUMENTATIONKEY`, app insights key to send telemetry events.

@@ -38,8 +38,11 @@ public class PaymentRecordRequest {
     private Method paymentMethod;
 
     @NotEmpty
+    @JsonProperty("requestor_reference")
     private String reference;
 
+    @NotNull
+    @JsonProperty("requestor")
     private Service service;
 
     private CurrencyCode currency;

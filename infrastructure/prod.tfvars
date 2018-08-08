@@ -4,7 +4,7 @@ idam_api_url = "https://prod-idamapi.reform.hmcts.net:3511"
 
 card_payments_report_scheduler_enabled = "false"
 pba_cmc_payments_report_scheduler_enabled = "false"
-pba_divorce_payments_report_scheduler_enabled = "false"
+pba_divorce_payments_report_scheduler_enabled = "true"
 
 spring_mail_host = "mta.reform.hmcts.net"
 spring_mail_port = "25"
