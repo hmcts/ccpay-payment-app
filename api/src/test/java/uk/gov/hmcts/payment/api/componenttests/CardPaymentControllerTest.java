@@ -30,7 +30,7 @@ import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoorImpl;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
@@ -71,7 +71,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     private ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
-    private UserResolverBackdoorImpl userRequestAuthorizer;
+    private UserResolverBackdoor userRequestAuthorizer;
 
     @Autowired
     private PaymentDbBackdoor db;

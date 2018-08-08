@@ -27,7 +27,7 @@ import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoorImpl;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
@@ -62,7 +62,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
-    protected UserResolverBackdoorImpl userRequestAuthorizer;
+    protected UserResolverBackdoor userRequestAuthorizer;
 
     @Autowired
     protected PaymentDbBackdoor db;

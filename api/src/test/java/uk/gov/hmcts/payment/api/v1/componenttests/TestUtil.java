@@ -24,7 +24,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.DbBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoorImpl;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -46,7 +46,7 @@ public class TestUtil {
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
-    protected UserResolverBackdoorImpl userRequestAuthorizer;
+    protected UserResolverBackdoor userRequestAuthorizer;
 
     @Autowired
     private ObjectMapper objectMapper;

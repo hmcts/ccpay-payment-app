@@ -19,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoorImpl;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.nio.file.Files;
@@ -54,7 +54,7 @@ public class GovPayComponentMockTest {
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
-    protected UserResolverBackdoorImpl userRequestAuthorizer;
+    protected UserResolverBackdoor userRequestAuthorizer;
 
     protected ObjectMapper objectMapper;
 
