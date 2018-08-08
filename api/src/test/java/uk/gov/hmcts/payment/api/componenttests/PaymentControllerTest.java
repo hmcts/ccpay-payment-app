@@ -67,7 +67,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected PaymentDbBackdoor db;
 
-    private static final String USER_ID = "1";
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     private final static String PAYMENT_METHOD = "payment by account";
 

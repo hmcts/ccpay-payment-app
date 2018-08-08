@@ -14,11 +14,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserResolverBackdoor implements SubjectResolver<User>{
     private final ConcurrentHashMap<String, User> tokenToUserMap = new ConcurrentHashMap<>();
 
+    public final static String CITIZEN_ID = "1";
+    public final static String CASEWORKER_ID = "2";
+    public final static String AUTHENTICATED_USER_ID = "3";
+
     public UserResolverBackdoor() {
 
-        tokenToUserMap.put("Bearer user-1", new User("1", ImmutableSet.of("citizen")));
-        tokenToUserMap.put("Bearer caseworker-2", new User("2", ImmutableSet.of("caseworker", "payments")));
-
+        tokenToUserMap.put("Bearer user-1", new User(CITIZEN_ID, ImmutableSet.of("citizen")));
+        tokenToUserMap.put("Bearer caseworker-2", new User(CASEWORKER_ID, ImmutableSet.of("caseworker", "payments")));
+        tokenToUserMap.put("Bearer authenticated-3", new User(AUTHENTICATED_USER_ID, ImmutableSet.of()));
     }
 
     @Override
