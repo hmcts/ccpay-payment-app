@@ -42,7 +42,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
 
-    private static final String USER_ID = "2";
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -100,14 +100,14 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCreditAccountPaymentToDb("1");
 
         restActions
-            .withAuthorizedUser("1")
-            .withUserId("1")
+            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
+            .withUserId(UserResolverBackdoor.CITIZEN_ID)
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         restActions
-            .withAuthorizedUser("1")
-            .withUserId("1")
+            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
+            .withUserId(UserResolverBackdoor.CITIZEN_ID)
             .get("/cases/ccdCaseNumber1/payments")
             .andExpect(status().isForbidden());
 
