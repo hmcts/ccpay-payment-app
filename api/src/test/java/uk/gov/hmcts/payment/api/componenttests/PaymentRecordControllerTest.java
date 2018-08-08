@@ -33,10 +33,10 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringRunner.class)
@@ -211,6 +211,36 @@ public class PaymentRecordControllerTest {
         }
     }
 
+    public void testRecordPostOrderPayment() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getPostalOrderPaymentPayload());
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response).isNotNull();
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Initiated");
+    }
+
+    @Test
+    public void testRecordBarclaycardPayment() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getBarclayCardPaymentPayload());
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Initiated");
+    }
+
     private String getCashPaymentPayload() {
 
         return "{\n" +
@@ -241,6 +271,7 @@ public class PaymentRecordControllerTest {
         return "{\n" +
             "  \"amount\": 99.99,\n" +
             "  \"payment_method\": \"CHEQUE\",\n" +
+            "  \"service\": \"DIGITAL_BAR\",\n" +
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"requestor_reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
@@ -264,7 +295,7 @@ public class PaymentRecordControllerTest {
 
         return "{\n" +
             "  \"amount\": 32.19,\n" +
-            "  \"service\": \"DIGITAL_BAR\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"giro_slip_no\": \"12345\",\n" +
             "  \"site_id\": \"AA99\",\n" +
@@ -280,4 +311,51 @@ public class PaymentRecordControllerTest {
             "  ]\n" +
             "}";
     }
+
+    private String getPostalOrderPaymentPayload() {
+
+        return "{\n" +
+            "  \"amount\": 99.99,\n" +
+            "  \"payment_method\": \"POSTAL_ORDER\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
+            "  \"reference\": \"ref_122\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"external_reference\": \"postal_1000012\",\n" +
+            "  \"giro_slip_no\": \"434567\",\n" +
+            "  \"site_id\": \"AA001\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 99.99,\n" +
+            "      \"code\": \"FEE0111\",\n" +
+            "      \"reference\": \"ref_122\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 1\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String getBarclayCardPaymentPayload() {
+
+        return "{\n" +
+            "  \"amount\": 99.99,\n" +
+            "  \"payment_method\": \"CARD\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
+            "  \"reference\": \"ref_122\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"external_provider\": \"bar card\",\n" +
+            "  \"external_reference\": \"bar_card_1000012\",\n" +
+            "  \"site_id\": \"AA001\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 99.99,\n" +
+            "      \"code\": \"FEE0111\",\n" +
+            "      \"reference\": \"ref_122\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 1\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
 }

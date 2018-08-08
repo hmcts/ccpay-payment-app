@@ -42,6 +42,7 @@ public class PaymentRecordRequest {
     @JsonProperty("requestor_reference")
     private String reference;
 
+    @NotNull
     @JsonProperty("requestor")
     private Service service;
 
