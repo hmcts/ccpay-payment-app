@@ -25,7 +25,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
@@ -53,16 +53,16 @@ public class PaymentController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentsReportService paymentsReportService;
-    private final CardPaymentDtoMapper cardPaymentDtoMapper;
+    private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
     private final FF4j ff4j;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
-                             CardPaymentDtoMapper cardPaymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j) {
+                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
-        this.cardPaymentDtoMapper = cardPaymentDtoMapper;
+        this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
     }
@@ -121,7 +121,7 @@ public class PaymentController {
             List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, paymentType, serviceName, ccdCaseNumber);
 
             List<PaymentDto> paymentDto = paymentFeeLinks.stream()
-                .map(cardPaymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+                .map(paymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
             return new PaymentsResponse(paymentDto);
         }
