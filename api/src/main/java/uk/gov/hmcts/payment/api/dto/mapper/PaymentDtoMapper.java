@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
-public class CardPaymentDtoMapper {
+public class PaymentDtoMapper {
 
     @Autowired
     private FeesService feesService;
