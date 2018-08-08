@@ -38,11 +38,11 @@ public class GovPayAuthUtilTest {
     }
 
     @Test
-    public void returnPaymentServiceKeyWhenCallingServiceNameEqualsPaymentService() {
+    public void returnPaymentServiceWhenCallingServiceNameEqualsPaymentService() {
         String caller = "divorce";
         String paymentService = "divorce";
 
-        assertEquals(govPayAuthUtil.getServiceToken(caller, paymentService), divorceKey);
+        assertEquals(govPayAuthUtil.getServiceName(caller, paymentService), paymentService);
     }
 
     @Test
@@ -50,15 +50,22 @@ public class GovPayAuthUtilTest {
         String caller = "ccd";
         String paymentService = "divorce";
 
-        assertEquals(govPayAuthUtil.getServiceToken(caller, paymentService), divorceKey);
+        assertEquals(govPayAuthUtil.getServiceName(caller, paymentService), paymentService);
     }
 
     @Test
-    public void returnCallingServiceKeyWhenItIsNotPartOfOperationalServicesAndNotEqualToPaymentService() {
+    public void returnCallingServiceWhenItIsNotPartOfOperationalServicesAndNotEqualToPaymentService() {
         String caller = "cmc";
         String paymentService = "divorce";
 
-        assertEquals(govPayAuthUtil.getServiceToken(caller, paymentService), cmcKey);
+        assertEquals(govPayAuthUtil.getServiceName(caller, paymentService), caller);
     }
 
+    @Test
+    public void returnPaymentServiceKeyWhenCallingServiceIsNull(){
+        String caller = null;
+        String paymentService = "divorce";
+
+        assertEquals(govPayAuthUtil.getServiceName(caller, paymentService), paymentService);
+    }
 }
