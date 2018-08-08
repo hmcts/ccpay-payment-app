@@ -76,8 +76,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     private PaymentDbBackdoor db;
 
-
-    private static final String USER_ID = "1";
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private RestActions restActions;
 

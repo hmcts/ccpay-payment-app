@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.v1.componenttests.sugar;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 
-import com.google.common.collect.ImmutableSet;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -11,10 +10,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.reform.auth.checker.core.service.ServiceRequestAuthorizer;
-import uk.gov.hmcts.reform.auth.checker.core.user.User;
 import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
-
-import javax.annotation.concurrent.Immutable;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
