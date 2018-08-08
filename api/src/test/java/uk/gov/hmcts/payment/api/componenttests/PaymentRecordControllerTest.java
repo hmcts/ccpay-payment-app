@@ -12,7 +12,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -128,9 +127,22 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
+    public void testRecordPayment_withoutPaymentMethod() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
+        request.setReference("ref_123");
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("paymentMethod: must not be null");
+    }
+
+    @Test
     public void testRecordChequePayment_withoutReference() throws Exception {
         PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
-        request.setPaymentMethod(PaymentMethodType.CHEQUE.getType());
+        request.setPaymentMethod(PaymentMethodType.CHEQUE);
 
         MvcResult result = restActions
             .post("/payment-records", request)
