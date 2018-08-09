@@ -113,4 +113,23 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    @Transactional
+    public void searchAllPayments_withWrongCcdCaseNumber_shouldReturn404() throws Exception {
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("1");
+
+        restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber2/payments")
+            .andExpect(status().isNotFound());
+    }
+
 }
