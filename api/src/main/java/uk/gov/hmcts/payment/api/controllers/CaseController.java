@@ -3,16 +3,19 @@ package uk.gov.hmcts.payment.api.controllers;
 import io.swagger.annotations.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -38,14 +41,25 @@ public class CaseController {
     })
     @RequestMapping(value = "/cases/{case}/payments", method = GET)
     @PaymentExternalAPI
-    public PaymentsResponse retrieveCasePayments(@RequestParam(name = "case", required = false) String ccdCaseNumber) {
+    public PaymentsResponse retrieveCasePayments(@PathVariable(name = "case") String ccdCaseNumber) {
 
-        return new PaymentsResponse(
-            paymentService
-                .search(null, null, null, null, ccdCaseNumber)
-                .stream()
-                .map(cardPaymentDtoMapper::toReconciliationResponseDto)
-                .collect(Collectors.toList())
-        );
+        List<PaymentDto> payments = paymentService
+            .search(null, null, null, null, ccdCaseNumber)
+            .stream()
+            .map(cardPaymentDtoMapper::toReconciliationResponseDto)
+            .collect(Collectors.toList());
+
+        if(payments == null || payments.isEmpty()) {
+            throw new PaymentNotFoundException();
+        }
+
+        return new PaymentsResponse(payments);
     }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(PaymentException.class)
+    public String notFound(PaymentException ex) {
+        return ex.getMessage();
+    }
+
 }
