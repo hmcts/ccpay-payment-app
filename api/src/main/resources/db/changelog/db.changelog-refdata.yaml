@@ -147,7 +147,8 @@ databaseChangeLog:
           - sql:
               splitStatements:
               sql: >
-                DELETE FROM payment_provider
-                WHERE name = 'bar card';
+                DELETE FROM payment_provider WHERE EXISTS ( SELECT * FROM payment_provider WHERE name = 'bar card' ) AND name = 'bar card';
+                DELETE FROM payment_provider WHERE EXISTS ( SELECT * FROM payment_provider WHERE name = 'barclaycard' ) AND name = 'barclaycard';
                 INSERT INTO payment_provider (name, description)
                 VALUES ('barclaycard', 'Barclaycard');
+
