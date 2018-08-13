@@ -1,0 +1,153 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: tarunp
+      changes:
+        - createTable:
+            tableName: payment_status
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO payment_status (name, description)
+                VALUES
+                  ('created', 'Valid payment instructions entered and recorded successfully'),
+                  ('success', 'Valid payment details and user successfully made payment'),
+                  ('failed', 'Invalid payment details/unsuccessful payment'),
+                  ('cancelled', 'User cancels session'),
+                  ('error', 'Missing payment parameters');
+
+        - createTable:
+            tableName: payment_provider
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
+
+        - sql:
+          splitStatements: true
+          sql: >
+            INSERT INTO payment_provider (name, description)
+            VALUES
+              ('gov pay', 'Gov pay'),
+              ('middle office provider', 'Middle office provider');
+
+        - createTable:
+            tableName: payment_method
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
+
+        - sql:
+            splitStatements:
+            sql: >
+              INSERT INTO payment_method (name, description)
+              VALUES
+                ('card', 'Card'),
+                ('direct debit', 'Direct debit'),
+                ('cash', 'Cash'),
+                ('payment by account', 'Payment by account'),
+                ('cheque', 'Cheque');
+
+        - createTable:
+            tableName: payment_channel
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
+
+        - sql:
+            splitStatements:
+            sql: >
+             INSERT INTO payment_channel (name, description)
+             VALUES
+              ('online', 'Through online portal'),
+              ('telephony', 'Through the IVR'),
+              ('solicitors portal', 'Through the online solicitors portal'),
+              ('digital bar', 'Through the digital bar code');
+
+  - changeSet:
+      id: 3
+      author: tarunp
+      changes:
+        - renameTable:
+            newTableName: payment_old
+            oldTableName: payment
+
+  - changeSet:
+      id: 1520267787936-1
+      author: mateuszs
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              DELETE FROM payment_method
+              WHERE name = 'all pay' OR name = 'postal order';
+              INSERT INTO payment_method (name, description)
+              VALUES
+                ('all pay', 'All Pay'),
+                ('postal order', 'Postal Order');
+
+  - changeSet:
+      id: 1520267787934-1
+      author: tarunp
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              INSERT INTO payment_status (name, description)
+              VALUES
+                ('submitted', 'Payment submitted')
+
+
+  - changeSet:
+        id: 1520267787937-1
+        author: mateuszs
+        changes:
+          - sql:
+              splitStatements:
+              sql: >
+                DELETE FROM payment_provider
+                WHERE name = 'bar card';
+                INSERT INTO payment_provider (name, description)
+                VALUES ('bar card', 'Bar card');
+
+  - changeSet:
+        id: 1520267787937-2
+        author: mateuszs
+        changes:
+          - sql:
+              splitStatements:
+              sql: >
+                DELETE FROM payment_provider
+                WHERE name = 'bar card';
+                INSERT INTO payment_provider (name, description)
+                VALUES ('barclaycard', 'Barclaycard');

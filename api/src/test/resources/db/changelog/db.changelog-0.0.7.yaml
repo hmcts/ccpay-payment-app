@@ -1,0 +1,120 @@
+databaseChangeLog:
+- changeSet:
+    id: 1519901444188-1
+    author: tarun (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: status_historyPK
+            name: id
+            type: INT
+        - column:
+            name: date_created
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: date_updated
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: external_status
+            type: VARCHAR(255)
+        - column:
+            name: status
+            type: VARCHAR(255)
+        - column:
+            name: payment_id
+            type: INT
+        tableName: status_history
+- changeSet:
+    id: 1519901444188-2
+    author: tarun (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_id
+        baseTableName: status_history
+        constraintName: FK_47p0008c7khoplv8v6qfng7ju
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: payment
+- changeSet:
+    id: 1519901444188-3
+    author: tarun (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: fee
+        constraintName: FK_3c04152jyub2e59dll7si8ggp
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_link_id
+        baseTableName: fee
+        constraintName: FK_3c04152jyub2e59dll7si8ggp
+        referencedColumnNames: id
+        referencedTableName: payment_fee_link
+- changeSet:
+    id: 1519901444188-4
+    author: tarun (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_boc1od01im5po7i8e5biph5df
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_status
+        baseTableName: payment
+        constraintName: FK_boc1od01im5po7i8e5biph5df
+        referencedColumnNames: name
+        referencedTableName: payment_status
+- changeSet:
+    id: 1519901444188-5
+    author: tarun (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_gymrxo16ly2casha68ic9dvg9
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_link_id
+        baseTableName: payment
+        constraintName: FK_gymrxo16ly2casha68ic9dvg9
+        referencedColumnNames: id
+        referencedTableName: payment_fee_link
+- changeSet:
+    id: 1519901444188-6
+    author: tarun (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_m67it6o1xja3py5erpdabvanj
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_method
+        baseTableName: payment
+        constraintName: FK_m67it6o1xja3py5erpdabvanj
+        referencedColumnNames: name
+        referencedTableName: payment_method
+- changeSet:
+    id: 1519901444188-7
+    author: tarun (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_ng3t9dbrvsnfoh27elyyxt0ra
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_channel
+        baseTableName: payment
+        constraintName: FK_ng3t9dbrvsnfoh27elyyxt0ra
+        referencedColumnNames: name
+        referencedTableName: payment_channel
+- changeSet:
+    id: 1519901444188-8
+    author: tarun (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: payment
+        constraintName: FK_qhbn3c5pejpl26rkokgo1139n
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_provider
+        baseTableName: payment
+        constraintName: FK_qhbn3c5pejpl26rkokgo1139n
+        referencedColumnNames: name
+        referencedTableName: payment_provider
