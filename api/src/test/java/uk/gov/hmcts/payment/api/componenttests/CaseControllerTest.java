@@ -62,7 +62,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
+    public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFields() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
