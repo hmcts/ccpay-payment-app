@@ -299,7 +299,7 @@ public class PaymentRecordControllerTest {
             "  \"requestor_reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"external_provider\": \"barclaycard\",\n" +
-            "  \"external_reference\": \"bar_card_1000012\",\n" +
+            "  \"external_reference\": \"bar_card_1000013\",\n" +
             "  \"site_id\": \"AA001\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
