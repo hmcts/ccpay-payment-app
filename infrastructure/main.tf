@@ -1,7 +1,3 @@
-provider "vault" {
-  // # tactical vault - for example: use `data "vault_generic_secret" "s2s_secret" {`
-  address = "https://vault.reform.hmcts.net:6200"
-}
 locals {
   aseName = "${data.terraform_remote_state.core_apps_compute.ase_name[0]}"
 
