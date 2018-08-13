@@ -1,6 +1,6 @@
 <included>
     <appender name="PAYMENT_AUDIT_FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${PAYMENT_AUDIT_FILE:-/opt/cc/payment-api/log/payment-audit.log}</file>
+        <file>${PAYMENT_AUDIT_FILE:-payment-audit.log}</file>
         <append>true</append>
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <jsonGeneratorDecorator class="uk.gov.hmcts.reform.logging.PrettyPrintingDecorator"/>
