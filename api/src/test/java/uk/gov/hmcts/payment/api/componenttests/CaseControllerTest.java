@@ -59,10 +59,10 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .withReturnUrl("https://www.gooooogle.com");
     }
 
-
     @Test
     @Transactional
     public void searchAllPaymentsWithCcdCaseNumberShouldReturnRequiredFieldsForVisualComponent() throws Exception {
+
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
