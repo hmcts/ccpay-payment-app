@@ -102,7 +102,23 @@ databaseChangeLog:
               type: varchar(255)
           tableName: payment
 
-
+- changeSet:
+        id: 1520267787937-2
+        author: mateuszs
+        changes:
+          - sql:
+              splitStatements:
+              sql: >
+                INSERT INTO payment_provider
+                    (name, description)
+                SELECT 'barclaycard', 'Barclaycard'
+                WHERE
+                    NOT EXISTS (
+                        SELECT name FROM payment_provider WHERE name = 'barclaycard'
+                    );
+                UPDATE payment SET payment_provider = 'barclaycard' WHERE payment_provider = 'bar card';
+                DELETE FROM payment_provider WHERE EXISTS ( SELECT * FROM payment_provider WHERE name = 'bar card' ) AND name = 'bar card';
+                ALTER TABLE payment DROP COLUMN IF EXISTS external_provider;
 
 
 
