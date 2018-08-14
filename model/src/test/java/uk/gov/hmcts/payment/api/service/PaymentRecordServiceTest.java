@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 
@@ -28,6 +29,9 @@ public class PaymentRecordServiceTest {
 
     @Mock
     private PaymentMethodRepository paymentMethodRepository;
+
+    @Mock
+    private PaymentProviderRepository paymentProviderRespository;
 
     @Spy
     private PaymentReferenceUtil paymentReferenceUtil;
@@ -90,7 +94,7 @@ public class PaymentRecordServiceTest {
             .reference(paymentReferenceUtil.getNext())
             .caseReference("caseReference")
             .externalReference("chequeNumber")
-            .externalProvider("cheque provider")
+            .paymentProvider(paymentProviderRespository.findByNameOrThrow("cheque provider"))
             .giroSlipNo("giro")
             .paymentMethod(paymentMethodRepository.findByNameOrThrow("cheque"))
             .paymentChannel(paymentChannelRepository.findByNameOrThrow("digital bar"))

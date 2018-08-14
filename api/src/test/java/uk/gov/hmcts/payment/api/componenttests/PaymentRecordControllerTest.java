@@ -195,6 +195,7 @@ public class PaymentRecordControllerTest {
             "  \"amount\": 32.19,\n" +
             "  \"payment_method\": \"CASH\",\n" +
             "  \"requestor_reference\": \"ref_123\",\n" +
+            "  \"external_provider\": \"middle office provider\",\n" +
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"giro_slip_no\": \"12345\",\n" +
@@ -268,6 +269,7 @@ public class PaymentRecordControllerTest {
             "  \"requestor\": \"DIGITAL_BAR\",\n" +
             "  \"requestor_reference\": \"ref_122\",\n" +
             "  \"currency\": \"GBP\",\n" +
+            "  \"external_provider\": \"middle office provider\",\n" +
             "  \"external_reference\": \"postal_1000012\",\n" +
             "  \"giro_slip_no\": \"434567\",\n" +
             "  \"site_id\": \"AA001\",\n" +

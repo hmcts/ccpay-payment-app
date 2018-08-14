@@ -24,6 +24,9 @@ public class PaymentRecordComponentTest {
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
+    @Autowired
+    private PaymentProviderRepository paymentProviderRespository;
+
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
 
@@ -56,7 +59,7 @@ public class PaymentRecordComponentTest {
         String paymentGroupRef = "2018-1234567891";
         Payment payment = getPayment();
         payment.setExternalReference("1000012");
-        payment.setExternalProvider("cheque provider");
+        payment.setPaymentProvider(paymentProviderRespository.findByNameOrThrow("middle office provider"));
         payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("created").build());
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
@@ -68,7 +71,7 @@ public class PaymentRecordComponentTest {
         savedPaymentGroup.getPayments().forEach(p -> {
             assertThat(p.getExternalReference()).isEqualTo("1000012");
             assertThat(p.getPaymentStatus().getName()).isEqualTo("created");
-            assertThat(p.getExternalProvider()).isEqualTo("cheque provider");
+            assertThat(p.getPaymentProvider().getName()).isEqualTo("middle office provider");
         });
 
 

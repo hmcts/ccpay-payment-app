@@ -60,7 +60,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                 .caseReference(payment.getCaseReference())
                 .currency(payment.getCurrency())
                 .siteId(payment.getSiteId())
-                .externalProvider(payment.getExternalProvider())
+                .paymentProvider(payment.getPaymentProvider())
                 .externalReference(payment.getExternalReference())
                 .giroSlipNo(payment.getGiroSlipNo())
                 .serviceType(payment.getServiceType())
