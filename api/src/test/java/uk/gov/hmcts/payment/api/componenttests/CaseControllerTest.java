@@ -62,7 +62,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
+    public void searchAllPaymentsWithCcdCaseNumberShouldReturnRequiredFieldsForVisualComponent() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
@@ -95,7 +95,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void searchAllPayments_withCcdCaseNumber_AndCitizenCredentialsFails() throws Exception {
+    public void searchAllPaymentsWithCcdCaseNumberAndCitizenCredentialsFails() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
@@ -105,17 +105,18 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
-        restActions
+        assertThat(restActions
             .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
             .withUserId(UserResolverBackdoor.CITIZEN_ID)
             .get("/cases/ccdCaseNumber1/payments")
-            .andExpect(status().isForbidden());
+            .andExpect(status().isForbidden())
+        .andReturn()).isNotNull();
 
     }
 
     @Test
     @Transactional
-    public void searchAllPayments_withWrongCcdCaseNumber_shouldReturn404() throws Exception {
+    public void searchAllPaymentsWithWrongCcdCaseNumberShouldReturn404() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
@@ -125,11 +126,12 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
-        restActions
+        assertThat(restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber2/payments")
-            .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound())
+        .andReturn()).isNotNull();
     }
 
 }
