@@ -19,16 +19,21 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Method;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -189,6 +194,93 @@ public class PaymentRecordControllerTest {
         assertThat(response.getStatus()).isEqualTo("Initiated");
     }
 
+    @Test
+    @Transactional
+    public void testPayment_forMultipleFeesAndMultipleCases() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getChequePaymentForMultipleCases());
+
+        MvcResult createResult = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(createResult.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response).isNotNull();
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+
+        MvcResult result = restActions
+            .get("/payments?service_name=DIGITAL_BAR")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> paymentDtos = paymentsResponse.getPayments();
+
+        Optional<PaymentDto> optPayment = paymentDtos.stream().filter(p -> p.getReference().equals(response.getReference())).findAny();
+
+        if (optPayment.isPresent()) {
+            PaymentDto paymentDto = optPayment.get();
+            assertThat(paymentDto.getReference()).isEqualTo(response.getReference());
+            assertThat(paymentDto.getFees().size()).isEqualTo(2);
+
+            FeeDto feeDto1 = paymentDto.getFees().stream().filter(f -> f.getReference().equals("CASE_111")).findAny().get();
+            assertThat(feeDto1).isNotNull();
+            assertThat(feeDto1.getCode()).isEqualTo("FEE0001");
+            assertThat(feeDto1.getReference()).isEqualTo("CASE_111");
+            assertThat(feeDto1.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+
+            FeeDto feeDto2 = paymentDto.getFees().stream().filter(f -> f.getReference().equals("CASE_222")).findAny().get();
+            assertThat(feeDto1).isNotNull();
+            assertThat(feeDto1.getCode()).isEqualTo("FEE0001");
+            assertThat(feeDto1.getReference()).isEqualTo("CASE_222");
+            assertThat(feeDto1.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+
+
+        }
+
+    }
+
+    @Test
+    @Transactional
+    public void testPayment_forCaseSingleCaseMultipleFees() throws Exception {
+        PaymentRecordRequest request = getPaymentRecordRequest(getChequePaymentForSingleCaseWithMultipleFees());
+
+        MvcResult savedPayment = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(savedPayment.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(paymentDto).isNotNull();
+
+        MvcResult result = restActions
+            .get("/payments?service_name=DIGITAL_BAR")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> paymentDtos = paymentsResponse.getPayments();
+
+        Optional<PaymentDto> optPayment = paymentDtos.stream().filter(p -> p.getReference().equals(paymentDto.getReference())).findAny();
+
+        if (optPayment.isPresent()) {
+            PaymentDto payment = optPayment.get();
+            assertThat(payment.getAmount()).isEqualTo(new BigDecimal("217.00"));
+            assertThat(paymentDto.getFees().size()).isEqualTo(2);
+
+            FeeDto fee1 = payment.getFees().stream().filter(f -> f.getCode().equals("FEE0205")).findAny().get();
+            assertThat(fee1.getCode()).isEqualTo("FEE0205");
+            assertThat(fee1.getCalculatedAmount()).isEqualTo(new BigDecimal("215.00"));
+            assertThat(fee1.getReference()).isEqualTo("CASE_001");
+
+            FeeDto fee2 = payment.getFees().stream().filter(f -> f.getCode().equals("FEE0206")).findAny().get();
+            assertThat(fee2.getCode()).isEqualTo("FEE0206");
+            assertThat(fee2.getCalculatedAmount()).isEqualTo(new BigDecimal("2.00"));
+            assertThat(fee2.getReference()).isEqualTo("CASE_001");
+        }
+
+    }
+
     private String getCashPaymentPayload() {
 
         return "{\n" +
@@ -304,6 +396,66 @@ public class PaymentRecordControllerTest {
             "    }\n" +
             "  ]\n" +
             "}";
+    }
+
+    private String getChequePaymentForMultipleCases() {
+        return "{\n" +
+            "  \"amount\": 1100,\n" +
+            "  \"payment_method\": \"CHEQUE\",\n" +
+            "  \"requestor_reference\": \"REF_123\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"external_reference\": \"1234567\",\n" +
+            "  \"external_provider\": \"other\",\n" +
+            "  \"giro_slip_no\": \"8898234\",\n" +
+            "  \"site_id\": \"AA001\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 550,\n" +
+            "      \"code\": \"FEE0001\",\n" +
+            "      \"reference\": \"CASE_111\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 1\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 550,\n" +
+            "      \"code\": \"FEE0001\",\n" +
+            "      \"reference\": \"CASE_222\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 1\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}\n";
+    }
+
+    private String getChequePaymentForSingleCaseWithMultipleFees() {
+        return "{\n" +
+            "  \"amount\": 217,\n" +
+            "  \"payment_method\": \"CHEQUE\",\n" +
+            "  \"requestor_reference\": \"REF_123\",\n" +
+            "  \"requestor\": \"DIGITAL_BAR\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"external_reference\": \"1234567\",\n" +
+            "  \"external_provider\": \"other\",\n" +
+            "  \"giro_slip_no\": \"8898234\",\n" +
+            "  \"site_id\": \"AA001\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 215,\n" +
+            "      \"code\": \"FEE0205\",\n" +
+            "      \"reference\": \"CASE_001\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 1\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 2,\n" +
+            "      \"code\": \"FEE0206\",\n" +
+            "      \"reference\": \"CASE_001\",\n" +
+            "      \"version\": \"1\",\n" +
+            "      \"volume\": 4\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}\n";
     }
 
 }
