@@ -58,7 +58,7 @@ public class PaymentTestDsl {
 
     public class PaymentWhenDsl {
         private RequestSpecification newRequest() {
-            return RestAssured.given().baseUri(baseUri).contentType(ContentType.JSON).headers(headers);
+            return RestAssured.given().relaxedHTTPSValidation().baseUri(baseUri).contentType(ContentType.JSON).headers(headers);
         }
 
         public PaymentWhenDsl getPayment(String userId, String paymentId) {
