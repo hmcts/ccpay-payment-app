@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,6 +11,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
@@ -18,6 +21,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 @Api(tags = {"MaintenanceJobsController"})
 @SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintenance Jobs API")})
 public class MaintenanceJobsController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MaintenanceJobsController.class);
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
 
@@ -37,14 +42,22 @@ public class MaintenanceJobsController {
     @RequestMapping(value = "/jobs/card-payments-status-update", method = PATCH)
     public void updatePaymentsStatus() throws ExecutionException, InterruptedException {
 
+        List<Reference> referenceList = paymentService.listCreatedStatusPaymentsReferences();
+
+        LOG.warn("Found " + referenceList.size() + " references that require an status update");
+
         ForkJoinPool updatePool = new ForkJoinPool(5);
 
-        updatePool.submit(
-            () -> paymentService.listCreatedStatusPaymentsReferences()
+        Long count = updatePool.submit(
+            () -> referenceList
                 .parallelStream()
                 .map(Reference::getReference)
-                .forEach(cardPaymentService::retrieve)
+                .map(cardPaymentService::retrieve)
+                .filter(p -> p != null && p.getPayments() != null && p.getPayments().get(0) != null && p.getPayments().get(0).getStatus() != null)
+                .count()
         ).get();
+
+        LOG.warn(count + " payment references were successfully updated");
 
     }
 
