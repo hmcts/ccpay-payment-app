@@ -13,11 +13,15 @@ public class ServiceTokenFactory {
     private final String baseUrl;
 
     @Autowired
+    private OneTimePasswordFactory otpFactory;
+
+    @Autowired
     public ServiceTokenFactory(@Value("${base-urls.service-auth-provider}") String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
     public String validTokenForService(String microservice) {
-        return "Bearer " + post(baseUrl + "/testing-support/lease?microservice={microservice}", microservice).body().asString();
+        String otp = otpFactory.validOneTimePassword("AAAAAAAAAAAAAAAA");
+        return "Bearer " + post(baseUrl + "/lease?oneTimePassword={otp}&microservice={microservice}", otp, microservice).body().asString();
     }
 }
