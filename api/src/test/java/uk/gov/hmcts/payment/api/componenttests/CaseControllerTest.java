@@ -16,6 +16,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
@@ -41,7 +42,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
 
-    private static final String USER_ID = "user-id";
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -55,24 +56,26 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         restActions
             .withAuthorizedService("divorce")
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
     }
 
-
     @Test
     @Transactional
-    public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
+    public void searchAllPaymentsWithCcdCaseNumberShouldReturnRequiredFieldsForVisualComponent() throws Exception {
+
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
         restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/case/ccdCaseNumber1/payments")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/payments")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -90,6 +93,45 @@ public class CaseControllerTest extends PaymentsDataUtil {
         assertThat(payment.getCustomerReference()).isNotBlank();
     }
 
+    @Test
+    @Transactional
+    public void searchAllPaymentsWithCcdCaseNumberAndCitizenCredentialsFails() throws Exception {
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("1");
 
+        restActions
+            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
+            .withUserId(UserResolverBackdoor.CITIZEN_ID)
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        assertThat(restActions
+            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
+            .withUserId(UserResolverBackdoor.CITIZEN_ID)
+            .get("/cases/ccdCaseNumber1/payments")
+            .andExpect(status().isForbidden())
+        .andReturn()).isNotNull();
+
+    }
+
+    @Test
+    @Transactional
+    public void searchAllPaymentsWithWrongCcdCaseNumberShouldReturn404() throws Exception {
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("1");
+
+        restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        assertThat(restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber2/payments")
+            .andExpect(status().isNotFound())
+        .andReturn()).isNotNull();
+    }
 
 }
