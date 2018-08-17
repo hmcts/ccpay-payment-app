@@ -60,7 +60,7 @@ public class PaymentRecordControllerTest {
     private PaymentDbBackdoor db;
 
 
-    private static final String USER_ID = "user-id";
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     private RestActions restActions;
 
