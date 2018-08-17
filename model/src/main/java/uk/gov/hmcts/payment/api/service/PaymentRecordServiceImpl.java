@@ -52,7 +52,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
         return  paymentFeeLinkRepository.save(paymentFeeLink);
     }
 
-    protected PaymentFeeLink populatePaymentDetails(Payment payment, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
+    private PaymentFeeLink populatePaymentDetails(Payment payment, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
 
         return PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
