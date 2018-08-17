@@ -18,28 +18,26 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordServiceImpl.class);
 
     private final static String PAYMENT_CHANNEL_DIGITAL_BAR = "digital bar";
-    private final static String PAYMENT_METHOD_CASH = "cash";
     private final static String PAYMENT_STATUS_CREATED = "created";
-    private final static String PAYMENT_PROVIDER_CHEQUE = "cheque provider";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentMethodRepository paymentMethodRepository;
-    private final PaymentProviderRepository paymentProviderRepository;
     private final PaymentReferenceUtil paymentReferenceUtil;
     private final UserIdSupplier userIdSupplier;
 
     @Autowired
     public PaymentRecordServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                     PaymentChannelRepository paymentChannelRepository,
-                                    PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                    PaymentStatusRepository paymentStatusRepository, PaymentReferenceUtil paymentReferenceUtil, UserIdSupplier userIdSupplier) {
+                                    PaymentMethodRepository paymentMethodRepository,
+                                    PaymentStatusRepository paymentStatusRepository,
+                                    PaymentReferenceUtil paymentReferenceUtil,
+                                    UserIdSupplier userIdSupplier) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentStatusRepository = paymentStatusRepository;
-        this.paymentProviderRepository = paymentProviderRepository;
         this.paymentReferenceUtil = paymentReferenceUtil;
         this.userIdSupplier = userIdSupplier;
     }
