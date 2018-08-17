@@ -27,7 +27,7 @@ public class GetPaymentIntegrationTest extends IntegrationTestBase {
     public void validGetPaymentRequestShouldResultIn200() throws IOException, Exception {
         AtomicReference<PaymentOldDto> paymentHolder = new AtomicReference<>();
 
-        scenario.given().userId("1").serviceId("reference")
+        scenario.given().userId("1").serviceId("reference", "AAAAAAAAAAAAAAAA")
                 .when()
                 .createPayment("1", validRequest, paymentHolder)
                 .getPayment("1", paymentHolder.get().getId())
@@ -46,7 +46,7 @@ public class GetPaymentIntegrationTest extends IntegrationTestBase {
     public void createAndCancelApproach() throws IOException, Exception {
         AtomicReference<PaymentOldDto> paymentHolder = new AtomicReference<>();
 
-        scenario.given().userId("1").serviceId("reference")
+        scenario.given().userId("1").serviceId("reference", "AAAAAAAAAAAAAAAA")
                 .when()
                 .createPayment("1", validRequest, paymentHolder)
                 .cancelPayment("1", paymentHolder.get().getId())
@@ -55,21 +55,21 @@ public class GetPaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void getPaymentWithoutPaymentIdRequestShouldResultIn500() throws IOException { // TODO: fix, should be 404
-        scenario.given().userId("1").serviceId("reference")
+        scenario.given().userId("1").serviceId("reference", "AAAAAAAAAAAAAAAA")
                 .when().getPayment("1", "")
                 .then().validationErrorfor500("");
     }
 
     @Test
     public void getPaymentWithoutUserIdShouldResultIn404() throws IOException {
-        scenario.given().userId("1").serviceId("reference")
+        scenario.given().userId("1").serviceId("reference", "AAAAAAAAAAAAAAAA")
                 .when().getPayment("", "9")
                 .then().notFound();
     }
 
     @Test
     public void getPaymentWithoutUserIdAndPaymentIdRequestShouldResultIn400() throws IOException {
-        scenario.given().userId("1").serviceId("reference")
+        scenario.given().userId("1").serviceId("reference", "AAAAAAAAAAAAAAAA")
                 .when().getPayment("", "")
                 .then().notFound();
     }

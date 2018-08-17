@@ -19,7 +19,7 @@ public class SecurityIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void noUserTokenShouldResultIn403() throws IOException {
-        scenario.given().serviceId("reference")
+        scenario.given().serviceId("reference", "AAAAAAAAAAAAAAAA")
                 .when().getPayment("1", "999999")
                 .then().forbidden();
     }
@@ -33,21 +33,21 @@ public class SecurityIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void validUserAndServiceTokenShouldNotResultIn403() throws IOException {
-        scenario.given().serviceId("reference").userId("1")
+        scenario.given().serviceId("reference", "AAAAAAAAAAAAAAAA").userId("1")
                 .when().getPayment("1", "999999")
                 .then().notFound();
     }
 
     @Test
     public void callFromUnknownServiceShouldResultIn403() throws IOException {
-        scenario.given().serviceId("unknown-service").userId("1")
+        scenario.given().serviceId("unknown-service", "asdf").userId("1")
                 .when().getPayment("1", "999999")
                 .then().forbidden();
     }
 
     @Test
     public void callToOtherUsersResourceShouldResultIn403() throws IOException {
-        scenario.given().serviceId("reference").userId("1")
+        scenario.given().serviceId("reference", "AAAAAAAAAAAAAAAA").userId("1")
                 .when().getPayment("2", "999999")
                 .then().forbidden();
     }

@@ -46,8 +46,8 @@ public class PaymentTestDsl {
             return this;
         }
 
-        public PaymentGivenDsl serviceId(String id) {
-            headers.put("ServiceAuthorization", serviceTokenFactory.validTokenForService(id));
+        public PaymentGivenDsl serviceId(String id, String serviceSecret) {
+            headers.put("ServiceAuthorization", serviceTokenFactory.validTokenForService(id, serviceSecret));
             return this;
         }
 
