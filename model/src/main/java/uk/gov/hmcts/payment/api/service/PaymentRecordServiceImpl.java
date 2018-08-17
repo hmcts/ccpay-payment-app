@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,18 +28,20 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
     private final PaymentMethodRepository paymentMethodRepository;
     private final PaymentProviderRepository paymentProviderRepository;
     private final PaymentReferenceUtil paymentReferenceUtil;
+    private final UserIdSupplier userIdSupplier;
 
     @Autowired
     public PaymentRecordServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                     PaymentChannelRepository paymentChannelRepository,
                                     PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                    PaymentStatusRepository paymentStatusRepository, PaymentReferenceUtil paymentReferenceUtil) {
+                                    PaymentStatusRepository paymentStatusRepository, PaymentReferenceUtil paymentReferenceUtil, UserIdSupplier userIdSupplier) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentProviderRepository = paymentProviderRepository;
         this.paymentReferenceUtil = paymentReferenceUtil;
+        this.userIdSupplier = userIdSupplier;
     }
 
 
@@ -64,6 +67,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                 .externalReference(payment.getExternalReference())
                 .giroSlipNo(payment.getGiroSlipNo())
                 .serviceType(payment.getServiceType())
+                .userId(userIdSupplier.get())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(payment.getPaymentMethod().getName()))
