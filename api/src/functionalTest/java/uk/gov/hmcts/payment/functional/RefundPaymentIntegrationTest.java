@@ -34,7 +34,7 @@ public class RefundPaymentIntegrationTest extends IntegrationTestBase {
     @Test
     public void createAndRefundPayment() throws IOException, Exception{
         AtomicReference<PaymentOldDto> paymentHolder = new AtomicReference<>();
-        scenario.given().userId("1").serviceId("reference")
+        scenario.given().userId("1").serviceId("reference", "AAAAAAAAAAAAAAAA")
                 .when()
                 .createPayment("1", validRequest, paymentHolder)
                 .refundPayment("1", refundValidRequest, paymentHolder.get().getId())
@@ -44,7 +44,7 @@ public class RefundPaymentIntegrationTest extends IntegrationTestBase {
     @Test
     public void createAndRefundAvailableAmountInvalid() throws IOException, Exception {
         AtomicReference<PaymentOldDto> paymentHolder = new AtomicReference<>();
-        scenario.given().userId("1").serviceId("reference")
+        scenario.given().userId("1").serviceId("reference", "AAAAAAAAAAAAAAAA")
                 .when()
                 .createPayment("1", validRequest, paymentHolder)
                 .refundPayment("1", refundAmountAvailableInvalidRequest, paymentHolder.get().getId())

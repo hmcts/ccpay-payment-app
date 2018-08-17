@@ -22,6 +22,9 @@ public class CreatePaymentIntegrationTest extends IntegrationTestBase {
     @Value("${probate.service.name}")
     private String probateServiceName;
 
+    @Value("${probate.service.secret}")
+    private String probateSecret;
+
     private CreatePaymentRequestDtoBuilder validRequest = createPaymentRequestDtoWith()
             .amount(100)
             .description("Description")
@@ -30,7 +33,7 @@ public class CreatePaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void validCreatePaymentRequestShouldResultIn201() throws IOException, Exception {
-        scenario.given().userId(probateUserId).serviceId(probateServiceName)
+        scenario.given().userId(probateUserId).serviceId(probateServiceName, probateSecret)
                 .when().createPayment(probateUserId, validRequest)
                 .then().created((paymentDto -> {
                     assertThat(paymentDto.getAmount()).isEqualTo(100);
@@ -45,28 +48,28 @@ public class CreatePaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void paymentWithoutAmountShouldNotBeCreated() throws IOException, Exception {
-        scenario.given().userId(probateUserId).serviceId(probateServiceName)
+        scenario.given().userId(probateUserId).serviceId(probateServiceName, probateSecret)
                 .when().createPayment(probateUserId, validRequest.amount(null))
                 .then().validationError("amount: must not be null");
     }
 
     @Test
     public void paymentWithoutDescriptionShouldNotBeCreated() throws IOException, Exception {
-        scenario.given().userId(probateUserId).serviceId(probateServiceName)
+        scenario.given().userId(probateUserId).serviceId(probateServiceName, probateSecret)
                 .when().createPayment(probateUserId, validRequest.description(null))
                 .then().validationError("description: must not be empty");
     }
 
     @Test
     public void paymentWithoutReferenceShouldNotBeCreated() throws IOException, Exception {
-        scenario.given().userId(probateUserId).serviceId(probateServiceName)
+        scenario.given().userId(probateUserId).serviceId(probateServiceName, probateSecret)
                 .when().createPayment(probateUserId, validRequest.reference(null))
                 .then().validationError("reference: must not be empty");
     }
 
     @Test
     public void paymentWithoutReturnUrlShouldNotBeCreated() throws IOException, Exception {
-        scenario.given().userId(probateUserId).serviceId(probateServiceName)
+        scenario.given().userId(probateUserId).serviceId(probateServiceName, probateSecret)
                 .when().createPayment(probateUserId, validRequest.returnUrl(null))
                 .then().validationError("returnUrl: must not be empty");
     }
