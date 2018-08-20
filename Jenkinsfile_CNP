@@ -13,6 +13,20 @@ def product = "payment"
 
 def app = "api"
 
+String notificationsChannel = '#cc-payments-tech'
+
 withPipeline(type, product, app) {
-    enableSlackNotifications('#cc-payments-tech')
+afterCheckout {
+    onMaster {
+      try {
+        sh """
+          git fetch origin demo:demo
+          git push --force origin HEAD:demo
+        """
+      } catch (err) {
+        notifyBuildEvent channel: notificationsChannel, color: 'warning', message: 'Failed to update demo branch'
+      }
+    }
+  }
+    enableSlackNotifications(notificationsChannel)
 }
