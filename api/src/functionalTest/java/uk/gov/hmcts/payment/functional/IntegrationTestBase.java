@@ -12,6 +12,9 @@ public class IntegrationTestBase {
     @Value("${probate.user.id}")
     protected String probateUserId;
 
+    @Value("${probate.user.role}")
+    protected String probateUserRole;
+
     @Value("${probate.service.name}")
     protected String probateServiceName;
 
