@@ -14,7 +14,6 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
@@ -48,16 +47,12 @@ public class MaintenanceJobsController {
 
         LOG.warn("Found " + referenceList.size() + " references that require an status update");
 
-        ForkJoinPool updatePool = new ForkJoinPool(5);
-
-        Long count = updatePool.submit(
-            () -> referenceList
-                .parallelStream()
-                .map(Reference::getReference)
-                .map(cardPaymentService::retrieve)
-                .filter(p -> p != null && p.getPayments() != null && p.getPayments().get(0) != null && p.getPayments().get(0).getStatus() != null)
-                .count()
-        ).get();
+        long count = referenceList
+            .stream()
+            .map(Reference::getReference)
+            .map(cardPaymentService::retrieve)
+            .filter(p -> p != null && p.getPayments() != null && p.getPayments().get(0) != null && p.getPayments().get(0).getStatus() != null)
+            .count();
 
         LOG.warn(count + " payment references were successfully updated");
 
