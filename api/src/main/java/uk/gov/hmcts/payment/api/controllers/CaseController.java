@@ -46,7 +46,7 @@ public class CaseController {
         List<PaymentDto> payments = paymentService
             .search(null, null, null, null, ccdCaseNumber)
             .stream()
-            .map(cardPaymentDtoMapper::toReconciliationResponseDto)
+            .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());
 
         if(payments == null || payments.isEmpty()) {
