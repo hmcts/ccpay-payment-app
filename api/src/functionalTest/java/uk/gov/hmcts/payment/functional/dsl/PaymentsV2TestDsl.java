@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.CreatePaymentRequestDtoBuilder;
 import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
 import uk.gov.hmcts.payment.functional.tokens.ServiceTokenFactory;
@@ -20,7 +18,6 @@ import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 @Component
@@ -44,8 +41,8 @@ public class PaymentsV2TestDsl {
     }
 
     public class PaymentGivenDsl {
-        public PaymentGivenDsl userId(String id) {
-            headers.put("Authorization", userTokenFactory.validTokenForUser(id));
+        public PaymentGivenDsl userId(String id, String role) {
+            headers.put("Authorization", userTokenFactory.validTokenForUser(id, role));
             return this;
         }
 

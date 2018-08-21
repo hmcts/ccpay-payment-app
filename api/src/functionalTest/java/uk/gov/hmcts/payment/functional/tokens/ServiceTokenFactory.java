@@ -21,7 +21,7 @@ public class ServiceTokenFactory {
     }
 
     public String validTokenForService(String microservice, String secret) {
-        String otp = otpFactory.validOneTimePassword("AAAAAAAAAAAAAAAA");
+        String otp = otpFactory.validOneTimePassword(secret);
         return "Bearer " + post(baseUrl + "/lease?oneTimePassword={otp}&microservice={microservice}", otp, microservice).body().asString();
     }
 }

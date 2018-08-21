@@ -17,7 +17,7 @@ public class UserTokenFactory {
         this.baseUrl = baseUrl;
     }
 
-    public String validTokenForUser(String userId) {
-        return "Bearer " + post(baseUrl + "/testing-support/lease?id={id}&role=citizen", userId).body().asString();
+    public String validTokenForUser(String userId, String role) {
+        return "Bearer " + post(baseUrl + "/testing-support/lease?id={id}&role={role}", userId, role).body().asString();
     }
 }

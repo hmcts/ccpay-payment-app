@@ -122,11 +122,7 @@ public class PaymentRecordControllerTest {
     private PaymentRecordRequest getPaymentRecordRequest(String payload) throws Exception{
         return objectMapper.readValue(payload.getBytes(), PaymentRecordRequest.class);
     }
-// TODO: remove external provider column if exists
-    // TODO: add unit tests testing payment provider barclaycard
-    // TODO: rename bar card to barclaycard only if the change has NOT been made (catering for stupid live deploment
-    // TODO: enable liquibase in this PR
-    // TODO: disable liquibase after this PR
+
     @Test
     public void testRecordPayment_withoutPaymentMethod() throws Exception {
         PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());

@@ -32,7 +32,7 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void validCardPaymentShouldResultIn201() {
-        dsl.given().userId(probateUserId).serviceId(probateServiceName, probateSecret).returnUrl("http://www.google.com")
+        dsl.given().userId(probateUserId, probateUserRole).serviceId(probateServiceName, probateSecret).returnUrl("http://www.google.com")
             .when().createCardPayment(validCardPaymentRequest)
             .then().created(paymentDto -> {
                 Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
