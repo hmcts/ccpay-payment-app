@@ -35,7 +35,7 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         dsl.given().userId(probateUserId).serviceId(probateServiceName, probateSecret).returnUrl("http://www.google.com")
             .when().createCardPayment(validCardPaymentRequest)
             .then().created(paymentDto -> {
-                Assert.assertEquals("payment amount is correct", new BigDecimal("200.11"), paymentDto.getAmount());
+                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
     }
 }

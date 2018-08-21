@@ -56,7 +56,6 @@ public class PaymentRecordComponentTest {
         String paymentGroupRef = "2018-1234567891";
         Payment payment = getPayment();
         payment.setExternalReference("1000012");
-        payment.setExternalProvider("cheque provider");
         payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("created").build());
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
@@ -68,7 +67,6 @@ public class PaymentRecordComponentTest {
         savedPaymentGroup.getPayments().forEach(p -> {
             assertThat(p.getExternalReference()).isEqualTo("1000012");
             assertThat(p.getPaymentStatus().getName()).isEqualTo("created");
-            assertThat(p.getExternalProvider()).isEqualTo("cheque provider");
         });
 
 
