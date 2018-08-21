@@ -16,15 +16,6 @@ public class CreatePaymentIntegrationTest extends IntegrationTestBase {
     @Autowired
     private PaymentTestDsl scenario;
 
-    @Value("${probate.user.id}")
-    private String probateUserId;
-
-    @Value("${probate.service.name}")
-    private String probateServiceName;
-
-    @Value("${probate.service.secret}")
-    private String probateSecret;
-
     private CreatePaymentRequestDtoBuilder validRequest = createPaymentRequestDtoWith()
             .amount(100)
             .description("Description")

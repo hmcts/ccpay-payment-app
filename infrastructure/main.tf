@@ -125,6 +125,12 @@ module "payment-api" {
     ROOT_APPENDER = "JSON_CONSOLE"
 
     PAYMENT_AUDIT_FILE = "${var.payment_audit_file}"
+
+    # functional tests
+    FUNCTIONAL_TESTS_USER_ID = 61
+    FUNCTIONAL_TESTS_USER_ROLE = Citizen
+    FUNCTIONAL_TESTS_SERVICE_NAME = probate_frontend
+
   }
 }
 
