@@ -59,6 +59,7 @@ public class PaymentRecordController {
             .amount(paymentRecordRequest.getAmount())
             .caseReference(paymentRecordRequest.getReference())
             .currency(paymentRecordRequest.getCurrency().getCode())
+            .externalProvider(paymentRecordRequest.getExternalProvider())
             .externalReference(paymentRecordRequest.getExternalReference())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(paymentRecordRequest.getPaymentMethod().getType()).build())
             .siteId(paymentRecordRequest.getSiteId())
