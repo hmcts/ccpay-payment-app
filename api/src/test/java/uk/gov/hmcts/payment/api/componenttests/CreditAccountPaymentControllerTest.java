@@ -70,7 +70,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected Payment2Repository paymentRepository;
 
 
-    private static final String USER_ID = "user-id";
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     private final static String PAYMENT_METHOD = "payment by account";
 
