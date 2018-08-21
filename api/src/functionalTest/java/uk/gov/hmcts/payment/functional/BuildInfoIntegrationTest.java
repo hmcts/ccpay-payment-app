@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.functional;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.payment.functional.dsl.PaymentTestDsl;
+import uk.gov.hmcts.payment.functional.dsl.PaymentsV2TestDsl;
 
 import java.io.IOException;
 
@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BuildInfoIntegrationTest extends IntegrationTestBase {
     @Autowired
-    private PaymentTestDsl scenario;
+    private PaymentsV2TestDsl scenario;
 
     @Test
     public void buildInfoShouldBePresent() throws IOException, NoSuchFieldException {
