@@ -15,6 +15,15 @@ import org.springframework.util.ResourceUtils;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class IntegrationTestBase {
+
+    @Value("${probate.user.id}")
+    protected String probateUserId;
+
+    @Value("${probate.service.name}")
+    protected String probateServiceName;
+
+    @Value("${probate.service.secret}")
+    protected String probateSecret;
 //    @Value("#{'${base-urls.gov-pay-stubs}'.split(',')}")
 //    private List<String> govPayStubUrls;
 //
