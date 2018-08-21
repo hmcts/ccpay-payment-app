@@ -33,6 +33,9 @@ public class Payment {
     @Column(name = "external_reference")
     private String externalReference;
 
+    @Column(name = "external_provider")
+    private String externalProvider;
+
     @CreationTimestamp
     @Column(name = "date_created")
     private Date dateCreated;

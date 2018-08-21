@@ -140,3 +140,14 @@ databaseChangeLog:
                 INSERT INTO payment_provider (name, description)
                 VALUES ('bar card', 'Bar card');
 
+  - changeSet:
+        id: 1520267787937-2
+        author: mateuszs
+        changes:
+          - sql:
+              splitStatements:
+              sql: >
+                DELETE FROM payment_provider
+                WHERE name = 'bar card';
+                INSERT INTO payment_provider (name, description)
+                VALUES ('barclaycard', 'Barclaycard');

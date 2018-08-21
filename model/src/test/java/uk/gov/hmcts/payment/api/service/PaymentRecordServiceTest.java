@@ -29,9 +29,6 @@ public class PaymentRecordServiceTest {
     @Mock
     private PaymentMethodRepository paymentMethodRepository;
 
-    @Mock
-    private PaymentProviderRepository paymentProviderRepository;
-
     @Spy
     private PaymentReferenceUtil paymentReferenceUtil;
 
@@ -93,7 +90,7 @@ public class PaymentRecordServiceTest {
             .reference(paymentReferenceUtil.getNext())
             .caseReference("caseReference")
             .externalReference("chequeNumber")
-            .paymentProvider(paymentProviderRepository.findByNameOrThrow("middle office provider"))
+            .externalProvider("cheque provider")
             .giroSlipNo("giro")
             .paymentMethod(paymentMethodRepository.findByNameOrThrow("cheque"))
             .paymentChannel(paymentChannelRepository.findByNameOrThrow("digital bar"))
