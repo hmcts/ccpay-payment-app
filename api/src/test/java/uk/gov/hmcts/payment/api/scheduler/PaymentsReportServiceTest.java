@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.scheduler;
 
-import org.joda.time.MutableDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,7 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -37,7 +36,7 @@ public class PaymentsReportServiceTest {
     @Mock
     private FeesService feesService;
     @Mock
-    private CardPaymentDtoMapper cardPaymentDtoMapper;
+    private PaymentDtoMapper paymentDtoMapper;
 
     private PaymentReportConfig paymentReportConfig;
 
