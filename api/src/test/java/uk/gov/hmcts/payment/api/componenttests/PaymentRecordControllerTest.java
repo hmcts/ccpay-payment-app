@@ -20,8 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentRecordRequest;
-import uk.gov.hmcts.payment.api.contract.util.Method;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -29,6 +30,8 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -60,7 +63,7 @@ public class PaymentRecordControllerTest {
     private PaymentDbBackdoor db;
 
 
-    private static final String USER_ID = "user-id";
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     private RestActions restActions;
 
@@ -139,7 +142,7 @@ public class PaymentRecordControllerTest {
     @Test
     public void testRecordChequePayment_withoutReference() throws Exception {
         PaymentRecordRequest request = getPaymentRecordRequest(getPayloadWithNoCcdCaseNumberAndCaseReference());
-        request.setPaymentMethod(Method.CHEQUE);
+        request.setPaymentMethod(PaymentMethodType.CHEQUE);
 
         MvcResult result = restActions
             .post("/payment-records", request)
@@ -159,6 +162,55 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
+    @Transactional
+    public void testGetBarPayments_forBetweenDates() throws Exception {
+        PaymentRecordRequest cashPaymentRequest = getPaymentRecordRequest(getCashPaymentPayload());
+        restActions
+            .post("/payment-records", cashPaymentRequest)
+            .andExpect(status().isCreated());
+
+        PaymentRecordRequest chequePaymentRequest = getPaymentRecordRequest(getChequePaymentPayload());
+        restActions
+            .post("/payment-records", chequePaymentRequest)
+            .andExpect(status().isCreated());
+
+
+        MvcResult result = restActions
+            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        assertThat(paymentsResponse).isNotNull();
+        List<PaymentDto> paymentDtos = paymentsResponse.getPayments();
+
+        Optional<PaymentDto> optPaymentDto = paymentDtos.stream().filter(p -> p.getMethod().equals("cash")).findAny();
+        if (optPaymentDto.isPresent()) {
+            PaymentDto paymentDto = optPaymentDto.get();
+            assertThat(paymentDto.getChannel()).isEqualTo("digital bar");
+            assertThat(paymentDto.getGiroSlipNo()).isEqualTo("12345");
+            assertThat(paymentDto.getMethod()).isEqualTo("cash");
+            paymentDto.getFees().stream().forEach(f -> {
+                assertThat(f.getCode()).isEqualTo("FEE0123");
+                assertThat(f.getReference()).isEqualTo("ref_123");
+            });
+        }
+
+        Optional<PaymentDto> optChequePayment = paymentDtos.stream().filter(p -> p.getMethod().equals("cheque")).findAny();
+        if (optChequePayment.isPresent()) {
+            PaymentDto chequePayment = optChequePayment.get();
+            assertThat(chequePayment.getChannel()).isEqualTo("digital bar");
+            assertThat(chequePayment.getExternalProvider()).isEqualTo("cheque provider");
+            assertThat(chequePayment.getExternalReference()).isEqualTo("1000012");
+            assertThat(chequePayment.getMethod()).isEqualTo("cheque");
+            assertThat(chequePayment.getGiroSlipNo()).isEqualTo("434567");
+            chequePayment.getFees().stream().forEach(f -> {
+                assertThat(f.getCode()).isEqualTo("FEE0111");
+                assertThat(f.getReference()).isEqualTo("ref_122");
+            });
+        }
+    }
+
     public void testRecordPostOrderPayment() throws Exception {
         PaymentRecordRequest request = getPaymentRecordRequest(getPostalOrderPaymentPayload());
 

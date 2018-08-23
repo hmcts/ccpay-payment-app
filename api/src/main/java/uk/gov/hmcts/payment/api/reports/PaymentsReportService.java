@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -42,15 +42,15 @@ public class PaymentsReportService {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
-    private final CardPaymentDtoMapper cardPaymentDtoMapper;
+    private final PaymentDtoMapper paymentDtoMapper;
     private final EmailService emailService;
     private final FeesService feesService;
 
     @Autowired
-    public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, CardPaymentDtoMapper cardPaymentDtoMapper,
+    public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, PaymentDtoMapper paymentDtoMapper,
                                  EmailService emailService, FeesService feesService) {
         this.cardPaymentService = cardPaymentService;
-        this.cardPaymentDtoMapper = cardPaymentDtoMapper;
+        this.paymentDtoMapper = paymentDtoMapper;
         this.emailService = emailService;
         this.feesService = feesService;
     }
@@ -72,7 +72,7 @@ public class PaymentsReportService {
         return cardPaymentService
             .search(startDate, endDate, paymentMethodType.getType(), serviceType, null)
             .stream()
-            .map(cardPaymentDtoMapper::toReconciliationResponseDto)
+            .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());
     }
 
