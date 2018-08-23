@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentRecordDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentRecordService;
@@ -64,6 +64,7 @@ public class PaymentRecordController {
             .currency(paymentRecordRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
             .externalReference(paymentRecordRequest.getExternalReference())
+            .serviceType(paymentRecordRequest.getService().getName())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(paymentRecordRequest.getPaymentMethod().getType()).build())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
