@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.persistence.criteria.Join;
@@ -38,19 +39,21 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private final PaymentMethodRepository paymentMethodRepository;
     private final Payment2Repository paymentRespository;
     private final PaymentReferenceUtil paymentReferenceUtil;
+    private final ServiceIdSupplier serviceIdSupplier;
 
     @Autowired
     public UserAwareDelegatingCreditAccountPaymentService(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                                           PaymentChannelRepository paymentChannelRepository,
-                                                 PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                                 PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                                 PaymentReferenceUtil paymentReferenceUtil) {
+                                                          PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
+                                                          PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
+                                                          PaymentReferenceUtil paymentReferenceUtil, ServiceIdSupplier serviceIdSupplier) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentRespository = paymentRespository;
         this.paymentReferenceUtil = paymentReferenceUtil;
+        this.serviceIdSupplier = serviceIdSupplier;
     }
 
 
@@ -70,6 +73,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                     .currency(creditAccount.getCurrency())
                     .siteId(creditAccount.getSiteId())
                     .serviceType(creditAccount.getServiceType())
+                    .s2sServiceName(serviceIdSupplier.get())
                     .customerReference(creditAccount.getCustomerReference())
                     .organisationName(creditAccount.getOrganisationName())
                     .pbaNumber(creditAccount.getPbaNumber())

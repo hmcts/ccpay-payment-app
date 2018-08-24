@@ -94,6 +94,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             .description(description).returnUrl(returnUrl).ccdCaseNumber(ccdCaseNumber)
             .caseReference(caseReference).currency(currency).siteId(siteId)
             .serviceType(serviceType)
+            .s2sServiceName(serviceIdSupplier.get())
             .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
             .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CARD))
             .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_GOVPAY))
@@ -125,14 +126,13 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
-        String paymentService = payment.getServiceType();
+        String paymentService = payment.getS2sServiceName();
 
         if (null == paymentService || paymentService.trim().equals("")) {
             LOG.error("Unable to determine the payment service which created this payment-Ref:" + paymentReference);
         }
 
         String callingService = serviceIdSupplier.get();
-        paymentService = SERVICE_NAMES.get(paymentService);
 
         paymentService = govPayAuthUtil.getServiceName(callingService, paymentService);
 
