@@ -51,13 +51,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final AuditRepository auditRepository;
 
     private static final Predicate[] REF = new Predicate[0];
-    private final static HashMap<String, String> SERVICE_NAMES = new HashMap<String, String>();
-
-    static{
-        SERVICE_NAMES.put("Civil Money Claims", "cmc");
-        SERVICE_NAMES.put("Divorce", "divorce_frontend");
-        SERVICE_NAMES.put("Probate", "probate_frontend");
-    }
 
     @Autowired
     public UserAwareDelegatingCardPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
