@@ -27,10 +27,12 @@ public class PaymentServiceTest extends TestUtil {
         // given DB has 4 payments
         List<Payment> payments = Lists.newArrayList(
             getPaymentWithStatus("created"),
-            getPaymentWithStatus("started"),
             getPaymentWithStatus("submitted"),
-            // non initiated
-            getPaymentWithStatus("pending"));
+            // final states
+            getPaymentWithStatus("success"),
+            getPaymentWithStatus("cancelled"),
+            getPaymentWithStatus("failed"),
+            getPaymentWithStatus("error"));
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .payments(payments)
@@ -43,7 +45,7 @@ public class PaymentServiceTest extends TestUtil {
         List<Reference> paymentsReferences = paymentService.listInitiatedStatusPaymentsReferences();
 
         // then
-         assertThat(paymentsReferences).hasSize(3);
+         assertThat(paymentsReferences).hasSize(2);
     }
 
     private Payment getPaymentWithStatus(String paymentStatus) {

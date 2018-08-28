@@ -18,9 +18,10 @@ import java.util.Optional;
 @Service
 public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String> {
 
-    private final static PaymentStatus CREATED = new PaymentStatus("created", "created");
-    private final static PaymentStatus STARTED = new PaymentStatus("started", "Payment started");
-    private final static PaymentStatus SUBMITTED = new PaymentStatus("submitted", "Payment submitted");
+    private final static PaymentStatus SUCCESS = new PaymentStatus("success", "success");
+    private final static PaymentStatus FAILED = new PaymentStatus("failed", "failed");
+    private final static PaymentStatus CANCELLED = new PaymentStatus("cancelled", "cancelled");
+    private final static PaymentStatus ERROR = new PaymentStatus("error", "error");
 
     private final Payment2Repository paymentRepository;
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
@@ -41,9 +42,9 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     public List<Reference> listInitiatedStatusPaymentsReferences() {
-        return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusIn(
+        return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotIn(
             PaymentProvider.GOV_PAY,
-            Lists.newArrayList(CREATED, STARTED, SUBMITTED)
+            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED)
         );
     }
 
