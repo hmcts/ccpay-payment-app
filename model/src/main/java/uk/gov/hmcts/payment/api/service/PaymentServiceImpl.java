@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,10 @@ import java.util.Optional;
 
 @Service
 public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String> {
+
+    private final static PaymentStatus CREATED = new PaymentStatus("created", "created");
+    private final static PaymentStatus STARTED = new PaymentStatus("started", "Payment started");
+    private final static PaymentStatus SUBMITTED = new PaymentStatus("submitted", "Payment submitted");
 
     private final Payment2Repository paymentRepository;
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
@@ -35,10 +40,10 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public List<Reference> listCreatedStatusPaymentsReferences() {
-        return paymentRepository.findReferencesByPaymentStatusAndPaymentProvider(
-            PaymentStatus.CREATED,
-            PaymentProvider.GOV_PAY
+    public List<Reference> listInitiatedStatusPaymentsReferences() {
+        return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusIn(
+            PaymentProvider.GOV_PAY,
+            Lists.newArrayList(CREATED, STARTED, SUBMITTED)
         );
     }
 
