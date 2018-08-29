@@ -27,4 +27,4 @@ feature_payments_search = false
 
 external_host_name ="payment.platform.hmcts.net"
 
-liquibase_enabled = "true"
+liquibase_enabled = "false"
