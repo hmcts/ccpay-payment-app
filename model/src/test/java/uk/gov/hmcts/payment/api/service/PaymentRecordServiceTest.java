@@ -20,6 +20,7 @@ import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.math.BigDecimal;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 public class PaymentRecordServiceTest {
 
     private static final String USER_ID = "USER_ID";
+    private static final String S2S_SERVICE_NAME = "bar-api";
 
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -49,6 +51,8 @@ public class PaymentRecordServiceTest {
 
     @Mock
     private UserIdSupplier userIdSupplier;
+    @Mock
+    private ServiceIdSupplier serviceIdSupplier;
 
     @Spy
     private PaymentReferenceUtil paymentReferenceUtil;
@@ -88,6 +92,7 @@ public class PaymentRecordServiceTest {
             assertEquals(p.getPaymentMethod().getName(), "cheque");
             assertEquals(p.getCaseReference(), "caseReference");
             assertEquals(p.getUserId(), USER_ID);
+            assertEquals(p.getS2sServiceName(), S2S_SERVICE_NAME);
         });
 
         savedPayment.getFees().forEach(f -> {
@@ -105,6 +110,7 @@ public class PaymentRecordServiceTest {
         when(paymentStatusRepository.findByNameOrThrow("created")).thenReturn(PaymentStatus.paymentStatusWith().name("created").build());
 
         when(userIdSupplier.get()).thenReturn(USER_ID);
+        when(serviceIdSupplier.get()).thenReturn(S2S_SERVICE_NAME);
 
         return Payment.paymentWith()
             .amount(new BigDecimal("100.11"))
@@ -113,6 +119,7 @@ public class PaymentRecordServiceTest {
             .externalReference("chequeNumber")
             .giroSlipNo("giro")
             .userId(USER_ID)
+            .s2sServiceName(S2S_SERVICE_NAME)
             .paymentMethod(paymentMethodRepository.findByNameOrThrow("cheque"))
             .paymentChannel(paymentChannelRepository.findByNameOrThrow("digital bar"))
             .paymentStatus(paymentStatusRepository.findByNameOrThrow("created"))
