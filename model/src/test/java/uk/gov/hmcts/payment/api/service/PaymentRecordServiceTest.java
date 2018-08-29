@@ -115,7 +115,6 @@ public class PaymentRecordServiceTest {
             .reference(paymentReferenceUtil.getNext())
             .caseReference("caseReference")
             .externalReference("chequeNumber")
-            .paymentProvider(paymentProviderRespository.findByNameOrThrow("cheque provider"))
             .giroSlipNo("giro")
             .userId(USER_ID)
             .paymentMethod(paymentMethodRepository.findByNameOrThrow("cheque"))
