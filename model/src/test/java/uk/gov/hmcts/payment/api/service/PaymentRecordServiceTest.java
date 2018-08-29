@@ -51,9 +51,6 @@ public class PaymentRecordServiceTest {
     @Mock
     private UserIdSupplier userIdSupplier;
 
-    @Mock
-    private PaymentProviderRepository paymentProviderRespository;
-
     @Spy
     private PaymentReferenceUtil paymentReferenceUtil;
 
