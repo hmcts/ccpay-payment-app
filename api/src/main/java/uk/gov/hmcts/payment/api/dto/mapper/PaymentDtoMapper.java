@@ -96,7 +96,7 @@ public class PaymentDtoMapper {
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
             .giroSlipNo(payment.getGiroSlipNo())
-            .externalProvider(payment.getExternalProvider())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getExternalReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
