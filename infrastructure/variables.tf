@@ -31,7 +31,7 @@ variable "microservice" {
 
 // disabled liquibase temporarily - enable for new db changes build and then disable again
 variable "liquibase_enabled" {
-  default = "true"
+  default = "false"
 }
 
 variable "database_name" {
