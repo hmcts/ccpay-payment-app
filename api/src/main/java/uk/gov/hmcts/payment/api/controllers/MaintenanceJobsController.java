@@ -43,7 +43,7 @@ public class MaintenanceJobsController {
     @Transactional
     public void updatePaymentsStatus() throws ExecutionException, InterruptedException {
 
-        List<Reference> referenceList = paymentService.listCreatedStatusPaymentsReferences();
+        List<Reference> referenceList = paymentService.listInitiatedStatusPaymentsReferences();
 
         LOG.warn("Found " + referenceList.size() + " references that require an status update");
 

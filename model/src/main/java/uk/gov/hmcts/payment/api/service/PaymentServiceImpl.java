@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,11 @@ import java.util.Optional;
 
 @Service
 public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String> {
+
+    private final static PaymentStatus SUCCESS = new PaymentStatus("success", "success");
+    private final static PaymentStatus FAILED = new PaymentStatus("failed", "failed");
+    private final static PaymentStatus CANCELLED = new PaymentStatus("cancelled", "cancelled");
+    private final static PaymentStatus ERROR = new PaymentStatus("error", "error");
 
     private final Payment2Repository paymentRepository;
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
@@ -35,10 +41,10 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public List<Reference> listCreatedStatusPaymentsReferences() {
-        return paymentRepository.findReferencesByPaymentStatusAndPaymentProvider(
-            PaymentStatus.CREATED,
-            PaymentProvider.GOV_PAY
+    public List<Reference> listInitiatedStatusPaymentsReferences() {
+        return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotIn(
+            PaymentProvider.GOV_PAY,
+            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED)
         );
     }
 
