@@ -9,8 +9,9 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
 import java.util.Optional;
 
@@ -23,11 +24,15 @@ public class CardDetailsServiceImpl implements CardDetailsService<CardDetails, S
     private final CardPaymentService<GovPayPayment, String> delegate;
 
     private final Payment2Repository paymentRespository;
+    private final GovPayAuthUtil govPayAuthUtil;
+    private final ServiceIdSupplier serviceIdSupplier;
 
     @Autowired
-    public CardDetailsServiceImpl(CardPaymentService<GovPayPayment, String> delegate, Payment2Repository paymentRespository) {
+    public CardDetailsServiceImpl(CardPaymentService<GovPayPayment, String> delegate, Payment2Repository paymentRespository, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier) {
         this.delegate = delegate;
         this.paymentRespository = paymentRespository;
+        this.govPayAuthUtil = govPayAuthUtil;
+        this.serviceIdSupplier = serviceIdSupplier;
     }
 
 
@@ -36,7 +41,9 @@ public class CardDetailsServiceImpl implements CardDetailsService<CardDetails, S
         Payment payment = paymentRespository.findByReferenceAndPaymentMethod(paymentReference,
             PaymentMethod.paymentMethodWith().name(PAYMENT_BY_CARD).build()).orElseThrow(PaymentNotFoundException::new);
 
-        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference());
+        String paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), payment.getS2sServiceName());
+
+        GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentService);
 
         Optional<CardDetails> opt = Optional.ofNullable(govPayPayment.getCardDetails());
         CardDetails cardDetails = null;
