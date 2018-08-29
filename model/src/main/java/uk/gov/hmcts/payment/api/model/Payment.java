@@ -84,6 +84,9 @@ public class Payment {
     @Column(name = "service_type")
     private String serviceType;
 
+    @Column(name = "s2s_service_name")
+    private String s2sServiceName;
+
     @ManyToOne
     @JoinColumn(name = "payment_channel")
     private PaymentChannel paymentChannel;
