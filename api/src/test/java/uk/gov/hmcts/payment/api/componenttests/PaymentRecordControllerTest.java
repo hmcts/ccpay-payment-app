@@ -64,9 +64,6 @@ public class PaymentRecordControllerTest {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
-    @Autowired
-    private PaymentDbBackdoor db;
-
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
@@ -125,10 +122,6 @@ public class PaymentRecordControllerTest {
 
         String reference = response.getReference().substring(3, response.getReference().length());
         assertThat(cd.isValid(reference.replace("-", ""))).isEqualTo(true);
-    }
-
-    private PaymentRecordRequest getPaymentRecordRequest(String payload) throws Exception {
-        return objectMapper.readValue(payload.getBytes(), PaymentRecordRequest.class);
     }
 
     @Test
