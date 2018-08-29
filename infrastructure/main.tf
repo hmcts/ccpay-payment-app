@@ -1,7 +1,3 @@
-provider "vault" {
-  // # tactical vault - for example: use `data "vault_generic_secret" "s2s_secret" {`
-  address = "https://vault.reform.hmcts.net:6200"
-}
 locals {
   aseName = "${data.terraform_remote_state.core_apps_compute.ase_name[0]}"
 
@@ -89,6 +85,9 @@ module "payment-api" {
     GOV_PAY_AUTH_KEY_PROBATE_FRONTEND = "${data.azurerm_key_vault_secret.gov_pay_keys_probate.value}"
     GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND = "${data.azurerm_key_vault_secret.gov_pay_keys_divorce.value}"
     GOV_PAY_OPERATIONAL_SERVICES = "${var.gov_pay_operational_services}"
+
+    # S2S trusted services
+    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api"
 
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"

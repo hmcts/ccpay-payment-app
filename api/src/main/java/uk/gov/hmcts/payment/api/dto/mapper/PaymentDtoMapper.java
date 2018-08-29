@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
-public class CardPaymentDtoMapper {
+public class PaymentDtoMapper {
 
     @Autowired
     private FeesService feesService;
@@ -95,6 +95,9 @@ public class CardPaymentDtoMapper {
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
+            .giroSlipNo(payment.getGiroSlipNo())
+            .externalProvider(payment.getExternalProvider())
+            .externalReference(payment.getExternalReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
         return enrichWithFeeData(paymentDto);
@@ -136,6 +139,8 @@ public class CardPaymentDtoMapper {
             .volume(Optional.ofNullable(fee.getVolume())
                 .map(v -> v.doubleValue())
                 .orElse(null))
+            .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber(): null)
+            .reference(fee.getReference() != null ? fee.getReference(): null)
             .build();
 
     }

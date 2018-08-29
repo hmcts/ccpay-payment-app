@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.contract;
+package uk.gov.hmcts.payment.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,9 +9,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Method;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -35,11 +36,14 @@ public class PaymentRecordRequest {
     private BigDecimal amount;
 
     @NotNull
-    private Method paymentMethod;
+    private PaymentMethodType paymentMethod;
 
     @NotEmpty
+    @JsonProperty("requestor_reference")
     private String reference;
 
+    @NotNull
+    @JsonProperty("requestor")
     private Service service;
 
     private CurrencyCode currency;
@@ -57,5 +61,4 @@ public class PaymentRecordRequest {
     @NotEmpty
     @Valid
     private List<FeeDto> fees;
-
 }

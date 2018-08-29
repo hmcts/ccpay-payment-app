@@ -47,6 +47,7 @@ public class PaymentDtoTest {
     private BigDecimal amount;
     private String id;
     private SimpleDateFormat sdf;
+    private String giroSlipNo;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -94,12 +95,13 @@ public class PaymentDtoTest {
         accountNumber = "accountNumber";
         organisationName = "organisationName";
         paymentGroupReference = "paymentGroupReference";
+        giroSlipNo = "giroSlipNo";
 
         testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
             organisationName, paymentGroupReference,
-            null, statusHistories, links);
+            null, statusHistories, giroSlipNo, links);
     }
 
     @Test
