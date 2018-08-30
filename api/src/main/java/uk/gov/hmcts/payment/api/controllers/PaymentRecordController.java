@@ -6,13 +6,11 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentRecordDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentRecordService;
@@ -35,12 +33,15 @@ public class PaymentRecordController {
 
     private final PaymentRecordService<PaymentFeeLink, String> paymentRecordService;
     private final PaymentRecordDtoMapper paymentRecordDtoMapper;
+    private final PaymentProviderRepository paymentProviderRespository;
 
     @Autowired
     public PaymentRecordController(PaymentRecordService<PaymentFeeLink, String> paymentRecordService,
-                                   PaymentRecordDtoMapper paymentRecordDtoMapper) {
+                                   PaymentRecordDtoMapper paymentRecordDtoMapper,
+                                   PaymentProviderRepository paymentProviderRespository) {
         this.paymentRecordService = paymentRecordService;
         this.paymentRecordDtoMapper = paymentRecordDtoMapper;
+        this.paymentProviderRespository = paymentProviderRespository;
     }
 
 
@@ -55,12 +56,15 @@ public class PaymentRecordController {
     public ResponseEntity<PaymentDto> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
+        PaymentProvider paymentProvider = paymentProviderRespository.findByNameOrThrow(paymentRecordRequest.getExternalProvider());
+
         Payment payment = Payment.paymentWith()
             .amount(paymentRecordRequest.getAmount())
             .caseReference(paymentRecordRequest.getReference())
             .currency(paymentRecordRequest.getCurrency().getCode())
-            .externalProvider(paymentRecordRequest.getExternalProvider())
+            .paymentProvider(paymentProvider)
             .externalReference(paymentRecordRequest.getExternalReference())
+            .serviceType(paymentRecordRequest.getService().getName())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(paymentRecordRequest.getPaymentMethod().getType()).build())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())

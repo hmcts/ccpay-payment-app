@@ -47,7 +47,7 @@ public class MaintenanceJobsControllerMockTest {
         this.mockMvc.perform(patch("/jobs/card-payments-status-update"))
             .andExpect(status().isOk());
 
-        verify(paymentService).listCreatedStatusPaymentsReferences();
+        verify(paymentService).listInitiatedStatusPaymentsReferences();
 
         verify(cardPaymentService, times(0)).retrieve(any());
 
@@ -56,13 +56,13 @@ public class MaintenanceJobsControllerMockTest {
     @Test
     public void testThatReturns200WhenPaymentsExist() throws Exception{
 
-        doReturn(Arrays.asList(reference, reference)).when(paymentService).listCreatedStatusPaymentsReferences();
+        doReturn(Arrays.asList(reference, reference)).when(paymentService).listInitiatedStatusPaymentsReferences();
 
         // when & then
         this.mockMvc.perform(patch("/jobs/card-payments-status-update"))
             .andExpect(status().isOk());
 
-        verify(paymentService).listCreatedStatusPaymentsReferences();
+        verify(paymentService).listInitiatedStatusPaymentsReferences();
 
         verify(cardPaymentService, times(2)).retrieve("xxx");
 

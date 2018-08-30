@@ -1,3 +1,4 @@
+liquibase_enabled = "true"
 vault_section = "prod"
 capacity = "2"
 idam_api_url = "https://prod-idamapi.reform.hmcts.net:3511"
@@ -26,3 +27,5 @@ pba_divorce_payments_email_message = "Hi <br/><br/>Please find attached today''s
 feature_payments_search = false
 
 external_host_name ="payment.platform.hmcts.net"
+
+liquibase_enabled = "false"

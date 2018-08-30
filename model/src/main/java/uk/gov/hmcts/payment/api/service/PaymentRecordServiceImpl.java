@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,28 +19,31 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordServiceImpl.class);
 
     private final static String PAYMENT_CHANNEL_DIGITAL_BAR = "digital bar";
-    private final static String PAYMENT_METHOD_CASH = "cash";
     private final static String PAYMENT_STATUS_CREATED = "created";
-    private final static String PAYMENT_PROVIDER_CHEQUE = "cheque provider";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentMethodRepository paymentMethodRepository;
-    private final PaymentProviderRepository paymentProviderRepository;
     private final PaymentReferenceUtil paymentReferenceUtil;
+    private final UserIdSupplier userIdSupplier;
+    private final ServiceIdSupplier serviceIdSupplier;
 
     @Autowired
     public PaymentRecordServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
+
                                     PaymentChannelRepository paymentChannelRepository,
-                                    PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                    PaymentStatusRepository paymentStatusRepository, PaymentReferenceUtil paymentReferenceUtil) {
+                                    PaymentMethodRepository paymentMethodRepository,
+                                    PaymentStatusRepository paymentStatusRepository,
+                                    PaymentReferenceUtil paymentReferenceUtil,
+                                    UserIdSupplier userIdSupplier, ServiceIdSupplier serviceIdSupplier) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentStatusRepository = paymentStatusRepository;
-        this.paymentProviderRepository = paymentProviderRepository;
         this.paymentReferenceUtil = paymentReferenceUtil;
+        this.userIdSupplier = userIdSupplier;
+        this.serviceIdSupplier = serviceIdSupplier;
     }
 
 
@@ -51,7 +56,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
         return  paymentFeeLinkRepository.save(paymentFeeLink);
     }
 
-    protected PaymentFeeLink populatePaymentDetails(Payment payment, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
+    private PaymentFeeLink populatePaymentDetails(Payment payment, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
 
         return PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
@@ -60,10 +65,12 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                 .caseReference(payment.getCaseReference())
                 .currency(payment.getCurrency())
                 .siteId(payment.getSiteId())
-                .externalProvider(payment.getExternalProvider())
+                .paymentProvider(payment.getPaymentProvider())
                 .externalReference(payment.getExternalReference())
                 .giroSlipNo(payment.getGiroSlipNo())
                 .serviceType(payment.getServiceType())
+                .s2sServiceName(serviceIdSupplier.get())
+                .userId(userIdSupplier.get())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(payment.getPaymentMethod().getName()))

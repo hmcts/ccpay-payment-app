@@ -8,7 +8,7 @@ public interface PaymentService<T, ID> {
 
     T retrieve(ID id);
 
-    List<Reference> listCreatedStatusPaymentsReferences();
+    List<Reference> listInitiatedStatusPaymentsReferences();
 
     List<T> search(LocalDate startDate, LocalDate endDate, String paymentMethod, String serviceType, String ccdCaseNumber);
 }
