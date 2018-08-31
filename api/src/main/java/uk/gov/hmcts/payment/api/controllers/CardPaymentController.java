@@ -12,9 +12,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -45,17 +44,17 @@ public class CardPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 
     private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
-    private final CardPaymentDtoMapper cardPaymentDtoMapper;
+    private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentsReportService paymentsReportService;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
 
     @Autowired
     public CardPaymentController(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardCardPaymentService,
-                                 CardPaymentDtoMapper cardPaymentDtoMapper,
+                                 PaymentDtoMapper paymentDtoMapper,
                                  PaymentsReportService paymentsReportService,
                                  CardDetailsService<CardDetails, String> cardDetailsService) {
         this.cardPaymentService = cardCardPaymentService;
-        this.cardPaymentDtoMapper = cardPaymentDtoMapper;
+        this.paymentDtoMapper = paymentDtoMapper;
         this.paymentsReportService = paymentsReportService;
         this.cardDetailsService = cardDetailsService;
     }
@@ -77,9 +76,9 @@ public class CardPaymentController {
 
         PaymentFeeLink paymentLink = cardPaymentService.create(amountInPence, paymentReference,
             request.getDescription(), returnURL, request.getCcdCaseNumber(), request.getCaseReference(),
-            request.getCurrency().getCode(), request.getSiteId(), request.getService().getName(), cardPaymentDtoMapper.toFees(request.getFees()));
+            request.getCurrency().getCode(), request.getSiteId(), request.getService().getName(), paymentDtoMapper.toFees(request.getFees()));
 
-        return new ResponseEntity<>(cardPaymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
+        return new ResponseEntity<>(paymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }
 
     @ApiOperation(value = "Get card payment details by payment reference", notes = "Get payment details for supplied payment reference")
@@ -90,7 +89,7 @@ public class CardPaymentController {
     })
     @RequestMapping(value = "/card-payments/{reference}", method = GET)
     public PaymentDto retrieve(@PathVariable("reference") String paymentReference) {
-        return cardPaymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDto(cardPaymentService.retrieve(paymentReference));
     }
 
     @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card detaisl for supplied payment reference")
@@ -110,7 +109,7 @@ public class CardPaymentController {
     })
     @RequestMapping(value = "/card-payments/{reference}/statuses", method = GET)
     public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
-        return cardPaymentDtoMapper.toRetrievePaymentStatusesDto(cardPaymentService.retrieve(paymentReference));
+        return paymentDtoMapper.toRetrievePaymentStatusesDto(cardPaymentService.retrieve(paymentReference));
     }
 
 

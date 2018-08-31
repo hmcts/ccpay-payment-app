@@ -33,9 +33,6 @@ public class Payment {
     @Column(name = "external_reference")
     private String externalReference;
 
-    @Column(name = "external_provider")
-    private String externalProvider;
-
     @CreationTimestamp
     @Column(name = "date_created")
     private Date dateCreated;
@@ -83,6 +80,9 @@ public class Payment {
 
     @Column(name = "service_type")
     private String serviceType;
+
+    @Column(name = "s2s_service_name")
+    private String s2sServiceName;
 
     @ManyToOne
     @JoinColumn(name = "payment_channel")

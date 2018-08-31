@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.dto.mapper.CardPaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -26,12 +26,12 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 public class CaseController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
-    private final CardPaymentDtoMapper cardPaymentDtoMapper;
+    private final PaymentDtoMapper paymentDtoMapper;
 
     @Autowired
-    public CaseController(PaymentService<PaymentFeeLink, String> paymentService, CardPaymentDtoMapper cardPaymentDtoMapper) {
+    public CaseController(PaymentService<PaymentFeeLink, String> paymentService, PaymentDtoMapper paymentDtoMapper) {
         this.paymentService = paymentService;
-        this.cardPaymentDtoMapper = cardPaymentDtoMapper;
+        this.paymentDtoMapper = paymentDtoMapper;
     }
 
     @ApiOperation(value = "Get payments for a case", notes = "Get payments for a case")
@@ -46,7 +46,7 @@ public class CaseController {
         List<PaymentDto> payments = paymentService
             .search(null, null, null, null, ccdCaseNumber)
             .stream()
-            .map(cardPaymentDtoMapper::toReconciliationResponseDto)
+            .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());
 
         if(payments == null || payments.isEmpty()) {

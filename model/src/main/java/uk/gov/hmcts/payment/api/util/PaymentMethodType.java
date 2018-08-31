@@ -3,7 +3,11 @@ package uk.gov.hmcts.payment.api.util;
 public enum PaymentMethodType {
 
     CARD("card"),
-    PBA("payment by account");
+    PBA("payment by account"),
+    CASH("cash"),
+    CHEQUE("cheque"),
+    POSTAL_ORDER("postal order"),
+    BARCLAY_CARD("barclay card");
 
     String type;
 
