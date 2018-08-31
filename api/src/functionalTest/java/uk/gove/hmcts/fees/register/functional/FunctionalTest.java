@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.functional;
+package uk.gove.hmcts.fees.register.functional;
 
 import io.restassured.RestAssured;
 import org.junit.Before;
