@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 
@@ -39,6 +40,9 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
     @Mock
     private PaymentReferenceUtil paymentReferenceUtil;
+
+    @Mock
+    private ServiceIdSupplier serviceIdSupplier;
 
     @InjectMocks
     private UserAwareDelegatingCreditAccountPaymentService creditAccountPaymentService;
