@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
+
     @Autowired
     private PaymentsV2TestDsl dsl;
 
