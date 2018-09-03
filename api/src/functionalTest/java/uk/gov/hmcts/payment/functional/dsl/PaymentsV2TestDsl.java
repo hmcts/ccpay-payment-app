@@ -30,7 +30,7 @@ public class PaymentsV2TestDsl {
     private Response response;
 
     @Autowired
-    public PaymentsV2TestDsl(@Value("${payment.api.url:http://localhost:8080}") String baseUri, ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
+    public PaymentsV2TestDsl(@Value("${test.url:http://localhost:8080}") String baseUri, ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
         this.baseUri = baseUri;
         this.serviceTokenFactory = serviceTokenFactory;
         this.userTokenFactory = userTokenFactory;

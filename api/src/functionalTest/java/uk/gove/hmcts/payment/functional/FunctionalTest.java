@@ -13,7 +13,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 public class FunctionalTest extends IntegrationTestBase {
 
-    @Value("${payment.api.url:http://localhost:8080}")
+    @Value("${test.url:http://localhost:8080}")
     private String testUrl;
 
     @Before
