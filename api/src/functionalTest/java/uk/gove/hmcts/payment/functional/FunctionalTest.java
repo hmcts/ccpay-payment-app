@@ -6,12 +6,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.functional.IntegrationTestBase;
 
 import static io.restassured.RestAssured.given;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
-@RunWith(SpringRunner.class)
-public class FunctionalTest {
+public class FunctionalTest extends IntegrationTestBase {
 
     @Value("${payment.api.url:http://localhost:8080}")
     private String testUrl;
