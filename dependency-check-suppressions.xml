@@ -150,4 +150,17 @@
     	<gav regex="true">^javax\.servlet:jstl:1\.2$</gav>
     	<cve>CVE-2015-0254</cve>
    </suppress>
+
+    <!-- upgrade spring to latest version 5.0.7 https://github.com/hmcts/ccfr-fees-register-admin-web/pull/90 -->
+    <suppress>
+        <notes><![CDATA[Cross Site Tracing (XST) with Spring Framework]]></notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2018-11039</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[JSONP enabled by default in MappingJackson2JsonView]]></notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2018-11040</cve>
+    </suppress>
+
 </suppressions>
