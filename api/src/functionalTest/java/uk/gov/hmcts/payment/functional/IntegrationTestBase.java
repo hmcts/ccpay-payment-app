@@ -1,8 +1,13 @@
 package uk.gov.hmcts.payment.functional;
 
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class IntegrationTestBase {
 
@@ -35,5 +40,10 @@ public class IntegrationTestBase {
 
     @Value("${cmc.service.secret}")
     protected String cmcSecret;
+
+    @Test
+    public void testProperties() {
+        Assert.assertEquals(cmcUserRole, "citizen");
+    }
 
 }
