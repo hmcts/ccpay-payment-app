@@ -21,7 +21,7 @@ public class UserTokenFactory extends IntegrationTestBase {
 
 
     public String validTokenForUser(String userId, String password, String role, String userGroup) {
-        proxy(localProxyHost, Integer.parseInt(localProxyPort));
+        //proxy(localProxyHost, Integer.parseInt(localProxyPort));
         baseURI = baseUrl;
         defaultParser = Parser.JSON;
         useRelaxedHTTPSValidation();
