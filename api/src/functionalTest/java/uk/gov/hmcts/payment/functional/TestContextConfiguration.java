@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@ComponentScan("uk.gov.hmcts.payment")
+@ComponentScan("uk.gov.hmcts.payment.functional")
 @PropertySource("classpath:application-functional-tests.properties")
 public class TestContextConfiguration {
 }

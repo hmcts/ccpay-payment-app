@@ -38,13 +38,6 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
             .version("1")
             .build())).build();
 
-//    public void validCardPaymentShouldResultIn201() {
-//        dsl.given().userId(probateUserId, probateUserRole).serviceId(probateServiceName, probateSecret).returnUrl("http://www.google.com")
-//            .when().createCardPayment(validCardPaymentRequest)
-//            .then().created(paymentDto -> {
-//                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-//        });
-//    }
 
     @Test
     public void createCMCCardPaymentShoudReturn201() {
