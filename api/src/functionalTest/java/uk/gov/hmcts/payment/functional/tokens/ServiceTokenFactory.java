@@ -33,6 +33,7 @@ public class ServiceTokenFactory extends  IntegrationTestBase {
             .post("/lease")
             .body().asString();
 
+        System.out.println("S2S token: " + jwt);
         return jwt;
     }
 
