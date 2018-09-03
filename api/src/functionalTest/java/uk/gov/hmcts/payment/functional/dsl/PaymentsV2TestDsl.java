@@ -30,7 +30,7 @@ public class PaymentsV2TestDsl {
     private Response response;
 
     @Autowired
-    public PaymentsV2TestDsl(@Value("${base-urls.payment}") String baseUri, ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
+    public PaymentsV2TestDsl(@Value("${payment.url:http://localhost:8080}") String baseUri, ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
         this.baseUri = baseUri;
         this.serviceTokenFactory = serviceTokenFactory;
         this.userTokenFactory = userTokenFactory;
@@ -41,8 +41,8 @@ public class PaymentsV2TestDsl {
     }
 
     public class PaymentGivenDsl {
-        public PaymentGivenDsl userId(String id, String role) {
-            headers.put("Authorization", userTokenFactory.validTokenForUser(id, role));
+        public PaymentGivenDsl userId(String userId, String password, String role, String userGroup) {
+            headers.put("Authorization", userTokenFactory.validTokenForUser(userId, password, role, userGroup));
             return this;
         }
 
@@ -77,7 +77,7 @@ public class PaymentsV2TestDsl {
         }
 
         public PaymentWhenDsl createCardPayment(CardPaymentRequest cardPaymentRequest) {
-            response = newRequest().body(cardPaymentRequest).post("/card-payments");
+            response = newRequest().body(cardPaymentRequest.toString()).post( "/card-payments");
             return this;
         }
 
