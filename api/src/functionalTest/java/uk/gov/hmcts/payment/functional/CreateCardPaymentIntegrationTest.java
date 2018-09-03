@@ -3,7 +3,9 @@ package uk.gov.hmcts.payment.functional;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -14,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.UUID;
 
+@RunWith(SpringRunner.class)
 public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     @Autowired
