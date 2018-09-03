@@ -34,6 +34,7 @@ public class ServiceTokenFactory extends  IntegrationTestBase {
             .body().asString();
 
         System.out.println("S2S token: " + jwt);
+        System.out.println("OTP: " + otp);
         return jwt;
     }
 
