@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BuildInfoIntegrationTest extends IntegrationTestBase {
 
-    @Autowired(required = true)
+    @Autowired
     private PaymentsV2TestDsl scenario;
 
 
