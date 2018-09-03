@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
-    @Autowired
+    @Autowired(required = true)
     private PaymentsV2TestDsl dsl;
 
     private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

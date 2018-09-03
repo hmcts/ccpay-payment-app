@@ -9,12 +9,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BuildInfoIntegrationTest extends IntegrationTestBase {
 
-    private final PaymentsV2TestDsl scenario;
+    @Autowired(required = true)
+    private PaymentsV2TestDsl scenario;
 
-    @Autowired
-    public BuildInfoIntegrationTest(PaymentsV2TestDsl scenario) {
-        this.scenario = scenario;
-    }
 
     @Test
     public void buildInfoShouldBePresent() throws IOException, NoSuchFieldException {
