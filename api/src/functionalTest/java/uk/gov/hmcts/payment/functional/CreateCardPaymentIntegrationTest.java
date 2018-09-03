@@ -27,7 +27,6 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     private CardPaymentRequest validCardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
         .amount(new BigDecimal("200.11"))
-        .ccdCaseNumber("ccdCaseNumber")
         .caseReference("caseReference")
         .currency(CurrencyCode.GBP)
         .description("Test cross field validation")
@@ -35,8 +34,9 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         .siteId("siteID")
         .fees(Arrays.asList(FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("200.11"))
-            .code("X0001")
+            .code("FEE0123")
             .version("1")
+            .volume(new Double(1))
             .build())).build();
 
 
