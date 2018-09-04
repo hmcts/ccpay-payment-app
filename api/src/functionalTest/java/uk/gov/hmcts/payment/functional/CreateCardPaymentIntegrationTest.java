@@ -64,7 +64,7 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         defaultParser = Parser.JSON;
         useRelaxedHTTPSValidation();
 
-        System.out.println("Payaments baseURI : " + baseURL);
+        System.out.println("Payment baseURI : " + baseURL);
 
         Map<String, String> headers = new HashMap<>();
 
