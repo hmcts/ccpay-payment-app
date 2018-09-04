@@ -21,6 +21,7 @@ public class UserTokenFactory extends IntegrationTestBase {
 
 
     public String validTokenForUser(String userId, String password, String role, String userGroup) {
+        System.out.println("****** UserTokenFactory *********");
         //proxy(localProxyHost, Integer.parseInt(localProxyPort));
         baseURI = baseUrl;
         defaultParser = Parser.JSON;
