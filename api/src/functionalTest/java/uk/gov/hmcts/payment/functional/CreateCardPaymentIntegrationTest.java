@@ -17,6 +17,8 @@ import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.*;
@@ -64,10 +66,15 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
         System.out.println("Payaments baseURI : " + baseURL);
 
+        Map<String, String> headers = new HashMap<>();
+
+        headers.put("Authorization", userTokenFactory.validTokenForUser(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup));
+        headers.put("ServiceAuthorization", serviceTokenFactory.validTokenForService(cmcServiceName, cmcSecret));
+        headers.put("return-url", "https://localhost");
+
         String reference = given()
-            .header("Authorization", userTokenFactory.validTokenForUser(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup))
-            .header("ServiceAuthorization", serviceTokenFactory.validTokenForService(cmcServiceName, cmcSecret))
-            .header("return-url", "https://localhost")
+            .contentType("application/json")
+            .headers(headers)
             .body(validCardPaymentRequest)
             .post("/card-payments")
             .then()
