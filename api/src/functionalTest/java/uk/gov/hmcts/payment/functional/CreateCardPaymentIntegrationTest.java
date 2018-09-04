@@ -67,6 +67,7 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         String reference = given()
             .header("Authorization", userTokenFactory.validTokenForUser(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup))
             .header("ServiceAuthorization", serviceTokenFactory.validTokenForService(cmcServiceName, cmcSecret))
+            .header("return-url", "https://localhost")
             .body(validCardPaymentRequest)
             .post("/card-payments")
             .then()
