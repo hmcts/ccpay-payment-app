@@ -42,7 +42,6 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void createCMCCardPaymentShoudReturn201() {
-
         dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
             .when().createCardPayment(validCardPaymentRequest)
             .then().created(paymentDto -> {
