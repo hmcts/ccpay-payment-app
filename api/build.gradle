@@ -99,6 +99,8 @@ dependencies {
     testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.0.7'
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
 
+    testCompile group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
+
     // smoke
     smokeTestCompile sourceSets.test.runtimeClasspath
 
