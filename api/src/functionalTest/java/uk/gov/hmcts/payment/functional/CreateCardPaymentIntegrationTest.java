@@ -1,23 +1,39 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.RestAssured;
+import io.restassured.parsing.Parser;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsV2TestDsl;
+import uk.gov.hmcts.payment.functional.tokens.ServiceTokenFactory;
+import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.UUID;
 
+import static io.restassured.RestAssured.*;
+
 public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     @Autowired(required = true)
     private PaymentsV2TestDsl dsl;
+
+    @Value("${test.url:http://localhost:8080}")
+    private String baseURL;
+
+    @Autowired
+    private UserTokenFactory userTokenFactory;
+
+    @Autowired
+    private ServiceTokenFactory serviceTokenFactory;
 
     private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -42,10 +58,28 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void createCMCCardPaymentShoudReturn201() {
-        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
-            .when().createCardPayment(validCardPaymentRequest)
-            .then().created(paymentDto -> {
-                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-        });
+        baseURI = baseURL;
+        defaultParser = Parser.JSON;
+        useRelaxedHTTPSValidation();
+
+        System.out.println("Payaments baseURI : " + baseURL);
+
+        String reference = given()
+            .header("Authorization", userTokenFactory.validTokenForUser(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup))
+            .header("ServiceAuthorization", serviceTokenFactory.validTokenForService(cmcServiceName, cmcSecret))
+            .body(validCardPaymentRequest)
+            .post("/card-payments")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("reference");
+
+        System.out.println("Payment reference: " + reference);
+
+//        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
+//            .when().createCardPayment(validCardPaymentRequest)
+//            .then().created(paymentDto -> {
+//                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+//        });
     }
 }
