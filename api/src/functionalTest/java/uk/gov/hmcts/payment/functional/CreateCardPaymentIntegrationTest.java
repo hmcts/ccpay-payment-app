@@ -60,34 +60,11 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void createCMCCardPaymentShoudReturn201() {
-        baseURI = baseURL;
-        defaultParser = Parser.JSON;
-        useRelaxedHTTPSValidation();
 
-        System.out.println("Payment baseURI : " + baseURL);
-
-        Map<String, String> headers = new HashMap<>();
-
-        headers.put("Authorization", userTokenFactory.validTokenForUser(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup));
-        headers.put("ServiceAuthorization", serviceTokenFactory.validTokenForService(cmcServiceName, cmcSecret));
-        headers.put("return-url", "https://localhost");
-
-        String reference = given()
-            .contentType("application/json")
-            .headers(headers)
-            .body(validCardPaymentRequest)
-            .post("/card-payments")
-            .then()
-            .statusCode(201)
-            .extract()
-            .path("reference");
-
-        System.out.println("Payment reference: " + reference);
-
-//        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
-//            .when().createCardPayment(validCardPaymentRequest)
-//            .then().created(paymentDto -> {
-//                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-//        });
+        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
+            .when().createCardPayment(validCardPaymentRequest)
+            .then().created(paymentDto -> {
+                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+        });
     }
 }
