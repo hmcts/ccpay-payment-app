@@ -83,6 +83,7 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
             .when()
             .post("/card-payments")
             .then()
+            .statusCode(201)
             .extract()
             .response();
 
