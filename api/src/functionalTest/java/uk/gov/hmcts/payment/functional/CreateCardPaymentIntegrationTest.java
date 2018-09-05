@@ -66,38 +66,11 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void createCMCCardPaymentShoudReturn201() {
-        System.out.println("Payment base URI: " + baseURL);
-        baseURI = baseURL;
-        defaultParser = Parser.JSON;
-        useRelaxedHTTPSValidation();
-
-        String userAuthToken = userTokenFactory.validTokenForUser(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup);
-        String serviceAuthToken = serviceTokenFactory.validTokenForService(cmcServiceName, cmcSecret);
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Authorization", userAuthToken);
-        headers.put("ServiceAuthorization", serviceAuthToken);
-        headers.put("return-url", "https://www.google.com");
-
-        Response response = given()
-            .relaxedHTTPSValidation()
-            .contentType(ContentType.JSON)
-            .headers(headers)
-            .body(getCardPaymentRequest()).with()
-            .when()
-            .post("/card-payments")
-            .then()
-            .assertThat()
-            .statusCode(201)
-            .extract()
-            .response();
-
-        System.out.println("Payment resoponse body: " + response.getBody().asString());
-//        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
-//            .when().createCardPayment(validCardPaymentRequest)
-//            .then().created(paymentDto -> {
-//                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-//        });
+        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
+            .when().createCardPayment(validCardPaymentRequest)
+            .then().created(paymentDto -> {
+                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+        });
     }
 
     private String getCardPaymentRequest() {
