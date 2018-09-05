@@ -3,6 +3,8 @@ package uk.gov.hmcts.payment.functional;
 import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
 import org.apache.commons.lang.RandomStringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +78,7 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         String paymentReference = given()
             .contentType("application/json")
             .headers(headers)
-            .body(validCardPaymentRequest.toString())
+            .body(getCardPaymentRequest())
             .post("/card-payments")
             .then()
             .statusCode(201)
@@ -90,5 +92,34 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 //            .then().created(paymentDto -> {
 //                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
 //        });
+    }
+
+    private String getCardPaymentRequest() {
+        JSONObject payment = new JSONObject();
+        try {
+
+
+            payment.put("amount", 123.11);
+            payment.put("description", "A functional test card payment");
+            payment.put("case_reference", "REF_123");
+            payment.put("service", "CMC");
+            payment.put("currency", "GBP");
+            payment.put("site_id", "AA123");
+
+            JSONArray fees = new JSONArray();
+            JSONObject fee = new JSONObject();
+            fee.put("calculated_amount", 123.11);
+            fee.put("code", "FEE0123");
+            fee.put("reference", "REF_123");
+            fee.put("version", "1");
+            fees.put(fee);
+
+            payment.put("fees", fees);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return payment.toString();
     }
 }
