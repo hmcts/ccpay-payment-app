@@ -78,6 +78,7 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
         Response response = given()
             .headers(headers)
+            .contentType(ContentType.JSON)
             .body(validCardPaymentRequest)
             .post("/card-payments")
             .then()
