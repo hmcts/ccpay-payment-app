@@ -66,7 +66,6 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
     public void createCMCCardPaymentShoudReturn201() {
         System.out.println("Payment base URI: " + baseURL);
         baseURI = baseURL;
-        defaultParser = Parser.JSON;
         useRelaxedHTTPSValidation();
 
         String userAuthToken = userTokenFactory.validTokenForUser(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup);
@@ -77,16 +76,20 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         headers.put("ServiceAuthorization", serviceAuthToken);
         headers.put("return-url", "https://www.google.com");
 
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(ContentType.JSON)
+        Response response = given()
             .headers(headers)
-            .body(getCardPaymentRequest())
-            .when()
+            .body(validCardPaymentRequest)
             .post("/card-payments")
             .then()
-            .assertThat()
-            .statusCode(201);
+            .statusCode(201)
+            .extract()
+            .response();
+
+
+        System.out.println("Payment response code: " + response.getStatusCode());
+        System.out.println("Payment response body: " + response.getBody().asString());
+
+
 
 
 //        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
