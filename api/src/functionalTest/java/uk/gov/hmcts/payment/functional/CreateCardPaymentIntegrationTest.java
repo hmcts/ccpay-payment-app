@@ -52,9 +52,10 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         .siteId("siteID")
         .fees(Arrays.asList(FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("200.11"))
+            .reference("Ref_123")
             .code("FEE0123")
             .version("1")
-            .volume(new Double(1))
+            .volume(new Double("1"))
             .build())).build();
 
 
