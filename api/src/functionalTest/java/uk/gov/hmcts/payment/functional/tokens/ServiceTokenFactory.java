@@ -36,7 +36,7 @@ public class ServiceTokenFactory extends  IntegrationTestBase {
 
         System.out.println("S2S token: " + jwt);
         System.out.println("OTP: " + otp);
-        return jwt;
+        return "Bearer " + jwt;
     }
 
     private String getS2sRequestBody(String microservice, String otp) {
