@@ -30,7 +30,7 @@ public class UserTokenFactory extends IntegrationTestBase {
         // create user in IDAM
         setUpUser(userId, password, role, userGroup);
 
-        String jwt=  given()
+        String jwt =  given()
             .urlEncodingEnabled(true)
             .param("username", userId)
             .param("password", password)
@@ -39,7 +39,7 @@ public class UserTokenFactory extends IntegrationTestBase {
             .then()
             .statusCode(200)
             .extract()
-            .path("api_auth_token");
+            .path("access_token");
 
         System.out.println("Username: " + userId + " Password: " + password + " Role: " + role + " UserGroup: " + userGroup);
         System.out.println("Idam auth token: " + jwt);
