@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.validator.routines.checkdigit.CheckDigit;
 import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -106,7 +108,7 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    public void testRecordCashPayment_withValidData() throws Exception {
+    public void testRecordCashPaymentWithValidData() throws Exception {
         PaymentRecordRequest request = getCashPaymentRequest();
 
         MvcResult result = restActions
@@ -125,7 +127,7 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    public void testRecordPayment_withoutPaymentMethod() throws Exception {
+    public void testRecordPaymentWithoutPaymentMethod() throws Exception {
         PaymentRecordRequest request = getRequestWithNoCcdCaseNumberAndCaseReference();
         request.setReference("ref_123");
 
@@ -138,7 +140,7 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    public void testRecordChequePayment_withoutReference() throws Exception {
+    public void testRecordChequePaymentWithoutReference() throws Exception {
         PaymentRecordRequest request = getRequestWithNoCcdCaseNumberAndCaseReference();
         request.setPaymentMethod(PaymentMethodType.CHEQUE);
 
@@ -151,7 +153,7 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    public void testRecordCashPayment_withInvalidRequest() throws Exception {
+    public void testRecordCashPaymentWithInvalidRequest() throws Exception {
         PaymentRecordRequest request = getRequestWithNoCcdCaseNumberAndCaseReference();
 
         restActions
@@ -161,7 +163,7 @@ public class PaymentRecordControllerTest {
 
     @Test
     @Transactional
-    public void testGetBarPayments_forBetweenDates() throws Exception {
+    public void testGetBarPaymentsForBetweenDates() throws Exception {
         PaymentRecordRequest cashPaymentRequest = getCashPaymentRequest();
         restActions
             .post("/payment-records", cashPaymentRequest)
@@ -192,6 +194,7 @@ public class PaymentRecordControllerTest {
                 assertThat(f.getCode()).isEqualTo("FEE0123");
                 assertThat(f.getReference()).isEqualTo("ref_123");
             });
+            assertThat(paymentDto.getReportedDateOffline()).isNotNull();
         }
 
         Optional<PaymentDto> optChequePayment = paymentDtos.stream().filter(p -> p.getMethod().equals("cheque")).findAny();
@@ -206,6 +209,7 @@ public class PaymentRecordControllerTest {
                 assertThat(f.getCode()).isEqualTo("FEE0111");
                 assertThat(f.getReference()).isEqualTo("ref_122");
             });
+            assertThat(chequePayment.getReportedDateOffline()).isNotNull();
         }
     }
 
@@ -239,6 +243,45 @@ public class PaymentRecordControllerTest {
         assertThat(response.getStatus()).isEqualTo("Initiated");
     }
 
+    @Test
+    public void testBarclaycardPaymentWithoutReportedDateOfflineShouldFail() throws Exception {
+        PaymentRecordRequest request = getBarclayCardPaymentRequestWithoutReportedDateOffline();
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("reportedDateOffline: must not be null");
+    }
+
+    @Test
+    public void testBarclaycardPaymentWithEmptyReportedDateOfflineShouldFail() throws Exception {
+        PaymentRecordRequest request = getBarclayCardPaymentRequest();
+        request.setReportedDateOffline("");
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date.");
+    }
+
+    @Test
+    public void testBarclaycardPaymentRecordRequestWithInvalidReportedDateOfflineShouldFail() throws Exception {
+        PaymentRecordRequest request = getBarclayCardPaymentRequest();
+        request.setReportedDateOffline("Invalid_date_string");
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date.");
+
+    }
+
     private PaymentRecordRequest getCashPaymentRequest() {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .amount(new BigDecimal("32.19"))
@@ -248,6 +291,7 @@ public class PaymentRecordControllerTest {
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
+            .reportedDateOffline(DateTime.now().toString())
             .siteId("AA99")
             .fees(
                 Arrays.asList(
@@ -275,6 +319,7 @@ public class PaymentRecordControllerTest {
             .currency(CurrencyCode.GBP)
             .externalReference("1000012")
             .giroSlipNo("434567")
+            .reportedDateOffline(DateTime.now().toString())
             .siteId("AA001")
             .fees(
                 Arrays.asList(
@@ -296,6 +341,7 @@ public class PaymentRecordControllerTest {
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
+            .reportedDateOffline(DateTime.now().toString())
             .siteId("AA99")
             .fees(
                 Arrays.asList(
@@ -322,6 +368,7 @@ public class PaymentRecordControllerTest {
             .externalProvider("middle office provider")
             .externalReference("postal_1000012")
             .giroSlipNo("434567")
+            .reportedDateOffline(DateTime.now().toString())
             .siteId("AA001")
             .fees(
                 Arrays.asList(
@@ -346,6 +393,7 @@ public class PaymentRecordControllerTest {
             .currency(CurrencyCode.GBP)
             .externalProvider("barclaycard")
             .externalReference("bar_card_1000013")
+            .reportedDateOffline(DateTime.now().toString())
             .siteId("AA001")
             .fees(
                 Arrays.asList(
@@ -360,4 +408,29 @@ public class PaymentRecordControllerTest {
             )
             .build();
     }
+
+    private PaymentRecordRequest getBarclayCardPaymentRequestWithoutReportedDateOffline() {
+        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
+            .amount(new BigDecimal("99.99"))
+            .paymentMethod(PaymentMethodType.CARD)
+            .reference("ref_122")
+            .service(Service.DIGITAL_BAR)
+            .currency(CurrencyCode.GBP)
+            .externalProvider("barclaycard")
+            .externalReference("bar_card_1000013")
+            .siteId("AA001")
+            .fees(
+                Arrays.asList(
+                    FeeDto.feeDtoWith()
+                        .calculatedAmount(new BigDecimal("99.99"))
+                        .code("FEE0111")
+                        .reference("ref_122")
+                        .version("1")
+                        .volume(1d)
+                        .build()
+                )
+            )
+            .build();
+    }
+
 }
