@@ -4,6 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import io.restassured.response.ResponseBody;
 import org.apache.commons.lang.RandomStringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsV2TestDsl;
@@ -77,18 +79,20 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         headers.put("ServiceAuthorization", serviceAuthToken);
         headers.put("return-url", "https://www.google.com");
 
-        given()
+        Response response = given()
             .relaxedHTTPSValidation()
             .contentType(ContentType.JSON)
             .headers(headers)
-            .body(getCardPaymentRequest())
+            .body(getCardPaymentRequest()).with()
             .when()
             .post("/card-payments")
             .then()
             .assertThat()
-            .statusCode(201);
+            .statusCode(201)
+            .extract()
+            .response();
 
-
+        System.out.println("Payment resoponse body: " + response.getBody().asString());
 //        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
 //            .when().createCardPayment(validCardPaymentRequest)
 //            .then().created(paymentDto -> {
