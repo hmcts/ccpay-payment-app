@@ -39,7 +39,7 @@ public class UserTokenFactory extends IntegrationTestBase {
             .then()
             .statusCode(200)
             .extract()
-            .path("access_token");
+            .path("api_auth_token");
 
         System.out.println("Username: " + userId + " Password: " + password + " Role: " + role + " UserGroup: " + userGroup);
         System.out.println("Idam auth token: " + jwt);
