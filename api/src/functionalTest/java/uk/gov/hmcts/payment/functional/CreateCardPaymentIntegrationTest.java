@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import org.apache.commons.lang.RandomStringUtils;
@@ -63,8 +64,8 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void createCMCCardPaymentShoudReturn201() {
-
-        RestAssured.baseURI = baseURL;
+        System.out.println("Payment base URI: " + baseURL);
+        baseURI = baseURL;
         defaultParser = Parser.JSON;
         useRelaxedHTTPSValidation();
 
@@ -76,14 +77,17 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         headers.put("ServiceAuthorization", serviceAuthToken);
         headers.put("return-url", "https://www.google.com");
 
-        Response response = given()
-            .contentType("application/json")
+        given()
+            .relaxedHTTPSValidation()
+            .contentType(ContentType.JSON)
             .headers(headers)
             .body(getCardPaymentRequest())
-            .post("/card-payments");
+            .when()
+            .post("/card-payments")
+            .then()
+            .assertThat()
+            .statusCode(201);
 
-        System.out.println("Response status code: " + response.getStatusCode());
-        System.out.println("Payment reference: " + response.jsonPath().get("reference"));
 
 //        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
 //            .when().createCardPayment(validCardPaymentRequest)
