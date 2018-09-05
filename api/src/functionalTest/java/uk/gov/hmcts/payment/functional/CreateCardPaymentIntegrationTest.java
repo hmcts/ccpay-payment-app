@@ -80,14 +80,10 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
             .contentType("application/json")
             .headers(headers)
             .body(getCardPaymentRequest())
-            .when()
-            .post("/card-payments")
-            .then()
-            .statusCode(201)
-            .extract()
-            .response();
+            .post("/card-payments");
 
-        System.out.println("Payment response: " + response.getBody().asString());
+        System.out.println("Response status code: " + response.getStatusCode());
+        System.out.println("Payment reference: " + response.jsonPath().get("reference"));
 
 //        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
 //            .when().createCardPayment(validCardPaymentRequest)
