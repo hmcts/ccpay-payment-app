@@ -77,10 +77,15 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         headers.put("return-url", "https://www.google.com");
 
         Response response = given()
-            .header("Content-Type", "application/json")
+            .contentType("application/json")
             .headers(headers)
             .body(getCardPaymentRequest())
-            .post("/card-payments");
+            .when()
+            .post("/card-payments")
+            .then()
+            .statusCode(201)
+            .extract()
+            .response();
 
         System.out.println("Payment response: " + response.getBody().asString());
 
@@ -94,6 +99,8 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
     private String getCardPaymentRequest() {
         JSONObject payment = new JSONObject();
         try {
+
+
             payment.put("amount", 123.11);
             payment.put("description", "A functional test card payment");
             payment.put("case_reference", "REF_123");
