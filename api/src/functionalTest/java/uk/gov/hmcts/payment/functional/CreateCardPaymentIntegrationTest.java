@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
+import io.restassured.response.Response;
 import org.apache.commons.lang.RandomStringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -75,17 +76,13 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         headers.put("ServiceAuthorization", serviceAuthToken);
         headers.put("return-url", "https://www.google.com");
 
-        String paymentReference = given()
+        Response response = given()
             .header("Content-Type", "application/json")
             .headers(headers)
             .body(getCardPaymentRequest())
-            .post("/card-payments")
-            .then()
-            .statusCode(201)
-            .extract()
-            .path("reference");
+            .post("/card-payments");
 
-        System.out.println("Payment reference: " + paymentReference);
+        System.out.println("Payment response: " + response.getBody().asString());
 
 //        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
 //            .when().createCardPayment(validCardPaymentRequest)
