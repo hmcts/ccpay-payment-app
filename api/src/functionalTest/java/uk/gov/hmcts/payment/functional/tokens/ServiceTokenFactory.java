@@ -26,14 +26,12 @@ public class ServiceTokenFactory extends  IntegrationTestBase {
 
         String otp = otpFactory.validOneTimePassword(secret);
 
-        String jwt = given()
+        return given()
             .body(getS2sRequestBody(microservice, otp))
             .header("Content-Type", "application/json")
             .baseUri(baseUrl)
             .post( "/lease")
             .body().asString();
-
-        return jwt;
     }
 
     private String getS2sRequestBody(String microservice, String otp) {

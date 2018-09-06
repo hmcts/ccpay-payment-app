@@ -17,18 +17,12 @@ public class UserTokenFactory extends IntegrationTestBase {
     @Value("${idam.api.url:http://idam-api.aat.platform.hmcts.net}")
     private String baseUrl;
 
-
-
-
-    public String validTokenForUser(String userId, String password, String role, String userGroup) {
+    public String validTokenForUser(String userId, String password) {
         proxy(localProxyHost, Integer.parseInt(localProxyPort));
         defaultParser = Parser.JSON;
-        useRelaxedHTTPSValidation();
 
-        // create user in IDAM
-        setUpUser(userId, password, role, userGroup);
-
-        String jwt =  given()
+        return given()
+            .relaxedHTTPSValidation()
             .urlEncodingEnabled(true)
             .param("username", userId)
             .param("password", password)
@@ -39,22 +33,31 @@ public class UserTokenFactory extends IntegrationTestBase {
             .statusCode(200)
             .extract()
             .path("access_token");
-
-        System.out.println("Username: " + userId + " Password: " + password + " Role: " + role + " UserGroup: " + userGroup);
-        System.out.println("Idam auth token: " + jwt);
-        return jwt;
-
     }
 
     public void setUpUser(String userId, String password, String role, String userGroup) {
+        proxy(localProxyHost, Integer.parseInt(localProxyPort));
+
         String request = getCreateUserRequestBody(userId, password, role, userGroup);
+
         given()
+            .relaxedHTTPSValidation()
             .contentType("application/json")
             .body(request)
             .baseUri(baseUrl)
             .post("/testing-support/accounts")
             .then()
             .statusCode(201);
+
+    }
+
+    public void deleteUser(String userId) {
+        proxy(localProxyHost, Integer.parseInt(localProxyPort));
+
+        given()
+            .relaxedHTTPSValidation()
+            .baseUri(baseUrl)
+            .delete("/testing-support/accounts/" + userId);
 
     }
 
