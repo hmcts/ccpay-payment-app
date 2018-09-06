@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.*;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
@@ -77,9 +78,11 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         headers.put("return-url", "https://www.google.com");
 
         Response response = given()
+            .relaxedHTTPSValidation()
+            .header(CONTENT_TYPE, "application/json")
             .headers(headers)
-            .contentType(ContentType.JSON)
             .body(validCardPaymentRequest)
+            .when()
             .post("/card-payments")
             .then()
             .statusCode(201)
@@ -89,9 +92,6 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
         System.out.println("Payment response code: " + response.getStatusCode());
         System.out.println("Payment response body: " + response.getBody().asString());
-
-
-
 
 //        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
 //            .when().createCardPayment(validCardPaymentRequest)
