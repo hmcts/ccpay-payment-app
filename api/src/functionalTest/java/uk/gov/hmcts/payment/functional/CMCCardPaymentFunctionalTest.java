@@ -11,13 +11,13 @@ import java.math.BigDecimal;
 
 import static org.junit.Assert.*;
 
-public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
+public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
 
     @Autowired(required = true)
     private PaymentsV2TestDsl dsl;
 
     @Test
-    public void createCMCCardPaymentShouldReturn201() {
+    public void createCMCCardPaymentTestShouldReturn201() {
         String userId = dsl.generateUserId();
         String password = dsl.generatePassword();
 
@@ -32,7 +32,7 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void retrieveCMCCardPaymentShouldReturn200() {
+    public void retrieveCMCCardPaymentTestShouldReturn200() {
         String userId = dsl.generateUserId();
         String password = dsl.generatePassword();
         final String[] reference = new String[1];
