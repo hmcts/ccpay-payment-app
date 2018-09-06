@@ -14,7 +14,9 @@ def product = "payment"
 def app = "api"
 
 List<LinkedHashMap<String, Object>> secrets = [
-        secret('cmc-service-secret', 'CMC_SERVICE_SECRET')
+        secret('cmc-service-secret', 'CMC_SERVICE_SECRET'),
+        secret('payments-cmc-test-user', 'PAYMENTS_CMC_TEST_USER'),
+        secret('payments-cmc-test-user-password', 'PAYMENTS_CMC_TEST_USER_PASSWORD')
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {

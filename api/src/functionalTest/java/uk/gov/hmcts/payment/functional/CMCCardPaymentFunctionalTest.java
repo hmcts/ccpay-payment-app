@@ -18,27 +18,21 @@ public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
 
     @Test
     public void createCMCCardPaymentTestShouldReturn201() {
-        String userId = dsl.generateUserId();
-        String password = dsl.generatePassword();
-
-        dsl.given().createUser(userId, password, cmcUserRole, cmcUserGroup).userId(userId, password).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
+        dsl.given().userId(paymentCmcTestUser, paymentCmcTestPassword).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
                 assertNotNull(paymentDto.getReference());
                 assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
 
-        dsl.given().deleteUser(userId);
     }
 
     @Test
     public void retrieveCMCCardPaymentTestShouldReturn200() {
-        String userId = dsl.generateUserId();
-        String password = dsl.generatePassword();
         final String[] reference = new String[1];
 
         // create card payment
-        dsl.given().createUser(userId, password, cmcUserRole, cmcUserGroup).userId(userId, password).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
+        dsl.given().userId(paymentCmcTestUser, paymentCmcTestPassword).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
                 reference[0] = savedPayment.getReference();
@@ -49,7 +43,7 @@ public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
 
 
         // retrieve card payment
-        PaymentDto paymentDto = dsl.given().userId(userId, password).serviceId(cmcServiceName, cmcSecret)
+        PaymentDto paymentDto = dsl.given().userId(paymentCmcTestUser, paymentCmcTestPassword).serviceId(cmcServiceName, cmcSecret)
             .when().getCardPayment(reference[0])
             .then().get();
 
@@ -66,7 +60,6 @@ public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
             assertEquals(f.getCalculatedAmount(), new BigDecimal("123.11"));
         });
 
-        dsl.given().deleteUser(userId);
     }
 
     private String getCardPaymentRequest() {

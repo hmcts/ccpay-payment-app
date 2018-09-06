@@ -35,6 +35,12 @@ public class IntegrationTestBase {
     @Value("${cmc.service.secret}")
     protected String cmcSecret;
 
+    @Value("${payments.cmc.test.user:cmcuser@domain.com}")
+    protected String paymentCmcTestUser;
+
+    @Value("${payments.cmc.test.user.password:dummy}")
+    protected String paymentCmcTestPassword;
+
     @Test
     public void testProperties() {
         Assert.assertEquals(cmcUserRole, "citizen");
