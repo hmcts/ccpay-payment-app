@@ -23,7 +23,7 @@ public class ServiceTokenFactory extends  IntegrationTestBase {
     public String validTokenForService(String microservice, String secret) {
         defaultParser = Parser.JSON;
 
-        String otp = otpFactory.validOneTimePassword(secret);
+        String otp = otpFactory.validOneTimePassword("RD53IBEKQTO4WMQY");
 
         return given()
             .body(getS2sRequestBody(microservice, otp))
