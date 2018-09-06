@@ -13,6 +13,21 @@ def product = "payment"
 
 def app = "api"
 
+List<LinkedHashMap<String, Object>> secrets = [
+        secret('cmc-service-secret', 'CMC_SERVICE_SECRET')
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+    [ $class: 'AzureKeyVaultSecret',
+      secretType: 'Secret',
+      name: secretName,
+      version: '',
+      envVariable: envVar
+    ]
+}
+
+
 withPipeline(type, product, app) {
+    loadVaultSecrets(secrets)
     enableSlackNotifications('#cc-payments-tech')
 }
