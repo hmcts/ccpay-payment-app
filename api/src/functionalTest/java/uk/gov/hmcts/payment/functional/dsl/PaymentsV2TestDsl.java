@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional.dsl;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.assertj.core.api.Assertions;
@@ -24,14 +25,16 @@ import java.util.function.Consumer;
 @Scope("prototype")
 public class PaymentsV2TestDsl {
     private final Map<String, String> headers = new HashMap<>();
-    private final String baseUri;
+
+    @Value("${test.url:http://pr-276-payment-api-preview-staging.service.core-compute-preview.internal}")
+    private String baseUri;
+
     private final ServiceTokenFactory serviceTokenFactory;
     private final UserTokenFactory userTokenFactory;
     private Response response;
 
     @Autowired
-    public PaymentsV2TestDsl(@Value("${test.url:http://localhost:8080}") String baseUri, ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
-        this.baseUri = baseUri;
+    public PaymentsV2TestDsl(ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
         this.serviceTokenFactory = serviceTokenFactory;
         this.userTokenFactory = userTokenFactory;
     }
@@ -63,7 +66,7 @@ public class PaymentsV2TestDsl {
 
     public class PaymentWhenDsl {
         private RequestSpecification newRequest() {
-            return RestAssured.given().relaxedHTTPSValidation().baseUri(baseUri).contentType(ContentType.JSON).headers(headers);
+            return RestAssured.given().relaxedHTTPSValidation().baseUri(baseUri).contentType(ContentType.JSON).headers(headers).proxy("proxyout.reform.hmcts.net", 8080);
         }
 
         public PaymentWhenDsl getPayment(String userId, String paymentId) {

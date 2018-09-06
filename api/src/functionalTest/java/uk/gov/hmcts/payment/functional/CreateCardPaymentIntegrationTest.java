@@ -1,9 +1,9 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import io.restassured.response.ResponseBody;
 import org.apache.commons.lang.RandomStringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.functional.dsl.PaymentsV2TestDsl;
 import uk.gov.hmcts.payment.functional.tokens.ServiceTokenFactory;
 import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.*;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.junit.Assert.*;
 
 public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
@@ -48,26 +49,10 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
     private static String cmcUserPassword = RandomStringUtils.random(15, characters);
 
-    private CardPaymentRequest validCardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-        .amount(new BigDecimal("200.11"))
-        .caseReference("REF111")
-        .currency(CurrencyCode.GBP)
-        .description("Test cross field validation")
-        .service(Service.CMC)
-        .siteId("siteID")
-        .fees(Arrays.asList(FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("200.11"))
-            .reference("REF111")
-            .code("FEE0123")
-            .version("1")
-            .build())).build();
-
 
     @Test
     public void createCMCCardPaymentShoudReturn201() {
-        System.out.println("Payment base URI: " + baseURL);
-        baseURI = baseURL;
-        useRelaxedHTTPSValidation();
+        proxy(localProxyHost, Integer.parseInt(localProxyPort));
 
         String userAuthToken = userTokenFactory.validTokenForUser(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup);
         String serviceAuthToken = serviceTokenFactory.validTokenForService(cmcServiceName, cmcSecret);
@@ -77,24 +62,41 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
         headers.put("ServiceAuthorization", serviceAuthToken);
         headers.put("return-url", "https://www.google.com");
 
-        Response response = given()
+        String reference = given()
             .relaxedHTTPSValidation()
-            .header(CONTENT_TYPE, "application/json")
             .headers(headers)
-            .body(validCardPaymentRequest)
+            .header("Content-Type", "application/json")
+            .body(getCardPaymentRequest())
             .when()
+            .baseUri(baseURL)
             .post("/card-payments")
             .then()
             .statusCode(201)
             .extract()
-            .response();
+            .path("reference");
+
+        assertNotNull(reference);
 
 
-        System.out.println("Payment response code: " + response.getStatusCode());
-        System.out.println("Payment response body: " + response.getBody().asString());
-
+//        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+//            .amount(new BigDecimal("123.11"))
+//            .description("A functional test card payment")
+//            .caseReference("REF_123")
+//            .service(Service.CMC)
+//            .currency(CurrencyCode.GBP)
+//            .siteId("SITEID_123")
+//            .fees(Arrays.asList(FeeDto.feeDtoWith()
+//                .calculatedAmount(new BigDecimal("123.11"))
+//                .code("FEE0123")
+//                .reference("REF_123")
+//                .version("1")
+//                .volume(new Double("1"))
+//                .build()))
+//            .build();
+//
+//
 //        dsl.given().userId(cmcUserId, cmcUserPassword, cmcUserRole, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
-//            .when().createCardPayment(validCardPaymentRequest)
+//            .when().createCardPayment(cardPaymentRequest)
 //            .then().created(paymentDto -> {
 //                Assert.assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
 //        });
@@ -128,4 +130,5 @@ public class CreateCardPaymentIntegrationTest extends IntegrationTestBase {
 
         return payment.toString();
     }
+
 }
