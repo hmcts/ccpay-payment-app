@@ -21,9 +21,7 @@ public class UserTokenFactory extends IntegrationTestBase {
 
 
     public String validTokenForUser(String userId, String password, String role, String userGroup) {
-        System.out.println("****** UserTokenFactory *********");
-        //proxy(localProxyHost, Integer.parseInt(localProxyPort));
-        baseURI = baseUrl;
+        proxy(localProxyHost, Integer.parseInt(localProxyPort));
         defaultParser = Parser.JSON;
         useRelaxedHTTPSValidation();
 
@@ -35,6 +33,7 @@ public class UserTokenFactory extends IntegrationTestBase {
             .param("username", userId)
             .param("password", password)
             .header("Accept", "application/json")
+            .baseUri(baseUrl)
             .post("/loginUser")
             .then()
             .statusCode(200)
@@ -43,7 +42,7 @@ public class UserTokenFactory extends IntegrationTestBase {
 
         System.out.println("Username: " + userId + " Password: " + password + " Role: " + role + " UserGroup: " + userGroup);
         System.out.println("Idam auth token: " + jwt);
-        return "Bearer " + jwt;
+        return jwt;
 
     }
 
@@ -52,6 +51,7 @@ public class UserTokenFactory extends IntegrationTestBase {
         given()
             .contentType("application/json")
             .body(request)
+            .baseUri(baseUrl)
             .post("/testing-support/accounts")
             .then()
             .statusCode(201);
