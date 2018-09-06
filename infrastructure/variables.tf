@@ -131,15 +131,3 @@ variable "external_host_name" {
 variable "common_tags" {
   type = "map"
 }
-
-variable "cmc_user_role" {
-  default = "citizen"
-}
-
-variable "cmc_user_group" {
-  default = "cmc-private-beta"
-}
-
-variable "cmc_service_name" {
-  default = "cmc"
-}

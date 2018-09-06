@@ -20,7 +20,7 @@ public class UserTokenFactory extends IntegrationTestBase {
     public String validTokenForUser(String userId, String password) {
         defaultParser = Parser.JSON;
 
-        return given()
+        String jwt =  given()
             .relaxedHTTPSValidation()
             .urlEncodingEnabled(true)
             .param("username", userId)
@@ -32,6 +32,9 @@ public class UserTokenFactory extends IntegrationTestBase {
             .statusCode(200)
             .extract()
             .path("access_token");
+
+        System.out.println("Auth token: " + jwt);
+        return jwt;
     }
 
     public void setUpUser(String userId, String password, String role, String userGroup) {
