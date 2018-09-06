@@ -80,7 +80,7 @@ public class PaymentsV2TestDsl {
 
     public class PaymentWhenDsl {
         private RequestSpecification newRequest() {
-            return RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers).proxy("proxyout.reform.hmcts.net", 8080);
+            return RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers);
         }
 
         public PaymentWhenDsl getPayment(String userId, String paymentId) {

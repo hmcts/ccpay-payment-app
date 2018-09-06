@@ -21,7 +21,7 @@ public class ServiceTokenFactory extends  IntegrationTestBase {
     private OneTimePasswordFactory otpFactory;
 
     public String validTokenForService(String microservice, String secret) {
-        proxy(localProxyHost, Integer.parseInt(localProxyPort));
+        //proxy(localProxyHost, Integer.parseInt(localProxyPort));
         defaultParser = Parser.JSON;
 
         String otp = otpFactory.validOneTimePassword(secret);

@@ -18,7 +18,7 @@ public class UserTokenFactory extends IntegrationTestBase {
     private String baseUrl;
 
     public String validTokenForUser(String userId, String password) {
-        proxy(localProxyHost, Integer.parseInt(localProxyPort));
+        //proxy(localProxyHost, Integer.parseInt(localProxyPort));
         defaultParser = Parser.JSON;
 
         return given()
@@ -36,7 +36,7 @@ public class UserTokenFactory extends IntegrationTestBase {
     }
 
     public void setUpUser(String userId, String password, String role, String userGroup) {
-        proxy(localProxyHost, Integer.parseInt(localProxyPort));
+        //proxy(localProxyHost, Integer.parseInt(localProxyPort));
 
         String request = getCreateUserRequestBody(userId, password, role, userGroup);
 
@@ -52,7 +52,7 @@ public class UserTokenFactory extends IntegrationTestBase {
     }
 
     public void deleteUser(String userId) {
-        proxy(localProxyHost, Integer.parseInt(localProxyPort));
+        //proxy(localProxyHost, Integer.parseInt(localProxyPort));
 
         given()
             .relaxedHTTPSValidation()
