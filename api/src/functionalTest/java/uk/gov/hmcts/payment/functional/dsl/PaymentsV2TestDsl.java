@@ -2,8 +2,10 @@ package uk.gov.hmcts.payment.functional.dsl;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.apache.commons.lang.RandomStringUtils;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,20 +20,25 @@ import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 @Component
 @Scope("prototype")
 public class PaymentsV2TestDsl {
     private final Map<String, String> headers = new HashMap<>();
-    private final String baseUri;
+
+    @Value("${test.url:http://localhost:8080}")
+    private String baseURL;
+
+    private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
     private final ServiceTokenFactory serviceTokenFactory;
     private final UserTokenFactory userTokenFactory;
     private Response response;
 
     @Autowired
-    public PaymentsV2TestDsl(@Value("${test.url:http://localhost:8080}") String baseUri, ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
-        this.baseUri = baseUri;
+    public PaymentsV2TestDsl(ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
         this.serviceTokenFactory = serviceTokenFactory;
         this.userTokenFactory = userTokenFactory;
     }
@@ -41,8 +48,13 @@ public class PaymentsV2TestDsl {
     }
 
     public class PaymentGivenDsl {
-        public PaymentGivenDsl userId(String userId, String password, String role, String userGroup) {
-            headers.put("Authorization", userTokenFactory.validTokenForUser(userId, password, role, userGroup));
+        public PaymentGivenDsl createUser(String userId, String password, String role, String userGroup) {
+            userTokenFactory.setUpUser(userId, password, role, userGroup);
+            return this;
+        }
+
+        public PaymentGivenDsl userId(String userId, String password) {
+            headers.put("Authorization", userTokenFactory.validTokenForUser(userId, password));
             return this;
         }
 
@@ -56,6 +68,11 @@ public class PaymentsV2TestDsl {
             return this;
         }
 
+        public PaymentGivenDsl deleteUser(String userId) {
+            userTokenFactory.deleteUser(userId);
+            return this;
+        }
+
         public PaymentWhenDsl when() {
             return new PaymentWhenDsl();
         }
@@ -63,7 +80,7 @@ public class PaymentsV2TestDsl {
 
     public class PaymentWhenDsl {
         private RequestSpecification newRequest() {
-            return RestAssured.given().relaxedHTTPSValidation().baseUri(baseUri).contentType(ContentType.JSON).headers(headers);
+            return RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers);
         }
 
         public PaymentWhenDsl getPayment(String userId, String paymentId) {
@@ -76,8 +93,13 @@ public class PaymentsV2TestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createCardPayment(CardPaymentRequest cardPaymentRequest) {
-            response = newRequest().body(cardPaymentRequest.toString()).post( "/card-payments");
+        public PaymentWhenDsl createCardPayment(String cardPaymentRequest) {
+            response = newRequest().body(cardPaymentRequest).post( "/card-payments");
+            return this;
+        }
+
+        public PaymentWhenDsl getCardPayment(String reference) {
+            response = newRequest().get("/card-payments/" + reference);
             return this;
         }
 
@@ -107,12 +129,6 @@ public class PaymentsV2TestDsl {
             return this;
         }
 
-//        public PaymentThenDsl created(Consumer<PaymentOldDto> paymentAssertions) {
-//            PaymentOldDto paymentDto = response.then().statusCode(201).extract().as(PaymentOldDto.class);
-//            paymentAssertions.accept(paymentDto);
-//            return this;
-//        }
-
         public PaymentThenDsl created(Consumer<PaymentDto> payment) {
             PaymentDto paymentDto = response.then().statusCode(201).extract().as(PaymentDto.class);
             payment.accept(paymentDto);
@@ -130,14 +146,14 @@ public class PaymentsV2TestDsl {
             return this;
         }
 
-        public PaymentThenDsl get(Consumer<PaymentOldDto> paymentAssertions) {
-            PaymentOldDto paymentDto = response.then().statusCode(200).extract().as(PaymentOldDto.class);
+        public PaymentThenDsl get(Consumer<PaymentDto> paymentAssertions) {
+            PaymentDto paymentDto = response.then().statusCode(200).extract().as(PaymentDto.class);
             paymentAssertions.accept(paymentDto);
             return this;
         }
 
-        public PaymentOldDto get() {
-            return response.then().statusCode(200).extract().as(PaymentOldDto.class);
+        public PaymentDto get() {
+            return response.then().statusCode(200).extract().as(PaymentDto.class);
         }
 
         public PaymentThenDsl validationError(String message) {
@@ -162,6 +178,13 @@ public class PaymentsV2TestDsl {
             return this;
         }
 
+    }
 
+    public String generateUserId() {
+        return UUID.randomUUID().toString() + "@hmcts.net";
+    }
+
+    public String generatePassword() {
+        return RandomStringUtils.random(15, characters);
     }
 }
