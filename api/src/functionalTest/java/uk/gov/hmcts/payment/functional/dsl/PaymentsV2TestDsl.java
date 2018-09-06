@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 public class PaymentsV2TestDsl {
     private final Map<String, String> headers = new HashMap<>();
 
-    @Value("${test.url:http://pr-276-payment-api-preview-staging.service.core-compute-preview.internal}")
+    @Value("${test.url:http://localhost:8080}")
     private String baseURL;
 
     private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

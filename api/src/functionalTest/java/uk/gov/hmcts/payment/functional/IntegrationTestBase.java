@@ -11,12 +11,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class IntegrationTestBase {
 
-    @Value("${local.proxy.host:proxyout.reform.hmcts.net}")
-    public String localProxyHost;
-
-    @Value("${local.proxy.port:8080}")
-    public String localProxyPort;
-
     @Value("${probate.user.role}")
     protected String probateUserRole;
 
