@@ -4,9 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.ff4j.services.domain.FeatureApiBean;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +27,12 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -93,7 +100,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
 
-
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -147,7 +153,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void upateCaseReferenceValidation_forEmptyValues() throws Exception{
+    public void upateCaseReferenceValidation_forEmptyValues() throws Exception {
         UpdatePaymentRequest updatePaymentRequest = objectMapper.readValue(updatePaymentInvalidRequestJson().getBytes(), UpdatePaymentRequest.class);
         MvcResult result = restActions.
             patch(format("/payments/RC-1519-9028-1909-3111"), updatePaymentRequest)
@@ -194,6 +200,133 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
     }
 
+    //fail on not providing one of start/end-times
+    @Test
+    @Transactional
+    public void failRetrievePaymentsWithOnlyStartTimeSpecified() throws Exception {
+        //TODO
+    }
+
+    //fail on not providing one of start/end-times
+    @Test
+    @Transactional
+    public void failRetrievePaymentsWithOnlyEndTimeSpecified() throws Exception {
+        //TODO
+    }
+
+    // normal test
+    @Test
+    @Transactional
+    public void retrievePaymentsWithNarrowedDownDateTime() throws Exception {
+        Payment firstPayment = populateCardPaymentWithSpecifiedCreationDateToDb("1");
+        Thread.sleep(2000); // due to search based on UpdateTime in DB
+        Payment secondPayment = populateCardPaymentWithSpecifiedCreationDateToDb("2");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        DateTime firstDate = new DateTime(firstPayment.getDateUpdated());
+        DateTime secondDate = new DateTime(secondPayment.getDateUpdated());
+
+        String startDate = secondDate.minusSeconds(1).toLocalDate().toString(ISODateTimeFormat.date());
+        String startTime = secondDate.minusSeconds(1).toLocalTime().toString(ISODateTimeFormat.time());
+        String endDate = new DateTime().toLocalDate().toString(ISODateTimeFormat.date());
+        String endTime = new DateTime().toLocalTime().toString(ISODateTimeFormat.time());
+
+        StringBuilder getCall = new StringBuilder();
+        getCall.append("/payments?")
+            .append("start_date=").append(startDate)
+            .append("&start_time=").append(startTime)
+            .append("&end_date=").append(endDate)
+            .append("&end_time=").append(endTime);
+
+        MvcResult result = restActions
+            .get(getCall.toString())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>() {
+        });
+
+        assertThat(payments.getPayments().size()).isEqualTo(1);
+
+        PaymentDto payment = payments.getPayments().get(0);
+
+        assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+
+        assertThat(payment.getReference()).isNotBlank();
+        assertThat(payment.getAmount()).isPositive();
+        assertThat(payment.getDateCreated()).isNotNull();
+        assertThat(payment.getCustomerReference()).isNotBlank();
+    }
+
+    // payment made outside specified time
+    @Test
+    @Transactional
+    public void retrieveNoPaymentOutsideOfSpecifiedTime() throws Exception {
+        Payment payment = populateCardPaymentWithSpecifiedCreationDateToDb("1");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        DateTime dateUpdated = new DateTime(payment.getDateUpdated());
+
+        String startDate = dateUpdated.minusMinutes(6).toLocalDate().toString(ISODateTimeFormat.date());
+        String startTime = dateUpdated.minusMinutes(6).toLocalTime().toString(ISODateTimeFormat.time());
+        String endDate = dateUpdated.minusMinutes(5).toLocalDate().toString(ISODateTimeFormat.date());
+        String endTime = dateUpdated.minusMinutes(5).toLocalTime().toString(ISODateTimeFormat.time());
+
+        StringBuilder getCall = new StringBuilder();
+        getCall.append("/payments?")
+            .append("start_date=").append(startDate)
+            .append("&start_time=").append(startTime)
+            .append("&end_date=").append(endDate)
+            .append("&end_time=").append(endTime);
+
+        MvcResult result = restActions
+            .get(getCall.toString())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>() {
+        });
+
+        assertThat(payments.getPayments().size()).isEqualTo(0);
+    }
+
+    //start_time cannot be after end_time
+    @Test
+    @Transactional
+    public void startTimeCannotBeAfterEndTime() throws Exception {
+        Payment payment = populateCardPaymentWithSpecifiedCreationDateToDb("1");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        DateTime dateUpdated = new DateTime(payment.getDateUpdated());
+
+        String startDate = dateUpdated.minusMinutes(5).toLocalDate().toString(ISODateTimeFormat.date());
+        String startTime = dateUpdated.minusMinutes(5).toLocalTime().toString(ISODateTimeFormat.time());
+        String endDate = dateUpdated.minusMinutes(5).toLocalDate().toString(ISODateTimeFormat.date());
+        String endTime = dateUpdated.minusMinutes(5).toLocalTime().toString(ISODateTimeFormat.time());
+
+        StringBuilder getCall = new StringBuilder();
+        getCall.append("/payments?")
+            .append("start_date=").append(startDate)
+            .append("&start_time=").append(startTime)
+            .append("&end_date=").append(endDate)
+            .append("&end_time=").append(endTime);
+
+        MvcResult result = restActions
+            .get(getCall.toString())
+            .andExpect(status().isOk())
+            .andReturn();
+        //TODO: finish up expecting failure
+    }
+
     @Test
     @Transactional
     public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
@@ -209,7 +342,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>(){});
+        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>() {
+        });
 
         assertThat(payments.getPayments().size()).isEqualTo(2);
 
@@ -371,7 +505,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
         assertThat(errorDTO.hasErrors()).isTrue();
         assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
-        assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("end_date");
+        assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("end_date_time");
         assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Date cannot be in the future");
     }
 
