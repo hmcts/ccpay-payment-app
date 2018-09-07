@@ -4,6 +4,8 @@ package uk.gov.hmcts.payment.functional.tokens;
 import io.restassured.parsing.Parser;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
@@ -13,6 +15,7 @@ import static io.restassured.RestAssured.*;
 
 @TestComponent
 public class ServiceTokenFactory extends  IntegrationTestBase {
+    private static final Logger logger = LoggerFactory.getLogger(ServiceTokenFactory.class);
 
     @Value("${s2s.url:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}")
     private String baseUrl;
@@ -32,7 +35,7 @@ public class ServiceTokenFactory extends  IntegrationTestBase {
             .post( "/lease")
             .body().asString();
 
-        System.out.println("S2S token: " + jwt);
+        logger.info("S2S auth token generated successfully");
         return jwt;
     }
 
