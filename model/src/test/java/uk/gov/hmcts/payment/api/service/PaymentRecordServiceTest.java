@@ -1,24 +1,41 @@
 package uk.gov.hmcts.payment.api.service;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
-import uk.gov.hmcts.payment.api.model.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PaymentRecordServiceTest {
 
     private static final String USER_ID = "USER_ID";
+    private static final String S2S_SERVICE_NAME = "bar-api";
 
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -34,12 +51,11 @@ public class PaymentRecordServiceTest {
 
     @Mock
     private UserIdSupplier userIdSupplier;
+    @Mock
+    private ServiceIdSupplier serviceIdSupplier;
 
     @Spy
     private PaymentReferenceUtil paymentReferenceUtil;
-
-    @Spy
-    private PaymentMethod paymentMethod;
 
     @InjectMocks
     private PaymentRecordServiceImpl paymentRecordService;
@@ -76,6 +92,7 @@ public class PaymentRecordServiceTest {
             assertEquals(p.getPaymentMethod().getName(), "cheque");
             assertEquals(p.getCaseReference(), "caseReference");
             assertEquals(p.getUserId(), USER_ID);
+            assertEquals(p.getS2sServiceName(), S2S_SERVICE_NAME);
         });
 
         savedPayment.getFees().forEach(f -> {
@@ -93,15 +110,16 @@ public class PaymentRecordServiceTest {
         when(paymentStatusRepository.findByNameOrThrow("created")).thenReturn(PaymentStatus.paymentStatusWith().name("created").build());
 
         when(userIdSupplier.get()).thenReturn(USER_ID);
+        when(serviceIdSupplier.get()).thenReturn(S2S_SERVICE_NAME);
 
         return Payment.paymentWith()
             .amount(new BigDecimal("100.11"))
             .reference(paymentReferenceUtil.getNext())
             .caseReference("caseReference")
             .externalReference("chequeNumber")
-            .externalProvider("cheque provider")
             .giroSlipNo("giro")
             .userId(USER_ID)
+            .s2sServiceName(S2S_SERVICE_NAME)
             .paymentMethod(paymentMethodRepository.findByNameOrThrow("cheque"))
             .paymentChannel(paymentChannelRepository.findByNameOrThrow("digital bar"))
             .paymentStatus(paymentStatusRepository.findByNameOrThrow("created"))

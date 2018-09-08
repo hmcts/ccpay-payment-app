@@ -33,12 +33,15 @@ public class PaymentRecordController {
 
     private final PaymentRecordService<PaymentFeeLink, String> paymentRecordService;
     private final PaymentRecordDtoMapper paymentRecordDtoMapper;
+    private final PaymentProviderRepository paymentProviderRespository;
 
     @Autowired
     public PaymentRecordController(PaymentRecordService<PaymentFeeLink, String> paymentRecordService,
-                                   PaymentRecordDtoMapper paymentRecordDtoMapper) {
+                                   PaymentRecordDtoMapper paymentRecordDtoMapper,
+                                   PaymentProviderRepository paymentProviderRespository) {
         this.paymentRecordService = paymentRecordService;
         this.paymentRecordDtoMapper = paymentRecordDtoMapper;
+        this.paymentProviderRespository = paymentProviderRespository;
     }
 
 
@@ -53,11 +56,13 @@ public class PaymentRecordController {
     public ResponseEntity<PaymentDto> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
+        PaymentProvider paymentProvider = paymentProviderRespository.findByNameOrThrow(paymentRecordRequest.getExternalProvider());
+
         Payment payment = Payment.paymentWith()
             .amount(paymentRecordRequest.getAmount())
             .caseReference(paymentRecordRequest.getReference())
             .currency(paymentRecordRequest.getCurrency().getCode())
-            .externalProvider(paymentRecordRequest.getExternalProvider())
+            .paymentProvider(paymentProvider)
             .externalReference(paymentRecordRequest.getExternalReference())
             .serviceType(paymentRecordRequest.getService().getName())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(paymentRecordRequest.getPaymentMethod().getType()).build())

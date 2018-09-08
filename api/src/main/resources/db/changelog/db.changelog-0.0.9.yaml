@@ -1,0 +1,23 @@
+databaseChangeLog:
+
+- changeSet:
+    id: 1529403181551-1
+    author: sateesh
+    changes:
+      - addColumn:
+          columns:
+          - column:
+              name: s2s_service_name
+              type: varchar(255)
+          tableName: payment
+
+- changeSet:
+    id: 1529403181551-2
+    author: sateesh
+    changes:
+      - sql:
+          splitStatements:
+          sql: >
+            UPDATE payment SET s2s_service_name = 'cmc' where service_type = 'Civil Money Claims';
+            UPDATE payment SET s2s_service_name = 'divorce_frontend' where service_type = 'Divorce';
+            UPDATE payment SET s2s_service_name = 'probate_frontend' where service_type = 'Probate';
