@@ -1,8 +1,9 @@
-package uk.gov.hmcts.payment.functional.tokens;
-import org.jboss.aerogear.security.otp.Totp;
-import org.springframework.boot.test.context.TestComponent;
+package uk.gov.hmcts.payment.api.configuration.security.util;
 
-@TestComponent
+import org.jboss.aerogear.security.otp.Totp;
+import org.springframework.stereotype.Component;
+
+@Component
 public class OneTimePasswordFactory {
     private Totp totp;
 

@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.functional.dsl;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.apache.commons.lang.RandomStringUtils;
@@ -11,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
 import uk.gov.hmcts.payment.functional.tokens.ServiceTokenFactory;
 import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
@@ -33,13 +30,14 @@ public class PaymentsV2TestDsl {
 
     private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    private final ServiceTokenFactory serviceTokenFactory;
+    @Autowired
+    private ServiceTokenFactory serviceTokenFactory;
+
     private final UserTokenFactory userTokenFactory;
     private Response response;
 
     @Autowired
-    public PaymentsV2TestDsl(ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
-        this.serviceTokenFactory = serviceTokenFactory;
+    public PaymentsV2TestDsl(UserTokenFactory userTokenFactory) {
         this.userTokenFactory = userTokenFactory;
     }
 

@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.functional.tokens;
 
-
+import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -9,12 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
-import uk.gov.hmcts.payment.functional.IntegrationTestBase;
 
 import static io.restassured.RestAssured.*;
 
 @TestComponent
-public class UserTokenFactory extends IntegrationTestBase {
+public class UserTokenFactory {
     private static final Logger logger = LoggerFactory.getLogger(UserTokenFactory.class);
 
     @Value("${idam.api.url:http://idam-api.aat.platform.hmcts.net}")
