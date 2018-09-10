@@ -28,12 +28,11 @@ public class PaymentsV2TestDsl {
     @Value("${test.url:http://localhost:8080}")
     private String baseURL;
 
-    private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
     @Autowired
     private ServiceTokenFactory serviceTokenFactory;
 
     private final UserTokenFactory userTokenFactory;
+
     private Response response;
 
     @Autowired
@@ -178,11 +177,4 @@ public class PaymentsV2TestDsl {
 
     }
 
-    public String generateUserId() {
-        return UUID.randomUUID().toString() + "@hmcts.net";
-    }
-
-    public String generatePassword() {
-        return RandomStringUtils.random(15, characters);
-    }
 }
