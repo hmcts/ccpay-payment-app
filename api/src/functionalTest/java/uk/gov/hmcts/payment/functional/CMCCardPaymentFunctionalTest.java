@@ -5,7 +5,7 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.functional.dsl.PaymentsV2TestDsl;
+import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 
 import java.math.BigDecimal;
 
@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
 
     @Autowired(required = true)
-    private PaymentsV2TestDsl dsl;
+    private PaymentsTestDsl dsl;
 
     @Test
     public void createCMCCardPaymentTestShouldReturn201() {
