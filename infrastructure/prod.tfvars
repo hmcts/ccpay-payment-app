@@ -24,6 +24,6 @@ pba_divorce_payments_email_from = "no-reply@reform.hmcts.net"
 pba_divorce_payments_email_subject = "PBA Divorce Reconciliation Report for Divorce"
 pba_divorce_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 
-feature_payments_search = false
+feature_payments_search = true
 
 external_host_name ="payment.platform.hmcts.net"
