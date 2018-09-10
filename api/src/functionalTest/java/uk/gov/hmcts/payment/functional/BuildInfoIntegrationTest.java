@@ -7,7 +7,7 @@ import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BuildInfoIntegrationTest extends IntegrationTestBase {
+public class BuildInfoIntegrationTest {
 
     @Autowired
     private PaymentsTestDsl scenario;
