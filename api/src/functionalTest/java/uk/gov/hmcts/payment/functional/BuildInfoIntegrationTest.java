@@ -14,7 +14,7 @@ public class BuildInfoIntegrationTest {
 
 
     @Test
-    public void buildInfoShouldBePresent() throws IOException, NoSuchFieldException {
+    public void assertBuildInfoShouldBePresent() throws IOException, NoSuchFieldException {
         scenario.given()
             .when().getBuildInfo()
             .then().got(JsonNode.class, response -> {
