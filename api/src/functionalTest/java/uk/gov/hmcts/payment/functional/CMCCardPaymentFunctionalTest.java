@@ -17,7 +17,7 @@ public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
     private PaymentsTestDsl dsl;
 
     @Test
-    public void createCMCCardPaymentTestShouldReturn201() {
+    public void createCMCCardPaymentTestShouldReturn201Success() {
         dsl.given().userId(paymentCmcTestUser, paymentCmcTestPassword).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
@@ -28,7 +28,7 @@ public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
     }
 
     @Test
-    public void retrieveCMCCardPaymentTestShouldReturn200() {
+    public void retrieveCMCCardPaymentTestShouldReturn200Success() {
         final String[] reference = new String[1];
 
         // create card payment

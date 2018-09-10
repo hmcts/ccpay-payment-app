@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.functional.tokens;
 
-import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
 import org.json.JSONArray;
 import org.json.JSONException;
