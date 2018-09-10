@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 @Component
 @Scope("prototype")
-public class PaymentsV2TestDsl {
+public class PaymentsTestDsl {
     private final Map<String, String> headers = new HashMap<>();
 
     @Value("${test.url:http://localhost:8080}")
@@ -36,7 +36,7 @@ public class PaymentsV2TestDsl {
     private Response response;
 
     @Autowired
-    public PaymentsV2TestDsl(UserTokenFactory userTokenFactory) {
+    public PaymentsTestDsl(UserTokenFactory userTokenFactory) {
         this.userTokenFactory = userTokenFactory;
     }
 
