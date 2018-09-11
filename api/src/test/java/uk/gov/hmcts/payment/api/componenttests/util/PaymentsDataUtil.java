@@ -7,6 +7,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
@@ -66,10 +67,10 @@ public class PaymentsDataUtil {
         return fees;
     }
 
-    public void populateCardPaymentToDb(String number) throws Exception {
-        //Create a payment in db
+    private Payment getExampleCardPaymentWithNumber(String number) {
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
-        Payment payment = Payment.paymentWith()
+
+        return Payment.paymentWith()
             .amount(new BigDecimal("99.99"))
             .caseReference("Reference" + number)
             .ccdCaseNumber("ccdCaseNumber" + number)
@@ -86,6 +87,21 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-2432-000" + number)
             .statusHistories(Arrays.asList(statusHistory))
             .build();
+    }
+
+    public Payment populateCardPaymentWithSpecifiedCreationDateToDb(String number) {
+        Payment payment = getExampleCardPaymentWithNumber(number);
+
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public void populateCardPaymentToDb(String number) throws Exception {
+        //Create a payment in db
+        Payment payment = getExampleCardPaymentWithNumber(number);
 
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 

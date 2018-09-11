@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import lombok.SneakyThrows;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
@@ -98,6 +99,7 @@ public class PaymentDtoMapper {
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getExternalReference())
+            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
         return enrichWithFeeData(paymentDto);

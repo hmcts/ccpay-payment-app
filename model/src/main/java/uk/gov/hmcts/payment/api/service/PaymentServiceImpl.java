@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -49,12 +50,12 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public List<PaymentFeeLink> search(LocalDate startDate, LocalDate endDate, String paymentMethod, String serviceType, String ccdCaseNumber) {
+    public List<PaymentFeeLink> search(LocalDateTime startDate, LocalDateTime endDate, String paymentMethod, String serviceType, String ccdCaseNumber) {
         Date fromDateTime = Optional.ofNullable(startDate)
-            .map(s -> Date.from(s.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()))
+            .map(s -> Date.from(s.atZone(ZoneId.systemDefault()).toInstant()))
             .orElse(null);
         Date toDateTime = Optional.ofNullable(endDate)
-            .map(s -> Date.from(s.atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant()))
+            .map(s -> Date.from(s.atZone(ZoneId.systemDefault()).toInstant()))
             .orElse(null);
         return cardPaymentService.search(fromDateTime, toDateTime, paymentMethod, serviceType, ccdCaseNumber);
     }

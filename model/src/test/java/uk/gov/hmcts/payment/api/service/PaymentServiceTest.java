@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
@@ -34,8 +35,8 @@ public class PaymentServiceTest {
     @Test
     public void shouldDelegateSearchToCardPaymentType() {
         // given
-        LocalDate startDate = LocalDate.now().minusDays(2);
-        LocalDate endDate = LocalDate.now();
+        LocalDateTime startDate = LocalDateTime.now().minusDays(2);
+        LocalDateTime endDate = LocalDateTime.now();
         List<PaymentFeeLink> paymentFeeLinks = Collections.emptyList();
         given(cardPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq(null), eq(null)))
             .willReturn(paymentFeeLinks);
@@ -48,9 +49,9 @@ public class PaymentServiceTest {
     @Test
     public void shouldPassStartDateWithMidnightTimeForSearch() {
         // given
-        LocalDate startDate = LocalDate.now();
+        LocalDateTime startDate = LocalDateTime.now();
         // when
-        service.search(startDate, LocalDate.now(), CARD.getType(), null, null);
+        service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null);
         // then
         Date fromDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         verify(cardPaymentService).search(eq(fromDate), any(Date.class), eq(CARD.getType()), eq(null), eq(null));
@@ -59,9 +60,9 @@ public class PaymentServiceTest {
     @Test
     public void shouldPassEndDateWithMidnightForSearch() {
         // given
-        LocalDate startDate = LocalDate.now();
+        LocalDateTime startDate = LocalDateTime.now();
         // when
-        service.search(startDate, LocalDate.now(), CARD.getType(), null, null);
+        service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null);
         // then
         Date toDate = Date.from(LocalDate.now().atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
         verify(cardPaymentService).search(any(Date.class), eq(toDate), eq(CARD.getType()), eq(null), eq(null));
@@ -70,8 +71,8 @@ public class PaymentServiceTest {
     @Test
     public void shouldDelegateSearchToCMCService() {
         // given
-        LocalDate startDate = LocalDate.now().minusDays(2);
-        LocalDate endDate = LocalDate.now();
+        LocalDateTime startDate = LocalDateTime.now().minusDays(2);
+        LocalDateTime endDate = LocalDateTime.now();
         List<PaymentFeeLink> paymentFeeLinks = Collections.emptyList();
         given(cardPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq("cmc"), eq(null)))
             .willReturn(paymentFeeLinks);

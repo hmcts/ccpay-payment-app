@@ -35,6 +35,9 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +52,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_DATE;
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_TIME;
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentsReportService paymentsReportService;
@@ -104,6 +108,8 @@ public class PaymentController {
     @PaymentExternalAPI
     public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                              @RequestParam(name = "end_date", required = false) Optional<String> endDateString,
+                                             @RequestParam(name = "start_time", required = false) Optional<String> startTimeString,
+                                             @RequestParam(name = "end_time", required = false) Optional<String> endTimeString,
                                              @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                              @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
@@ -111,14 +117,29 @@ public class PaymentController {
         if (!ff4j.check("payment-search")) {
             throw new PaymentException("Payment search feature is not available for usage.");
         } else {
-            validator.validate(paymentMethodType, serviceType, startDateString, endDateString);
+            validator.validate(paymentMethodType, serviceType, startDateString, endDateString, startTimeString, endTimeString);
 
-            LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
-            LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
+            if(!startTimeString.isPresent() && !endTimeString.isPresent()) {
+                startTimeString = Optional.of(PaymentValidator.ISO_MIDNIGHT);
+                endTimeString = Optional.of(PaymentValidator.ISO_MIDNIGHT);
+            }
+
+            LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, dateFormatter)).orElse(null);
+            LocalTime startTime = startTimeString.map(time -> LocalTime.parse(time, timeFormatter)).orElse(null);
+            LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, dateFormatter)).orElse(null);
+            LocalTime endTime = endTimeString.map(time -> LocalTime.parse(time, timeFormatter)).orElse(null);
+
+            if(endDate != null && endTime == null) {
+                endDate = endDate.plusDays(1);
+                endTime = LocalTime.MIDNIGHT.minusSeconds(1);
+            }
+
+            LocalDateTime startDateTime = startDate != null ? LocalDateTime.of(startDate, startTime) : null;
+            LocalDateTime endDateTime = endDate != null ? LocalDateTime.of(endDate, endTime) : null;
             String paymentType = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null);
             String serviceName = serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null);
 
-            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, paymentType, serviceName, ccdCaseNumber);
+            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDateTime, endDateTime, paymentType, serviceName, ccdCaseNumber);
 
             List<PaymentDto> paymentDto = paymentFeeLinks.stream()
                 .map(paymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
