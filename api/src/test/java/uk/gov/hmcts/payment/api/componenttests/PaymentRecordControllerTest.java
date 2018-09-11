@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.validator.routines.checkdigit.CheckDigit;
 import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -265,7 +264,7 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
     }
 
     @Test
@@ -278,7 +277,7 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
 
     }
 
