@@ -1,7 +1,7 @@
 liquibase_enabled = "false"
 vault_section = "prod"
 capacity = "2"
-idam_api_url = "https://prod-idamapi.reform.hmcts.net:3511"
+idam_api_url = "https://idam-api.platform.hmcts.net"
 
 card_payments_report_scheduler_enabled = "true"
 pba_cmc_payments_report_scheduler_enabled = "true"
