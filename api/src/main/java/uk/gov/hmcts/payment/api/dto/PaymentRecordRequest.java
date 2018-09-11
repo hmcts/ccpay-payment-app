@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -66,6 +67,7 @@ public class PaymentRecordRequest {
     @Valid
     private List<FeeDto> fees;
 
+    @JsonIgnore
     @AssertFalse(message = "Invalid payment reported offline date.")
     public boolean isValidReportedDateOffline() {
         if (reportedDateOffline != null) {
