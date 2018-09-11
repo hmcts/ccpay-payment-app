@@ -10,7 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import org.joda.time.DateTime;
-import org.springframework.format.annotation.DateTimeFormat;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -19,8 +18,6 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.IllegalFormatException;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -70,7 +67,7 @@ public class PaymentRecordRequest {
     private List<FeeDto> fees;
 
     @AssertFalse(message = "Invalid payment reported offline date.")
-    private boolean isValidReportedDateOffline() {
+    public boolean isValidReportedDateOffline() {
         if (reportedDateOffline != null) {
             try {
                 DateTime.parse(reportedDateOffline);
