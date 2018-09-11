@@ -48,6 +48,7 @@ public class PaymentDtoTest {
     private String id;
     private SimpleDateFormat sdf;
     private String giroSlipNo;
+    private String reportedDateOffline;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -96,11 +97,13 @@ public class PaymentDtoTest {
         organisationName = "organisationName";
         paymentGroupReference = "paymentGroupReference";
         giroSlipNo = "giroSlipNo";
+        reportedDateOffline = "2018-09-05";
+
 
         testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference,
+            organisationName, paymentGroupReference, reportedDateOffline,
             null, statusHistories, giroSlipNo, links);
     }
 

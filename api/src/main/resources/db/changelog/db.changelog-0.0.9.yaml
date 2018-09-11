@@ -21,3 +21,14 @@ databaseChangeLog:
             UPDATE payment SET s2s_service_name = 'cmc' where service_type = 'Civil Money Claims';
             UPDATE payment SET s2s_service_name = 'divorce_frontend' where service_type = 'Divorce';
             UPDATE payment SET s2s_service_name = 'probate_frontend' where service_type = 'Probate';
+
+- changeSet:
+    id: 1536071035519-1
+    author: tarun
+    changes:
+      - addColumn:
+          columns:
+          - column:
+              name: reported_date_offline
+              type: TIMESTAMP WITHOUT TIME ZONE
+          tableName: payment

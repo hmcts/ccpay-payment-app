@@ -77,6 +77,8 @@ public class PaymentDto {
 
     private String paymentGroupReference;
 
+    private String reportedDateOffline;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;

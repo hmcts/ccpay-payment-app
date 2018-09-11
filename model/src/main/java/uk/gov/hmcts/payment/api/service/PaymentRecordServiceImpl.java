@@ -71,6 +71,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                 .serviceType(payment.getServiceType())
                 .s2sServiceName(serviceIdSupplier.get())
                 .userId(userIdSupplier.get())
+                .reportedDateOffline(payment.getReportedDateOffline())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(payment.getPaymentMethod().getName()))

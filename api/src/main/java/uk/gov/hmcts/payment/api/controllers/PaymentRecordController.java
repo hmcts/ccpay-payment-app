@@ -3,6 +3,8 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +70,7 @@ public class PaymentRecordController {
             .paymentMethod(PaymentMethod.paymentMethodWith().name(paymentRecordRequest.getPaymentMethod().getType()).build())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
+            .reportedDateOffline(DateTime.parse(paymentRecordRequest.getReportedDateOffline()).withZone(DateTimeZone.UTC).toDate())
             .build();
 
         List<PaymentFee> fees = paymentRecordRequest.getFees().stream()

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -9,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
+import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -54,6 +56,9 @@ public class PaymentRecordRequest {
 
     private String giroSlipNo;
 
+    @NotNull
+    private String reportedDateOffline;
+
     @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
@@ -61,4 +66,18 @@ public class PaymentRecordRequest {
     @NotEmpty
     @Valid
     private List<FeeDto> fees;
+
+    @JsonIgnore
+    @AssertFalse(message = "Invalid payment reported offline date. Date format should be UTC.")
+    public boolean isValidReportedDateOffline() {
+        if (reportedDateOffline != null) {
+            try {
+                DateTime.parse(reportedDateOffline);
+            } catch (IllegalArgumentException fe) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
