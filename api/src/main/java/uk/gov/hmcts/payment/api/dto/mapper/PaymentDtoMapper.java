@@ -98,6 +98,7 @@ public class PaymentDtoMapper {
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getExternalReference())
+            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
         return enrichWithFeeData(paymentDto);
