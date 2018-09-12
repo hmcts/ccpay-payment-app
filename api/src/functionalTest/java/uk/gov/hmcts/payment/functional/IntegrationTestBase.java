@@ -38,6 +38,9 @@ public class IntegrationTestBase {
     @Value("${payments.cmc.test.user:cmcuser@domain.com}")
     protected String paymentCmcTestUser;
 
+    @Value("${payments.cmc.test.user.id:148906}")
+    protected String paymentCmcTestUserId;
+
     @Value("${payments.cmc.test.user.password:dummy}")
     protected String paymentCmcTestPassword;
 

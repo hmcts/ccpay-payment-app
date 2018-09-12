@@ -18,7 +18,7 @@ public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
 
     @Test
     public void createCMCCardPaymentTestShouldReturn201Success() {
-        dsl.given().userId(paymentCmcTestUser, paymentCmcTestPassword).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
+        dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
                 assertNotNull(paymentDto.getReference());
@@ -32,7 +32,7 @@ public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
         final String[] reference = new String[1];
 
         // create card payment
-        dsl.given().userId(paymentCmcTestUser, paymentCmcTestPassword).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
+        dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
                 reference[0] = savedPayment.getReference();
@@ -43,7 +43,7 @@ public class CMCCardPaymentFunctionalTest extends IntegrationTestBase {
 
 
         // retrieve card payment
-        PaymentDto paymentDto = dsl.given().userId(paymentCmcTestUser, paymentCmcTestPassword).serviceId(cmcServiceName, cmcSecret)
+        PaymentDto paymentDto = dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
             .when().getCardPayment(reference[0])
             .then().get();
 

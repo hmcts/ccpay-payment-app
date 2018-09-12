@@ -16,7 +16,7 @@ import static io.restassured.RestAssured.*;
 public class ServiceTokenFactory {
     private static final Logger logger = LoggerFactory.getLogger(ServiceTokenFactory.class);
 
-    @Value("${s2s.url:http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}")
+    @Value("${s2s.url}")
     private String baseUrl;
 
     private OneTimePasswordFactory otpFactory;
