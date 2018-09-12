@@ -48,8 +48,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentGivenDsl userId(String userId, String password) {
-            headers.put("Authorization", userTokenFactory.validTokenForUser(userId, password));
+        public PaymentGivenDsl userId(String email, String userId, String password, String role) {
+            headers.put("Authorization", userTokenFactory.validTokenForUser(email, userId, password, role));
             return this;
         }
 

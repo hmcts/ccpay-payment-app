@@ -15,26 +15,38 @@ import static io.restassured.RestAssured.*;
 public class UserTokenFactory {
     private static final Logger logger = LoggerFactory.getLogger(UserTokenFactory.class);
 
-    @Value("${idam.api.url:http://idam-api.aat.platform.hmcts.net}")
+    @Value("${idam.api.url}")
     private String baseUrl;
 
-    public String validTokenForUser(String userId, String password) {
+    public String validTokenForUser(String email, String userId, String password, String role) {
         defaultParser = Parser.JSON;
 
-        String jwt =  given()
-            .relaxedHTTPSValidation()
-            .urlEncodingEnabled(true)
-            .param("username", userId)
-            .param("password", password)
-            .header("Accept", "application/json")
-            .baseUri(baseUrl)
-            .post("/loginUser")
-            .then()
-            .statusCode(200)
-            .extract()
-            .path("access_token");
+        String jwt = null;
+        if (baseUrl.contains("idam-api.aat")) {
+            jwt =  given()
+                .relaxedHTTPSValidation()
+                .urlEncodingEnabled(true)
+                .param("username", email)
+                .param("password", password)
+                .header("Accept", "application/json")
+                .baseUri(baseUrl)
+                .post("/loginUser")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("access_token");
+        } else {
+            jwt =  given()
+                .relaxedHTTPSValidation()
+                .queryParam("id", userId)
+                .queryParam("role", role)
+                .baseUri(baseUrl)
+                .post("/testing-support/lease")
+                .body().asString();
+        }
 
-        logger.info("User auth token generated successfully");
+
+        logger.info("User auth token generated successfully: " + jwt);
         return jwt;
     }
 
