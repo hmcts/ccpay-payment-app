@@ -1,4 +1,4 @@
-liquibase_enabled = "true"
+liquibase_enabled = "false"
 vault_section = "prod"
 capacity = "2"
 idam_api_url = "https://idam-api.platform.hmcts.net"
