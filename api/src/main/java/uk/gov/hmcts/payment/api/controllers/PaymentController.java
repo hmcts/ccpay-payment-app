@@ -7,6 +7,10 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.ff4j.FF4j;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +34,11 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,22 +52,24 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
-
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentsReportService paymentsReportService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
     private final FF4j ff4j;
 
+    private final DateUtil dateUtil;
+
+
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
-                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j) {
+                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
+        this.dateUtil = dateUtil;
     }
 
 
@@ -102,8 +107,8 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method = GET)
     @PaymentExternalAPI
-    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateString,
-                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateString,
+    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                              @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                              @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
@@ -111,10 +116,13 @@ public class PaymentController {
         if (!ff4j.check("payment-search")) {
             throw new PaymentException("Payment search feature is not available for usage.");
         } else {
-            validator.validate(paymentMethodType, serviceType, startDateString, endDateString);
+            validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
 
-            LocalDate startDate = startDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
-            LocalDate endDate = endDateString.map(date -> LocalDate.parse(date, formatter)).orElse(null);
+            DateTimeFormatter formatter = dateUtil.getIsoDateTimeFormatter();
+
+            LocalDateTime startDate = startDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
+            LocalDateTime endDate = endDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
+
             String paymentType = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null);
             String serviceName = serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null);
 
