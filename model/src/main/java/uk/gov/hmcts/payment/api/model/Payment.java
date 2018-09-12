@@ -112,6 +112,9 @@ public class Payment {
     @Column(name = "reference")
     private String reference;
 
+    @Column(name = "reported_date_offline")
+    private Date reportedDateOffline;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentLink;
