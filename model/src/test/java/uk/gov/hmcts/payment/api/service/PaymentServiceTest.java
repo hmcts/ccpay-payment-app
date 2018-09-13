@@ -9,7 +9,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +52,7 @@ public class PaymentServiceTest {
         service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null);
         // then
         Date fromDate = LocalDateTime.now().toDate(); //Date.from(LocalDateTime.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        verify(cardPaymentService).search(eq(fromDate), any(Date.class), eq(CARD.getType()), eq(null), eq(null));
+        verify(cardPaymentService).search(any(startDate.toDate().getClass()), any(LocalDateTime.now().toDate().getClass()), eq(CARD.getType()), eq(null), eq(null));
     }
 
     @Test
@@ -64,7 +63,7 @@ public class PaymentServiceTest {
         service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null);
         // then
         Date toDate = LocalDateTime.now().plusDays(1).minusSeconds(1).toDate(); //Date.from(LocalDateTime.now().atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
-        verify(cardPaymentService).search(any(Date.class), eq(toDate), eq(CARD.getType()), eq(null), eq(null));
+        verify(cardPaymentService).search(any(startDate.toDate().getClass()), any(toDate.getClass()), eq(CARD.getType()), eq(null), eq(null));
     }
 
     @Test
