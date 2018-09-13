@@ -1,14 +1,15 @@
 package uk.gov.hmcts.payment.api.validators;
 
 import org.apache.commons.lang3.EnumUtils;
+import org.joda.time.LocalDateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
+import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
@@ -17,7 +18,8 @@ import static java.util.Optional.empty;
 @Component
 public class PaymentValidator {
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
+    @Autowired
+    private DateUtil dateUtil;
 
     public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
@@ -29,8 +31,8 @@ public class PaymentValidator {
             dto.addFieldError("service_name", "Invalid service name requested");
         }
 
-        Optional<LocalDate> startDate = parseAndValidateDate(startDateString, "start_date", dto);
-        Optional<LocalDate> endDate = parseAndValidateDate(endDateString, "end_date", dto);
+        Optional<LocalDateTime> startDate = parseAndValidateDate(startDateString, "start_date", dto);
+        Optional<LocalDateTime> endDate = parseAndValidateDate(endDateString, "end_date", dto);
 
         if (startDate.isPresent() && endDate.isPresent() && startDate.get().isAfter(endDate.get())) {
             dto.addFieldError("dates", "Start date cannot be greater than end date");
@@ -41,28 +43,28 @@ public class PaymentValidator {
         }
     }
 
-    private Optional<LocalDate> parseAndValidateDate(Optional<String> startDateString, String fieldName, ValidationErrorDTO dto) {
+    private Optional<LocalDateTime> parseAndValidateDate(Optional<String> startDateString, String fieldName, ValidationErrorDTO dto) {
         return startDateString.flatMap(s -> validateDate(s, dto, fieldName));
     }
 
-    private Optional<LocalDate> validateDate(String dateString, ValidationErrorDTO dto, String fieldName) {
-        Optional<LocalDate> formattedDate = parseFrom(dateString);
+    private Optional<LocalDateTime> validateDate(String dateString, ValidationErrorDTO dto, String fieldName) {
+        Optional<LocalDateTime> formattedDate = parseFrom(dateString);
         if (!formattedDate.isPresent()) {
-            dto.addFieldError(fieldName, "Invalid date format received");
+            dto.addFieldError(fieldName, "Invalid date format received, required data format is ISO");
         } else {
             checkFutureDate(formattedDate.get(), fieldName, dto);
         }
         return formattedDate;
     }
-    private void checkFutureDate(LocalDate date, String fieldName, ValidationErrorDTO dto) {
-        if (date.isAfter(LocalDate.now())) {
+    private void checkFutureDate(LocalDateTime date, String fieldName, ValidationErrorDTO dto) {
+        if (date.isAfter(LocalDateTime.now())) {
             dto.addFieldError(fieldName, "Date cannot be in the future");
         }
     }
 
-    private static Optional<LocalDate> parseFrom(String value) {
+    private Optional<LocalDateTime> parseFrom(String value) {
         try {
-            return Optional.of(LocalDate.parse(value,formatter));
+            return Optional.of(LocalDateTime.parse(value, dateUtil.getIsoDateTimeFormatter()));
         } catch (DateTimeParseException ex) {
             return empty();
         }

@@ -120,13 +120,13 @@ public class PaymentController {
 
             DateTimeFormatter formatter = dateUtil.getIsoDateTimeFormatter();
 
-            LocalDateTime startDate = startDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
-            LocalDateTime endDate = endDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
+            LocalDateTime startDateTime = startDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
+            LocalDateTime endDateTime = endDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
 
             String paymentType = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null);
             String serviceName = serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null);
 
-            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, paymentType, serviceName, ccdCaseNumber);
+            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDateTime, endDateTime, paymentType, serviceName, ccdCaseNumber);
 
             List<PaymentDto> paymentDto = paymentFeeLinks.stream()
                 .map(paymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
