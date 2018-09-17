@@ -432,4 +432,37 @@ public class PaymentRecordControllerTest {
             .build();
     }
 
+    @Test
+    public void testThatGivenARecordBarclaycardPaymentWhenItsFetchedThroughSlashPaymentsItContainsAReportedDateOffline() throws Exception {
+        PaymentRecordRequest request = getBarclayCardPaymentRequest();
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Initiated");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result2 = restActions
+            .get("/payments?service_name=" + Service.DIGITAL_BAR)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response2 = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+
+        assertThat(response2.getPayments().size()).isGreaterThan(0);
+
+        assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotNull();
+        assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotBlank();
+        assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotEmpty();
+
+    }
+
 }
