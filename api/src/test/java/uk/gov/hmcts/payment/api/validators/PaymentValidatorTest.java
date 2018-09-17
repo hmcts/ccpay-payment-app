@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.validators;
 
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
+import uk.gov.hmcts.payment.api.util.DateUtil;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -15,7 +16,7 @@ public class PaymentValidatorTest {
     private static String NOW_STRING = LocalDate.now().format(ISO_DATE);
     private static String FUTURE_STRING = LocalDate.now().plusDays(1).format(ISO_DATE);
 
-    private PaymentValidator validator = new PaymentValidator();
+    private PaymentValidator validator = new PaymentValidator(new DateUtil());
 
     @Test
     public void shouldReturnNoErrors() {

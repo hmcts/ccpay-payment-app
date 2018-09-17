@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
@@ -18,8 +19,13 @@ import static java.util.Optional.empty;
 @Component
 public class PaymentValidator {
 
+
+    private final DateUtil dateUtil;
+
     @Autowired
-    private DateUtil dateUtil;
+    public PaymentValidator(DateUtil dateUtil) {
+        this.dateUtil = dateUtil;
+    }
 
     public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
@@ -31,7 +37,7 @@ public class PaymentValidator {
             dto.addFieldError("service_name", "Invalid service name requested");
         }
 
-        if (!endDateString.isPresent()) {
+        if (startDateString.isPresent() && !endDateString.isPresent()) {
             dto.addFieldError("dates", "End date is required.");
         }
 
