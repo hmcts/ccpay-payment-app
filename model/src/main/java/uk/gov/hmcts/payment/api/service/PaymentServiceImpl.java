@@ -54,7 +54,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
             .map(s -> s.toDate())
             .orElse(null);
         Date toDateTime = Optional.ofNullable(endDate)
-            .map(s -> fromDateTime.compareTo(s.toDate()) == 0 ? s.plusDays(1).minusSeconds(1).toDate() :s.toDate())
+            .map(s -> fromDateTime != null && fromDateTime.compareTo(s.toDate()) == 0 ? s.plusDays(1).minusSeconds(1).toDate() : s.toDate())
             .orElse(null);
         return cardPaymentService.search(fromDateTime, toDateTime, paymentMethod, serviceType, ccdCaseNumber);
     }
