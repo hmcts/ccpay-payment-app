@@ -86,7 +86,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormat.forPattern("dd-MM-yyyy");
 
-    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
