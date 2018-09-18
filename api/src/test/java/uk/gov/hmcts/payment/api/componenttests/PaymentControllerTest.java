@@ -460,54 +460,13 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(result.getResponse().getContentAsString()).isEqualTo("Payment search feature is not available for usage.");
     }
 
-//    New validation in place end-date is required
-//    @Test
-//    @Transactional
-    public void searchCardPayments_withValidStartDateAndNoEndDate_shouldReturnOk() throws Exception {
 
-        populateCardPaymentToDb("2");
-        populateCreditAccountPaymentToDb("1");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&payment_method=CARD")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> payments = paymentsResponse.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
-            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
-            assertThat(p.getCaseReference()).isEqualTo("Reference2");
-            assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
-            assertThat(p.getChannel()).isEqualTo("online");
-            assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("Initiated");
-            assertThat(p.getSiteId()).isEqualTo("AA02");
-            assertThat(p.getDateCreated()).isNotNull();
-            assertThat(p.getDateUpdated()).isNotNull();
-            p.getFees().stream().forEach(f -> {
-                assertThat(f.getCode()).isEqualTo("FEE0002");
-                assertThat(f.getVersion()).isEqualTo("1");
-                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
-            });
-        });
-    }
-//    JPA API TO COMPARE TO THE NEAREST MILLISECONDS
-//    @Test
-//    @Transactional
+    @Test
+    @Transactional
     public void searchCardPayments_withValidEndDateAndNoStartDate_shouldReturnOk() throws Exception {
 
         populateCardPaymentToDb("2");
         populateCreditAccountPaymentToDb("1");
-        //Thread.sleep(10);
 
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
         System.out.println("EndDate is: " + endDate);
@@ -615,8 +574,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateBarCashPaymentToDb("3");
         populateBarChequePaymentToDb("4");
 
-        String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
+        String startDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
