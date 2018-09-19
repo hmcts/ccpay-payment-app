@@ -57,7 +57,7 @@ public class PaymentDtoMapper {
             .channel(payment.getPaymentChannel().getName())
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
-            .externalProvider(payment.getPaymentProvider().getName())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .fees(toFeeDtos(fees))
             .links(new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),

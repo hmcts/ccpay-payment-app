@@ -243,6 +243,21 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
+    public void testNoProviderPayment() throws Exception {
+        PaymentRecordRequest request = getNoProviderPaymentRequest();
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Initiated");
+    }
+
+    @Test
     public void testBarclaycardPaymentWithoutReportedDateOfflineShouldFail() throws Exception {
         PaymentRecordRequest request = getBarclayCardPaymentRequestWithoutReportedDateOffline();
 
@@ -391,6 +406,30 @@ public class PaymentRecordControllerTest {
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
             .externalProvider("barclaycard")
+            .externalReference("bar_card_1000013")
+            .reportedDateOffline(DateTime.now().toString())
+            .siteId("AA001")
+            .fees(
+                Arrays.asList(
+                    FeeDto.feeDtoWith()
+                        .calculatedAmount(new BigDecimal("99.99"))
+                        .code("FEE0111")
+                        .reference("ref_122")
+                        .version("1")
+                        .volume(1d)
+                        .build()
+                )
+            )
+            .build();
+    }
+
+    private PaymentRecordRequest getNoProviderPaymentRequest() {
+        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
+            .amount(new BigDecimal("99.99"))
+            .paymentMethod(PaymentMethodType.CARD)
+            .reference("ref_122")
+            .service(Service.DIGITAL_BAR)
+            .currency(CurrencyCode.GBP)
             .externalReference("bar_card_1000013")
             .reportedDateOffline(DateTime.now().toString())
             .siteId("AA001")
