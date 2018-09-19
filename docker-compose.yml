@@ -1,4 +1,4 @@
-version: '2'
+version: '2.1'
 
 services:
   payments-api:
@@ -8,48 +8,33 @@ services:
         - http_proxy
         - https_proxy
         - no_proxy
-    image: docker.artifactory.reform.hmcts.net/common-components/payments-api
-    command: --wait-for-database 30
+    image: hmcts.azurecr.io/hmcts/fees-register-api/payments-api
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payments-database:5432/payment
+      - SPRING_DATASOURCE_USERNAME=fees_register
+      - SPRING_DATASOURCE_PASSWORD=fees_register
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8080/
-      - auth.idam.client.baseUrl=http://idam-api:8080/
+      - auth.idam.client.baseUrl=https://idam-test.dev.ccidam.reform.hmcts.net
       - payments.report.file.location=.
     ports:
      - 8080:8080
     links:
      - payments-database
      - service-auth-provider-api
-     - idam-api
     depends_on:
      - payments-database
      - service-auth-provider-api
-     - idam-api
 
   payments-database:
     build:
       context: docker/database
-    image: docker.artifactory.reform.hmcts.net/common-components/payments-database
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_USER=payment
+      - POSTGRES_PASSWORD=payment
+      - POSTGRES_DB=payment
     ports:
       - 5430:5432
-
-  # IDAM
-  idam-api:
-    image: docker.artifactory.reform.hmcts.net/auth/idam-api
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://idam-database:5432/idam
-      - idam.testing-support.enabled=true
-    ports:
-      - 8084:8080
-    links:
-     - idam-database
-    depends_on:
-     - idam-database
-
-  idam-database:
-    image: docker.artifactory.reform.hmcts.net/auth/idam-database
-    ports:
-      - 5434:5432
 
   # service-auth-provider
   service-auth-provider-api:
@@ -60,4 +45,3 @@ services:
       - auth.provider.service.testing-support.enabled=true
     ports:
       - 8085:8080
-
