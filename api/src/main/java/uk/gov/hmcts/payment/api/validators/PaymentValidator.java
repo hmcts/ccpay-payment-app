@@ -11,7 +11,6 @@ import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.time.format.DateTimeParseException;
-import java.util.Date;
 import java.util.Optional;
 
 import static java.util.Optional.empty;

@@ -189,6 +189,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         }
 
 
+        // date_trunc not supported in hsqldb
         Expression<Date> dateUpdatedExpr = isTestMode == true ?
             cb.function("trunc", Date.class, paymentJoin.get("dateUpdated")) :
             cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
