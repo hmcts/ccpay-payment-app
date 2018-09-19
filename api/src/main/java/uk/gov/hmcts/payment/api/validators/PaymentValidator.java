@@ -37,8 +37,8 @@ public class PaymentValidator {
             dto.addFieldError("service_name", "Invalid service name requested");
         }
 
-        if (startDateString.isPresent() && !endDateString.isPresent()) {
-            dto.addFieldError("dates", "End date is required.");
+        if ((startDateString.isPresent() && !endDateString.isPresent()) || (!startDateString.isPresent() && endDateString.isPresent())) {
+            dto.addFieldError("dates", "Both start and end dates are required.");
         }
 
         Optional<LocalDateTime> startDate = parseAndValidateDate(startDateString, "start_date", dto);
