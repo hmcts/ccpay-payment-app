@@ -468,15 +468,15 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("2");
         populateCreditAccountPaymentToDb("1");
 
+        String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
-        System.out.println("EndDate is: " + endDate);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/payments?payment_method=CARD&end_date="+endDate)
+            .get("/payments?payment_method=CARD&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -519,7 +519,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
         assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("End date is required.");
+        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Both start and end dates are required.");
     }
 
     @Test
