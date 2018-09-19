@@ -67,7 +67,7 @@ public class PaymentValidatorTest {
 
         assertThat(ex.getMessage()).isEqualTo("Error occurred in the payment params");
         assertThat(ex.getErrors().hasErrors()).isTrue();
-        assertThat(ex.getErrors().getFieldErrors().get(0).getField()).isEqualTo("start_date");
+        assertThat(ex.getErrors().getFieldErrors().get(0).getField()).isEqualTo("start_date_time");
         assertThat(ex.getErrors().getFieldErrors().get(0).getMessage()).isEqualTo("Date cannot be in the future");
     }
 
@@ -80,7 +80,7 @@ public class PaymentValidatorTest {
         ValidationErrorException ex = (ValidationErrorException) thrown;
 
         assertThat(ex.getErrors().hasErrors()).isTrue();
-        assertThat(ex.getErrors().getFieldErrors().get(0).getField()).isEqualTo("end_date");
+        assertThat(ex.getErrors().getFieldErrors().get(0).getField()).isEqualTo("end_date_time");
         assertThat(ex.getErrors().getFieldErrors().get(0).getMessage()).isEqualTo("Date cannot be in the future");
     }
 
