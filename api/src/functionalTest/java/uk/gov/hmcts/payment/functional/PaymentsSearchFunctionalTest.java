@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.json.JSONArray;
@@ -75,7 +76,7 @@ public class PaymentsSearchFunctionalTest extends IntegrationTestBase {
 
     @Test
     public void searchPaymentsWithStartDateEndDateShouldPass() {
-        String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret).returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
@@ -91,7 +92,7 @@ public class PaymentsSearchFunctionalTest extends IntegrationTestBase {
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
 
-        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         // retrieve card payment
         PaymentsResponse paymentsResponse = dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
