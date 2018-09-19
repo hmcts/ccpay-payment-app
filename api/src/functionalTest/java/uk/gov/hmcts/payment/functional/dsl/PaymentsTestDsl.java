@@ -8,8 +8,10 @@ import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
 import uk.gov.hmcts.payment.functional.tokens.ServiceTokenFactory;
 import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
@@ -23,7 +25,7 @@ import java.util.function.Consumer;
 public class PaymentsTestDsl {
     private final Map<String, String> headers = new HashMap<>();
 
-    @Value("${test.url:http://localhost:8080}")
+    @Value("${test.url}")
     private String baseURL;
 
     @Autowired
@@ -98,6 +100,18 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl searchPaymentsBetweenDates(String startDate, String endDate) {
+            if (startDate != null && endDate != null) {
+                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate);
+            } else if (startDate != null) {
+                response = newRequest().get("/payments?start_date=" + startDate);
+            } else if (endDate != null) {
+                response = newRequest().get("/payments?end_date=" + endDate);
+            }
+
+            return this;
+        }
+
         public PaymentWhenDsl cancelPayment(String userId, String paymentId) {
             response = newRequest().post("/users/{userId}/payments/{paymentId}/cancel", userId, paymentId);
             return this;
@@ -151,10 +165,18 @@ public class PaymentsTestDsl {
             return response.then().statusCode(200).extract().as(PaymentDto.class);
         }
 
+        public PaymentsResponse getPayments() {
+            return response.then().statusCode(200).extract().as(PaymentsResponse.class);
+        }
+
         public PaymentThenDsl validationError(String message) {
             String validationError = response.then().statusCode(422).extract().body().asString();
             Assertions.assertThat(validationError).isEqualTo(message);
             return this;
+        }
+
+        public Response validationErrorFor400() {
+            return response.then().statusCode(400).extract().response();
         }
 
         public PaymentThenDsl validationErrorfor500(String message) {
