@@ -190,7 +190,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
 
         Expression<Date> dateUpdatedExpr = isTestMode == true ?
-            cb.function("TRUNC", Date.class, paymentJoin.get("dateUpdated")) :
+            cb.function("trunc", Date.class, paymentJoin.get("dateUpdated")) :
             cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
 
 
