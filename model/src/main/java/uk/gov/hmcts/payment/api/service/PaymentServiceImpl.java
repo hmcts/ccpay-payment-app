@@ -10,7 +10,6 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
