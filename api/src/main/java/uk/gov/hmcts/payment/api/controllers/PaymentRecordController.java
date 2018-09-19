@@ -58,7 +58,9 @@ public class PaymentRecordController {
     public ResponseEntity<PaymentDto> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        PaymentProvider paymentProvider = paymentProviderRespository.findByNameOrThrow(paymentRecordRequest.getExternalProvider());
+        PaymentProvider paymentProvider = paymentRecordRequest.getExternalProvider() != null ?
+            paymentProviderRespository.findByNameOrThrow(paymentRecordRequest.getExternalProvider())
+            : null;
 
         Payment payment = Payment.paymentWith()
             .amount(paymentRecordRequest.getAmount())
