@@ -59,6 +59,7 @@ public class PaymentController {
     private final FF4j ff4j;
 
     private final DateUtil dateUtil;
+    private final DateTimeFormatter formatter;
 
 
     @Autowired
@@ -70,6 +71,7 @@ public class PaymentController {
         this.validator = paymentValidator;
         this.ff4j = ff4j;
         this.dateUtil = dateUtil;
+        formatter = dateUtil.getIsoDateTimeFormatter();
     }
 
 
@@ -118,8 +120,6 @@ public class PaymentController {
             throw new PaymentException("Payment search feature is not available for usage.");
         } else {
             validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
-
-            DateTimeFormatter formatter = dateUtil.getIsoDateTimeFormatter();
 
             LocalDateTime startDateTime = startDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
             LocalDateTime endDateTime = endDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
