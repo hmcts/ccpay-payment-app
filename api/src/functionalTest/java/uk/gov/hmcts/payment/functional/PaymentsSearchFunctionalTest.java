@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 
+import java.time.Clock;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.*;
@@ -32,12 +35,11 @@ public class PaymentsSearchFunctionalTest extends IntegrationTestBase {
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        PaymentsResponse paymentsResponse = dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
+        dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
-            .then().getPayments();
-
-        assertThat(paymentsResponse.getPayments()).isNotNull();
-
+            .then().getPayments(paymentsResponse -> {
+                assertThat(paymentsResponse.getPayments()).isNotNull();
+        });
     }
 
     @Test
@@ -45,11 +47,11 @@ public class PaymentsSearchFunctionalTest extends IntegrationTestBase {
         String startDate = LocalDate.now().toString(DATE_FORMAT_DD_MM_YYYY);
         String endDate = LocalDate.now().toString(DATE_FORMAT_DD_MM_YYYY);
 
-        PaymentsResponse paymentsResponse = dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
+        dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
-            .then().getPayments();
-
-        assertThat(paymentsResponse.getPayments()).isNotNull();
+            .then().getPayments(paymentsResponse -> {
+                assertThat(paymentsResponse.getPayments()).isNotNull();
+        });
     }
 
     @Test
@@ -108,11 +110,12 @@ public class PaymentsSearchFunctionalTest extends IntegrationTestBase {
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         // retrieve card payment
-        PaymentsResponse paymentsResponse = dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
+        dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
-            .then().getPayments();
+            .then().getPayments((paymentsResponse -> {
+            assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+        }));
 
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
     }
 
 
