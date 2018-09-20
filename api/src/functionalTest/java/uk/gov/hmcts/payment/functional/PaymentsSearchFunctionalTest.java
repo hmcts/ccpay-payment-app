@@ -34,7 +34,7 @@ public class PaymentsSearchFunctionalTest {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    public void searchPaymentsWithDateFormatYYYYMMDDShouldPass() {
+    public void givenAnyTwoValidDatesWithFormatYYYYMMDDShouldNotBeAnyErrors() {
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
@@ -47,7 +47,7 @@ public class PaymentsSearchFunctionalTest {
     }
 
     @Test
-    public void searchPaymentWithDateFormatDDMMYYYYShouldPass() {
+    public void givenAnyTwoValidDatesWithFormatDDMMYYYYShouldNotBeAnyErrors() {
         String startDate = LocalDate.now().toString(DATE_FORMAT_DD_MM_YYYY);
         String endDate = LocalDate.now().toString(DATE_FORMAT_DD_MM_YYYY);
 
@@ -72,9 +72,22 @@ public class PaymentsSearchFunctionalTest {
     }
 
     @Test
-    public void searchPaymentWithFutureDatesShouldFail() {
+    public void searchPaymentWithFutureEndDateShouldFail() {
         String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
         String endDate = LocalDateTime.now().plusMinutes(1).toString(DATE_TIME_FORMAT);
+
+        Response response = dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
+            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+            .when().searchPaymentsBetweenDates(startDate, endDate)
+            .then().validationErrorFor400();
+
+        assertThat(response.getBody().asString()).contains("Date cannot be in the future");
+    }
+
+    @Test
+    public void searchPaymentWithFutureStartDateShouldFail() {
+        String startDate = LocalDateTime.now().plusDays(1).toString(DATE_TIME_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
         Response response = dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
             .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
