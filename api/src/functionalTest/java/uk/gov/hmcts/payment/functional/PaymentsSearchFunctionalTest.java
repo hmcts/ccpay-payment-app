@@ -28,6 +28,19 @@ public class PaymentsSearchFunctionalTest extends IntegrationTestBase {
     private PaymentsTestDsl dsl;
 
     @Test
+    public void searchPaymentsWithDateFormatYYYYMMDDShouldPass() {
+        String startDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        PaymentsResponse paymentsResponse = dsl.given().userId(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup).serviceId(cmcServiceName, cmcSecret)
+            .when().searchPaymentsBetweenDates(startDate, endDate)
+            .then().getPayments();
+
+        assertThat(paymentsResponse.getPayments()).isNotNull();
+
+    }
+
+    @Test
     public void searchPaymentWithDateFormatDDMMYYYYShouldPass() {
         String startDate = LocalDate.now().toString(DATE_FORMAT_DD_MM_YYYY);
         String endDate = LocalDate.now().toString(DATE_FORMAT_DD_MM_YYYY);
