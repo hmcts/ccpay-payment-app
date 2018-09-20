@@ -31,7 +31,7 @@ public class MaintenanceJobsController {
 
     @Autowired
     public MaintenanceJobsController(PaymentService<PaymentFeeLink, String> paymentService,
-                                     @Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService) {
+                                     CardPaymentService<PaymentFeeLink, String> cardPaymentService) {
         this.paymentService = paymentService;
         this.cardPaymentService = cardPaymentService;
     }
