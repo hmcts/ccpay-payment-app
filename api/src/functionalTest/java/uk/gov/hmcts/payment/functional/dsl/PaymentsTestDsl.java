@@ -165,8 +165,10 @@ public class PaymentsTestDsl {
             return response.then().statusCode(200).extract().as(PaymentDto.class);
         }
 
-        public PaymentsResponse getPayments() {
-            return response.then().statusCode(200).extract().as(PaymentsResponse.class);
+        public PaymentThenDsl getPayments(Consumer<PaymentsResponse> paymentsResponseAssertions) {
+            PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
+            paymentsResponseAssertions.accept(paymentsResponse);
+            return this;
         }
 
         public PaymentThenDsl validationError(String message) {
