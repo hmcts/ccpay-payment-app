@@ -36,7 +36,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"embedded", "local", "componenttest"})
+@ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 public class GovPayComponentMockTest {
 
