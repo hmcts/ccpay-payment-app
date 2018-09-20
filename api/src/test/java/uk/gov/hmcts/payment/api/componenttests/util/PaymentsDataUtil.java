@@ -136,7 +136,7 @@ public class PaymentsDataUtil {
             .paymentProvider(PaymentProvider.paymentProviderWith().name("middle office provider").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("digital bar").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("cash").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("pending").build())
             .reference("RC-1519-9028-1909-111" + number)
             .build();
 
@@ -189,7 +189,7 @@ public class PaymentsDataUtil {
             .paymentProvider(PaymentProvider.paymentProviderWith().name("barclaycard").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("digital bar").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .reference("RC-1519-9028-1909-113" + number)
             .build();
 
