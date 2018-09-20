@@ -52,7 +52,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"embedded", "local", "componenttest"})
+@ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
 public class PaymentControllerTest extends PaymentsDataUtil {
@@ -506,7 +506,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("2");
         populateCreditAccountPaymentToDb("1");
 
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
