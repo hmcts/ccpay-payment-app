@@ -111,7 +111,7 @@ public class PaymentsSearchFunctionalTest {
     }
 
     @Test
-    public void searchPaymentsWithStartDateEndDateShouldPass() {
+    public void givenTwoPaymentsInPeriodWhensearchPaymentsWithStartDateEndDateThenShouldPass() {
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
