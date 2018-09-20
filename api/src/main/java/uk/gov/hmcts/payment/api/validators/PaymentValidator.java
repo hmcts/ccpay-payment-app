@@ -36,9 +36,9 @@ public class PaymentValidator {
             dto.addFieldError("service_name", "Invalid service name requested");
         }
 
-        if ((startDateString.isPresent() && !endDateString.isPresent()) || (!startDateString.isPresent() && endDateString.isPresent())) {
-            dto.addFieldError("dates", "Both start and end dates are required.");
-        }
+//        if ((startDateString.isPresent() && !endDateString.isPresent()) || (!startDateString.isPresent() && endDateString.isPresent())) {
+//            dto.addFieldError("dates", "Both start and end dates are required.");
+//        }
 
         Optional<LocalDateTime> startDate = parseAndValidateDate(startDateString, "start_date", dto);
         Optional<LocalDateTime> endDate = parseAndValidateDate(endDateString, "end_date", dto);
@@ -57,7 +57,7 @@ public class PaymentValidator {
     }
 
     private Optional<LocalDateTime> validateDate(String dateString, ValidationErrorDTO dto, String fieldName) {
-        Optional<LocalDateTime> formattedDate = parseFrom(dateString, dto);
+        Optional<LocalDateTime> formattedDate = parseFrom(dateString, dto, fieldName);
         if (!formattedDate.isPresent()) {
             dto.addFieldError(fieldName, "Invalid date format received, required data format is ISO");
         } else {
@@ -71,11 +71,11 @@ public class PaymentValidator {
         }
     }
 
-    private Optional<LocalDateTime> parseFrom(String value, ValidationErrorDTO dto) {
+    private Optional<LocalDateTime> parseFrom(String value, ValidationErrorDTO dto, String fieldName) {
         try {
             return Optional.of(LocalDateTime.parse(value, dateUtil.getIsoDateTimeFormatter()));
         } catch (DateTimeParseException | IllegalArgumentException ex) {
-            dto.addFieldError("dates", "Invalid date format, required date format is ISO.");
+            dto.addFieldError(fieldName, "Invalid date format, required date format is ISO.");
             return empty();
         }
     }

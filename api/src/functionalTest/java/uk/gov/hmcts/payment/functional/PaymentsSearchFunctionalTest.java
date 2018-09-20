@@ -59,17 +59,17 @@ public class PaymentsSearchFunctionalTest {
         });
     }
 
-    @Test
-    public void searchPaymentsWithoutEndDateShouldFail() {
-
-        String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
-        Response response = dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
-            .when().searchPaymentsBetweenDates(startDate, null)
-            .then().validationErrorFor400();
-
-        assertThat(response.getBody().asString()).contains("Both start and end dates are required.");
-    }
+//    @Test
+//    public void searchPaymentsWithoutEndDateShouldFail() {
+//
+//        String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
+//        Response response = dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
+//            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+//            .when().searchPaymentsBetweenDates(startDate, null)
+//            .then().validationErrorFor400();
+//
+//        assertThat(response.getBody().asString()).contains("Both start and end dates are required.");
+//    }
 
     @Test
     public void givenFutureEndDateTheSearchPaymentsShouldFail() {

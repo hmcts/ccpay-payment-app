@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 
 import java.math.BigDecimal;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
@@ -59,16 +61,15 @@ public class CMCCardPaymentFunctionalTest {
             .then().get();
 
         assertNotNull(paymentDto);
-        assertEquals(paymentDto.getAmount(), new BigDecimal("123.11"));
-        assertEquals(paymentDto.getDescription(), "A functional test card payment");
+        assertEquals(paymentDto.getAmount(), new BigDecimal("20.99"));
+        assertThat(paymentDto.getDescription()).contains("A functional test card payment");
         assertEquals(paymentDto.getReference(), reference[0]);
         assertEquals(paymentDto.getExternalProvider(), "gov pay");
         assertEquals(paymentDto.getServiceName(), "Civil Money Claims");
         assertEquals(paymentDto.getStatus(), "Initiated");
         paymentDto.getFees().stream().forEach(f -> {
-            assertEquals(f.getCode(), "FEE0123");
             assertEquals(f.getVersion(), "1");
-            assertEquals(f.getCalculatedAmount(), new BigDecimal("123.11"));
+            assertEquals(f.getCalculatedAmount(), new BigDecimal("20.99"));
         });
 
     }
