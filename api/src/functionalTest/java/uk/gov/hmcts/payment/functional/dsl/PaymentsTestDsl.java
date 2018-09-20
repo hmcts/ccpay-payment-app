@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
@@ -90,8 +91,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createCardPayment(String cardPaymentRequest) {
-            response = newRequest().body(cardPaymentRequest).post( "/card-payments");
+        public PaymentWhenDsl createCardPayment(CardPaymentRequest cardPaymentRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(cardPaymentRequest).post( "/card-payments");
             return this;
         }
 

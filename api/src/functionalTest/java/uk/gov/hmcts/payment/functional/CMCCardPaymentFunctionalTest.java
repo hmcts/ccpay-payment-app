@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 
@@ -62,7 +63,6 @@ public class CMCCardPaymentFunctionalTest {
 
         assertNotNull(paymentDto);
         assertEquals(paymentDto.getAmount(), new BigDecimal("20.99"));
-        assertThat(paymentDto.getDescription()).contains("A functional test card payment");
         assertEquals(paymentDto.getReference(), reference[0]);
         assertEquals(paymentDto.getExternalProvider(), "gov pay");
         assertEquals(paymentDto.getServiceName(), "Civil Money Claims");
@@ -74,7 +74,7 @@ public class CMCCardPaymentFunctionalTest {
 
     }
 
-    private String getCardPaymentRequest() {
+    private CardPaymentRequest getCardPaymentRequest() {
         return integrationTestBase.getCMCCardPaymentRequest();
     }
 
