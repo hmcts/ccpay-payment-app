@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 
 import static org.assertj.core.api.Assertions.*;
@@ -145,7 +146,7 @@ public class PaymentsSearchFunctionalTest {
     }
 
 
-    private String getCardPaymentRequest() {
+    private CardPaymentRequest getCardPaymentRequest() {
         return integrationTestBase.getCMCCardPaymentRequest();
     }
 

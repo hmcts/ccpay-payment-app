@@ -56,10 +56,10 @@ public class IntegrationTestBase {
     protected String paymentCmcTestPassword;
 
 
-    public String getCMCCardPaymentRequest() {
+    public CardPaymentRequest getCMCCardPaymentRequest() {
         int num = new Random().nextInt(100) + 1;
 
-        CardPaymentRequest cardPaymentRequest = createCardPaymentRequestDtoWith()
+        return createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("20.99"))
             .description("A functional test for search payment " + num)
             .caseReference("REF_" + num)
@@ -74,19 +74,6 @@ public class IntegrationTestBase {
                 .build()))
             .build();
 
-        return translateException(() -> new ObjectMapper().writeValueAsString(cardPaymentRequest));
-    }
-
-    private   <T> T translateException(CallableWithException<T> callable) {
-        try {
-            return callable.call();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    interface CallableWithException<T> {
-        T call() throws Exception;
     }
 
 }
