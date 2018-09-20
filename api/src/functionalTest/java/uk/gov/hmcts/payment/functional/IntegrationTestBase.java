@@ -4,11 +4,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = TestContextConfiguration.class)
+@TestComponent
 public class IntegrationTestBase {
 
     @Value("${probate.user.role}")
@@ -44,9 +44,16 @@ public class IntegrationTestBase {
     @Value("${payments.cmc.test.user.password:dummy}")
     protected String paymentCmcTestPassword;
 
-    @Test
-    public void testProperties() {
-        Assert.assertEquals(cmcUserRole, "citizen");
+    public  <T> T translateException(CallableWithException<T> callable) {
+        try {
+            return callable.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    interface CallableWithException<T> {
+        T call() throws Exception;
     }
 
 }
