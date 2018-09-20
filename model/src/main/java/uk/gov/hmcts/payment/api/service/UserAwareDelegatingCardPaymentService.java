@@ -170,16 +170,14 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     @Override
     public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
-        boolean isTestMode = ArrayUtils.isEquals(environment.getActiveProfiles(), testProfiles) == true ? true : false;
-
-        return paymentFeeLinkRepository.findAll(findCardPayments(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber, isTestMode));
+        return paymentFeeLinkRepository.findAll(findCardPayments(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber));
     }
 
-    private static Specification findCardPayments(Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber, boolean isTestMode) {
-        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, paymentMethod, serviceName, ccdCaseNumber, isTestMode));
+    private static Specification findCardPayments(Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
+        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, paymentMethod, serviceName, ccdCaseNumber));
     }
 
-    private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber, boolean isTestMode) {
+    private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
         List<Predicate> predicates = new ArrayList<>();
 
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
@@ -188,13 +186,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(paymentMethod).build()));
         }
 
-
-        // date_trunc not supported in hsqldb
-        Expression<Date> dateUpdatedExpr = isTestMode == true ?
-            cb.function("trunc", Date.class, paymentJoin.get("dateUpdated")) :
-            cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
-
-
+        Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
         if (fromDate != null && toDate != null) {
             predicates.add(cb.between(dateUpdatedExpr, fromDate, toDate));
         }else if (fromDate != null) {
