@@ -62,7 +62,7 @@ dependencies {
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version:'0.23.0.RELEASE'
-  compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.8'
+  compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.5'
   compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'5.0'
   compile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.5.2'
   compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.3'
