@@ -51,7 +51,7 @@ public class PaymentServiceTest {
         // when
         service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null);
         // then
-        Date fromDate = LocalDateTime.now().toDate(); //Date.from(LocalDateTime.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        Date fromDate = LocalDateTime.now().toDate();
         verify(cardPaymentService).search(any(startDate.toDate().getClass()), any(LocalDateTime.now().toDate().getClass()), eq(CARD.getType()), eq(null), eq(null));
     }
 
