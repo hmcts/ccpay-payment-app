@@ -72,7 +72,7 @@ public class PaymentsSearchFunctionalTest {
     }
 
     @Test
-    public void searchPaymentWithFutureEndDateShouldFail() {
+    public void givenFutureEndDateTheSearchPaymentsShouldFail() {
         String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
         String endDate = LocalDateTime.now().plusMinutes(1).toString(DATE_TIME_FORMAT);
 
@@ -85,7 +85,7 @@ public class PaymentsSearchFunctionalTest {
     }
 
     @Test
-    public void searchPaymentWithFutureStartDateShouldFail() {
+    public void givenFutureStartDateTheSearchPaymentsShouldFail() {
         String startDate = LocalDateTime.now().plusDays(1).toString(DATE_TIME_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
