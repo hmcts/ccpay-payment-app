@@ -10,7 +10,6 @@ public class LocalEmbeddedPaymentApiApplication {
         new SpringApplicationBuilder()
                 .sources(PaymentApiApplication.class)
                 .profiles("local")
-                .profiles("embedded")
                 .run();
     }
 }
