@@ -6,8 +6,13 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
+
+import javax.servlet.ServletContextListener;
+import javax.validation.constraints.NotNull;
 
 @EnableFeignClients
 @EnableAsync
@@ -23,5 +28,13 @@ public class PaymentApiApplication {
             LOG.error(fatal, "Application crashed with error message: ", ex);
             throw ex;
         }
+    }
+
+    @NotNull
+    @Bean
+    ServletListenerRegistrationBean<ServletContextListener> myServletListener() {
+        ServletListenerRegistrationBean<ServletContextListener> srb = new ServletListenerRegistrationBean<>();
+        srb.setListener(new PaymentServletContextListener());
+        return srb;
     }
 }
