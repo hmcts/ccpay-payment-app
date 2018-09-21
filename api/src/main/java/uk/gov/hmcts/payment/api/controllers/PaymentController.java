@@ -110,8 +110,8 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments", method = GET)
     @PaymentExternalAPI
-    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = true) Optional<String> startDateTimeString,
-                                             @RequestParam(name = "end_date", required = true) Optional<String> endDateTimeString,
+    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                              @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                              @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber) {
