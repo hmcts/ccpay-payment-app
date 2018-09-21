@@ -87,6 +87,15 @@ public class SwaggerConfiguration {
     public Docket externalApi() {
         return new Docket(DocumentationType.SWAGGER_2)
             .groupName("payment-external-api")
+            .globalOperationParameters(Arrays.asList(
+                new ParameterBuilder()
+                    .name("ServiceAuthorization")
+                    .description("Service authorization header")
+                    .required(true)
+                    .parameterType("header")
+                    .modelRef(new ModelRef("string"))
+                    .build())
+            )
             .useDefaultResponseMessages(false)
             .apiInfo(publicApiInfo())
             .select()
