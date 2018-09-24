@@ -10,6 +10,7 @@ import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
+import uk.gov.hmcts.payment.api.logging.Markers;
 
 import javax.servlet.ServletContextListener;
 import javax.validation.constraints.NotNull;
@@ -24,8 +25,7 @@ public class PaymentApiApplication {
         try {
             SpringApplication.run(PaymentApiApplication.class, args);
         } catch (RuntimeException ex) {
-            Marker fatal = MarkerFactory.getMarker("FATAL");
-            LOG.error(fatal, "Application crashed with error message: ", ex);
+            LOG.error(Markers.fatal, "Application crashed with error message: ", ex);
             throw ex;
         }
     }
