@@ -14,6 +14,6 @@ public class PaymentApplicationListener implements ApplicationListener<ContextCl
 
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
-        LOG.error(Markers.fatal, "Payment API Application closing context with object: %s", event.getSource());
+        LOG.error(Markers.fatal, "Payment API Application closing context with object: {}", event.getSource());
     }
 }
