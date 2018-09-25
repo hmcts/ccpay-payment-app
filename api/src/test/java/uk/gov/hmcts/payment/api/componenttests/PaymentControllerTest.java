@@ -402,9 +402,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
         assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(2);
+        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
         assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("start_date");
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).contains("Invalid date format, required date format is ISO.");
+        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).contains("Invalid date format received, required data format is ISO");
     }
 
     @Test
@@ -539,24 +539,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         });
     }
 
-//    @Test
-//    @Transactional
-//    public void searchAllPaymentsWithoutEndDateShouldFail() throws Exception {
-//        String startDate = LocalDate.now().toString("dd/MM/yyyy");
-//
-//        restActions
-//            .post("/api/ff4j/store/features/payment-search/enable")
-//            .andExpect(status().isAccepted());
-//
-//        MvcResult result = restActions
-//            .get("/payments?start_date=" + startDate)
-//            .andExpect(status().isBadRequest())
-//            .andReturn();
-//
-//        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
-//        assertThat(errorDTO.hasErrors()).isTrue();
-//        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Both start and end dates are required.");
-//    }
 
     @Test
     @Transactional
@@ -577,7 +559,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
         assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid date format, required date format is ISO.");
+        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid date format received, required data format is ISO");
     }
 
     @Test
