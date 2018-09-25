@@ -11,7 +11,9 @@ public class PaymentServletContextListener implements ServletContextListener {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentServletContextListener.class);
 
     @Override
-    public void contextInitialized(ServletContextEvent sce) {}
+    public void contextInitialized(ServletContextEvent sce) {
+        // unused
+    }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
