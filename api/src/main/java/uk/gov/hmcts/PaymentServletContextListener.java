@@ -17,6 +17,6 @@ public class PaymentServletContextListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        LOG.error(Markers.fatal, "Payment API Application shutting down {}");
+        LOG.error(Markers.fatal, "Payment API Application shutting down {}", sce);
     }
 }
