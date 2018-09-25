@@ -1,4 +1,4 @@
-package uk.gove.hmcts.fees.register.smoke;
+package uk.gov.hmcts.fees.register.smoke;
 
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.junit4.SpringRunner;
-import static org.hamcrest.Matchers.equalTo;
 
 import static io.restassured.RestAssured.given;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -25,14 +24,13 @@ public class SmokeTest {
     }
 
     @Test
-    public void healthCheck() {
+    public void shouldReturnChannels() {
         given()
             .relaxedHTTPSValidation()
             .header(CONTENT_TYPE, "application/json")
             .when()
-            .get("/health")
+            .get("/refdata/channels")
             .then()
-            .statusCode(200)
-            .body("status", equalTo("UP"));
+            .statusCode(200);
     }
 }
