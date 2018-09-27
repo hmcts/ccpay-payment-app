@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestContextManager;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
-import uk.gov.hmcts.payment.functional.tokens.ServiceTokenFactory;
-import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
 
 import java.math.BigDecimal;
 
@@ -28,10 +26,6 @@ public class PaymentAmountTest extends IntegrationTestBase {
     private static final String NOT_OK = "NOT OK";
 
     @Autowired
-    private ServiceTokenFactory serviceTokenFactory;
-    @Autowired
-    private UserTokenFactory userTokenFactory;
-    @Autowired
     private PaymentTestService paymentTestService;
 
     private static String USER_TOKEN;
@@ -45,8 +39,8 @@ public class PaymentAmountTest extends IntegrationTestBase {
         tcm.prepareTestInstance(this);
 
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = userTokenFactory.validTokenForUser(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup);
-            SERVICE_TOKEN = serviceTokenFactory.validTokenForService(cmcServiceName, cmcSecret);
+            USER_TOKEN = paymentTestService.getUserToken(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup);
+            SERVICE_TOKEN = paymentTestService.getServiceToken(cmcServiceName, cmcSecret);
             TOKENS_INITIALIZED = true;
         }
     }
@@ -54,10 +48,9 @@ public class PaymentAmountTest extends IntegrationTestBase {
     @DataPoints
     public static AmountDataPoint[] amountValidations() {
         return new AmountDataPoint[]{
-            // NOT_OK now once bug is fixed it'll be OK
-            AmountDataPoint.of("0.01", NOT_OK),
-            AmountDataPoint.of("0.10",NOT_OK),
-            AmountDataPoint.of("0.99",NOT_OK),
+            AmountDataPoint.of("0.01", OK),
+            AmountDataPoint.of("0.10",OK),
+            AmountDataPoint.of("0.99",OK),
 
             AmountDataPoint.of("1.10", OK),
             AmountDataPoint.of("1.01",OK),
