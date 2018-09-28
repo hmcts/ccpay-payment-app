@@ -180,9 +180,7 @@ public class CreditAccountDtoMapper {
         return FeeDto.feeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode()).version(fee.getVersion())
-            .volume(Optional.ofNullable(fee.getVolume())
-                .map(v -> v.doubleValue())
-                .orElse(null))
+            .volume(fee.getVolume())
             .build();
 
     }

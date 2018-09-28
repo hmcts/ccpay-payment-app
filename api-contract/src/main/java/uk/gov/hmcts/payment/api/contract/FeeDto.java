@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.contract;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -32,8 +31,7 @@ public class FeeDto {
     private String version;
 
     @Positive
-    @Digits(integer = 10, fraction = 0, message = "Fee volume cannot have fractions and has to be non-negative")
-    private Double volume;
+    private Integer volume;
 
     @NotNull
     @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
