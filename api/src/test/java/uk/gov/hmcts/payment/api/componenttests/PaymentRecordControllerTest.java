@@ -119,7 +119,7 @@ public class PaymentRecordControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
 
         String reference = response.getReference().substring(3, response.getReference().length());
         assertThat(cd.isValid(reference.replace("-", ""))).isEqualTo(true);
@@ -212,6 +212,7 @@ public class PaymentRecordControllerTest {
         }
     }
 
+    @Test
     public void testRecordPostOrderPayment() throws Exception {
         PaymentRecordRequest request = getPostalOrderPaymentRequest();
 
@@ -224,7 +225,7 @@ public class PaymentRecordControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Pending");
     }
 
     @Test
@@ -239,7 +240,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
     }
 
     @Test
@@ -254,7 +255,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
     }
 
     @Test
@@ -483,7 +484,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
