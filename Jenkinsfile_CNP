@@ -30,7 +30,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 
 withPipeline(type, product, app) {
-    setVaultName('payments-shared')
+    setVaultName('payment-shared')
     loadVaultSecrets(secrets)
     enableDockerBuild()
     enableDeployToAKS()
