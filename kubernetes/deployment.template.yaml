@@ -39,7 +39,7 @@ spec:
         - name: SPRING_DATASOURCE_USERNAME
           value: '${SERVICE_NAME}'
         - name: SPRING_DATASOURCE_URL
-          value: 'jdbc:postgresql://localhost:5432/${SERVICE_NAME}?ssl=true'
+          value: 'jdbc:postgresql://localhost:5432/${SERVICE_NAME}'
         envFrom:
         - configMapRef:
             name: ${SERVICE_NAME}-config
