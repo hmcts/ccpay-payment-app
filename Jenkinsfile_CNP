@@ -30,8 +30,9 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 
 withPipeline(type, product, app) {
+    setVaultName('payments-shared')
     loadVaultSecrets(secrets)
     enableDockerBuild()
-    //    enableDeployToAKS()
+    enableDeployToAKS()
     enableSlackNotifications('#cc-payments-tech')
 }
