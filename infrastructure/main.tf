@@ -51,6 +51,16 @@ data "azurerm_key_vault_secret" "pba_divorce_payments_email_to" {
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
+data "azurerm_key_vault_secret" "webjob_s2s_client_secret" {
+  name = "gateway-s2s-client-secret"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "webjob_s2s_client_id" {
+  name = "gateway-s2s-client-id"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
 module "payment-api" {
   source   = "git@github.com:hmcts/moj-module-webapp?ref=master"
   product  = "${var.product}-api"
@@ -124,6 +134,9 @@ module "payment-api" {
     ROOT_APPENDER = "JSON_CONSOLE"
 
     PAYMENT_AUDIT_FILE = "${var.payment_audit_file}"
+    # webjob security
+    WEBJOB_S2S_CLIENT_ID = "${data.azurerm_key_vault_secret.webjob_s2s_client_id.value}"
+    WEBJOB_S2S_CLIENT_SECRET = "${data.azurerm_key_vault_secret.webjob_s2s_client_secret.value}"
   }
 }
 
