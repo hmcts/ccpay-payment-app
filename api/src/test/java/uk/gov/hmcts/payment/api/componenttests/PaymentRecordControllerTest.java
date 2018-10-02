@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -295,6 +296,19 @@ public class PaymentRecordControllerTest {
 
         assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
 
+    }
+
+    @Test
+    public void testCreatePaymentRecordsWithInvalidPaymentMethodShouldFail() throws Exception {
+        PaymentRecordRequest request = getCashPaymentRequest();
+        request.setPaymentMethod(PaymentMethodType.PBA);
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid payment method: payment by account");
     }
 
     private PaymentRecordRequest getCashPaymentRequest() {
