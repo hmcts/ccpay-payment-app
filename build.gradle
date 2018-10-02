@@ -124,7 +124,7 @@ def sonarExclusions = [
 
 sonarqube {
     properties {
-        property "sonar.host.url", "https://sonar.reform.hmcts.net/"
+        property "sonar.host.url", "https://sonarcloud.io/"
         property "sonar.dynamicAnalysis", "reuseReports"
         property "sonar.java.coveragePlugin", "jacoco"
         property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/test.exec"
