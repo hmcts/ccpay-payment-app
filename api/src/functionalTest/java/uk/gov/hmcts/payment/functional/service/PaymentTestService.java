@@ -76,7 +76,6 @@ public class PaymentTestService {
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
         return RestAssured.given()
-            .proxy("proxyout.reform.hmcts.net", 8080)
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }

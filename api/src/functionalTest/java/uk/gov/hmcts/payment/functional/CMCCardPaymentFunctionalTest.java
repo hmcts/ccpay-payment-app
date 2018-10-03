@@ -18,15 +18,15 @@ import static org.junit.Assert.*;
 public class CMCCardPaymentFunctionalTest {
 
     @Autowired
-    private IntegrationTestBase integrationTestBase;
+    private IntegrationTestBase testProps;
 
     @Autowired(required = true)
     private PaymentsTestDsl dsl;
 
     @Test
     public void createCMCCardPaymentTestShouldReturn201Success() {
-        dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
@@ -41,8 +41,8 @@ public class CMCCardPaymentFunctionalTest {
         final String[] reference = new String[1];
 
         // create card payment
-        dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
@@ -54,8 +54,8 @@ public class CMCCardPaymentFunctionalTest {
 
 
         // retrieve card payment
-        PaymentDto paymentDto = dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        PaymentDto paymentDto = dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .when().getCardPayment(reference[0])
             .then().get();
 
@@ -73,7 +73,7 @@ public class CMCCardPaymentFunctionalTest {
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
-        return integrationTestBase.getCMCCardPaymentRequest();
+        return testProps.getCMCCardPaymentRequest();
     }
 
 }
