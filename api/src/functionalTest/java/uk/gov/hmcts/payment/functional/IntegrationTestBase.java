@@ -1,8 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
@@ -54,7 +53,6 @@ public class IntegrationTestBase {
 
     @Value("${payments.cmc.test.user.password:dummy}")
     protected String paymentCmcTestPassword;
-
 
     public CardPaymentRequest getCMCCardPaymentRequest() {
         int num = new Random().nextInt(100) + 1;
