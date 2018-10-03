@@ -39,6 +39,7 @@ public class SpringSecurityConfiguration {
             http
                 .requestMatchers()
                 .antMatchers(HttpMethod.GET, "/payments")
+                .antMatchers("/jobs/**")
                 .and()
                 .addFilter(authCheckerServiceOnlyFilter)
                 .authorizeRequests()
@@ -69,7 +70,6 @@ public class SpringSecurityConfiguration {
                 "/refdata/**",
                 "/health",
                 "/info",
-                "/jobs/**",
                 "/favicon.ico");
         }
 
