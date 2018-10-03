@@ -114,6 +114,7 @@ dependencyCheck {
 
 def sonarExclusions = [
         '**/v1/**',
+        '**/OtpBootstrap.java',
         '**/api/model/**',
          '**/api/contract/**',
          '**/api/dto/mapper/**',

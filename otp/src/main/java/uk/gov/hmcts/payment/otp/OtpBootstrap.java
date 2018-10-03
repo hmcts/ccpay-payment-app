@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment;
+package uk.gov.hmcts.payment.otp;
 
 import com.amdelamar.jotp.OTP;
 import com.amdelamar.jotp.type.Type;
