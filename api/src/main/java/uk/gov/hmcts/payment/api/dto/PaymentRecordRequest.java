@@ -10,8 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
-import org.joda.time.DateTime;
-import org.joda.time.format.ISODateTimeFormat;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -20,6 +18,9 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -70,12 +71,12 @@ public class PaymentRecordRequest {
     private List<FeeDto> fees;
 
     @JsonIgnore
-    @AssertFalse(message = "Invalid payment reported offline date. Date format should be UTC.")
+    @AssertFalse(message = "Invalid payment reported offline date. Date should be in ISO format.")
     public boolean isValidReportedDateOffline() {
         if (reportedDateOffline != null) {
             try {
-                DateTime.parse(reportedDateOffline, ISODateTimeFormat.date());
-            } catch (IllegalArgumentException fe) {
+                LocalDate.parse(reportedDateOffline, DateTimeFormatter.ISO_DATE);
+            } catch (DateTimeParseException e) {
                 return true;
             }
         }

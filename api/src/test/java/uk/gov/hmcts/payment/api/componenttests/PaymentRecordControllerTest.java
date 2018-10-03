@@ -279,7 +279,7 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date should be in ISO format.");
     }
 
     @Test
@@ -292,7 +292,7 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date should be in ISO format.");
     }
 
     @Test
@@ -305,7 +305,7 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date should be in ISO format.");
 
     }
 
