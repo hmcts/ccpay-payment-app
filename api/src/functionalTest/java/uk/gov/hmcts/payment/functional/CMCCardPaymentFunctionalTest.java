@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.functional;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 
 import java.math.BigDecimal;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)

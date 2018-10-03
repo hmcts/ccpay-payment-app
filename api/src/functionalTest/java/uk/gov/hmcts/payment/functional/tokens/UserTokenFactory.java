@@ -19,6 +19,7 @@ public class UserTokenFactory {
     private String baseUrl;
 
     public String validTokenForUser(String email, String userId, String password, String role) {
+        proxy("proxyout.reform.hmcts.net", 8080);
         defaultParser = Parser.JSON;
 
         String jwt = null;

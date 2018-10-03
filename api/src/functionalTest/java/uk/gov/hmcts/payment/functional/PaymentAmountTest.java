@@ -9,7 +9,9 @@ import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
+import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
@@ -19,11 +21,15 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 @RunWith(Theories.class)
-public class PaymentAmountTest extends IntegrationTestBase {
+@ContextConfiguration(classes = TestContextConfiguration.class)
+public class PaymentAmountTest {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
     private static final String OK = "OK";
     private static final String NOT_OK = "NOT OK";
+
+    @Autowired
+    private IntegrationTestBase testProps;
 
     @Autowired
     private PaymentTestService paymentTestService;
@@ -39,8 +45,8 @@ public class PaymentAmountTest extends IntegrationTestBase {
         tcm.prepareTestInstance(this);
 
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = paymentTestService.getUserToken(paymentCmcTestUser, paymentCmcTestUserId, paymentCmcTestPassword, cmcUserGroup);
-            SERVICE_TOKEN = paymentTestService.getServiceToken(cmcServiceName, cmcSecret);
+            USER_TOKEN = paymentTestService.getUserToken(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup);
+            SERVICE_TOKEN = paymentTestService.getServiceToken(testProps.cmcServiceName, testProps.cmcSecret);
             TOKENS_INITIALIZED = true;
         }
     }
