@@ -9,15 +9,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
-import javax.validation.constraints.NotEmpty;
+
+import javax.validation.constraints.*;
+
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.Valid;
-import javax.validation.constraints.AssertFalse;
-import javax.validation.constraints.Digits;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -33,7 +31,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class CreditAccountPaymentRequest {
 
     @NotNull
-    @Min(1)
+    @DecimalMin("0.01")
+    @Positive
     @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 
