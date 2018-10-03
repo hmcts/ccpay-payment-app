@@ -25,7 +25,7 @@ public class PaymentAmountTest extends IntegrationTestBase {
     private static final String OK = "OK";
     private static final String NOT_OK = "NOT OK";
 
-    @Autowired(required = true)
+    @Autowired
     private PaymentTestService paymentTestService;
 
     private static String USER_TOKEN;
