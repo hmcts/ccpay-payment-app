@@ -19,13 +19,13 @@ import java.util.Map;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Component
-@Scope("prototype")
 public class PaymentTestService {
 
     private final Map<String, String> authHeaders = new HashMap<>();
 
     @Autowired
     private ServiceTokenFactory serviceTokenFactory;
+
     @Autowired
     private UserTokenFactory userTokenFactory;
 
@@ -76,6 +76,7 @@ public class PaymentTestService {
 
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
         return RestAssured.given()
+            .proxy("proxyout.reform.hmcts.net", 8080)
             .header(AUTHORIZATION, userToken)
             .header("ServiceAuthorization", serviceToken);
     }
