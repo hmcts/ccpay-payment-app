@@ -22,7 +22,6 @@ public class ServiceTokenFactory {
     private OneTimePasswordFactory otpFactory;
 
     public String validTokenForService(String microservice, String secret) {
-        proxy("proxyout.reform.hmcts.net", 8080);
         defaultParser = Parser.JSON;
 
         String otp = new OneTimePasswordFactory().validOneTimePassword(secret);
