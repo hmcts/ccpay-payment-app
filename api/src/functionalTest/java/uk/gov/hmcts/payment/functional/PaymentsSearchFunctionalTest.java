@@ -27,7 +27,7 @@ public class PaymentsSearchFunctionalTest {
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Autowired
-    private IntegrationTestBase integrationTestBase;
+    private IntegrationTestBase testProps;
 
     @Autowired(required = true)
     private PaymentsTestDsl dsl;
@@ -39,8 +39,8 @@ public class PaymentsSearchFunctionalTest {
         String startDate = LocalDate.now().toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
-        dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
             .then().getPayments(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
@@ -52,8 +52,8 @@ public class PaymentsSearchFunctionalTest {
         String startDate = LocalDate.now().toString(DATE_FORMAT_DD_MM_YYYY);
         String endDate = LocalDate.now().toString(DATE_FORMAT_DD_MM_YYYY);
 
-        dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
             .then().getPayments(paymentsResponse -> {
                 assertThat(paymentsResponse.getPayments()).isNotNull();
@@ -66,8 +66,8 @@ public class PaymentsSearchFunctionalTest {
         String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
         String endDate = LocalDateTime.now().plusMinutes(1).toString(DATE_TIME_FORMAT);
 
-        Response response = dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        Response response = dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
             .then().validationErrorFor400();
 
@@ -79,8 +79,8 @@ public class PaymentsSearchFunctionalTest {
         String startDate = LocalDateTime.now().plusDays(1).toString(DATE_TIME_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
-        Response response = dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        Response response = dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
             .then().validationErrorFor400();
 
@@ -92,8 +92,8 @@ public class PaymentsSearchFunctionalTest {
         String startDate = LocalDateTime.now().plusMinutes(1).toString(DATE_TIME_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
-        Response response = dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        Response response = dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
             .then().validationErrorFor400();
 
@@ -104,8 +104,8 @@ public class PaymentsSearchFunctionalTest {
     public void givenTwoPaymentsInPeriodWhensearchPaymentsWithStartDateEndDateThenShouldPass() {
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
-        dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
@@ -113,8 +113,8 @@ public class PaymentsSearchFunctionalTest {
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
 
-        dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
@@ -125,8 +125,8 @@ public class PaymentsSearchFunctionalTest {
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         // retrieve card payment
-        dsl.given().userId(integrationTestBase.paymentCmcTestUser, integrationTestBase.paymentCmcTestUserId, integrationTestBase.paymentCmcTestPassword, integrationTestBase.cmcUserGroup)
-            .serviceId(integrationTestBase.cmcServiceName, integrationTestBase.cmcSecret)
+        dsl.given().userId(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup)
+            .serviceId(testProps.cmcServiceName, testProps.cmcSecret)
             .when().searchPaymentsBetweenDates(startDate, endDate)
             .then().getPayments((paymentsResponse -> {
             assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
@@ -136,7 +136,7 @@ public class PaymentsSearchFunctionalTest {
 
 
     private CardPaymentRequest getCardPaymentRequest() {
-        return integrationTestBase.getCMCCardPaymentRequest();
+        return testProps.getCMCCardPaymentRequest();
     }
 
 
