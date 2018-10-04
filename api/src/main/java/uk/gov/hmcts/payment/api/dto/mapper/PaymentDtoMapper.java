@@ -137,9 +137,7 @@ public class PaymentDtoMapper {
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
             .version(fee.getVersion())
-            .volume(Optional.ofNullable(fee.getVolume())
-                .map(v -> v.doubleValue())
-                .orElse(null))
+            .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber(): null)
             .reference(fee.getReference() != null ? fee.getReference(): null)
             .build();
