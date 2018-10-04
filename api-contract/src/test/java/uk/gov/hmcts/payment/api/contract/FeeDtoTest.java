@@ -24,28 +24,18 @@ public class FeeDtoTest {
     @Test
     public void negativeFeeVolumeShouldFailValidation() {
         FeeDto feeDto = new FeeDto();
-        feeDto.setVolume(-1d);
+        feeDto.setVolume(-1);
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
         Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
         assertThat(iterator).extracting(ConstraintViolation::getMessage)
             .contains("must be greater than 0");
     }
-    @Test
-    public void fractionFeeVolumeShouldFailValidation() {
-        FeeDto feeDto = new FeeDto();
-        feeDto.setVolume(1.5);
-
-        Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
-        Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
-        assertThat(iterator).extracting(ConstraintViolation::getMessage)
-            .contains("Fee volume cannot have fractions and has to be non-negative");
-    }
 
     @Test
     public void feeVolumeSetToZeroShouldFailValidation() {
         FeeDto feeDto = new FeeDto();
-        feeDto.setVolume(0d);
+        feeDto.setVolume(0);
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
 
