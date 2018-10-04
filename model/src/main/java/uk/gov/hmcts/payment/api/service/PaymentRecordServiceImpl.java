@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +20,9 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordServiceImpl.class);
 
     private final static String PAYMENT_CHANNEL_DIGITAL_BAR = "digital bar";
-    private final static String PAYMENT_STATUS_CREATED = "created";
+    private final static String PAYMENT_METHOD_CASH = "cash";
+    private final static String PAYMENT_STATUS_SUCCESS = "success";
+    private final static String PAYMENT_STATUS_PENDING = "pending";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final PaymentStatusRepository paymentStatusRepository;
@@ -73,14 +76,28 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                 .userId(userIdSupplier.get())
                 .reportedDateOffline(payment.getReportedDateOffline())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
-                .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
+                .paymentStatus(paymentStatusRepository.findByNameOrThrow(getPaymentStatus(payment.getPaymentMethod().getName())))
                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(payment.getPaymentMethod().getName()))
                 .reference(paymentReferenceUtil.getNext())
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                    .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED).getName())
+                    .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName())
                     .build()))
                 .build()))
             .fees(fees)
             .build();
+    }
+
+    private String getPaymentStatus(String paymentMethod) {
+        switch (paymentMethod) {
+            case "card":
+            case "cash":
+                return PAYMENT_STATUS_SUCCESS;
+            case "cheque":
+            case "postal order":
+                return PAYMENT_STATUS_PENDING;
+            default:
+                throw new PaymentException("Invalid payment method: " + paymentMethod);
+
+        }
     }
 }

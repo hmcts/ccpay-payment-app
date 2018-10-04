@@ -19,7 +19,7 @@ public class PaymentDtoTest {
     private final BigDecimal calculatedAmountForFeeWithVolume;
     private final String memoLine;
     private final String naturalAccountCode;
-    private final Double volume;
+    private final Integer volume;
     private final String feeNoVolumeCode;
     private final BigDecimal calculatedAmountForFeeNoVolume;
     private PaymentDto testDto;
@@ -56,7 +56,7 @@ public class PaymentDtoTest {
         calculatedAmountForFeeWithVolume = new BigDecimal(1);
         memoLine = "memoLine";
         naturalAccountCode = "naturalAccountCode";
-        volume = new Double(1.0);
+        volume = 1;
         feeNoVolumeCode = "X0002";
         calculatedAmountForFeeNoVolume = new BigDecimal(1);
 
@@ -131,7 +131,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeWithoutFractions(volume));
+            .add(volume.toString());
 
         assertThat(testDto.toCardPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -160,7 +160,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeWithoutFractions(volume));
+            .add(volume.toString());
 
         assertThat(testDto.toCardPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -192,7 +192,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeWithoutFractions(volume));
+            .add(volume.toString());
 
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -224,7 +224,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeWithoutFractions(volume));
+            .add(volume.toString());
 
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(joiner.toString());
     }
@@ -256,7 +256,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeWithoutFractions(volume));
+            .add(volume.toString());
 
         StringJoiner joiner2 = new StringJoiner(",");
         joiner2.add(serviceName)
@@ -276,7 +276,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeWithoutFractions(volume));
+            .add(volume.toString());
 
 
         rowJointer.add(joiner.toString());
@@ -314,7 +314,7 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeWithVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeWithoutFractions(volume));
+            .add(volume.toString());
 
         StringJoiner joiner2 = new StringJoiner(",");
         joiner2.add(serviceName)
@@ -337,15 +337,11 @@ public class PaymentDtoTest {
             .add(calculatedAmountForFeeNoVolume.toString())
             .add("\"" + memoLine + "\"")
             .add(naturalAccountCode)
-            .add(feeVolumeWithoutFractions(volume));
+            .add(volume.toString());
 
 
         rowJointer.add(joiner.toString());
         rowJointer.add(joiner2.toString());
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(rowJointer.toString());
-    }
-
-    private String feeVolumeWithoutFractions(Double feeVolume) {
-        return feeVolume == null ? "" : String.valueOf(feeVolume.intValue());
     }
 }

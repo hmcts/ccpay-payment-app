@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -119,7 +120,7 @@ public class PaymentRecordControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
 
         String reference = response.getReference().substring(3, response.getReference().length());
         assertThat(cd.isValid(reference.replace("-", ""))).isEqualTo(true);
@@ -212,6 +213,7 @@ public class PaymentRecordControllerTest {
         }
     }
 
+    @Test
     public void testRecordPostOrderPayment() throws Exception {
         PaymentRecordRequest request = getPostalOrderPaymentRequest();
 
@@ -224,7 +226,7 @@ public class PaymentRecordControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Pending");
     }
 
     @Test
@@ -239,7 +241,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
     }
 
     @Test
@@ -254,7 +256,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
     }
 
     @Test
@@ -296,6 +298,19 @@ public class PaymentRecordControllerTest {
 
     }
 
+    @Test
+    public void testCreatePaymentRecordsWithInvalidPaymentMethodShouldFail() throws Exception {
+        PaymentRecordRequest request = getCashPaymentRequest();
+        request.setPaymentMethod(PaymentMethodType.PBA);
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid payment method: payment by account");
+    }
+
     private PaymentRecordRequest getCashPaymentRequest() {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .amount(new BigDecimal("32.19"))
@@ -315,7 +330,7 @@ public class PaymentRecordControllerTest {
                         .memoLine("Bar Cash")
                         .naturalAccountCode("21245654433")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .reference("ref_123")
                         .build()
                 )
@@ -341,7 +356,7 @@ public class PaymentRecordControllerTest {
                         .calculatedAmount(new BigDecimal("99.99"))
                         .code("FEE0111")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .reference("ref_122")
                         .build()
                 )
@@ -365,7 +380,7 @@ public class PaymentRecordControllerTest {
                         .memoLine("Bar Cash")
                         .naturalAccountCode("21245654433")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -391,7 +406,7 @@ public class PaymentRecordControllerTest {
                         .code("FEE0111")
                         .reference("ref_122")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -416,7 +431,7 @@ public class PaymentRecordControllerTest {
                         .code("FEE0111")
                         .reference("ref_122")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -440,7 +455,7 @@ public class PaymentRecordControllerTest {
                         .code("FEE0111")
                         .reference("ref_122")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -464,7 +479,7 @@ public class PaymentRecordControllerTest {
                         .code("FEE0111")
                         .reference("ref_122")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -483,7 +498,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
