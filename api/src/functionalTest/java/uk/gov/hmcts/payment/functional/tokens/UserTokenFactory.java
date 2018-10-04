@@ -46,7 +46,7 @@ public class UserTokenFactory {
         }
 
 
-        logger.info("User auth token generated successfully: " + jwt);
+        logger.info("User auth token generated successfully: ");
         return jwt;
     }
 
