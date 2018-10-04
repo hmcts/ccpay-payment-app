@@ -1,11 +1,13 @@
 package uk.gov.hmcts.payment.api.service;
 
 import lombok.NonNull;
+import net.logstash.logback.encoder.org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +51,11 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private final GovPayAuthUtil govPayAuthUtil;
     private final ServiceIdSupplier serviceIdSupplier;
     private final AuditRepository auditRepository;
+
+    @Autowired
+    private Environment environment;
+
+    private String[] testProfiles = {"embedded", "local", "componenttest"};
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -171,7 +178,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
-
         List<Predicate> predicates = new ArrayList<>();
 
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
@@ -180,12 +186,13 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
             predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(paymentMethod).build()));
         }
 
+        Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
         if (fromDate != null && toDate != null) {
-            predicates.add(cb.between(paymentJoin.get("dateUpdated"), fromDate, toDate));
+            predicates.add(cb.between(dateUpdatedExpr, fromDate, toDate));
         }else if (fromDate != null) {
-            predicates.add(cb.greaterThanOrEqualTo(paymentJoin.get("dateUpdated"), fromDate));
+            predicates.add(cb.greaterThanOrEqualTo(dateUpdatedExpr, fromDate));
         }else if (toDate != null) {
-            predicates.add(cb.lessThanOrEqualTo(paymentJoin.get("dateUpdated"), toDate));
+            predicates.add(cb.lessThanOrEqualTo(dateUpdatedExpr, toDate));
         }
 
         if (ccdCaseNumber != null) {
