@@ -71,7 +71,7 @@ public class PaymentRecordRequest {
     private List<FeeDto> fees;
 
     @JsonIgnore
-    @AssertFalse(message = "Invalid payment reported offline date. Date format should be ISO.")
+    @AssertFalse(message = "Invalid payment reported offline date. Date should be in ISO format.")
     public boolean isValidReportedDateOffline() {
         if (reportedDateOffline != null) {
             try {

@@ -279,7 +279,20 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date should be in ISO format.");
+    }
+
+    @Test
+    public void testPaymentWithInvalidReportedDateOfflineFormatShouldFail() throws Exception {
+        PaymentRecordRequest request = getBarclayCardPaymentRequest();
+        request.setReportedDateOffline("20181002");
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date should be in ISO format.");
     }
 
     @Test
@@ -292,7 +305,7 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date should be in ISO format.");
 
     }
 
@@ -305,7 +318,7 @@ public class PaymentRecordControllerTest {
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now().toString("yyyy-MM-dd"))
             .siteId("AA99")
             .fees(
                 Arrays.asList(
@@ -333,7 +346,7 @@ public class PaymentRecordControllerTest {
             .currency(CurrencyCode.GBP)
             .externalReference("1000012")
             .giroSlipNo("434567")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now().toString("yyyy-MM-dd"))
             .siteId("AA001")
             .fees(
                 Arrays.asList(
@@ -355,7 +368,7 @@ public class PaymentRecordControllerTest {
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now().toString("yyyy-MM-dd"))
             .siteId("AA99")
             .fees(
                 Arrays.asList(
@@ -407,7 +420,7 @@ public class PaymentRecordControllerTest {
             .currency(CurrencyCode.GBP)
             .externalProvider("barclaycard")
             .externalReference("bar_card_1000013")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now().toString("yyyy-MM-dd"))
             .siteId("AA001")
             .fees(
                 Arrays.asList(
@@ -431,7 +444,7 @@ public class PaymentRecordControllerTest {
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
             .externalReference("bar_card_1000013")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now().toString("yyyy-MM-dd"))
             .siteId("AA001")
             .fees(
                 Arrays.asList(
