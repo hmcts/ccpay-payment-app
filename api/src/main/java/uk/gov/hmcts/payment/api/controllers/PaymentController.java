@@ -16,13 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
@@ -41,14 +35,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
 @Api(tags = {"PaymentController"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentController", description = "Payment API")})
 public class PaymentController {
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentsReportService paymentsReportService;
@@ -106,7 +98,7 @@ public class PaymentController {
         @ApiResponse(code = 200, message = "Payments retrieved"),
         @ApiResponse(code = 400, message = "Bad request")
     })
-    @RequestMapping(value = "/payments", method = GET)
+    @GetMapping(value = "/payments")
     @PaymentExternalAPI
     public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                              @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
@@ -121,7 +113,6 @@ public class PaymentController {
 
             LocalDateTime startDateTime = startDateTimeString.map(formatter::parseLocalDateTime).orElse(null);
             LocalDateTime endDateTime = endDateTimeString.map(formatter::parseLocalDateTime).orElse(null);
-            LOG.debug("Payment search between dates {}", startDateTime, " and {}", endDateTime);
 
             String paymentType = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null);
             String serviceName = serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null);
