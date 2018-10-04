@@ -80,6 +80,7 @@ public class PaymentRecordServiceTest {
             .build();
 
         when(paymentFeeLinkRepository.save(any(PaymentFeeLink.class))).thenReturn(paymentFeeLink);
+        when(paymentStatusRepository.findByNameOrThrow("pending")).thenReturn(PaymentStatus.paymentStatusWith().name("pending").build());
 
         PaymentFeeLink savedPayment = paymentRecordService.recordPayment(payment, fees, "2018-10000001");
 
@@ -87,7 +88,7 @@ public class PaymentRecordServiceTest {
         assertEquals(savedPayment.getPaymentReference(), paymentFeeLink.getPaymentReference());
         savedPayment.getPayments().forEach(p -> {
             assertEquals(p.getAmount(), new BigDecimal("100.11"));
-            assertEquals(p.getPaymentStatus().getName(), "created");
+            assertEquals(p.getPaymentStatus().getName(), "pending");
             assertEquals(p.getPaymentChannel().getName(), "digital bar");
             assertEquals(p.getPaymentMethod().getName(), "cheque");
             assertEquals(p.getCaseReference(), "caseReference");
@@ -107,7 +108,7 @@ public class PaymentRecordServiceTest {
     private Payment getPayment() throws CheckDigitException {
         when(paymentMethodRepository.findByNameOrThrow("cheque")).thenReturn(PaymentMethod.paymentMethodWith().name("cheque").build());
         when(paymentChannelRepository.findByNameOrThrow("digital bar")).thenReturn(PaymentChannel.paymentChannelWith().name("digital bar").build());
-        when(paymentStatusRepository.findByNameOrThrow("created")).thenReturn(PaymentStatus.paymentStatusWith().name("created").build());
+        when(paymentStatusRepository.findByNameOrThrow("pending")).thenReturn(PaymentStatus.paymentStatusWith().name("pending").build());
 
         when(userIdSupplier.get()).thenReturn(USER_ID);
         when(serviceIdSupplier.get()).thenReturn(S2S_SERVICE_NAME);
@@ -122,7 +123,7 @@ public class PaymentRecordServiceTest {
             .s2sServiceName(S2S_SERVICE_NAME)
             .paymentMethod(paymentMethodRepository.findByNameOrThrow("cheque"))
             .paymentChannel(paymentChannelRepository.findByNameOrThrow("digital bar"))
-            .paymentStatus(paymentStatusRepository.findByNameOrThrow("created"))
+            .paymentStatus(paymentStatusRepository.findByNameOrThrow("pending"))
             .build();
     }
 
