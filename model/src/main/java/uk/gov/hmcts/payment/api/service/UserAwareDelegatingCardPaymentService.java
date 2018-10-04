@@ -54,8 +54,6 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     @Autowired
     private Environment environment;
 
-    private String[] testProfiles = {"embedded", "local", "componenttest"};
-
     private static final Predicate[] REF = new Predicate[0];
 
     @Autowired
