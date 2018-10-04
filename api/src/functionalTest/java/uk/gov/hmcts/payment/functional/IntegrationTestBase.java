@@ -1,14 +1,24 @@
 package uk.gov.hmcts.payment.functional;
 
+
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = TestContextConfiguration.class)
-@Ignore
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Random;
+
+import static uk.gov.hmcts.payment.api.contract.CardPaymentRequest.createCardPaymentRequestDtoWith;
+import static uk.gov.hmcts.payment.api.contract.FeeDto.feeDtoWith;
+
+@TestComponent
 public class IntegrationTestBase {
 
     @Value("${probate.user.role}")
@@ -43,4 +53,25 @@ public class IntegrationTestBase {
 
     @Value("${payments.cmc.test.user.password:dummy}")
     protected String paymentCmcTestPassword;
+
+    public CardPaymentRequest getCMCCardPaymentRequest() {
+        int num = new Random().nextInt(100) + 1;
+
+        return createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("20.99"))
+            .description("A functional test for search payment " + num)
+            .caseReference("REF_" + num)
+            .service(Service.CMC)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA0" + num)
+            .fees(Arrays.asList(feeDtoWith()
+                .calculatedAmount(new BigDecimal("20.99"))
+                .code("FEE0" + num)
+                .reference("REF_" + num)
+                .version("1")
+                .build()))
+            .build();
+
+    }
+
 }

@@ -5,6 +5,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
@@ -24,6 +25,7 @@ public class PaymentTestService {
 
     @Autowired
     private ServiceTokenFactory serviceTokenFactory;
+
     @Autowired
     private UserTokenFactory userTokenFactory;
 
