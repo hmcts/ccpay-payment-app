@@ -8,9 +8,7 @@ import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.DateTimeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,8 +119,9 @@ public class PaymentController {
         } else {
             validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
 
-            LocalDateTime startDateTime = startDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
-            LocalDateTime endDateTime = endDateTimeString.map(date -> formatter.parseLocalDateTime(date)).orElse(null);
+            LocalDateTime startDateTime = startDateTimeString.map(formatter::parseLocalDateTime).orElse(null);
+            LocalDateTime endDateTime = endDateTimeString.map(formatter::parseLocalDateTime).orElse(null);
+            LOG.debug("Payment search between dates {}", startDateTime, " and {}", endDateTime);
 
             String paymentType = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null);
             String serviceName = serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null);
