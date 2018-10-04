@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
 import lombok.NonNull;
-import net.logstash.logback.encoder.org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

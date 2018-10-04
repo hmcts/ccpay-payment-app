@@ -50,7 +50,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     @Override
     public List<PaymentFeeLink> search(LocalDateTime startDate, LocalDateTime endDate, String paymentMethod, String serviceType, String ccdCaseNumber) {
         Date fromDateTime = Optional.ofNullable(startDate)
-            .map(s -> s.toDate())
+            .map(LocalDateTime::toDate)
             .orElse(null);
         Date toDateTime = Optional.ofNullable(endDate)
             .map(s -> fromDateTime != null && endDate.getHourOfDay() == 0 ? s.plusDays(1).minusSeconds(1).toDate() : s.toDate())
