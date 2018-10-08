@@ -410,7 +410,7 @@ public class PaymentRecordControllerTest {
             .externalProvider("middle office provider")
             .externalReference("postal_1000012")
             .giroSlipNo("434567")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now().toString("yyyy-MM-dd"))
             .siteId("AA001")
             .fees(
                 Arrays.asList(
