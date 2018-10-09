@@ -13,7 +13,7 @@ locals {
 
   website_url = "http://${var.product}-api-${local.local_env}.service.${local.local_ase}.internal"
 
-  asp_name = "${(var.env == "prod" || var.env == "preview") ? (var.env == "prod" ) ? "payment-api-prod" : "${var.core_product}-aat" : "${var.core_product}-${var.env}"}"
+  asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 }
 
 data "azurerm_key_vault" "payment_key_vault" {
