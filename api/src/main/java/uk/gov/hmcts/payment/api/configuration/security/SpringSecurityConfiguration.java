@@ -38,9 +38,11 @@ public class SpringSecurityConfiguration {
         protected void configure(HttpSecurity http) throws Exception {
             http
                 .requestMatchers()
-                .antMatchers(HttpMethod.GET, "/payments")
-                .antMatchers("/jobs/**")
-                .and()
+                    .antMatchers(HttpMethod.GET, "/payments")
+                    .and()
+                .requestMatchers()
+                    .antMatchers("/jobs/**")
+                    .and()
                 .addFilter(authCheckerServiceOnlyFilter)
                 .authorizeRequests()
                 .anyRequest().authenticated();
