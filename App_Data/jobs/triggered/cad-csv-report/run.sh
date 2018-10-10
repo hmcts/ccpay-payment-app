@@ -1,5 +1,5 @@
 #!/bin/sh
-source ../s2sToken.sh
+source $WEBROOT_PATH/App_Data/jobs/triggered/s2sToken.sh
 
 if [ "$SLOT" == "PRODUCTION" ]
 then

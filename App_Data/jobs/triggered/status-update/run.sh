@@ -1,5 +1,5 @@
 #!/bin/sh
-source ../s2sToken.sh
+source $WEBROOT_PATH/App_Data/jobs/triggered/s2sToken.sh
 
 AUTH_TOKEN=$(s2sToken)
 printf "Invoke status-update endpoint on :%s\n" $PAYMENT_SERVER_URL
