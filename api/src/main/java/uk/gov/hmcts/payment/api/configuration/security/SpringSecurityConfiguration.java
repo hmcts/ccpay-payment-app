@@ -39,11 +39,10 @@ public class SpringSecurityConfiguration {
             http
                 .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/payments")
-                    .and()
-                .requestMatchers()
-                    .antMatchers("/jobs/**")
+                    .antMatchers(  "/jobs/**")
                     .and()
                 .addFilter(authCheckerServiceOnlyFilter)
+                .csrf().disable()
                 .authorizeRequests()
                 .anyRequest().authenticated();
         }
