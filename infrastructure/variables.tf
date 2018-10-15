@@ -57,7 +57,7 @@ variable "gov_pay_url" {
 }
 
 variable "gov_pay_operational_services" {
-  default = "ccd_gw"
+  default = "ccd_gw,api_gw"
 }
 
 variable "spring_mail_host" {
