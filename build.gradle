@@ -1,7 +1,7 @@
 plugins {
     id 'application'
     id 'checkstyle'
-    id "org.sonarqube" version "2.6.1"
+    id "org.sonarqube" version "2.6.2"
     id 'org.springframework.boot' version '2.0.4.RELEASE'
     id 'io.spring.dependency-management' version '1.0.5.RELEASE'
     id 'org.owasp.dependencycheck' version '3.1.1'
@@ -116,6 +116,7 @@ def sonarExclusions = [
         '**/v1/**',
         '**/OtpBootstrap.java',
         '**/api/model/**',
+        '**/api/service/*Service.java',
          '**/api/contract/**',
          '**/api/dto/mapper/**',
          '**/api/reports/config/**',

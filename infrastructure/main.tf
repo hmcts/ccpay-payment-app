@@ -12,6 +12,8 @@ locals {
   fees_register_url = "http://fees-register-api-${local.local_env}.service.${local.local_ase}.internal"
 
   website_url = "http://${var.product}-api-${local.local_env}.service.${local.local_ase}.internal"
+
+  asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 }
 
 data "azurerm_key_vault" "payment_key_vault" {
@@ -73,6 +75,8 @@ module "payment-api" {
   https_only="false"
   capacity = "${var.capacity}"
   common_tags     = "${var.common_tags}"
+  asp_name = "${local.asp_name}"
+  asp_rg = "${local.asp_name}"
 
   app_settings = {
     # db

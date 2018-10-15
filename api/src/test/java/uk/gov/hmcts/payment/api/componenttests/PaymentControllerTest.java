@@ -3,10 +3,14 @@ package uk.gov.hmcts.payment.api.componenttests;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.apache.tomcat.jni.Local;
+import org.assertj.core.api.Assertions;
 import org.ff4j.services.domain.FeatureApiBean;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +43,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -77,6 +82,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
+
+    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormat.forPattern("dd-MM-yyyy");
+
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+
+    private static final DateTimeFormatter DATE_TIME_FORMAT_T_HH_MM_SS = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -391,11 +402,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
         assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(2);
+        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
         assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("start_date");
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid date format received");
-        assertThat(errorDTO.getFieldErrors().get(1).getField()).isEqualTo("end_date");
-        assertThat(errorDTO.getFieldErrors().get(1).getMessage()).isEqualTo("Invalid date format received");
+        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).contains("Invalid date format received, required data format is ISO");
     }
 
     @Test
@@ -497,7 +506,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("2");
         populateCreditAccountPaymentToDb("1");
 
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -528,6 +537,121 @@ public class PaymentControllerTest extends PaymentsDataUtil {
                 assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
             });
         });
+    }
+
+
+    @Test
+    @Transactional
+    public void searchAllPaymentsWithInvalidDateFormatshouldFail() throws Exception {
+        populateCardPaymentToDb("1");
+
+        String startDate = LocalDate.now().toString("dd/MM/yyyy");
+        String endDate = startDate;
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
+        assertThat(errorDTO.hasErrors()).isTrue();
+        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid date format received, required data format is ISO");
+    }
+
+    @Test
+    @Transactional
+    public void searchAllPaymentsWithValidDateFormatShouldPass() throws Exception {
+        populateBarCashPaymentToDb("1");
+        populateBarCardPaymentToDb("2");
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(2);
+    }
+
+    @Test
+    @Transactional
+    public void searchAllPaymentsWithValidDateTimeFormatShouldPass() throws Exception {
+        populateBarCashPaymentToDb("3");
+        populateBarChequePaymentToDb("4");
+
+        String startDate = LocalDate.now().toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(2);
+    }
+
+    @Test
+    @Transactional
+    public void searchAllPaymentsWithDateDDMMYYYYFormatShouldPass() throws Exception {
+        populateBarCashPaymentToDb("5");
+        populateBarChequePaymentToDb("6");
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT_DD_MM_YYYY);
+        String endDate = LocalDateTime.now().minusSeconds(1).toString(DATE_FORMAT_DD_MM_YYYY);
+
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(2);
+
+    }
+
+    @Test
+    public void searchAllPaymentsWithDateFormatYYYYDDMMTHHMMSSShouldPass() throws Exception {
+        String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        assertNotNull(response);
     }
 
 }
