@@ -20,7 +20,7 @@ public class AuthenticatedServiceIdSupplier implements ServiceIdSupplier {
     }
 
     private String getServicename(Authentication authentication) {
-        if (authentication instanceof ServiceAndUserDetails) {
+        if (authentication.getPrincipal() instanceof ServiceAndUserDetails) {
             return ((ServiceAndUserDetails) authentication.getPrincipal()).getServicename();
         }
         return ((ServiceDetails) authentication.getPrincipal()).getUsername();
