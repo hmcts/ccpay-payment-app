@@ -11,7 +11,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 
 public class PaymentFixture {
 
@@ -26,7 +25,7 @@ public class PaymentFixture {
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                 .calculatedAmount(BigDecimal.TEN)
-                .code("FEE001")
+                .code("FEE0001")
                 .version("1")
                 .build())
             )
@@ -47,7 +46,7 @@ public class PaymentFixture {
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .calculatedAmount(BigDecimal.TEN)
-                    .code("FEE001")
+                    .code("FEE0001")
                     .version("1")
                     .build())
             )
@@ -68,7 +67,7 @@ public class PaymentFixture {
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .calculatedAmount(BigDecimal.TEN)
-                    .code("FEE001")
+                    .code("FEE0001")
                     .version("1")
                     .build())
             )
