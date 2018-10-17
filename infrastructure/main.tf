@@ -82,6 +82,16 @@ module "payment-api" {
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
 
+    # liberata
+    LIBERATA_API_ACCOUNT_URL = "${var.liberata_api_account_url}"
+    LIBERATA_OAUTH2_CLIENT_ID = "${var.liberata_oauth2_client_id}"
+    LIBERATA_OAUTH2_CLIENT_SECRET = "${var.liberata_oauth2_client_secret}"
+    LIBERATA_OAUTH2_USERNAME = "${var.liberata_oauth2_username}"
+    LIBERATA_OAUTH2_PASSWORD = "${var.liberata_oauth2_password}"
+    LIBERATA_OAUTH2_BASE_URL = "${var.liberata_oauth2_base_url}"
+    LIBERATA_OAUTH2_AUTHORIZE_URL = "${var.liberata_oauth2_authorize_url}"
+    LIBERATA_OAUTH2_TOKEN_URL = "${var.liberata_oauth2_token_url}"
+
     # gov pay keys
     GOV_PAY_URL = "${var.gov_pay_url}"
     GOV_PAY_AUTH_KEY_REFERENCE = "${data.azurerm_key_vault_secret.gov_pay_keys_reference.value}"
