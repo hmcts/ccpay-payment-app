@@ -4,8 +4,8 @@ locals {
   local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
   local_ase = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "core-compute-aat" : "core-compute-saat" : local.aseName}"
 
-  previewVaultName = "payment-shared-aat"
-  nonPreviewVaultName = "payment-shared-${var.env}"
+  previewVaultName = "${var.core_product}-aat"
+  nonPreviewVaultName = "${var.core_product}-${var.env}"
   vaultName = "${(var.env == "preview" || var.env == "spreview") ? local.previewVaultName : local.nonPreviewVaultName}"
 
   s2sUrl = "http://rpe-service-auth-provider-${local.local_env}.service.${local.local_ase}.internal"
@@ -18,7 +18,7 @@ locals {
 
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
-  resource_group_name = "payment-${local.local_env}"
+  resource_group_name = "${var.core_product}-${local.local_env}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_reference" {
