@@ -38,9 +38,11 @@ public class SpringSecurityConfiguration {
         protected void configure(HttpSecurity http) throws Exception {
             http
                 .requestMatchers()
-                .antMatchers(HttpMethod.GET, "/payments")
-                .and()
+                    .antMatchers(HttpMethod.GET, "/payments")
+                    .antMatchers(  "/jobs/**")
+                    .and()
                 .addFilter(authCheckerServiceOnlyFilter)
+                .csrf().disable()
                 .authorizeRequests()
                 .anyRequest().authenticated();
         }
@@ -69,7 +71,6 @@ public class SpringSecurityConfiguration {
                 "/refdata/**",
                 "/health",
                 "/info",
-                "/jobs/**",
                 "/favicon.ico");
         }
 

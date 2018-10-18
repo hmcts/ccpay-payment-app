@@ -27,3 +27,5 @@ api/src/main/resources/application.properties
 
 api/out/
 gov-pay-client/out/
+
+App_Data/jobs/triggered/payment-otp-all.jar
