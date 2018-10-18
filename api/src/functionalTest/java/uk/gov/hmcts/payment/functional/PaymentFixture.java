@@ -58,7 +58,6 @@ public class PaymentFixture {
             .amount(new BigDecimal(amountString))
             .paymentMethod(PaymentMethodType.CASH)
             .reference("case_ref_123")
-            .externalProvider("middle office provider")
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
