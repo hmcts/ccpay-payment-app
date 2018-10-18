@@ -4,8 +4,8 @@ source ./config.sh
 
 if [ $# -eq 0 ]
   then
-    echo "Usage: /.tokens.sh SERVICE"
-    echo "Service configuration is defined on config.sh (Ex. EXAMPLE)"
+    echo "Usage: /.tokens.sh [SERVICE]"
+    echo "Service configuration is defined on config.sh (Ex. CMC). You can replace [SERVICE] with CMC,DIVORCE,PROBATE,CCD,FEES or BAR"
     exit 1
 fi
 
