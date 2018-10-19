@@ -18,7 +18,7 @@ import java.util.Arrays;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-public class GovPayCardPaymentServiceTest {
+public class GovPayDelegatingPaymentServiceTest {
 
     @Mock
     private GovPayKeyRepository govPayKeyRepository;
@@ -33,7 +33,7 @@ public class GovPayCardPaymentServiceTest {
     private GovPayAuthUtil govPayAuthUtil;
 
     @InjectMocks
-    private GovPayCardPaymentService govPayCardPaymentService;
+    private GovPayDelegatingPaymentService govPayCardPaymentService;
 
     @Before
     public void setUp() {

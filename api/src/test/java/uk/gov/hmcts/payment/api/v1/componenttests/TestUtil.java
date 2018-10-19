@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCardPaymentService;
+import uk.gov.hmcts.payment.api.service.UserAwareDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
@@ -61,7 +61,7 @@ public class TestUtil {
     protected PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     @Autowired
-    protected UserAwareDelegatingCardPaymentService cardPaymentService;
+    protected UserAwareDelegatingPaymentService cardPaymentService;
 
     @Autowired
     protected UserAwareDelegatingCreditAccountPaymentService creditAccountPaymentService;

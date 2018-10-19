@@ -33,7 +33,7 @@ public class UserAwareDelegatingPaymentServiceTest {
 
     private PaymentRepository paymentRepository = mock(PaymentRepository.class);
     private PaymentService<GovPayPayment, String> govPayPaymentService = mock(PaymentService.class);
-    private UserAwareDelegatingPaymentService paymentService = new UserAwareDelegatingPaymentService(() -> USER_ID, paymentRepository, govPayPaymentService);
+    private UserAwareDelegatingOldPaymentService paymentService = new UserAwareDelegatingOldPaymentService(() -> USER_ID, paymentRepository, govPayPaymentService);
 
     @Test
     public void checkCreateWiring() {

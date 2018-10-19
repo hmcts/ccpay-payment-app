@@ -25,12 +25,15 @@ import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 @Service
 @Primary
-public class UserAwareDelegatingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
-    private static final Logger LOG = LoggerFactory.getLogger(UserAwareDelegatingCardPaymentService.class);
+public class UserAwareDelegatingPaymentService implements DelegatingPaymentService<PaymentFeeLink, String> {
+    private static final Logger LOG = LoggerFactory.getLogger(UserAwareDelegatingPaymentService.class);
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
     private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
@@ -40,7 +43,7 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
     private final UserIdSupplier userIdSupplier;
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
-    private final CardPaymentService<GovPayPayment, String> delegate;
+    private final DelegatingPaymentService<GovPayPayment, String> delegate;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentProviderRepository paymentProviderRespository;
@@ -59,11 +62,11 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     private static final Predicate[] REF = new Predicate[0];
 
     @Autowired
-    public UserAwareDelegatingCardPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
-                                                 CardPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
-                                                 PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                                 PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                                 PaymentReferenceUtil paymentReferenceUtil, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier, AuditRepository auditRepository) {
+    public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
+                                             DelegatingPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
+                                             PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
+                                             PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
+                                             PaymentReferenceUtil paymentReferenceUtil, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier, AuditRepository auditRepository) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegate = delegate;
@@ -168,15 +171,23 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
     }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
-        return paymentFeeLinkRepository.findAll(findCardPayments(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber));
+    public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
+        return paymentFeeLinkRepository.findAll(findPayments(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber, pbaNumber));
     }
 
-    private static Specification findCardPayments(Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
-        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, paymentMethod, serviceName, ccdCaseNumber));
+    private static Specification findPayments(Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
+        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, paymentMethod, serviceName, ccdCaseNumber, pbaNumber));
     }
 
-    private static Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
+    private static Predicate getPredicate(
+        Root<Payment> root,
+        CriteriaBuilder cb,
+        Date fromDate,
+        Date toDate,
+        String paymentMethod,
+        String serviceName,
+        String ccdCaseNumber,
+        String pbaNumber) {
         List<Predicate> predicates = new ArrayList<>();
 
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
@@ -188,9 +199,9 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
         Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
         if (fromDate != null && toDate != null) {
             predicates.add(cb.between(dateUpdatedExpr, fromDate, toDate));
-        }else if (fromDate != null) {
+        } else if (fromDate != null) {
             predicates.add(cb.greaterThanOrEqualTo(dateUpdatedExpr, fromDate));
-        }else if (toDate != null) {
+        } else if (toDate != null) {
             predicates.add(cb.lessThanOrEqualTo(dateUpdatedExpr, toDate));
         }
 
@@ -200,6 +211,10 @@ public class UserAwareDelegatingCardPaymentService implements CardPaymentService
 
         if (serviceName != null) {
             predicates.add(cb.equal(paymentJoin.get("serviceType"), serviceName));
+        }
+
+        if (pbaNumber != null) {
+            predicates.add(cb.equal(paymentJoin.get("pbaNumber"), pbaNumber));
         }
 
         return cb.and(predicates.toArray(REF));
