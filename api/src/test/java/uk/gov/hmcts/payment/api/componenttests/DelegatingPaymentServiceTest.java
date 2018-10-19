@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class CardPaymentServiceTest extends TestUtil {
+public class DelegatingPaymentServiceTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
 
@@ -46,7 +46,7 @@ public class CardPaymentServiceTest extends TestUtil {
         MutableDateTime mToDate = new MutableDateTime(toDate);
         mToDate.addDays(2);
 
-        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodType.CARD.getType(), null, null);
+        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodType.CARD.getType(), null, null, null);
 
         assertNotNull(result);
         result.stream().forEach(g -> {
@@ -67,7 +67,7 @@ public class CardPaymentServiceTest extends TestUtil {
         MutableDateTime mToDate = new MutableDateTime(toDate);
         mToDate.addDays(2);
 
-        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodType.CARD.getType(), "cmc", null);
+        List<PaymentFeeLink> result = cardPaymentService.search(mFromDate.toDate(), mToDate.toDate(), PaymentMethodType.CARD.getType(), "cmc", null, null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getPayments()).extracting("serviceType").contains("cmc");

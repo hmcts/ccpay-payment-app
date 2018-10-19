@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.util.Collections;
@@ -25,10 +24,9 @@ public class PaymentServiceTest {
 
     @InjectMocks
     private PaymentServiceImpl service;
+
     @Mock
-    private Payment2Repository paymentRepository;
-    @Mock
-    private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
+    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @Test
     public void shouldDelegateSearchToCardPaymentType() {
@@ -36,10 +34,10 @@ public class PaymentServiceTest {
         LocalDateTime startDate = LocalDateTime.now().minusDays(2);
         LocalDateTime endDate = LocalDateTime.now();
         List<PaymentFeeLink> paymentFeeLinks = Collections.emptyList();
-        given(cardPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq(null), eq(null)))
+        given(delegatingPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq(null), eq(null), eq(null)))
             .willReturn(paymentFeeLinks);
         // when
-        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD.getType(), null, null);
+        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD.getType(), null, null, null);
         // then
         assertThat(result).isSameAs(paymentFeeLinks);
     }
@@ -49,10 +47,10 @@ public class PaymentServiceTest {
         // given
         LocalDateTime startDate = LocalDateTime.now();
         // when
-        service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null);
+        service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null, null);
         // then
         Date fromDate = LocalDateTime.now().toDate();
-        verify(cardPaymentService).search(any(startDate.toDate().getClass()), any(LocalDateTime.now().toDate().getClass()), eq(CARD.getType()), eq(null), eq(null));
+        verify(delegatingPaymentService).search(any(startDate.toDate().getClass()), any(LocalDateTime.now().toDate().getClass()), eq(CARD.getType()), eq(null), eq(null), eq(null));
     }
 
     @Test
@@ -60,10 +58,10 @@ public class PaymentServiceTest {
         // given
         LocalDateTime startDate = LocalDateTime.now();
         // when
-        service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null);
+        service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null, null);
         // then
         Date toDate = LocalDateTime.now().plusDays(1).minusSeconds(1).toDate(); //Date.from(LocalDateTime.now().atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
-        verify(cardPaymentService).search(any(startDate.toDate().getClass()), any(toDate.getClass()), eq(CARD.getType()), eq(null), eq(null));
+        verify(delegatingPaymentService).search(any(startDate.toDate().getClass()), any(toDate.getClass()), eq(CARD.getType()), eq(null), eq(null), eq(null));
     }
 
     @Test
@@ -72,10 +70,10 @@ public class PaymentServiceTest {
         LocalDateTime startDate = LocalDateTime.now().minusDays(2);
         LocalDateTime endDate = LocalDateTime.now();
         List<PaymentFeeLink> paymentFeeLinks = Collections.emptyList();
-        given(cardPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq("cmc"), eq(null)))
+        given(delegatingPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq("cmc"), eq(null), eq(null)))
             .willReturn(paymentFeeLinks);
         // when
-        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD.getType(), "cmc", null);
+        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD.getType(), "cmc", null, null);
         // then
         assertThat(result).isSameAs(paymentFeeLinks);
     }
