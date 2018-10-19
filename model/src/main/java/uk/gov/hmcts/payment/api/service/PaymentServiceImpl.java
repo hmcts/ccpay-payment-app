@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +67,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         return delegatingPaymentService.search(fromDateTime, toDateTime, paymentMethod, serviceType, ccdCaseNumber, pbaNumber);
     }
 
-    private Payment findSavedPayment(String paymentReference) {
+    private Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
     }
 }
