@@ -18,6 +18,6 @@ assemble.doLast {
         from('build/libs/') {
             include 'payment-otp-all.jar'
         }
-        into '../App_Data/jobs/triggered'
+        into '../build/libs'
     }
 }
