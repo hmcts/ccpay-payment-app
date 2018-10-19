@@ -14,6 +14,4 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>{
 
     List<Reference> findReferencesByPaymentProviderAndPaymentStatusNotIn(PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses);
 
-    List<Payment> findByPbaNumber(String pbaNumber);
-
 }
