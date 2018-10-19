@@ -93,6 +93,4 @@ public class SpringSecurityConfiguration {
         }
     }
     
-    /* DELETE ME */
-    
 }
