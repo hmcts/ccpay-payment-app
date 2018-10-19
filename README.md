@@ -29,6 +29,28 @@ access to urls /users/999/payments/\*, any request to /users/{OTHER_ID}/payments
 * **Refunds**. Although, both HMCTS Payment Gateway and GOV.UK Pay implement refund endpoints, they **WILL NOT WORK** due to limitations
 of MoJ financial arrangements  & back-office systems.
 
+### Building
+The project uses [Gradle](https://gradle.org) as a build tool but you don't have install it locally since there is a
+`./gradlew` wrapper script.  
+
+To build project please execute the following command:
+
+```bash
+$ ./gradlew build
+```
+### Tests
+
+This project uses [TestContainers](https://www.testcontainers.org/usage/database_containers.html#jdbc-url) for database support.
+Docker must be installed on the machine you are running tests on and docker environment should have more than 2GB free disk space. 
+
+Windows users may need to enable this [setting](https://github.com/testcontainers/testcontainers-java/issues/350)
+
+To run all unit tests please execute the following command:
+
+```bash
+$ ./gradlew test
+```
+
 ### Endpoints
 
 * POST /users/{userId}/payments - create payment
