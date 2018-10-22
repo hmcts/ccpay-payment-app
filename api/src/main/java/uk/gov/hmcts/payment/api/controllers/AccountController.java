@@ -7,11 +7,16 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 
 @RestController
@@ -28,7 +33,18 @@ public class AccountController {
     })
     @RequestMapping(value = "/accounts/{accountNumber}", method = RequestMethod.GET)
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
-        AccountDto response = accountService.retrieve(accountNumber);
-        return response;
+        try {
+            AccountDto response = accountService.retrieve(accountNumber);
+            return response;
+        } catch (HttpClientErrorException ex) {
+            throw new AccountNotFoundException();
+        }
     }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(AccountNotFoundException.class)
+    public String return404(AccountNotFoundException ex) {
+        return ex.getMessage();
+    }
+
 }

@@ -61,6 +61,8 @@ dependencies {
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+  compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+  compile group: 'org.springframework.security.oauth.boot', name: 'spring-security-oauth2-autoconfigure', version: '2.0.5.RELEASE'
   compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version:'0.23.0.RELEASE'
   compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.5'
   compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'5.0'
