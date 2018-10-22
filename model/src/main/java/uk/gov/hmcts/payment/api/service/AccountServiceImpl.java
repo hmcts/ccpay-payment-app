@@ -17,14 +17,8 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     private String baseUrl;
 
     @Override
-    public AccountDto retrieve(String pbaCode) {
-        try {
-            return restTemplate
-                .getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
-        } catch (HttpClientErrorException ex) {
-            System.out.print(ex);
-        }
-
-        return null;
+    public AccountDto retrieve(String pbaCode) throws HttpClientErrorException {
+        return restTemplate
+            .getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
 }

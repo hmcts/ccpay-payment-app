@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
@@ -14,7 +13,6 @@ import java.util.Date;
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
 @Data
 public class AccountDto {
 
