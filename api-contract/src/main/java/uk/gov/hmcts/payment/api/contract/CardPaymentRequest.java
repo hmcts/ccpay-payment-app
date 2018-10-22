@@ -47,6 +47,9 @@ public class CardPaymentRequest {
 
     private CurrencyCode currency;
 
+    @JsonProperty("service_callback_url")
+    private String serviceCallbackUrl;
+
     @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
