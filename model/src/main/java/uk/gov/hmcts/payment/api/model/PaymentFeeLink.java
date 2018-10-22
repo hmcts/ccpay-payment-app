@@ -11,8 +11,6 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
-
-
 @Entity
 @Data
 @Builder(builderMethodName = "paymentFeeLinkWith")
@@ -43,5 +41,8 @@ public class PaymentFeeLink {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     private List<PaymentFee> fees;
+
+    @Column(name = "service_callback_url")
+    private String serviceCallbackUrl;
 
 }
