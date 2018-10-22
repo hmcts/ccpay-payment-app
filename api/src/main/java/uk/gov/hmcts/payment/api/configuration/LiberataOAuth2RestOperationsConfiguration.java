@@ -16,12 +16,6 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 @Configuration
 public class LiberataOAuth2RestOperationsConfiguration {
 
-    @Value("${liberata.oauth2.base.url}")
-    private String baseUrl;
-
-    @Value("${liberata.oauth2.authorize.url}")
-    private String authorizeUrl;
-
     @Value("${liberata.oauth2.token.url}")
     private String tokenUrl;
 
