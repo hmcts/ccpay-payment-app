@@ -1,0 +1,23 @@
+description = 'OTP (One Time Password) utility in Java'
+dependencies {
+    compile 'com.amdelamar:jotp:1.2.0'
+}
+
+task customFatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'uk.gov.hmcts.payment.OtpBootstrap'
+    }
+    archiveName = 'payment-otp-all.jar'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+assemble.dependsOn(customFatJar)
+assemble.doLast {
+    copy {
+        from('build/libs/') {
+            include 'payment-otp-all.jar'
+        }
+        into '../build/libs'
+    }
+}
