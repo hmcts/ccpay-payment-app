@@ -110,11 +110,15 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             .message(govPayPayment.getState().getMessage())
             .build()));
 
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
             .payments(Arrays.asList(payment))
             .serviceCallbackUrl(serviceCallbackUrl)
             .fees(fees)
-            .build());
+            .build();
+
+        payment.setPaymentLink(paymentFeeLink);
+
+        paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLink);
 
         auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, fees);
         return paymentFeeLink;
@@ -125,7 +129,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     public PaymentFeeLink retrieve(String paymentReference) {
         Payment payment = findSavedPayment(paymentReference);
 
-        PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
+        final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
         String paymentService = payment.getS2sServiceName();
 

@@ -45,6 +45,11 @@ public class RestActions {
         return this;
     }
 
+    public RestActions withHeader(String header, String value) {
+        httpHeaders.add(header, value);
+        return this;
+    }
+
     public RestActions withAuthorizedUser(String userId) {
         String token = UUID.randomUUID().toString();
         userRequestAuthorizer.registerToken(token, userId);

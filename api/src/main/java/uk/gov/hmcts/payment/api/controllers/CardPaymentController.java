@@ -68,13 +68,14 @@ public class CardPaymentController {
     @ResponseBody
     public ResponseEntity<PaymentDto> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
+        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentReference = PaymentReference.getInstance().getNext();
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
 
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentReference, request.getDescription(), returnURL, request.getCcdCaseNumber(), request.getCaseReference(), request.getCurrency().getCode(), request.getSiteId(), request.getService().getName(), paymentDtoMapper.toFees(request.getFees()), amountInPence,
-        request.getServiceCallbackUrl());
+            serviceCallbackUrl);
 
         return new ResponseEntity<>(paymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }
