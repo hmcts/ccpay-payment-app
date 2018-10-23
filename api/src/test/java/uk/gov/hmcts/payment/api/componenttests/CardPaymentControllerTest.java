@@ -294,8 +294,10 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("121.11")).version("1").code("FEE0123").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186161221").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186161221").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)).serviceCallbackUrl("http://payments.com"));
         payment.setPaymentLink(paymentFeeLink);
+
+        assertEquals("http://payments.com", paymentFeeLink.getServiceCallbackUrl());
 
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 

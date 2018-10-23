@@ -36,9 +36,8 @@ public class LoggingPaymentServiceTest {
     @Test
     public void createCardPaymentTest() throws Exception {
         when(userIdSupplier.get()).thenReturn("USER_ID");
-        when(delegatingPaymentService.create(10000, "paymentReference", "description", "https://www.google.com",
-            "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce",
-            Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()))).thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(1)
+        when(delegatingPaymentService.create("paymentReference", "description", "https://www.google.com", "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce", Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()), 10000,
+        )).thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(1)
             .payments(Arrays.asList(Payment.paymentWith()
                 .id(1)
                 .amount(new BigDecimal("10000"))
@@ -55,9 +54,8 @@ public class LoggingPaymentServiceTest {
                 .build()))
             .build());
 
-        PaymentFeeLink paymentFeeLink = loggingPaymentService.create(10000, "paymentReference", "description", "https://www.google.com",
-            "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce",
-            Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()));
+        PaymentFeeLink paymentFeeLink = loggingPaymentService.create("paymentReference", "description", "https://www.google.com", "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce", Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()), 10000,
+        );
         assertNotNull(paymentFeeLink);
         paymentFeeLink.getPayments().stream().forEach(p -> {
             assertEquals(p.getReference(), "RC-1518-9479-8089-4415");

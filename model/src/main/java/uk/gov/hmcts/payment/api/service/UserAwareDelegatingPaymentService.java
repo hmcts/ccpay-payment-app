@@ -83,12 +83,10 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     @Override
     @Transactional
-    public PaymentFeeLink create(int amount, @NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees) throws CheckDigitException {
+    public PaymentFeeLink create(@NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl, String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees, int amount, String serviceCallbackUrl) throws CheckDigitException {
         String paymentReference = paymentReferenceUtil.getNext();
 
-        GovPayPayment govPayPayment = delegate.create(amount, paymentReference, description, returnUrl,
-            ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
+        GovPayPayment govPayPayment = delegate.create(paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees, amount, serviceCallbackUrl);
 
         //Build PaymentLink obj
         Payment payment = Payment.paymentWith().userId(userIdSupplier.get())
@@ -114,6 +112,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
             .payments(Arrays.asList(payment))
+            .serviceCallbackUrl(serviceCallbackUrl)
             .fees(fees)
             .build());
 
