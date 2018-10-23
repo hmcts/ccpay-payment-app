@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import lombok.SneakyThrows;
 
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
@@ -114,6 +116,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void createCardPaymentWithValidInputData_shouldReturnStatusCreatedTest() throws Exception {
 
         stubFor(post(urlPathMatching("/v1/payments"))
@@ -122,14 +125,31 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
 
+        stubFor(get(urlPathMatching("/v1/payments/ak8gtvb438drmp59cs7ijppr3i"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-response.json"))));
+
 
         MvcResult result = restActions
             .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        MvcResult result2 = restActions
+            .get("/card-payments/" + paymentDto.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getServiceCallbackUrl());
+
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
@@ -294,10 +314,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("121.11")).version("1").code("FEE0123").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186161221").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)).serviceCallbackUrl("http://payments.com"));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186161221").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
-
-        assertEquals("http://payments.com", paymentFeeLink.getServiceCallbackUrl());
 
         Payment savedPayment = paymentFeeLink.getPayments().get(0);
 

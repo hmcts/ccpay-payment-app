@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink.PaymentFeeLinkBuilder;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
@@ -14,6 +15,10 @@ public class PaymentDbBackdoor {
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
+    @Autowired
+    private Payment2Repository paymentRepository;
+
+
     public PaymentFeeLink create(PaymentFeeLinkBuilder paymentFeeLink) {
         return paymentFeeLinkRepository.save(paymentFeeLink.build());
     }
@@ -21,6 +26,5 @@ public class PaymentDbBackdoor {
     public PaymentFeeLink findByReference(String reference) {
         return paymentFeeLinkRepository.findByPaymentReference(reference).orElseThrow(PaymentNotFoundException::new);
     }
-
 
 }
