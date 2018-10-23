@@ -89,7 +89,7 @@ public class PaymentServiceTest extends TestUtil {
 
         LocalDateTime endDate = LocalDateTime.now();
 
-        List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, null, null, null);
+        List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, null, null, null, null);
         assertNotNull(paymentFeeLinks);
         assertThat(paymentFeeLinks.get(0).getPayments().size()).isEqualTo(1);
 

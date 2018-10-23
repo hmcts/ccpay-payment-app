@@ -11,10 +11,10 @@ import uk.gov.hmcts.payment.api.v1.model.logging.TestAppender;
 import static ch.qos.logback.classic.Level.INFO;
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
-public class LoggingPaymentServiceTest {
+public class LoggingOldPaymentServiceTest {
 
     private final TestAppender testAppender = new TestAppender();
-    private final LoggingPaymentService loggingPaymentService = new LoggingPaymentService(() -> "userId", new FakePaymentService());
+    private final LoggingOldPaymentService loggingOldPaymentService = new LoggingOldPaymentService(() -> "userId", new FakePaymentService());
 
     @Before
     public void addAppender() throws Exception {
@@ -28,7 +28,7 @@ public class LoggingPaymentServiceTest {
 
     @Test
     public void createPaymentShouldBeLogged() {
-        loggingPaymentService.create(100, "reference", "any", "any");
+        loggingOldPaymentService.create(100, "reference", "any", "any");
         testAppender.assertEvent(0, INFO, "PaymentOld event", ImmutableMap.of(
             "paymentId", 1,
             "userId", "userId",
@@ -40,7 +40,7 @@ public class LoggingPaymentServiceTest {
 
     @Test
     public void cancelPaymentShouldBeLogged() {
-        loggingPaymentService.cancel(2);
+        loggingOldPaymentService.cancel(2);
         testAppender.assertEvent(0, INFO, "PaymentOld event", ImmutableMap.of(
             "paymentId", 2,
             "userId", "userId",
@@ -50,7 +50,7 @@ public class LoggingPaymentServiceTest {
 
     @Test
     public void refundPaymentShouldBeLogged() {
-        loggingPaymentService.refund(3, 10, 500);
+        loggingOldPaymentService.refund(3, 10, 500);
         testAppender.assertEvent(0, INFO, "PaymentOld event", ImmutableMap.of(
             "paymentId", 3,
             "userId", "userId",
