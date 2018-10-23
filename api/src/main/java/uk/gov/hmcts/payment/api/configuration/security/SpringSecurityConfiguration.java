@@ -71,7 +71,8 @@ public class SpringSecurityConfiguration {
                 "/refdata/**",
                 "/health",
                 "/info",
-                "/favicon.ico");
+                "/favicon.ico",
+                "/");
         }
 
         @Override
