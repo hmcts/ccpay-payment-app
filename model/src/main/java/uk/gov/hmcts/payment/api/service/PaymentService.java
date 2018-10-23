@@ -11,5 +11,5 @@ public interface PaymentService<T, ID> {
 
     List<Reference> listInitiatedStatusPaymentsReferences();
 
-    List<T> search(LocalDateTime startDate, LocalDateTime endDate, String paymentMethod, String serviceType, String ccdCaseNumber);
+    List<T> search(LocalDateTime startDate, LocalDateTime endDate, String paymentMethod, String serviceType, String ccdCaseNumber, String pbaNumber);
 }

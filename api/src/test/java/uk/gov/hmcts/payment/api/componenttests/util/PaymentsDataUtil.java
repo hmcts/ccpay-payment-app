@@ -4,6 +4,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
@@ -106,6 +108,7 @@ public class PaymentsDataUtil {
             .serviceType("Probate")
             .currency("GBP")
             .siteId("AA0" + number)
+            .pbaNumber("123456")
             .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
@@ -199,4 +202,27 @@ public class PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
 
     }
+
+    protected void assertPbaPayments(List<PaymentDto> payments) {
+        assertThat(payments.size()).isEqualTo(1);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
+            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+            assertThat(p.getCaseReference()).isEqualTo("Reference2");
+            assertThat(p.getAmount()).isEqualTo(new BigDecimal("11.99"));
+            assertThat(p.getChannel()).isEqualTo("online");
+            assertThat(p.getMethod()).isEqualTo("payment by account");
+            assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getSiteId()).isEqualTo("AA02");
+            assertThat(p.getAccountNumber()).isEqualTo("123456");
+            assertThat(p.getDateCreated()).isNotNull();
+            assertThat(p.getDateUpdated()).isNotNull();
+            p.getFees().stream().forEach(f -> {
+                assertThat(f.getCode()).isEqualTo("FEE0002");
+                assertThat(f.getVersion()).isEqualTo("1");
+                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
+            });
+        });
+    }
+
  }

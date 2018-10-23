@@ -8,7 +8,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.service.CardPaymentService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
@@ -18,14 +18,14 @@ import java.util.List;
 
 
 @Service
-public class GovPayCardPaymentService implements CardPaymentService<GovPayPayment, String> {
+public class GovPayDelegatingPaymentService implements DelegatingPaymentService<GovPayPayment, String> {
     private final GovPayKeyRepository govPayKeyRepository;
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
     private final GovPayAuthUtil govPayAuthUtil;
 
     @Autowired
-    public GovPayCardPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil) {
+    public GovPayDelegatingPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil) {
         this.govPayKeyRepository = govPayKeyRepository;
         this.govPayClient = govPayClient;
         this.serviceIdSupplier = serviceIdSupplier;
@@ -58,7 +58,7 @@ public class GovPayCardPaymentService implements CardPaymentService<GovPayPaymen
     }
 
     @Override
-    public List<GovPayPayment> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
+    public List<GovPayPayment> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
         return null;
     }
 
