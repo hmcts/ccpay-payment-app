@@ -59,10 +59,9 @@ public class GovPayDelegatingPaymentServiceTest {
             .returnUrl("https://www.google.com")
             .build());
 
-        GovPayPayment govPayPayment = govPayCardPaymentService.create(10000, "reference", "description", "https://www.google.com",
-            "ccdCaseNumer", "caseReference", "GBP", "siteId", "divorce",
-            Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode").version("1")
-                .build()));
+        GovPayPayment govPayPayment = govPayCardPaymentService.create("reference", "description", "https://www.google.com", "ccdCaseNumer", "caseReference", "GBP", "siteId", "divorce", Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode").version("1")
+            .build()), 10000,
+        );
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getAmount(), new Integer(10000));
         assertEquals(govPayPayment.getState().getStatus(), "created");

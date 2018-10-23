@@ -27,11 +27,11 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private static final Logger LOG = LoggerFactory.getLogger(UserAwareDelegatingCreditAccountPaymentService.class);
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
-    private final static String PAYMENT_PROVIDER_MIDDLE_OFFICE_PROVIDER = "middle office provider";
+
     private final static String PAYMENT_METHOD = "payment by account";
-    private final static String PAYMENT_STATUS_CREATED = "created";
+
     private final static String PAYMENT_STATUS_PENDING = "pending";
-    private final static String PAYMENT_METHOD_BY_ACCOUNT =  "payment by account";
+    private final static String PAYMENT_METHOD_BY_ACCOUNT = "payment by account";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final PaymentStatusRepository paymentStatusRepository;
@@ -62,34 +62,34 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     public PaymentFeeLink create(Payment creditAccount, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
         LOG.debug("Create credit account payment with PaymentGroupReference: {}", paymentGroupRef);
 
-            Payment payment = null;
-            try {
-                payment = Payment.paymentWith()
-                    .amount(creditAccount.getAmount())
-                    .description(creditAccount.getDescription())
-                    .returnUrl(creditAccount.getReturnUrl())
-                    .ccdCaseNumber(creditAccount.getCcdCaseNumber())
-                    .caseReference(creditAccount.getCaseReference())
-                    .currency(creditAccount.getCurrency())
-                    .siteId(creditAccount.getSiteId())
-                    .serviceType(creditAccount.getServiceType())
-                    .s2sServiceName(serviceIdSupplier.get())
-                    .customerReference(creditAccount.getCustomerReference())
-                    .organisationName(creditAccount.getOrganisationName())
-                    .pbaNumber(creditAccount.getPbaNumber())
-                    .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
-                    .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
-                    .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING))
-                    .reference(paymentReferenceUtil.getNext())
-                    .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                        .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName())
-                        .build()))
-                    .build();
-            } catch (CheckDigitException e) {
-                LOG.error("Error in generating check digit for the payment reference, {}", e);
-            }
+        Payment payment = null;
+        try {
+            payment = Payment.paymentWith()
+                .amount(creditAccount.getAmount())
+                .description(creditAccount.getDescription())
+                .returnUrl(creditAccount.getReturnUrl())
+                .ccdCaseNumber(creditAccount.getCcdCaseNumber())
+                .caseReference(creditAccount.getCaseReference())
+                .currency(creditAccount.getCurrency())
+                .siteId(creditAccount.getSiteId())
+                .serviceType(creditAccount.getServiceType())
+                .s2sServiceName(serviceIdSupplier.get())
+                .customerReference(creditAccount.getCustomerReference())
+                .organisationName(creditAccount.getOrganisationName())
+                .pbaNumber(creditAccount.getPbaNumber())
+                .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
+                .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
+                .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING))
+                .reference(paymentReferenceUtil.getNext())
+                .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                    .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName())
+                    .build()))
+                .build();
+        } catch (CheckDigitException e) {
+            LOG.error("Error in generating check digit for the payment reference, {}", e);
+        }
 
-        PaymentFeeLink result =  paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
+        PaymentFeeLink result = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
             .payments(Arrays.asList(payment))
             .fees(fees)

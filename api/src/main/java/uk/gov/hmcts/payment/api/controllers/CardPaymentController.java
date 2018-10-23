@@ -5,7 +5,6 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -74,9 +73,8 @@ public class CardPaymentController {
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
 
-        PaymentFeeLink paymentLink = delegatingPaymentService.create(amountInPence, paymentReference,
-            request.getDescription(), returnURL, request.getCcdCaseNumber(), request.getCaseReference(),
-            request.getCurrency().getCode(), request.getSiteId(), request.getService().getName(), paymentDtoMapper.toFees(request.getFees()));
+        PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentReference, request.getDescription(), returnURL, request.getCcdCaseNumber(), request.getCaseReference(), request.getCurrency().getCode(), request.getSiteId(), request.getService().getName(), paymentDtoMapper.toFees(request.getFees()), amountInPence,
+        request.getServiceCallbackUrl());
 
         return new ResponseEntity<>(paymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }
