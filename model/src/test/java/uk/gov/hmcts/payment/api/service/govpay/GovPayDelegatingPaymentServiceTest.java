@@ -60,7 +60,7 @@ public class GovPayDelegatingPaymentServiceTest {
             .build());
 
         GovPayPayment govPayPayment = govPayCardPaymentService.create("reference", "description", "https://www.google.com", "ccdCaseNumer", "caseReference", "GBP", "siteId", "divorce", Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode").version("1")
-            .build()), 10000,
+            .build()), 10000, null
         );
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getAmount(), new Integer(10000));
