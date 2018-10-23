@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.service.CardPaymentService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 
 import java.util.List;
@@ -26,13 +26,13 @@ public class MaintenanceJobsController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
 
-    private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
+    private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @Autowired
     public MaintenanceJobsController(PaymentService<PaymentFeeLink, String> paymentService,
-                                     CardPaymentService<PaymentFeeLink, String> cardPaymentService) {
+                                     DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService) {
         this.paymentService = paymentService;
-        this.cardPaymentService = cardPaymentService;
+        this.delegatingPaymentService = delegatingPaymentService;
     }
 
     @ApiOperation(value = "Update payment status", notes = "Updates the payment status on all gov pay pending card payments")
@@ -50,7 +50,7 @@ public class MaintenanceJobsController {
         long count = referenceList
             .stream()
             .map(Reference::getReference)
-            .map(cardPaymentService::retrieve)
+            .map(delegatingPaymentService::retrieve)
             .filter(p -> p != null && p.getPayments() != null && p.getPayments().get(0) != null && p.getPayments().get(0).getStatus() != null)
             .count();
 

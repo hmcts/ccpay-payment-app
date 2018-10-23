@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LoggingPaymentService implements PaymentService<PaymentOld, Integer> {
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingPaymentService.class);
+public class LoggingOldPaymentService implements PaymentService<PaymentOld, Integer> {
+    private static final Logger LOG = LoggerFactory.getLogger(LoggingOldPaymentService.class);
 
     private static final String PAYMENT_ID = "paymentId";
     private static final String USER_ID = "userId";
@@ -22,7 +22,7 @@ public class LoggingPaymentService implements PaymentService<PaymentOld, Integer
     private final PaymentService<PaymentOld, Integer> delegate;
 
     @Autowired
-    public LoggingPaymentService(UserIdSupplier userIdSupplier, PaymentService<PaymentOld, Integer> delegate) {
+    public LoggingOldPaymentService(UserIdSupplier userIdSupplier, PaymentService<PaymentOld, Integer> delegate) {
         this.userIdSupplier = userIdSupplier;
         this.delegate = delegate;
     }
