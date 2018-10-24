@@ -54,7 +54,7 @@ public class IntegrationTestBase {
     @Value("${payments.cmc.test.user.password:dummy}")
     protected String paymentCmcTestPassword;
 
-    @Value("${payments.account.existing.account.number}")
+    @Value("payments.account.existing.account.number")
     protected String existingAccountNumber;
 
     @Value("${payments.account.fake.account.number}")

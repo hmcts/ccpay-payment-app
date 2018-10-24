@@ -9,9 +9,8 @@ import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
@@ -31,11 +30,10 @@ public class AccountController {
         @ApiResponse(code = 200, message = "Account details retrieved"),
         @ApiResponse(code = 404, message = "Account not found")
     })
-    @RequestMapping(value = "/accounts/{accountNumber}", method = RequestMethod.GET)
+    @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
         try {
-            AccountDto response = accountService.retrieve(accountNumber);
-            return response;
+            return accountService.retrieve(accountNumber);
         } catch (HttpClientErrorException ex) {
             throw new AccountNotFoundException();
         }

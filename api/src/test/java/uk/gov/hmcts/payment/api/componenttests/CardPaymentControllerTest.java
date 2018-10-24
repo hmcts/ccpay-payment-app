@@ -53,7 +53,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class CardPaymentControllerTest extends PaymentsDataUtil {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
@@ -132,7 +132,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
-        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
     @Test
@@ -432,7 +432,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
-        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {

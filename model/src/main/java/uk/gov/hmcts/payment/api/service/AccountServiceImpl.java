@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 
 @Service
@@ -17,7 +16,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     private String baseUrl;
 
     @Override
-    public AccountDto retrieve(String pbaCode) throws HttpClientErrorException {
+    public AccountDto retrieve(String pbaCode) {
         return restTemplate
             .getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
