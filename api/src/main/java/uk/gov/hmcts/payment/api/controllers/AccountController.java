@@ -35,7 +35,7 @@ public class AccountController {
         try {
             return accountService.retrieve(accountNumber);
         } catch (HttpClientErrorException ex) {
-            throw new AccountNotFoundException();
+            throw new AccountNotFoundException("Account not found");
         }
     }
 
