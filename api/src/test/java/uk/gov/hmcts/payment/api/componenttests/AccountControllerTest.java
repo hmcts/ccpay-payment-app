@@ -9,11 +9,11 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.controllers.AccountController;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.service.AccountService;
-import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -26,10 +26,8 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class AccountControllerTest {
 
-    private RestActions restActions;
-
     @Mock
-    private AccountService<AccountDto, String> accountSericeMock;
+    private AccountService<AccountDto, String> accountServiceMock;
 
     @InjectMocks
     private AccountController accountController;
@@ -37,12 +35,11 @@ public class AccountControllerTest {
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
-
     @Test
     public void gettingExistingAccountNumberReturnsAccountDetails() {
         AccountDto expectedDto = new AccountDto("PBA1234", "accountName", new BigDecimal(100),
             new BigDecimal(100), "ACTIVE", new Date());
-        when(accountSericeMock.retrieve("PBA1234")).thenReturn(expectedDto);
+        when(accountServiceMock.retrieve("PBA1234")).thenReturn(expectedDto);
 
         AccountDto actualDto = accountController.getAccounts("PBA1234");
 
@@ -51,7 +48,14 @@ public class AccountControllerTest {
 
     @Test(expected = AccountNotFoundException.class)
     public void gettingNonExistingAccountNumberThrowsAccountNotFoundException() {
-        when(accountSericeMock.retrieve("PBA4321")).thenThrow(AccountNotFoundException.class);
+        when(accountServiceMock.retrieve("PBA4321")).thenThrow(HttpClientErrorException.class);
         accountController.getAccounts("PBA4321");
+    }
+
+    @Test
+    public void gettingNonExistingAccountNumberReturns404() throws Exception {
+        String errorMessage = "errorMessage";
+        AccountNotFoundException ex = new AccountNotFoundException(errorMessage);
+        assertEquals(errorMessage, accountController.return404(ex));
     }
 }
