@@ -100,6 +100,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_GOVPAY))
             .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
             .reference(paymentReference)
+            .serviceCallbackUrl(serviceCallbackUrl)
             .build();
         fillTransientDetails(payment, govPayPayment);
 
@@ -112,7 +113,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
             .payments(Arrays.asList(payment))
-            .serviceCallbackUrl(serviceCallbackUrl)
             .fees(fees)
             .build();
 

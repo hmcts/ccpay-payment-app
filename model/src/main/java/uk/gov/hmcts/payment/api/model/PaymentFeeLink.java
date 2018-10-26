@@ -42,7 +42,4 @@ public class PaymentFeeLink {
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     private List<PaymentFee> fees;
 
-    @Column(name = "service_callback_url")
-    private String serviceCallbackUrl;
-
 }
