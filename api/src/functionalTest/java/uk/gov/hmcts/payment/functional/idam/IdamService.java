@@ -68,7 +68,7 @@ public class IdamService {
             testConfig.getOauth2().getClientId(),
             testConfig.getOauth2().getRedirectUrl());
 
-       LOG.info("exchangeCode api params clientId:{}, clientSecret:{}, redirectUrl:{}",
+       LOG.info("exchangeCode api params clientId:{}, clientSt:{}, redirectUrl:{}",
            testConfig.getOauth2().getClientId(), testConfig.getOauth2().getClientSecret(), testConfig.getOauth2().getRedirectUrl());
 
         LOG.info("authenticateUserResponse:{}", authenticateUserResponse.getCode());
