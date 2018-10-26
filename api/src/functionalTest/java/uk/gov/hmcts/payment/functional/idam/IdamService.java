@@ -68,6 +68,11 @@ public class IdamService {
             testConfig.getOauth2().getClientId(),
             testConfig.getOauth2().getRedirectUrl());
 
+       LOG.info("exchangeCode api params clientId:{}, clientSecret:{}, redirectUrl:{}",
+           testConfig.getOauth2().getClientId(), testConfig.getOauth2().getClientSecret(), testConfig.getOauth2().getRedirectUrl());
+
+        LOG.info("authenticateUserResponse:{}", authenticateUserResponse.getCode());
+
         TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
             authenticateUserResponse.getCode(),
             AUTHORIZATION_CODE,
