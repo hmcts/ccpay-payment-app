@@ -4,8 +4,11 @@ import feign.Feign;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.payment.api.controllers.PaymentRecordController;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.CreateUserRequest;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.Role;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.TokenExchangeResponse;
@@ -21,6 +24,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamApi.CreateUserRequest.*;
 
 @Service
 public class IdamService {
+    private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
 
     public static final String CMC_CITIZEN_GROUP = "cmc-private-beta";
     public static final String CMC_CASE_WORKER_GROUP = "caseworker-cmc-solicitor";
@@ -64,6 +68,11 @@ public class IdamService {
             CODE,
             testConfig.getOauth2().getClientId(),
             testConfig.getOauth2().getRedirectUrl());
+
+       LOG.info("exchangeCode api params clientId:{}, clientSecret:{}, redirectUrl:{}",
+           testConfig.getOauth2().getClientId(), testConfig.getOauth2().getClientSecret(), testConfig.getOauth2().getRedirectUrl());
+
+        LOG.info("authenticateUserResponse:{}", authenticateUserResponse.getCode());
 
         TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
             authenticateUserResponse.getCode(),
