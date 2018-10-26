@@ -8,14 +8,12 @@ import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
-import uk.gov.hmcts.payment.functional.tokens.ServiceTokenFactory;
-import uk.gov.hmcts.payment.functional.tokens.UserTokenFactory;
+import uk.gov.hmcts.payment.functional.idam.IdamService;
+import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,44 +28,31 @@ public class PaymentsTestDsl {
     private String baseURL;
 
     @Autowired
-    private ServiceTokenFactory serviceTokenFactory;
-
-    private final UserTokenFactory userTokenFactory;
-
-    private Response response;
+    private S2sTokenService serviceTokenFactory;
 
     @Autowired
-    public PaymentsTestDsl(UserTokenFactory userTokenFactory) {
-        this.userTokenFactory = userTokenFactory;
-    }
+    private IdamService idamService;
+
+    private Response response;
 
     public PaymentGivenDsl given() {
         return new PaymentGivenDsl();
     }
 
     public class PaymentGivenDsl {
-        public PaymentGivenDsl createUser(String userId, String password, String role, String userGroup) {
-            userTokenFactory.setUpUser(userId, password, role, userGroup);
+
+        public PaymentGivenDsl userToken(String userToken) {
+            headers.put("Authorization", userToken);
             return this;
         }
 
-        public PaymentGivenDsl userId(String email, String userId, String password, String role) {
-            headers.put("Authorization", userTokenFactory.validTokenForUser(email, userId, password, role));
-            return this;
-        }
-
-        public PaymentGivenDsl serviceId(String id, String serviceSecret) {
-            headers.put("ServiceAuthorization", serviceTokenFactory.validTokenForService(id, serviceSecret));
+        public PaymentGivenDsl s2sToken(String serviceToken) {
+            headers.put("ServiceAuthorization", serviceToken);
             return this;
         }
 
         public PaymentGivenDsl returnUrl(String url) {
             headers.put("return-url", url);
-            return this;
-        }
-
-        public PaymentGivenDsl deleteUser(String userId) {
-            userTokenFactory.deleteUser(userId);
             return this;
         }
 
@@ -82,7 +67,7 @@ public class PaymentsTestDsl {
         }
 
         public PaymentWhenDsl getPayment(String userId, String paymentId) {
-            response = newRequest().get("/users/{userId}/payments/{paymentId}", userId, paymentId);
+            response = newRequest().get("/users/{userToken}/payments/{paymentId}", userId, paymentId);
             return this;
         }
 
@@ -110,16 +95,6 @@ public class PaymentsTestDsl {
                 response = newRequest().get("/payments?end_date=" + endDate);
             }
 
-            return this;
-        }
-
-        public PaymentWhenDsl cancelPayment(String userId, String paymentId) {
-            response = newRequest().post("/users/{userId}/payments/{paymentId}/cancel", userId, paymentId);
-            return this;
-        }
-
-        public PaymentWhenDsl refundPayment(String userId, RefundPaymentRequestDtoBuilder requestDto, String paymentId) {
-            response = newRequest().body(requestDto.build()).post("/users/{userId}/payments/{paymentId}/refunds", userId, paymentId);
             return this;
         }
 
@@ -180,22 +155,6 @@ public class PaymentsTestDsl {
 
         public Response validationErrorFor400() {
             return response.then().statusCode(400).extract().response();
-        }
-
-        public PaymentThenDsl validationErrorfor500(String message) {
-            String validationError = response.then().statusCode(500).extract().body().asString();
-            Assertions.assertThat(validationError).isEqualTo(message);
-            return this;
-        }
-
-        public PaymentThenDsl refundPayment() {
-            response.then().statusCode(201);
-            return this;
-        }
-
-        public PaymentThenDsl refundAvailableAmountInvalid412() {
-            response.then().statusCode(412);
-            return this;
         }
 
     }

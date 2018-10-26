@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.configuration.security.util;
+package uk.gov.hmcts.payment.functional.s2s;
 
 import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.stereotype.Component;
