@@ -8,19 +8,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.payment.api.controllers.PaymentRecordController;
+import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.CreateUserRequest;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.Role;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.TokenExchangeResponse;
 import uk.gov.hmcts.payment.functional.idam.IdamApi.UserGroup;
-import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
-import uk.gov.hmcts.payment.functional.idam.models.*;
+import uk.gov.hmcts.payment.functional.idam.models.User;
 
 import java.util.Base64;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static uk.gov.hmcts.payment.functional.idam.IdamApi.CreateUserRequest.*;
+import static uk.gov.hmcts.payment.functional.idam.IdamApi.CreateUserRequest.userRequestWith;
 
 @Service
 public class IdamService {
@@ -68,11 +67,6 @@ public class IdamService {
             CODE,
             testConfig.getOauth2().getClientId(),
             testConfig.getOauth2().getRedirectUrl());
-
-       LOG.info("exchangeCode api params clientId:{}, clientSecret:{}, redirectUrl:{}",
-           testConfig.getOauth2().getClientId(), testConfig.getOauth2().getClientSecret(), testConfig.getOauth2().getRedirectUrl());
-
-        LOG.info("authenticateUserResponse:{}", authenticateUserResponse.getCode());
 
         TokenExchangeResponse tokenExchangeResponse = idamApi.exchangeCode(
             authenticateUserResponse.getCode(),
