@@ -148,7 +148,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
-        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getServiceCallbackUrl());
+        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
 
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
