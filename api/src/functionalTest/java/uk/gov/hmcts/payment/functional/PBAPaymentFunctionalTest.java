@@ -47,7 +47,7 @@ public class PBAPaymentFunctionalTest {
     public void setUp() {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
-            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.cmcServiceName, testProps.cmcSecret);
+            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
     }
