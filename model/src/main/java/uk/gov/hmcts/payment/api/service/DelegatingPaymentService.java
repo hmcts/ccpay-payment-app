@@ -8,8 +8,7 @@ import java.util.List;
 
 public interface DelegatingPaymentService<T, ID> {
 
-    T create(int amount, String paymentReference, String description, String returnUrl,
-             String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees) throws CheckDigitException;
+    T create(String paymentReference, String description, String returnUrl, String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees, int amount, String serviceCallbackUrl) throws CheckDigitException;
 
     T retrieve(ID id);
 
