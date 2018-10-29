@@ -10,7 +10,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -40,7 +43,6 @@ public class PaymentReconciliationComponentTest extends TestUtil {
             .build());
 
 
-
         Date fromDate = new Date();
         MutableDateTime mFromDate = new MutableDateTime(fromDate);
         mFromDate.addDays(-1);
@@ -55,7 +57,7 @@ public class PaymentReconciliationComponentTest extends TestUtil {
 
     @Test
     public void testFindPaymetsBetweenGivenInValidDates() throws Exception {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
         String paymentRef3 = UUID.randomUUID().toString();
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLinkWith().paymentReference(paymentRef3)
             .payments(Arrays.asList(paymentsDataUtil.getCardPaymentsData().get(1)))
@@ -67,7 +69,6 @@ public class PaymentReconciliationComponentTest extends TestUtil {
             .payments(Arrays.asList(paymentsDataUtil.getCardPaymentsData().get(1)))
             .fees(Arrays.asList(paymentsDataUtil.getFeesData().get(0)))
             .build());
-
 
 
         Date fromDate = new Date();

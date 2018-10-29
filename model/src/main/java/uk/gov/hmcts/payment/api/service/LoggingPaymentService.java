@@ -40,9 +40,8 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
-    public PaymentFeeLink create(int amount, @NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = delegate.create(amount, paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
+    public PaymentFeeLink create(@NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl, String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees, int amount, String serviceCallbackUrl) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = delegate.create(paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees, amount, serviceCallbackUrl);
 
         Payment payment = paymentFeeLink.getPayments().get(0);
         LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
