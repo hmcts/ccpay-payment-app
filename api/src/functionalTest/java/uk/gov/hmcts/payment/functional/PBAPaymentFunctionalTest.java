@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,7 +55,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void getPbaPaymentsByAccount() {
         // create a PBA payment
-        String accountNumber = "PBA234" + RandomUtils.nextInt(1000);
+        String accountNumber = "PBA234" + RandomUtils.nextInt();
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00");
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
