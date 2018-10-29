@@ -53,7 +53,7 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void createCMCCardPaymentTestShouldReturn201Success() {
+    public void getPbaPaymentsByAccount() {
         // create a PBA payment
         String accountNumber = "PBA234" + RandomUtils.nextInt(1000);
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00");
