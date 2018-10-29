@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.functional;
+package uk.gov.hmcts.payment.functional.fixture;
 
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
@@ -24,7 +24,7 @@ public class PaymentFixture {
             .siteId("AA101")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
-                .calculatedAmount(BigDecimal.TEN)
+                .calculatedAmount(new BigDecimal(amountString))
                 .code("FEE0001")
                 .version("1")
                 .build())
@@ -45,7 +45,7 @@ public class PaymentFixture {
             .accountNumber("AC101010")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
-                    .calculatedAmount(BigDecimal.TEN)
+                    .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
                     .build())
@@ -65,7 +65,7 @@ public class PaymentFixture {
             .siteId("AA99")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
-                    .calculatedAmount(BigDecimal.TEN)
+                    .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
                     .build())

@@ -21,14 +21,14 @@ public class CardDetailsServiceImpl implements CardDetailsService<CardDetails, S
 
     private final static String PAYMENT_BY_CARD = "card";
 
-    private final CardPaymentService<GovPayPayment, String> delegate;
+    private final DelegatingPaymentService<GovPayPayment, String> delegate;
 
     private final Payment2Repository paymentRespository;
     private final GovPayAuthUtil govPayAuthUtil;
     private final ServiceIdSupplier serviceIdSupplier;
 
     @Autowired
-    public CardDetailsServiceImpl(CardPaymentService<GovPayPayment, String> delegate, Payment2Repository paymentRespository, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier) {
+    public CardDetailsServiceImpl(DelegatingPaymentService<GovPayPayment, String> delegate, Payment2Repository paymentRespository, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier) {
         this.delegate = delegate;
         this.paymentRespository = paymentRespository;
         this.govPayAuthUtil = govPayAuthUtil;

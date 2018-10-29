@@ -13,3 +13,7 @@ output "idam_api_url" {
 output "s2s_url" {
   value = "${local.s2sUrl}"
 }
+
+output "OAUTH2_REDIRECT_URI" {
+  value = "${var.test_frontend_url}"
+}

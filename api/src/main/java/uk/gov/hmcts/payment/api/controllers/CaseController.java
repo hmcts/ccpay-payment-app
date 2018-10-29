@@ -44,7 +44,7 @@ public class CaseController {
     public PaymentsResponse retrieveCasePayments(@PathVariable(name = "case") String ccdCaseNumber) {
 
         List<PaymentDto> payments = paymentService
-            .search(null, null, null, null, ccdCaseNumber)
+            .search(null, null, null, null, ccdCaseNumber, null)
             .stream()
             .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());

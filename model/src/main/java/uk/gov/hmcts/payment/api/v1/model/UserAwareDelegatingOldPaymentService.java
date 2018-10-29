@@ -8,13 +8,13 @@ import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 @Service
-public class UserAwareDelegatingPaymentService implements PaymentService<PaymentOld, Integer> {
+public class UserAwareDelegatingOldPaymentService implements PaymentService<PaymentOld, Integer> {
     private final UserIdSupplier userIdSupplier;
     private final PaymentRepository paymentRepository;
     private final PaymentService<GovPayPayment, String> delegate;
 
     @Autowired
-    public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier, PaymentRepository paymentRepository, PaymentService<GovPayPayment, String> delegate) {
+    public UserAwareDelegatingOldPaymentService(UserIdSupplier userIdSupplier, PaymentRepository paymentRepository, PaymentService<GovPayPayment, String> delegate) {
         this.userIdSupplier = userIdSupplier;
         this.paymentRepository = paymentRepository;
         this.delegate = delegate;

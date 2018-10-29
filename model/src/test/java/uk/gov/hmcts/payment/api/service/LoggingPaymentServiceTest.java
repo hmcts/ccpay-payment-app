@@ -17,16 +17,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
-public class LoggingCardPaymentServiceTest {
+public class LoggingPaymentServiceTest {
 
     @Mock
     private UserIdSupplier userIdSupplier;
 
     @Mock
-    private CardPaymentService cardPaymentService;
+    private DelegatingPaymentService delegatingPaymentService;
 
     @InjectMocks
-    private LoggingCardPaymentService loggingCardPaymentService;
+    private LoggingPaymentService loggingPaymentService;
 
     @Before
     public void setUp() {
@@ -36,7 +36,7 @@ public class LoggingCardPaymentServiceTest {
     @Test
     public void createCardPaymentTest() throws Exception {
         when(userIdSupplier.get()).thenReturn("USER_ID");
-        when(cardPaymentService.create(10000, "paymentReference", "description", "https://www.google.com",
+        when(delegatingPaymentService.create(10000, "paymentReference", "description", "https://www.google.com",
             "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce",
             Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()))).thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(1)
             .payments(Arrays.asList(Payment.paymentWith()
@@ -55,7 +55,7 @@ public class LoggingCardPaymentServiceTest {
                 .build()))
             .build());
 
-        PaymentFeeLink paymentFeeLink = loggingCardPaymentService.create(10000, "paymentReference", "description", "https://www.google.com",
+        PaymentFeeLink paymentFeeLink = loggingPaymentService.create(10000, "paymentReference", "description", "https://www.google.com",
             "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce",
             Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()));
         assertNotNull(paymentFeeLink);
