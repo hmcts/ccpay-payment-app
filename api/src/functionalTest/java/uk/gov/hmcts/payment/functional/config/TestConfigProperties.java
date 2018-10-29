@@ -33,4 +33,10 @@ public class TestConfigProperties {
 
     @Value("${cmc.service.secret}")
     public String cmcSecret;
+
+    @Value("payments.account.existing.account.number")
+    public String existingAccountNumber;
+
+    @Value("${payments.account.fake.account.number}")
+    public String fakeAccountNumber;
 }
