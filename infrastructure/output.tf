@@ -15,5 +15,5 @@ output "s2s_url" {
 }
 
 output "OAUTH2_REDIRECT_URI" {
-  value = "${var.test_frontend_url}/oauth2"
+  value = "${var.test_frontend_url}"
 }
