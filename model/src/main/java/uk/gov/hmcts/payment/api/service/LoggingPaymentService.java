@@ -16,9 +16,9 @@ import java.util.Date;
 import java.util.List;
 
 @Component
-public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeLink, String> {
+public class LoggingPaymentService implements DelegatingPaymentService<PaymentFeeLink, String> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingCardPaymentService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LoggingPaymentService.class);
 
     private static final String PAYMENT_ID = "paymentId";
     private static final String USER_ID = "userId";
@@ -32,9 +32,9 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
 
 
     private final UserIdSupplier userIdSupplier;
-    private final CardPaymentService<PaymentFeeLink, String> delegate;
+    private final DelegatingPaymentService<PaymentFeeLink, String> delegate;
 
-    public LoggingCardPaymentService(UserIdSupplier userIdSupplier, CardPaymentService<PaymentFeeLink, String> delegate) {
+    public LoggingPaymentService(UserIdSupplier userIdSupplier, DelegatingPaymentService<PaymentFeeLink, String> delegate) {
         this.userIdSupplier = userIdSupplier;
         this.delegate = delegate;
     }
@@ -66,11 +66,16 @@ public class LoggingCardPaymentService implements CardPaymentService<PaymentFeeL
     }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber) {
-        LOG.info("Searching for payments between {} and {}", startDate, endDate);
+    public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
 
-        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber);
+        if(startDate != null || endDate != null) {
+            LOG.info("Searching for payments between {} and {}", startDate, endDate);
+        }
+
+        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber, pbaNumber);
+
         LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
+
         return paymentFeeLinks;
     }
 

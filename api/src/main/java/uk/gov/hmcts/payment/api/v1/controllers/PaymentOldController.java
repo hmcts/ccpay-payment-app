@@ -41,7 +41,7 @@ public class PaymentOldController {
     private final PaymentDtoFactory paymentDtoFactory;
 
     @Autowired
-    public PaymentOldController(@Qualifier("loggingPaymentService") PaymentService<PaymentOld, Integer> paymentService,
+    public PaymentOldController(@Qualifier("loggingOldPaymentService") PaymentService<PaymentOld, Integer> paymentService,
                                 PaymentDtoFactory paymentDtoFactory) {
         this.paymentService = paymentService;
         this.paymentDtoFactory = paymentDtoFactory;

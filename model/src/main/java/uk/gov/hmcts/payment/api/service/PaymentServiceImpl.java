@@ -23,13 +23,13 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     private final static PaymentStatus ERROR = new PaymentStatus("error", "error");
 
     private final Payment2Repository paymentRepository;
-    private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
+    private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @Autowired
-    public PaymentServiceImpl(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService,
+    public PaymentServiceImpl(@Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
                               Payment2Repository paymentRepository) {
         this.paymentRepository = paymentRepository;
-        this.cardPaymentService = cardPaymentService;
+        this.delegatingPaymentService = delegatingPaymentService;
     }
 
     @Override
@@ -48,14 +48,23 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public List<PaymentFeeLink> search(LocalDateTime startDate, LocalDateTime endDate, String paymentMethod, String serviceType, String ccdCaseNumber) {
+    public List<PaymentFeeLink> search(
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        String paymentMethod,
+        String serviceType,
+        String ccdCaseNumber,
+        String pbaNumber) {
+
         Date fromDateTime = Optional.ofNullable(startDate)
             .map(LocalDateTime::toDate)
             .orElse(null);
+
         Date toDateTime = Optional.ofNullable(endDate)
             .map(s -> fromDateTime != null && endDate.getHourOfDay() == 0 ? s.plusDays(1).minusSeconds(1).toDate() : s.toDate())
             .orElse(null);
-        return cardPaymentService.search(fromDateTime, toDateTime, paymentMethod, serviceType, ccdCaseNumber);
+
+        return delegatingPaymentService.search(fromDateTime, toDateTime, paymentMethod, serviceType, ccdCaseNumber, pbaNumber);
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
