@@ -127,7 +127,4 @@ public class Payment {
     @Column(name = "service_callback_url")
     private String serviceCallbackUrl;
 
-    @Column(name = "notify_callback")
-    private boolean notifyCallback;
-
 }
