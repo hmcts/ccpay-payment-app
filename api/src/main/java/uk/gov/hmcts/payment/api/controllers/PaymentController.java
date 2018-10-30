@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -24,6 +25,7 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -103,22 +105,36 @@ public class PaymentController {
 
         if (!ff4j.check("payment-search")) {
             throw new PaymentException("Payment search feature is not available for usage.");
-        } else {
-            validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
-
-            LocalDateTime startDateTime = startDateTimeString.map(formatter::parseLocalDateTime).orElse(null);
-            LocalDateTime endDateTime = endDateTimeString.map(formatter::parseLocalDateTime).orElse(null);
-
-            String paymentType = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null);
-            String serviceName = serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null);
-
-            List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDateTime, endDateTime, paymentType, serviceName, ccdCaseNumber, pbaNumber);
-
-            List<PaymentDto> paymentDto = paymentFeeLinks.stream()
-                .map(paymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
-
-            return new PaymentsResponse(paymentDto);
         }
+
+        validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
+
+        Date fromDateTime = Optional.ofNullable(startDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
+            .map(LocalDateTime::toDate)
+            .orElse(null);
+
+        Date toDateTime = Optional.ofNullable(endDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
+            .map(s -> fromDateTime != null && s.getHourOfDay() == 0 ? s.plusDays(1).minusSeconds(1).toDate() : s.toDate())
+            .orElse(null);
+
+        List<PaymentFeeLink> paymentFeeLinks = paymentService
+            .search(
+                PaymentSearchCriteria
+                    .searchCriteriaWith()
+                    .startDate(fromDateTime)
+                    .endDate(toDateTime)
+                    .ccdCaseNumber(ccdCaseNumber)
+                    .pbaNumber(pbaNumber)
+                    .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
+                    .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
+                    .build()
+            );
+
+        List<PaymentDto> paymentDto = paymentFeeLinks.stream()
+            .map(paymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
+
+        return new PaymentsResponse(paymentDto);
+
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

@@ -98,7 +98,7 @@ public class PaymentsDataUtil {
     }
 
 
-    public void populateCreditAccountPaymentToDb(String number) throws Exception {
+    public Payment populateCreditAccountPaymentToDb(String number) throws Exception {
         //Create a payment in db
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
@@ -121,6 +121,7 @@ public class PaymentsDataUtil {
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
+        return payment;
     }
 
     public void populateBarCashPaymentToDb(String number) throws Exception {

@@ -316,6 +316,31 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     }
 
+
+    @Test
+    @Transactional
+    public void searchCreditPayments_byCcdCaseNumber() throws Exception {
+
+        populateCardPaymentToDb("1");
+
+        Payment creditPayment = populateCreditAccountPaymentToDb("2");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+
+        assertPbaPayments(paymentsResponse.getPayments());
+
+    }
+
+
     @Test
     @Transactional
     public void searchAllPayments_withInvalidMethodType_shouldReturn400() throws Exception {

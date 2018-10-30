@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
@@ -51,11 +52,18 @@ public class PaymentsReportServiceTest {
         Date startDate = new Date();
         Date endDate = new Date();
 
+        PaymentSearchCriteria criteria = PaymentSearchCriteria
+            .searchCriteriaWith()
+            .startDate(startDate)
+            .endDate(endDate)
+            .paymentMethod(PaymentMethodType.CARD.getType())
+            .build();
+
         // when
         paymentsReportService.generateCsvAndSendEmail(startDate, endDate, PaymentMethodType.CARD, null, paymentReportConfig);
 
         // then
-        verify(delegatingPaymentService).search(startDate,endDate, "card", null, null, null);
+        verify(delegatingPaymentService).search(criteria);
     }
 
     @Test
@@ -64,11 +72,19 @@ public class PaymentsReportServiceTest {
         Date startDate = new Date();
         Date endDate = new Date();
 
+        PaymentSearchCriteria criteria = PaymentSearchCriteria
+            .searchCriteriaWith()
+            .startDate(startDate)
+            .endDate(endDate)
+            .paymentMethod(PaymentMethodType.PBA.getType())
+            .serviceType(Service.DIVORCE.getName())
+            .build();
+
         // when
         paymentsReportService.generateCsvAndSendEmail(startDate, endDate, PaymentMethodType.PBA, Service.DIVORCE, paymentReportConfig);
 
         // then
-        verify(delegatingPaymentService).search(startDate,endDate, "payment by account", "Divorce", null, null);
+        verify(delegatingPaymentService).search(criteria);
     }
 
     @Test

@@ -7,6 +7,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -65,13 +66,13 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
+    public List<PaymentFeeLink> search(PaymentSearchCriteria searchCriteria) {
 
-        if(startDate != null || endDate != null) {
-            LOG.info("Searching for payments between {} and {}", startDate, endDate);
+        if(searchCriteria.getStartDate() != null || searchCriteria.getEndDate() != null) {
+            LOG.info("Searching for payments between {} and {}", searchCriteria.getStartDate(), searchCriteria.getEndDate());
         }
 
-        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber, pbaNumber);
+        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(searchCriteria);
 
         LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
 
