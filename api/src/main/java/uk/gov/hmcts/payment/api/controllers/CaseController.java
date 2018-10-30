@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -44,7 +45,7 @@ public class CaseController {
     public PaymentsResponse retrieveCasePayments(@PathVariable(name = "case") String ccdCaseNumber) {
 
         List<PaymentDto> payments = paymentService
-            .search(null, null, null, null, ccdCaseNumber, null)
+            .search(PaymentSearchCriteria.searchCriteriaWith().ccdCaseNumber(ccdCaseNumber).build())
             .stream()
             .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());

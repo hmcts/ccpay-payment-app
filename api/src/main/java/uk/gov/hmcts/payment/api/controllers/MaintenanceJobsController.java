@@ -58,4 +58,27 @@ public class MaintenanceJobsController {
 
     }
 
+    @ApiOperation(value = "Notify Callbacks", notes = "Notifies services that registered to be called back when a status update on a payment happens")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Reports sent")
+    })
+    @RequestMapping(value = "/jobs/notify-callbacks", method = PATCH)
+    @Transactional
+    public void notifyCallbacks() throws ExecutionException, InterruptedException {
+
+        List<Reference> referenceList = paymentService.listInitiatedStatusPaymentsReferences();
+
+        LOG.warn("Found " + referenceList.size() + " references that require an status update");
+
+        long count = referenceList
+            .stream()
+            .map(Reference::getReference)
+            .map(delegatingPaymentService::retrieve)
+            .filter(p -> p != null && p.getPayments() != null && p.getPayments().get(0) != null && p.getPayments().get(0).getStatus() != null)
+            .count();
+
+        LOG.warn(count + " payment references were successfully updated");
+
+    }
+
 }

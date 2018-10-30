@@ -43,4 +43,3 @@ databaseChangeLog:
             name: service_callback_url
             type: varchar(2000)
         tableName: payment
-
