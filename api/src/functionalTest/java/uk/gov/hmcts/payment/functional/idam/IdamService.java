@@ -26,7 +26,7 @@ public class IdamService {
     private static final Logger LOG = LoggerFactory.getLogger(IdamService.class);
 
     public static final String CMC_CITIZEN_GROUP = "cmc-private-beta";
-    public static final String CMC_CASE_WORKER_GROUP = "caseworker-cmc-solicitor";
+    public static final String CMC_CASE_WORKER_GROUP = "caseworker";
 
     public static final String BEARER = "Bearer ";
     public static final String AUTHORIZATION_CODE = "authorization_code";
