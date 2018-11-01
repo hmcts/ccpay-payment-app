@@ -52,6 +52,7 @@ public class PaymentDtoMapper {
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .statusHistories(toStatusHistoryDtos(payment.getStatusHistories()))
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
@@ -155,6 +156,8 @@ public class PaymentDtoMapper {
         return StatusHistoryDto.statusHistoryDtoWith()
             .status(statusHistory.getStatus())
             .externalStatus(statusHistory.getExternalStatus())
+            .errorCode(statusHistory.getErrorCode())
+            .errorMessage(statusHistory.getMessage())
             .dateCreated(statusHistory.getDateCreated())
             .build();
     }
