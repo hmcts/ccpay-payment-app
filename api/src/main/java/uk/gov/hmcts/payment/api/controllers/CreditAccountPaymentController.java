@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
+import com.netflix.ribbon.proxy.annotation.Http;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -12,15 +13,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
+import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -28,9 +42,10 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @Api(value = "CreditAccountPaymentController", description = "Credit account payment REST API")
@@ -42,24 +57,26 @@ public class CreditAccountPaymentController {
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
-    private final PaymentsReportService paymentsReportService;
+    private AccountService<AccountDto, String> accountService;
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
-                                          PaymentsReportService paymentsReportService) {
+                                          AccountService<AccountDto, String> accountService) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
-        this.paymentsReportService = paymentsReportService;
+        this.accountService = accountService;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
+        @ApiResponse(code = 404, message = "Account information could not be found"),
+        @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @RequestMapping(value = "/credit-account-payments", method = POST)
+    @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
@@ -81,6 +98,21 @@ public class CreditAccountPaymentController {
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
+
+        AccountDto accountDetails;
+        try {
+            accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
+        } catch (HttpClientErrorException ex) {
+            throw new AccountNotFoundException("Account information could not be found");
+        } catch (Exception ex) {
+            throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
+        }
+
+        if(accountDetails.getStatus() == AccountStatus.ACTIVE) {
+            payment.setStatus("success");
+        } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
+            payment.setStatus("failed");
+        }
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
@@ -129,4 +161,15 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(AccountNotFoundException.class)
+    public String return404(AccountNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(AccountServiceUnavailableException.class)
+    public String return504(AccountServiceUnavailableException ex) {
+        return ex.getMessage();
+    }
 }

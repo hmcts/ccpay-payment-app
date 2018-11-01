@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -24,7 +25,7 @@ public class AccountDto {
 
     private BigDecimal availableBalance;
 
-    private String status;
+    private AccountStatus status;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "GMT")
     private Date effectiveDate;
