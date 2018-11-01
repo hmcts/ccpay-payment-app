@@ -124,4 +124,7 @@ public class Payment {
     @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
     private List<StatusHistory> statusHistories;
 
+    @Column(name = "service_callback_url")
+    private String serviceCallbackUrl;
+
 }
