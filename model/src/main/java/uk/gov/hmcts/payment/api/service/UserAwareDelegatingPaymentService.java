@@ -83,12 +83,10 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     @Override
     @Transactional
-    public PaymentFeeLink create(int amount, @NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl,
-                                 String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees) throws CheckDigitException {
+    public PaymentFeeLink create(@NonNull String paymentGroupReference, @NonNull String description, @NonNull String returnUrl, String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees, int amount, String serviceCallbackUrl) throws CheckDigitException {
         String paymentReference = paymentReferenceUtil.getNext();
 
-        GovPayPayment govPayPayment = delegate.create(amount, paymentReference, description, returnUrl,
-            ccdCaseNumber, caseReference, currency, siteId, serviceType, fees);
+        GovPayPayment govPayPayment = delegate.create(paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees, amount, serviceCallbackUrl);
 
         //Build PaymentLink obj
         Payment payment = Payment.paymentWith().userId(userIdSupplier.get())
@@ -102,6 +100,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             .paymentProvider(paymentProviderRespository.findByNameOrThrow(PAYMENT_PROVIDER_GOVPAY))
             .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
             .reference(paymentReference)
+            .serviceCallbackUrl(serviceCallbackUrl)
             .build();
         fillTransientDetails(payment, govPayPayment);
 
@@ -112,10 +111,14 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             .message(govPayPayment.getState().getMessage())
             .build()));
 
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
             .payments(Arrays.asList(payment))
             .fees(fees)
-            .build());
+            .build();
+
+        payment.setPaymentLink(paymentFeeLink);
+
+        paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLink);
 
         auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, fees);
         return paymentFeeLink;
@@ -126,7 +129,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     public PaymentFeeLink retrieve(String paymentReference) {
         Payment payment = findSavedPayment(paymentReference);
 
-        PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
+        final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
         String paymentService = payment.getS2sServiceName();
 

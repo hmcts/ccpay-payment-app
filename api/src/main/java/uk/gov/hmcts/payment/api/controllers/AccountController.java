@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,6 +24,9 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 @Api(tags = {"AccountController"})
 @SwaggerDefinition(tags = {@Tag(name = "AccountController", description = "Account API")})
 public class AccountController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AccountController.class);
+
     @Autowired
     private AccountService<AccountDto, String> accountService;
 
@@ -35,6 +40,7 @@ public class AccountController {
         try {
             return accountService.retrieve(accountNumber);
         } catch (HttpClientErrorException ex) {
+            LOG.error("Error while calling account", ex);
             throw new AccountNotFoundException("Account not found");
         }
     }
