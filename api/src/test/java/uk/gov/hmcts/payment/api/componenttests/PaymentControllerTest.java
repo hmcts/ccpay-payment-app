@@ -3,14 +3,11 @@ package uk.gov.hmcts.payment.api.componenttests;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.apache.tomcat.jni.Local;
-import org.assertj.core.api.Assertions;
 import org.ff4j.services.domain.FeatureApiBean;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,8 +40,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,8 +71,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
-    private final static String PAYMENT_METHOD = "payment by account";
-
     RestActions restActions;
 
     @Autowired
@@ -102,7 +97,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     String resolvePlaceholders(String content) {
         return configurableListableBeanFactory.resolveEmbeddedValue(content);
     }
-
 
 
     @Before
@@ -158,7 +152,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void upateCaseReferenceValidation_forEmptyValues() throws Exception{
+    public void upateCaseReferenceValidation_forEmptyValues() throws Exception {
         UpdatePaymentRequest updatePaymentRequest = objectMapper.readValue(updatePaymentInvalidRequestJson().getBytes(), UpdatePaymentRequest.class);
         MvcResult result = restActions.
             patch(format("/payments/RC-1519-9028-1909-3111"), updatePaymentRequest)
@@ -220,7 +214,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>(){});
+        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>() {
+        });
 
         assertThat(payments.getPayments().size()).isEqualTo(2);
 
@@ -295,25 +290,30 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> payments = paymentsResponse.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
-            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
-            assertThat(p.getCaseReference()).isEqualTo("Reference2");
-            assertThat(p.getAmount()).isEqualTo(new BigDecimal("11.99"));
-            assertThat(p.getChannel()).isEqualTo("online");
-            assertThat(p.getMethod()).isEqualTo("payment by account");
-            assertThat(p.getStatus()).isEqualTo("Initiated");
-            assertThat(p.getSiteId()).isEqualTo("AA02");
-            assertThat(p.getDateCreated()).isNotNull();
-            assertThat(p.getDateUpdated()).isNotNull();
-            p.getFees().stream().forEach(f -> {
-                assertThat(f.getCode()).isEqualTo("FEE0002");
-                assertThat(f.getVersion()).isEqualTo("1");
-                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
-            });
-        });
+        assertPbaPayments( paymentsResponse.getPayments());
+
+    }
+
+    @Test
+    @Transactional
+    public void searchCreditPayments_withPbaNumber() throws Exception {
+
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?pba_number=123456")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+
+        assertPbaPayments(paymentsResponse.getPayments());
+
     }
 
     @Test

@@ -11,14 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
-import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
+import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
+import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
+import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
+import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(Theories.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -29,10 +33,14 @@ public class PaymentAmountTest {
     private static final String NOT_OK = "NOT OK";
 
     @Autowired
-    private IntegrationTestBase testProps;
+    private TestConfigProperties testProps;
 
     @Autowired
     private PaymentTestService paymentTestService;
+    @Autowired
+    private IdamService idamService;
+    @Autowired
+    private S2sTokenService s2sTokenService;
 
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
@@ -45,8 +53,8 @@ public class PaymentAmountTest {
         tcm.prepareTestInstance(this);
 
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = paymentTestService.getUserToken(testProps.paymentCmcTestUser, testProps.paymentCmcTestUserId, testProps.paymentCmcTestPassword, testProps.cmcUserGroup);
-            SERVICE_TOKEN = paymentTestService.getServiceToken(testProps.cmcServiceName, testProps.cmcSecret);
+            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
     }

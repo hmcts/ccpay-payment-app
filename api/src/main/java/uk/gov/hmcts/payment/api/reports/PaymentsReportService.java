@@ -10,7 +10,7 @@ import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
-import uk.gov.hmcts.payment.api.service.CardPaymentService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.io.ByteArrayOutputStream;
@@ -41,15 +41,15 @@ public class PaymentsReportService {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
-    private final CardPaymentService<PaymentFeeLink, String> cardPaymentService;
+    private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final EmailService emailService;
     private final FeesService feesService;
 
     @Autowired
-    public PaymentsReportService(@Qualifier("loggingCardPaymentService") CardPaymentService<PaymentFeeLink, String> cardPaymentService, PaymentDtoMapper paymentDtoMapper,
+    public PaymentsReportService(@Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService, PaymentDtoMapper paymentDtoMapper,
                                  EmailService emailService, FeesService feesService) {
-        this.cardPaymentService = cardPaymentService;
+        this.delegatingPaymentService = delegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.emailService = emailService;
         this.feesService = feesService;
@@ -69,8 +69,8 @@ public class PaymentsReportService {
 
     private List<PaymentDto> findPaymentsBy(Date startDate, Date endDate, PaymentMethodType paymentMethodType, Service serviceName) {
         String serviceType = Optional.ofNullable(serviceName).map(Service::getName).orElse(null);
-        return cardPaymentService
-            .search(startDate, endDate, paymentMethodType.getType(), serviceType, null)
+        return delegatingPaymentService
+            .search(startDate, endDate, paymentMethodType.getType(), serviceType, null, null)
             .stream()
             .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());

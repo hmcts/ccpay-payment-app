@@ -57,7 +57,7 @@ variable "gov_pay_url" {
 }
 
 variable "gov_pay_operational_services" {
-  default = "ccd_gw"
+  default = "ccd_gw,api_gw"
 }
 
 variable "spring_mail_host" {
@@ -130,4 +130,15 @@ variable "external_host_name" {
 
 variable "common_tags" {
   type = "map"
+}
+
+variable "core_product" {
+  type    = "string"
+  default = "ccpay"
+}
+
+variable "test_frontend_url" {
+  type = "string"
+  default = "https://moneyclaims.aat.platform.hmcts.net"
+  description = "Optional front end URL to use for building redirect URI in idam tests "
 }
