@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import lombok.SneakyThrows;
 
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
@@ -40,7 +42,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -231,9 +232,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(paymentDto.getReference(), payment.getReference());
         assertEquals(paymentDto.getExternalReference(), payment.getExternalReference());
         assertEquals("Success", paymentDto.getStatus());
-
-        assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("status", is("Success"))));
-        assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("errorCode", nullValue())));
     }
 
     @Test
@@ -425,8 +423,13 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(paymentDto.getReference(), payment.getReference());
         assertEquals(paymentDto.getStatus(), "Failed");
 
-        assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("errorCode", is("P0200"))));
-        assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("errorMessage", is("Payment not found"))));
+        PaymentFeeLink savedPaymentGroup = db.findByReference("2018-15186162003");
+        Payment dbPayment = savedPaymentGroup.getPayments().get(0);
+        assertEquals(dbPayment.getReference(), "RC-1518-9429-1432-7825");
+        dbPayment.getStatusHistories().stream().forEach(h -> {
+            assertEquals(h.getErrorCode(), "P0200");
+            assertEquals(h.getMessage(), "Payment not found");
+        });
     }
 
 
