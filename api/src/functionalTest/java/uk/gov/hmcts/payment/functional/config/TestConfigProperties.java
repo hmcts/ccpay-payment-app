@@ -28,11 +28,11 @@ public class TestConfigProperties {
     @Value("${s2s.url}")
     private String s2sBaseUrl;
 
-    @Value("${cmc.service.name:cmc}")
-    public String cmcServiceName;
+    @Value("${s2s.service.name}")
+    public String s2sServiceName;
 
-    @Value("${cmc.service.secret}")
-    public String cmcSecret;
+    @Value("${s2s.service.secret}")
+    public String s2sServiceSecret;
 
     @Value("${payments.account.existing.account.number}")
     public String existingAccountNumber;

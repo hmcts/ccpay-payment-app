@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.functional;
 import io.restassured.response.Response;
 import lombok.Data;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
@@ -55,7 +54,7 @@ public class PaymentAmountTest {
 
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.cmcServiceName, testProps.cmcSecret);
+            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
     }
