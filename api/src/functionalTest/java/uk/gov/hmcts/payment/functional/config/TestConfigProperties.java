@@ -25,6 +25,7 @@ public class TestConfigProperties {
 
     @Value("${idam.api.url}")
     public String idamApiUrl;
+
     @Value("${s2s.url}")
     private String s2sBaseUrl;
 

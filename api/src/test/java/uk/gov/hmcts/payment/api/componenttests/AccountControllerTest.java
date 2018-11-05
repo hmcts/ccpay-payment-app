@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.controllers.AccountController;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -38,7 +39,7 @@ public class AccountControllerTest {
     @Test
     public void gettingExistingAccountNumberReturnsAccountDetails() {
         AccountDto expectedDto = new AccountDto("PBA1234", "accountName", new BigDecimal(100),
-            new BigDecimal(100), "ACTIVE", new Date());
+            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         when(accountServiceMock.retrieve("PBA1234")).thenReturn(expectedDto);
 
         AccountDto actualDto = accountController.getAccounts("PBA1234");
