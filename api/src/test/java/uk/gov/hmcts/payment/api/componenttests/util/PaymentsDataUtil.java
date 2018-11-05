@@ -203,6 +203,12 @@ public class PaymentsDataUtil {
 
     }
 
+    public void populateCardPaymentToDbWith(Payment payment, String number) {
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+    }
+
     protected void assertPbaPayments(List<PaymentDto> payments) {
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
