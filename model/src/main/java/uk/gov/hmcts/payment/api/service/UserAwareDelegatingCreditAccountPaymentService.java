@@ -31,6 +31,8 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private final static String PAYMENT_METHOD = "payment by account";
 
     private final static String PAYMENT_STATUS_PENDING = "pending";
+    private final static String PAYMENT_STATUS_SUCCESS = "success";
+    private final static String PAYMENT_STATUS_FAILED = "failed";
     private final static String PAYMENT_METHOD_BY_ACCOUNT = "payment by account";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -79,10 +81,10 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                 .pbaNumber(creditAccount.getPbaNumber())
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
-                .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING))
+                .paymentStatus(paymentStatusRepository.findByNameOrThrow(creditAccount.getPaymentStatus().getName()))
                 .reference(paymentReferenceUtil.getNext())
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                    .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName())
+                    .status(paymentStatusRepository.findByNameOrThrow(creditAccount.getPaymentStatus().getName()).getName())
                     .build()))
                 .build();
         } catch (CheckDigitException e) {

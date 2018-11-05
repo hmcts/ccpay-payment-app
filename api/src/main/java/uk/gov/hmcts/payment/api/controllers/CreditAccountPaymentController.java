@@ -109,9 +109,9 @@ public class CreditAccountPaymentController {
         }
 
         if(accountDetails.getStatus() == AccountStatus.ACTIVE) {
-            payment.setStatus("success");
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
         } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
-            payment.setStatus("failed");
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
         }
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);

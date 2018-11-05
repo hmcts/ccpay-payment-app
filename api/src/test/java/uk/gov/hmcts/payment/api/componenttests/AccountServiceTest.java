@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.service.AccountServiceImpl;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -42,7 +43,7 @@ public class AccountServiceTest {
         String pbaCode = "PBA1234";
         FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
         AccountDto expectedDto = new AccountDto(pbaCode, "accountName", new BigDecimal(100),
-            new BigDecimal(100), "ACTIVE", new Date());
+            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
     }

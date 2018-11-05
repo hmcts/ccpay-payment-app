@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,11 +17,23 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -30,15 +43,14 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Date;
 
 import static java.lang.String.format;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
@@ -69,17 +81,15 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected Payment2Repository paymentRepository;
 
+    @Autowired
+    protected AccountService<AccountDto, String> accountService;
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
-    private final static String PAYMENT_METHOD = "payment by account";
 
     RestActions restActions;
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -94,7 +104,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     String resolvePlaceholders(String content) {
         return configurableListableBeanFactory.resolveEmbeddedValue(content);
     }
-
 
 
     @Before
@@ -113,10 +122,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
-
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());
+
+        Mockito.reset(accountService);
     }
 
     @Test
@@ -220,7 +233,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void validateCreateCreditAccountPayment_withoutCcdCaseNumberAndCaseReferenceTest() throws Exception{
+    public void validateCreateCreditAccountPayment_withoutCcdCaseNumberAndCaseReferenceTest() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithoutCcdCaseRefAndCaseRef().getBytes(), CreditAccountPaymentRequest.class);
 
         MvcResult res = restActions
@@ -234,6 +247,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseReference().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
 
         MvcResult result = restActions
             .post("/credit-account-payments", request)
@@ -242,8 +258,70 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        assertEquals(paymentDto.getStatus(), "Pending");
+        assertEquals(paymentDto.getStatus(), "Success");
 
+        Mockito.reset(accountService);
+    }
+
+    @Test
+    public void createCreditAccountAndLiberataRespondsAccountIsActiveShouldReturnPaymentSuccess() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(),
+            CreditAccountPaymentRequest.class);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        MvcResult result = restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated()).andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals("Success", paymentDto.getStatus());
+
+        Mockito.reset(accountService);
+    }
+
+    @Test
+    public void createCreditAccountAndLiberataRespondsAccountIsInactiveShouldReturnPaymentFailed() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.INACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountInactiveDto);
+
+        MvcResult result = restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated()).andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals("Failed", paymentDto.getStatus());
+
+        Mockito.reset(accountService);
+    }
+
+    @Test
+    public void createCreditAccountAndLiberataRespondsCannotFindAccountShouldReturn404() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(HttpClientErrorException.class);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isNotFound());
+
+        Mockito.reset(accountService);
+    }
+
+    @Test
+    public void createCreditAccountAndLiberataIsNotResponsiveShouldReturn504() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(AccountServiceUnavailableException.class);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isGatewayTimeout());
+
+        Mockito.reset(accountService);
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
