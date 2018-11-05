@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
-import com.netflix.ribbon.proxy.annotation.Http;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -108,7 +107,7 @@ public class CreditAccountPaymentController {
             throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
         }
 
-        if(accountDetails.getStatus() == AccountStatus.ACTIVE) {
+        if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
         } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
