@@ -42,7 +42,7 @@ public class PaymentFixture {
             .siteId("AA101")
             .customerReference("CUST101")
             .organisationName("ORG101")
-            .accountNumber("AC101010")
+            .accountNumber("PBA0082848")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
