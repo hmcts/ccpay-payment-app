@@ -14,7 +14,7 @@ public class TestConfigProperties {
     @Autowired
     public Oauth2 oauth2;
 
-    @Value("${base.test.url}")
+    @Value("${test.url}")
     public String baseTestUrl;
 
     @Value("${generated.user.email.pattern}")

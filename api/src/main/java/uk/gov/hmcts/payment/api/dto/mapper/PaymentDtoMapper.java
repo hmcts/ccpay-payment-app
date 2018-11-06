@@ -95,6 +95,7 @@ public class PaymentDtoMapper {
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .statusHistories(payment.getStatusHistories()!= null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -155,6 +156,8 @@ public class PaymentDtoMapper {
         return StatusHistoryDto.statusHistoryDtoWith()
             .status(statusHistory.getStatus())
             .externalStatus(statusHistory.getExternalStatus())
+            .errorCode(statusHistory.getErrorCode())
+            .errorMessage(statusHistory.getMessage())
             .dateCreated(statusHistory.getDateCreated())
             .build();
     }

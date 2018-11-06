@@ -131,7 +131,7 @@ module "payment-api" {
     GOV_PAY_OPERATIONAL_SERVICES = "${var.gov_pay_operational_services}"
 
     # S2S trusted services
-    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw"
+    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,pui_webapp"
 
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"
