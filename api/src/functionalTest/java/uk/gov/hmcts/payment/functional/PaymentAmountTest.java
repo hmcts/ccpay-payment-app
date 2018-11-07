@@ -52,6 +52,7 @@ public class PaymentAmountTest {
         //hook into the Spring test-support framework because of @RunWith(Theories.class)
         TestContextManager tcm = new TestContextManager(getClass());
         tcm.prepareTestInstance(this);
+        System.out.println(testProps.baseTestUrl);
         Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
 
         if (!TOKENS_INITIALIZED) {
