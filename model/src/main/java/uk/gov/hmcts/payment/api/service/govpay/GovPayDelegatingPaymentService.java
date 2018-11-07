@@ -14,7 +14,6 @@ import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 
-import java.util.Date;
 import java.util.List;
 
 

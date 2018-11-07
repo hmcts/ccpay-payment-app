@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.Lists;
-import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -11,9 +10,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String> {
