@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import lombok.Data;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
@@ -49,6 +50,7 @@ public class PaymentAmountTest {
     @Before
     public void setUp() throws Exception {
         //hook into the Spring test-support framework because of @RunWith(Theories.class)
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         TestContextManager tcm = new TestContextManager(getClass());
         tcm.prepareTestInstance(this);
 
