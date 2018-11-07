@@ -60,7 +60,7 @@ public class PaymentsDataUtil {
         return payments;
     }
 
-    public List<PaymentFee> getFeesData() {
+    public static List<PaymentFee> getFeesData() {
         List<PaymentFee> fees = new ArrayList<>();
         fees.add(feeWith().code("X0011").version("1").build());
         fees.add(feeWith().code("X0022").version("2").build());
