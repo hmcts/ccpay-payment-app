@@ -52,8 +52,6 @@ public class PaymentAmountTest {
         //hook into the Spring test-support framework because of @RunWith(Theories.class)
         TestContextManager tcm = new TestContextManager(getClass());
         tcm.prepareTestInstance(this);
-        System.out.println(testProps.baseTestUrl);
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
 
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
@@ -86,6 +84,7 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreateCardPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke card payment and assert expectedStatus
         Response response = paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aCardPaymentRequest(dataPoint.amount));
          if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
@@ -109,6 +108,7 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreatePbaPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke pba payment and assert expectedStatus
         Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aPbaPaymentRequest(dataPoint.amount));
         if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
@@ -131,6 +131,7 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreateBarPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke bar payment and assert expectedStatus
         Response response = paymentTestService.recordBarPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aBarPaymentRequest(dataPoint.amount));
         if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
