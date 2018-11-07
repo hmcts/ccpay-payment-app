@@ -84,6 +84,7 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreateCardPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+        System.out.println(!testProps.baseTestUrl.contains("payment-api-pr-"));
         Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke card payment and assert expectedStatus
         Response response = paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aCardPaymentRequest(dataPoint.amount));
@@ -108,6 +109,7 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreatePbaPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+        System.out.println(!testProps.baseTestUrl.contains("payment-api-pr-"));
         Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke pba payment and assert expectedStatus
         Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aPbaPaymentRequest(dataPoint.amount));
@@ -131,6 +133,7 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreateBarPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
+        System.out.println(!testProps.baseTestUrl.contains("payment-api-pr-"));
         Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke bar payment and assert expectedStatus
         Response response = paymentTestService.recordBarPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aBarPaymentRequest(dataPoint.amount));
