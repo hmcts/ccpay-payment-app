@@ -50,9 +50,9 @@ public class PaymentAmountTest {
     @Before
     public void setUp() throws Exception {
         //hook into the Spring test-support framework because of @RunWith(Theories.class)
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         TestContextManager tcm = new TestContextManager(getClass());
         tcm.prepareTestInstance(this);
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
 
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
