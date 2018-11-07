@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,7 @@ public class AccountFunctionalTest {
 
     @Before
     public void setUp() throws Exception {
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
