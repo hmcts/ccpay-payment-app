@@ -4,11 +4,13 @@ import io.restassured.response.Response;
 import lombok.Data;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
@@ -43,9 +45,21 @@ public class PaymentAmountTest {
     @Autowired
     private S2sTokenService s2sTokenService;
 
+    public static String baseTestUrl;
+
+    @Value("${test.url}")
+    public void setBaseTestUrl(String url) {
+        baseTestUrl = url;
+    }
+
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
+
+    @BeforeClass
+    public static void beforeClass() {
+        Assume.assumeTrue(!baseTestUrl.contains("payment-api-pr-"));
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -84,8 +98,6 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreateCardPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
-        System.out.println(!testProps.baseTestUrl.contains("payment-api-pr-"));
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke card payment and assert expectedStatus
         Response response = paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aCardPaymentRequest(dataPoint.amount));
          if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
@@ -109,8 +121,6 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreatePbaPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
-        System.out.println(!testProps.baseTestUrl.contains("payment-api-pr-"));
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke pba payment and assert expectedStatus
         Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aPbaPaymentRequest(dataPoint.amount));
         if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
@@ -133,8 +143,6 @@ public class PaymentAmountTest {
 
     @Theory
     public void shouldCreateBarPaymentsWithCorrectAmount(AmountDataPoint dataPoint) {
-        System.out.println(!testProps.baseTestUrl.contains("payment-api-pr-"));
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         // invoke bar payment and assert expectedStatus
         Response response = paymentTestService.recordBarPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aBarPaymentRequest(dataPoint.amount));
         if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {

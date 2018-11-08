@@ -41,9 +41,6 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
@@ -115,7 +112,7 @@ public class CreditAccountPaymentController {
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
-        return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), CREATED);
+        return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
 
@@ -131,7 +128,7 @@ public class CreditAccountPaymentController {
             .findAny()
             .orElseThrow(PaymentNotFoundException::new);
         List<PaymentFee> fees = paymentFeeLink.getFees();
-        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), OK);
+        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get credit account payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
@@ -146,12 +143,12 @@ public class CreditAccountPaymentController {
             .findAny()
             .orElseThrow(PaymentNotFoundException::new);
 
-        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment), OK);
+        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment), HttpStatus.OK);
     }
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
-        return new ResponseEntity(NOT_FOUND);
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
