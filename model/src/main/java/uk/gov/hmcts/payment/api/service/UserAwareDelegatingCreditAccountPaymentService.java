@@ -30,9 +30,6 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
     private final static String PAYMENT_METHOD = "payment by account";
 
-    private final static String PAYMENT_STATUS_PENDING = "pending";
-    private final static String PAYMENT_STATUS_SUCCESS = "success";
-    private final static String PAYMENT_STATUS_FAILED = "failed";
     private final static String PAYMENT_METHOD_BY_ACCOUNT = "payment by account";
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
