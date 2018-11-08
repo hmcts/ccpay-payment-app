@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
     <suppress>
+        <notes>Temporary</notes>
+        <gav regex="true">^dom4j:dom4j:.*$</gav>
+        <cve>CVE-2018-1000632</cve>
+    </suppress>
+    <suppress>
         <notes>This will be fixed as part of PAY-1386</notes>
         <gav regex="true">^org\.springframework\.security\.oauth\.boot:spring-security-oauth2-autoconfigure:.*$</gav>
         <cve>CVE-2016-4977</cve>
