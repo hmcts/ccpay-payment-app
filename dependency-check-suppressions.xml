@@ -19,16 +19,16 @@
     </suppress>
     <suppress>
         <notes><![CDATA[
-   file name: jstl-1.2.jar  we are onl latest version. fixes not available yet.
+   file name: jstl-1.2.jar
    ]]></notes>
-        <gav regex="true">^jstl:jstl:.*$</gav>
-        <cpe>cpe:/a:apache:standard_taglibs</cpe>
+        <gav regex="true">^javax\.servlet:jstl:.*$</gav>
+        <cve>CVE-2015-0254</cve>
     </suppress>
     <suppress>
         <notes><![CDATA[
-   file name: dom4j-1.6.1.jar  we are onl latest version. fixes not available yet.
+   file name: dom4j-1.6.1.jar
    ]]></notes>
-        <gav regex="true">^org\.zenframework\.z8\.dependencies\.commons:dom4j-1\.6\.1:.*$</gav>
+        <gav regex="true">^dom4j:dom4j:.*$</gav>
         <cve>CVE-2018-1000632</cve>
     </suppress>
     <suppress>
