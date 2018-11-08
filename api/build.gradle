@@ -68,7 +68,7 @@ dependencies {
   compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.3'
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version:'2.9.0'
   compile group: 'io.springfox', name: 'springfox-swagger2', version:'2.9.0'
-  compile group: 'org.liquibase', name: 'liquibase-core', version:'3.5.3'
+  compile group: 'org.liquibase', name: 'liquibase-core', version:'3.6.2'
 
     compile group: 'org.ff4j', name: 'ff4j-spring-boot-web-api', version: '1.7.1'
     compile group: 'org.ff4j', name: 'ff4j-web', version: '1.7.1'
