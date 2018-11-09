@@ -22,8 +22,10 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class StatusHistoryDto {
 
     private String status;
-
     private String externalStatus;
+
+    private String errorCode;
+    private String errorMessage;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
