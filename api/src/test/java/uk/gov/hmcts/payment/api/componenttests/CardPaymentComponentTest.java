@@ -106,6 +106,7 @@ public class CardPaymentComponentTest extends TestUtil {
         payments.add(paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
             .paymentStatus(PaymentStatus.CREATED)
             .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                 .externalStatus("created")
                 .status("Initiated")
@@ -113,6 +114,7 @@ public class CardPaymentComponentTest extends TestUtil {
             .build());
         payments.add(paymentWith().amount(BigDecimal.valueOf(20000).movePointRight(2)).reference("reference2").description("desc2").returnUrl("returnUrl2")
             .paymentStatus(PaymentStatus.CREATED)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                 .externalStatus("created")
                 .status("Initiated")
@@ -120,6 +122,7 @@ public class CardPaymentComponentTest extends TestUtil {
             .ccdCaseNumber("ccdCaseNo2").caseReference("caseRef2").serviceType("divorce").currency("GBP").build());
         payments.add(paymentWith().amount(BigDecimal.valueOf(30000).movePointRight(2)).reference("reference3").description("desc3").returnUrl("returnUrl3")
             .paymentStatus(PaymentStatus.CREATED)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                 .externalStatus("created")
                 .status("Initiated")
