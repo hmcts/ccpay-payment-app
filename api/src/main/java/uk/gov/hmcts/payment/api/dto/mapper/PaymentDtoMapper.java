@@ -55,16 +55,16 @@ public class PaymentDtoMapper {
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
-            .channel(payment.getPaymentChannel().getName())
-            .method(payment.getPaymentMethod().getName())
+            .channel(payment.getPaymentChannel() != null ? payment.getPaymentChannel().getName() : null)
+            .method(payment.getPaymentMethod() != null ? payment.getPaymentMethod().getName() : null)
             .externalReference(payment.getExternalReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .fees(toFeeDtos(fees))
-            .links(new PaymentDto.LinksDto(null,
+            .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
-            ))
+            ) : null)
             .build();
     }
 

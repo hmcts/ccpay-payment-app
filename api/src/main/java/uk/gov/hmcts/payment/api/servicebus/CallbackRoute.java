@@ -6,6 +6,6 @@ public class CallbackRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("ampq:topic:topic1/subscriptions1/my-subscription").to("file://sb.txt");
+        from("ampq:topic:serviceCallbackTopic/subscriptions/defaultServiceCallbackSubscription").to("file://sb.txt");
     }
 }

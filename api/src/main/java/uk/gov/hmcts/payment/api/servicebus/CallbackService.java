@@ -29,10 +29,11 @@ public class CallbackService {
         PaymentDto dto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(payment);
 
         ProducerTemplate template = camelContext.createProducerTemplate();
+        template.setDefaultEndpointUri("amqp://serviceCallbackTopic");
         try {
-            template.sendBodyAndHeader("amqp://topic1",
+            template.sendBodyAndHeader(
                 objectMapper.writeValueAsString(dto),
-                "service-callback-url:" + url);
+                "service-callback-url:", url);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
