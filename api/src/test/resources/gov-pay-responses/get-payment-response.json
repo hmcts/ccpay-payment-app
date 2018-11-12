@@ -2,9 +2,7 @@
   "amount": 1199,
   "state": {
     "status": "Success",
-    "finished": true,
-    "message": "Payment expired",
-    "code": "P0020"
+    "finished": true
   },
   "description": "Description101",
   "reference": "RC-1519-9028-1909-3475",

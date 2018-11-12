@@ -56,6 +56,22 @@ variable "gov_pay_url" {
   default = "https://publicapi.payments.service.gov.uk/v1/payments"
 }
 
+variable "liberata_oauth2_base_url" {
+  default = "https://bpacustomerportal.liberata.com/pba/public/api/v2"
+}
+
+variable "liberata_api_account_url" {
+  default = "https://bpacustomerportal.liberata.com/pba/public/api/v2/account"
+}
+
+variable "liberata_oauth2_authorize_url" {
+  default = "https://bpacustomerportal.liberata.com/pba/public/oauth/authorize"
+}
+
+variable "liberata_oauth2_token_url" {
+  default = "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
+}
+
 variable "gov_pay_operational_services" {
   default = "ccd_gw,api_gw"
 }
