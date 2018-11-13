@@ -32,6 +32,11 @@ public class CallbackServiceTest {
             .fees(PaymentsDataUtil.getFeesData())
             .build());
 
+        callbackService.callbackAmpq(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+            .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
+            .fees(PaymentsDataUtil.getFeesData())
+            .build());
+
     }
 
 }
