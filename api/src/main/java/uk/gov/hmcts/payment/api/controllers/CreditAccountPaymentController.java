@@ -104,9 +104,9 @@ public class CreditAccountPaymentController {
             throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
         }
 
-        if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
+        if (accountDetails.getStatus() == AccountStatus.Active) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-        } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
+        } else if (accountDetails.getStatus() == AccountStatus.Inactive) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
         }
 
