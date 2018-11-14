@@ -39,7 +39,7 @@ public class AccountControllerTest {
     @Test
     public void gettingExistingAccountNumberReturnsAccountDetails() {
         AccountDto expectedDto = new AccountDto("PBA1234", "accountName", new BigDecimal(100),
-            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+            new BigDecimal(100), AccountStatus.Active, new Date());
         when(accountServiceMock.retrieve("PBA1234")).thenReturn(expectedDto);
 
         AccountDto actualDto = accountController.getAccounts("PBA1234");
