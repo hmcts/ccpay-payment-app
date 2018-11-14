@@ -121,7 +121,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void createCreditAccountPaymentTest() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.Active, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
         restActions
             .post(format("/credit-account-payments"), request)
@@ -246,7 +246,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseReference().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.Active, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
 
         MvcResult result = restActions
@@ -266,7 +266,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(),
             CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.Active, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
 
         MvcResult result = restActions
@@ -284,7 +284,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void createCreditAccountAndLiberataRespondsAccountIsInactiveShouldReturnPaymentFailed() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(100), new BigDecimal(100), AccountStatus.INACTIVE, new Date());
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.Inactive, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountInactiveDto);
 
         MvcResult result = restActions
