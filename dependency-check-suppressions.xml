@@ -38,4 +38,11 @@
         <gav regex="true">^com\.apple:AppleJavaExtensions:.*$</gav>
         <cve>CVE-2010-0538</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: AppleJavaExtensions-1.4.jar  fix in PAY-1438
+   ]]></notes>
+        <gav regex="true">^com\.google\.guava:guava:.*$</gav>
+        <cve>CVE-2018-10237</cve>
+    </suppress>
 </suppressions>
