@@ -133,6 +133,21 @@
     </suppress>
     <suppress>
         <notes><![CDATA[
+   file name: dom4j-1.6.1.jar
+   ]]></notes>
+        <gav regex="true">^dom4j:dom4j:.*$</gav>
+        <cve>CVE-2018-1000632</cve>
+    </suppress>
+    <!-- False Positive - guava is upgraded to version 27.0.jre -->
+    <suppress>
+        <notes><![CDATA[
+   file name: applicationinsights-core-2.0.2.jar/META-INF/maven/com.google.guava/guava/pom.xml
+   ]]></notes>
+        <gav regex="true">^com\.google\.guava:guava:.*$</gav>
+        <cve>CVE-2018-10237</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
       Applies to Mac OS X implementation of Java only.
     ]]></notes>
         <gav regex="true">^com\.apple:AppleJavaExtensions:.*$</gav>
