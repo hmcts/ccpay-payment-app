@@ -21,11 +21,17 @@ public class FF4jConfiguration {
     @Value("${feature.payments.search}")
     private boolean paymentSearch = false;
 
+    @Value("${feature.credit.account.payment.liberata.check}")
+    private boolean creditAccountPaymentLiberataCheck = false;
+
     @Bean
     public FF4j getFf4j() {
         Feature paymentSearchFeature = new Feature("payment-search", paymentSearch, "Payments search API");
+        Feature creditAccountPaymentLiberataCheckFeature = new Feature("credit-account-payment-liberata-check",
+            creditAccountPaymentLiberataCheck, "Liberata account check when creating credit account payment");
         FF4j ff4j = new FF4j()
             .createFeature(paymentSearchFeature);
+        ff4j.createFeature(creditAccountPaymentLiberataCheckFeature);
 
         return ff4j;
     }
