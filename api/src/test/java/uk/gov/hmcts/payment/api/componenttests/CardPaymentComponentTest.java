@@ -12,12 +12,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
-import static uk.gov.hmcts.payment.api.model.PaymentFee.*;
-import static uk.gov.hmcts.payment.api.model.Payment.*;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 public class CardPaymentComponentTest extends TestUtil {
 
@@ -31,10 +29,10 @@ public class CardPaymentComponentTest extends TestUtil {
         assertNotNull(paymentFeeLink);
         assertEquals(paymentFeeLink.getPayments().size(), 1);
         assertEquals(paymentFeeLink.getFees().size(), 1);
-        assertEquals(paymentFeeLink.getPayments().get(0).getAmount(),  new BigDecimal(1000000));
+        assertEquals(paymentFeeLink.getPayments().get(0).getAmount(), new BigDecimal(1000000));
         assertEquals(paymentFeeLink.getFees().get(0).getCode(), "X0033");
         paymentFeeLink.getPayments().get(0).getStatusHistories().stream().forEach(h -> {
-            assertEquals(h.getExternalStatus(),"created");
+            assertEquals(h.getExternalStatus(), "created");
             assertEquals(h.getStatus(), "Initiated");
         });
     }
