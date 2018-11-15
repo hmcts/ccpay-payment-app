@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -37,14 +38,19 @@ public class CreditAccountPaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);
 
+    private static final String DEFAULT_CURRENCY = "GBP";
+
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
+    private final PaymentsReportService paymentsReportService;
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
-                                          CreditAccountDtoMapper creditAccountDtoMapper) {
+                                          CreditAccountDtoMapper creditAccountDtoMapper,
+                                          PaymentsReportService paymentsReportService) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
+        this.paymentsReportService = paymentsReportService;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")

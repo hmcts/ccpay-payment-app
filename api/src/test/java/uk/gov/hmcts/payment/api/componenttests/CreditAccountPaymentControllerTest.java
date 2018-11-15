@@ -228,7 +228,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertEquals("eitherOneRequired: Either ccdCaseNumber or caseReference is required.", res.getResponse().getContentAsString());
+        assertEquals(res.getResponse().getContentAsString(), "eitherOneRequired: Either ccdCaseNumber or caseReference is required.");
     }
 
     @Test
@@ -242,7 +242,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        assertEquals("Pending", paymentDto.getStatus());
+        assertEquals(paymentDto.getStatus(), "Pending");
 
     }
 
