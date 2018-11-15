@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,15 +54,19 @@ public class CreditAccountPaymentController {
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
-    private AccountService<AccountDto, String> accountService;
+    private final AccountService<AccountDto, String> accountService;
+    private final FF4j ff4j;
+
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
-                                          AccountService<AccountDto, String> accountService) {
+                                          AccountService<AccountDto, String> accountService,
+                                          FF4j ff4j) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
+        this.ff4j = ff4j;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -95,21 +100,25 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
-        AccountDto accountDetails;
-        try {
-            accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
-        } catch (HttpClientErrorException ex) {
-            LOG.error("Account information could not be found, exception: " + ex.getMessage());
-            throw new AccountNotFoundException("Account information could not be found");
-        } catch (Exception ex) {
-            LOG.error("Unable to retrieve account information, exception: " + ex.getMessage());
-            throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
-        }
+        if (ff4j.check("credit-account-payment-liberata-check")) {
+            AccountDto accountDetails;
+            try {
+                accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
+            } catch (HttpClientErrorException ex) {
+                LOG.error("Account information could not be found, exception: " + ex.getMessage());
+                throw new AccountNotFoundException("Account information could not be found");
+            } catch (Exception ex) {
+                LOG.error("Unable to retrieve account information, exception: " + ex.getMessage());
+                throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
+            }
 
-        if (accountDetails.getStatus() == AccountStatus.Active) {
-            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-        } else if (accountDetails.getStatus() == AccountStatus.Inactive) {
-            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
+            if (accountDetails.getStatus() == AccountStatus.Active) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
+            } else if (accountDetails.getStatus() == AccountStatus.Inactive) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
+            }
+        } else {
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
         }
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
