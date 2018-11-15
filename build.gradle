@@ -121,7 +121,8 @@ def sonarExclusions = [
          '**/api/dto/mapper/**',
          '**/api/reports/config/**',
          '**/api/external/client/dto/**',
-         '**/api/external/client/exceptions/**'
+         '**/api/external/client/exceptions/**',
+         '**/api/dto/Reference.java'
 ]
 
 sonarqube {
