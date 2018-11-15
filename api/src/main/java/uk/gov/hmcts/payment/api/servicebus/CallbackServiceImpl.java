@@ -1,9 +1,7 @@
 package uk.gov.hmcts.payment.api.servicebus;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.Message;
-import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,11 +63,7 @@ public class CallbackServiceImpl implements CallbackService {
 
             topicClient.send(msg);
             topicClient.close();
-        } catch (JsonProcessingException e) {
-            LOG.error("Error", e);
-        } catch (InterruptedException e) {
-            LOG.error("Error", e);
-        } catch (ServiceBusException e) {
+        } catch (Exception e) {
             LOG.error("Error", e);
         }
 
