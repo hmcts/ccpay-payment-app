@@ -69,9 +69,6 @@ dependencies {
     compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.0'
     compile group: 'org.liquibase', name: 'liquibase-core', version: '3.5.3'
 
-    compile group: 'org.apache.camel', name: 'camel-spring-boot-starter', version: '2.18.0'
-    compile group: 'org.apache.camel', name: 'camel-amqp', version: '2.18.0'
-
     compile group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.0.7'
 
     compile group: 'javax.jms', name: 'javax.jms-api', version: '2.0.1'
