@@ -8,7 +8,6 @@ dependencies {
     compile group: 'com.querydsl', name: 'querydsl-jpa', version:'4.1.4'
     compile group: 'commons-validator', name: 'commons-validator', version:'1.6'
     compile group: 'uk.gov.hmcts.reform', name: 'java-logging-appinsights', version: '3.0.1'
-    compile group: 'com.google.guava', name: 'guava', version: '27.0-jre'
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
 exclude(module: 'commons-logging')
     }
