@@ -21,7 +21,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @EnableWebSecurity
 public class SpringSecurityConfiguration {
-
+    
     @Configuration
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
@@ -38,9 +38,11 @@ public class SpringSecurityConfiguration {
         protected void configure(HttpSecurity http) throws Exception {
             http
                 .requestMatchers()
-                .antMatchers(HttpMethod.GET, "/payments")
-                .and()
+                    .antMatchers(HttpMethod.GET, "/payments")
+                    .antMatchers(  "/jobs/**")
+                    .and()
                 .addFilter(authCheckerServiceOnlyFilter)
+                .csrf().disable()
                 .authorizeRequests()
                 .anyRequest().authenticated();
         }
@@ -69,8 +71,8 @@ public class SpringSecurityConfiguration {
                 "/refdata/**",
                 "/health",
                 "/info",
-                "/jobs/**",
-                "/favicon.ico");
+                "/favicon.ico",
+                "/");
         }
 
         @Override
@@ -85,9 +87,11 @@ public class SpringSecurityConfiguration {
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority("payments")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority("payments", "citizen")
+                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority("caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority("payments", "citizen")
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
                 .anyRequest().authenticated();
         }
     }
+    
 }

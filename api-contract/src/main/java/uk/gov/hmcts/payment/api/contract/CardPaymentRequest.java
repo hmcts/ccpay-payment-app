@@ -31,7 +31,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class CardPaymentRequest {
 
     @NotNull
-    @Min(1)
+    @DecimalMin("0.01")
+    @Positive
     @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 

@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.hmcts.payment.api.controllers.MaintenanceJobsController;
 import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.service.CardPaymentService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 
 import java.util.Arrays;
@@ -30,7 +30,7 @@ public class MaintenanceJobsControllerMockTest {
     private PaymentService<PaymentFeeLink, String> paymentService;
 
     @Mock
-    private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
+    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @InjectMocks
     private MaintenanceJobsController controller;
@@ -49,7 +49,7 @@ public class MaintenanceJobsControllerMockTest {
 
         verify(paymentService).listInitiatedStatusPaymentsReferences();
 
-        verify(cardPaymentService, times(0)).retrieve(any());
+        verify(delegatingPaymentService, times(0)).retrieve(any());
 
     }
 
@@ -64,7 +64,7 @@ public class MaintenanceJobsControllerMockTest {
 
         verify(paymentService).listInitiatedStatusPaymentsReferences();
 
-        verify(cardPaymentService, times(2)).retrieve("xxx");
+        verify(delegatingPaymentService, times(2)).retrieve("xxx");
 
     }
 

@@ -4,19 +4,21 @@ locals {
   local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
   local_ase = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "core-compute-aat" : "core-compute-saat" : local.aseName}"
 
-  previewVaultName = "payment-shared-aat"
-  nonPreviewVaultName = "payment-shared-${var.env}"
+  previewVaultName = "${var.core_product}-aat"
+  nonPreviewVaultName = "${var.core_product}-${var.env}"
   vaultName = "${(var.env == "preview" || var.env == "spreview") ? local.previewVaultName : local.nonPreviewVaultName}"
 
   s2sUrl = "http://rpe-service-auth-provider-${local.local_env}.service.${local.local_ase}.internal"
   fees_register_url = "http://fees-register-api-${local.local_env}.service.${local.local_ase}.internal"
 
   website_url = "http://${var.product}-api-${local.local_env}.service.${local.local_ase}.internal"
+
+  asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 }
 
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
-  resource_group_name = "payment-${local.local_env}"
+  resource_group_name = "${var.core_product}-${local.local_env}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_reference" {
@@ -51,6 +53,16 @@ data "azurerm_key_vault_secret" "pba_divorce_payments_email_to" {
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
+data "azurerm_key_vault_secret" "webjob_s2s_client_secret" {
+  name = "gateway-s2s-client-secret"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "webjob_s2s_client_id" {
+  name = "gateway-s2s-client-id"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
 module "payment-api" {
   source   = "git@github.com:hmcts/moj-module-webapp?ref=master"
   product  = "${var.product}-api"
@@ -63,6 +75,8 @@ module "payment-api" {
   https_only="false"
   capacity = "${var.capacity}"
   common_tags     = "${var.common_tags}"
+  asp_name = "${local.asp_name}"
+  asp_rg = "${local.asp_name}"
 
   app_settings = {
     # db
@@ -87,7 +101,7 @@ module "payment-api" {
     GOV_PAY_OPERATIONAL_SERVICES = "${var.gov_pay_operational_services}"
 
     # S2S trusted services
-    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw"
+    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,pui_webapp"
 
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"
@@ -124,6 +138,9 @@ module "payment-api" {
     ROOT_APPENDER = "JSON_CONSOLE"
 
     PAYMENT_AUDIT_FILE = "${var.payment_audit_file}"
+    # webjob security
+    WEBJOB_S2S_CLIENT_ID = "${data.azurerm_key_vault_secret.webjob_s2s_client_id.value}"
+    WEBJOB_S2S_CLIENT_SECRET = "${data.azurerm_key_vault_secret.webjob_s2s_client_secret.value}"
   }
 }
 
