@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
@@ -71,13 +72,18 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl getAccountInfomation(String accountNumber) {
+            response = newRequest().get("/accounts/" + accountNumber);
+            return this;
+        }
+
         public PaymentWhenDsl getBuildInfo() {
             response = newRequest().get("/info");
             return this;
         }
 
         public PaymentWhenDsl createCardPayment(CardPaymentRequest cardPaymentRequest) {
-            response = newRequest().contentType(ContentType.JSON).body(cardPaymentRequest).post( "/card-payments");
+            response = newRequest().contentType(ContentType.JSON).body(cardPaymentRequest).post("/card-payments");
             return this;
         }
 
@@ -139,6 +145,10 @@ public class PaymentsTestDsl {
 
         public PaymentDto get() {
             return response.then().statusCode(200).extract().as(PaymentDto.class);
+        }
+
+        public AccountDto getAccount() {
+            return response.then().statusCode(200).extract().as(AccountDto.class);
         }
 
         public PaymentThenDsl getPayments(Consumer<PaymentsResponse> paymentsResponseAssertions) {

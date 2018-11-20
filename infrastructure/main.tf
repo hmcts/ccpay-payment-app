@@ -21,6 +21,26 @@ data "azurerm_key_vault" "payment_key_vault" {
   resource_group_name = "${var.core_product}-${local.local_env}"
 }
 
+data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_id" {
+  name = "liberata-keys-oauth2-client-id"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_secret" {
+  name = "liberata-keys-oauth2-client-secret"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "liberata_keys_oauth2_username" {
+  name = "liberata-keys-oauth2-username"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "liberata_keys_oauth2_password" {
+  name = "liberata-keys-oauth2-password"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
 data "azurerm_key_vault_secret" "gov_pay_keys_reference" {
   name = "gov-pay-keys-reference"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
@@ -91,6 +111,16 @@ module "payment-api" {
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
+
+    # liberata
+    LIBERATA_OAUTH2_CLIENT_ID = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_id.value}"
+    LIBERATA_OAUTH2_CLIENT_SECRET = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_secret.value}"
+    LIBERATA_OAUTH2_USERNAME = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_username.value}"
+    LIBERATA_OAUTH2_PASSWORD = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_password.value}"
+    LIBERATA_API_ACCOUNT_URL = "${var.liberata_api_account_url}"
+    LIBERATA_OAUTH2_BASE_URL = "${var.liberata_oauth2_base_url}"
+    LIBERATA_OAUTH2_AUTHORIZE_URL = "${var.liberata_oauth2_authorize_url}"
+    LIBERATA_OAUTH2_TOKEN_URL = "${var.liberata_oauth2_token_url}"
 
     # gov pay keys
     GOV_PAY_URL = "${var.gov_pay_url}"

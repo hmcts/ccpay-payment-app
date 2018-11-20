@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +46,8 @@ public class PBAPaymentFunctionalTest {
 
     @Before
     public void setUp() {
+        // run on non PR envs only
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
