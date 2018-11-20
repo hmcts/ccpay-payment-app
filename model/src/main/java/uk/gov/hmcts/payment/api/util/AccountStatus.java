@@ -1,8 +1,8 @@
 package uk.gov.hmcts.payment.api.util;
 
 public enum AccountStatus {
-    ACTIVE("ACTIVE"),
-    INACTIVE("INACTIVE");
+    ACTIVE("Active"),
+    INACTIVE("Inactive");
 
     private String status;
 
