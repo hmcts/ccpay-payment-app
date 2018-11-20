@@ -85,18 +85,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         return new CustomResultMatcher(objectMapper);
     }
 
-    @SneakyThrows
-    String contentsOf(String fileName) {
-        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
-        return resolvePlaceholders(content);
-    }
-
-    String resolvePlaceholders(String content) {
-        return configurableListableBeanFactory.resolveEmbeddedValue(content);
-    }
-
-
-
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();

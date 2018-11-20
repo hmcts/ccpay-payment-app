@@ -115,7 +115,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         fillTransientDetails(payment, govPayPayment);
 
         payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-            .externalStatus(govPayPayment.getState().getStatus())
+            .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
             .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
             .errorCode(govPayPayment.getState().getCode())
             .message(govPayPayment.getState().getMessage())
