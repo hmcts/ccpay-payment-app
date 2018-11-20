@@ -105,10 +105,10 @@ public class CreditAccountPaymentController {
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
             } catch (HttpClientErrorException ex) {
-                LOG.error("Account information could not be found, exception: {0}",  ex.getMessage());
+                LOG.error(String.format("Account information could not be found, exception: {}",  ex.getMessage()));
                 throw new AccountNotFoundException("Account information could not be found");
             } catch (Exception ex) {
-                LOG.error("Unable to retrieve account information, exception: {0}", ex.getMessage());
+                LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
                 throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
             }
 
