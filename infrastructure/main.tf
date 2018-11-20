@@ -102,7 +102,7 @@ module "payment-api" {
     # db
     SPRING_DATASOURCE_USERNAME = "${module.payment-database.user_name}"
     SPRING_DATASOURCE_PASSWORD = "${module.payment-database.postgresql_password}"
-    SPRING_DATASOURCE_URL = "jdbc:postgresql://${module.payment-database.host_name}:${module.payment-database.postgresql_listen_port}/${module.payment-database.postgresql_database}?ssl=true"
+    SPRING_DATASOURCE_URL = "jdbc:postgresql://${module.payment-database.host_name}:${module.payment-database.postgresql_listen_port}/${module.payment-database.postgresql_database}?sslmode=require"
 
     # enable/disables liquibase run
     SPRING_LIQUIBASE_ENABLED = "${var.liquibase_enabled}"
