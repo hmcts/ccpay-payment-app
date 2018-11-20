@@ -15,7 +15,7 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
-import uk.gov.hmcts.payment.api.service.CardPaymentService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.util.Date;
@@ -30,7 +30,7 @@ public class PaymentsReportServiceTest {
     private PaymentsReportService paymentsReportService;
 
     @Mock
-    private CardPaymentService<PaymentFeeLink, String> cardPaymentService;
+    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
     @Mock
     private EmailService emailService;
     @Mock
@@ -55,7 +55,7 @@ public class PaymentsReportServiceTest {
         paymentsReportService.generateCsvAndSendEmail(startDate, endDate, PaymentMethodType.CARD, null, paymentReportConfig);
 
         // then
-        verify(cardPaymentService).search(startDate,endDate, "card", null, null);
+        verify(delegatingPaymentService).search(startDate,endDate, "card", null, null, null);
     }
 
     @Test
@@ -68,7 +68,7 @@ public class PaymentsReportServiceTest {
         paymentsReportService.generateCsvAndSendEmail(startDate, endDate, PaymentMethodType.PBA, Service.DIVORCE, paymentReportConfig);
 
         // then
-        verify(cardPaymentService).search(startDate,endDate, "payment by account", "Divorce", null);
+        verify(delegatingPaymentService).search(startDate,endDate, "payment by account", "Divorce", null, null);
     }
 
     @Test

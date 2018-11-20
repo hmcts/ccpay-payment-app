@@ -33,6 +33,7 @@ public class PaymentDtoMapper {
         return PaymentDto.payment2DtoWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mapedStatus)
             .reference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
             .links(new PaymentDto.LinksDto(
                 payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
@@ -57,6 +58,7 @@ public class PaymentDtoMapper {
             .channel(payment.getPaymentChannel().getName())
             .method(payment.getPaymentMethod().getName())
             .externalReference(payment.getExternalReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .fees(toFeeDtos(fees))
             .links(new PaymentDto.LinksDto(null,
@@ -71,6 +73,7 @@ public class PaymentDtoMapper {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
             .statusHistories(toStatusHistoryDtos(payment.getStatusHistories()))
             .build();
@@ -92,6 +95,7 @@ public class PaymentDtoMapper {
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .statusHistories(payment.getStatusHistories()!= null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -137,9 +141,7 @@ public class PaymentDtoMapper {
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
             .version(fee.getVersion())
-            .volume(Optional.ofNullable(fee.getVolume())
-                .map(v -> v.doubleValue())
-                .orElse(null))
+            .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber(): null)
             .reference(fee.getReference() != null ? fee.getReference(): null)
             .build();
@@ -154,6 +156,8 @@ public class PaymentDtoMapper {
         return StatusHistoryDto.statusHistoryDtoWith()
             .status(statusHistory.getStatus())
             .externalStatus(statusHistory.getExternalStatus())
+            .errorCode(statusHistory.getErrorCode())
+            .errorMessage(statusHistory.getMessage())
             .dateCreated(statusHistory.getDateCreated())
             .build();
     }

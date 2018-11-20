@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.fees2.register.data.model.Fee;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -31,10 +32,12 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -119,7 +122,7 @@ public class PaymentRecordControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
 
         String reference = response.getReference().substring(3, response.getReference().length());
         assertThat(cd.isValid(reference.replace("-", ""))).isEqualTo(true);
@@ -212,6 +215,7 @@ public class PaymentRecordControllerTest {
         }
     }
 
+    @Test
     public void testRecordPostOrderPayment() throws Exception {
         PaymentRecordRequest request = getPostalOrderPaymentRequest();
 
@@ -224,7 +228,7 @@ public class PaymentRecordControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Pending");
     }
 
     @Test
@@ -239,7 +243,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
     }
 
     @Test
@@ -254,7 +258,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
     }
 
     @Test
@@ -296,6 +300,19 @@ public class PaymentRecordControllerTest {
 
     }
 
+    @Test
+    public void testCreatePaymentRecordsWithInvalidPaymentMethodShouldFail() throws Exception {
+        PaymentRecordRequest request = getCashPaymentRequest();
+        request.setPaymentMethod(PaymentMethodType.PBA);
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid payment method: payment by account");
+    }
+
     private PaymentRecordRequest getCashPaymentRequest() {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .amount(new BigDecimal("32.19"))
@@ -315,7 +332,7 @@ public class PaymentRecordControllerTest {
                         .memoLine("Bar Cash")
                         .naturalAccountCode("21245654433")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .reference("ref_123")
                         .build()
                 )
@@ -341,7 +358,7 @@ public class PaymentRecordControllerTest {
                         .calculatedAmount(new BigDecimal("99.99"))
                         .code("FEE0111")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .reference("ref_122")
                         .build()
                 )
@@ -365,7 +382,7 @@ public class PaymentRecordControllerTest {
                         .memoLine("Bar Cash")
                         .naturalAccountCode("21245654433")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -391,7 +408,7 @@ public class PaymentRecordControllerTest {
                         .code("FEE0111")
                         .reference("ref_122")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -416,7 +433,7 @@ public class PaymentRecordControllerTest {
                         .code("FEE0111")
                         .reference("ref_122")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -440,7 +457,7 @@ public class PaymentRecordControllerTest {
                         .code("FEE0111")
                         .reference("ref_122")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -464,7 +481,7 @@ public class PaymentRecordControllerTest {
                         .code("FEE0111")
                         .reference("ref_122")
                         .version("1")
-                        .volume(1d)
+                        .volume(1)
                         .build()
                 )
             )
@@ -483,7 +500,7 @@ public class PaymentRecordControllerTest {
         PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(response.getPaymentGroupReference()).isNotNull();
         assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
-        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getStatus()).isEqualTo("Success");
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -502,6 +519,153 @@ public class PaymentRecordControllerTest {
         assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotBlank();
         assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotEmpty();
 
+    }
+
+
+    @Test
+    @Transactional
+    public void testPaymentForMultipleFeesAndMultipleCases() throws Exception {
+        String startDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        PaymentRecordRequest request = getChequePaymentForMultipleCases();
+        MvcResult createResult = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+        PaymentDto response = objectMapper.readValue(createResult.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response).isNotNull();
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        String endDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        MvcResult result = restActions
+            .get("/payments?service_name=" + Service.DIGITAL_BAR + "&start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> paymentDtos = paymentsResponse.getPayments();
+        Optional<PaymentDto> optPayment = paymentDtos.stream().filter(p -> p.getPaymentReference().equals(response.getPaymentReference())).findAny();
+        if (optPayment.isPresent()) {
+            PaymentDto paymentDto = optPayment.get();
+            assertThat(paymentDto.getReference()).isEqualTo(response.getReference());
+            assertThat(paymentDto.getFees().size()).isEqualTo(2);
+            FeeDto feeDto1 = paymentDto.getFees().stream().filter(f -> f.getReference().equals("CASE_111")).findAny().get();
+            assertThat(feeDto1).isNotNull();
+            assertThat(feeDto1.getCode()).isEqualTo("FEE0001");
+            assertThat(feeDto1.getReference()).isEqualTo("CASE_111");
+            assertThat(feeDto1.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+            FeeDto feeDto2 = paymentDto.getFees().stream().filter(f -> f.getReference().equals("CASE_222")).findAny().get();
+            assertThat(feeDto1).isNotNull();
+            assertThat(feeDto1.getCode()).isEqualTo("FEE0001");
+            assertThat(feeDto1.getReference()).isEqualTo("CASE_222");
+            assertThat(feeDto1.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+        }
+    }
+
+    @Test
+    @Transactional
+    public void testPaymentForCaseSingleCaseMultipleFees() throws Exception {
+        String startDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        PaymentRecordRequest request = getChequePaymentForSingleCaseWithMultipleFees();
+        MvcResult savedPayment = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+        PaymentDto paymentDto = objectMapper.readValue(savedPayment.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(paymentDto).isNotNull();
+
+        String endDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        MvcResult result = restActions
+            .get("/payments?service_name=" + Service.DIGITAL_BAR + "&start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> paymentDtos = paymentsResponse.getPayments();
+        Optional<PaymentDto> optPayment = paymentDtos.stream().filter(p -> p.getPaymentReference().equals(paymentDto.getPaymentReference())).findAny();
+        if (optPayment.isPresent()) {
+            PaymentDto payment = optPayment.get();
+            assertThat(payment.getAmount()).isEqualTo(new BigDecimal("217.00"));
+            assertThat(paymentDto.getFees().size()).isEqualTo(2);
+            FeeDto fee1 = payment.getFees().stream().filter(f -> f.getCode().equals("FEE0205")).findAny().get();
+            assertThat(fee1.getCode()).isEqualTo("FEE0205");
+            assertThat(fee1.getCalculatedAmount()).isEqualTo(new BigDecimal("215.00"));
+            assertThat(fee1.getReference()).isEqualTo("CASE_001");
+            FeeDto fee2 = payment.getFees().stream().filter(f -> f.getCode().equals("FEE0206")).findAny().get();
+            assertThat(fee2.getCode()).isEqualTo("FEE0206");
+            assertThat(fee2.getCalculatedAmount()).isEqualTo(new BigDecimal("2.00"));
+            assertThat(fee2.getReference()).isEqualTo("CASE_001");
+        }
+    }
+
+
+    private PaymentRecordRequest getChequePaymentForMultipleCases() {
+        List<FeeDto> fees = new ArrayList<>(2);
+        fees.add(FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .code("FEE0001")
+            .reference("CASE_111")
+            .version("1")
+            .volume(1)
+            .build());
+
+        fees.add(FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .code("FEE0001")
+            .reference("CASE_222")
+            .version("1")
+            .volume(1)
+            .build());
+
+
+        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
+            .amount(new BigDecimal("1100.00"))
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .reference("REF_123")
+            .service(Service.DIGITAL_BAR)
+            .currency(CurrencyCode.GBP)
+            .externalReference("1234567")
+            .externalProvider("middle office provider")
+            .giroSlipNo("8898234")
+            .reportedDateOffline(DateTime.now().toString())
+            .siteId("AA001")
+            .fees(fees)
+            .build();
+    }
+
+    private PaymentRecordRequest getChequePaymentForSingleCaseWithMultipleFees() {
+        List<FeeDto> fees = new ArrayList<>(2);
+        fees.add(FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("215.00"))
+            .code("FEE0205")
+            .reference("CASE_001")
+            .version("1")
+            .volume(1)
+            .build());
+
+        fees.add(FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("2.00"))
+            .code("FEE0206")
+            .reference("CASE_001")
+            .version("1")
+            .volume(4)
+            .build());
+
+        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
+            .amount(new BigDecimal("217.00"))
+            .reference("REF_123")
+            .service(Service.DIGITAL_BAR)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .currency(CurrencyCode.GBP)
+            .externalReference("1234567")
+            .externalProvider("middle office provider")
+            .giroSlipNo("8898234")
+            .reportedDateOffline(DateTime.now().toString())
+            .siteId("AA001")
+            .fees(fees)
+            .build();
     }
 
 }
