@@ -2,8 +2,6 @@ package uk.gov.hmcts.payment.api.unit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
-import com.microsoft.azure.servicebus.ITopicClient;
-import com.microsoft.azure.servicebus.TopicClient;
 import org.ff4j.FF4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +44,7 @@ public class CallbackServiceImplTest {
     }
 
     @Test
-    public void testThatWhenCallbackUriIsProvidedServiceBusIsCalled() throws Exception{
+    public void testThatWhenCallbackUriIsProvidedServiceBusIsCalled() throws Exception {
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
             .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
