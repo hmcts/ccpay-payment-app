@@ -105,16 +105,16 @@ public class CreditAccountPaymentController {
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
             } catch (HttpClientErrorException ex) {
-                LOG.error("Account information could not be found, exception: " + ex.getMessage());
+                LOG.error("Account information could not be found, exception: {0}",  ex.getMessage());
                 throw new AccountNotFoundException("Account information could not be found");
             } catch (Exception ex) {
-                LOG.error("Unable to retrieve account information, exception: " + ex.getMessage());
+                LOG.error("Unable to retrieve account information, exception: {0}", ex.getMessage());
                 throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
             }
 
-            if (accountDetails.getStatus() == AccountStatus.Active) {
+            if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-            } else if (accountDetails.getStatus() == AccountStatus.Inactive) {
+            } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
             }
         } else {
