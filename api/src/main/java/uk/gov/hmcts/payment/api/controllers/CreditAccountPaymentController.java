@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.hmcts.payment.api.PaymentFeaturesChecker;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
@@ -35,6 +36,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -50,23 +52,21 @@ public class CreditAccountPaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);
 
-    private static final String DEFAULT_CURRENCY = "GBP";
-
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
     private final AccountService<AccountDto, String> accountService;
-    private final FF4j ff4j;
+    private final PaymentFeaturesChecker paymentFeaturesChecker;
 
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
-                                          FF4j ff4j) {
+                                          PaymentFeaturesChecker paymentFeaturesChecker) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
-        this.ff4j = ff4j;
+        this.paymentFeaturesChecker = paymentFeaturesChecker;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -100,7 +100,7 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
-        if (ff4j.check("credit-account-payment-liberata-check")) {
+        if (paymentFeaturesChecker.isAccountStatusCheckRequired()) {
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
@@ -125,7 +125,6 @@ public class CreditAccountPaymentController {
 
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
-
 
     @ApiOperation(value = "Get credit account payment details by payment reference", notes = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
