@@ -52,6 +52,7 @@ public class IdamService {
         idamApi.createUser(userRequest);
 
         String accessToken = authenticateUser(email, testConfig.getTestUserPassword());
+
         return User.userWith()
             .authorisationToken(accessToken)
             .email(email)
