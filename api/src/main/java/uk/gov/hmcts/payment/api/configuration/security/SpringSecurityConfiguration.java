@@ -21,7 +21,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @EnableWebSecurity
 public class SpringSecurityConfiguration {
-    
+
     @Configuration
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
@@ -93,5 +93,5 @@ public class SpringSecurityConfiguration {
                 .anyRequest().authenticated();
         }
     }
-    
+
 }
