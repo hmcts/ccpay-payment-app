@@ -161,8 +161,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 .anyMatch(govPayPayment.getState().getStatus().toLowerCase()::equals);
             LOG.debug("Payment status exists in status history: {}", statusExists);
 
-            LOG.warn("Status exist = " +  statusExists + "for payment " + govPayPayment.getReference() + " status is " + govPayPayment.getState());
-
             if (!statusExists) {
 
                 payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
@@ -174,8 +172,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
                 if(payment.getServiceCallbackUrl() != null) {
                     callbackService.callback(paymentFeeLink, payment);
-                }else{
-                    LOG.warn("Service callback url is null");
                 }
             }
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
