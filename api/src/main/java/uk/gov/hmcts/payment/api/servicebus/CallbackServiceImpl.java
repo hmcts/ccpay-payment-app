@@ -44,10 +44,12 @@ public class CallbackServiceImpl implements CallbackService {
     public synchronized void callback(PaymentFeeLink paymentFeeLink, Payment payment) {
 
         if (payment.getServiceCallbackUrl() == null) {
+            LOG.warn("Service callback url is null");
             return;
         }
 
         if (!ff4j.check(CallbackService.FEATURE)) {
+            LOG.warn("Service callback feature is disabled");
             return;
         }
 
