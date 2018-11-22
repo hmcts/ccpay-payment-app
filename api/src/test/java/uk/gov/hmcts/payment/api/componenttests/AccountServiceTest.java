@@ -43,7 +43,7 @@ public class AccountServiceTest {
         String pbaCode = "PBA1234";
         FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
         AccountDto expectedDto = new AccountDto(pbaCode, "accountName", new BigDecimal(100),
-            new BigDecimal(100), AccountStatus.Active, new Date());
+            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
     }
