@@ -25,6 +25,7 @@ public class TestConfigProperties {
 
     @Value("${idam.api.url}")
     public String idamApiUrl;
+
     @Value("${s2s.url}")
     private String s2sBaseUrl;
 
@@ -33,4 +34,10 @@ public class TestConfigProperties {
 
     @Value("${s2s.service.secret}")
     public String s2sServiceSecret;
+
+    @Value("${payments.account.existing.account.number}")
+    public String existingAccountNumber;
+
+    @Value("${payments.account.fake.account.number}")
+    public String fakeAccountNumber;
 }

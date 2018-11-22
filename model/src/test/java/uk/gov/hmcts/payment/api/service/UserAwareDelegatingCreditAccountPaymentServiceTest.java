@@ -71,7 +71,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             .fees(fees)
             .build();
 
-        when(paymentStatusRepository.findByNameOrThrow("pending")).thenReturn(PaymentStatus.paymentStatusWith().name("pending").build());
+        when(paymentStatusRepository.findByNameOrThrow("success")).thenReturn(PaymentStatus.paymentStatusWith().name("success").build());
 
         when(paymentFeeLinkRepository.save(paymentFeeLink)).thenReturn(PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
@@ -170,6 +170,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
             .customerReference("customerRef_" + number)
             .organisationName("organistation_" + number)
             .pbaNumber("pbaNumber_" + number)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
             .build();
     }
 
