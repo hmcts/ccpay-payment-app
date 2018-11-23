@@ -13,23 +13,15 @@ public class TopicClientProxy {
     @Autowired
     private WebApplicationContext applicationContext;
 
-    private TopicClient topicClient;
-
     public void send(IMessage message) throws InterruptedException, ServiceBusException {
 
-        if(topicClient == null) {
-            topicClient = applicationContext.getBean(TopicClient.class);
-        }
 
+        TopicClient topicClient = applicationContext.getBean(TopicClient.class);
         topicClient.send(message);
+        topicClient.close();
     }
 
-    public void close() throws ServiceBusException{
-        if(topicClient == null) {
-            topicClient = applicationContext.getBean(TopicClient.class);
-        }
-
-        topicClient.close();
+    public void close() throws ServiceBusException {
     }
 
 }
