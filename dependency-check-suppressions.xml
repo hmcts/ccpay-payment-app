@@ -45,4 +45,10 @@
         <gav regex="true">^com\.google\.guava:guava:.*$</gav>
         <cve>CVE-2018-10237</cve>
     </suppress>
+    <suppress>
+        <cve>CVE-2011-1068</cve>
+    </suppress>
+    <suppress>
+        <cve>CVE-2013-1282</cve>
+    </suppress>
 </suppressions>

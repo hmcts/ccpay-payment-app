@@ -40,6 +40,8 @@ spec:
           value: '${SERVICE_NAME}'
         - name: SPRING_DATASOURCE_URL
           value: 'jdbc:postgresql://localhost:5432/${SERVICE_NAME}'
+        - name: ASB_CONNECTION_STRING
+          value: '${ASB_CONNECTION_STRING}'
         envFrom:
         - configMapRef:
             name: ${SERVICE_NAME}-config
