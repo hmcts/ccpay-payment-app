@@ -19,15 +19,11 @@ import java.util.Collections;
 @Service
 public class CallbackServiceImpl implements CallbackService {
 
-
     private final PaymentDtoMapper paymentDtoMapper;
-
 
     private final ObjectMapper objectMapper;
 
-
     private final TopicClientProxy topicClient;
-
 
     private final FF4j ff4j;
 

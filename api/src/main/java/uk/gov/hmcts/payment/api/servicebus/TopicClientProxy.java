@@ -4,11 +4,15 @@ import com.microsoft.azure.servicebus.IMessage;
 import com.microsoft.azure.servicebus.TopicClient;
 import com.microsoft.azure.servicebus.primitives.ConnectionStringBuilder;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TopicClientProxy {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TopicClientProxy.class);
 
     @Value("${azure.servicebus.connection-string}")
     private String connectionString;
@@ -16,14 +20,56 @@ public class TopicClientProxy {
     @Value("${azure.servicebus.topic-name}")
     private String topic;
 
-    public void send(IMessage message) throws InterruptedException, ServiceBusException {
+    private boolean keepClientAlive = false;
 
+    private TopicClient topicClient;
+
+    private void send(TopicClient client, IMessage message) throws InterruptedException, ServiceBusException {
+        client.send(message);
+    }
+
+    private TopicClient newTopicClient() throws ServiceBusException, InterruptedException {
         ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder(connectionString, topic);
+        return new TopicClient(connectionStringBuilder);
+    }
 
-        TopicClient topicClient = new TopicClient(connectionStringBuilder);
+    public synchronized void send(IMessage message) throws InterruptedException, ServiceBusException {
 
-        topicClient.send(message);
-        topicClient.close();
+        if (!keepClientAlive) { /* One use client */
+
+            TopicClient client = newTopicClient();
+            send(client, message);
+            client.close();
+            return;
+        }
+
+        /* Batch mode */
+
+        if (topicClient == null) {
+            topicClient = newTopicClient();
+        }
+
+        send(topicClient, message);
+
+    }
+
+    public void close() {
+
+        if (topicClient == null) {
+            return;
+        }
+
+        try {
+            topicClient.close();
+        } catch (ServiceBusException e) {
+            LOG.error("Error closing topic client", e);
+        }
+
+        topicClient = null;
+    }
+
+    public void setKeepClientAlive(boolean keepClientAlive) {
+        this.keepClientAlive = keepClientAlive;
     }
 
 }
