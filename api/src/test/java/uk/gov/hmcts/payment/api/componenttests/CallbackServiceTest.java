@@ -56,6 +56,12 @@ public class CallbackServiceTest {
 
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
 
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
+        callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
+
         ff4j.disable(CallbackService.FEATURE);
 
     }
