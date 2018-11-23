@@ -105,7 +105,7 @@ module "payment-api" {
     SPRING_DATASOURCE_PASSWORD = "${module.payment-database.postgresql_password}"
     SPRING_DATASOURCE_URL = "jdbc:postgresql://${module.payment-database.host_name}:${module.payment-database.postgresql_listen_port}/${module.payment-database.postgresql_database}?sslmode=require"
 
-    # disabled liquibase at startup as there is separate pipleline step (enableDbMigration) f
+    # disabled liquibase at startup as there is a separate pipleline step (enableDbMigration)
     SPRING_LIQUIBASE_ENABLED = "false"
 
     # idam
