@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.ff4j.services.domain.FeatureApiBean;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -19,7 +18,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -34,8 +32,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentRefDataNotFoundException;
 
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -88,17 +84,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
-
-    @SneakyThrows
-    String contentsOf(String fileName) {
-        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
-        return resolvePlaceholders(content);
-    }
-
-    String resolvePlaceholders(String content) {
-        return configurableListableBeanFactory.resolveEmbeddedValue(content);
-    }
-
 
     @Before
     public void setup() {
@@ -291,7 +276,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertPbaPayments( paymentsResponse.getPayments());
+        assertPbaPayments(paymentsResponse.getPayments());
 
     }
 

@@ -1,26 +1,33 @@
 package uk.gov.hmcts.payment.api.componenttests.util;
 
+import lombok.SneakyThrows;
 import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 public class PaymentsDataUtil {
 
     @Autowired
     protected PaymentDbBackdoor db;
+
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
 
     private static final String USER_ID = "user-id";
 
@@ -60,7 +67,7 @@ public class PaymentsDataUtil {
         return payments;
     }
 
-    public List<PaymentFee> getFeesData() {
+    public static List<PaymentFee> getFeesData() {
         List<PaymentFee> fees = new ArrayList<>();
         fees.add(feeWith().code("X0011").version("1").build());
         fees.add(feeWith().code("X0022").version("2").build());
@@ -254,4 +261,35 @@ public class PaymentsDataUtil {
         });
     }
 
- }
+    @SneakyThrows
+    protected String contentsOf(String fileName) {
+        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
+        return resolvePlaceholders(content);
+    }
+
+    protected String resolvePlaceholders(String content) {
+        return configurableListableBeanFactory.resolveEmbeddedValue(content);
+    }
+
+    protected String requestJson() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+
+}
