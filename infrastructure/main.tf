@@ -172,7 +172,7 @@ module "payment-api" {
     WEBJOB_S2S_CLIENT_ID = "${data.azurerm_key_vault_secret.webjob_s2s_client_id.value}"
     WEBJOB_S2S_CLIENT_SECRET = "${data.azurerm_key_vault_secret.webjob_s2s_client_secret.value}"
 
-    SERVICE_CALLBACK_CONNECTION_STRING ="${data.terraform_remote_state.shared_infra.topic_primary_send_and_listen_connection_string}"
+    ASB_CONNECTION_STRING ="${data.terraform_remote_state.shared_infra.topic_primary_send_and_listen_connection_string}"
   }
 }
 
