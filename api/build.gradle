@@ -84,8 +84,8 @@ dependencies {
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail'
   compile group: 'org.springframework.retry', name: 'spring-retry'
   compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
-  compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-api-contract', version:'2.1.64'
-  compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-model', version:'2.1.64'
+  compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-api-contract', version:'2.2.0'
+  compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-model', version:'2.2.0'
   compile group: 'com.netflix.feign', name: 'feign-jackson', version:'8.18.0'
   testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
     exclude(module: 'commons-logging')
