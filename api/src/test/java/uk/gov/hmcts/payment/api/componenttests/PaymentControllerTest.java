@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentRefDataNotFoundException;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -654,4 +655,64 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(response);
     }
 
+
+    @Test
+    @Transactional
+    public void updatePaymentStatusForPaymentReferenceShouldPass() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1433";
+        populateTelephonyPaymentToDb("3");
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
+            assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getChannel()).isEqualTo("telephony");
+        });
+
+        // update payment status with invalid payment reference - Test1
+        restActions
+            .patch("/payments/RC-1519-9028-1909-1400/status/success")
+            .andExpect(status().is4xxClientError());
+
+        // update payment status with invalid status type - Test2
+        MvcResult errResult = restActions
+            .patch("/payments/" + paymentReference + "/status/something")
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+        assertThat(errResult.getResponse().getContentAsString()).contains("PaymentStatus with something is not found");
+
+        // Update payment status with valid payment reference - Test 3
+        restActions
+            .patch("/payments/" + paymentReference + "/status/success")
+            .andExpect(status().isNoContent());
+
+
+        MvcResult result2 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        payments = response.getPayments();
+        assertNotNull(payments);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
+            assertThat(p.getStatus()).isEqualTo("Success");
+        });
+    }
 }
