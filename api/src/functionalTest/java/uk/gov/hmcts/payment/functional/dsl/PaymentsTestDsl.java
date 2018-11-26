@@ -87,6 +87,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl createTelephonyPayment()
+
         public PaymentWhenDsl getCardPayment(String reference) {
             response = newRequest().get("/card-payments/" + reference);
             return this;
