@@ -52,9 +52,6 @@ public class FeesService {
             Map.Entry<String, Fee2Dto> entry = iterator.next();
             Map<String, FeeVersionDto> feeVersionsDtoMap = new HashMap<>();
             if (entry.getValue().getCurrentVersion() != null) {
-                if (entry.getValue().getCurrentVersion().getVersion() == null) {
-                    LOG.error("Fee current version can't be null for feeCode :{} and feedto ;{}", entry.getValue().getCode(),  entry.getValue());
-                }
                 feeVersionsDtoMap.put(entry.getValue().getCurrentVersion().getVersion().toString(),
                     entry.getValue().getCurrentVersion());
             }
