@@ -44,3 +44,11 @@ databaseChangeLog:
             type: varchar(2000)
         tableName: payment
 
+- changeSet:
+    id: 1529403181333-2
+    author: sateesh
+    changes:
+      - sql:
+          splitStatements:
+          sql: >
+            INSERT INTO payment_provider (name, description) VALUES ('pci pal', 'PCI PAL')
