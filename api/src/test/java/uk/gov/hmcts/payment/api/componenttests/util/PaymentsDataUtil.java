@@ -220,7 +220,7 @@ public class PaymentsDataUtil {
             .currency("GBP")
             .siteId("AA00" + number)
             .userId(USER_ID)
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("barclaycard").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("pci pal").build())
             .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())

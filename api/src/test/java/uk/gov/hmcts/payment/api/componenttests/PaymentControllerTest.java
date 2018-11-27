@@ -672,6 +672,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
             assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getExternalProvider()).isEqualTo("pci pal");
             assertThat(p.getChannel()).isEqualTo("telephony");
         });
 
