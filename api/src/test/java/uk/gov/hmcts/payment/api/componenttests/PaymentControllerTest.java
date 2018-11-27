@@ -640,6 +640,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(response);
     }
 
+    @Test
+    public void updatePaymentStatusForInvalidPaymentReferenceShouldFail() throws Exception {
+        restActions
+            .patch("/payments/RC-1519-9028-1909-1400/status/success")
+            .andExpect(status().is4xxClientError());
+    }
 
     @Test
     @Transactional
@@ -669,19 +675,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getChannel()).isEqualTo("telephony");
         });
 
-        // update payment status with invalid payment reference - Test1
-        restActions
-            .patch("/payments/RC-1519-9028-1909-1400/status/success")
-            .andExpect(status().is4xxClientError());
-
-        // update payment status with invalid status type - Test2
-        MvcResult errResult = restActions
-            .patch("/payments/" + paymentReference + "/status/something")
-            .andExpect(status().is4xxClientError())
-            .andReturn();
-        assertThat(errResult.getResponse().getContentAsString()).contains("PaymentStatus with something is not found");
-
-        // Update payment status with valid payment reference - Test 3
+        // Update payment status with valid payment reference
         restActions
             .patch("/payments/" + paymentReference + "/status/success")
             .andExpect(status().isNoContent());
@@ -699,5 +693,19 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
             assertThat(p.getStatus()).isEqualTo("Success");
         });
+    }
+
+    @Test
+    @Transactional
+    public void updateIncorrectPaymentStatusForPaymentReferenceShouldFail() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1434";
+        populateTelephonyPaymentToDb("4");
+
+        // update payment status with invalid status type
+        MvcResult errResult = restActions
+            .patch("/payments/" + paymentReference + "/status/something")
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+        assertThat(errResult.getResponse().getContentAsString()).contains("PaymentStatus with something is not found");
     }
 }
