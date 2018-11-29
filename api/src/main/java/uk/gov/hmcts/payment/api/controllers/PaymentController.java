@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
@@ -37,6 +38,7 @@ public class PaymentController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentsReportService paymentsReportService;
+    private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
     private final FF4j ff4j;
@@ -47,9 +49,11 @@ public class PaymentController {
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
+                             PaymentStatusRepository paymentStatusRepository,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
+        this.paymentStatusRepository = paymentStatusRepository;
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
@@ -65,12 +69,9 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{reference}", method = PATCH)
     @Transactional
-    public ResponseEntity<?> updateCaseReference(@PathVariable("reference") String paymentReference,
+    public ResponseEntity<?> updateCaseReference(@PathVariable("reference") String reference,
                                                  @RequestBody @Validated UpdatePaymentRequest request) {
-
-        PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
-        Optional<Payment> payment = paymentFeeLink.getPayments().stream()
-            .filter(p -> p.getReference().equals(paymentReference)).findAny();
+        Optional<Payment> payment = getPaymentByReference(reference);
 
         if (payment.isPresent()) {
             if (request.getCaseReference() != null) {
@@ -119,6 +120,31 @@ public class PaymentController {
 
             return new PaymentsResponse(paymentDto);
         }
+    }
+
+    @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "No content"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @PatchMapping("/payments/{reference}/status/{status}")
+    @Transactional
+    public ResponseEntity<?> updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
+                                                 @PathVariable(value = "status", required = true) String status) {
+        Optional<Payment> payment = getPaymentByReference(reference);
+
+        if (payment.isPresent()) {
+            payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    private Optional<Payment> getPaymentByReference(String reference) {
+        PaymentFeeLink paymentFeeLink = paymentService.retrieve(reference);
+        return paymentFeeLink.getPayments().stream()
+            .filter(p -> p.getReference().equals(reference)).findAny();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
