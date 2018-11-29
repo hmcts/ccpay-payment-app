@@ -35,7 +35,7 @@ public class AccountController {
         @ApiResponse(code = 200, message = "Account details retrieved"),
         @ApiResponse(code = 404, message = "Account not found")
     })
-//    @GetMapping(value = "/accounts/{accountNumber}")
+    @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
         try {
             return accountService.retrieve(accountNumber);
