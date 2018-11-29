@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${SERVICE_NAME}-config
+  namespace: ${NAMESPACE}
+data:
+  RECIPE_BACKEND_URL: "http://payment-app-aat.service.core-compute-aat.internal"
+  auth.provider.service.client.baseUrl: "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+  auth.idam.client.baseUrl: "https://preprod-idamapi.reform.hmcts.net:3511"
+  CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+  CARD_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+  CARD_PAYMENTS_EMAIL_TO: "pepito@grillo.com"
+  CARD_PAYMENTS_EMAIL_MESSAGE: "hi"
+  CARD_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+  FEATURE_PAYMENTS_SEARCH: "true"
+  FEATURE_SERVICE_CALLBACK: "true"
+
+  FEES_REGISTER_URL: "http://fees-register-api-aat.service.core-compute-aat.internal"
+  GOV_PAY_AUTH_KEY_CMC: "la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3"
+  GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND: "la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3"
+  GOV_PAY_AUTH_KEY_PROBATE_FRONTEND: "la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3"
+  GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw"
+  GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
+  payments.report.file.location: "."
+  PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+  PBA_CMC_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+  PBA_CMC_PAYMENTS_EMAIL_TO: "pepito@grillo.com"
+  PBA_CMC_PAYMENTS_EMAIL_MESSAGE: "hi"
+  PBA_CMC_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+  PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+  PBA_DIVORCE_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+  PBA_DIVORCE_PAYMENTS_EMAIL_TO: "pepito@grillo.com"
+  PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE: "hi"
+  PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+  REFORM_ENVIRONMENT: "aat"
+  REFORM_SERVICE_NAME: "payment-api"
+  REFORM_TEAM: "cc"
+  SPRING_LIQUIBASE_ENABLED: "true"
+  SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+  SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: "*"
+  SPRING_MAIL_PORT: "25"
+  SPRING_MAIL_HOST: "mta.reform.hmcts.net"
+  TRUSTED_S2S_SERVICE_NAMES: "cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw"

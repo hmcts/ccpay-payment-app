@@ -1,3 +1,7 @@
+output "microserviceName" {
+  value = "${local.app_full_name}"
+}
+
 output "vaultUri" {
   value = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
@@ -12,4 +16,8 @@ output "idam_api_url" {
 
 output "s2s_url" {
   value = "${local.s2sUrl}"
+}
+
+output "OAUTH2_REDIRECT_URI" {
+  value = "${var.test_frontend_url}"
 }

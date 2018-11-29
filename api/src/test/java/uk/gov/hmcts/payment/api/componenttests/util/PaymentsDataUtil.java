@@ -1,24 +1,33 @@
 package uk.gov.hmcts.payment.api.componenttests.util;
 
+import lombok.SneakyThrows;
 import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
+import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 public class PaymentsDataUtil {
 
     @Autowired
     protected PaymentDbBackdoor db;
+
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
 
     private static final String USER_ID = "user-id";
 
@@ -58,7 +67,7 @@ public class PaymentsDataUtil {
         return payments;
     }
 
-    public List<PaymentFee> getFeesData() {
+    public static List<PaymentFee> getFeesData() {
         List<PaymentFee> fees = new ArrayList<>();
         fees.add(feeWith().code("X0011").version("1").build());
         fees.add(feeWith().code("X0022").version("2").build());
@@ -106,6 +115,7 @@ public class PaymentsDataUtil {
             .serviceType("Probate")
             .currency("GBP")
             .siteId("AA0" + number)
+            .pbaNumber("123456")
             .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
@@ -199,4 +209,64 @@ public class PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
 
     }
- }
+
+    public void populateCardPaymentToDbWith(Payment payment, String number) {
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+    }
+
+    protected void assertPbaPayments(List<PaymentDto> payments) {
+        assertThat(payments.size()).isEqualTo(1);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
+            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+            assertThat(p.getCaseReference()).isEqualTo("Reference2");
+            assertThat(p.getAmount()).isEqualTo(new BigDecimal("11.99"));
+            assertThat(p.getChannel()).isEqualTo("online");
+            assertThat(p.getMethod()).isEqualTo("payment by account");
+            assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getSiteId()).isEqualTo("AA02");
+            assertThat(p.getAccountNumber()).isEqualTo("123456");
+            assertThat(p.getDateCreated()).isNotNull();
+            assertThat(p.getDateUpdated()).isNotNull();
+            p.getFees().stream().forEach(f -> {
+                assertThat(f.getCode()).isEqualTo("FEE0002");
+                assertThat(f.getVersion()).isEqualTo("1");
+                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
+            });
+        });
+    }
+
+    @SneakyThrows
+    protected String contentsOf(String fileName) {
+        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
+        return resolvePlaceholders(content);
+    }
+
+    protected String resolvePlaceholders(String content) {
+        return configurableListableBeanFactory.resolveEmbeddedValue(content);
+    }
+
+    protected String requestJson() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+
+}

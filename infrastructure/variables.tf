@@ -3,6 +3,10 @@ variable "product" {
   default = "payment"
 }
 
+variable "component" {
+  type    = "string"
+}
+
 variable "location" {
   type    = "string"
   default = "UK South"
@@ -29,11 +33,6 @@ variable "microservice" {
   default = "payment-app"
 }
 
-// disabled liquibase temporarily - enable for new db changes build and then disable again
-variable "liquibase_enabled" {
-  default = "false"
-}
-
 variable "database_name" {
   type    = "string"
   default = "payment"
@@ -56,8 +55,24 @@ variable "gov_pay_url" {
   default = "https://publicapi.payments.service.gov.uk/v1/payments"
 }
 
+variable "liberata_oauth2_base_url" {
+  default = "https://bpacustomerportal.liberata.com/pba/public/api/v2"
+}
+
+variable "liberata_api_account_url" {
+  default = "https://bpacustomerportal.liberata.com/pba/public/api/v2/account"
+}
+
+variable "liberata_oauth2_authorize_url" {
+  default = "https://bpacustomerportal.liberata.com/pba/public/oauth/authorize"
+}
+
+variable "liberata_oauth2_token_url" {
+  default = "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
+}
+
 variable "gov_pay_operational_services" {
-  default = "ccd_gw"
+  default = "ccd_gw,api_gw"
 }
 
 variable "spring_mail_host" {
@@ -130,4 +145,15 @@ variable "external_host_name" {
 
 variable "common_tags" {
   type = "map"
+}
+
+variable "core_product" {
+  type    = "string"
+  default = "ccpay"
+}
+
+variable "test_frontend_url" {
+  type = "string"
+  default = "https://moneyclaims.aat.platform.hmcts.net"
+  description = "Optional front end URL to use for building redirect URI in idam tests "
 }

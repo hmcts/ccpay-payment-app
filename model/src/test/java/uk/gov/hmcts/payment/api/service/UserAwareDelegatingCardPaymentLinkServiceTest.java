@@ -6,52 +6,25 @@ import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaymentWith;
-import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 
 public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
     private final static String PAYMENT_METHOD = "card";
 
     private static final String USER_ID = "USER_ID";
-    private static final GovPayPayment VALID_GOV_PAYMENT_RESPONSE = govPaymentWith()
-        .paymentId("paymentId")
-        .amount(1000)
-        .description("description")
-        .reference("paymentReference")
-        .state(new State("created", false, "message", "code"))
-        .links(new GovPayPayment.Links(
-            new Link("type", ImmutableMap.of(), "self", "GET"),
-            new Link("type", ImmutableMap.of(), "nextUrl", "GET"),
-            new Link("type", ImmutableMap.of(), "nextUrlPost", "GET"),
-            new Link("type", ImmutableMap.of(), "eventsUrl", "GET"),
-            new Link("type", ImmutableMap.of(), "refundsUrl", "GET"),
-            new Link("type", ImmutableMap.of(), "cancelUrl", "GET")
-        ))
-        .build();
 
     private PaymentReferenceUtil paymentReferenceUtil = mock(PaymentReferenceUtil.class);
     private PaymentChannelRepository paymentChannelRepository = mock(PaymentChannelRepository.class);
@@ -59,22 +32,76 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private PaymentProviderRepository paymentProviderRepository = mock(PaymentProviderRepository.class);
     private PaymentStatusRepository paymentStatusRepository = mock(PaymentStatusRepository.class);
 
-    private CardPaymentService<GovPayPayment, String> govPayCardPaymentService = mock(CardPaymentService.class);
+    private DelegatingPaymentService<GovPayPayment, String> govPayDelegatingPaymentService = mock(DelegatingPaymentService.class);
     private Payment2Repository paymentRespository = mock(Payment2Repository.class);
     private PaymentFeeLinkRepository paymentFeeLinkRepository = mock(PaymentFeeLinkRepository.class);
 
     private GovPayAuthUtil govPayAuthUtil = mock(GovPayAuthUtil.class);
     private ServiceIdSupplier serviceIdSupplier = mock(ServiceIdSupplier.class);
     private AuditRepository auditRepository = mock(AuditRepository.class);
-    private UserAwareDelegatingCardPaymentService cardPaymentService = new UserAwareDelegatingCardPaymentService(() -> USER_ID, paymentFeeLinkRepository,
-        govPayCardPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
-        paymentStatusRepository, paymentRespository, paymentReferenceUtil, govPayAuthUtil, serviceIdSupplier, auditRepository);
+
+    private CallbackService callbackService = mock(CallbackService.class);
+
+    private UserAwareDelegatingPaymentService cardPaymentService = new UserAwareDelegatingPaymentService(() -> USER_ID, paymentFeeLinkRepository,
+        govPayDelegatingPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
+        paymentStatusRepository, paymentRespository, paymentReferenceUtil, govPayAuthUtil, serviceIdSupplier, auditRepository, callbackService);
+
+    @Test
+    public void testRetrieveWhenServiceCallbackUrlIsDefinedCallbackServiceIsInvoked() throws Exception {
+
+        String serviceName = "cmc";
+        when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-123C");
+        when(govPayAuthUtil.getServiceName(null, serviceName)).thenReturn(serviceName);
+        String reference = paymentReferenceUtil.getNext();
+
+        Payment payment1 = Payment.paymentWith().id(1)
+            .externalReference("govPayId")
+            .serviceType(serviceName)
+            .s2sServiceName(serviceName)
+            .serviceCallbackUrl("http://pandito.com")
+            .reference(reference)
+            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                .id(1)
+                .status("Initiated")
+                .externalStatus("created")
+                .build()))
+            .build();
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink
+            .paymentFeeLinkWith()
+            .id(1)
+            .paymentReference("payGroupRef")
+            .payments(Arrays.asList(payment1))
+            .build();
+
+        payment1.setPaymentLink(paymentFeeLink);
+
+        when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(paymentFeeLink));
+
+        paymentFeeLinkRepository.findByPaymentReference("1").orElseThrow(PaymentNotFoundException::new);
+
+        when(paymentRespository.findByReferenceAndPaymentMethod(reference,
+            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
+            .thenReturn(Optional.of(payment1));
+
+        paymentRespository.findByReferenceAndPaymentMethod(reference,
+            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
+
+        when(govPayDelegatingPaymentService.retrieve("govPayId", "cmc")).thenReturn(ANOTHER_GOV_PAYMENT_RESPONSE);
+
+        PaymentFeeLink result = cardPaymentService.retrieve(reference);
+
+        verify(callbackService, times(1)).callback(any(), any());
+
+        assertNotNull(result.getPayments().get(0));
+
+    }
 
     @Test
     public void testRetrieveCardPaymentForGivenPaymentReference() throws Exception {
         String serviceName = "cmc";
         when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-123C");
-        when(govPayAuthUtil.getServiceName(null,serviceName)).thenReturn(serviceName);
+        when(govPayAuthUtil.getServiceName(null, serviceName)).thenReturn(serviceName);
         String reference = paymentReferenceUtil.getNext();
 
         when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).paymentReference("payGroupRef")
@@ -106,7 +133,9 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         Payment payment = paymentRespository.findByReferenceAndPaymentMethod(reference,
             PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
 
-        when(govPayCardPaymentService.retrieve("govPayId", "cmc")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
+        when(govPayDelegatingPaymentService.retrieve("govPayId", "cmc")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
+
+        verify(callbackService, times(0)).callback(any(), any());
 
         PaymentFeeLink result = cardPaymentService.retrieve(reference);
         assertNotNull(result.getPayments().get(0));
@@ -114,20 +143,37 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
         assertEquals(result.getPayments().get(0).getReference(), reference);
     }
 
+    private static final GovPayPayment VALID_GOV_PAYMENT_RESPONSE = govPaymentWith()
+        .paymentId("paymentId")
+        .amount(1000)
+        .description("description")
+        .reference("paymentReference")
+        .state(new State("created", false, "message", "code"))
+        .links(new GovPayPayment.Links(
+            new Link("type", ImmutableMap.of(), "self", "GET"),
+            new Link("type", ImmutableMap.of(), "nextUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "nextUrlPost", "GET"),
+            new Link("type", ImmutableMap.of(), "eventsUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "refundsUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "cancelUrl", "GET")
+        ))
+        .build();
 
-    private Payment mapToPayment(Integer id, String govPayId, GovPayPayment govPayPayment) {
-        return paymentWith()
-            .id(id)
-            .externalReference(govPayId)
-            .amount(BigDecimal.valueOf(govPayPayment.getAmount()).movePointRight(2))
-            .description(govPayPayment.getDescription())
-            .reference(govPayPayment.getReference())
-            .status(govPayPayment.getState().getStatus())
-            .finished(govPayPayment.getState().getFinished())
-            .nextUrl(govPayPayment.getLinks().getNextUrl().getHref())
-            .cancelUrl(govPayPayment.getLinks().getCancel().getHref())
-            .refundsUrl(govPayPayment.getLinks().getRefunds().getHref())
-            .build();
-    }
+    private static final GovPayPayment ANOTHER_GOV_PAYMENT_RESPONSE = govPaymentWith()
+        .paymentId("paymentId")
+        .amount(1000)
+        .description("description")
+        .reference("paymentReference")
+        .state(new State("failed", true, "message", "code"))
+        .links(new GovPayPayment.Links(
+            new Link("type", ImmutableMap.of(), "self", "GET"),
+            new Link("type", ImmutableMap.of(), "nextUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "nextUrlPost", "GET"),
+            new Link("type", ImmutableMap.of(), "eventsUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "refundsUrl", "GET"),
+            new Link("type", ImmutableMap.of(), "cancelUrl", "GET")
+        ))
+        .build();
+
 
 }

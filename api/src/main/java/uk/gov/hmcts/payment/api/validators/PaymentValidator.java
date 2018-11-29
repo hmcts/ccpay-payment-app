@@ -53,7 +53,7 @@ public class PaymentValidator {
     }
 
     private Optional<LocalDateTime> validateDate(String dateString, ValidationErrorDTO dto, String fieldName) {
-        Optional<LocalDateTime> formattedDate = parseFrom(dateString, dto, fieldName);
+        Optional<LocalDateTime> formattedDate = parseFrom(dateString);
         if (!formattedDate.isPresent()) {
             dto.addFieldError(fieldName, "Invalid date format received, required data format is ISO");
         } else {
@@ -67,7 +67,7 @@ public class PaymentValidator {
         }
     }
 
-    private Optional<LocalDateTime> parseFrom(String value, ValidationErrorDTO dto, String fieldName) {
+    private Optional<LocalDateTime> parseFrom(String value) {
         try {
             return Optional.of(LocalDateTime.parse(value, dateUtil.getIsoDateTimeFormatter()));
         } catch (DateTimeParseException | IllegalArgumentException ex) {

@@ -32,3 +32,23 @@ databaseChangeLog:
               name: reported_date_offline
               type: TIMESTAMP WITHOUT TIME ZONE
           tableName: payment
+
+- changeSet:
+    id: 1600000000000-2
+    author: eduardo
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: service_callback_url
+            type: varchar(2000)
+        tableName: payment
+
+- changeSet:
+    id: 1529403181333-2
+    author: sateesh
+    changes:
+      - sql:
+          splitStatements:
+          sql: >
+            INSERT INTO payment_provider (name, description) VALUES ('pci pal', 'PCI PAL')

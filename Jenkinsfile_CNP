@@ -14,9 +14,12 @@ def product = "payment"
 def app = "api"
 
 List<LinkedHashMap<String, Object>> secrets = [
-        secret('cmc-service-secret', 'CMC_SERVICE_SECRET'),
-        secret('payments-cmc-test-user', 'PAYMENTS_CMC_TEST_USER'),
-        secret('payments-cmc-test-user-password', 'PAYMENTS_CMC_TEST_USER_PASSWORD')
+        secret('cmc-service-secret', 'S2S_SERVICE_SECRET'),
+        secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET'),
+        secret('freg-idam-generated-user-email-pattern', 'GENERATED_USER_EMAIL_PATTERN'),
+        secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
+        secret('sb-primary-connection-string', 'ASB_CONNECTION_STRING')
+
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
@@ -30,6 +33,10 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 
 withPipeline(type, product, app) {
+    setVaultName('ccpay')
     loadVaultSecrets(secrets)
+    enableDbMigration() // for liquibase update
+    enableDockerBuild()
+    enableDeployToAKS()
     enableSlackNotifications('#cc-payments-tech')
 }

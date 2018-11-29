@@ -2,8 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import lombok.SneakyThrows;
-
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -19,7 +17,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
@@ -35,8 +32,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -53,7 +48,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class CardPaymentControllerTest extends PaymentsDataUtil {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
@@ -61,8 +56,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
 
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -89,17 +83,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         return new CustomResultMatcher(objectMapper);
     }
 
-    @SneakyThrows
-    private String contentsOf(String fileName) {
-        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
-        return resolvePlaceholders(content);
-    }
-
-    private String resolvePlaceholders(String content) {
-        return configurableListableBeanFactory.resolveEmbeddedValue(content);
-    }
-
-
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -114,6 +97,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void createCardPaymentWithValidInputData_shouldReturnStatusCreatedTest() throws Exception {
 
         stubFor(post(urlPathMatching("/v1/payments"))
@@ -122,17 +106,34 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
 
+        stubFor(get(urlPathMatching("/v1/payments/ak8gtvb438drmp59cs7ijppr3i"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-response.json"))));
+
 
         MvcResult result = restActions
             .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        MvcResult result2 = restActions
+            .get("/card-payments/" + paymentDto.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
+
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
-        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
     @Test
@@ -432,7 +433,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
-        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {
@@ -443,25 +444,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
     }
 
-    private String requestJson() {
-        return "{\n" +
-            "  \"amount\": 101.89,\n" +
-            "  \"description\": \"New passport application\",\n" +
-            "  \"ccd_case_number\": \"CCD101\",\n" +
-            "  \"case_reference\": \"12345\",\n" +
-            "  \"service\": \"PROBATE\",\n" +
-            "  \"currency\": \"GBP\",\n" +
-            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
-            "  \"site_id\": \"AA101\",\n" +
-            "  \"fees\": [\n" +
-            "    {\n" +
-            "      \"calculated_amount\": 101.89,\n" +
-            "      \"code\": \"X0101\",\n" +
-            "      \"version\": \"1\"\n" +
-            "    }\n" +
-            "  ]\n" +
-            "}";
-    }
+
 
     public String jsonWithCaseReference() {
         return "{\n" +
