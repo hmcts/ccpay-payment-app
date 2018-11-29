@@ -46,7 +46,6 @@ public class AccountFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void whenAccountExistsTestShouldReturn200() {
         AccountDto existingAccountDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -57,7 +56,6 @@ public class AccountFunctionalTest {
     }
 
     @Test
-    @Ignore
     public void whenAccountFakeTestShouldReturn404() {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
