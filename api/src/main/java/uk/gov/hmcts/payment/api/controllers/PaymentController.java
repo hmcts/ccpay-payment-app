@@ -122,7 +122,7 @@ public class PaymentController {
         }
     }
 
-    @ApiOperation(value = "Update payment status by payment reference - External API", notes = "Update payment status by payment reference - external API")
+    @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "No content"),
         @ApiResponse(code = 404, message = "Payment not found")
