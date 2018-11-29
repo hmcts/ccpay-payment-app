@@ -127,6 +127,7 @@ public class PaymentController {
         @ApiResponse(code = 200, message = "No content"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
+    @PaymentExternalAPI
     @PatchMapping("/payments/{reference}/status/{status}")
     @Transactional
     public ResponseEntity<?> updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
