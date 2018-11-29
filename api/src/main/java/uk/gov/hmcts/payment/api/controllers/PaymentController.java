@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -41,6 +43,7 @@ public class PaymentController {
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
+    private final CallbackServiceImpl callbackService;
     private final FF4j ff4j;
 
     private final DateUtil dateUtil;
@@ -49,12 +52,13 @@ public class PaymentController {
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
-                             PaymentStatusRepository paymentStatusRepository,
+                             PaymentStatusRepository paymentStatusRepository, CallbackServiceImpl callbackService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentDtoMapper = paymentDtoMapper;
+        this.callbackService = callbackService;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
         this.dateUtil = dateUtil;
@@ -136,6 +140,7 @@ public class PaymentController {
 
         if (payment.isPresent()) {
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
+            callbackService.callback(payment.get().getPaymentLink(), payment.get());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
