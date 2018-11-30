@@ -55,7 +55,7 @@ databaseChangeLog:
 
 - changeSet:
     id: 1529403181333-3
-    author: salami
+    author: eduardo
     changes:
     - sql:
         splitStatements:
