@@ -52,3 +52,12 @@ databaseChangeLog:
           splitStatements:
           sql: >
             INSERT INTO payment_provider (name, description) VALUES ('pci pal', 'PCI PAL')
+
+- changeSet:
+    id: 1529403181333-3
+    author: salami
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          CREATE INDEX ix_date_upd_trunc ON payment ( date_trunc('seconds', date_updated));
