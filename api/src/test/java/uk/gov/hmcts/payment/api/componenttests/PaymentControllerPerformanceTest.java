@@ -124,6 +124,11 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
 
     private final static int PAYMENTS_TODAY = 10;
 
+    @Test
+    public void testSuitesRequireAtLeastOneTest() {
+
+    }
+
     //@Test
     @Transactional
     @Rollback(false)
