@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -135,6 +137,7 @@ public class PaymentController {
         @ApiResponse(code = 200, message = "No content"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
+    @PaymentExternalAPI
     @PatchMapping("/payments/{reference}/status/{status}")
     @Transactional
     public ResponseEntity<?> updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
