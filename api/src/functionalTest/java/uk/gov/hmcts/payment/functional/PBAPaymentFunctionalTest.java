@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.functional;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.assertj.core.api.Assertions;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +13,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -44,6 +48,9 @@ public class PBAPaymentFunctionalTest {
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
 
+    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
+
     @Before
     public void setUp() {
         // run on non PR envs only
@@ -59,7 +66,7 @@ public class PBAPaymentFunctionalTest {
     public void getPbaPaymentsByAccount() {
         // create a PBA payment
         String accountNumber = "PBA234" + RandomUtils.nextInt();
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00");
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00",Service.CMC);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
@@ -72,5 +79,26 @@ public class PBAPaymentFunctionalTest {
 
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
         assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+    }
+
+    @Test
+    public void makeAndRetrievePbaPaymentByFinrem() {
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+
+        String accountNumber = "PBA234" + RandomUtils.nextInt();
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00",Service.FINREM);
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
+            .then()
+            .statusCode(CREATED.value());
+
+        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().searchPaymentsByServiceBetweenDates(Service.FINREM, startDate, endDate)
+            .then().getPayments((paymentsResponse -> {
+            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        }));
     }
 }
