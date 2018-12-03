@@ -43,7 +43,6 @@ public class PaymentController {
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
-    private final CallbackServiceImpl callbackService;
     private final FF4j ff4j;
 
     private final DateUtil dateUtil;
@@ -52,13 +51,12 @@ public class PaymentController {
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
-                             PaymentStatusRepository paymentStatusRepository, CallbackServiceImpl callbackService,
+                             PaymentStatusRepository paymentStatusRepository,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentDtoMapper = paymentDtoMapper;
-        this.callbackService = callbackService;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
         this.dateUtil = dateUtil;
@@ -140,7 +138,6 @@ public class PaymentController {
 
         if (payment.isPresent()) {
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
-            callbackService.callback(payment.get().getPaymentLink(), payment.get());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
