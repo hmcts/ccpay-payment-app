@@ -210,7 +210,7 @@ public class PaymentsDataUtil {
 
     }
 
-    public void populateTelephonyPaymentToDb(String number) throws Exception {
+    public Payment populateTelephonyPaymentToDb(String number, boolean withServiceCallbackURL) throws Exception {
         //Create a payment in db
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("101.99"))
@@ -227,10 +227,16 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-143" + number)
             .build();
 
+        if(withServiceCallbackURL) {
+            payment.setServiceCallbackUrl("www.gooooooogle.com");
+        }
+
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("432.19")).version("1").code("FEE011" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000012" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
+
+        return payment;
     }
 
     public void populateCardPaymentToDbWith(Payment payment, String number) {

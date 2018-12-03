@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
+import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -38,6 +39,7 @@ public class PaymentController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentsReportService paymentsReportService;
+    private final CallbackService callbackService;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
@@ -48,11 +50,17 @@ public class PaymentController {
 
 
     @Autowired
-    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
+                             PaymentsReportService paymentsReportService,
+                             CallbackService callbackService,
                              PaymentStatusRepository paymentStatusRepository,
-                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
+                             PaymentDtoMapper paymentDtoMapper,
+                             PaymentValidator paymentValidator,
+                             FF4j ff4j,
+                             DateUtil dateUtil) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
+        this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
@@ -135,6 +143,10 @@ public class PaymentController {
 
         if (payment.isPresent()) {
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
+            //update the service
+            if(payment.get().getServiceCallbackUrl() != null) {
+                callbackService.callback(payment.get().getPaymentLink(), payment.get());
+            }
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
