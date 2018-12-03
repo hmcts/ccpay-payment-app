@@ -25,11 +25,11 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentRefDataNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -39,6 +39,8 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,7 +48,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest"})
+@ActiveProfiles({"local", "componenttest", "mockCallbackService"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
 public class PaymentControllerTest extends PaymentsDataUtil {
@@ -62,6 +64,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
+
+    @Autowired
+    protected CallbackService callbackService;
 
     @Autowired
     protected PaymentDbBackdoor db;
@@ -651,7 +656,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void updatePaymentStatusForPaymentReferenceShouldPass() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1433";
-        populateTelephonyPaymentToDb("3");
+        populateTelephonyPaymentToDb("3", false);
 
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -700,7 +705,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void updateIncorrectPaymentStatusForPaymentReferenceShouldFail() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1434";
-        populateTelephonyPaymentToDb("4");
+        populateTelephonyPaymentToDb("4", false);
 
         // update payment status with invalid status type
         MvcResult errResult = restActions
@@ -708,5 +713,69 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().is4xxClientError())
             .andReturn();
         assertThat(errResult.getResponse().getContentAsString()).contains("PaymentStatus with something is not found");
+    }
+
+    // if callback URL exists make sure to call callbackservice
+    @Test
+    @Transactional
+    public void updatePaymentStatusForPaymentReferenceShouldUseCallbackServiceToUpdateInterestedService() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1433";
+        Payment payment = populateTelephonyPaymentToDb("3", true);
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+
+        // Update payment status with valid payment reference
+        restActions
+            .patch("/payments/" + paymentReference + "/status/success")
+            .andExpect(status().isNoContent());
+
+        verify(callbackService, times(1)).callback(payment.getPaymentLink(), payment);
+    }
+
+    // if callback URL does not exist make sure not to call callback service
+    @Test
+    @Transactional
+    public void updatePaymentStatusForPaymentReferenceWithoutCallbackURLShouldNotUseCallbackService() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1433";
+        Payment payment = populateTelephonyPaymentToDb("3", false);
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+
+        // Update payment status with valid payment reference
+        restActions
+            .patch("/payments/" + paymentReference + "/status/success")
+            .andExpect(status().isNoContent());
+
+        verify(callbackService, times(0)).callback(payment.getPaymentLink(), payment);
     }
 }
