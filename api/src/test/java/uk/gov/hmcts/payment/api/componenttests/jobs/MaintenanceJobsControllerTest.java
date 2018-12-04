@@ -104,7 +104,6 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Ignore // not supporting V1 of Payments anymore
     public void testThatServiceCallbackIsInvokedWhenAStatusChangeIsDetectedOnGovPay() throws Exception {
 
         // setup
