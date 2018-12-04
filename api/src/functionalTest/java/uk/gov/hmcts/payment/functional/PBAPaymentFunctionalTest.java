@@ -89,9 +89,8 @@ public class PBAPaymentFunctionalTest {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
-        String accountNumber = "PBA234" + RandomUtils.nextInt();
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00",Service.FINREM);
-        accountPaymentRequest.setAccountNumber(accountNumber);
+        accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
             .statusCode(CREATED.value())
