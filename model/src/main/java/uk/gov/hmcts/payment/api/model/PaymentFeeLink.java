@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -36,6 +37,7 @@ public class PaymentFeeLink {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
+    @ToString.Exclude
     private List<Payment> payments;
 
     @OneToMany(cascade = CascadeType.ALL)

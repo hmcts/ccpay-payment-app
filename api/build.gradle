@@ -100,7 +100,7 @@ dependencies {
 
     testCompile group: 'com.github.tomakehurst', name: 'wiremock', version: '2.5.1'
 
-    testCompile group: 'org.projectlombok', name: 'lombok', version: '1.16.10'
+    testCompile group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
     testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.0.7'
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
 

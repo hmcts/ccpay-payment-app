@@ -10,10 +10,10 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,8 +25,13 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.CallbackService;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -66,8 +71,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
 
-    @Mock
-    protected CallbackService callbackService;
+    @MockBean
+    protected CallbackServiceImpl callbackServiceImplMock;
 
     @Autowired
     protected PaymentDbBackdoor db;
@@ -657,7 +662,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void updatePaymentStatusForPaymentReferenceShouldPass() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1433";
-        populateTelephonyPaymentToDb("3", false);
+        populateTelephonyPaymentToDb(paymentReference, false);
 
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -706,7 +711,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void updateIncorrectPaymentStatusForPaymentReferenceShouldFail() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1434";
-        populateTelephonyPaymentToDb("4", false);
+        populateTelephonyPaymentToDb(paymentReference, false);
 
         // update payment status with invalid status type
         MvcResult errResult = restActions
@@ -720,8 +725,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void updatePaymentStatusForPaymentReferenceShouldUseCallbackServiceToUpdateInterestedService() throws Exception {
-        String paymentReference = "RC-1519-9028-1909-1433";
-        Payment payment = populateTelephonyPaymentToDb("3", true);
+        String paymentReference = "RC-1519-9028-1909-1435";
+        populateTelephonyPaymentToDb(paymentReference, true);
 
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -745,15 +750,18 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .patch("/payments/" + paymentReference + "/status/success")
             .andExpect(status().isNoContent());
 
-        verify(callbackService, times(1)).callback(payment.getPaymentLink(), payment);
+        //get the payment
+        PaymentFeeLink updatedPaymentFeeLink = db.findByReference(paymentReference);
+
+        verify(callbackServiceImplMock, times(1)).callback(updatedPaymentFeeLink, updatedPaymentFeeLink.getPayments().get(0));
     }
 
     // if callback URL does not exist make sure not to call callback service
     @Test
     @Transactional
     public void updatePaymentStatusForPaymentReferenceWithoutCallbackURLShouldNotUseCallbackService() throws Exception {
-        String paymentReference = "RC-1519-9028-1909-1433";
-        Payment payment = populateTelephonyPaymentToDb("3", false);
+        String paymentReference = "RC-1519-9028-1909-1436";
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
 
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -777,6 +785,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .patch("/payments/" + paymentReference + "/status/success")
             .andExpect(status().isNoContent());
 
-        verify(callbackService, times(0)).callback(payment.getPaymentLink(), payment);
+        verify(callbackServiceImplMock, times(0)).callback(payment.getPaymentLink(), payment);
     }
 }
