@@ -14,7 +14,7 @@ data:
   CARD_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
   FEATURE_PAYMENTS_SEARCH: "true"
   FEATURE_SERVICE_CALLBACK: "true"
-
+  FEATURE_CREDIT_ACCOUNT_PAYMENT_LIBERATA_CHECK_SEARCH: "true"
   FEES_REGISTER_URL: "http://fees-register-api-aat.service.core-compute-aat.internal"
   GOV_PAY_AUTH_KEY_CMC: "la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3"
   GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND: "la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3"
