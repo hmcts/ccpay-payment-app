@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -22,6 +23,7 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
@@ -53,8 +55,6 @@ public class PBAPaymentFunctionalTest {
 
     @Before
     public void setUp() {
-        // run on non PR envs only
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
@@ -63,14 +63,15 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void getPbaPaymentsByAccount() {
+    public void makeAndRetrievePbaPaymentsByCMC() {
         // create a PBA payment
         String accountNumber = "PBA234" + RandomUtils.nextInt();
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00",Service.CMC);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
-            .statusCode(CREATED.value());
+            .statusCode(CREATED.value())
+            .body("status", equalTo("Pending"));
 
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
@@ -83,6 +84,9 @@ public class PBAPaymentFunctionalTest {
 
     @Test
     public void makeAndRetrievePbaPaymentByFinrem() {
+        // run on non PR envs only
+        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
+
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         String accountNumber = "PBA234" + RandomUtils.nextInt();
@@ -90,7 +94,8 @@ public class PBAPaymentFunctionalTest {
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
-            .statusCode(CREATED.value());
+            .statusCode(CREATED.value())
+            .body("status", equalTo("Success"));
 
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
