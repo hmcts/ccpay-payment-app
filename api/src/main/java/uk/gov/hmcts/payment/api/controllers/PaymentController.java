@@ -68,7 +68,7 @@ public class PaymentController {
         this.validator = paymentValidator;
         this.ff4j = ff4j;
         this.dateUtil = dateUtil;
-        formatter = dateUtil.getIsoDateTimeFormatter();
+        this.formatter = dateUtil.getIsoDateTimeFormatter();
     }
 
 
