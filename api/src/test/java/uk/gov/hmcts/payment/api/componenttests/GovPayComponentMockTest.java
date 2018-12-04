@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +96,7 @@ public class GovPayComponentMockTest {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void verifyGovPayPostResponseTest() throws Exception {
         DefaultResponseCreator govPayRespnse = withStatus(HttpStatus.CREATED)
             .body(contentsOf("gov-pay-responses/create-payment-response.json").getBytes())
@@ -118,6 +120,7 @@ public class GovPayComponentMockTest {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void verifyGovPayGetResponseTest() throws Exception {
         String reference = "RC-1519-9028-1909-3475";
         DefaultResponseCreator govPayResponse = withStatus(HttpStatus.OK)
