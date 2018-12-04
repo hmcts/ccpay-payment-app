@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -32,6 +33,7 @@ public class PaymentDtoFactoryTest {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void convertsToDto() {
         Assertions.assertThat(new PaymentDtoFactory().toDto(PaymentOld.paymentWith()
                 .userId("123")

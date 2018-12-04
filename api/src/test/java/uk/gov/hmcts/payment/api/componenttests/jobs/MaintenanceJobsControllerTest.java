@@ -6,6 +6,7 @@ import com.microsoft.azure.servicebus.IMessage;
 import org.ff4j.FF4j;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,6 +104,7 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void testThatServiceCallbackIsInvokedWhenAStatusChangeIsDetectedOnGovPay() throws Exception {
 
         // setup

@@ -6,6 +6,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,6 +99,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
+    @Ignore // not supporting V1 of Payments anymore
     public void createCardPaymentWithValidInputData_shouldReturnStatusCreatedTest() throws Exception {
 
         stubFor(post(urlPathMatching("/v1/payments"))
@@ -168,6 +170,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void retrieveCardPaymentAndMapTheGovPayStatusTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
             .willReturn(aResponse()
@@ -216,6 +219,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void retrieveCardPaymentStatuses_byPaymentReferenceTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/e2kkddts5215h9qqoeuth5c0v3"))
             .willReturn(aResponse()
@@ -266,6 +270,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void retrieveCardDetails_byPaymentReferenceTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ah0288ctvgqgcmbatdp1viu61j"))
             .willReturn(aResponse()
@@ -314,6 +319,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void retrieveCardDetails_shouldReturn404_ifDetailsNotFoundTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
             .willReturn(aResponse()
@@ -361,6 +367,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void retrieveCardPayment_andMapGovPayErrorStatusTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
             .willReturn(aResponse()
@@ -415,6 +422,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
 
     @Test
+    @Ignore // not supporting V1 of Payments anymore
     public void createCardPaymentForCMC_withCaseReferenceOnly_shouldReturnStatusCreatedTest() throws Exception {
 
         stubFor(post(urlPathMatching("/v1/payments"))
