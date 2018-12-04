@@ -139,6 +139,10 @@ variable "feature_payments_search" {
   default = "true"
 }
 
+variable "feature_credit_account_payment_liberata_check" {
+  default = "false"
+}
+
 variable "external_host_name" {
   default = "payment.nonprod.platform.hmcts.net"
 }
