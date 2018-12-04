@@ -39,7 +39,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
-    private final PaymentsReportService paymentsReportService;
     private final CallbackService callbackService;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentDtoMapper paymentDtoMapper;
@@ -51,11 +50,11 @@ public class PaymentController {
 
 
     @Autowired
-    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackServiceImpl callbackService,
-                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
+                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
+                             DateUtil dateUtil) {
         this.paymentService = paymentService;
-        this.paymentsReportService = paymentsReportService;
         this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentDtoMapper = paymentDtoMapper;
@@ -73,7 +72,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{reference}", method = PATCH)
     @Transactional
-    public ResponseEntity<?> updateCaseReference(@PathVariable("reference") String reference,
+    public ResponseEntity updateCaseReference(@PathVariable("reference") String reference,
                                                  @RequestBody @Validated UpdatePaymentRequest request) {
         Optional<Payment> payment = getPaymentByReference(reference);
 
@@ -134,7 +133,7 @@ public class PaymentController {
     @PaymentExternalAPI
     @PatchMapping("/payments/{reference}/status/{status}")
     @Transactional
-    public ResponseEntity<?> updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
+    public ResponseEntity updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
                                                  @PathVariable(value = "status", required = true) String status) {
         Optional<Payment> payment = getPaymentByReference(reference);
 

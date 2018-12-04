@@ -33,7 +33,6 @@ public class PaymentDtoFactoryTest {
     }
 
     @Test
-    @Ignore // not supporting V1 of Payments anymore
     public void convertsToDto() {
         Assertions.assertThat(new PaymentDtoFactory().toDto(PaymentOld.paymentWith()
                 .userId("123")
@@ -57,7 +56,7 @@ public class PaymentDtoFactoryTest {
                 .dateCreated(new Date(123456789))
                 .links(new PaymentOldDto.LinksDto(
                         new PaymentOldDto.LinkDto("http://next_url", "GET"),
-                        new PaymentOldDto.LinkDto("http://localhost/users/123/payments/456/cancel", "POST")
+                        new PaymentOldDto.LinkDto("/users/123/payments/456/cancel", "POST")
                 ))
                 .build());
     }
