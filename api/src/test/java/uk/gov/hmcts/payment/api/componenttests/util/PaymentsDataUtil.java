@@ -98,7 +98,7 @@ public class PaymentsDataUtil {
             .statusHistories(Arrays.asList(statusHistory))
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -123,7 +123,7 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-000" + number)
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -150,7 +150,7 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-111" + number)
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("123.19")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("123.19")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000011" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -177,7 +177,7 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-112" + number)
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("333.19")).version("1").code("FEE011" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("333.19")).version("1").code("FEE011" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000012" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -203,7 +203,7 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-113" + number)
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("432.19")).version("1").code("FEE011" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("432.19")).version("1").code("FEE011" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000012" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -231,7 +231,7 @@ public class PaymentsDataUtil {
             payment.setServiceCallbackUrl("www.gooooooogle.com");
         }
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("432.19")).version("1").code("FEE011" + reference).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("432.19")).version("1").code("FEE011" + reference).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference(reference).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -242,7 +242,7 @@ public class PaymentsDataUtil {
     }
 
     public void populateCardPaymentToDbWith(Payment payment, String number) {
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
     }
