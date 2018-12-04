@@ -6,6 +6,7 @@ public enum Service {
     CMC("Civil Money Claims"),
     DIVORCE("Divorce"),
     PROBATE("Probate"),
+    FINREM("Finrem"),
     DIGITAL_BAR("Digital Bar");
 
     private String name;

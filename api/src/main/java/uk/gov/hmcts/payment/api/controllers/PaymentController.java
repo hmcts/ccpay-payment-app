@@ -7,7 +7,6 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -52,14 +51,9 @@ public class PaymentController {
 
 
     @Autowired
-    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
-                             PaymentsReportService paymentsReportService,
-                             CallbackService callbackService,
-                             PaymentStatusRepository paymentStatusRepository,
-                             PaymentDtoMapper paymentDtoMapper,
-                             PaymentValidator paymentValidator,
-                             FF4j ff4j,
-                             DateUtil dateUtil) {
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
+                             PaymentStatusRepository paymentStatusRepository, CallbackServiceImpl callbackService,
+                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
         this.paymentService = paymentService;
         this.paymentsReportService = paymentsReportService;
         this.callbackService = callbackService;
@@ -146,7 +140,6 @@ public class PaymentController {
 
         if (payment.isPresent()) {
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
-            //update the service
             if(payment.get().getServiceCallbackUrl() != null) {
                 callbackService.callback(payment.get().getPaymentLink(), payment.get());
             }
