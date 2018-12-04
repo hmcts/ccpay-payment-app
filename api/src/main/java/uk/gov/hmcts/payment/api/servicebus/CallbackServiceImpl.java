@@ -56,7 +56,7 @@ public class CallbackServiceImpl implements CallbackService {
             Message msg = new Message(objectMapper.writeValueAsString(dto));
 
             msg.setContentType("application/json");
-            msg.setLabel("Service Callback Message - Payment status update");
+            msg.setLabel("Service Callback Message");
             msg.setProperties(Collections.singletonMap("serviceCallbackUrl", payment.getServiceCallbackUrl()));
 
             topicClient.send(msg);
