@@ -10,6 +10,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,7 +49,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest", "mockCallbackService"})
+@ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
 public class PaymentControllerTest extends PaymentsDataUtil {
@@ -65,7 +66,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
 
-    @Autowired
+    @Mock
     protected CallbackService callbackService;
 
     @Autowired

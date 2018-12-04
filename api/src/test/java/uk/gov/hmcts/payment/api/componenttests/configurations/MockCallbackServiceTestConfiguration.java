@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 
-@Profile("mockCallbackService")
+@Profile("mockcallbackservice")
 @Configuration
 public class MockCallbackServiceTestConfiguration {
     @Bean
