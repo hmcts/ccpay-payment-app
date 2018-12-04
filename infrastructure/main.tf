@@ -159,7 +159,7 @@ module "payment-api" {
 
     FEES_REGISTER_URL = "${local.fees_register_url}"
     FEATURE_PAYMENTS_SEARCH = "${var.feature_payments_search}"
-    FEATURE_CREDIT_ACCOUNT_PAYMENT_LIBERATA_CHECK_SEARCH = "${var.feature_credit_account_payment_liberata_check}"
+    FEATURE_CREDIT_ACCOUNT_PAYMENT_LIBERATA_CHECK = "${var.feature_credit_account_payment_liberata_check}"
 
     PAYMENT_SERVER_URL = "${local.website_url}"
 
