@@ -103,12 +103,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
+
+        Mockito.reset(accountService);
     }
 
 
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
@@ -118,8 +120,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());
-
-        Mockito.reset(accountService);
     }
 
     @Test
@@ -236,7 +236,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseReference().getBytes(), CreditAccountPaymentRequest.class);
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
@@ -251,13 +251,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         assertEquals("Success", paymentDto.getStatus());
-
-        Mockito.reset(accountService);
     }
 
     @Test
-    public void createCreditAccountAndLiberataRespondsAccountIsActiveShouldReturnPaymentSuccess() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(),
+    public void createCreditAccountForFinRemAndLiberataRespondsAccountIsActiveShouldReturnPaymentSuccess() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(),
             CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
@@ -272,13 +270,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         assertEquals("Success", paymentDto.getStatus());
-
-        Mockito.reset(accountService);
     }
 
     @Test
-    public void createCreditAccountAndLiberataRespondsAccountIsInactiveShouldReturnPaymentFailed() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+    public void createCreditAccountForFinRemAndLiberataRespondsAccountIsInactiveShouldReturnPaymentFailed() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.INACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountInactiveDto);
@@ -292,13 +288,27 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         assertEquals("Failed", paymentDto.getStatus());
+    }
 
-        Mockito.reset(accountService);
+    @Test
+    public void createCreditAccountWhenFeatureOnAndServiceIsNonFinRemShouldReturnPaymentPending() throws Exception {
+        // given
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        // when
+        MvcResult result = restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated()).andReturn();
+
+        // then
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertEquals("Pending", paymentDto.getStatus());
     }
 
     @Test
     public void createCreditAccountAndLiberataRespondsCannotFindAccountShouldReturn404() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(HttpClientErrorException.class);
 
         setCreditAccountPaymentLiberataCheckFeature(true);
@@ -306,13 +316,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isNotFound());
-
-        Mockito.reset(accountService);
     }
 
     @Test
     public void createCreditAccountAndLiberataIsNotResponsiveShouldReturn504() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(AccountServiceUnavailableException.class);
 
         setCreditAccountPaymentLiberataCheckFeature(true);
@@ -320,8 +328,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isGatewayTimeout());
-
-        Mockito.reset(accountService);
     }
 
     @Test
@@ -341,8 +347,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         assertEquals("Pending", paymentDto.getStatus());
-
-        Mockito.reset(accountService);
     }
 
     private void setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception{
@@ -406,6 +410,28 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
             "  \"service\": \"PROBATE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String creditAccountPaymentRequestJsonWithFinRemJson() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"FINREM\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"site_id\": \"AA101\",\n" +
             "  \"customer_reference\": \"CUST101\",\n" +
