@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
@@ -102,6 +103,16 @@ public class PaymentsTestDsl {
             } else if (endDate != null) {
                 response = newRequest().get("/payments?end_date=" + endDate);
             }
+
+            return this;
+        }
+
+        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(Service serviceName, String startDate, String endDate) {
+            StringBuilder sb = new StringBuilder("/payments?");
+            sb.append("start_date=").append(startDate);
+            sb.append("&end_date=").append(endDate);
+            sb.append("&service_name=").append(serviceName);
+            response = newRequest().get(sb.toString());
 
             return this;
         }

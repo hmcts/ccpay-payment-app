@@ -14,15 +14,22 @@ public class TopicClientProxy {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopicClientProxy.class);
 
-    @Value("${azure.servicebus.connection-string}")
-    private String connectionString;
+    private final String connectionString;
 
-    @Value("${azure.servicebus.topic-name}")
-    private String topic;
+    private final String topic;
 
     private boolean keepClientAlive = false;
 
     private TopicClient topicClient;
+
+    public TopicClientProxy(
+        @Value("${azure.servicebus.connection-string}") String connectionString,
+        @Value("${azure.servicebus.topic-name}") String topic) {
+
+        this.connectionString = connectionString;
+        this.topic = topic;
+    }
+
 
     private void send(TopicClient client, IMessage message) throws InterruptedException, ServiceBusException {
         client.send(message);
@@ -68,7 +75,7 @@ public class TopicClientProxy {
         topicClient = null;
     }
 
-    public void setKeepClientAlive(boolean keepClientAlive) {
+    public synchronized void setKeepClientAlive(boolean keepClientAlive) {
         this.keepClientAlive = keepClientAlive;
     }
 

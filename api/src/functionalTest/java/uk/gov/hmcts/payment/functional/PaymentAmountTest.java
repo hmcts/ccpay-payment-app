@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
@@ -113,7 +114,7 @@ public class PaymentAmountTest {
             return; // temporarily passing the test in PR environment
         }
         // invoke pba payment and assert expectedStatus
-        Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aPbaPaymentRequest(dataPoint.amount));
+        Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aPbaPaymentRequest(dataPoint.amount, Service.CMC));
         if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
             response.then().statusCode(UNPROCESSABLE_ENTITY.value());
         } else {
