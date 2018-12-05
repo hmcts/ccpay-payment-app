@@ -3,6 +3,10 @@ variable "product" {
   default = "payment"
 }
 
+variable "component" {
+  type    = "string"
+}
+
 variable "location" {
   type    = "string"
   default = "UK South"
@@ -27,11 +31,6 @@ variable "jenkins_AAD_objectId" {
 variable "microservice" {
   type = "string"
   default = "payment-app"
-}
-
-// disabled liquibase temporarily - enable for new db changes build and then disable again
-variable "liquibase_enabled" {
-  default = "false"
 }
 
 variable "database_name" {
@@ -138,6 +137,10 @@ variable "capacity" {
 
 variable "feature_payments_search" {
   default = "true"
+}
+
+variable "feature_credit_account_payment_liberata_check" {
+  default = "false"
 }
 
 variable "external_host_name" {

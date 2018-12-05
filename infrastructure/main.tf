@@ -1,4 +1,5 @@
 locals {
+  app_full_name = "${var.product}-${var.component}"
   aseName = "${data.terraform_remote_state.core_apps_compute.ase_name[0]}"
 
   local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
@@ -104,8 +105,8 @@ module "payment-api" {
     SPRING_DATASOURCE_PASSWORD = "${module.payment-database.postgresql_password}"
     SPRING_DATASOURCE_URL = "jdbc:postgresql://${module.payment-database.host_name}:${module.payment-database.postgresql_listen_port}/${module.payment-database.postgresql_database}?sslmode=require"
 
-    # enable/disables liquibase run
-    SPRING_LIQUIBASE_ENABLED = "${var.liquibase_enabled}"
+    # disabled liquibase at startup as there is a separate pipleline step (enableDbMigration)
+    SPRING_LIQUIBASE_ENABLED = "false"
 
     # idam
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
@@ -158,6 +159,7 @@ module "payment-api" {
 
     FEES_REGISTER_URL = "${local.fees_register_url}"
     FEATURE_PAYMENTS_SEARCH = "${var.feature_payments_search}"
+    FEATURE_CREDIT_ACCOUNT_PAYMENT_LIBERATA_CHECK = "${var.feature_credit_account_payment_liberata_check}"
 
     PAYMENT_SERVER_URL = "${local.website_url}"
 
@@ -186,4 +188,36 @@ module "payment-database" {
   sku_name = "GP_Gen5_2"
   sku_tier = "GeneralPurpose"
   common_tags     = "${var.common_tags}"
+}
+
+# Populate Vault with DB info
+
+resource "azurerm_key_vault_secret" "POSTGRES-USER" {
+  name      = "${local.app_full_name}-POSTGRES-USER"
+  value     = "${module.payment-database.user_name}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
+  name      = "${local.app_full_name}-POSTGRES-PASS"
+  value     = "${module.payment-database.postgresql_password}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
+  name      = "${local.app_full_name}-POSTGRES-HOST"
+  value     = "${module.payment-database.host_name}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
+  name      = "${local.app_full_name}-POSTGRES-PORT"
+  value     = "${module.payment-database.postgresql_listen_port}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
+  name      = "${local.app_full_name}-POSTGRES-DATABASE"
+  value     = "${module.payment-database.postgresql_database}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
