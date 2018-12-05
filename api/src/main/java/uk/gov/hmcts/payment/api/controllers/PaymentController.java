@@ -69,7 +69,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{reference}", method = PATCH)
     @Transactional
-    public ResponseEntity<?> updateCaseReference(@PathVariable("reference") String reference,
+    public ResponseEntity updateCaseReference(@PathVariable("reference") String reference,
                                                  @RequestBody @Validated UpdatePaymentRequest request) {
         Optional<Payment> payment = getPaymentByReference(reference);
 
@@ -127,9 +127,10 @@ public class PaymentController {
         @ApiResponse(code = 200, message = "No content"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
+    @PaymentExternalAPI
     @PatchMapping("/payments/{reference}/status/{status}")
     @Transactional
-    public ResponseEntity<?> updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
+    public ResponseEntity updatePaymentStatus(@PathVariable(value = "reference", required = true) String reference,
                                                  @PathVariable(value = "status", required = true) String status) {
         Optional<Payment> payment = getPaymentByReference(reference);
 
