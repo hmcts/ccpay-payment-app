@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -100,7 +101,7 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
-        if (ff4j.check("credit-account-payment-liberata-check")) {
+        if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
@@ -125,7 +126,6 @@ public class CreditAccountPaymentController {
 
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
-
 
     @ApiOperation(value = "Get credit account payment details by payment reference", notes = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
@@ -178,5 +178,9 @@ public class CreditAccountPaymentController {
     @ExceptionHandler(AccountServiceUnavailableException.class)
     public String return504(AccountServiceUnavailableException ex) {
         return ex.getMessage();
+    }
+
+    private boolean isAccountStatusCheckRequired(Service service) {
+        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM == service;
     }
 }

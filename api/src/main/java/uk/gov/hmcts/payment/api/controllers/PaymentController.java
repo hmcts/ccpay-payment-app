@@ -33,7 +33,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -63,7 +62,7 @@ public class PaymentController {
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
-                             PaymentStatusRepository paymentStatusRepository, CallbackServiceImpl callbackService,
+                             PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
                              DateUtil dateUtil) {
         this.paymentService = paymentService;
