@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
@@ -88,7 +89,10 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createTelephonyPayment()
+        public PaymentWhenDsl createTelephonyPayment(PaymentRecordRequest paymentRecordRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(paymentRecordRequest).post("/payment-records");
+            return this;
+        }
 
         public PaymentWhenDsl getCardPayment(String reference) {
             response = newRequest().get("/card-payments/" + reference);
@@ -112,6 +116,14 @@ public class PaymentsTestDsl {
             sb.append("start_date=").append(startDate);
             sb.append("&end_date=").append(endDate);
             sb.append("&service_name=").append(serviceName);
+            response = newRequest().get(sb.toString());
+
+            return this;
+        }
+
+        public PaymentWhenDsl searchPaymentsByPBANumber(String pbaNumber) {
+            StringBuilder sb = new StringBuilder("/payments?");
+            sb.append("pba_number=").append(pbaNumber);
             response = newRequest().get(sb.toString());
 
             return this;
