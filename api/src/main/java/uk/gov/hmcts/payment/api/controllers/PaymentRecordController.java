@@ -73,6 +73,8 @@ public class PaymentRecordController {
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
             .reportedDateOffline(DateTime.parse(paymentRecordRequest.getReportedDateOffline()).withZone(DateTimeZone.UTC).toDate())
+            .paymentChannel(paymentRecordRequest.getPaymentChannel())
+            .paymentStatus(paymentRecordRequest.getPaymentStatus())
             .build();
 
         List<PaymentFee> fees = paymentRecordRequest.getFees().stream()
