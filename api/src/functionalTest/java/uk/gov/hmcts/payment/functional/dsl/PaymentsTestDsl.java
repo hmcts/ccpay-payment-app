@@ -94,6 +94,21 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl updatePaymentStatus(String paymentReference, String status) {
+            StringBuilder sb = new StringBuilder("/payments/");
+            sb.append(paymentReference);
+            sb.append("/status/");
+            sb.append(status);
+
+            response = newRequest().contentType(ContentType.JSON).patch(sb.toString());
+            return this;
+        }
+
+        public PaymentWhenDsl enableSearch(){
+            response = newRequest().contentType(ContentType.JSON).post("/api/ff4j/store/features/payment-search/enable");
+            return this;
+        }
+
         public PaymentWhenDsl getCardPayment(String reference) {
             response = newRequest().get("/card-payments/" + reference);
             return this;
@@ -121,14 +136,6 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl searchPaymentsByPBANumber(String pbaNumber) {
-            StringBuilder sb = new StringBuilder("/payments?");
-            sb.append("pba_number=").append(pbaNumber);
-            response = newRequest().get(sb.toString());
-
-            return this;
-        }
-
         public PaymentThenDsl then() {
             return new PaymentThenDsl();
         }
@@ -142,6 +149,11 @@ public class PaymentsTestDsl {
 
         public PaymentThenDsl notFound() {
             response.then().statusCode(404);
+            return this;
+        }
+
+        public PaymentThenDsl noContent() {
+            response.then().statusCode(204);
             return this;
         }
 
