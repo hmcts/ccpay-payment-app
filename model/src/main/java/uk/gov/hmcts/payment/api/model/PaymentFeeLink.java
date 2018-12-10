@@ -42,6 +42,7 @@ public class PaymentFeeLink {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
+    @ToString.Exclude
     private List<PaymentFee> fees;
 
 }

@@ -1,5 +1,9 @@
 package uk.gov.hmcts.payment.functional;
 
+import com.mifmif.common.regex.Generex;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +17,6 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -24,7 +27,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
@@ -44,6 +47,7 @@ public class TelephonyPaymentsTest {
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
+    private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Before
     public void setUp() throws Exception {
@@ -56,119 +60,164 @@ public class TelephonyPaymentsTest {
 
     @Test
     public void createTelephonyPaymentAndExpectSuccess() {
+        String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
+        PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
+
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.google.com")
-            .when().createTelephonyPayment(getTelephonyPayment("success"))
+            .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
         });
-    }
-
-//    Add new functional tests to cover the telephony payments with new pci pal provider with new provider covering following scenarios.
-//
-//    failed telephony payments
-//    success ones
-//    Error ones
-//
-
-    private PaymentRecordRequest getTelephonyPayment(String status) {
-        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
-            .paymentStatus(PaymentStatus.paymentStatusWith().name(status).build())
-            .externalProvider("pci pal")
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
-            .amount(new BigDecimal("99.99"))
-            .paymentMethod(PaymentMethodType.CARD)
-            .reference("ref_1234")
-            .service(Service.CMC)
-            .currency(CurrencyCode.GBP)
-            .externalReference("TEL_PAY_1234")
-            .siteId("ABCD")
-            .fees(
-                Arrays.asList(
-                    FeeDto.feeDtoWith()
-                    .calculatedAmount(new BigDecimal("99.99"))
-                    .code("FEE012345")
-                    .reference("ref_1234")
-                    .version("1")
-                    .volume(1)
-                    .build()
-                )
-            )
-            .build();
     }
 
     @Test
     public void retrieveASuccessfulTelephonyPaymentViaLookup() {
-        // payment provider: pci pal
-        // payment channel: telephony
-        // status: success
-        String pbaNumber = "PBA1";
+        String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
+        System.out.println(telRefNumber);
+        PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
+        String status = "success";
 
-        //create payment
+        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.goooooogle.com")
-            .when().createTelephonyPayment(getTelephonyPayment("success"))
-            .searchPaymentsByPBANumber(pbaNumber)
-            .then().got(PaymentsResponse.class, paymentsResponse -> {
-            assertEquals("only one payment has been retrieved", 1, paymentsResponse.getPayments().size());
-            PaymentDto paymentRetrieved = paymentsResponse.getPayments().get(0);
-            assertNotNull(paymentRetrieved.getReference());
-            assertEquals("payment status is properly set", "success", paymentRetrieved.getStatus());
-        });
+            .when().createTelephonyPayment(paymentRecordRequest)
+            .then().created(paymentDto -> {
+            String referenceNumber = paymentDto.getReference();
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+            //update the status
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.goooooogle.com")
+                .when().updatePaymentStatus(referenceNumber, status)
+                .then().noContent();
 
-        //retrieve payment via lookup
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.goooooogle.com")
+                .when()
+                .enableSearch()
+                .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
+                .then().got(PaymentsResponse.class, paymentsResponse -> {
+                assertTrue("correct payment has been retrieved",
+                    paymentsResponse.getPayments().stream()
+                        .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
+                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                assertEquals("payment status is properly set", "Success", paymentRetrieved.getStatus());
+            });
+        });
     }
 
     @Test
     public void retrieveAFailedTelephonyPaymentViaLookup() {
-        // payment provider: pci pal
-        // payment channel: telephony
-        // status: failed
-        String pbaNumber = "PBA12";
+        String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
+        PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
+        String status = "failed";
 
-        //create payment
+        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.goooooogle.com")
-            .when().createTelephonyPayment(getTelephonyPayment("failed"))
-            .searchPaymentsByPBANumber(pbaNumber)
-            .then().got(PaymentsResponse.class, paymentsResponse -> {
-            assertEquals("only one payment has been retrieved", 1, paymentsResponse.getPayments().size());
-            PaymentDto paymentRetrieved = paymentsResponse.getPayments().get(0);
-            assertNotNull(paymentRetrieved.getReference());
-            assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
-        });
+            .when().createTelephonyPayment(paymentRecordRequest)
+            .then().created(paymentDto -> {
+            String referenceNumber = paymentDto.getReference();
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+            //update the status
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.goooooogle.com")
+                .when().updatePaymentStatus(referenceNumber, status)
+                .then().noContent();
 
-        //retrieve payment via lookup
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.goooooogle.com")
+                .when()
+                .enableSearch()
+                .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
+                .then().got(PaymentsResponse.class, paymentsResponse -> {
+                assertTrue("correct payment has been retrieved",
+                    paymentsResponse.getPayments().stream()
+                        .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
+                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+
+                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                assertEquals("payment status is properly set", "Failed", paymentRetrieved.getStatus());
+            });
+        });
     }
 
     @Test
     public void retrieveAnErrorneousTelephonyPaymentViaLookup() {
-        // payment provider: pci pal
-        // payment channel: telephony
-        // status: error
-        String pbaNumber = "PBA123";
+        String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
+        System.out.println(telRefNumber);
+        PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
+        String status = "error";
 
-        //create payment
+        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.goooooogle.com")
-            .when().createTelephonyPayment(getTelephonyPayment("error"))
-            .searchPaymentsByPBANumber(pbaNumber)
-            .then().got(PaymentsResponse.class, paymentsResponse -> {
-            assertEquals("only one payment has been retrieved", 1, paymentsResponse.getPayments().size());
-            PaymentDto paymentRetrieved = paymentsResponse.getPayments().get(0);
-            assertNotNull(paymentRetrieved.getReference());
-            assertEquals("payment status is properly set", "error", paymentRetrieved.getStatus());
-            // TODO: check error message
-        });
+            .when().createTelephonyPayment(paymentRecordRequest)
+            .then().created(paymentDto -> {
+            String referenceNumber = paymentDto.getReference();
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            //update the status
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.goooooogle.com")
+                .when().updatePaymentStatus(referenceNumber, status)
+                .then().noContent();
+            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
-        //retrieve payment via lookup
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.goooooogle.com")
+                .when()
+                .enableSearch()
+                .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
+                .then().got(PaymentsResponse.class, paymentsResponse -> {
+                assertTrue("correct payment has been retrieved",
+                    paymentsResponse.getPayments().stream()
+                        .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
+                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                assertEquals("payment status is properly set", "Failed", paymentRetrieved.getStatus());
+            });
+        });
     }
 
-//    TODO: update the API docs to reflect the new provider. Also support liberata to test these
-
+    private PaymentRecordRequest getTelephonyPayment(String reference) {
+        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
+            .externalProvider("pci pal")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
+            .amount(new BigDecimal("99.99"))
+            .paymentMethod(PaymentMethodType.CARD)
+            .reference(reference)
+            .service(Service.CMC)
+            .currency(CurrencyCode.GBP)
+            .externalReference(reference)
+            .siteId("ABCD")
+            .fees(
+                Arrays.asList(
+                    FeeDto.feeDtoWith()
+                        .calculatedAmount(new BigDecimal("99.99"))
+                        .code("FEE012345")
+                        .reference("ref_1234")
+                        .version("1")
+                        .volume(1)
+                        .build()
+                )
+            )
+            .reportedDateOffline(DateTime.now().toString())
+            .build();
+    }
 }
