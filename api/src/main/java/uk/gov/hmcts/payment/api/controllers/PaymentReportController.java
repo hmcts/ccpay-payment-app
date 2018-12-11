@@ -18,7 +18,7 @@ import java.util.Optional;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
-@Api(tags = {"PaymentReportController"})
+@Api(tags = {"Payment Report"}, description = "Payment report REST API")
 @SwaggerDefinition(tags = {@Tag(name = "PaymentReportController", description = "Payment Report API")})
 public class PaymentReportController {
 

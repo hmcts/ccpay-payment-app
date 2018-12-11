@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
-@Api(tags = {"MaintenanceJobsController"})
+@Api(tags = {"Maintenance Jobs"}, description = "Maintainance jobs REST API")
 @SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintenance Jobs API")})
 public class MaintenanceJobsController {
 

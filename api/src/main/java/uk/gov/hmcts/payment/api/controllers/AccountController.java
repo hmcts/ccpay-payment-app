@@ -21,7 +21,7 @@ import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 
 @RestController
-@Api(tags = {"AccountController"})
+@Api(tags = {"Account"}, description = "Account REST API")
 @SwaggerDefinition(tags = {@Tag(name = "AccountController", description = "Account API")})
 public class AccountController {
 
