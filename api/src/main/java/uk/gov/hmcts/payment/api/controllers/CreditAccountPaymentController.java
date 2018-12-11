@@ -55,6 +55,7 @@ public class CreditAccountPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);
 
     private static final String DEFAULT_CURRENCY = "GBP";
+    public static final String FAILED = "failed";
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
@@ -122,7 +123,7 @@ public class CreditAccountPaymentController {
                     creditAccountPaymentRequest.getAmount())) {
                     payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
                 } else {
-                    payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
+                    payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
                     payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                         .status(payment.getPaymentStatus().getName())
                         .errorCode("CA-E0001")
@@ -130,7 +131,7 @@ public class CreditAccountPaymentController {
                         .build()));
                 }
             } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
-                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .status(payment.getPaymentStatus().getName())
                     .errorCode("CA-E0002")
@@ -143,7 +144,7 @@ public class CreditAccountPaymentController {
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
-        if (payment.getPaymentStatus().getName().equals("failed")) {
+        if (payment.getPaymentStatus().getName().equals(FAILED)) {
             return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
         }
 
