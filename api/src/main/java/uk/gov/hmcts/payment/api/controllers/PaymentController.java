@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
-@Api(tags = {"PaymentController"})
+@Api(tags = {"Payment"}, description = "Payment REST API")
 @SwaggerDefinition(tags = {@Tag(name = "PaymentController", description = "Payment API")})
 public class PaymentController {
 

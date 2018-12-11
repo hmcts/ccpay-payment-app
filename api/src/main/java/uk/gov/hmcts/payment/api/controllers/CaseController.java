@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
-@Api(tags = {"CaseController"})
+@Api(tags = {"Case"}, description = "Case REST API")
 @SwaggerDefinition(tags = {@Tag(name = "CaseController", description = "Case Payments API")})
 public class CaseController {
 

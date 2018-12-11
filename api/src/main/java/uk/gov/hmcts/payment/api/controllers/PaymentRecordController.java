@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
-@Api(tags = {"PaymentRecordController"})
+@Api(tags = {"Payment Record"}, description = "Payment record REST API")
 @SwaggerDefinition(tags = {@Tag(name = "PaymentRecordController", description = "API for Recording different types of payments")})
 public class PaymentRecordController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordController.class);

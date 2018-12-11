@@ -18,7 +18,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import java.util.List;
 
 @RestController
-@Api(value = "ReferenceData", description = "Payment reference data REST API")
+@Api(tags = {"Payment Reference Data"}, description = "Payment reference data REST API")
 @RequestMapping("/refdata")
 public class PaymentReferenceDataController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentReferenceDataController.class);

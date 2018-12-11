@@ -117,8 +117,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo paymentApiInfo() {
         return new ApiInfoBuilder()
-            .title("New payment API documentation")
-            .description("New payment API documentation")
+            .title("Payment API v2 documentation")
+            .description("Payment API v2 documentation")
             .build();
     }
 
