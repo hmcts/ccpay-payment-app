@@ -33,6 +33,7 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -40,6 +41,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,6 +77,7 @@ public class CreditAccountPaymentController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
+        @ApiResponse(code = 403, message = "Payment failed due to insufficien funds or an inactive account"),
         @ApiResponse(code = 404, message = "Account information could not be found"),
         @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
@@ -106,7 +110,7 @@ public class CreditAccountPaymentController {
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
             } catch (HttpClientErrorException ex) {
-                LOG.error("Account information could not be found, exception: {}",  ex.getMessage());
+                LOG.error("Account information could not be found, exception: {}", ex.getMessage());
                 throw new AccountNotFoundException("Account information could not be found");
             } catch (Exception ex) {
                 LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
@@ -114,15 +118,34 @@ public class CreditAccountPaymentController {
             }
 
             if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
-                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
+                if (isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
+                    creditAccountPaymentRequest.getAmount())) {
+                    payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
+                } else {
+                    payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
+                    payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                        .status(payment.getPaymentStatus().getName())
+                        .errorCode("CA-E0001")
+                        .message("You have insufficient funds available")
+                        .build()));
+                }
             } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("failed").build());
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .status(payment.getPaymentStatus().getName())
+                    .errorCode("CA-E0002")
+                    .message("Your account is Inactive")
+                    .build()));
             }
         } else {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
         }
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
+
+        if (payment.getPaymentStatus().getName().equals("failed")) {
+            return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
+        }
 
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
@@ -182,5 +205,9 @@ public class CreditAccountPaymentController {
 
     private boolean isAccountStatusCheckRequired(Service service) {
         return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM == service;
+    }
+
+    private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
+        return availableBalance.compareTo(paymentAmount) >= 0;
     }
 }
