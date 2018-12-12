@@ -55,7 +55,7 @@ public class CreditAccountPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);
 
     private static final String DEFAULT_CURRENCY = "GBP";
-    public static final String FAILED = "failed";
+    private static final String FAILED = "failed";
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
