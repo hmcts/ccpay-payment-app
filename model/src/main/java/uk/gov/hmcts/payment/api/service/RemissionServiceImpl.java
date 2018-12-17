@@ -23,12 +23,6 @@ public class RemissionServiceImpl implements RemissionService {
     }
 
     @Override
-    public Remission retrieve(Integer id) {
-        Optional<Remission> remission = remissionRepository.findById(id);
-        return remission.orElse(null);
-    }
-
-    @Override
     public Remission retrieve(String hwfReference) {
         Optional<Remission> remission = remissionRepository.findByHwfReference(hwfReference);
         return remission.orElse(null);
