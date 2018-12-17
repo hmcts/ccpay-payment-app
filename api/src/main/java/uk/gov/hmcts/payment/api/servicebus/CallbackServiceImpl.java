@@ -61,6 +61,8 @@ public class CallbackServiceImpl implements CallbackService {
 
             topicClient.send(msg);
 
+            LOG.info("Sent message to topic", msg);
+
         } catch (Exception e) {
             LOG.error("Error", e);
         }
