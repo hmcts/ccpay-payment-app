@@ -32,7 +32,7 @@ public class RemissionControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
-    RestActions restActions;
+    private RestActions restActions;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -50,7 +50,7 @@ public class RemissionControllerTest {
     private WebApplicationContext webApplicationContext;
 
     @Before
-    public void setup() {
+    public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
@@ -92,7 +92,7 @@ public class RemissionControllerTest {
             .paymentGroupReference("2018-1234")
             .build();
 
-        MvcResult result = restActions
+        restActions
             .post("/remission", remissionDto)
             .andReturn();
 
