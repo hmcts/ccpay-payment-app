@@ -19,8 +19,8 @@ import java.util.concurrent.ExecutionException;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
-@Api(tags = {"Maintenance Jobs"}, description = "Maintainance jobs REST API")
-@SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintenance Jobs API")})
+@Api(tags = {"Maintenance Jobs"})
+@SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintainance jobs REST API")})
 public class MaintenanceJobsController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MaintenanceJobsController.class);
