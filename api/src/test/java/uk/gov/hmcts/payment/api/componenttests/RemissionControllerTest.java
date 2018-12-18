@@ -9,7 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
@@ -73,7 +72,7 @@ public class RemissionControllerTest {
             .paymentGroupReference("2018-1234")
             .build();
 
-        MvcResult result = restActions
+        restActions
             .post("/remission", remission)
             .andExpect(status().isCreated())
             .andReturn();
