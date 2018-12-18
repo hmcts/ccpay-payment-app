@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
-@Api(tags = {"Credit Account Payment"}, description = "Credit account payment REST API")
+@Api(tags = {"Credit Account Payment"})
 public class CreditAccountPaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);

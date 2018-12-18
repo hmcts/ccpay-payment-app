@@ -24,8 +24,8 @@ import uk.gov.hmcts.payment.api.service.RemissionService;
 import javax.validation.Valid;
 
 @RestController
-@Api(tags = {"Remission"}, description = "Remission REST API")
-@SwaggerDefinition(tags = {@Tag(name = "RemissionController", description = "Remission API")})
+@Api(tags = {"Remission"})
+@SwaggerDefinition(tags = {@Tag(name = "RemissionController", description = "Remission REST API")})
 public class RemissionController {
     private static final Logger LOG = LoggerFactory.getLogger(RemissionController.class);
 

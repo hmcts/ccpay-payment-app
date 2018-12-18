@@ -18,8 +18,8 @@ import java.util.Optional;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
-@Api(tags = {"Payment Report"}, description = "Payment report REST API")
-@SwaggerDefinition(tags = {@Tag(name = "PaymentReportController", description = "Payment Report API")})
+@Api(tags = {"Payment Report"})
+@SwaggerDefinition(tags = {@Tag(name = "PaymentReportController", description = "Payment report REST API")})
 public class PaymentReportController {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE;
