@@ -135,7 +135,21 @@ public class CreditAccountPaymentController {
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .status(payment.getPaymentStatus().getName())
                     .errorCode("CA-E0002")
-                    .message("Your account is Inactive")
+                    .message("Your account is inactive")
+                    .build()));
+            } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .status(payment.getPaymentStatus().getName())
+                    .errorCode("CA-E0003")
+                    .message("Your account is on hold")
+                    .build()));
+            } else if (accountDetails.getStatus() == AccountStatus.DELETED) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .status(payment.getPaymentStatus().getName())
+                    .errorCode("CA-E0004")
+                    .message("Your account is deleted")
                     .build()));
             }
         } else {
