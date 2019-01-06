@@ -36,7 +36,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
-    private final PaymentsReportService paymentsReportService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
     private final FF4j ff4j;
@@ -46,10 +45,9 @@ public class PaymentController {
 
 
     @Autowired
-    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
         this.paymentService = paymentService;
-        this.paymentsReportService = paymentsReportService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
@@ -65,7 +63,7 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{reference}", method = PATCH)
     @Transactional
-    public ResponseEntity<?> updateCaseReference(@PathVariable("reference") String paymentReference,
+    public ResponseEntity updateCaseReference(@PathVariable("reference") String paymentReference,
                                                  @RequestBody @Validated UpdatePaymentRequest request) {
 
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
