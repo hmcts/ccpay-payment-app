@@ -78,7 +78,7 @@ public class CreditAccountPaymentController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 403, message = "Payment failed due to insufficient funds or an the account being on hold"),
+        @ApiResponse(code = 403, message = "Payment failed due to insufficient funds or the account being on hold"),
         @ApiResponse(code = 404, message = "Account information could not be found"),
         @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
