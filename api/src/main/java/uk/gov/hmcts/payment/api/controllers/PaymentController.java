@@ -1,6 +1,11 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -9,7 +14,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
@@ -17,7 +29,6 @@ import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -36,7 +47,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
-    private final PaymentsReportService paymentsReportService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
     private final FF4j ff4j;
@@ -46,10 +56,9 @@ public class PaymentController {
 
 
     @Autowired
-    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
         this.paymentService = paymentService;
-        this.paymentsReportService = paymentsReportService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
@@ -65,8 +74,8 @@ public class PaymentController {
     })
     @RequestMapping(value = "/payments/{reference}", method = PATCH)
     @Transactional
-    public ResponseEntity<?> updateCaseReference(@PathVariable("reference") String paymentReference,
-                                                 @RequestBody @Validated UpdatePaymentRequest request) {
+    public ResponseEntity updateCaseReference(@PathVariable("reference") String paymentReference,
+                                              @RequestBody @Validated UpdatePaymentRequest request) {
 
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
