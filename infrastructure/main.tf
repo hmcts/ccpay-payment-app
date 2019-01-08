@@ -26,43 +26,23 @@ data "azurerm_key_vault" "payment_key_vault" {
   resource_group_name = "${var.core_product}-${local.local_env}"
 }
 
-data "azurerm_key_vault_secret" "pci_pal_account_id_cmc_test" {
-  name = "pci-pal-account-id-cmc-test"
+data "azurerm_key_vault_secret" "pci_pal_account_id_cmc" {
+  name = "pci-pal-account-id-cmc"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
-data "azurerm_key_vault_secret" "pci_pal_account_id_cmc_live" {
-  name = "pci-pal-account-id-cmc-live"
+data "azurerm_key_vault_secret" "pci_pal_account_id_probate" {
+  name = "pci-pal-account-id-probate"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
-data "azurerm_key_vault_secret" "pci_pal_account_id_probate_test" {
-  name = "pci-pal-account-id-probate-test"
+data "azurerm_key_vault_secret" "pci_pal_account_id_divorce" {
+  name = "pci-pal-account-id-divorce"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
-data "azurerm_key_vault_secret" "pci_pal_account_id_probate_live" {
-  name = "pci-pal-account-id-probate-live"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
-}
-
-data "azurerm_key_vault_secret" "pci_pal_account_id_divorce_test" {
-  name = "pci-pal-account-id-divorce-test"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
-}
-
-data "azurerm_key_vault_secret" "pci_pal_account_id_divorce_live" {
-  name = "pci-pal-account-id-divorce-live"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
-}
-
-data "azurerm_key_vault_secret" "pci_pal_api_url_test" {
-  name = "pci-pal-api-url-test"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
-}
-
-data "azurerm_key_vault_secret" "pci_pal_api_url_live" {
-  name = "pci-pal-api-url-live"
+data "azurerm_key_vault_secret" "pci_pal_api_url" {
+  name = "pci-pal-api-url"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
