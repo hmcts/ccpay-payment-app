@@ -110,14 +110,17 @@ data "azurerm_key_vault_secret" "gov_pay_keys_divorce" {
   name = "gov-pay-keys-divorce"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "card_payments_email_to" {
   name = "card-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
   name = "pba-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "pba_divorce_payments_email_to" {
   name = "pba-divorce-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
