@@ -3,18 +3,21 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 import lombok.SneakyThrows;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -26,6 +29,20 @@ public class CreditAccountDtoMapper {
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
+            .statusHistories(payment.getStatusHistories()
+                .stream().map(this::statusHistoryToDto).collect(Collectors.toList())
+            )
+            .build();
+    }
+
+    private StatusHistoryDto statusHistoryToDto(StatusHistory statusHistory) {
+        return StatusHistoryDto.statusHistoryDtoWith()
+            .status(statusHistory.getStatus())
+            .externalStatus(statusHistory.getExternalStatus())
+            .errorCode(statusHistory.getErrorCode())
+            .errorMessage(statusHistory.getMessage())
+            .dateCreated(statusHistory.getDateCreated())
+            .dateUpdated(statusHistory.getDateUpdated())
             .build();
     }
 
@@ -130,6 +147,7 @@ public class CreditAccountDtoMapper {
             .siteId(payment.getSiteId())
             .build();
     }
+
     public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
