@@ -102,7 +102,7 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    public void duplicatehwfReferenceRemissionShouldReturn400() throws Exception {
+    public void duplicatehwfReferenceRemissionShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
@@ -120,13 +120,13 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isCreated())
             .andReturn();
     }
 
     @Test
     @Transactional
-    public void emptyHwfReferenceShouldReturn422() throws Exception {
+    public void emptyHwfReferenceShouldReturn400() throws Exception {
         String hwfReference = "";
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
@@ -139,13 +139,13 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 
     @Test
     @Transactional
-    public void nullHwfReferenceShouldReturn422() throws Exception {
+    public void nullHwfReferenceShouldReturn400() throws Exception {
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
@@ -156,13 +156,13 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 
     @Test
     @Transactional
-    public void nullHwfAmountShouldReturn422() throws Exception {
+    public void nullHwfAmountShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
@@ -174,13 +174,13 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 
     @Test
     @Transactional
-    public void negativeHwfAmountShouldReturn422() throws Exception {
+    public void negativeHwfAmountShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
@@ -193,13 +193,13 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 
     @Test
     @Transactional
-    public void hwfAmountEqualToZeroShouldReturn422() throws Exception {
+    public void hwfAmountEqualToZeroShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
@@ -212,13 +212,13 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 
     @Test
     @Transactional
-    public void hwfAmountWithMoreThan2DecimalPlacesShouldReturn422() throws Exception {
+    public void hwfAmountWithMoreThan2DecimalPlacesShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
@@ -231,13 +231,13 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 
     @Test
     @Transactional
-    public void emptyCcdCaseNumberShouldReturn422() throws Exception {
+    public void emptyCcdCaseNumberShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
@@ -250,13 +250,13 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isCreated())
             .andReturn();
     }
 
     @Test
     @Transactional
-    public void nullCcdCaseNumberShouldReturn422() throws Exception {
+    public void nullCcdCaseNumberShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
@@ -268,7 +268,116 @@ public class RemissionControllerTest {
 
         restActions
             .post("/remission", remissionDto)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void emptyCaseReferenceShouldReturn201() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference(hwfReference)
+            .paymentGroupReference("2018-1234")
+            .build();
+
+        restActions
+            .post("/remission", remissionDto)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void nullCaseReferenceShouldReturn201() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference(hwfReference)
+            .paymentGroupReference("2018-1234")
+            .build();
+
+        restActions
+            .post("/remission", remissionDto)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void emptyCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("")
+            .ccdCaseNumber("")
+            .hwfAmount(new BigDecimal("10.01"))
+            .hwfReference(hwfReference)
+            .paymentGroupReference("2018-1234")
+            .build();
+
+        restActions
+            .post("/remission", remissionDto)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void nullCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .hwfAmount(new BigDecimal("10.01"))
+            .hwfReference(hwfReference)
+            .paymentGroupReference("2018-1234")
+            .build();
+
+        restActions
+            .post("/remission", remissionDto)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void nullCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .ccdCaseNumber("")
+            .hwfAmount(new BigDecimal("10.01"))
+            .hwfReference(hwfReference)
+            .paymentGroupReference("2018-1234")
+            .build();
+
+        restActions
+            .post("/remission", remissionDto)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void emptyCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("")
+            .hwfAmount(new BigDecimal("10.01"))
+            .hwfReference(hwfReference)
+            .paymentGroupReference("2018-1234")
+            .build();
+
+        restActions
+            .post("/remission", remissionDto)
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 }
