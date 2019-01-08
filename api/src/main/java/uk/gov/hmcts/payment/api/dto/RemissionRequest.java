@@ -36,7 +36,6 @@ public class RemissionRequest {
 
     private String beneficiaryName;
 
-    @NotEmpty
     private String ccdCaseNumber;
 
     private String caseReference;

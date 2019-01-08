@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.service.RemissionService;
+import uk.gov.hmcts.payment.api.validators.RemissionValidator;
 
 import javax.validation.Valid;
 
@@ -32,6 +34,9 @@ public class RemissionController {
     @Autowired
     private RemissionService remissionService;
 
+    @Autowired
+    private RemissionValidator remissionValidator;
+
     @ApiOperation(value = "Create remission record", notes = "Create remission record")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Remission created"),
@@ -40,6 +45,8 @@ public class RemissionController {
     @PostMapping(value = "/remission")
     @ResponseBody
     public ResponseEntity createRemission(@Valid @RequestBody RemissionRequest remissionRequest) {
+        remissionValidator.validate(remissionRequest);
+
         remissionService.create(remissionRequest.toRemission());
 
         return new ResponseEntity(HttpStatus.CREATED);
@@ -49,6 +56,13 @@ public class RemissionController {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public String return400onDataIntegrityViolation(DataIntegrityViolationException ex) {
         LOG.error("Error while creating remission", ex);
-        return "Could not create remission";
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public String return400onDataIntegrityViolation(MethodArgumentNotValidException ex) {
+        LOG.error("Error while creating remission", ex);
+        return ex.getMessage();
     }
 }

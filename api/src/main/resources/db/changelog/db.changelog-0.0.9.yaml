@@ -107,7 +107,7 @@ databaseChangeLog:
       - createIndex:
           indexName: ix_remission_hwf_reference
           tableName: remissions
-          unique: true
+          unique: false
           columns:
           - column:
               name: hwf_reference
