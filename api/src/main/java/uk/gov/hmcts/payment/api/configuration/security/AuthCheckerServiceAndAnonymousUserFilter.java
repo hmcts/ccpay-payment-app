@@ -58,6 +58,7 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
         } catch (BearerTokenMissingException btme) {
                 return new User("anonymous", anonymousRole);
         } catch(AuthCheckerException ace) {
+            log.warn("Unsuccessful user authentication", ace);
             return null;
         }
     }
