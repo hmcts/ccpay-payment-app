@@ -75,7 +75,6 @@ public class TelephonyPaymentsTest {
     @Test
     public void retrieveASuccessfulTelephonyPaymentViaLookup() {
         String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
-        System.out.println(telRefNumber);
         PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
         String status = "success";
 
@@ -88,13 +87,14 @@ public class TelephonyPaymentsTest {
             .then().created(paymentDto -> {
             String referenceNumber = paymentDto.getReference();
             assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
-            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
             //update the status
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.goooooogle.com")
                 .when().updatePaymentStatus(referenceNumber, status)
                 .then().noContent();
+
+            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
@@ -128,13 +128,14 @@ public class TelephonyPaymentsTest {
             .then().created(paymentDto -> {
             String referenceNumber = paymentDto.getReference();
             assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
-            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
             //update the status
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.goooooogle.com")
                 .when().updatePaymentStatus(referenceNumber, status)
                 .then().noContent();
+
+            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
@@ -157,7 +158,6 @@ public class TelephonyPaymentsTest {
     @Test
     public void retrieveAnErrorneousTelephonyPaymentViaLookup() {
         String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
-        System.out.println(telRefNumber);
         PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
         String status = "error";
 
