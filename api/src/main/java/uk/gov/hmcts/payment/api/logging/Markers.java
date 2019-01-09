@@ -6,5 +6,6 @@ import org.slf4j.MarkerFactory;
 public class Markers {
     public static final Marker fatal = MarkerFactory.getMarker("FATAL");
 
-    private Markers() {}
+    private Markers() {
+    }
 }
