@@ -32,17 +32,17 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, Service service) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
             .caseReference("aCaseReference")
-            .service(Service.CMC)
+            .service(service)
             .currency(CurrencyCode.GBP)
             .siteId("AA101")
             .customerReference("CUST101")
             .organisationName("ORG101")
-            .accountNumber("AC101010")
+            .accountNumber("PBA0082848")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
