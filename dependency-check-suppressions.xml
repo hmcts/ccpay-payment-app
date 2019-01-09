@@ -1,135 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
     <suppress>
-        <notes>Suppress spring-boot-starter-data-jpa being matched as spring-data-jpa</notes>
-        <gav regex="true">^org\.springframework\.boot:spring-boot-starter-data-jpa:.*$</gav>
-        <cpe>cpe:/a:pivotal_software:spring_data_jpa</cpe>
+        <notes><![CDATA[
+   file name: feign-form-spring-3.3.0.jar fixes are yet not available.
+   ]]></notes>
+        <gav regex="true">^io\.github\.openfeign\.form:feign-form-spring:.*$</gav>
+        <cve>CVE-2018-1270</cve>
+        <cve>CVE-2018-1271</cve>
+        <cve>CVE-2018-1272</cve>
     </suppress>
-    <suppress>
-        <notes>Does not apply as tomcat is not installed as a service</notes>
-        <gav regex="true">^org\.apache\.tomcat\.embed:tomcat-embed.*:.*$</gav>
-        <cve>CVE-2016-6325</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as tomcat is not installed as a service</notes>
-        <gav regex="true">^org\.apache\.tomcat\.embed:tomcat-embed.*:.*$</gav>
-        <cve>CVE-2017-6056</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as tomcat is not installed as a service</notes>
-        <gav regex="true">^org\.apache\.tomcat\:tomcat-annotations-api.*:.*$</gav>
-        <cve>CVE-2017-6056</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as tomcat is not installed as a service</notes>
-        <gav regex="true">^org\.apache\.tomcat\:tomcat-annotations-api.*:.*$</gav>
-        <cve>CVE-2016-6325</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as tomcat is not installed as a service</notes>
-        <gav regex="true">^org\.apache\.tomcat\:tomcat-annotations-api.*:.*$</gav>
-        <cve>CVE-2016-5425</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as tomcat is not installed as a service</notes>
-        <gav regex="true">^org\.apache\.tomcat\.embed:tomcat-embed.*:.*$</gav>
-        <cve>CVE-2016-5425</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as we don't use tomcat error pages</notes>
-        <gav regex="true">^org\.apache\.tomcat\.embed:tomcat-embed.*:.*$</gav>
-        <cve>CVE-2017-5664</cve>
-    </suppress>
-    <suppress>
-        <notes>Incorrect library matched</notes>
-        <gav regex="true">^io\.jsonwebtoken:jjwt:.*$</gav>
-        <cpe>cpe:/a:sonatype:nexus</cpe>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as we do not use SocketServer or ServerSocketReceiver in prod</notes>
-        <gav regex="true">^ch\.qos\.logback:logback-.*:.*$</gav>
-        <cve>CVE-2017-5929</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as tomcat is configured to run as HTTP only</notes>
-        <gav regex="true">^org\.apache\.tomcat\.embed:tomcat-embed.*:.*$</gav>
-        <cve>CVE-2017-6056</cve>
-    </suppress>
-    <suppress>
-        <notes>Does not apply as we don't use Jackson XmlMapper</notes>
-        <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-.*:.*$</gav>
-        <cve>CVE-2016-7051</cve>
-    </suppress>
-    <suppress>
-        <notes>This will be fixed as part of PAY-604</notes>
-        <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-.*:.*$</gav>
-        <cve>CVE-2017-17485</cve>
-        <cve>CVE-2018-5968</cve>
-        <cve>CVE-2017-17485</cve>
-    </suppress>
-    <suppress>
-        <notes>Suppress spring-boot-starter-mail as it doesn't apply to java mail</notes>
-        <gav regex="true">^org\.springframework\.boot:spring-boot-starter-mail:.*$</gav>
-        <cpe>cpe:/a:mail_project:mail:1.5.9</cpe>
-        <cve>CVE-2015-9097</cve>
-    </suppress>
-    <suppress>
-        <notes>waiting for idam to fix issues</notes>
-        <cve>CVE-2016-9878</cve>
-    </suppress>
+
     <suppress>
         <notes><![CDATA[
-			something to do with oracle, doesn't look like it applies file name: jersey-apache-client4-1.19.1.jar
-			]]></notes>
-        <gav regex="true">^com\.sun\.jersey\.contribs:jersey-apache-client4:.*$</gav>
-        <cve>CVE-2006-0550</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			only relates to ssl which we don't do at the java app level
-			]]></notes>
-        <gav regex="true">.*</gav>
-        <cve>CVE-2014-3488</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			only relates to cookies, which we don't do at the java level
-			]]></notes>
-        <gav regex="true">.*</gav>
-        <cve>CVE-2015-2156</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			only relates to ssl
-			]]></notes>
-        <gav regex="true">.*$</gav>
-        <cve>CVE-2016-4970</cve>
-    </suppress>
-    <!-- FIXME by https://tools.hmcts.net/jira/browse/PAY-696 -->
-    <suppress>
-        <notes><![CDATA[
-			FasterXML jackson-databind before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw
-			]]></notes>
-        <gav regex="true">.*$</gav>
-        <cve>CVE-2018-7489</cve>
-    </suppress>
-    <!-- FIXME by https://tools.hmcts.net/jira/browse/PAY-703 -->
-    <suppress>
-        <notes><![CDATA[
-			A race condition in the postgresql init script could be used by attackers able to access the postgresql account to escalate their privileges to root.
-			Related to PostgreSQL server startup script, also up to 9.4 while we are using 9.6
-			]]></notes>
+   file name: postgresql-42.2.5.jar we are onl latest version. fixes not available yet.
+   ]]></notes>
         <gav regex="true">^org\.postgresql:postgresql:.*$</gav>
-        <cve>CVE-2017-14798</cve>
+        <cpe>cpe:/a:postgresql:postgresql</cpe>
     </suppress>
-    <!-- https://tools.hmcts.net/jira/browse/PAY-960 -->
     <suppress>
         <notes><![CDATA[
-			A race condition in the postgresql init script could be used by attackers able to access the postgresql account to escalate their privileges to root.
-			Related to PostgreSQL server startup script, also up to 9.4 while we are using 9.6
-			]]></notes>
-        <gav regex="true">^org\.postgresql:postgresql:.*$</gav>
-        <cve>CVE-2018-1115</cve>
+   file name: jstl-1.2.jar
+   ]]></notes>
+        <gav regex="true">^javax\.servlet:jstl:.*$</gav>
+        <cve>CVE-2015-0254</cve>
     </suppress>
     <suppress>
         <notes><![CDATA[
@@ -138,35 +31,30 @@
         <gav regex="true">^dom4j:dom4j:.*$</gav>
         <cve>CVE-2018-1000632</cve>
     </suppress>
-    <!-- False Positive - guava is upgraded to version 27.0.jre -->
     <suppress>
         <notes><![CDATA[
-   file name: applicationinsights-core-2.0.2.jar/META-INF/maven/com.google.guava/guava/pom.xml
+   file name: AppleJavaExtensions-1.4.jar  we are onl latest version. fixes not available yet.
    ]]></notes>
-        <gav regex="true">^com\.google\.guava:guava:.*$</gav>
-        <cve>CVE-2018-10237</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-      Applies to Mac OS X implementation of Java only.
-    ]]></notes>
         <gav regex="true">^com\.apple:AppleJavaExtensions:.*$</gav>
         <cve>CVE-2010-0538</cve>
     </suppress>
     <suppress>
         <notes><![CDATA[
-   temporarily disabled
+   file name: AppleJavaExtensions-1.4.jar  fix in PAY-1438
    ]]></notes>
-        <gav regex="true">.*</gav>
-        <cve>CVE-2018-1196</cve>
+        <gav regex="true">^com\.google\.guava:guava:.*$</gav>
+        <cve>CVE-2018-10237</cve>
     </suppress>
     <suppress>
-    	<notes><![CDATA[Allows remote attackers to execute arbitrary code or conduct external XML entity (XXE) attacks]]></notes>
-    	<gav regex="true">^javax\.servlet:jstl:1\.2$</gav>
-    	<cve>CVE-2015-0254</cve>
-   </suppress>
+        <cve>CVE-2011-1068</cve>
+    </suppress>
     <suppress>
-        <notes>CVE-2016-7048: only for Postgres lt 9.6 and we use 9.6 on Azure.  Also only impacts the installer.</notes>
-        <cve>CVE-2016-7048</cve>
+        <cve>CVE-2013-1282</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   org.slf4j:slf4j-api:1.7.25 -> inherited from org.springframework.boot:spring-boot-starter-web. No fix available yet.
+   ]]></notes>
+        <cve>CVE-2018-8088</cve>
     </suppress>
 </suppressions>

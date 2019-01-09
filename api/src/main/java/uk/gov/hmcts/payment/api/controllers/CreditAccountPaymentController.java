@@ -6,31 +6,47 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
+import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @Api(value = "CreditAccountPaymentController", description = "Credit account payment REST API")
@@ -39,27 +55,35 @@ public class CreditAccountPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);
 
     private static final String DEFAULT_CURRENCY = "GBP";
+    private static final String FAILED = "failed";
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
-    private final PaymentsReportService paymentsReportService;
+    private final AccountService<AccountDto, String> accountService;
+    private final FF4j ff4j;
+
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
-                                          PaymentsReportService paymentsReportService) {
+                                          AccountService<AccountDto, String> accountService,
+                                          FF4j ff4j) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
-        this.paymentsReportService = paymentsReportService;
+        this.accountService = accountService;
+        this.ff4j = ff4j;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
+        @ApiResponse(code = 403, message = "Payment failed due to insufficien funds or an inactive account"),
+        @ApiResponse(code = 404, message = "Account information could not be found"),
+        @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @RequestMapping(value = "/credit-account-payments", method = POST)
+    @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
@@ -82,11 +106,62 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
+        if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
+            AccountDto accountDetails;
+            try {
+                accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
+            } catch (HttpClientErrorException ex) {
+                LOG.error("Account information could not be found, exception: {}", ex.getMessage());
+                throw new AccountNotFoundException("Account information could not be found");
+            } catch (Exception ex) {
+                LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
+                throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
+            }
+
+            if (accountDetails.getStatus() == AccountStatus.ACTIVE && isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
+                creditAccountPaymentRequest.getAmount())) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
+            } else if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .status(payment.getPaymentStatus().getName())
+                    .errorCode("CA-E0001")
+                    .message("You have insufficient funds available")
+                    .build()));
+            } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .status(payment.getPaymentStatus().getName())
+                    .errorCode("CA-E0002")
+                    .message("Your account is inactive")
+                    .build()));
+            } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .status(payment.getPaymentStatus().getName())
+                    .errorCode("CA-E0003")
+                    .message("Your account is on hold")
+                    .build()));
+            } else if (accountDetails.getStatus() == AccountStatus.DELETED) {
+                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .status(payment.getPaymentStatus().getName())
+                    .errorCode("CA-E0004")
+                    .message("Your account is deleted")
+                    .build()));
+            }
+        } else {
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
+        }
+
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
-        return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), CREATED);
-    }
+        if (payment.getPaymentStatus().getName().equals(FAILED)) {
+            return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
+        }
 
+        return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
 
     @ApiOperation(value = "Get credit account payment details by payment reference", notes = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
@@ -100,7 +175,7 @@ public class CreditAccountPaymentController {
             .findAny()
             .orElseThrow(PaymentNotFoundException::new);
         List<PaymentFee> fees = paymentFeeLink.getFees();
-        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), OK);
+        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentResponse(payment, fees), HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get credit account payment statuses by payment reference", notes = "Get payment statuses for supplied payment reference")
@@ -115,12 +190,12 @@ public class CreditAccountPaymentController {
             .findAny()
             .orElseThrow(PaymentNotFoundException::new);
 
-        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment), OK);
+        return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment), HttpStatus.OK);
     }
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
-        return new ResponseEntity(NOT_FOUND);
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -129,4 +204,23 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(AccountNotFoundException.class)
+    public String return404(AccountNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(AccountServiceUnavailableException.class)
+    public String return504(AccountServiceUnavailableException ex) {
+        return ex.getMessage();
+    }
+
+    private boolean isAccountStatusCheckRequired(Service service) {
+        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM == service;
+    }
+
+    private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
+        return availableBalance.compareTo(paymentAmount) >= 0;
+    }
 }

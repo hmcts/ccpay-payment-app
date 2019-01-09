@@ -1,16 +1,16 @@
 plugins {
     id 'application'
     id "org.sonarqube" version "2.6.2"
-    id 'org.springframework.boot' version '2.0.4.RELEASE'
+    id 'org.springframework.boot' version '2.1.0.RELEASE'
     id 'io.spring.dependency-management' version '1.0.5.RELEASE'
-    id 'org.owasp.dependencycheck' version '3.1.1'
+    id 'org.owasp.dependencycheck' version '3.3.4'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'findbugs'
     id 'jacoco'
 }
 
-def springBootVersion = '2.0.4.RELEASE'
-def springCloudVersion = 'Finchley.RC1'
+def springBootVersion = '2.1.0.RELEASE'
+def springCloudVersion = 'Finchley.SR2'
 
 allprojects {
     apply plugin: 'maven'
@@ -116,6 +116,7 @@ def sonarExclusions = [
         '**/v1/**',
         '**/OtpBootstrap.java',
         '**/api/model/**',
+        '**/api/dto/*.java',
         '**/api/service/*Service.java',
          '**/api/contract/**',
          '**/api/dto/mapper/**',
@@ -147,6 +148,13 @@ task functional(type: GradleBuild, description: 'Runs Functional tests', group: 
     tasks = ['functionalTest']
 }
 
+task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
+    //forward projectProperties
+    startParameter.projectProperties = project.gradle.startParameter.projectProperties
+    buildFile = './api/build.gradle'
+    tasks = ['migratePostgresDatabase']
+}
+
 task printVersion {
     description 'Prints the version of this project'
     doLast {
@@ -160,3 +168,4 @@ run {
         jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
     }
 }
+

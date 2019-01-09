@@ -42,6 +42,31 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toResponseDto(PaymentFeeLink paymentFeeLink, Payment payment) {
+        List<PaymentFee> fees = paymentFeeLink.getFees();
+        return PaymentDto.payment2DtoWith()
+            .reference(payment.getReference())
+            .amount(payment.getAmount())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .description(payment.getDescription())
+            .channel(payment.getPaymentChannel() != null ? payment.getPaymentChannel().getName() : null)
+            .method(payment.getPaymentMethod() != null ? payment.getPaymentMethod().getName() : null)
+            .externalReference(payment.getExternalReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .fees(toFeeDtos(fees))
+            .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
+                retrieveCardPaymentLink(payment.getReference()),
+                null
+            ) : null)
+            .build();
+    }
+
     public PaymentDto toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         List<PaymentFee> fees = paymentFeeLink.getFees();
@@ -55,16 +80,16 @@ public class PaymentDtoMapper {
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
-            .channel(payment.getPaymentChannel().getName())
-            .method(payment.getPaymentMethod().getName())
+            .channel(payment.getPaymentChannel() != null ? payment.getPaymentChannel().getName() : null)
+            .method(payment.getPaymentMethod() != null ? payment.getPaymentMethod().getName() : null)
             .externalReference(payment.getExternalReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .fees(toFeeDtos(fees))
-            .links(new PaymentDto.LinksDto(null,
+            .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
-            ))
+            ) : null)
             .build();
     }
 
