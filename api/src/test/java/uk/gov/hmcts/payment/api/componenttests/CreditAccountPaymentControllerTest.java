@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +13,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
@@ -38,8 +36,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -112,7 +108,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void createCreditAccountPaymentTest() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
 
         setCreditAccountPaymentLiberataCheckFeature(true);
@@ -238,7 +234,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
 
         setCreditAccountPaymentLiberataCheckFeature(true);
@@ -254,26 +250,27 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCreditAccountForFinRemAndLiberataRespondsAccountIsActiveShouldReturnPaymentSuccess() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(),
-            CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+    public void failCreditAccountPaymentForFinRemAndLiberataRespondsAccountHasInsufficientFundsShouldReturnPaymentFailed() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountInactiveDto);
 
         setCreditAccountPaymentLiberataCheckFeature(true);
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
-            .andExpect(status().isCreated()).andReturn();
+            .andExpect(status().isForbidden()).andReturn();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
 
-        assertEquals("Success", paymentDto.getStatus());
+        assertEquals("Failed", paymentDto.getStatus());
+        assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
+        assertEquals("You have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
-    public void createCreditAccountForFinRemAndLiberataRespondsAccountIsInactiveShouldReturnPaymentFailed() throws Exception {
+    public void createCreditAccountPaymentForFinRemAndLiberataRespondsAccountIsInactiveShouldReturnPaymentFailed() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(100), new BigDecimal(100), AccountStatus.INACTIVE, new Date());
@@ -283,15 +280,57 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         MvcResult result = restActions
             .post(format("/credit-account-payments"), request)
-            .andExpect(status().isCreated()).andReturn();
+            .andExpect(status().isForbidden()).andReturn();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         assertEquals("Failed", paymentDto.getStatus());
+        assertEquals("CA-E0002", paymentDto.getStatusHistories().get(0).getErrorCode());
+        assertEquals("Your account is inactive", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
-    public void createCreditAccountWhenFeatureOnAndServiceIsNonFinRemShouldReturnPaymentPending() throws Exception {
+    public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusOnHold() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ON_HOLD, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountInactiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        MvcResult result = restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isForbidden()).andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals("Failed", paymentDto.getStatus());
+        assertEquals("CA-E0003", paymentDto.getStatusHistories().get(0).getErrorCode());
+        assertEquals("Your account is on hold", paymentDto.getStatusHistories().get(0).getErrorMessage());
+    }
+
+    @Test
+    public void failCreditAccountPaymentWhenLiberataRespondsAccountStatusDeleted() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountInactiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(100), new BigDecimal(100), AccountStatus.DELETED, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountInactiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        MvcResult result = restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isForbidden()).andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals("Failed", paymentDto.getStatus());
+        assertEquals("CA-E0004", paymentDto.getStatusHistories().get(0).getErrorCode());
+        assertEquals("Your account is deleted", paymentDto.getStatusHistories().get(0).getErrorMessage());
+    }
+
+    @Test
+    public void createCreditAccountPaymentWhenFeatureOnAndServiceIsNonFinRemShouldReturnPaymentPending() throws Exception {
         // given
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
         setCreditAccountPaymentLiberataCheckFeature(true);
@@ -307,7 +346,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCreditAccountAndLiberataRespondsCannotFindAccountShouldReturn404() throws Exception {
+    public void createCreditAccountPaymentAndLiberataRespondsCannotFindAccountShouldReturn404() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(HttpClientErrorException.class);
 
@@ -319,7 +358,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCreditAccountAndLiberataIsNotResponsiveShouldReturn504() throws Exception {
+    public void createCreditAccountPaymentAndLiberataIsNotResponsiveShouldReturn504() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenThrow(AccountServiceUnavailableException.class);
 
@@ -331,7 +370,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCreditAccountWithLiberataFeatureOffShouldReturnPaymentPending() throws Exception {
+    public void createCreditAccountPaymentWithLiberataFeatureOffShouldReturnPaymentPending() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(),
             CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
@@ -349,9 +388,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertEquals("Pending", paymentDto.getStatus());
     }
 
-    private void setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception{
+    private void setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception {
         String url = "/api/ff4j/store/features/credit-account-payment-liberata-check/";
-        if(enabled) {
+        if (enabled) {
             url += "enable";
         } else {
             url += "disable";
