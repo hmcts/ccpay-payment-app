@@ -22,7 +22,7 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
 
     private final RequestAuthorizer<Service> serviceRequestAuthorizer;
     private final RequestAuthorizer<User> userRequestAuthorizer;
-    private static final Set anonymousRole = new HashSet<String>(Arrays.asList(new String[]{"ROLE_ANONYMOUS"}));
+    private static final Set anonymousRole = new HashSet<String>(Arrays.asList("ROLE_ANONYMOUS"));
 
 
     public AuthCheckerServiceAndAnonymousUserFilter(RequestAuthorizer<Service> serviceRequestAuthorizer,
@@ -55,13 +55,10 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
     private User authorizeUser(HttpServletRequest request) {
         try {
             return userRequestAuthorizer.authorise(request);
-        } catch (AuthCheckerException e) {
-            if (e instanceof BearerTokenMissingException)
+        } catch (BearerTokenMissingException btme) {
                 return new User("anonymous", anonymousRole);
-            else {
-                log.warn("Unsuccessful user authentication", e);
-                return null;
-            }
+        } catch(AuthCheckerException ace) {
+            return null;
         }
     }
 
