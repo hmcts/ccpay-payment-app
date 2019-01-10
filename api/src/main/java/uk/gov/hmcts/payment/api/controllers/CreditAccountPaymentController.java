@@ -78,7 +78,7 @@ public class CreditAccountPaymentController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 403, message = "Payment failed due to insufficien funds or an inactive account"),
+        @ApiResponse(code = 403, message = "Payment failed due to insufficient funds or the account being on hold"),
         @ApiResponse(code = 404, message = "Account information could not be found"),
         @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
@@ -127,13 +127,6 @@ public class CreditAccountPaymentController {
                     .status(payment.getPaymentStatus().getName())
                     .errorCode("CA-E0001")
                     .message("You have insufficient funds available")
-                    .build()));
-            } else if (accountDetails.getStatus() == AccountStatus.INACTIVE) {
-                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
-                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
-                    .status(payment.getPaymentStatus().getName())
-                    .errorCode("CA-E0002")
-                    .message("Your account is inactive")
                     .build()));
             } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
