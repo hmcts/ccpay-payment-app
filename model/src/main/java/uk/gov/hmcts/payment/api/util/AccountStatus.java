@@ -1,8 +1,15 @@
 package uk.gov.hmcts.payment.api.util;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public enum AccountStatus {
+    @JsonProperty("Active")
     ACTIVE("Active"),
-    INACTIVE("Inactive");
+    @JsonProperty("On-Hold")
+    ON_HOLD("On-Hold"),
+    @JsonProperty("Deleted")
+    DELETED("Deleted");
+
 
     private String status;
 

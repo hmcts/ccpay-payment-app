@@ -14,6 +14,8 @@ import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import javax.validation.Valid;
@@ -48,6 +50,10 @@ public class PaymentRecordRequest {
     @NotNull
     @JsonProperty("requestor")
     private Service service;
+
+    private PaymentChannel paymentChannel;
+
+    private PaymentStatus paymentStatus;
 
     private CurrencyCode currency;
 

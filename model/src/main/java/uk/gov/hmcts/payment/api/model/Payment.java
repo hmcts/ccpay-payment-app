@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -117,11 +118,12 @@ public class Payment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
+    @ToString.Exclude
     private PaymentFeeLink paymentLink;
-
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
+    @ToString.Exclude
     private List<StatusHistory> statusHistories;
 
     @Column(name = "service_callback_url")

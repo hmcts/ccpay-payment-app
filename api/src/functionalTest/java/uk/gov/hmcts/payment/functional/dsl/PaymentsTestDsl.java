@@ -12,7 +12,9 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
@@ -87,6 +89,26 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl createTelephonyPayment(PaymentRecordRequest paymentRecordRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(paymentRecordRequest).post("/payment-records");
+            return this;
+        }
+
+        public PaymentWhenDsl updatePaymentStatus(String paymentReference, String status) {
+            StringBuilder sb = new StringBuilder("/payments/");
+            sb.append(paymentReference);
+            sb.append("/status/");
+            sb.append(status);
+
+            response = newRequest().contentType(ContentType.JSON).patch(sb.toString());
+            return this;
+        }
+
+        public PaymentWhenDsl enableSearch(){
+            response = newRequest().contentType(ContentType.JSON).post("/api/ff4j/store/features/payment-search/enable");
+            return this;
+        }
+
         public PaymentWhenDsl getCardPayment(String reference) {
             response = newRequest().get("/card-payments/" + reference);
             return this;
@@ -104,6 +126,16 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(Service serviceName, String startDate, String endDate) {
+            StringBuilder sb = new StringBuilder("/payments?");
+            sb.append("start_date=").append(startDate);
+            sb.append("&end_date=").append(endDate);
+            sb.append("&service_name=").append(serviceName);
+            response = newRequest().get(sb.toString());
+
+            return this;
+        }
+
         public PaymentThenDsl then() {
             return new PaymentThenDsl();
         }
@@ -117,6 +149,11 @@ public class PaymentsTestDsl {
 
         public PaymentThenDsl notFound() {
             response.then().statusCode(404);
+            return this;
+        }
+
+        public PaymentThenDsl noContent() {
+            response.then().statusCode(204);
             return this;
         }
 

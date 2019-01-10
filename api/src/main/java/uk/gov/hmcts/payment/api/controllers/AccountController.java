@@ -21,8 +21,8 @@ import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 
 @RestController
-@Api(tags = {"AccountController"})
-@SwaggerDefinition(tags = {@Tag(name = "AccountController", description = "Account API")})
+@Api(tags = {"Account"})
+@SwaggerDefinition(tags = {@Tag(name = "AccountController", description = "Account REST API")})
 public class AccountController {
 
     private static final Logger LOG = LoggerFactory.getLogger(AccountController.class);
@@ -35,7 +35,7 @@ public class AccountController {
         @ApiResponse(code = 200, message = "Account details retrieved"),
         @ApiResponse(code = 404, message = "Account not found")
     })
-//    @GetMapping(value = "/accounts/{accountNumber}")
+    @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
         try {
             return accountService.retrieve(accountNumber);

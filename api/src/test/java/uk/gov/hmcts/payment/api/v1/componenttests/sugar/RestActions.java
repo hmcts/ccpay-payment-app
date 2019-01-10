@@ -77,6 +77,9 @@ public class RestActions {
             .accept(APPLICATION_JSON)));
     }
 
+    public ResultActions patch(String urlTemplate) {
+        return patch(urlTemplate, null);
+    }
 
     public ResultActions patch(String urlTemplate, Object requestBody) {
         return translateException(() -> mvc.perform(MockMvcRequestBuilders.patch(urlTemplate)
