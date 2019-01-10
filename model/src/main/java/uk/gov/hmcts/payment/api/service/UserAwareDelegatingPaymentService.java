@@ -54,6 +54,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final GovPayAuthUtil govPayAuthUtil;
     private final ServiceIdSupplier serviceIdSupplier;
     private final AuditRepository auditRepository;
+    private final CallbackService callbackService;
 
     @Autowired
     private Environment environment;
@@ -63,11 +64,19 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private static final Predicate[] REF = new Predicate[0];
 
     @Autowired
-    public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier, PaymentFeeLinkRepository paymentFeeLinkRepository,
-                                             DelegatingPaymentService<GovPayPayment, String> delegate, PaymentChannelRepository paymentChannelRepository,
-                                             PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
-                                             PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                             PaymentReferenceUtil paymentReferenceUtil, GovPayAuthUtil govPayAuthUtil, ServiceIdSupplier serviceIdSupplier, AuditRepository auditRepository) {
+    public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier,
+                                             PaymentFeeLinkRepository paymentFeeLinkRepository,
+                                             DelegatingPaymentService<GovPayPayment, String> delegate,
+                                             PaymentChannelRepository paymentChannelRepository,
+                                             PaymentMethodRepository paymentMethodRepository,
+                                             PaymentProviderRepository paymentProviderRepository,
+                                             PaymentStatusRepository paymentStatusRepository,
+                                             Payment2Repository paymentRespository,
+                                             PaymentReferenceUtil paymentReferenceUtil,
+                                             GovPayAuthUtil govPayAuthUtil,
+                                             ServiceIdSupplier serviceIdSupplier,
+                                             AuditRepository auditRepository,
+                                             CallbackService callbackService) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegate = delegate;
@@ -80,6 +89,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         this.govPayAuthUtil = govPayAuthUtil;
         this.serviceIdSupplier = serviceIdSupplier;
         this.auditRepository = auditRepository;
+        this.callbackService = callbackService;
     }
 
     @Override
@@ -106,7 +116,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         fillTransientDetails(payment, govPayPayment);
 
         payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-            .externalStatus(govPayPayment.getState().getStatus())
+            .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
             .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
             .errorCode(govPayPayment.getState().getCode())
             .message(govPayPayment.getState().getMessage())
@@ -128,7 +138,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     @Override
     @Transactional
     public PaymentFeeLink retrieve(String paymentReference) {
-        Payment payment = findSavedPayment(paymentReference);
+
+        final Payment payment = findSavedPayment(paymentReference);
 
         final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
 
@@ -138,9 +149,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             LOG.error("Unable to determine the payment service which created this payment-Ref:" + paymentReference);
         }
 
-        String callingService = serviceIdSupplier.get();
-
-        paymentService = govPayAuthUtil.getServiceName(callingService, paymentService);
+        paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
 
         try {
             GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentService);
@@ -153,14 +162,18 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 .anyMatch(govPayPayment.getState().getStatus().toLowerCase()::equals);
             LOG.debug("Payment status exists in status history: {}", statusExists);
 
-
             if (!statusExists) {
+
                 payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                     .externalStatus(govPayPayment.getState().getStatus())
                     .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
                     .errorCode(govPayPayment.getState().getCode())
                     .message(govPayPayment.getState().getMessage())
                     .build()));
+
+                if(payment.getServiceCallbackUrl() != null) {
+                    callbackService.callback(paymentFeeLink, payment);
+                }
             }
         } catch (GovPayPaymentNotFoundException | NullPointerException pnfe) {
             LOG.error("Gov Pay payment not found id is:{} and govpay id is:{}", payment.getExternalReference(), paymentReference);

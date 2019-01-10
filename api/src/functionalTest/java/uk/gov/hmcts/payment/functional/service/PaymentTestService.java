@@ -56,6 +56,12 @@ public class PaymentTestService {
             .get("/credit-account-payments/{reference}", paymentReference);
     }
 
+    public Response getPbaPaymentsByAccountNumber(String userToken, String serviceToken, String accountNumber) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .get("/pba-accounts/{accountNumber}/payments", accountNumber);
+    }
+
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
         return RestAssured.given()
             .header(AUTHORIZATION, userToken)

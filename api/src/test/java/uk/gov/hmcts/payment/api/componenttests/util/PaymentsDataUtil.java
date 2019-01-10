@@ -1,26 +1,33 @@
 package uk.gov.hmcts.payment.api.componenttests.util;
 
+import lombok.SneakyThrows;
 import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 public class PaymentsDataUtil {
 
     @Autowired
     protected PaymentDbBackdoor db;
+
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
 
     private static final String USER_ID = "user-id";
 
@@ -60,7 +67,7 @@ public class PaymentsDataUtil {
         return payments;
     }
 
-    public List<PaymentFee> getFeesData() {
+    public static List<PaymentFee> getFeesData() {
         List<PaymentFee> fees = new ArrayList<>();
         fees.add(feeWith().code("X0011").version("1").build());
         fees.add(feeWith().code("X0022").version("2").build());
@@ -91,7 +98,7 @@ public class PaymentsDataUtil {
             .statusHistories(Arrays.asList(statusHistory))
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -116,7 +123,7 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-000" + number)
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -144,7 +151,7 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-111" + number)
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("123.19")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("123.19")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000011" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -171,7 +178,7 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-112" + number)
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("333.19")).version("1").code("FEE011" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("333.19")).version("1").code("FEE011" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000012" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -197,11 +204,48 @@ public class PaymentsDataUtil {
             .reference("RC-1519-9028-1909-113" + number)
             .build();
 
-        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("432.19")).version("1").code("FEE011" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("432.19")).version("1").code("FEE011" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000012" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
+    }
+
+    public Payment populateTelephonyPaymentToDb(String reference, boolean withServiceCallbackURL) throws Exception {
+        //Create a payment in db
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("101.99"))
+            .caseReference("caseReference" + reference)
+            .description("description" + reference)
+            .serviceType("Divorce")
+            .currency("GBP")
+            .siteId("AA00" + reference)
+            .userId(USER_ID)
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("pci pal").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference(reference)
+            .build();
+
+        if(withServiceCallbackURL) {
+            payment.setServiceCallbackUrl("www.gooooooogle.com");
+        }
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("432.19")).version("1").code("FEE011" + reference).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference(reference).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+
+
+        return payment;
+    }
+
+    public void populateCardPaymentToDbWith(Payment payment, String number) {
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
     }
 
     protected void assertPbaPayments(List<PaymentDto> payments) {
@@ -226,4 +270,35 @@ public class PaymentsDataUtil {
         });
     }
 
- }
+    @SneakyThrows
+    protected String contentsOf(String fileName) {
+        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
+        return resolvePlaceholders(content);
+    }
+
+    protected String resolvePlaceholders(String content) {
+        return configurableListableBeanFactory.resolveEmbeddedValue(content);
+    }
+
+    protected String requestJson() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+
+}

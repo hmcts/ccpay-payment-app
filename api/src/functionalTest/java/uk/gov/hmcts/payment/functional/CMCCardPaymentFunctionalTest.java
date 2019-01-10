@@ -43,7 +43,7 @@ public class CMCCardPaymentFunctionalTest {
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.cmcServiceName, testProps.cmcSecret);
+            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
     }
@@ -55,8 +55,8 @@ public class CMCCardPaymentFunctionalTest {
             .returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
-                assertNotNull(paymentDto.getReference());
-                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            assertNotNull(paymentDto.getReference());
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
 
     }
@@ -71,15 +71,15 @@ public class CMCCardPaymentFunctionalTest {
             .returnUrl("https://www.google.com")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
-                reference[0] = savedPayment.getReference();
+            reference[0] = savedPayment.getReference();
 
-                assertNotNull(savedPayment.getReference());
-                assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+            assertNotNull(savedPayment.getReference());
+            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
         });
 
 
         // retrieve card payment
-        PaymentDto paymentDto =  dsl.given().userToken(USER_TOKEN)
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().getCardPayment(reference[0])
             .then().get();

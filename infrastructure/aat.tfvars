@@ -8,4 +8,4 @@ card_payments_email_subject = "AAT Env: Card Payments Reconciliation Report"
 pba_cmc_payments_email_subject = "AAT Env : PBA Reconciliation Report for CMC"
 pba_divorce_payments_email_subject = "AAT Env : PBA Reconciliation Report for Divorce"
 
-liquibase_enabled = "false"
+feature_credit_account_payment_liberata_check=true
