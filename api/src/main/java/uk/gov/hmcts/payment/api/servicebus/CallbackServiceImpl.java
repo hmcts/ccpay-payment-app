@@ -60,9 +60,6 @@ public class CallbackServiceImpl implements CallbackService {
             msg.setProperties(Collections.singletonMap("serviceCallbackUrl", payment.getServiceCallbackUrl()));
 
             topicClient.send(msg);
-
-            LOG.info("Sent message to topic", msg);
-
         } catch (Exception e) {
             LOG.error("Error", e);
         }
