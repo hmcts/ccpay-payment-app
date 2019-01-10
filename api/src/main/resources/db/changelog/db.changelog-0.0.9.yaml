@@ -112,3 +112,10 @@ databaseChangeLog:
           - column:
               name: hwf_reference
               type: varchar(255)
+ id: 1529403181333-3
+    author: eduardo
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          CREATE INDEX ix_date_upd_trunc ON payment ( date_trunc('seconds', date_updated));
