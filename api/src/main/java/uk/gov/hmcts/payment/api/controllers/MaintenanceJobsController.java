@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -18,8 +19,8 @@ import java.util.concurrent.ExecutionException;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
-@Api(tags = {"MaintenanceJobsController"})
-@SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintenance Jobs API")})
+@Api(tags = {"Maintenance Jobs"})
+@SwaggerDefinition(tags = {@Tag(name = "MaintenanceJobsController", description = "Maintainance jobs REST API")})
 public class MaintenanceJobsController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MaintenanceJobsController.class);
@@ -27,6 +28,9 @@ public class MaintenanceJobsController {
     private final PaymentService<PaymentFeeLink, String> paymentService;
 
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+
+    @Autowired
+    private TopicClientProxy topicClientProxy;
 
     @Autowired
     public MaintenanceJobsController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -47,6 +51,11 @@ public class MaintenanceJobsController {
 
         LOG.warn("Found " + referenceList.size() + " references that require an status update");
 
+        /* We ask the topic client proxy to keep the reuse the connection to the service bus for the whole batch */
+        if(topicClientProxy != null && referenceList.size() > 0) {
+            topicClientProxy.setKeepClientAlive(true);
+        }
+
         long count = referenceList
             .stream()
             .map(Reference::getReference)
@@ -55,6 +64,11 @@ public class MaintenanceJobsController {
             .count();
 
         LOG.warn(count + " payment references were successfully updated");
+
+        if(topicClientProxy != null) {
+            topicClientProxy.setKeepClientAlive(false);
+            topicClientProxy.close();
+        }
 
     }
 }

@@ -2,9 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import lombok.SneakyThrows;
-
-import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -13,36 +10,44 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -55,16 +60,13 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class CardPaymentControllerTest extends PaymentsDataUtil {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
-
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -90,17 +92,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
-
-    @SneakyThrows
-    private String contentsOf(String fileName) {
-        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
-        return resolvePlaceholders(content);
-    }
-
-    private String resolvePlaceholders(String content) {
-        return configurableListableBeanFactory.resolveEmbeddedValue(content);
-    }
-
 
     @Before
     public void setup() {
@@ -152,7 +143,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
-        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
     @Test
@@ -452,7 +443,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
-        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REFEX));
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {
@@ -463,25 +454,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
     }
 
-    private String requestJson() {
-        return "{\n" +
-            "  \"amount\": 101.89,\n" +
-            "  \"description\": \"New passport application\",\n" +
-            "  \"ccd_case_number\": \"CCD101\",\n" +
-            "  \"case_reference\": \"12345\",\n" +
-            "  \"service\": \"PROBATE\",\n" +
-            "  \"currency\": \"GBP\",\n" +
-            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
-            "  \"site_id\": \"AA101\",\n" +
-            "  \"fees\": [\n" +
-            "    {\n" +
-            "      \"calculated_amount\": 101.89,\n" +
-            "      \"code\": \"X0101\",\n" +
-            "      \"version\": \"1\"\n" +
-            "    }\n" +
-            "  ]\n" +
-            "}";
-    }
 
     public String jsonWithCaseReference() {
         return "{\n" +

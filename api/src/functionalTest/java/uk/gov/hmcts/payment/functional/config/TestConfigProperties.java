@@ -14,7 +14,7 @@ public class TestConfigProperties {
     @Autowired
     public Oauth2 oauth2;
 
-    @Value("${base.test.url}")
+    @Value("${test.url}")
     public String baseTestUrl;
 
     @Value("${generated.user.email.pattern}")
@@ -25,12 +25,19 @@ public class TestConfigProperties {
 
     @Value("${idam.api.url}")
     public String idamApiUrl;
+
     @Value("${s2s.url}")
     private String s2sBaseUrl;
 
-    @Value("${cmc.service.name:cmc}")
-    public String cmcServiceName;
+    @Value("${s2s.service.name}")
+    public String s2sServiceName;
 
-    @Value("${cmc.service.secret}")
-    public String cmcSecret;
+    @Value("${s2s.service.secret}")
+    public String s2sServiceSecret;
+
+    @Value("${payments.account.existing.account.number}")
+    public String existingAccountNumber;
+
+    @Value("${payments.account.fake.account.number}")
+    public String fakeAccountNumber;
 }

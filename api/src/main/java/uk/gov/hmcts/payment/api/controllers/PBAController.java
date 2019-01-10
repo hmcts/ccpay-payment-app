@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@Api(tags = {"PBAController"})
-@SwaggerDefinition(tags = {@Tag(name = "PBAController", description = "Pay By Account Controller API")})
+@Api(tags = {"Pay By Account"})
+@SwaggerDefinition(tags = {@Tag(name = "PBAController", description = "Pay by account REST API")})
 public class PBAController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;

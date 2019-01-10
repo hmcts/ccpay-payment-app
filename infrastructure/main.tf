@@ -1,4 +1,9 @@
+provider "azurerm" {
+  version = "1.19.0"
+}
+
 locals {
+  app_full_name = "${var.product}-${var.component}"
   aseName = "${data.terraform_remote_state.core_apps_compute.ase_name[0]}"
 
   local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
@@ -19,6 +24,26 @@ locals {
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
   resource_group_name = "${var.core_product}-${local.local_env}"
+}
+
+data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_id" {
+  name = "liberata-keys-oauth2-client-id"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_secret" {
+  name = "liberata-keys-oauth2-client-secret"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "liberata_keys_oauth2_username" {
+  name = "liberata-keys-oauth2-username"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "liberata_keys_oauth2_password" {
+  name = "liberata-keys-oauth2-password"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_reference" {
@@ -82,15 +107,25 @@ module "payment-api" {
     # db
     SPRING_DATASOURCE_USERNAME = "${module.payment-database.user_name}"
     SPRING_DATASOURCE_PASSWORD = "${module.payment-database.postgresql_password}"
-    SPRING_DATASOURCE_URL = "jdbc:postgresql://${module.payment-database.host_name}:${module.payment-database.postgresql_listen_port}/${module.payment-database.postgresql_database}?ssl=true"
+    SPRING_DATASOURCE_URL = "jdbc:postgresql://${module.payment-database.host_name}:${module.payment-database.postgresql_listen_port}/${module.payment-database.postgresql_database}?sslmode=require"
 
-    # enable/disables liquibase run
-    SPRING_LIQUIBASE_ENABLED = "${var.liquibase_enabled}"
+    # disabled liquibase at startup as there is a separate pipleline step (enableDbMigration)
+    SPRING_LIQUIBASE_ENABLED = "false"
 
     # idam
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
+
+    # liberata
+    LIBERATA_OAUTH2_CLIENT_ID = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_id.value}"
+    LIBERATA_OAUTH2_CLIENT_SECRET = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_secret.value}"
+    LIBERATA_OAUTH2_USERNAME = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_username.value}"
+    LIBERATA_OAUTH2_PASSWORD = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_password.value}"
+    LIBERATA_API_ACCOUNT_URL = "${var.liberata_api_account_url}"
+    LIBERATA_OAUTH2_BASE_URL = "${var.liberata_oauth2_base_url}"
+    LIBERATA_OAUTH2_AUTHORIZE_URL = "${var.liberata_oauth2_authorize_url}"
+    LIBERATA_OAUTH2_TOKEN_URL = "${var.liberata_oauth2_token_url}"
 
     # gov pay keys
     GOV_PAY_URL = "${var.gov_pay_url}"
@@ -101,7 +136,7 @@ module "payment-api" {
     GOV_PAY_OPERATIONAL_SERVICES = "${var.gov_pay_operational_services}"
 
     # S2S trusted services
-    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw"
+    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,pui_webapp"
 
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"
@@ -128,6 +163,7 @@ module "payment-api" {
 
     FEES_REGISTER_URL = "${local.fees_register_url}"
     FEATURE_PAYMENTS_SEARCH = "${var.feature_payments_search}"
+    FEATURE_CREDIT_ACCOUNT_PAYMENT_LIBERATA_CHECK = "${var.feature_credit_account_payment_liberata_check}"
 
     PAYMENT_SERVER_URL = "${local.website_url}"
 
@@ -141,6 +177,8 @@ module "payment-api" {
     # webjob security
     WEBJOB_S2S_CLIENT_ID = "${data.azurerm_key_vault_secret.webjob_s2s_client_id.value}"
     WEBJOB_S2S_CLIENT_SECRET = "${data.azurerm_key_vault_secret.webjob_s2s_client_secret.value}"
+
+    ASB_CONNECTION_STRING ="${data.terraform_remote_state.shared_infra.topic_primary_send_and_listen_connection_string}"
   }
 }
 
@@ -154,4 +192,36 @@ module "payment-database" {
   sku_name = "GP_Gen5_2"
   sku_tier = "GeneralPurpose"
   common_tags     = "${var.common_tags}"
+}
+
+# Populate Vault with DB info
+
+resource "azurerm_key_vault_secret" "POSTGRES-USER" {
+  name      = "${local.app_full_name}-POSTGRES-USER"
+  value     = "${module.payment-database.user_name}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
+  name      = "${local.app_full_name}-POSTGRES-PASS"
+  value     = "${module.payment-database.postgresql_password}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
+  name      = "${local.app_full_name}-POSTGRES-HOST"
+  value     = "${module.payment-database.host_name}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
+  name      = "${local.app_full_name}-POSTGRES-PORT"
+  value     = "${module.payment-database.postgresql_listen_port}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
+  name      = "${local.app_full_name}-POSTGRES-DATABASE"
+  value     = "${module.payment-database.postgresql_database}"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
