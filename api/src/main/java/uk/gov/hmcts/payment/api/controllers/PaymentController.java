@@ -31,7 +31,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
+import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -50,7 +50,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 public class PaymentController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
-    private final PaymentsReportService paymentsReportService;
+    private final CallbackService callbackService;
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
@@ -61,17 +61,18 @@ public class PaymentController {
 
 
     @Autowired
-    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService, PaymentsReportService paymentsReportService,
-                             PaymentStatusRepository paymentStatusRepository,
-                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j, DateUtil dateUtil) {
+    public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
+                             PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
+                             PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
+                             DateUtil dateUtil) {
         this.paymentService = paymentService;
-        this.paymentsReportService = paymentsReportService;
+        this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
         this.dateUtil = dateUtil;
-        formatter = dateUtil.getIsoDateTimeFormatter();
+        this.formatter = dateUtil.getIsoDateTimeFormatter();
     }
 
 
@@ -137,7 +138,7 @@ public class PaymentController {
 
     @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "No content"),
+        @ApiResponse(code = 204, message = "No content"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @PaymentExternalAPI
@@ -149,6 +150,9 @@ public class PaymentController {
 
         if (payment.isPresent()) {
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
+            if (payment.get().getServiceCallbackUrl() != null) {
+                callbackService.callback(payment.get().getPaymentLink(), payment.get());
+            }
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 

@@ -11,6 +11,13 @@
   "card_brand": "",
   "return_url": "https://service-name.gov.uk/transactions/12345",
   "created_date": "2016-09-29T09:12:38.413Z",
+  "card_details": {
+    "last_digits_card_number": "1234",
+    "cardholder_name": "asdf",
+    "expiry_date": "2989-01-01",
+    "card_brand": "Visa debit",
+    "email": "fake@email.com"
+  },
   "refund_summary": {
     "status": "pending",
     "amount_available": 12000,
