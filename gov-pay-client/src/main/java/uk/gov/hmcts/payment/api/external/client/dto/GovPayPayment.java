@@ -39,6 +39,7 @@ public class GovPayPayment {
     @JsonNaming(SnakeCaseStrategy.class)
     @JsonInclude(NON_NULL)
     @AllArgsConstructor
+    @NoArgsConstructor
     @Builder(builderMethodName = "linksWith")
     public static class Links {
         private Link self;
