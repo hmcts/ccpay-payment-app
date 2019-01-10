@@ -37,8 +37,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  * */
 
 @RestController
-@Api(tags = {"CardPaymentController"})
-@SwaggerDefinition(tags = {@Tag(name = "CardPaymentController", description = "Card Payment API")})
+@Api(tags = {"Card Payment"})
+@SwaggerDefinition(tags = {@Tag(name = "CardPaymentController", description = "Card payment REST API")})
 public class CardPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 

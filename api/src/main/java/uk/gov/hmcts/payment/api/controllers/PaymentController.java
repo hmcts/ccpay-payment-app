@@ -45,8 +45,8 @@ import java.util.stream.Collectors;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
-@Api(tags = {"PaymentController"})
-@SwaggerDefinition(tags = {@Tag(name = "PaymentController", description = "Payment API")})
+@Api(tags = {"Payment"})
+@SwaggerDefinition(tags = {@Tag(name = "PaymentController", description = "Payment REST API")})
 public class PaymentController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
@@ -58,7 +58,6 @@ public class PaymentController {
 
     private final DateUtil dateUtil;
     private final DateTimeFormatter formatter;
-
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -74,7 +73,6 @@ public class PaymentController {
         this.dateUtil = dateUtil;
         this.formatter = dateUtil.getIsoDateTimeFormatter();
     }
-
 
     @ApiOperation(value = "Update case reference by payment reference", notes = "Update case reference by payment reference")
     @ApiResponses(value = {
