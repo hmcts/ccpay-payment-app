@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import uk.gov.hmcts.payment.api.logging.Markers;
 
 import javax.servlet.ServletContextListener;
-import javax.validation.constraints.NotNull;
 
 @EnableFeignClients
 @EnableAsync
