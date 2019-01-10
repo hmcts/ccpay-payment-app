@@ -27,7 +27,6 @@ public class PaymentApiApplication {
         }
     }
 
-    @NotNull
     @Bean
     ServletListenerRegistrationBean<ServletContextListener> myServletListener() {
         ServletListenerRegistrationBean<ServletContextListener> srb = new ServletListenerRegistrationBean<>();
