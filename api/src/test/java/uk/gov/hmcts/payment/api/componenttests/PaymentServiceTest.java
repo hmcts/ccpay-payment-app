@@ -2,10 +2,10 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.assertj.core.util.Lists;
 import org.joda.time.LocalDateTime;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 
@@ -51,7 +51,7 @@ public class PaymentServiceTest extends TestUtil {
         List<Reference> paymentsReferences = paymentService.listInitiatedStatusPaymentsReferences();
 
         // then
-         assertThat(paymentsReferences).hasSize(2);
+        assertThat(paymentsReferences).hasSize(2);
     }
 
     private Payment getPaymentWithStatus(String paymentStatus) {
@@ -71,8 +71,6 @@ public class PaymentServiceTest extends TestUtil {
 
     @Test
     public void testSearchAllPaymentBetweenDatesShouldPass() throws Exception {
-        LocalDateTime startDate = LocalDateTime.now().minusMinutes(1);
-
         Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
             .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
@@ -87,9 +85,13 @@ public class PaymentServiceTest extends TestUtil {
             .fees(Arrays.asList(fee))
             .build());
 
-        LocalDateTime endDate = LocalDateTime.now();
-
-        List<PaymentFeeLink> paymentFeeLinks = paymentService.search(startDate, endDate, null, null, null, null);
+        List<PaymentFeeLink> paymentFeeLinks =
+            paymentService.search(
+                PaymentSearchCriteria.searchCriteriaWith()
+                    .startDate(LocalDateTime.now().minusMinutes(1).toDate())
+                    .endDate(LocalDateTime.now().toDate())
+                    .build()
+            );
         assertNotNull(paymentFeeLinks);
         assertThat(paymentFeeLinks.get(0).getPayments().size()).isEqualTo(1);
 

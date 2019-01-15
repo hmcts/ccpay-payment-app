@@ -1,18 +1,16 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.Lists;
-import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String> {
@@ -48,23 +46,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public List<PaymentFeeLink> search(
-        LocalDateTime startDate,
-        LocalDateTime endDate,
-        String paymentMethod,
-        String serviceType,
-        String ccdCaseNumber,
-        String pbaNumber) {
-
-        Date fromDateTime = Optional.ofNullable(startDate)
-            .map(LocalDateTime::toDate)
-            .orElse(null);
-
-        Date toDateTime = Optional.ofNullable(endDate)
-            .map(s -> fromDateTime != null && endDate.getHourOfDay() == 0 ? s.plusDays(1).minusSeconds(1).toDate() : s.toDate())
-            .orElse(null);
-
-        return delegatingPaymentService.search(fromDateTime, toDateTime, paymentMethod, serviceType, ccdCaseNumber, pbaNumber);
+    public List<PaymentFeeLink> search(PaymentSearchCriteria searchCriteria) {
+        return delegatingPaymentService.search(searchCriteria);
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
