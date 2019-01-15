@@ -43,6 +43,7 @@ databaseChangeLog:
             name: service_callback_url
             type: varchar(2000)
         tableName: payment
+
 - changeSet:
     id: 1529403181333-2
     author: sateesh
@@ -51,6 +52,15 @@ databaseChangeLog:
           splitStatements:
           sql: >
             INSERT INTO payment_provider (name, description) VALUES ('pci pal', 'PCI PAL')
+
+- changeSet:
+    id: 1529403181333-3
+    author: emagdalena
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          CREATE INDEX ix_date_upd_trunc ON payment ( date_trunc('seconds', date_updated));
 
 - changeSet:
     id: 1529403181334-1
@@ -111,10 +121,3 @@ databaseChangeLog:
           - column:
               name: hwf_reference
               type: varchar(255)
- id: 1529403181333-3
-    author: eduardo
-    changes:
-    - sql:
-        splitStatements:
-        sql: >
-          CREATE INDEX ix_date_upd_trunc ON payment ( date_trunc('seconds', date_updated));
