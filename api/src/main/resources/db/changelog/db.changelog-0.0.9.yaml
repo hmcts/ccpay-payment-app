@@ -121,3 +121,17 @@ databaseChangeLog:
           - column:
               name: hwf_reference
               type: varchar(255)
+
+
+
+- changeSet:
+    id: 1529403181334-4
+    author: mateuszs
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: address
+            type: varchar(255)
+        tableName: remissions
+

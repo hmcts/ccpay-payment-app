@@ -45,4 +45,6 @@ public class FeeDto {
 
     private String reference;
 
+    private String hwfReference;
+
 }
