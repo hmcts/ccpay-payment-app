@@ -33,7 +33,6 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFound
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.LoggingPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -57,17 +56,14 @@ public class CardPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
-    private final LoggingPaymentService loggingPaymentService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
-                                 LoggingPaymentService loggingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
-        this.loggingPaymentService = loggingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
     }
