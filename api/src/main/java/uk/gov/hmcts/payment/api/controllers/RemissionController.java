@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,8 @@ public class RemissionController {
     })
     @PostMapping(value = "/remission")
     @ResponseBody
-    public ResponseEntity createRemission(@Valid @RequestBody RemissionRequest remissionRequest) {
+    public ResponseEntity createRemission(@Valid @RequestBody RemissionRequest remissionRequest)
+        throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
 
         remissionService.create(remissionRequest.toRemission());

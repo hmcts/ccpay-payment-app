@@ -131,7 +131,24 @@ databaseChangeLog:
     - addColumn:
         columns:
         - column:
-            name: address
+            name: remission_reference
             type: varchar(255)
+        - column:
+            name: fee_id
+            type: INT
         tableName: remissions
+    - addColumn:
+        columns:
+        - column:
+            name: remission_reference
+            type: varchar(255)
+        tableName: payment
+    - createIndex:
+        indexName: ix_remission_remission_reference
+        tableName: remissions
+        unique: true
+        columns:
+        - column:
+            name: remission_reference
+            type: varchar(255)
 

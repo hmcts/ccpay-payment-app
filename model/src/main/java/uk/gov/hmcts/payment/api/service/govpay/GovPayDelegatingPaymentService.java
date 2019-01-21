@@ -33,7 +33,10 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
-    public GovPayPayment create(String reference, @NonNull String description, @NonNull String returnUrl, String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees, int amount, String serviceCallbackUrl) {
+    public GovPayPayment create(String reference, @NonNull String description, @NonNull String returnUrl,
+                                String ccdCaseNumber, String caseReference, String currency, String siteId,
+                                String serviceType, List<PaymentFee> fees, int amount, String serviceCallbackUrl,
+                                String channel, String provider) {
         String key = keyForService();
         return govPayClient.createPayment(key, new CreatePaymentRequest(amount, reference, description, returnUrl));
     }
