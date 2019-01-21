@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.email.Email;
 import uk.gov.hmcts.payment.api.email.EmailService;
@@ -64,13 +65,20 @@ public class PaymentsReportService {
         List<PaymentDto> cardPaymentsCsvData = findPaymentsBy(startDate, endDate, paymentMethodType, serviceName);
         generateCsvAndSendEmail(cardPaymentsCsvData, reportConfig);
 
-        LOG.info("End of payments csv report for method type :{} and service name :{}",paymentMethodType,  serviceName);
+        LOG.info("End of payments csv report for method type :{} and service name :{}", paymentMethodType, serviceName);
     }
 
     private List<PaymentDto> findPaymentsBy(Date startDate, Date endDate, PaymentMethodType paymentMethodType, Service serviceName) {
         String serviceType = Optional.ofNullable(serviceName).map(Service::getName).orElse(null);
         return delegatingPaymentService
-            .search(startDate, endDate, paymentMethodType.getType(), serviceType, null, null)
+            .search(
+                PaymentSearchCriteria.searchCriteriaWith()
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .paymentMethod(paymentMethodType.getType())
+                    .serviceType(serviceType)
+                    .build()
+            )
             .stream()
             .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());

@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.util.Collections;
@@ -31,13 +32,19 @@ public class PaymentServiceTest {
     @Test
     public void shouldDelegateSearchToCardPaymentType() {
         // given
-        LocalDateTime startDate = LocalDateTime.now().minusDays(2);
-        LocalDateTime endDate = LocalDateTime.now();
         List<PaymentFeeLink> paymentFeeLinks = Collections.emptyList();
-        given(delegatingPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq(null), eq(null), eq(null)))
+
+        PaymentSearchCriteria searchCriteria =
+            PaymentSearchCriteria.searchCriteriaWith()
+            .startDate(LocalDateTime.now().minusDays(2).toDate())
+            .endDate(LocalDateTime.now().toDate())
+            .paymentMethod(CARD.getType())
+            .build();
+
+        given(delegatingPaymentService.search(eq(searchCriteria)))
             .willReturn(paymentFeeLinks);
         // when
-        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD.getType(), null, null, null);
+        List<PaymentFeeLink> result = service.search(searchCriteria);
         // then
         assertThat(result).isSameAs(paymentFeeLinks);
     }
@@ -45,35 +52,53 @@ public class PaymentServiceTest {
     @Test
     public void shouldPassStartDateWithMidnightTimeForSearch() {
         // given
-        LocalDateTime startDate = LocalDateTime.now();
+        PaymentSearchCriteria searchCriteria =
+            PaymentSearchCriteria.searchCriteriaWith()
+            .startDate(LocalDateTime.now().toDate())
+            .endDate(LocalDateTime.now().toDate())
+            .paymentMethod(CARD.getType())
+            .build();
+
         // when
-        service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null, null);
+        service.search(searchCriteria);
         // then
-        Date fromDate = LocalDateTime.now().toDate();
-        verify(delegatingPaymentService).search(any(startDate.toDate().getClass()), any(LocalDateTime.now().toDate().getClass()), eq(CARD.getType()), eq(null), eq(null), eq(null));
+        verify(delegatingPaymentService).search(eq(searchCriteria));
     }
 
     @Test
     public void shouldPassEndDateWithMidnightForSearch() {
         // given
-        LocalDateTime startDate = LocalDateTime.now();
+        PaymentSearchCriteria searchCriteria =
+            PaymentSearchCriteria.searchCriteriaWith()
+                .startDate(LocalDateTime.now().toDate())
+                .endDate(LocalDateTime.now().plusDays(1).minusSeconds(1).toDate())
+                .paymentMethod(CARD.getType())
+                .build();
+
         // when
-        service.search(startDate, LocalDateTime.now(), CARD.getType(), null, null, null);
-        // then
-        Date toDate = LocalDateTime.now().plusDays(1).minusSeconds(1).toDate(); //Date.from(LocalDateTime.now().atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
-        verify(delegatingPaymentService).search(any(startDate.toDate().getClass()), any(toDate.getClass()), eq(CARD.getType()), eq(null), eq(null), eq(null));
+        service.search(searchCriteria);
+
+        verify(delegatingPaymentService).search(eq(searchCriteria));
     }
 
     @Test
     public void shouldDelegateSearchToCMCService() {
         // given
-        LocalDateTime startDate = LocalDateTime.now().minusDays(2);
-        LocalDateTime endDate = LocalDateTime.now();
         List<PaymentFeeLink> paymentFeeLinks = Collections.emptyList();
-        given(delegatingPaymentService.search(any(Date.class), any(Date.class), eq(CARD.getType()), eq("cmc"), eq(null), eq(null)))
+
+        PaymentSearchCriteria searchCriteria =
+            PaymentSearchCriteria.searchCriteriaWith()
+                .startDate(LocalDateTime.now().minusDays(2).toDate())
+                .endDate(LocalDateTime.now().toDate())
+                .paymentMethod(CARD.getType())
+                .serviceType("cmc")
+                .build();
+
+        given(delegatingPaymentService.search(eq(searchCriteria)))
             .willReturn(paymentFeeLinks);
         // when
-        List<PaymentFeeLink> result = service.search(startDate, endDate, CARD.getType(), "cmc", null, null);
+
+        List<PaymentFeeLink> result = service.search(searchCriteria);
         // then
         assertThat(result).isSameAs(paymentFeeLinks);
     }
