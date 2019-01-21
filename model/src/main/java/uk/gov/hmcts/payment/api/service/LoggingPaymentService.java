@@ -7,8 +7,8 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
@@ -40,8 +40,13 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
-    public PaymentFeeLink create(@NonNull String paymentReference, @NonNull String description, @NonNull String returnUrl, String ccdCaseNumber, String caseReference, String currency, String siteId, String serviceType, List<PaymentFee> fees, int amount, String serviceCallbackUrl) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = delegate.create(paymentReference, description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType, fees, amount, serviceCallbackUrl);
+    public PaymentFeeLink create(@NonNull String paymentReference, @NonNull String description,
+                                 @NonNull String returnUrl, String ccdCaseNumber, String caseReference,
+                                 String currency, String siteId, String serviceType, List<PaymentFee> fees,
+                                 int amount, String serviceCallbackUrl, String channel,
+                                 String provider) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = delegate.create(paymentReference, description, returnUrl, ccdCaseNumber,
+            caseReference, currency, siteId, serviceType, fees, amount, serviceCallbackUrl, channel, provider);
 
         Payment payment = paymentFeeLink.getPayments().get(0);
         LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
@@ -67,11 +72,11 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     @Override
     public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
 
-        if(startDate != null || endDate != null) {
+        if (startDate != null || endDate != null) {
             LOG.info("Searching for payments between {} and {}", startDate, endDate);
         }
 
-        List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber, pbaNumber);
+        List<PaymentFeeLink> paymentFeeLinks = delegate.search(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber, pbaNumber);
 
         LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
 

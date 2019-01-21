@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import java.security.SecureRandom;
 
 @Component
-public class PaymentReferenceUtil {
+public class ReferenceUtil {
 
     private final static String PAYMENT_REF_REGEX = "(?<=\\G.{4})";
 
-    public String getNext() throws CheckDigitException {
+    public String getNext(String prefix) throws CheckDigitException {
         DateTime dateTime = new DateTime(DateTimeZone.UTC);
         long timeInMillis = dateTime.getMillis()/100;
 
@@ -30,6 +30,6 @@ public class PaymentReferenceUtil {
 
         String[] parts = sb.toString().split(PAYMENT_REF_REGEX);
 
-        return "RC-" + String.join("-", parts);
+        return prefix + "-" + String.join("-", parts);
     }
 }
