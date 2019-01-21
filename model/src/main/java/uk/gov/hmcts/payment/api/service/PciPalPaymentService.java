@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -36,7 +37,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
     @Override
-    public List<PciPalPayment> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
+    public List<PciPalPayment> search(PaymentSearchCriteria searchCriteria) {
         return null;
     }
 }

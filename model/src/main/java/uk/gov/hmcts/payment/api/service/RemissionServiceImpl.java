@@ -23,9 +23,12 @@ public class RemissionServiceImpl implements RemissionService {
     }
 
     @Override
-    public void create(Remission remission) throws CheckDigitException {
-        remission.setRemissionReference(referenceUtil.getNext("RM"));
+    public String create(Remission remission) throws CheckDigitException {
+        String generatedRemissionReference = referenceUtil.getNext("RM");
+        remission.setRemissionReference(generatedRemissionReference);
         remissionRepository.save(remission);
+
+        return generatedRemissionReference;
     }
 
     @Override

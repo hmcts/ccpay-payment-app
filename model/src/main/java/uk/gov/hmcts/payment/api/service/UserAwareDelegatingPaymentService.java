@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
@@ -233,50 +234,46 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
-    public List<PaymentFeeLink> search(Date startDate, Date endDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
-        return paymentFeeLinkRepository.findAll(findPayments(startDate, endDate, paymentMethod, serviceName, ccdCaseNumber, pbaNumber));
+    public List<PaymentFeeLink> search(PaymentSearchCriteria searchCriteria) {
+        return paymentFeeLinkRepository.findAll(findPayments(searchCriteria));
     }
 
-    private static Specification findPayments(Date fromDate, Date toDate, String paymentMethod, String serviceName, String ccdCaseNumber, String pbaNumber) {
-        return ((root, query, cb) -> getPredicate(root, cb, fromDate, toDate, paymentMethod, serviceName, ccdCaseNumber, pbaNumber));
+    private static Specification findPayments(PaymentSearchCriteria searchCriteria) {
+        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria));
     }
 
     private static Predicate getPredicate(
         Root<Payment> root,
         CriteriaBuilder cb,
-        Date fromDate,
-        Date toDate,
-        String paymentMethod,
-        String serviceName,
-        String ccdCaseNumber,
-        String pbaNumber) {
+        PaymentSearchCriteria searchCriteria) {
         List<Predicate> predicates = new ArrayList<>();
 
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
-        if (paymentMethod != null) {
-            predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(paymentMethod).build()));
+        if (searchCriteria.getPaymentMethod() != null) {
+            predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
         }
 
         Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
-        if (fromDate != null && toDate != null) {
-            predicates.add(cb.between(dateUpdatedExpr, fromDate, toDate));
-        } else if (fromDate != null) {
-            predicates.add(cb.greaterThanOrEqualTo(dateUpdatedExpr, fromDate));
-        } else if (toDate != null) {
-            predicates.add(cb.lessThanOrEqualTo(dateUpdatedExpr, toDate));
+
+        if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+            predicates.add(cb.between(dateUpdatedExpr, searchCriteria.getStartDate(), searchCriteria.getEndDate()));
+        } else if (searchCriteria.getStartDate() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(dateUpdatedExpr, searchCriteria.getStartDate()));
+        } else if (searchCriteria.getEndDate() != null) {
+            predicates.add(cb.lessThanOrEqualTo(dateUpdatedExpr, searchCriteria.getEndDate()));
         }
 
-        if (ccdCaseNumber != null) {
-            predicates.add(cb.equal(paymentJoin.get("ccdCaseNumber"), ccdCaseNumber));
+        if (searchCriteria.getCcdCaseNumber() != null) {
+            predicates.add(cb.equal(paymentJoin.get("ccdCaseNumber"), searchCriteria.getCcdCaseNumber()));
         }
 
-        if (serviceName != null) {
-            predicates.add(cb.equal(paymentJoin.get("serviceType"), serviceName));
+        if (searchCriteria.getServiceType() != null) {
+            predicates.add(cb.equal(paymentJoin.get("serviceType"), searchCriteria.getServiceType()));
         }
 
-        if (pbaNumber != null) {
-            predicates.add(cb.equal(paymentJoin.get("pbaNumber"), pbaNumber));
+        if (searchCriteria.getPbaNumber() != null) {
+            predicates.add(cb.equal(paymentJoin.get("pbaNumber"), searchCriteria.getPbaNumber()));
         }
 
         return cb.and(predicates.toArray(REF));

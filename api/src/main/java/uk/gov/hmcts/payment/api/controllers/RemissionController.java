@@ -45,13 +45,13 @@ public class RemissionController {
     })
     @PostMapping(value = "/remission")
     @ResponseBody
-    public ResponseEntity createRemission(@Valid @RequestBody RemissionRequest remissionRequest)
+    public ResponseEntity<String> createRemission(@Valid @RequestBody RemissionRequest remissionRequest)
         throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
 
-        remissionService.create(remissionRequest.toRemission());
+        String generatedRemissionReference = remissionService.create(remissionRequest.toRemission());
 
-        return new ResponseEntity(HttpStatus.CREATED);
+        return new ResponseEntity<>(generatedRemissionReference, HttpStatus.CREATED);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
