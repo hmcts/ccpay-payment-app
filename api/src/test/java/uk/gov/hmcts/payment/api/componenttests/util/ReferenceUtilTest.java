@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 
 public class ReferenceUtilTest {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
     private ReferenceUtil referenceUtil;
     private CheckDigit checkDigit;
@@ -28,7 +28,7 @@ public class ReferenceUtilTest {
             String ref = referenceUtil.getNext("RC");
             String refNumberWithCheckDigit = ref.substring(3, ref.length()).replace("-", "");
 
-            assertTrue(ref.matches(PAYMENT_REFERENCE_REFEX));
+            assertTrue(ref.matches(PAYMENT_REFERENCE_REGEX));
             assertTrue(checkDigit.isValid(refNumberWithCheckDigit));
         }
     }
@@ -39,7 +39,7 @@ public class ReferenceUtilTest {
         String refNum = ref.substring(3, ref.length()-1).replace("-", "");
         refNum = refNum + 7;
 
-        assertTrue(ref.matches(PAYMENT_REFERENCE_REFEX));
+        assertTrue(ref.matches(PAYMENT_REFERENCE_REGEX));
 
         if (!checkDigit.isValid(refNum)) {
             assertFalse(checkDigit.isValid(refNum));

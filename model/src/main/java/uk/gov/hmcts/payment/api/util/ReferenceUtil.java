@@ -12,13 +12,13 @@ import java.security.SecureRandom;
 @Component
 public class ReferenceUtil {
 
-    private final static String PAYMENT_REF_REGEX = "(?<=\\G.{4})";
+    private static final String PAYMENT_REF_REGEX = "(?<=\\G.{4})";
 
     public String getNext(String prefix) throws CheckDigitException {
         DateTime dateTime = new DateTime(DateTimeZone.UTC);
-        long timeInMillis = dateTime.getMillis()/100;
+        long timeInMillis = dateTime.getMillis() / 100;
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(timeInMillis);
 
         // append the random 4 characters
