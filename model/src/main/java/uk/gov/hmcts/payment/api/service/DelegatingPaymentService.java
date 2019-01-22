@@ -2,15 +2,14 @@ package uk.gov.hmcts.payment.api.service;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 
 import java.util.List;
 
 public interface DelegatingPaymentService<T, ID> {
 
-    T create(String paymentReference, String description, String returnUrl, String ccdCaseNumber, String caseReference,
-             String currency, String siteId, String serviceType, List<PaymentFee> fees, int amount,
-             String serviceCallbackUrl, String channel, String provider) throws CheckDigitException;
+    T create(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException;
 
     T retrieve(ID id);
 

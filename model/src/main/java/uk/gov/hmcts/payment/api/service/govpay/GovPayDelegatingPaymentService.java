@@ -4,6 +4,7 @@ import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -33,12 +34,11 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
-    public GovPayPayment create(String reference, @NonNull String description, @NonNull String returnUrl,
-                                String ccdCaseNumber, String caseReference, String currency, String siteId,
-                                String serviceType, List<PaymentFee> fees, int amount, String serviceCallbackUrl,
-                                String channel, String provider) {
+    public GovPayPayment create(PaymentServiceRequest paymentServiceRequest) {
         String key = keyForService();
-        return govPayClient.createPayment(key, new CreatePaymentRequest(amount, reference, description, returnUrl));
+        return govPayClient.createPayment(key, new CreatePaymentRequest(paymentServiceRequest.getAmount(),
+            paymentServiceRequest.getPaymentReference(), paymentServiceRequest.getDescription(),
+            paymentServiceRequest.getReturnUrl()));
     }
 
     @Override

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.service;
 
-import lombok.NonNull;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
@@ -19,7 +19,6 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFound
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
@@ -53,8 +52,6 @@ import java.util.List;
 public class UserAwareDelegatingPaymentService implements DelegatingPaymentService<PaymentFeeLink, String> {
     private static final Logger LOG = LoggerFactory.getLogger(UserAwareDelegatingPaymentService.class);
 
-    private final static String PAYMENT_CHANNEL_ONLINE = "online";
-    private final static String PAYMENT_PROVIDER_GOVPAY = "gov pay";
     private final static String PAYMENT_CHANNEL_TELEPHONY = "telephony";
     private final static String PAYMENT_PROVIDER_PCI_PAL = "pci pal";
     private final static String PAYMENT_BY_CARD = "card";
@@ -116,20 +113,16 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     @Override
     @Transactional
-    public PaymentFeeLink create(@NonNull String paymentGroupReference, @NonNull String description,
-                                 @NonNull String returnUrl, String ccdCaseNumber, String caseReference,
-                                 String currency, String siteId, String serviceType, List<PaymentFee> fees,
-                                 int amount, String serviceCallbackUrl, String channel, String provider)
+    public PaymentFeeLink create(PaymentServiceRequest paymentServiceRequest)
         throws CheckDigitException {
         String paymentReference = referenceUtil.getNext("RC");
 
         Payment payment;
-        if (channel.equals("telephony") && provider.equals("pci pal")) {
-            PciPalPayment pciPalPayment = delegatePciPal.create(paymentReference, description, returnUrl, ccdCaseNumber,
-                caseReference, currency, siteId, serviceType, fees, amount, serviceCallbackUrl, channel, provider);
-            payment = buildPayment(description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType,
-                amount, serviceCallbackUrl, paymentReference, channel, provider);
-            fillTransientDetails(payment, pciPalPayment);
+        if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
+            PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
+            PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
+            payment = buildPayment(paymentReference, paymentServiceRequest);
+//            fillTransientDetails(payment, pciPalPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
                 .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).mapedStatus)
@@ -137,10 +130,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 .message(pciPalPayment.getState().getMessage())
                 .build()));
         } else {
-            GovPayPayment govPayPayment = delegateGovPay.create(paymentReference, description, returnUrl, ccdCaseNumber,
-                caseReference, currency, siteId, serviceType, fees, amount, serviceCallbackUrl, channel, provider);
-            payment = buildPayment(description, returnUrl, ccdCaseNumber, caseReference, currency, siteId, serviceType,
-                amount, serviceCallbackUrl, paymentReference, channel, provider);
+            GovPayPayment govPayPayment = delegateGovPay.create(paymentServiceRequest);
+            payment = buildPayment(paymentReference, paymentServiceRequest);
             fillTransientDetails(payment, govPayPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
@@ -150,34 +141,35 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 .build()));
         }
 
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference(paymentGroupReference)
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference(paymentServiceRequest.getPaymentReference())
             .payments(Collections.singletonList(payment))
-            .fees(fees)
+            .fees(paymentServiceRequest.getFees())
             .build();
 
         payment.setPaymentLink(paymentFeeLink);
 
         paymentFeeLink = paymentFeeLinkRepository.save(paymentFeeLink);
 
-        auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, fees);
+        auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, paymentServiceRequest.getFees());
         return paymentFeeLink;
     }
 
-    private Payment buildPayment(@NonNull String description, @NonNull String returnUrl, String ccdCaseNumber,
-                                 String caseReference, String currency, String siteId, String serviceType, int amount,
-                                 String serviceCallbackUrl, String paymentReference, String channel, String provider) {
+    private Payment buildPayment(String paymentReference, PaymentServiceRequest paymentServiceRequest) {
         return Payment.paymentWith().userId(userIdSupplier.get())
-            .amount(BigDecimal.valueOf(amount).movePointRight(2))
-            .description(description).returnUrl(returnUrl).ccdCaseNumber(ccdCaseNumber)
-            .caseReference(caseReference).currency(currency).siteId(siteId)
-            .serviceType(serviceType)
+            .amount(BigDecimal.valueOf(paymentServiceRequest.getAmount()).movePointRight(2))
+            .description(paymentServiceRequest.getDescription()).returnUrl(paymentServiceRequest.getReturnUrl())
+            .ccdCaseNumber(paymentServiceRequest.getCcdCaseNumber())
+            .caseReference(paymentServiceRequest.getCaseReference()).currency(paymentServiceRequest.getCurrency())
+            .siteId(paymentServiceRequest.getSiteId())
+            .serviceType(paymentServiceRequest.getServiceType())
             .s2sServiceName(serviceIdSupplier.get())
-            .paymentChannel(paymentChannelRepository.findByNameOrThrow(channel))
+            .paymentChannel(paymentChannelRepository.findByNameOrThrow(paymentServiceRequest.getChannel()))
             .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_CARD))
-            .paymentProvider(paymentProviderRespository.findByNameOrThrow(provider))
+            .paymentProvider(paymentProviderRespository.findByNameOrThrow(paymentServiceRequest.getProvider()))
             .paymentStatus(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_CREATED))
             .reference(paymentReference)
-            .serviceCallbackUrl(serviceCallbackUrl)
+            .serviceCallbackUrl(paymentServiceRequest.getServiceCallbackUrl())
             .build();
     }
 
@@ -299,9 +291,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
     }
 
-    private void fillTransientDetails(Payment payment, PciPalPayment pciPalPayment) {
-        // TODO to be implemented in upcoming story
-    }
+//    private void fillTransientDetails(Payment payment, PciPalPayment pciPalPayment) {
+//        // TODO to be implemented in upcoming story
+//    }
 
     private String hrefFor(Link url) {
         return url == null ? null : url.getHref();
