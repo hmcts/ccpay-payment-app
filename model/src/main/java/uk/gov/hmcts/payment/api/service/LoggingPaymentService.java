@@ -1,15 +1,14 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.ImmutableMap;
-import lombok.NonNull;
 import net.logstash.logback.argument.StructuredArguments;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
@@ -40,13 +39,8 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
-    public PaymentFeeLink create(@NonNull String paymentReference, @NonNull String description,
-                                 @NonNull String returnUrl, String ccdCaseNumber, String caseReference,
-                                 String currency, String siteId, String serviceType, List<PaymentFee> fees,
-                                 int amount, String serviceCallbackUrl, String channel,
-                                 String provider) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = delegate.create(paymentReference, description, returnUrl, ccdCaseNumber,
-            caseReference, currency, siteId, serviceType, fees, amount, serviceCallbackUrl, channel, provider);
+    public PaymentFeeLink create(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = delegate.create(paymentServiceRequest);
 
         Payment payment = paymentFeeLink.getPayments().get(0);
         LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(

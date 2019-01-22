@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
@@ -89,10 +90,23 @@ public class CardPaymentController {
             request.setProvider("gov pay");
         }
 
-        PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentReference, request.getDescription(), returnURL,
-            request.getCcdCaseNumber(), request.getCaseReference(), request.getCurrency().getCode(),
-            request.getSiteId(), request.getService().getName(), paymentDtoMapper.toFees(request.getFees()),
-            amountInPence, serviceCallbackUrl, request.getChannel(), request.getProvider());
+        PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
+            .paymentReference(paymentReference)
+            .description(request.getDescription())
+            .returnUrl(returnURL)
+            .ccdCaseNumber(request.getCcdCaseNumber())
+            .caseReference(request.getCaseReference())
+            .currency(request.getCurrency().getCode())
+            .siteId(request.getSiteId())
+            .serviceType(request.getService().getName())
+            .fees(paymentDtoMapper.toFees(request.getFees()))
+            .amount(amountInPence)
+            .serviceCallbackUrl(serviceCallbackUrl)
+            .channel(request.getChannel())
+            .provider(request.getProvider())
+            .build();
+
+        PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
 
         return new ResponseEntity<>(paymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }
