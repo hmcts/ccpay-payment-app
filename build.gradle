@@ -116,6 +116,7 @@ dependencyCheck {
 def sonarExclusions = [
         '**/v1/**',
         '**/OtpBootstrap.java',
+        '**/api/configuration/security/AuthCheckerServiceAndAnonymousUserFilter.java',
         '**/api/model/**',
         '**/api/dto/*.java',
         '**/api/service/*Service.java',
