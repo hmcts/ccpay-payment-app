@@ -12,4 +12,6 @@ public interface PaymentService<T, ID> {
     List<Reference> listInitiatedStatusPaymentsReferences();
 
     List<T> search(PaymentSearchCriteria searchCriteria);
+
+    void updatePaymentStatus(String reference, String status);
 }
