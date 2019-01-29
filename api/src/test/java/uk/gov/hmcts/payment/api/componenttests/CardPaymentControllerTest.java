@@ -39,6 +39,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -361,6 +362,48 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         restActions
             .get("/card-payments/RC-1518-9429-1432-7825/details")
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void createPaymentWithChannelTelephonyAndProviderPciPal() throws Exception {
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("100"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber("1234")
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .provider("pci pal")
+            .channel("telephony")
+            .siteId("siteId")
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .code("feeCode")
+                .version("1")
+                .calculatedAmount(new BigDecimal("100.1"))
+                .build()))
+            .build();
+
+        MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        MvcResult result2 = restActions
+            .get("/card-payments/" + paymentDto.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
+
+        assertNotNull(paymentDto);
+        assertEquals("Success", paymentDto.getStatus());
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
     @Test

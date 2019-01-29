@@ -122,7 +122,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
             PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
             payment = buildPayment(paymentReference, paymentServiceRequest);
-//            fillTransientDetails(payment, pciPalPayment);
+            fillTransientDetails(payment, pciPalPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
                 .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).mapedStatus)
@@ -291,9 +291,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
     }
 
-//    private void fillTransientDetails(Payment payment, PciPalPayment pciPalPayment) {
-//        // TODO to be implemented in upcoming story
-//    }
+    private void fillTransientDetails(Payment payment, PciPalPayment pciPalPayment) {
+        payment.setStatus(pciPalPayment.getState().getStatus());
+    }
 
     private String hrefFor(Link url) {
         return url == null ? null : url.getHref();
