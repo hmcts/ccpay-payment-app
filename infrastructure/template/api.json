@@ -1,0 +1,126 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiManagementServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "API Management service name"
+      }
+    },
+    "apiName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the API (gateway)"
+      }
+    },
+    "apiProductName": {
+      "type": "string",
+      "metadata": {
+        "description": "API Management product name"
+      }
+    },
+    "serviceUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL of the backend service (to be protected by the API)"
+      }
+    },
+    "apiBasePath": {
+      "type": "string",
+      "metadata": {
+        "description": "Path to the API (excluding host)"
+      }
+    },
+    "policy": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "fullApiProductName": "[concat('Microsoft.ApiManagement/service/', parameters('apiManagementServiceName'), '/products/', parameters('apiProductName'))]",
+    "fullApiName": "[concat('Microsoft.ApiManagement/service/', parameters('apiManagementServiceName'), '/apis/', parameters('apiName'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.ApiManagement/service/products",
+      "name": "[concat(parameters('apiManagementServiceName') ,'/', parameters('apiProductName'))]",
+      "dependsOn": [
+      ],
+      "properties": {
+        "displayName": "[parameters('apiProductName')]",
+        "subscriptionRequired": true,
+        "approvalRequired": true,
+        "subscriptionsLimit": 20,
+        "state": "published"
+      }
+    },
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.ApiManagement/service/apis",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', parameters('apiName'))]",
+      "dependsOn": [
+        "[variables('fullApiProductName')]"
+      ],
+      "properties": {
+        "displayName": "Telephony API",
+        "serviceUrl": "[parameters('serviceUrl')]",
+        "path": "[parameters('apiBasePath')]",
+        "protocols": [
+          "HTTPS"
+        ]
+      },
+      "resources": [
+        {
+          "apiVersion": "2017-03-01",
+          "type": "operations",
+          "name": "callback",
+          "dependsOn": [
+            "[variables('fullApiName')]"
+          ],
+          "properties": {
+            "displayName": "Pci-pal call back ",
+            "description": "Update payment status with pci-pal call back response",
+            "method": "POST",
+            "urlTemplate": "/telephony/callback",
+            "request": {
+              "description": "Update payment status with pci-pal call back response",
+            },
+            "responses": [
+              {
+                "statusCode": 204,
+                "description": "successful operation"
+              },
+              {
+                "statusCode": 403,
+                "description": "Invalid subscription-key"
+              }
+            ]
+          }
+        }
+
+      ]
+    },
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.ApiManagement/service/products/apis",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', parameters('apiProductName'), '/', parameters('apiName'))]",
+      "dependsOn": [
+        "[variables('fullApiProductName')]",
+        "[variables('fullApiName')]"
+      ]
+    },
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.ApiManagement/service/apis/policies",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', parameters('apiName'),'/policy')]",
+      "dependsOn": [
+        "[variables('fullApiProductName')]",
+        "[variables('fullApiName')]"
+      ],
+      "properties": {
+        "policyContent": "[parameters('policy')]"
+      }
+    }
+  ]
+}
