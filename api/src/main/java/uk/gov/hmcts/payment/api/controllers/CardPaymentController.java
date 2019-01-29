@@ -85,7 +85,7 @@ public class CardPaymentController {
 
         int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
 
-        if (StringUtils.isEmpty(request.getChannel()) && StringUtils.isEmpty(request.getProvider())) {
+        if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
         }

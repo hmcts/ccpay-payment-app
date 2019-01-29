@@ -17,7 +17,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     @Override
     public PciPalPayment create(PaymentServiceRequest paymentServiceRequest) {
         PciPalPayment payment = PciPalPayment.pciPalPaymentWith().paymentId("spoof_id")
-            .state(State.stateWith().code("code").finished(false).message("message").status("status").build()).build();
+            .state(State.stateWith().code("code").finished(false).message("message").status("success").build()).build();
         LOG.info("PciPal service called, returning with: {}", payment);
         return payment;
     }
