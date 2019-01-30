@@ -69,7 +69,7 @@ public class GovPayDelegatingPaymentServiceTest {
                 "GBP", "siteId", "divorce",
                 Collections.singletonList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode")
                     .version("1")
-                    .build()), 10000, null, null, null));
+                    .build()), new BigDecimal("100"), null, null, null));
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getAmount(), new Integer(10000));
         assertEquals(govPayPayment.getState().getStatus(), "created");

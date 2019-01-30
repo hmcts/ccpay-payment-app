@@ -38,7 +38,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -83,8 +82,6 @@ public class CardPaymentController {
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentReference = PaymentReference.getInstance().getNext();
 
-        int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
-
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
@@ -100,7 +97,7 @@ public class CardPaymentController {
             .siteId(request.getSiteId())
             .serviceType(request.getService().getName())
             .fees(paymentDtoMapper.toFees(request.getFees()))
-            .amount(amountInPence)
+            .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())
             .provider(request.getProvider())
@@ -122,7 +119,7 @@ public class CardPaymentController {
         return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference));
     }
 
-    @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card detaisl for supplied payment reference")
+    @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card details for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment card details retrieved"),
         @ApiResponse(code = 404, message = "Payment card details not found")

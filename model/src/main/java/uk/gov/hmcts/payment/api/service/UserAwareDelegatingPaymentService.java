@@ -117,11 +117,10 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         throws CheckDigitException {
         String paymentReference = referenceUtil.getNext("RC");
 
-        Payment payment;
+        Payment payment = buildPayment(paymentReference, paymentServiceRequest);
         if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
             PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
             PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
-            payment = buildPayment(paymentReference, paymentServiceRequest);
             fillTransientDetails(payment, pciPalPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
@@ -131,7 +130,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 .build()));
         } else {
             GovPayPayment govPayPayment = delegateGovPay.create(paymentServiceRequest);
-            payment = buildPayment(paymentReference, paymentServiceRequest);
             fillTransientDetails(payment, govPayPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
@@ -157,7 +155,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     private Payment buildPayment(String paymentReference, PaymentServiceRequest paymentServiceRequest) {
         return Payment.paymentWith().userId(userIdSupplier.get())
-            .amount(BigDecimal.valueOf(paymentServiceRequest.getAmount()).movePointRight(2))
+            .amount(paymentServiceRequest.getAmount())
             .description(paymentServiceRequest.getDescription()).returnUrl(paymentServiceRequest.getReturnUrl())
             .ccdCaseNumber(paymentServiceRequest.getCcdCaseNumber())
             .caseReference(paymentServiceRequest.getCaseReference()).currency(paymentServiceRequest.getCurrency())
