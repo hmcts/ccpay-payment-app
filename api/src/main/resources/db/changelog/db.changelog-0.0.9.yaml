@@ -121,3 +121,12 @@ databaseChangeLog:
           - column:
               name: hwf_reference
               type: varchar(255)
+
+- changeSet:
+    id: 1529403181334-5
+    author: smathangi
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          INSERT INTO payment_status (name, description) VALUES ('decline', 'Payment declined');
