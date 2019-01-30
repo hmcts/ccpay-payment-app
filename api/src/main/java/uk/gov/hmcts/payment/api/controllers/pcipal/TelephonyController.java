@@ -20,7 +20,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 
 @RestController
-@Api(tags = {"Payment"})
+@Api(tags = {"Telephony"})
 @SwaggerDefinition(tags = {@Tag(name = "TelephonyController", description = "Telephony Payment REST API")})
 public class TelephonyController {
 
