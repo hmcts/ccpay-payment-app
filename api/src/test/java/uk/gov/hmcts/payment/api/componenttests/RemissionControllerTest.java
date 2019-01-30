@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,6 +32,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 public class RemissionControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+
+    private final static String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4}){1}";
 
     private RestActions restActions;
 
@@ -379,5 +383,26 @@ public class RemissionControllerTest {
             .post("/remission", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void getRemissionRequestUponSuccessfulCreation() throws Exception {
+        RemissionRequest remission = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference("HWFref")
+            .paymentGroupReference("2018-1234")
+            .build();
+
+        MvcResult result = restActions
+            .post("/remission", remission)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        String returnedRemissionReference = result.getResponse().getContentAsString();
+        assertTrue(returnedRemissionReference.matches(REMISSION_REFERENCE_REGEX));
     }
 }

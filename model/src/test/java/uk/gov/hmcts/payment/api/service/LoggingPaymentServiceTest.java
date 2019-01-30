@@ -5,8 +5,9 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
@@ -36,7 +37,11 @@ public class LoggingPaymentServiceTest {
     @Test
     public void createCardPaymentTest() throws Exception {
         when(userIdSupplier.get()).thenReturn("USER_ID");
-        when(delegatingPaymentService.create("paymentReference", "description", "https://www.google.com", "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce", Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()), 10000, null
+        when(delegatingPaymentService.create(new PaymentServiceRequest("paymentReference", "description",
+            "https://www.google.com", "ccdCaseNumber", "caseReference",
+            "GBP", "siteId", "divorce",
+            Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()),
+            10000, null, null, null)
         )).thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(1)
             .payments(Arrays.asList(Payment.paymentWith()
                 .id(1)
@@ -54,7 +59,11 @@ public class LoggingPaymentServiceTest {
                 .build()))
             .build());
 
-        PaymentFeeLink paymentFeeLink = loggingPaymentService.create("paymentReference", "description", "https://www.google.com", "ccdCaseNumber", "caseReference", "GBP", "siteId", "divorce", Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()), 10000, null
+        PaymentFeeLink paymentFeeLink = loggingPaymentService.create(new PaymentServiceRequest("paymentReference",
+            "description", "https://www.google.com", "ccdCaseNumber",
+            "caseReference", "GBP", "siteId", "divorce",
+            Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()),
+            10000, null, null, null)
         );
         assertNotNull(paymentFeeLink);
         paymentFeeLink.getPayments().stream().forEach(p -> {
