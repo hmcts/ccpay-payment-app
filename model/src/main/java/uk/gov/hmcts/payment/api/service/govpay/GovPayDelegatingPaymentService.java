@@ -35,7 +35,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     @Override
     public GovPayPayment create(PaymentServiceRequest paymentServiceRequest) {
         String key = keyForService();
-        return govPayClient.createPayment(key, new CreatePaymentRequest(paymentServiceRequest.getAmount(),
+        return govPayClient.createPayment(key, new CreatePaymentRequest(paymentServiceRequest.getAmount().movePointRight(2).intValue(),
             paymentServiceRequest.getPaymentReference(), paymentServiceRequest.getDescription(),
             paymentServiceRequest.getReturnUrl()));
     }
