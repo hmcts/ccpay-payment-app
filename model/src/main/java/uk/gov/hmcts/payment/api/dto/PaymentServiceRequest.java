@@ -11,17 +11,17 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(builderMethodName = "paymentServiceRequestWith")
 public class PaymentServiceRequest {
-    String paymentReference;
-    String description;
-    String returnUrl;
-    String ccdCaseNumber;
-    String caseReference;
-    String currency;
-    String siteId;
-    String serviceType;
-    List<PaymentFee> fees;
-    int amount;
-    String serviceCallbackUrl;
-    String channel;
-    String provider;
+    private String paymentReference;
+    private String description;
+    private String returnUrl;
+    private String ccdCaseNumber;
+    private String caseReference;
+    private String currency;
+    private String siteId;
+    private String serviceType;
+    private List<PaymentFee> fees;
+    private int amount;
+    private String serviceCallbackUrl;
+    private String channel;
+    private String provider;
 }
