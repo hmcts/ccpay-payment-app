@@ -215,7 +215,7 @@ public class PaymentsDataUtil {
         //Create a payment in db
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("101.99"))
-            .caseReference("caseReference" + reference)
+            .ccdCaseNumber("ccdCaseNumber" + reference)
             .description("description" + reference)
             .serviceType("Divorce")
             .currency("GBP")
