@@ -84,7 +84,7 @@
             "method": "POST",
             "urlTemplate": "/telephony/callback",
             "request": {
-              "description": "Update payment status with pci-pal call back response",
+              "description": "Update payment status with pci-pal call back response"
             },
             "responses": [
               {
