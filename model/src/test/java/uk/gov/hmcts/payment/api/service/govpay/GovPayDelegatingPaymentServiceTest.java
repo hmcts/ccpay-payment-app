@@ -2,7 +2,10 @@ package uk.gov.hmcts.payment.api.service.govpay;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -13,10 +16,11 @@ import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.Collections;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
 
 public class GovPayDelegatingPaymentServiceTest {
 
@@ -59,9 +63,13 @@ public class GovPayDelegatingPaymentServiceTest {
             .returnUrl("https://www.google.com")
             .build());
 
-        GovPayPayment govPayPayment = govPayCardPaymentService.create("reference", "description", "https://www.google.com", "ccdCaseNumer", "caseReference", "GBP", "siteId", "divorce", Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode").version("1")
-            .build()), 10000, null
-        );
+        GovPayPayment govPayPayment = govPayCardPaymentService.create(
+            new PaymentServiceRequest("reference", "description",
+                "https://www.google.com", "ccdCaseNumer", "caseReference",
+                "GBP", "siteId", "divorce",
+                Collections.singletonList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode")
+                    .version("1")
+                    .build()), 10000, null, null, null));
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getAmount(), new Integer(10000));
         assertEquals(govPayPayment.getState().getStatus(), "created");

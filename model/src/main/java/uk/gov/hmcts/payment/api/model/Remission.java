@@ -21,12 +21,16 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Table(name = "remissions", indexes = {
     @Index(name = "ix_remission_hwf_reference", columnList = "hwf_reference"),
-    @Index(name = "ix_remission_ccd_case_number", columnList = "ccd_case_number")
+    @Index(name = "ix_remission_ccd_case_number", columnList = "ccd_case_number"),
+    @Index(name = "ix_remission_remission_reference", columnList = "remission_reference")
 })
 public class Remission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(name = "remission_reference")
+    private String remissionReference;
 
     @Column(name = "hwf_reference")
     private String hwfReference;
@@ -45,4 +49,7 @@ public class Remission {
 
     @Column(name = "payment_group_reference")
     private String paymentGroupReference;
+
+    @Column(name = "fee_id")
+    private Integer feeId;
 }
