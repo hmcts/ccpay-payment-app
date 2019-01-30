@@ -31,19 +31,19 @@ public class UserAwareDelegatingPaymentServiceTest {
     private UserAwareDelegatingPaymentService userAwareDelegatingPaymentService;
 
     private UserIdSupplier userIdSupplier = mock(UserIdSupplier.class);
-    PaymentFeeLinkRepository paymentFeeLinkRepository = mock(PaymentFeeLinkRepository.class);
-    DelegatingPaymentService<GovPayPayment, String> delegateGovPay = mock(DelegatingPaymentService.class);
-    DelegatingPaymentService<PciPalPayment, String> delegatePciPal = mock(DelegatingPaymentService.class);
-    PaymentChannelRepository paymentChannelRepository = mock(PaymentChannelRepository.class);
-    PaymentMethodRepository paymentMethodRepository = mock(PaymentMethodRepository.class);
-    PaymentProviderRepository paymentProviderRepository = mock(PaymentProviderRepository.class);
-    PaymentStatusRepository paymentStatusRepository = mock(PaymentStatusRepository.class);
-    Payment2Repository paymentRespository = mock(Payment2Repository.class);
-    ReferenceUtil referenceUtil = mock(ReferenceUtil.class);
-    GovPayAuthUtil govPayAuthUtil = mock(GovPayAuthUtil.class);
-    ServiceIdSupplier serviceIdSupplier = mock(ServiceIdSupplier.class);
-    AuditRepository auditRepository = mock(AuditRepository.class);
-    CallbackService callbackService = mock(CallbackService.class);
+    private PaymentFeeLinkRepository paymentFeeLinkRepository = mock(PaymentFeeLinkRepository.class);
+    private DelegatingPaymentService<GovPayPayment, String> delegateGovPay = mock(DelegatingPaymentService.class);
+    private DelegatingPaymentService<PciPalPayment, String> delegatePciPal = mock(DelegatingPaymentService.class);
+    private PaymentChannelRepository paymentChannelRepository = mock(PaymentChannelRepository.class);
+    private PaymentMethodRepository paymentMethodRepository = mock(PaymentMethodRepository.class);
+    private PaymentProviderRepository paymentProviderRepository = mock(PaymentProviderRepository.class);
+    private PaymentStatusRepository paymentStatusRepository = mock(PaymentStatusRepository.class);
+    private Payment2Repository paymentRespository = mock(Payment2Repository.class);
+    private ReferenceUtil referenceUtil = mock(ReferenceUtil.class);
+    private GovPayAuthUtil govPayAuthUtil = mock(GovPayAuthUtil.class);
+    private ServiceIdSupplier serviceIdSupplier = mock(ServiceIdSupplier.class);
+    private AuditRepository auditRepository = mock(AuditRepository.class);
+    private CallbackService callbackService = mock(CallbackService.class);
 
     private final static String PAYMENT_CHANNEL_TELEPHONY = "telephony";
     private final static String PAYMENT_PROVIDER_PCI_PAL = "pci pal";

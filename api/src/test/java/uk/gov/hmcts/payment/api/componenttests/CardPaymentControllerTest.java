@@ -366,8 +366,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createPaymentWithChannelTelephonyAndProviderPciPal() throws Exception {
+        BigDecimal amount = new BigDecimal("100");
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("100"))
+            .amount(amount)
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber("1234")
@@ -404,6 +405,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         assertEquals("Success", paymentDto.getStatus());
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals("Amount saved in db is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
     @Test
