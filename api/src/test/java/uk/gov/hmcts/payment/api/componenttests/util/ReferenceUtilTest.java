@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 
 public class ReferenceUtilTest {
 
-    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     private ReferenceUtil referenceUtil;
     private CheckDigit checkDigit;
