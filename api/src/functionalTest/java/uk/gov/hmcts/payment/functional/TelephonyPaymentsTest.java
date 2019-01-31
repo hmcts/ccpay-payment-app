@@ -50,7 +50,7 @@ public class TelephonyPaymentsTest {
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Before
     public void setUp() throws Exception {
@@ -224,7 +224,7 @@ public class TelephonyPaymentsTest {
             .when().createCardPayment(paymentRequest)
             .then().created(paymentDto -> {
             assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
     }
 
