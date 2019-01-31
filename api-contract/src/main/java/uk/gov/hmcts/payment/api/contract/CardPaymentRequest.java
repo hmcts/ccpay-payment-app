@@ -47,6 +47,10 @@ public class CardPaymentRequest {
 
     private CurrencyCode currency;
 
+    private String provider;
+
+    private String channel;
+
     @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
