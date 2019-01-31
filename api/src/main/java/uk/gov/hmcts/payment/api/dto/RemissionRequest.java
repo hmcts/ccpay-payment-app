@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.model.Remission;
 
 import javax.validation.constraints.DecimalMin;
@@ -41,6 +42,8 @@ public class RemissionRequest {
     private String caseReference;
 
     private String paymentGroupReference;
+
+    private FeeDto fee;
 
     public Remission toRemission() {
         return Remission.remissionWith()

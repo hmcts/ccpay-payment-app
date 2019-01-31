@@ -28,7 +28,7 @@ public class GovPayErrorTranslator {
     /**
      * @param responseBody response body of non 200 response
      * @return exception
-     * @see https://gds-payments.gelato.io/docs/versions/1.0.0/api-reference
+     * @see <a href="https://gds-payments.gelato.io/docs/versions/1.0.0/api-reference">https://gds-payments.gelato.io/docs/versions/1.0.0/api-reference</a>
      */
     GovPayException toException(byte[] responseBody) {
         try {

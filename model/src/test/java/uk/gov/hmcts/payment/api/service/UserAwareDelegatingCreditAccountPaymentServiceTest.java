@@ -7,7 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -39,7 +39,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
     private Payment2Repository paymentRespository;
 
     @Mock
-    private PaymentReferenceUtil paymentReferenceUtil;
+    private ReferenceUtil referenceUtil;
 
     @Mock
     private ServiceIdSupplier serviceIdSupplier;
@@ -56,8 +56,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
-        when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-1111");
-        String reference = paymentReferenceUtil.getNext();
+        when(referenceUtil.getNext("RC")).thenReturn("RC-1234-1234-1234-1111");
+        String reference = referenceUtil.getNext("RC");
 
         List<Payment> payments = Arrays.asList(getPayment(1, reference));
         List<PaymentFee> fees = Arrays.asList(getFee(1));
@@ -95,8 +95,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
     @Test
     public void retrieveCreditAccountPayment_ByReferenceTest() throws Exception {
-        when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-1111");
-        String reference = paymentReferenceUtil.getNext();
+        when(referenceUtil.getNext("RC")).thenReturn("RC-1234-1234-1234-1111");
+        String reference = referenceUtil.getNext("RC");
 
         List<Payment> payments = Arrays.asList(getPayment(1, reference));
         payments.stream().forEach(p -> {
@@ -137,8 +137,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
     @Test(expected = PaymentNotFoundException.class)
     public void retrieveCreditAccountPayment_byIncorrectPaymentReference_shouldThrowExceptionTest() throws Exception {
-        when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-1111");
-        String reference = paymentReferenceUtil.getNext();
+        when(referenceUtil.getNext("RC")).thenReturn("RC-1234-1234-1234-1111");
+        String reference = referenceUtil.getNext("RC");
 
         List<Payment> payments = Arrays.asList(getPayment(1, reference));
         List<PaymentFee> fees = Arrays.asList(getFee(1));
