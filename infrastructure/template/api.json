@@ -56,6 +56,20 @@
       }
     },
     {
+      "type": "Microsoft.ApiManagement/service/products/groups",
+      "name": "[concat(parameters('apiManagementServiceName') ,'/', parameters('apiProductName'), '/', variables('developersGroupName'))]",
+      "apiVersion": "2017-03-01",
+      "properties": {
+        "displayName": "Developers",
+        "description": "Developers group",
+        "builtIn": true,
+        "type": "system"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementServiceName'), parameters('apiProductName'))]"
+      ]
+    },
+    {
       "apiVersion": "2017-03-01",
       "type": "Microsoft.ApiManagement/service/apis",
       "name": "[concat(parameters('apiManagementServiceName'), '/', parameters('apiName'))]",
@@ -79,12 +93,55 @@
             "[variables('fullApiName')]"
           ],
           "properties": {
-            "displayName": "Pci-pal call back ",
+            "displayName": "pci-pal call back ",
             "description": "Update payment status with pci-pal call back response",
             "method": "POST",
             "urlTemplate": "/telephony/callback",
             "request": {
-              "description": "Update payment status with pci-pal call back response"
+              "description": "pci-pal call back payload in application/x-www-form-urlencoded format",
+              "representations": [
+                {
+                  "contentType": "application/x-www-form-urlencoded format",
+                  "sample": "orderCurrency=&orderAmount=450&orderReference=MOJTest1&ppAccountID=1210&transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard",
+                  "formParameters": [
+                    {
+                      "name": "orderCurrency",
+                      "description": "Order currency type (Example: GBP)",
+                      "type": "string"
+                    },
+                    {
+                      "name": "orderAmount",
+                      "description": "Amount that was transacted in base units",
+                      "type": "string"
+                    },
+                    {
+                      "name": "orderReference",
+                      "description": "A unique reference number for the transaction from the request ",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ppAccountID",
+                      "description": "The PCI Pal account ID the transaction was performed on",
+                      "type": "string"
+                    },
+                    {
+                      "name": "transactionResult",
+                      "description": "The outcome of the transaction (Example: SUCCESS) Note: (Values can be: SUCCESS,DECLINE,ERROR,CANCELLED)",
+                      "type": "string"
+                    },
+                    {
+                      "name": "transactionID",
+                      "description": "The transaction ID from the payment gateway",
+                      "type": "string"
+                    },
+                    {
+                      "name": "transactionResponseMsg",
+                      "description": "The response from the gateway (Example: Insufficient Funds) Note: Usually only passed back for declines or errors",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ]
             },
             "responses": [
               {
@@ -94,6 +151,10 @@
               {
                 "statusCode": 403,
                 "description": "Invalid subscription-key"
+              },
+              {
+                "statusCode": 415,
+                "description": "Unsupported media-type should be application/x-www-form-urlencoded"
               }
             ]
           }
