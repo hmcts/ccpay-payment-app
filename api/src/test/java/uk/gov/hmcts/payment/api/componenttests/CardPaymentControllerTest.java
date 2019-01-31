@@ -61,7 +61,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class CardPaymentControllerTest extends PaymentsDataUtil {
 
-    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
@@ -403,7 +403,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
 
         assertNotNull(paymentDto);
-        assertEquals("Success", paymentDto.getStatus());
+        assertEquals("Initiated", paymentDto.getStatus());
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
         assertEquals("Amount saved in db is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
