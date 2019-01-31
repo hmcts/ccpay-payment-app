@@ -38,7 +38,8 @@
   },
   "variables": {
     "fullApiProductName": "[concat('Microsoft.ApiManagement/service/', parameters('apiManagementServiceName'), '/products/', parameters('apiProductName'))]",
-    "fullApiName": "[concat('Microsoft.ApiManagement/service/', parameters('apiManagementServiceName'), '/apis/', parameters('apiName'))]"
+    "fullApiName": "[concat('Microsoft.ApiManagement/service/', parameters('apiManagementServiceName'), '/apis/', parameters('apiName'))]",
+    "developersGroupName": "Developers"
   },
   "resources": [
     {
