@@ -102,7 +102,7 @@
               "description": "pci-pal call back payload in application/x-www-form-urlencoded format",
               "representations": [
                 {
-                  "contentType": "application/x-www-form-urlencoded format",
+                  "contentType": "application/x-www-form-urlencoded",
                   "sample": "orderCurrency=&orderAmount=450&orderReference=MOJTest1&ppAccountID=1210&transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard",
                   "formParameters": [
                     {
