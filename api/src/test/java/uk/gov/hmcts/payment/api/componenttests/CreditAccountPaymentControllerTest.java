@@ -55,7 +55,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
