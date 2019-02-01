@@ -139,6 +139,36 @@
                       "name": "transactionResponseMsg",
                       "description": "The response from the gateway (Example: Insufficient Funds) Note: Usually only passed back for declines or errors",
                       "type": "string"
+                    },
+                    {
+                      "name": "cardExpiry",
+                      "description": "The expiry date for the card used (Example: 0419)",
+                      "type": "string"
+                    },
+                    {
+                      "name": "cardType",
+                      "description": "The card type detected from the bin check (Example: VISA)",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ppCallID",
+                      "description": "The unique PCI Pal call id used for debugging purposes",
+                      "type": "string"
+                    },
+                    {
+                      "name": "customData1",
+                      "description": "Any custom values sent in the request",
+                      "type": "string"
+                    },
+                    {
+                      "name": "customData2",
+                      "description": "Any custom values sent in the request",
+                      "type": "string"
+                    },
+                    {
+                      "name": "customData3",
+                      "description": "Any custom values sent in the request",
+                      "type": "string"
                     }
                   ]
                 }
