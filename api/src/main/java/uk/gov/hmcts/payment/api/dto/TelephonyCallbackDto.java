@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.dto;
 
 import lombok.*;
 
+import javax.validation.constraints.NotNull;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -9,9 +11,12 @@ import lombok.*;
 public class TelephonyCallbackDto {
 
     private String orderCurrency;
+    @NotNull
     private String orderAmount;
+    @NotNull
     private String orderReference;
     private String ppAccountID;
+    @NotNull
     private String transactionResult;
     private String transactionAuthCode;
     private String transactionID;

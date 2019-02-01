@@ -33,7 +33,11 @@ public class TelephonyController {
         this.paymentService = paymentService;
     }
 
-    @ApiOperation(value = "Update payment status with pci-pal call back response", notes = "pci-pal sends response in application/x-www-form-urlencoded format")
+    @ApiOperation(value = "Update payment status with pci-pal call back response",
+        notes = "pci-pal sends response in application/x-www-form-urlencoded format \n\n" +
+            "Example : orderCurrency=&orderAmount=488.50&orderReference=MOJTest1&ppAccountID=1210&transactionResult=SUCCESS \n" +
+            "&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&cardExpiry=1220&cardLast4=9999& \n" +
+            "cardType=MASTERCARD&ppCallID=820782890&customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard")
     @ApiResponses(value = {
         @ApiResponse(code = 204, message = "No content"),
         @ApiResponse(code = 404, message = "Payment not found")
