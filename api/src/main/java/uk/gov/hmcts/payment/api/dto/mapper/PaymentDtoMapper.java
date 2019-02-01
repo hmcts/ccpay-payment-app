@@ -42,6 +42,23 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink,String html) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mapedStatus)
+            .reference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .dateCreated(payment.getDateCreated())
+            .html(html)
+            .links(new PaymentDto.LinksDto(
+                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
+                null, null
+            ))
+            .build();
+    }
+
+
+
     public PaymentDto toResponseDto(PaymentFeeLink paymentFeeLink, Payment payment) {
         List<PaymentFee> fees = paymentFeeLink.getFees();
         return PaymentDto.payment2DtoWith()
