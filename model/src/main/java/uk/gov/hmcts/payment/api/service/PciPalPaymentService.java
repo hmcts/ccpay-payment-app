@@ -65,6 +65,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         params.add(new BasicNameValuePair("renderMethod", "HTML"));
         params.add(new BasicNameValuePair("amount", pciPalPaymentRequest.getOrderAmount()));
         params.add(new BasicNameValuePair("orderCurrency", pciPalPaymentRequest.getOrderCurrency()));
+        params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
+        params.add(new BasicNameValuePair("callbackURL", pciPalPaymentRequest.getCallbackURL()));
         HttpPost request = postRequestFor( url, new UrlEncodedFormEntity(params));
         HttpResponse response = httpClient.execute(request);
         String responseString = EntityUtils.toString(response.getEntity(), "UTF-8");

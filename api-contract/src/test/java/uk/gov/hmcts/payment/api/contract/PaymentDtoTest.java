@@ -104,7 +104,7 @@ public class PaymentDtoTest {
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
             organisationName, paymentGroupReference, reportedDateOffline,
-            null, statusHistories, giroSlipNo, links);
+            null, statusHistories, giroSlipNo, links,null);
     }
 
     @Test
