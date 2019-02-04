@@ -258,7 +258,7 @@ data "template_file" "api_template" {
   template = "${file("${path.module}/template/api.json")}"
 }
 
-resource "azurerm_template_deployment" "api" {
+resource "azurerm_template_deployment" "telephony_api" {
   template_body       = "${data.template_file.api_template.rendered}"
   name                = "telephony-api-${var.env}"
   deployment_mode     = "Incremental"

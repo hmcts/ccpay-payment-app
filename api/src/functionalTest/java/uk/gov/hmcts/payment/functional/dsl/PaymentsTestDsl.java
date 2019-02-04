@@ -104,6 +104,11 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl telephonyCallback(String payload) {
+            response = newRequest().contentType(ContentType.URLENC).body(payload).post("/telephony/callback");
+            return this;
+        }
+
         public PaymentWhenDsl enableSearch(){
             response = newRequest().contentType(ContentType.JSON).post("/api/ff4j/store/features/payment-search/enable");
             return this;
