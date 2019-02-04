@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -69,11 +70,14 @@ public class PciPalCallbackTest {
         });
 
         //pci-pal callback
-        String callBackPayload = "orderAmount=9999&ppAccountID=1210&transactionResult=SUCCESS&transactionID=3045021106&" +
-            "cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&orderReference=" + paymentReference;
+        TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+            .orderReference(paymentReference)
+            .orderAmount("9999")
+            .transactionResult("SUCCESS")
+            .build();
 
         dsl.given().s2sToken(SERVICE_TOKEN)
-            .when().telephonyCallback(callBackPayload)
+            .when().telephonyCallback(callbackDto)
             .then().noContent();
 
         // retrieve payment
@@ -103,11 +107,14 @@ public class PciPalCallbackTest {
         });
 
         //pci-pal callback
-        String callBackPayload = "orderAmount=9999&ppAccountID=1210&transactionResult=SUCCESS&transactionID=3045021106&" +
-            "cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&orderReference=RC-invalid-reference";
+        TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
+            .orderReference("RC-Invalid-reference")
+            .orderAmount("9999")
+            .transactionResult("SUCCESS")
+            .build();
 
         dsl.given().s2sToken(SERVICE_TOKEN)
-            .when().telephonyCallback(callBackPayload)
+            .when().telephonyCallback(callbackDto)
             .then().notFound();
     }
 
