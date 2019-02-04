@@ -13,5 +13,5 @@ public interface PaymentService<T, ID> {
 
     List<T> search(PaymentSearchCriteria searchCriteria);
 
-    void updatePaymentStatus(String reference, String status);
+    void updateTelephonyPaymentStatus(String reference, String status, String payload);
 }

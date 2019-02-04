@@ -46,7 +46,8 @@ public class TelephonyController {
     @PostMapping(path = "/telephony/callback", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity updateTelephonyPaymentStatus(@ModelAttribute TelephonyCallbackDto callbackDto) {
         LOG.info("Received callback request from pci-apl : {}", callbackDto);
-        paymentService.updatePaymentStatus(callbackDto.getOrderReference(), callbackDto.getTransactionResult().toLowerCase());
+        paymentService.updateTelephonyPaymentStatus(callbackDto.getOrderReference(),
+            callbackDto.getTransactionResult().toLowerCase(), callbackDto.toString());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
