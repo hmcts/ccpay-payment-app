@@ -192,6 +192,10 @@ public class PaymentsTestDsl {
             return response.then().statusCode(200).extract().as(PaymentDto.class);
         }
 
+        public PaymentDto getByStatusCode(int statusCode) {
+            return response.then().statusCode(statusCode).extract().as(PaymentDto.class);
+        }
+
         public AccountDto getAccount() {
             return response.then().statusCode(200).extract().as(AccountDto.class);
         }

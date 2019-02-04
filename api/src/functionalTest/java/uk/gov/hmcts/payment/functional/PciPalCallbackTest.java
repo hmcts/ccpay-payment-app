@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import com.mifmif.common.regex.Generex;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,16 +59,17 @@ public class PciPalCallbackTest {
     public void updateTelephonyPayment_shouldReturnSucceess() {
         String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
         PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
-        String paymentReference = paymentRecordRequest.getReference();
 
         // create telephony payment using old api
-        dsl.given().userToken(USER_TOKEN)
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.google.com")
             .when().createTelephonyPayment(paymentRecordRequest)
-            .then().created(paymentDto -> {
-            assertNotNull(paymentDto.getReference());
-        });
+            .then().getByStatusCode(201);
+
+        assertNotNull(paymentDto.getReference());
+
+        String paymentReference = paymentDto.getReference();
 
         //pci-pal callback
         TelephonyCallbackDto callbackDto = TelephonyCallbackDto.telephonyCallbackWith()
@@ -81,7 +83,7 @@ public class PciPalCallbackTest {
             .then().noContent();
 
         // retrieve payment
-        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
+        paymentDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().getCardPayment(paymentReference)
             .then().get();
@@ -89,7 +91,7 @@ public class PciPalCallbackTest {
         assertNotNull(paymentDto);
         assertEquals(paymentDto.getReference(), paymentReference);
         assertEquals(paymentDto.getExternalProvider(), "pci pal");
-        assertEquals(paymentDto.getStatus(), "success");
+        assertEquals(paymentDto.getStatus(), "Success");
     }
 
     @Test
@@ -122,8 +124,8 @@ public class PciPalCallbackTest {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .externalProvider("pci pal")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
-            .paymentMethod(PaymentMethodType.CARD)
             .amount(new BigDecimal("99.99"))
+            .paymentMethod(PaymentMethodType.CARD)
             .reference(reference)
             .service(Service.CMC)
             .currency(CurrencyCode.GBP)
@@ -140,6 +142,7 @@ public class PciPalCallbackTest {
                         .build()
                 )
             )
+            .reportedDateOffline(DateTime.now().toString())
             .build();
     }
 }
