@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional.dsl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -15,6 +16,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
@@ -104,8 +106,9 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl telephonyCallback(String payload) {
-            response = newRequest().contentType(ContentType.URLENC).body(payload).post("/telephony/callback");
+        public PaymentWhenDsl telephonyCallback(TelephonyCallbackDto callbackDto) {
+            Map formData = new ObjectMapper().convertValue(callbackDto, Map.class);
+            response = newRequest().contentType(ContentType.URLENC.withCharset("UTF-8")).formParams(formData).post("/telephony/callback");
             return this;
         }
 

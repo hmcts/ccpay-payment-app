@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(builderMethodName = "telephonyCallbackWith")
 public class TelephonyCallbackDto {
 
     private String orderCurrency;
