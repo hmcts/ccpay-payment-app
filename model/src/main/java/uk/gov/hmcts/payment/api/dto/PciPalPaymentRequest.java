@@ -25,5 +25,6 @@ public class PciPalPaymentRequest {
     private String apiKey;
     private String renderMethod;
     private String callbackURL;
+    private String customData1;
 
 }

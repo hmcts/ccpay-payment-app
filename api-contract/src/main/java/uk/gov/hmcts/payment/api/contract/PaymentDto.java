@@ -90,9 +90,6 @@ public class PaymentDto {
     @JsonProperty("_links")
     private LinksDto links;
 
-    @JsonProperty("html")
-    private String html;
-
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
