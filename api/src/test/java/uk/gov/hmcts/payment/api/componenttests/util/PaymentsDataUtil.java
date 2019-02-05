@@ -78,7 +78,7 @@ public class PaymentsDataUtil {
     }
 
     public void populateCardPaymentToDb(String number) throws Exception {
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("99.99"))
@@ -106,7 +106,7 @@ public class PaymentsDataUtil {
 
 
     public Payment populateCreditAccountPaymentToDb(String number) throws Exception {
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .caseReference("Reference" + number)
@@ -132,7 +132,7 @@ public class PaymentsDataUtil {
     }
 
     public void populateBarCashPaymentToDb(String number) throws Exception {
-        //create a payment in db
+        //create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("123.19"))
             .caseReference("Reference" + number)
@@ -159,7 +159,7 @@ public class PaymentsDataUtil {
 
 
     public void populateBarChequePaymentToDb(String number) throws Exception {
-        //create a payment in db
+        //create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("333.19"))
             .caseReference("Reference" + number)
@@ -185,7 +185,7 @@ public class PaymentsDataUtil {
     }
 
     public void populateBarCardPaymentToDb(String number) throws Exception {
-        //create a payment in db
+        //create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("432.19"))
             .caseReference("Reference" + number)
@@ -212,7 +212,7 @@ public class PaymentsDataUtil {
     }
 
     public Payment populateTelephonyPaymentToDb(String reference, boolean withServiceCallbackURL) throws Exception {
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("101.99"))
             .caseReference("caseReference" + reference)

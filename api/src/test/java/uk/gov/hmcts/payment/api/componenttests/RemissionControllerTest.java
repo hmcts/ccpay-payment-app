@@ -12,7 +12,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -22,6 +25,7 @@ import java.math.BigDecimal;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -47,7 +51,13 @@ public class RemissionControllerTest {
     protected UserResolverBackdoor userRequestAuthorizer;
 
     @Autowired
-    protected RemissionBackdoor db;
+    protected RemissionDbBackdoor remissionDbBackdoor;
+
+    @Autowired
+    protected PaymentDbBackdoor paymentDbBackdoor;
+
+    @Autowired
+    protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -99,7 +109,7 @@ public class RemissionControllerTest {
             .post("/remission", remissionDto)
             .andReturn();
 
-        Remission savedRemission = db.findByHwfReference(hwfReference);
+        Remission savedRemission = remissionDbBackdoor.findByHwfReference(hwfReference);
         assertEquals(remissionDto.getCaseReference(), savedRemission.getCaseReference());
         assertEquals(remissionDto.getHwfReference(), savedRemission.getHwfReference());
     }
@@ -404,5 +414,142 @@ public class RemissionControllerTest {
 
         String returnedRemissionReference = result.getResponse().getContentAsString();
         assertTrue(returnedRemissionReference.matches(REMISSION_REFERENCE_REGEX));
+    }
+
+    // TODO: fee sent over and saved
+    @Test
+    @Transactional
+    public void feeDtoFilledGetsFeeSaved() throws Exception {
+        BigDecimal calculatedAmount = new BigDecimal("199.99");
+        String feeReference = "feeReference";
+        String paymentGroupReference = "testGroupReference";
+
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(calculatedAmount)
+            .code("FEE0001")
+            .version("1")
+            .reference(feeReference)
+            .build();
+
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.create(PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference(paymentGroupReference));
+
+        RemissionRequest remissionRequest = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference("HWFref")
+            .fee(feeDto)
+            .paymentGroupReference(paymentGroupReference)
+            .build();
+
+        MvcResult result = restActions
+            .post("/remission", remissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentFee paymentFee = paymentFeeDbBackdoor.findByReference(feeReference);
+        assertNotNull(paymentFee);
+        assertEquals("new fee refers to the correct payment fee link", paymentFeeLink.getId(), paymentFee.getPaymentLink().getId());
+    }
+
+    // TODO: no paymentGroupReference sent -> check payment fee link created and fee created
+    @Test
+    @Transactional
+    public void paymentFeeLinkAndFeeCreatedWhenNoPaymentGroupReferenceSent() throws Exception {
+        BigDecimal calculatedAmount = new BigDecimal("199.99");
+        String feeReference = "feeReference";
+
+        String feeCode = "FEE0001";
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(calculatedAmount)
+            .code(feeCode)
+            .version("1")
+            .reference(feeReference)
+            .build();
+
+        RemissionRequest remissionRequest = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference("HWFref")
+            .fee(feeDto)
+            .build();
+
+        MvcResult result = restActions
+            .post("/remission", remissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        String returnedRemissionReference = result.getResponse().getContentAsString();
+        Remission remission = remissionDbBackdoor.findByRemissionReference(returnedRemissionReference);
+        assertNotNull(remission);
+        String paymentGroupReference = remission.getPaymentGroupReference();
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(paymentGroupReference);
+        assertNotNull(paymentFeeLink);
+        PaymentFee paymentFee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
+        assertNotNull(paymentFee);
+        assertEquals("Fee code is correct", feeCode, paymentFee.getCode());
+    }
+
+    // TODO: if no fee sent over, don't create it, should still create remission
+    @Test
+    @Transactional
+    public void noFeeAndNoPaymentGroupReferenceAndRemissionGetsCreated() throws Exception {
+        BigDecimal calculatedAmount = new BigDecimal("199.99");
+        String feeReference = "feeReference";
+
+        RemissionRequest remissionRequest = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference("HWFref")
+            .build();
+
+        MvcResult result = restActions
+            .post("/remission", remissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        String returnedRemissionReference = result.getResponse().getContentAsString();
+        Remission remission = remissionDbBackdoor.findByRemissionReference(returnedRemissionReference);
+        assertNotNull(remission);
+        String paymentGroupReference = remission.getPaymentGroupReference();
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(paymentGroupReference);
+        assertNotNull(paymentFeeLink);
+    }
+
+    @Test
+    @Transactional
+    public void noFeeWithPaymentGroupReferenceAndRemissionGetsCreated() throws Exception {
+        String paymentGroupReference = "testGroupReference";
+
+        RemissionRequest remissionRequest = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference("HWFref")
+            .paymentGroupReference(paymentGroupReference)
+            .build();
+
+        paymentDbBackdoor.create(PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference(paymentGroupReference));
+
+        MvcResult result = restActions
+            .post("/remission", remissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        String returnedRemissionReference = result.getResponse().getContentAsString();
+        Remission remission = remissionDbBackdoor.findByRemissionReference(returnedRemissionReference);
+        assertNotNull(remission);
+        String foundPaymentGroupReference = remission.getPaymentGroupReference();
+        assertEquals("Group reference are equal", paymentGroupReference, foundPaymentGroupReference);
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(paymentGroupReference);
+        assertNotNull(paymentFeeLink);
     }
 }

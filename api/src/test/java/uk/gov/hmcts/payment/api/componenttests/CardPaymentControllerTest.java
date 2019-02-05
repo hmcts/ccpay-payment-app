@@ -186,7 +186,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-payment-response.json"))));
 
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .caseReference("Reference1")
@@ -234,7 +234,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-payment-status-response.json"))));
 
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("499.99"))
@@ -285,7 +285,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withBody(contentsOf("gov-pay-responses/get-card-details-response.json"))));
 
 
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Success").externalStatus("success").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("121.11"))
@@ -333,7 +333,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withBody(contentsOf("gov-pay-responses/get-payment-error-response.json"))));
 
 
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Failed").externalStatus("error").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("22.89"))
@@ -405,7 +405,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals("Amount saved in db is equal to the on inside the request", amount, paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
     @Test
@@ -423,7 +423,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-payment-error-response.json"))));
 
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("22.89"))
