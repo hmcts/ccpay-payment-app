@@ -97,8 +97,9 @@ public class CardPaymentController {
                 .orderReference(paymentLink.getPaymentReference()).build();
 
         if (request.getChannel().equals("telephony")) {
-            String html = pciPalPaymentService.sendIntialPaymentRequest(pciPalPaymentRequest,request.getService().getName());
-            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink,html);
+            pciPalPaymentRequest.setCustomData1(paymentLink.getPayments().get(0).getCcdCaseNumber());
+            String link = pciPalPaymentService.sendIntialPaymentRequest(pciPalPaymentRequest,request.getService().getName());
+            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink,link);
         }
 
         return new ResponseEntity<>(paymentDto, CREATED);

@@ -52,7 +52,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public String sendIntialPaymentRequest(PciPalPaymentRequest pciPalPaymentRequest,String serviceType) {
         return withIOExceptionHandling(() -> {
         String ppAccountID = null;
-        if (serviceType.equalsIgnoreCase(serviceType))
+        if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
             ppAccountID = ppAccountIDDivorce;
         else if(serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
             ppAccountID = ppAccountIDCmc;
@@ -62,11 +62,12 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("apiKey", apiKey));
         params.add(new BasicNameValuePair("ppAccountId", ppAccountID));
-        params.add(new BasicNameValuePair("renderMethod", "HTML"));
+        params.add(new BasicNameValuePair("renderMethod", "IFRAME"));
         params.add(new BasicNameValuePair("amount", pciPalPaymentRequest.getOrderAmount()));
         params.add(new BasicNameValuePair("orderCurrency", pciPalPaymentRequest.getOrderCurrency()));
         params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
         params.add(new BasicNameValuePair("callbackURL", pciPalPaymentRequest.getCallbackURL()));
+        params.add(new BasicNameValuePair("customData1", pciPalPaymentRequest.getCustomData1()));
         HttpPost request = postRequestFor( url, new UrlEncodedFormEntity(params));
         HttpResponse response = httpClient.execute(request);
         String responseString = EntityUtils.toString(response.getEntity(), "UTF-8");
