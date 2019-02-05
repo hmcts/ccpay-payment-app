@@ -80,7 +80,7 @@ public class CardPaymentController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
-        String paymentReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
@@ -88,7 +88,7 @@ public class CardPaymentController {
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
-            .paymentReference(paymentReference)
+            .paymentReference(paymentGroupReference)
             .description(request.getDescription())
             .returnUrl(returnURL)
             .ccdCaseNumber(request.getCcdCaseNumber())
