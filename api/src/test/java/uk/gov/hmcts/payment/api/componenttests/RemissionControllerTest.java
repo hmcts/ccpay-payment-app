@@ -444,8 +444,7 @@ public class RemissionControllerTest {
             .paymentGroupReference(paymentGroupReference)
             .build();
 
-        MvcResult result = restActions
-            .post("/remission", remissionRequest)
+        restActions.post("/remission", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -498,9 +497,6 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void noFeeAndNoPaymentGroupReferenceAndRemissionGetsCreated() throws Exception {
-        BigDecimal calculatedAmount = new BigDecimal("199.99");
-        String feeReference = "feeReference";
-
         RemissionRequest remissionRequest = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
