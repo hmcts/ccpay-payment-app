@@ -56,7 +56,8 @@ public class RemissionController {
     @ApiOperation(value = "Create remission record", notes = "Create remission record")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Remission created"),
-        @ApiResponse(code = 400, message = "Remission creation failed")
+        @ApiResponse(code = 400, message = "Remission creation failed"),
+        @ApiResponse(code = 404, message = "Given payment group reference not found")
     })
     @PostMapping(value = "/remission")
     @ResponseBody
@@ -110,5 +111,12 @@ public class RemissionController {
     public String return400onDataIntegrityViolation(MethodArgumentNotValidException ex) {
         LOG.error("Error while creating remission", ex);
         return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(InvalidPaymentGroupReferenceException.class)
+    public String return404onInvalidPaymentGroupReference(InvalidPaymentGroupReferenceException ex) {
+        LOG.error("Error while creating remission: {}", ex);
+        return "Payment group reference not found";
     }
 }
