@@ -64,7 +64,6 @@ public class RemissionController {
         throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
         Optional<FeeDto> feeDto = Optional.ofNullable(remissionRequest.getFee());
-        //FeeDto feeDto = remissionRequest.getFee();
         PaymentFee paymentFee = feeDto.map(feeDto1 -> PaymentFee.feeWith()
             .code(feeDto1.getCode())
             .version(feeDto1.getVersion())
@@ -88,7 +87,8 @@ public class RemissionController {
                 .findByPaymentReference(remissionRequest.getPaymentGroupReference())
                 .orElseThrow(InvalidPaymentGroupReferenceException::new);
 
-            paymentFee.setPaymentLink(paymentFeeLink);
+            if(null!= paymentFee)
+                paymentFee.setPaymentLink(paymentFeeLink);
 
             paymentFeeRepository.save(paymentFee);
         }
