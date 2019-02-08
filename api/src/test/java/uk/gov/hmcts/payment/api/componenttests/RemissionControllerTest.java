@@ -416,7 +416,6 @@ public class RemissionControllerTest {
         assertTrue(returnedRemissionReference.matches(REMISSION_REFERENCE_REGEX));
     }
 
-    // TODO: fee sent over and saved
     @Test
     @Transactional
     public void feeDtoFilledGetsFeeSaved() throws Exception {
@@ -493,7 +492,6 @@ public class RemissionControllerTest {
         assertEquals("Fee code is correct", feeCode, paymentFee.getCode());
     }
 
-    // TODO: if no fee sent over, don't create it, should still create remission
     @Test
     @Transactional
     public void noFeeAndNoPaymentGroupReferenceAndRemissionGetsCreated() throws Exception {
