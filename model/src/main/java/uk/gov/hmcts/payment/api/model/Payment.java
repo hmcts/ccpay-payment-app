@@ -1,10 +1,5 @@
 package uk.gov.hmcts.payment.api.model;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import javax.persistence.*;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
@@ -39,7 +39,7 @@ public class Payment {
     private Date dateCreated;
 
     @UpdateTimestamp
-    @Column(name =  "date_updated")
+    @Column(name = "date_updated")
     private Date dateUpdated;
 
     @Transient
@@ -115,9 +115,6 @@ public class Payment {
 
     @Column(name = "reported_date_offline")
     private Date reportedDateOffline;
-
-    @Column(name= "remission_reference")
-    private String remissionReference;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
