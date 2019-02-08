@@ -46,7 +46,7 @@ services:
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST=*
       - SPRING_MAIL_PORT=25
       - SPRING_MAIL_HOST=mta.reform.hmcts.net
-      - TRUSTED_S2S_SERVICE_NAMES=cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service
+      - TRUSTED_S2S_SERVICE_NAMES=cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble
     ports:
      - 8080:8080
     depends_on:
