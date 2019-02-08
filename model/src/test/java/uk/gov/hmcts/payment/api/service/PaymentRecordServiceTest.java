@@ -19,7 +19,7 @@ import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
@@ -55,7 +55,7 @@ public class PaymentRecordServiceTest {
     private ServiceIdSupplier serviceIdSupplier;
 
     @Spy
-    private PaymentReferenceUtil paymentReferenceUtil;
+    private ReferenceUtil referenceUtil;
 
     @InjectMocks
     private PaymentRecordServiceImpl paymentRecordService;
@@ -115,7 +115,7 @@ public class PaymentRecordServiceTest {
 
         return Payment.paymentWith()
             .amount(new BigDecimal("100.11"))
-            .reference(paymentReferenceUtil.getNext())
+            .reference(referenceUtil.getNext("RC"))
             .caseReference("caseReference")
             .externalReference("chequeNumber")
             .giroSlipNo("giro")
@@ -127,7 +127,7 @@ public class PaymentRecordServiceTest {
             .build();
     }
 
-    private PaymentFee getFee() throws Exception {
+    private PaymentFee getFee() {
         return PaymentFee.feeWith()
             .reference("caseReference")
             .code("FEE0001")

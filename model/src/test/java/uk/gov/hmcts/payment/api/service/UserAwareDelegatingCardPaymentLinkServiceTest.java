@@ -3,11 +3,21 @@ package uk.gov.hmcts.payment.api.service;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
@@ -17,7 +27,11 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaymentWith;
 
 public class UserAwareDelegatingCardPaymentLinkServiceTest {
@@ -26,13 +40,14 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
     private static final String USER_ID = "USER_ID";
 
-    private PaymentReferenceUtil paymentReferenceUtil = mock(PaymentReferenceUtil.class);
+    private ReferenceUtil referenceUtil = mock(ReferenceUtil.class);
     private PaymentChannelRepository paymentChannelRepository = mock(PaymentChannelRepository.class);
     private PaymentMethodRepository paymentMethodRepository = mock(PaymentMethodRepository.class);
     private PaymentProviderRepository paymentProviderRepository = mock(PaymentProviderRepository.class);
     private PaymentStatusRepository paymentStatusRepository = mock(PaymentStatusRepository.class);
 
     private DelegatingPaymentService<GovPayPayment, String> govPayDelegatingPaymentService = mock(DelegatingPaymentService.class);
+    private DelegatingPaymentService<PciPalPayment, String> pciPalDelegatingPaymentService = mock(DelegatingPaymentService.class);
     private Payment2Repository paymentRespository = mock(Payment2Repository.class);
     private PaymentFeeLinkRepository paymentFeeLinkRepository = mock(PaymentFeeLinkRepository.class);
 
@@ -43,16 +58,16 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     private CallbackService callbackService = mock(CallbackService.class);
 
     private UserAwareDelegatingPaymentService cardPaymentService = new UserAwareDelegatingPaymentService(() -> USER_ID, paymentFeeLinkRepository,
-        govPayDelegatingPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
-        paymentStatusRepository, paymentRespository, paymentReferenceUtil, govPayAuthUtil, serviceIdSupplier, auditRepository, callbackService);
+        govPayDelegatingPaymentService, pciPalDelegatingPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
+        paymentStatusRepository, paymentRespository, referenceUtil, govPayAuthUtil, serviceIdSupplier, auditRepository, callbackService);
 
     @Test
     public void testRetrieveWhenServiceCallbackUrlIsDefinedCallbackServiceIsInvoked() throws Exception {
 
         String serviceName = "cmc";
-        when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-123C");
+        when(referenceUtil.getNext("RC")).thenReturn("RC-1234-1234-1234-123C");
         when(govPayAuthUtil.getServiceName(null, serviceName)).thenReturn(serviceName);
-        String reference = paymentReferenceUtil.getNext();
+        String reference = referenceUtil.getNext("RC");
 
         Payment payment1 = Payment.paymentWith().id(1)
             .externalReference("govPayId")
@@ -100,9 +115,9 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
     @Test
     public void testRetrieveCardPaymentForGivenPaymentReference() throws Exception {
         String serviceName = "cmc";
-        when(paymentReferenceUtil.getNext()).thenReturn("RC-1234-1234-1234-123C");
+        when(referenceUtil.getNext("RC")).thenReturn("RC-1234-1234-1234-123C");
         when(govPayAuthUtil.getServiceName(null, serviceName)).thenReturn(serviceName);
-        String reference = paymentReferenceUtil.getNext();
+        String reference = referenceUtil.getNext("RC");
 
         when(paymentFeeLinkRepository.findByPaymentReference("1")).thenReturn(Optional.of(PaymentFeeLink.paymentFeeLinkWith().id(1).paymentReference("payGroupRef")
             .payments(Arrays.asList(Payment.paymentWith().id(1)
