@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
-import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.service.RemissionService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.validators.RemissionValidator;
@@ -87,7 +87,7 @@ public class RemissionController {
                 .findByPaymentReference(remissionRequest.getPaymentGroupReference())
                 .orElseThrow(InvalidPaymentGroupReferenceException::new);
 
-            if(null!= paymentFee)
+            if (null != paymentFee)
                 paymentFee.setPaymentLink(paymentFeeLink);
 
             paymentFeeRepository.save(paymentFee);
