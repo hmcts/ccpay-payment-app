@@ -131,6 +131,9 @@ databaseChangeLog:
         - column:
             name: remission_reference
             type: varchar(255)
+        - column:
+            name: fee_id
+            type: INT
         tableName: remissions
     - createIndex:
         indexName: ix_remission_remission_reference
@@ -140,3 +143,11 @@ databaseChangeLog:
         - column:
             name: remission_reference
             type: varchar(255)
+
+- changeSet:
+    id: 1529403181334-5
+    author: mateuszs
+    changes:
+    - dropColumn:
+        columnName: fee_id
+        tableName: remissions
