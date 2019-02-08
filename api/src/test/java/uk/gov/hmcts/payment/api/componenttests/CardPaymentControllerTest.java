@@ -2,8 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -87,8 +85,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -186,7 +182,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-payment-response.json"))));
 
-        //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .caseReference("Reference1")
@@ -234,7 +229,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-payment-status-response.json"))));
 
-        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("499.99"))
@@ -284,8 +278,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-card-details-response.json"))));
 
-
-        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Success").externalStatus("success").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("121.11"))
@@ -332,8 +324,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-payment-error-response.json"))));
 
-
-        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Failed").externalStatus("error").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("22.89"))
@@ -423,7 +413,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-payment-error-response.json"))));
 
-        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("22.89"))
@@ -467,7 +456,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             assertEquals(h.getMessage(), "Payment not found");
         });
     }
-
 
     @Test
     public void createCardPaymentForCMC_withCaseReferenceOnly_shouldReturnStatusCreatedTest() throws Exception {
