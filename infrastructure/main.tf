@@ -146,14 +146,10 @@ module "payment-api" {
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
 
     # PCI PAL
-    PCI_PAL_ACCOUNT_ID_CMC_TEST = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc_test.value}"
-    PCI_PAL_ACCOUNT_ID_CMC_LIVE = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc_live.value}"
-    PCI_PAL_ACCOUNT_ID_PROBATE_TEST = "${data.azurerm_key_vault_secret.pci_pal_account_id_probate_test.value}"
-    PCI_PAL_ACCOUNT_ID_PROBATE_LIVE = "${data.azurerm_key_vault_secret.pci_pal_account_id_probate_live.value}"
-    PCI_PAL_ACCOUNT_ID_DIVORCE_TEST = "${data.azurerm_key_vault_secret.pci_pal_account_id_divorce_test.value}"
-    PCI_PAL_ACCOUNT_ID_DIVORCE_LIVE = "${data.azurerm_key_vault_secret.pci_pal_account_id_divorce_live.value}"
-    PCI_PAL_API_URL_TEST = "${data.azurerm_key_vault_secret.pci_pal_api_url_test.value}"
-    PCI_PAL_API_URL_LIVE = "${data.azurerm_key_vault_secret.pci_pal_api_url_live.value}"
+    PCI_PAL_ACCOUNT_ID_CMC = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc.value}"
+    PCI_PAL_ACCOUNT_ID_PROBATE = "${data.azurerm_key_vault_secret.pci_pal_account_id_probate.value}"
+    PCI_PAL_ACCOUNT_ID_DIVORCE = "${data.azurerm_key_vault_secret.pci_pal_account_id_divorce.value}"
+    PCI_PAL_API_URL = "${data.azurerm_key_vault_secret.pci_pal_api_url.value}"
     PCI_PAL_API_KEY = "${data.azurerm_key_vault_secret.pci_pal_api_key.value}"
 
     # liberata
