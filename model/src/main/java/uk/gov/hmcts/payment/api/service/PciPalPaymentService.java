@@ -49,7 +49,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
 
-    public String sendIntialPaymentRequest(PciPalPaymentRequest pciPalPaymentRequest,String serviceType) {
+    public String sendInitialPaymentRequest(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
         return withIOExceptionHandling(() -> {
         String ppAccountID = null;
         if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
