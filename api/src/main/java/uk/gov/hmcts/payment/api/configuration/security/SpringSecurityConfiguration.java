@@ -39,6 +39,7 @@ public class SpringSecurityConfiguration {
                 .requestMatchers()
                     .antMatchers(HttpMethod.GET, "/payments")
                     .antMatchers(HttpMethod.PATCH, "/payments/**")
+                    .antMatchers(HttpMethod.POST, "/telephony/callback")
                     .antMatchers(  "/jobs/**")
                     .and()
                 .addFilter(authCheckerServiceOnlyFilter)
