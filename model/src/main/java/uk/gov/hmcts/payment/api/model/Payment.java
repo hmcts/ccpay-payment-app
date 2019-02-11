@@ -116,9 +116,6 @@ public class Payment {
     @Column(name = "reported_date_offline")
     private Date reportedDateOffline;
 
-    @Column(name= "remission_reference")
-    private String remissionReference;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     @ToString.Exclude

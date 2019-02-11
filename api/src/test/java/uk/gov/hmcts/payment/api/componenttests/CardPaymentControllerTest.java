@@ -457,7 +457,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         });
     }
 
-
     @Test
     public void createCardPaymentForCMC_withCaseReferenceOnly_shouldReturnStatusCreatedTest() throws Exception {
 
