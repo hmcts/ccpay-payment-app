@@ -92,7 +92,7 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
 
     private void createPayment(int n) {
 
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .caseReference("Reference" + n)

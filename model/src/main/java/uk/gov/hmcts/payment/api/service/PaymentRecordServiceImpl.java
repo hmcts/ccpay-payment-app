@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -28,7 +28,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
     private final PaymentStatusRepository paymentStatusRepository;
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentMethodRepository paymentMethodRepository;
-    private final PaymentReferenceUtil paymentReferenceUtil;
+    private final ReferenceUtil referenceUtil;
     private final UserIdSupplier userIdSupplier;
     private final ServiceIdSupplier serviceIdSupplier;
 
@@ -38,13 +38,13 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                                     PaymentChannelRepository paymentChannelRepository,
                                     PaymentMethodRepository paymentMethodRepository,
                                     PaymentStatusRepository paymentStatusRepository,
-                                    PaymentReferenceUtil paymentReferenceUtil,
+                                    ReferenceUtil referenceUtil,
                                     UserIdSupplier userIdSupplier, ServiceIdSupplier serviceIdSupplier) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentStatusRepository = paymentStatusRepository;
-        this.paymentReferenceUtil = paymentReferenceUtil;
+        this.referenceUtil = referenceUtil;
         this.userIdSupplier = userIdSupplier;
         this.serviceIdSupplier = serviceIdSupplier;
     }
@@ -78,7 +78,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_DIGITAL_BAR))
                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(getPaymentStatus(payment.getPaymentMethod().getName())))
                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(payment.getPaymentMethod().getName()))
-                .reference(paymentReferenceUtil.getNext())
+                .reference(referenceUtil.getNext("RC"))
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                     .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName())
                     .build()))

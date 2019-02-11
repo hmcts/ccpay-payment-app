@@ -55,7 +55,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4}){1}";
+    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
@@ -120,7 +120,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void retrieveCreditAccountPaymentByPaymentReference() throws Exception {
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .caseReference("Reference1")
@@ -180,7 +180,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void retrievePaymentStatusesTest() throws Exception {
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .caseReference("Reference11")
