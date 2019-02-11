@@ -61,7 +61,7 @@ public class PciPalPaymentServiceTest {
         params.add(new BasicNameValuePair("orderCurrency", "GBP"));
         params.add(new BasicNameValuePair("orderReference", "RC123456789"));
         params.add(new BasicNameValuePair("callbackURL", "http://example.com"));
-        String  response = pciPalPaymentService.sendIntialPaymentRequest(request,"cmc");
+        String  response = pciPalPaymentService.sendInitialPaymentRequest(request,"cmc");
         assertThat(response).isEqualTo("http://example.com");
     }
 

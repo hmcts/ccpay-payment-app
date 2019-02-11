@@ -42,7 +42,7 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink,String link) {
+    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mapedStatus)
@@ -55,8 +55,6 @@ public class PaymentDtoMapper {
             ))
             .build();
     }
-
-
 
     public PaymentDto toResponseDto(PaymentFeeLink paymentFeeLink, Payment payment) {
         List<PaymentFee> fees = paymentFeeLink.getFees();
@@ -136,7 +134,7 @@ public class PaymentDtoMapper {
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
-            .statusHistories(payment.getStatusHistories()!= null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -183,8 +181,8 @@ public class PaymentDtoMapper {
             .code(fee.getCode())
             .version(fee.getVersion())
             .volume(fee.getVolume())
-            .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber(): null)
-            .reference(fee.getReference() != null ? fee.getReference(): null)
+            .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber() : null)
+            .reference(fee.getReference() != null ? fee.getReference() : null)
             .build();
 
     }
