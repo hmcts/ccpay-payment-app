@@ -22,7 +22,7 @@ locals {
 
   #region API gateway
   api_policy = "${file("template/api-policy.xml")}"
-  api_base_path = "payments-api"
+  api_base_path = "telephony-api"
   # endregion
 }
 
