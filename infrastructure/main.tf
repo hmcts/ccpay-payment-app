@@ -31,6 +31,31 @@ data "azurerm_key_vault" "payment_key_vault" {
   resource_group_name = "${var.core_product}-${local.local_env}"
 }
 
+data "azurerm_key_vault_secret" "pci_pal_account_id_cmc" {
+  name = "pci-pal-account-id-cmc"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_account_id_probate" {
+  name = "pci-pal-account-id-probate"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_account_id_divorce" {
+  name = "pci-pal-account-id-divorce"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_api_url" {
+  name = "pci-pal-api-url"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_api_key" {
+  name = "pci-pal-api-key"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
 data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_id" {
   name = "liberata-keys-oauth2-client-id"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
@@ -70,14 +95,17 @@ data "azurerm_key_vault_secret" "gov_pay_keys_divorce" {
   name = "gov-pay-keys-divorce"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "card_payments_email_to" {
   name = "card-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
   name = "pba-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "pba_divorce_payments_email_to" {
   name = "pba-divorce-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
@@ -121,6 +149,13 @@ module "payment-api" {
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
+
+    # PCI PAL
+    PCI_PAL_ACCOUNT_ID_CMC = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc.value}"
+    PCI_PAL_ACCOUNT_ID_PROBATE = "${data.azurerm_key_vault_secret.pci_pal_account_id_probate.value}"
+    PCI_PAL_ACCOUNT_ID_DIVORCE = "${data.azurerm_key_vault_secret.pci_pal_account_id_divorce.value}"
+    PCI_PAL_API_URL = "${data.azurerm_key_vault_secret.pci_pal_api_url.value}"
+    PCI_PAL_API_KEY = "${data.azurerm_key_vault_secret.pci_pal_api_key.value}"
 
     # liberata
     LIBERATA_OAUTH2_CLIENT_ID = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_id.value}"
