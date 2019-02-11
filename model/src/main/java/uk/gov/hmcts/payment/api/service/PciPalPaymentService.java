@@ -48,7 +48,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         this.httpClient = httpClient;
     }
 
-
     public String sendInitialPaymentRequest(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
         return withIOExceptionHandling(() -> {
             String ppAccountID = null;
