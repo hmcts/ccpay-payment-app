@@ -1,7 +1,12 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
-import liquibase.util.StringUtils;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
@@ -27,7 +41,9 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -49,7 +65,8 @@ public class CardPaymentController {
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
-                                 CardDetailsService<CardDetails, String> cardDetailsService, PciPalPaymentService pciPalPaymentService) {
+                                 CardDetailsService<CardDetails, String> cardDetailsService,
+                                 PciPalPaymentService pciPalPaymentService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
@@ -68,7 +85,7 @@ public class CardPaymentController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
-        String paymentReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
@@ -76,7 +93,7 @@ public class CardPaymentController {
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
-            .paymentReference(paymentReference)
+            .paymentReference(paymentGroupReference)
             .description(request.getDescription())
             .returnUrl(returnURL)
             .ccdCaseNumber(request.getCcdCaseNumber())
@@ -94,12 +111,12 @@ public class CardPaymentController {
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
         PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
-                .orderReference(paymentLink.getPaymentReference()).build();
+            .orderReference(paymentLink.getPaymentReference()).build();
 
         if (request.getChannel().equals("telephony")) {
             pciPalPaymentRequest.setCustomData1(paymentLink.getPayments().get(0).getCcdCaseNumber());
-            String link = pciPalPaymentService.sendInitialPaymentRequest(pciPalPaymentRequest,request.getService().getName());
-            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink,link);
+            String link = pciPalPaymentService.sendInitialPaymentRequest(pciPalPaymentRequest, request.getService().getName());
+            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
         }
 
         return new ResponseEntity<>(paymentDto, CREATED);
