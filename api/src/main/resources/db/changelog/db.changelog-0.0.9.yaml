@@ -123,13 +123,34 @@ databaseChangeLog:
               type: varchar(255)
 
 - changeSet:
-    id: 1529403181334-5
-    author: smathangi
+    id: 1529403181334-4
+    author: mateuszs
     changes:
-    - sql:
-        splitStatements:
-        sql: >
-          INSERT INTO payment_status (name, description) VALUES ('decline', 'Payment declined');
+    - addColumn:
+        columns:
+        - column:
+            name: remission_reference
+            type: varchar(255)
+        - column:
+            name: fee_id
+            type: INT
+        tableName: remissions
+    - createIndex:
+        indexName: ix_remission_remission_reference
+        tableName: remissions
+        unique: true
+        columns:
+        - column:
+            name: remission_reference
+            type: varchar(255)
+
+- changeSet:
+    id: 1529403181334-5
+    author: mateuszs
+    changes:
+    - dropColumn:
+        columnName: fee_id
+        tableName: remissions
 
 - changeSet:
     id: 1529403181335-6
@@ -147,3 +168,12 @@ databaseChangeLog:
         - column:
             name: payload
             type: text
+
+- changeSet:
+    id: 1529403181338-7
+    author: smathangi
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          INSERT INTO payment_status (name, description) VALUES ('decline', 'Payment declined');

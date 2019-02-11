@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -48,6 +50,7 @@ public class TelephonyPaymentsTest {
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Before
     public void setUp() throws Exception {
@@ -192,6 +195,36 @@ public class TelephonyPaymentsTest {
                 assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
                 assertEquals("payment status is properly set", "Failed", paymentRetrieved.getStatus());
             });
+        });
+    }
+
+    @Test
+    public void createASuccessfulCardPaymentWithChannelTelephonyAndProviderPciPal() {
+        String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
+        CardPaymentRequest paymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("100"))
+            .description("description")
+            .caseReference(telRefNumber)
+            .ccdCaseNumber("1234")
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .provider("pci pal")
+            .channel("telephony")
+            .siteId("siteId")
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .code("feeCode")
+                .version("1")
+                .calculatedAmount(new BigDecimal("100.1"))
+                .build()))
+            .build();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.goooooogle.com")
+            .when().createCardPayment(paymentRequest)
+            .then().created(paymentDto -> {
+            assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
     }
 

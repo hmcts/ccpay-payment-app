@@ -8,7 +8,7 @@ import uk.gov.hmcts.payment.api.model.RemissionRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 @Component
-public class RemissionBackdoor {
+public class RemissionDbBackdoor {
     @Autowired
     private RemissionRepository remissionRepository;
 
@@ -18,5 +18,9 @@ public class RemissionBackdoor {
 
     public Remission findByHwfReference(String hwfReference) {
         return remissionRepository.findByHwfReference(hwfReference).orElseThrow(RemissionNotFoundException::new);
+    }
+
+    public Remission findByRemissionReference(String remissionReference) {
+        return remissionRepository.findByRemissionReference(remissionReference).orElseThrow(RemissionNotFoundException::new);
     }
 }
