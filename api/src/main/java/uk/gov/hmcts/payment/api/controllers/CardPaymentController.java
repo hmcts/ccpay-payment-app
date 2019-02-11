@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
-import liquibase.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +80,7 @@ public class CardPaymentController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
-        String paymentReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
@@ -88,7 +88,7 @@ public class CardPaymentController {
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
-            .paymentReference(paymentReference)
+            .paymentReference(paymentGroupReference)
             .description(request.getDescription())
             .returnUrl(returnURL)
             .ccdCaseNumber(request.getCcdCaseNumber())

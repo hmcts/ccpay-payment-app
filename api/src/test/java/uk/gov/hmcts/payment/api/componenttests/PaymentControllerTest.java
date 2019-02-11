@@ -110,7 +110,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void updateCaseReference_forGivenPaymentReferenceTest() throws Exception {
-        //Create a payment in db
+        //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .caseReference("caseReference")
