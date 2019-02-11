@@ -122,8 +122,6 @@ databaseChangeLog:
               name: hwf_reference
               type: varchar(255)
 
-
-
 - changeSet:
     id: 1529403181334-4
     author: mateuszs
@@ -137,12 +135,6 @@ databaseChangeLog:
             name: fee_id
             type: INT
         tableName: remissions
-    - addColumn:
-        columns:
-        - column:
-            name: remission_reference
-            type: varchar(255)
-        tableName: payment
     - createIndex:
         indexName: ix_remission_remission_reference
         tableName: remissions
@@ -152,3 +144,10 @@ databaseChangeLog:
             name: remission_reference
             type: varchar(255)
 
+- changeSet:
+    id: 1529403181334-5
+    author: mateuszs
+    changes:
+    - dropColumn:
+        columnName: fee_id
+        tableName: remissions

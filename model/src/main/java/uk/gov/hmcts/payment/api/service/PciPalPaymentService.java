@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class PciPalPaymentService implements DelegatingPaymentService<PciPalPayment, String>  {
+public class PciPalPaymentService implements DelegatingPaymentService<PciPalPayment, String> {
     private static final Logger LOG = LoggerFactory.getLogger(PciPalPaymentService.class);
     private static final String SERVICE_TYPE_PROBATE = "probate";
     private static final String SERVICE_TYPE_CMC = "cmc";
@@ -41,7 +41,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private final HttpClient httpClient;
 
     @Autowired
-    public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,@Value("${pci-pal.api.key}") String apiKey,
+    public PciPalPaymentService(@Value("${pci-pal.api.url}") String url, @Value("${pci-pal.api.key}") String apiKey,
                                 @Qualifier("paymentsHttpClient") HttpClient httpClient) {
         this.url = url;
         this.apiKey = apiKey;
@@ -51,31 +51,31 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     public String sendInitialPaymentRequest(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
         return withIOExceptionHandling(() -> {
-        String ppAccountID = null;
-        if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
-            ppAccountID = ppAccountIDDivorce;
-        else if(serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
-            ppAccountID = ppAccountIDCmc;
-        else if(serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
-            ppAccountID = ppAccountIDProbate;
+            String ppAccountID = null;
+            if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
+                ppAccountID = ppAccountIDDivorce;
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
+                ppAccountID = ppAccountIDCmc;
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
+                ppAccountID = ppAccountIDProbate;
 
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("apiKey", apiKey));
-        params.add(new BasicNameValuePair("ppAccountId", ppAccountID));
-        params.add(new BasicNameValuePair("renderMethod", "IFRAME"));
-        params.add(new BasicNameValuePair("amount", pciPalPaymentRequest.getOrderAmount()));
-        params.add(new BasicNameValuePair("orderCurrency", pciPalPaymentRequest.getOrderCurrency()));
-        params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
-        params.add(new BasicNameValuePair("callbackURL", pciPalPaymentRequest.getCallbackURL()));
-        params.add(new BasicNameValuePair("customData1", pciPalPaymentRequest.getCustomData1()));
-        HttpPost request = postRequestFor( url, new UrlEncodedFormEntity(params));
-        HttpResponse response = httpClient.execute(request);
-        String responseString = EntityUtils.toString(response.getEntity(), "UTF-8");
-             return responseString;
+            List<NameValuePair> params = new ArrayList<NameValuePair>();
+            params.add(new BasicNameValuePair("apiKey", apiKey));
+            params.add(new BasicNameValuePair("ppAccountId", ppAccountID));
+            params.add(new BasicNameValuePair("renderMethod", "IFRAME"));
+            params.add(new BasicNameValuePair("amount", pciPalPaymentRequest.getOrderAmount()));
+            params.add(new BasicNameValuePair("orderCurrency", pciPalPaymentRequest.getOrderCurrency()));
+            params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
+            params.add(new BasicNameValuePair("callbackURL", pciPalPaymentRequest.getCallbackURL()));
+            params.add(new BasicNameValuePair("customData1", pciPalPaymentRequest.getCustomData1()));
+            HttpPost request = postRequestFor(url, new UrlEncodedFormEntity(params));
+            HttpResponse response = httpClient.execute(request);
+            String responseString = EntityUtils.toString(response.getEntity(), "UTF-8");
+            return responseString;
         });
-        }
+    }
 
-    private HttpPost postRequestFor(String url, UrlEncodedFormEntity entity)  {
+    private HttpPost postRequestFor(String url, UrlEncodedFormEntity entity) {
         HttpPost request = new HttpPost(url);
         request.setEntity(entity);
         return request;
