@@ -1,4 +1,5 @@
 ## HMCTS Payment Gateway
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=uk.gov.hmcts.reform.payment%3Apayment-app&metric=alert_status)](https://sonarcloud.io/dashboard?id=uk.gov.hmcts.reform.payment%3Apayment-app)
 [![Build Status](https://travis-ci.org/hmcts/ccpay-payment-app.svg?branch=master)](https://travis-ci.org/hmcts/ccpay-payment-app)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/0cb10a161dc24d0092470cda7c304c87)](https://app.codacy.com/app/HMCTS/ccpay-payment-app)
 [![codecov](https://codecov.io/gh/hmcts/ccpay-payment-app/branch/master/graph/badge.svg)](https://codecov.io/gh/hmcts/ccpay-payment-app)
