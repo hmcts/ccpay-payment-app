@@ -52,3 +52,102 @@ databaseChangeLog:
           splitStatements:
           sql: >
             INSERT INTO payment_provider (name, description) VALUES ('pci pal', 'PCI PAL')
+
+- changeSet:
+    id: 1529403181333-3
+    author: emagdalena
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          CREATE INDEX ix_date_upd_trunc ON payment ( date_trunc('seconds', date_updated));
+
+- changeSet:
+    id: 1529403181334-1
+    author: mateuszs
+    changes:
+      changes:
+        - createTable:
+            columns:
+            - column:
+                autoIncrement: true
+                constraints:
+                  primaryKey: true
+                  primaryKeyName: remissionsPK
+                name: id
+                type: INT
+            - column:
+                name: hwf_reference
+                type: VARCHAR(255)
+            - column:
+                name: hwf_amount
+                type: numeric(19, 2)
+            - column:
+                name: beneficiary_name
+                type: VARCHAR(256)
+            - column:
+                name: ccd_case_number
+                type: VARCHAR(255)
+            - column:
+                name: case_reference
+                type: VARCHAR(255)
+            - column:
+                name: payment_group_reference
+                type: VARCHAR(255)
+            tableName: remissions
+
+- changeSet:
+    id: 1529403181334-2
+    author: mateuszs
+    changes:
+      - createIndex:
+          indexName: ix_remission_ccd_case_number
+          tableName: remissions
+          unique: false
+          columns:
+          - column:
+              name: ccd_case_number
+              type: varchar(255)
+
+- changeSet:
+    id: 1529403181334-3
+    author: mateuszs
+    changes:
+      - createIndex:
+          indexName: ix_remission_hwf_reference
+          tableName: remissions
+          unique: false
+          columns:
+          - column:
+              name: hwf_reference
+              type: varchar(255)
+
+- changeSet:
+    id: 1529403181334-4
+    author: mateuszs
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: remission_reference
+            type: varchar(255)
+        - column:
+            name: fee_id
+            type: INT
+        tableName: remissions
+    - createIndex:
+        indexName: ix_remission_remission_reference
+        tableName: remissions
+        unique: true
+        columns:
+        - column:
+            name: remission_reference
+            type: varchar(255)
+
+- changeSet:
+    id: 1529403181334-5
+    author: mateuszs
+    changes:
+    - dropColumn:
+        columnName: fee_id
+        tableName: remissions

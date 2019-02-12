@@ -8,8 +8,18 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.PaymentReferenceUtil;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -37,7 +47,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private final PaymentChannelRepository paymentChannelRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final Payment2Repository paymentRespository;
-    private final PaymentReferenceUtil paymentReferenceUtil;
+    private final ReferenceUtil referenceUtil;
     private final ServiceIdSupplier serviceIdSupplier;
 
     @Autowired
@@ -45,13 +55,13 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                                                           PaymentChannelRepository paymentChannelRepository,
                                                           PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                           PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                                          PaymentReferenceUtil paymentReferenceUtil, ServiceIdSupplier serviceIdSupplier) {
+                                                          ReferenceUtil referenceUtil, ServiceIdSupplier serviceIdSupplier) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentRespository = paymentRespository;
-        this.paymentReferenceUtil = paymentReferenceUtil;
+        this.referenceUtil = referenceUtil;
         this.serviceIdSupplier = serviceIdSupplier;
     }
 
@@ -79,10 +89,11 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                 .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
                 .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
                 .paymentStatus(paymentStatusRepository.findByNameOrThrow(creditAccount.getPaymentStatus().getName()))
-                .reference(paymentReferenceUtil.getNext())
-                .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+                .reference(referenceUtil.getNext("RC"))
+                .statusHistories(creditAccount.getStatusHistories() == null ? Arrays.asList(StatusHistory.statusHistoryWith()
                     .status(paymentStatusRepository.findByNameOrThrow(creditAccount.getPaymentStatus().getName()).getName())
-                    .build()))
+                    .build())
+                    : creditAccount.getStatusHistories())
                 .build();
         } catch (CheckDigitException e) {
             LOG.error("Error in generating check digit for the payment reference, {}", e);

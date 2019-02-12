@@ -51,4 +51,10 @@
     <suppress>
         <cve>CVE-2013-1282</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   org.slf4j:slf4j-api:1.7.25 -> inherited from org.springframework.boot:spring-boot-starter-web. No fix available yet.
+   ]]></notes>
+        <cve>CVE-2018-8088</cve>
+    </suppress>
 </suppressions>

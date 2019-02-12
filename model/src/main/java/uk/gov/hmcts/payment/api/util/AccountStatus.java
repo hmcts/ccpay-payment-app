@@ -5,8 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public enum AccountStatus {
     @JsonProperty("Active")
     ACTIVE("Active"),
-    @JsonProperty("Inactive")
-    INACTIVE("Inactive");
+    @JsonProperty("On-Hold")
+    ON_HOLD("On-Hold"),
+    @JsonProperty("Deleted")
+    DELETED("Deleted");
+
 
     private String status;
 

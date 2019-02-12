@@ -1,6 +1,12 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,53 +14,57 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.reports.PaymentsReportService;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 
 /**
- *
  * Card payment controller
- *
- * */
+ */
 
 @RestController
-@Api(tags = {"CardPaymentController"})
-@SwaggerDefinition(tags = {@Tag(name = "CardPaymentController", description = "Card Payment API")})
+@Api(tags = {"Card Payment"})
+@SwaggerDefinition(tags = {@Tag(name = "CardPaymentController", description = "Card payment REST API")})
 public class CardPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CardPaymentController.class);
 
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
     private final PaymentDtoMapper paymentDtoMapper;
-    private final PaymentsReportService paymentsReportService;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
-                                 PaymentsReportService paymentsReportService,
                                  CardDetailsService<CardDetails, String> cardDetailsService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
-        this.paymentsReportService = paymentsReportService;
         this.cardDetailsService = cardDetailsService;
     }
 
@@ -64,18 +74,36 @@ public class CardPaymentController {
         @ApiResponse(code = 400, message = "Payment creation failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @RequestMapping(value = "/card-payments", method = POST)
+    @PostMapping(value = "/card-payments")
     @ResponseBody
     public ResponseEntity<PaymentDto> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
-        String paymentReference = PaymentReference.getInstance().getNext();
+        String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        int amountInPence = request.getAmount().multiply(new BigDecimal(100)).intValue();
+        if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
+            request.setChannel("online");
+            request.setProvider("gov pay");
+        }
 
-        PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentReference, request.getDescription(), returnURL, request.getCcdCaseNumber(), request.getCaseReference(), request.getCurrency().getCode(), request.getSiteId(), request.getService().getName(), paymentDtoMapper.toFees(request.getFees()), amountInPence,
-            serviceCallbackUrl);
+        PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
+            .paymentGroupReference(paymentGroupReference)
+            .description(request.getDescription())
+            .returnUrl(returnURL)
+            .ccdCaseNumber(request.getCcdCaseNumber())
+            .caseReference(request.getCaseReference())
+            .currency(request.getCurrency().getCode())
+            .siteId(request.getSiteId())
+            .serviceType(request.getService().getName())
+            .fees(paymentDtoMapper.toFees(request.getFees()))
+            .amount(request.getAmount())
+            .serviceCallbackUrl(serviceCallbackUrl)
+            .channel(request.getChannel())
+            .provider(request.getProvider())
+            .build();
+
+        PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
 
         return new ResponseEntity<>(paymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
     }
@@ -86,12 +114,12 @@ public class CardPaymentController {
         @ApiResponse(code = 403, message = "Payment info forbidden"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/card-payments/{reference}", method = GET)
+    @GetMapping(value = "/card-payments/{reference}")
     public PaymentDto retrieve(@PathVariable("reference") String paymentReference) {
         return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference));
     }
 
-    @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card detaisl for supplied payment reference")
+    @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card details for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment card details retrieved"),
         @ApiResponse(code = 404, message = "Payment card details not found")
@@ -106,7 +134,7 @@ public class CardPaymentController {
         @ApiResponse(code = 200, message = "Payment retrieved"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/card-payments/{reference}/statuses", method = GET)
+    @GetMapping(value = "/card-payments/{reference}/statuses")
     public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
         return paymentDtoMapper.toRetrievePaymentStatusesDto(delegatingPaymentService.retrieve(paymentReference));
     }

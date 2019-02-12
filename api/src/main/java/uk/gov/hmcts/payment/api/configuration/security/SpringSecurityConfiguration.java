@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.service.Service;
 import uk.gov.hmcts.reform.auth.checker.core.user.User;
-import uk.gov.hmcts.reform.auth.checker.spring.serviceanduser.AuthCheckerServiceAndUserFilter;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
@@ -53,13 +52,13 @@ public class SpringSecurityConfiguration {
     @Order(2)
     public static class InternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
-        private AuthCheckerServiceAndUserFilter authCheckerFilter;
+        private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
 
         @Autowired
         public InternalApiSecurityConfigurationAdapter(RequestAuthorizer<User> userRequestAuthorizer,
                                            RequestAuthorizer<Service> serviceRequestAuthorizer,
                                            AuthenticationManager authenticationManager) {
-            authCheckerFilter = new AuthCheckerServiceAndUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
+            authCheckerFilter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
             authCheckerFilter.setAuthenticationManager(authenticationManager);
         }
 
@@ -79,8 +78,7 @@ public class SpringSecurityConfiguration {
         @Override
         @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED", justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         protected void configure(HttpSecurity http) throws Exception {
-            http
-                .addFilter(authCheckerFilter)
+            http.addFilter(authCheckerFilter)
                 .sessionManagement().sessionCreationPolicy(STATELESS).and()
                 .csrf().disable()
                 .formLogin().disable()
