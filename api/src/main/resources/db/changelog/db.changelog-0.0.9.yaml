@@ -145,7 +145,7 @@ databaseChangeLog:
             type: varchar(255)
 
 - changeSet:
-    id: 1529403181334-5
+    id: 1529403181334-8
     author: mateuszs
     changes:
     - dropColumn:
@@ -169,11 +169,3 @@ databaseChangeLog:
             name: payload
             type: text
 
-- changeSet:
-    id: 1529403181338-7
-    author: smathangi
-    changes:
-    - sql:
-        splitStatements:
-        sql: >
-          INSERT INTO payment_status (name, description) VALUES ('decline', 'Payment declined');
