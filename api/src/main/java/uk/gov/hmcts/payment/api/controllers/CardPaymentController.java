@@ -88,7 +88,7 @@ public class CardPaymentController {
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
-            .paymentReference(paymentGroupReference)
+            .paymentGroupReference(paymentGroupReference)
             .description(request.getDescription())
             .returnUrl(returnURL)
             .ccdCaseNumber(request.getCcdCaseNumber())
