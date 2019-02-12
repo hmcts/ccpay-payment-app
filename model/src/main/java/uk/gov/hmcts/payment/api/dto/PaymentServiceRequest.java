@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(builderMethodName = "paymentServiceRequestWith")
 public class PaymentServiceRequest {
+    private String paymentGroupReference;
     private String paymentReference;
     private String description;
     private String returnUrl;
