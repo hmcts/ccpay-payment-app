@@ -19,11 +19,41 @@ locals {
   website_url = "http://${var.product}-api-${local.local_env}.service.${local.local_ase}.internal"
 
   asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
+
+  #region API gateway
+  api_policy = "${file("template/api-policy.xml")}"
+  api_base_path = "telephony-api"
+  # endregion
 }
 
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
   resource_group_name = "${var.core_product}-${local.local_env}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_account_id_cmc" {
+  name = "pci-pal-account-id-cmc"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_account_id_probate" {
+  name = "pci-pal-account-id-probate"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_account_id_divorce" {
+  name = "pci-pal-account-id-divorce"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_api_url" {
+  name = "pci-pal-api-url"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pci_pal_api_key" {
+  name = "pci-pal-api-key"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_id" {
@@ -65,14 +95,17 @@ data "azurerm_key_vault_secret" "gov_pay_keys_divorce" {
   name = "gov-pay-keys-divorce"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "card_payments_email_to" {
   name = "card-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
   name = "pba-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
 data "azurerm_key_vault_secret" "pba_divorce_payments_email_to" {
   name = "pba-divorce-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
@@ -116,6 +149,13 @@ module "payment-api" {
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
+
+    # PCI PAL
+    PCI_PAL_ACCOUNT_ID_CMC = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc.value}"
+    PCI_PAL_ACCOUNT_ID_PROBATE = "${data.azurerm_key_vault_secret.pci_pal_account_id_probate.value}"
+    PCI_PAL_ACCOUNT_ID_DIVORCE = "${data.azurerm_key_vault_secret.pci_pal_account_id_divorce.value}"
+    PCI_PAL_API_URL = "${data.azurerm_key_vault_secret.pci_pal_api_url.value}"
+    PCI_PAL_API_KEY = "${data.azurerm_key_vault_secret.pci_pal_api_key.value}"
 
     # liberata
     LIBERATA_OAUTH2_CLIENT_ID = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_id.value}"
@@ -225,3 +265,49 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   value     = "${module.payment-database.postgresql_database}"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
+
+
+# region API (gateway)
+
+data "azurerm_key_vault_secret" "s2s_client_secret" {
+  name = "gateway-s2s-client-secret"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "s2s_client_id" {
+  name = "gateway-s2s-client-id"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "template_file" "policy_template" {
+  template = "${file("${path.module}/template/api-policy.xml")}"
+
+  vars {
+    s2s_client_id = "${data.azurerm_key_vault_secret.s2s_client_id.value}"
+    s2s_client_secret = "${data.azurerm_key_vault_secret.s2s_client_secret.value}"
+    s2s_base_url = "${local.s2sUrl}"
+  }
+}
+
+data "template_file" "api_template" {
+  template = "${file("${path.module}/template/api.json")}"
+}
+
+resource "azurerm_template_deployment" "telephony_api" {
+  template_body       = "${data.template_file.api_template.rendered}"
+  name                = "telephony-api-${var.env}"
+  deployment_mode     = "Incremental"
+  resource_group_name = "core-infra-${var.env}"
+  count               = "${var.env != "preview" ? 1: 0}"
+
+  parameters = {
+    apiManagementServiceName  = "core-api-mgmt-${var.env}"
+    apiName                   = "telephony-api"
+    apiProductName            = "telephony"
+    serviceUrl                = "http://payment-api-${var.env}.service.core-compute-${var.env}.internal"
+    apiBasePath               = "${local.api_base_path}"
+    policy                    = "${data.template_file.policy_template.rendered}"
+  }
+}
+
+# endregion

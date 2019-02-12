@@ -10,6 +10,8 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>{
 
     Optional<Payment> findByReferenceAndPaymentMethod(String reference, PaymentMethod paymentMethod);
 
+    Optional<Payment> findByReferenceAndPaymentProvider(String reference, PaymentProvider paymentProvider);
+
     Optional<Payment> findByReference(String reference);
 
     List<Reference> findReferencesByPaymentProviderAndPaymentStatusNotIn(PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses);
