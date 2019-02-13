@@ -116,6 +116,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     public PaymentFeeLink create(PaymentServiceRequest paymentServiceRequest)
         throws CheckDigitException {
         String paymentReference = referenceUtil.getNext("RC");
+        paymentServiceRequest.setPaymentReference(paymentReference);
 
         Payment payment = buildPayment(paymentReference, paymentServiceRequest);
         if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
@@ -140,7 +141,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         }
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-            .paymentReference(paymentServiceRequest.getPaymentReference())
+            .paymentReference(paymentServiceRequest.getPaymentGroupReference())
             .payments(Collections.singletonList(payment))
             .fees(paymentServiceRequest.getFees())
             .build();

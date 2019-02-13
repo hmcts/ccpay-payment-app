@@ -64,7 +64,7 @@ public class GovPayDelegatingPaymentServiceTest {
             .build());
 
         GovPayPayment govPayPayment = govPayCardPaymentService.create(
-            new PaymentServiceRequest("reference", "description",
+            new PaymentServiceRequest("paymentGroupReference", "reference", "description",
                 "https://www.google.com", "ccdCaseNumer", "caseReference",
                 "GBP", "siteId", "divorce",
                 Collections.singletonList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode")
