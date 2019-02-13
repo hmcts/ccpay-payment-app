@@ -151,3 +151,29 @@ databaseChangeLog:
     - dropColumn:
         columnName: fee_id
         tableName: remissions
+
+- changeSet:
+    id: 1529403181335-6
+    author: smathangi
+    changes:
+    - createTable:
+        tableName: telephony_callback
+        columns:
+        - column:
+            name: payment_reference
+            type: varchar(255)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: payload
+            type: text
+
+- changeSet:
+    id: 1529403181338-7
+    author: smathangi
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          INSERT INTO payment_status (name, description) VALUES ('decline', 'Payment declined');

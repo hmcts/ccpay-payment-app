@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.reform.auth.checker.core.service.ServiceRequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
 
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 public class RestActions {
@@ -74,6 +75,14 @@ public class RestActions {
             .headers(httpHeaders)
             .content(toJson(requestBody))
             .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)));
+    }
+
+    public ResultActions postWithFormData(String urlTemplate, String requestBody) {
+        return translateException(() -> mvc.perform(MockMvcRequestBuilders.post(urlTemplate)
+            .headers(httpHeaders)
+            .content(requestBody)
+            .contentType(APPLICATION_FORM_URLENCODED_VALUE)
             .accept(APPLICATION_JSON)));
     }
 
