@@ -1,0 +1,218 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apiManagementServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "API Management service name"
+      }
+    },
+    "apiName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the API (gateway)"
+      }
+    },
+    "apiProductName": {
+      "type": "string",
+      "metadata": {
+        "description": "API Management product name"
+      }
+    },
+    "serviceUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL of the backend service (to be protected by the API)"
+      }
+    },
+    "apiBasePath": {
+      "type": "string",
+      "metadata": {
+        "description": "Path to the API (excluding host)"
+      }
+    },
+    "policy": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "fullApiProductName": "[concat('Microsoft.ApiManagement/service/', parameters('apiManagementServiceName'), '/products/', parameters('apiProductName'))]",
+    "fullApiName": "[concat('Microsoft.ApiManagement/service/', parameters('apiManagementServiceName'), '/apis/', parameters('apiName'))]",
+    "developersGroupName": "Developers"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.ApiManagement/service/products",
+      "name": "[concat(parameters('apiManagementServiceName') ,'/', parameters('apiProductName'))]",
+      "dependsOn": [
+      ],
+      "properties": {
+        "displayName": "[parameters('apiProductName')]",
+        "subscriptionRequired": true,
+        "approvalRequired": true,
+        "subscriptionsLimit": 20,
+        "state": "published"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/products/groups",
+      "name": "[concat(parameters('apiManagementServiceName') ,'/', parameters('apiProductName'), '/', variables('developersGroupName'))]",
+      "apiVersion": "2017-03-01",
+      "properties": {
+        "displayName": "Developers",
+        "description": "Developers group",
+        "builtIn": true,
+        "type": "system"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/products', parameters('apiManagementServiceName'), parameters('apiProductName'))]"
+      ]
+    },
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.ApiManagement/service/apis",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', parameters('apiName'))]",
+      "dependsOn": [
+        "[variables('fullApiProductName')]"
+      ],
+      "properties": {
+        "displayName": "Telephony API",
+        "serviceUrl": "[parameters('serviceUrl')]",
+        "path": "[parameters('apiBasePath')]",
+        "protocols": [
+          "HTTPS"
+        ]
+      },
+      "resources": [
+        {
+          "apiVersion": "2017-03-01",
+          "type": "operations",
+          "name": "callback",
+          "dependsOn": [
+            "[variables('fullApiName')]"
+          ],
+          "properties": {
+            "displayName": "pci-pal call back ",
+            "description": "Update payment status with pci-pal call back response",
+            "method": "POST",
+            "urlTemplate": "/telephony/callback",
+            "request": {
+              "description": "pci-pal call back payload in application/x-www-form-urlencoded format",
+              "representations": [
+                {
+                  "contentType": "application/x-www-form-urlencoded",
+                  "sample": "orderCurrency=&orderAmount=450&orderReference=MOJTest1&ppAccountID=1210&transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard",
+                  "formParameters": [
+                    {
+                      "name": "orderCurrency",
+                      "description": "Order currency type (Example: GBP)",
+                      "type": "string"
+                    },
+                    {
+                      "name": "orderAmount",
+                      "description": "Amount that was transacted in base units",
+                      "type": "string"
+                    },
+                    {
+                      "name": "orderReference",
+                      "description": "A unique reference number for the transaction from the request ",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ppAccountID",
+                      "description": "The PCI Pal account ID the transaction was performed on",
+                      "type": "string"
+                    },
+                    {
+                      "name": "transactionResult",
+                      "description": "The outcome of the transaction (Example: SUCCESS) Note: (Values can be: SUCCESS,DECLINE,ERROR,CANCELLED)",
+                      "type": "string"
+                    },
+                    {
+                      "name": "transactionID",
+                      "description": "The transaction ID from the payment gateway",
+                      "type": "string"
+                    },
+                    {
+                      "name": "transactionResponseMsg",
+                      "description": "The response from the gateway (Example: Insufficient Funds) Note: Usually only passed back for declines or errors",
+                      "type": "string"
+                    },
+                    {
+                      "name": "cardExpiry",
+                      "description": "The expiry date for the card used (Example: 0419)",
+                      "type": "string"
+                    },
+                    {
+                      "name": "cardType",
+                      "description": "The card type detected from the bin check (Example: VISA)",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ppCallID",
+                      "description": "The unique PCI Pal call id used for debugging purposes",
+                      "type": "string"
+                    },
+                    {
+                      "name": "customData1",
+                      "description": "Any custom values sent in the request",
+                      "type": "string"
+                    },
+                    {
+                      "name": "customData2",
+                      "description": "Any custom values sent in the request",
+                      "type": "string"
+                    },
+                    {
+                      "name": "customData3",
+                      "description": "Any custom values sent in the request",
+                      "type": "string"
+                    }
+                  ]
+                }
+              ]
+            },
+            "responses": [
+              {
+                "statusCode": 204,
+                "description": "successful operation"
+              },
+              {
+                "statusCode": 403,
+                "description": "Invalid subscription-key"
+              },
+              {
+                "statusCode": 415,
+                "description": "Unsupported media-type should be application/x-www-form-urlencoded"
+              }
+            ]
+          }
+        }
+
+      ]
+    },
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.ApiManagement/service/products/apis",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', parameters('apiProductName'), '/', parameters('apiName'))]",
+      "dependsOn": [
+        "[variables('fullApiProductName')]",
+        "[variables('fullApiName')]"
+      ]
+    },
+    {
+      "apiVersion": "2017-03-01",
+      "type": "Microsoft.ApiManagement/service/apis/policies",
+      "name": "[concat(parameters('apiManagementServiceName'), '/', parameters('apiName'),'/policy')]",
+      "dependsOn": [
+        "[variables('fullApiProductName')]",
+        "[variables('fullApiName')]"
+      ],
+      "properties": {
+        "policyContent": "[parameters('policy')]"
+      }
+    }
+  ]
+}
