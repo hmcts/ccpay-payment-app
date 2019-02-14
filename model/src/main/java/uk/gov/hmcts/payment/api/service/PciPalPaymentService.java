@@ -72,7 +72,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             uriBuilder.addParameters(params);
             HttpGet request = new HttpGet(uriBuilder.build());
 
-            // TODO: update pci pal url in vault for prod
             return request.getURI().toString();
         });
     }
