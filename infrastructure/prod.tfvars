@@ -26,3 +26,5 @@ pba_divorce_payments_email_message = "Hi <br/><br/>Please find attached today''s
 feature_payments_search = true
 
 external_host_name ="payment.platform.hmcts.net"
+
+paybubble_home_url = "https://ccpay-bubble-frontend-prod.service.core-compute-prod.internal"

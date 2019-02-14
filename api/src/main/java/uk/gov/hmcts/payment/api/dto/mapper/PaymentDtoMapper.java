@@ -49,10 +49,7 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(
-                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(link, "GET"),
-                null, null
-            ))
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
     }
 
