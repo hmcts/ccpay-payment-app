@@ -27,4 +27,4 @@ feature_payments_search = true
 
 external_host_name ="payment.platform.hmcts.net"
 
-paybubble_home_url = "https://ccpay-bubble-frontend-prod.service.core-compute-prod.internal"
+paybubble_home_url = "https://paybubble.platform.hmcts.net"
