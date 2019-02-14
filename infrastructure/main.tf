@@ -157,6 +157,9 @@ module "payment-api" {
     PCI_PAL_API_URL = "${data.azurerm_key_vault_secret.pci_pal_api_url.value}"
     PCI_PAL_API_KEY = "${data.azurerm_key_vault_secret.pci_pal_api_key.value}"
 
+    # PAYBUBBLE
+    PAYBUBBLE_HOME_URL = "${var.paybubble_home_url}"
+
     # liberata
     LIBERATA_OAUTH2_CLIENT_ID = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_id.value}"
     LIBERATA_OAUTH2_CLIENT_SECRET = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_secret.value}"

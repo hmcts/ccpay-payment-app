@@ -111,11 +111,11 @@ public class CardPaymentController {
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
 
-        if (request.getChannel().equals("telephony")) {
+        if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
-                .orderReference(paymentLink.getPaymentReference()).build();
+                .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData1(paymentLink.getPayments().get(0).getCcdCaseNumber());
-            String link = pciPalPaymentService.sendInitialPaymentRequest(pciPalPaymentRequest, request.getService().getName());
+            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().getName());
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
         }
 

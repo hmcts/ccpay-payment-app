@@ -2,13 +2,14 @@ package uk.gov.hmcts.payment.api.service;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 
-import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -20,31 +21,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PciPalPaymentServiceTest {
 
-
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
     private PciPalPaymentService pciPalPaymentService;
 
+    private String url = "";
+    private String apiKey = "apiKey";
+    private String redirectUrl = "www.paybubbleHomeUrl.com";
+
     @Before
     public void setUp() throws Exception {
+        this.url = "http://localhost:" + wireMockRule.port();
+
         pciPalPaymentService = new PciPalPaymentService(
-            "http://localhost:" + wireMockRule.port(),
-            "apiKey",
-            HttpClients.createMinimal()
+            url,
+            apiKey,
+            redirectUrl
         );
     }
 
     @Test
-    public void sendToPciPal() throws UnsupportedEncodingException {
+    public void getPciPalLink() throws URISyntaxException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("apiKey=");
+        sb.append(apiKey);
+        sb.append("&ppAccountId&renderMethod=HTML&amount=200&orderCurrency=GBP&orderReference=orderReference&callbackURL=callbackUrl&customData1&redirectURL=");
+        sb.append(redirectUrl);
+
         stubFor(
-//            post(urlEqualTo("http://localhost:" + wireMockRule.port()))
             post(urlEqualTo("/"))
                 .withRequestBody(
-                    new EqualToPattern("apiKey=apiKey&ppAccountId&renderMethod=IFRAME&amount=200&orderCurrency=GBP&orderReference=orderReference&callbackURL=http%3A%2F%2Fexample.com&customData1")
-//                    new EqualToJsonPattern("{ \"apiKey\": \"apiKey\", \"ppAccountId\": \"1234\", " +
-//                        "\"renderMethod\": \"IFRAME\", \"orderAmount\": \"200\" ,\"orderCurrency\": \"GBP\"," +
-//                        " \"orderReference\": \"RC12345678\"}", true, false)
+                    new EqualToPattern(sb.toString())
                 )
                 .willReturn(aResponse()
                     .withStatus(200)
@@ -52,28 +60,20 @@ public class PciPalPaymentServiceTest {
                 )
         );
 
-        String url = "http://example.com";
         PciPalPaymentRequest request = PciPalPaymentRequest.pciPalPaymentRequestWith()
             .apiKey("apiKey")
             .orderAmount("200")
             .orderCurrency("GBP")
             .ppAccountID("1234")
             .orderReference("orderReference")
-            .callbackURL(url)
-            .renderMethod("IFRAME")
+            .callbackURL("callbackUrl")
+            .renderMethod("HTML")
             .build();
 
-//        List<NameValuePair> params = new ArrayList<NameValuePair>();
-//        params.add(new BasicNameValuePair("apiKey", "apiKey"));
-//        params.add(new BasicNameValuePair("ppAccountId", "1234"));
-//        params.add(new BasicNameValuePair("renderMethod", "HTML"));
-//        params.add(new BasicNameValuePair("orderAmount", "200"));
-//        params.add(new BasicNameValuePair("orderCurrency", "GBP"));
-//        params.add(new BasicNameValuePair("orderReference", "RC123456789"));
-//        params.add(new BasicNameValuePair("callbackURL", "http://example.com"));
-        String response = pciPalPaymentService.sendInitialPaymentRequest(request, "cmc");
-        assertThat(response).isEqualTo("http://example.com");
+        String response = pciPalPaymentService.getPciPalLink(request, "cmc");
+
+        URIBuilder uriBuilder = new URIBuilder(url + "?" + sb.toString());
+        HttpGet getRequest = new HttpGet(uriBuilder.build());
+        assertThat(response).isEqualTo(getRequest.getURI().toString());
     }
-
-
 }
