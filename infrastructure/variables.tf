@@ -161,3 +161,9 @@ variable "test_frontend_url" {
   default = "https://moneyclaims.aat.platform.hmcts.net"
   description = "Optional front end URL to use for building redirect URI in idam tests "
 }
+
+# thumbprint of the SSL certificate for API gateway tests
+variable telephony_api_gateway_certificate_thumbprints {
+  type = "list"
+  default = []
+}
