@@ -288,6 +288,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         payment.setNextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()));
         payment.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
         payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
+        payment.setGovPayPayhubReference(govPayPayment.getReference());
     }
 
     private void fillTransientDetails(Payment payment, PciPalPayment pciPalPayment) {

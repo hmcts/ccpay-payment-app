@@ -45,6 +45,9 @@ public class Payment {
     @Transient
     private String email;
 
+    @Transient
+    private String govPayPayhubReference;
+
     @Column(name = "amount")
     private BigDecimal amount;
 
