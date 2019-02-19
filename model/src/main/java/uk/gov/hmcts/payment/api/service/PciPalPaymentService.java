@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             params.add(new BasicNameValuePair("apiKey", apiKey));
             params.add(new BasicNameValuePair("ppAccountId", ppAccountID));
             params.add(new BasicNameValuePair("renderMethod", "HTML"));
-            params.add(new BasicNameValuePair("amount", pciPalPaymentRequest.getOrderAmount()));
+            params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
             params.add(new BasicNameValuePair("orderCurrency", pciPalPaymentRequest.getOrderCurrency()));
             params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
             params.add(new BasicNameValuePair("callbackURL", callbackUrl));

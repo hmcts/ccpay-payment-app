@@ -48,7 +48,7 @@ public class PciPalPaymentServiceTest {
         StringBuilder sb = new StringBuilder();
         sb.append("apiKey=");
         sb.append(apiKey);
-        sb.append("&ppAccountId&renderMethod=HTML&amount=200&orderCurrency=GBP&orderReference=orderReference&callbackURL=www.callback.url.com&customData1&redirectURL=");
+        sb.append("&ppAccountId&renderMethod=HTML&orderAmount=20000&orderCurrency=GBP&orderReference=orderReference&callbackURL=www.callback.url.com&customData1&redirectURL=");
         sb.append(redirectUrl);
 
         stubFor(
