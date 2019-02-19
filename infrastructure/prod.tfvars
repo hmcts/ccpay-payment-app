@@ -27,4 +27,5 @@ feature_payments_search = true
 
 external_host_name ="payment.platform.hmcts.net"
 
+pci_pal_callback_url = "https://core-api-mgmt-prod.azure-api.net/telephony-api/telephony/callback"
 paybubble_home_url = "https://paybubble.platform.hmcts.net"

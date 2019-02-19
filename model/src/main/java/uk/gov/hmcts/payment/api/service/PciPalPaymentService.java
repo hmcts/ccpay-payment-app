@@ -34,6 +34,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
 
+    private final String callbackUrl;
     private final String redirectUrl;
     private final String url;
     private final String apiKey;
@@ -41,10 +42,12 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
                                 @Value("${pci-pal.api.key}") String apiKey,
-                                @Value("${paybubble.home.url}") String redirectUrl) {
+                                @Value("${paybubble.home.url}") String redirectUrl,
+                                @Value("${pci-pal.callback-url}") String callbackUrl) {
         this.url = url;
         this.apiKey = apiKey;
         this.redirectUrl = redirectUrl;
+        this.callbackUrl = callbackUrl;
     }
 
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
@@ -64,7 +67,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             params.add(new BasicNameValuePair("amount", pciPalPaymentRequest.getOrderAmount()));
             params.add(new BasicNameValuePair("orderCurrency", pciPalPaymentRequest.getOrderCurrency()));
             params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
-            params.add(new BasicNameValuePair("callbackURL", pciPalPaymentRequest.getCallbackURL()));
+            params.add(new BasicNameValuePair("callbackURL", callbackUrl));
             params.add(new BasicNameValuePair("customData1", pciPalPaymentRequest.getCustomData1()));
             params.add(new BasicNameValuePair("redirectURL", redirectUrl));
 

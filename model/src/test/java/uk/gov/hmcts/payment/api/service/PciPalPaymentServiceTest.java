@@ -29,6 +29,7 @@ public class PciPalPaymentServiceTest {
     private String url = "";
     private String apiKey = "apiKey";
     private String redirectUrl = "www.paybubbleHomeUrl.com";
+    private String callbackUrl = "www.callback.url.com";
 
     @Before
     public void setUp() throws Exception {
@@ -37,7 +38,8 @@ public class PciPalPaymentServiceTest {
         pciPalPaymentService = new PciPalPaymentService(
             url,
             apiKey,
-            redirectUrl
+            redirectUrl,
+            callbackUrl
         );
     }
 
@@ -46,7 +48,7 @@ public class PciPalPaymentServiceTest {
         StringBuilder sb = new StringBuilder();
         sb.append("apiKey=");
         sb.append(apiKey);
-        sb.append("&ppAccountId&renderMethod=HTML&amount=200&orderCurrency=GBP&orderReference=orderReference&callbackURL=callbackUrl&customData1&redirectURL=");
+        sb.append("&ppAccountId&renderMethod=HTML&amount=200&orderCurrency=GBP&orderReference=orderReference&callbackURL=www.callback.url.com&customData1&redirectURL=");
         sb.append(redirectUrl);
 
         stubFor(
@@ -61,13 +63,9 @@ public class PciPalPaymentServiceTest {
         );
 
         PciPalPaymentRequest request = PciPalPaymentRequest.pciPalPaymentRequestWith()
-            .apiKey("apiKey")
             .orderAmount("200")
             .orderCurrency("GBP")
-            .ppAccountID("1234")
             .orderReference("orderReference")
-            .callbackURL("callbackUrl")
-            .renderMethod("HTML")
             .build();
 
         String response = pciPalPaymentService.getPciPalLink(request, "cmc");
