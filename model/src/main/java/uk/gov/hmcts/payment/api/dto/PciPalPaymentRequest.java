@@ -21,10 +21,6 @@ public class PciPalPaymentRequest {
     private String orderCurrency;
     private String orderAmount;
     private String orderReference;
-    private String ppAccountID;
-    private String apiKey;
-    private String renderMethod;
-    private String callbackURL;
     private String customData1;
 
 }
