@@ -52,6 +52,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
+        LOG.error("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
             String ppAccountID = null;
             if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
