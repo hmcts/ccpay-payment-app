@@ -62,7 +62,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
                 ppAccountID = ppAccountIDProbate;
 
-            LOG.error("ppAccountID: {}", ppAccountID);
+            LOG.error("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("apiKey", apiKey));
             params.add(new BasicNameValuePair("ppAccountId", ppAccountID));
