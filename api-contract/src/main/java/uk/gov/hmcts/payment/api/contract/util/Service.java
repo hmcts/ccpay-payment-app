@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.contract.util;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public enum Service {
+    @JsonProperty("CMC")
     CMC("Civil Money Claims"),
     DIVORCE("Divorce"),
     PROBATE("Probate"),
