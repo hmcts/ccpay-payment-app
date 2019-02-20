@@ -77,7 +77,7 @@ public class PaymentsReportServiceTest {
             .startDate(startDate)
             .endDate(endDate)
             .paymentMethod(PaymentMethodType.PBA.getType())
-            .serviceType(Service.DIVORCE.getName())
+            .serviceType(Service.DIVORCE.getServiceName())
             .build();
 
         // when

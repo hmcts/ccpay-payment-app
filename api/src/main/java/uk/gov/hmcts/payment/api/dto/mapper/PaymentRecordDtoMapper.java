@@ -26,7 +26,7 @@ public class PaymentRecordDtoMapper {
         return Payment.paymentWith()
             .amount(paymentRecordRequest.getAmount())
             .caseReference(paymentRecordRequest.getReference())
-            .serviceType(paymentRecordRequest.getService().getName())
+            .serviceType(paymentRecordRequest.getService().getServiceName())
             .currency(paymentRecordRequest.getCurrency().getCode())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())

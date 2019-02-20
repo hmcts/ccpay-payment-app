@@ -100,7 +100,7 @@ public class CardPaymentController {
             .caseReference(request.getCaseReference())
             .currency(request.getCurrency().getCode())
             .siteId(request.getSiteId())
-            .serviceType(request.getService().getName())
+            .serviceType(request.getService().getServiceName())
             .fees(paymentDtoMapper.toFees(request.getFees()))
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
@@ -115,7 +115,7 @@ public class CardPaymentController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData1(paymentLink.getPayments().get(0).getCcdCaseNumber());
-            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().getName());
+            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().getServiceName());
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
         }
 

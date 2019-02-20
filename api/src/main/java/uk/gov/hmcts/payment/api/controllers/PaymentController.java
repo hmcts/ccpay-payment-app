@@ -139,7 +139,7 @@ public class PaymentController {
                     .ccdCaseNumber(ccdCaseNumber)
                     .pbaNumber(pbaNumber)
                     .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
-                    .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
+                    .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getServiceName()).orElse(null))
                     .build()
             );
 

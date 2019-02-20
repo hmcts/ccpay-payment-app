@@ -69,7 +69,7 @@ public class PaymentsReportService {
     }
 
     private List<PaymentDto> findPaymentsBy(Date startDate, Date endDate, PaymentMethodType paymentMethodType, Service serviceName) {
-        String serviceType = Optional.ofNullable(serviceName).map(Service::getName).orElse(null);
+        String serviceType = Optional.ofNullable(serviceName).map(Service::getServiceName).orElse(null);
         return delegatingPaymentService
             .search(
                 PaymentSearchCriteria.searchCriteriaWith()
