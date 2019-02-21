@@ -156,6 +156,10 @@ module "payment-api" {
     PCI_PAL_ACCOUNT_ID_DIVORCE = "${data.azurerm_key_vault_secret.pci_pal_account_id_divorce.value}"
     PCI_PAL_API_URL = "${data.azurerm_key_vault_secret.pci_pal_api_url.value}"
     PCI_PAL_API_KEY = "${data.azurerm_key_vault_secret.pci_pal_api_key.value}"
+    PCI_PAL_CALLBACK_URL = "${var.pci_pal_callback_url}"
+
+    # PAYBUBBLE
+    PAYBUBBLE_HOME_URL = "${var.paybubble_home_url}"
 
     # liberata
     LIBERATA_OAUTH2_CLIENT_ID = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_id.value}"

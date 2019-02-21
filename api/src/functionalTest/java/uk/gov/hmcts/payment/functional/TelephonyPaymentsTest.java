@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import com.mifmif.common.regex.Generex;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -225,6 +227,41 @@ public class TelephonyPaymentsTest {
             .then().created(paymentDto -> {
             assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+        });
+    }
+
+    @Test
+    public void retrieveCorrectPciPalUrlWhenCreatingATelephonyCardPayment() {
+        CardPaymentRequest paymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("99.99"))
+            .description("telephonyPayment")
+            .caseReference("caseRef")
+            .ccdCaseNumber("1234")
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .provider("pci pal")
+            .channel("telephony")
+            .siteId("sideId")
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .code("feeCode")
+                .version("1")
+                .calculatedAmount(new BigDecimal("100.1"))
+                .build()))
+            .channel("telephony")
+            .provider("pci pal")
+            .build();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.goooooogle.com")
+            .when().createCardPayment(paymentRequest)
+            .then().created(paymentDto -> {
+            assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            String[] schemes = {"https"};
+            UrlValidator urlValidator = new UrlValidator(schemes);
+            assertNotNull(paymentDto.getLinks().getNextUrl());
+            assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
         });
     }
 

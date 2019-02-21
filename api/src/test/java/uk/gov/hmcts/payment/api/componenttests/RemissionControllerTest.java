@@ -452,7 +452,6 @@ public class RemissionControllerTest {
         assertEquals("new fee refers to the correct payment fee link", paymentFeeLink.getId(), paymentFee.getPaymentLink().getId());
     }
 
-    // TODO: no paymentGroupReference sent -> check payment fee link created and fee created
     @Test
     @Transactional
     public void paymentFeeLinkAndFeeCreatedWhenNoPaymentGroupReferenceSent() throws Exception {
