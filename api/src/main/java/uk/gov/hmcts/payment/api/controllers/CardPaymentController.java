@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
@@ -34,6 +35,7 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFound
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -58,14 +60,17 @@ public class CardPaymentController {
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
+    private final PciPalPaymentService pciPalPaymentService;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
-                                 CardDetailsService<CardDetails, String> cardDetailsService) {
+                                 CardDetailsService<CardDetails, String> cardDetailsService,
+                                 PciPalPaymentService pciPalPaymentService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
+        this.pciPalPaymentService = pciPalPaymentService;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -104,8 +109,17 @@ public class CardPaymentController {
             .build();
 
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
+        PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
 
-        return new ResponseEntity<>(paymentDtoMapper.toCardPaymentDto(paymentLink), CREATED);
+        if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
+            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
+                .orderReference(paymentDto.getReference()).build();
+            pciPalPaymentRequest.setCustomData1(paymentLink.getPayments().get(0).getCcdCaseNumber());
+            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
+            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
+        }
+
+        return new ResponseEntity<>(paymentDto, CREATED);
     }
 
     @ApiOperation(value = "Get card payment details by payment reference", notes = "Get payment details for supplied payment reference")
