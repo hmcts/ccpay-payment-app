@@ -87,7 +87,7 @@ public class SpringSecurityConfiguration {
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority("payments")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority("payments", "citizen")
-                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority("caseworker-*")
+                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority("payments","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority("payments", "citizen")
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
                 .anyRequest().authenticated();
