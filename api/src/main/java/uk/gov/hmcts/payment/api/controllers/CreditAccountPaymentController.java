@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -106,7 +105,7 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
-        if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
+        if (isAccountStatusCheckRequired()) {
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
@@ -214,7 +213,7 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
-    private boolean isAccountStatusCheckRequired(Service service) {
+    private boolean isAccountStatusCheckRequired() {
         return ff4j.check("credit-account-payment-liberata-check");
     }
 
