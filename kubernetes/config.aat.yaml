@@ -16,11 +16,27 @@ data:
   FEATURE_SERVICE_CALLBACK: "true"
   FEATURE_CREDIT_ACCOUNT_PAYMENT_LIBERATA_CHECK: "true"
   FEES_REGISTER_URL: "http://fees-register-api-aat.service.core-compute-aat.internal"
-  GOV_PAY_AUTH_KEY_CMC: "la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3"
-  GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND: "la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3"
-  GOV_PAY_AUTH_KEY_PROBATE_FRONTEND: "la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3"
+  // Gov pay
+  GOV_PAY_AUTH_KEY_CMC: "${GOV_PAY_AUTH_KEY_CMC}"
+  GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND: "${GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND}"
+  GOV_PAY_AUTH_KEY_PROBATE_FRONTEND: "${GOV_PAY_AUTH_KEY_PROBATE_FRONTEND}"
   GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw"
   GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
+
+  // PCI Pal
+  PCI_PAL_CALLBACK_URL: "https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback"
+  PCI_PAL_ACCOUNT_ID_CMC: "${PCI_PAL_ACCOUNT_ID_CMC}"
+  PCI_PAL_ACCOUNT_ID_PROBATE: "${PCI_PAL_ACCOUNT_ID_PROBATE}"
+  PCI_PAL_ACCOUNT_ID_DIVORCE: "${PCI_PAL_ACCOUNT_ID_DIVORCE}"
+  PCI_PAL_API_URL: "${PCI_PAL_API_URL}"
+  PCI_PAL_API_KEY: "${PCI_PAL_API_KEY}"
+
+  // Liberata
+  LIBERATA_OAUTH2_CLIENT_ID: "${LIBERATA_OAUTH2_CLIENT_ID}"
+  LIBERATA_OAUTH2_CLIENT_SECRET: "${LIBERATA_OAUTH2_CLIENT_SECRET}"
+  LIBERATA_OAUTH2_USERNAME: "${LIBERATA_OAUTH2_USERNAME}"
+  LIBERATA_OAUTH2_PASSWORD: "${LIBERATA_OAUTH2_PASSWORD}"
+
   payments.report.file.location: "."
   PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
   PBA_CMC_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
