@@ -266,7 +266,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("You have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Payment request failed. PBA account accountName have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     @Test
@@ -307,22 +307,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0004", paymentDto.getStatusHistories().get(0).getErrorCode());
         assertEquals("Your account is deleted", paymentDto.getStatusHistories().get(0).getErrorMessage());
-    }
-
-    @Test
-    public void createCreditAccountPaymentWhenFeatureOnAndServiceIsNonFinRemShouldReturnPaymentPending() throws Exception {
-        // given
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJson().getBytes(), CreditAccountPaymentRequest.class);
-        setCreditAccountPaymentLiberataCheckFeature(true);
-
-        // when
-        MvcResult result = restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isCreated()).andReturn();
-
-        // then
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-        assertEquals("Pending", paymentDto.getStatus());
     }
 
     @Test
@@ -433,7 +417,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals("Failed", paymentDto.getStatus());
         assertEquals("CA-E0001", paymentDto.getStatusHistories().get(0).getErrorCode());
-        assertEquals("You have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
+        assertEquals("Payment request failed. PBA account accountName have insufficient funds available", paymentDto.getStatusHistories().get(0).getErrorMessage());
     }
 
     private void setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception {
