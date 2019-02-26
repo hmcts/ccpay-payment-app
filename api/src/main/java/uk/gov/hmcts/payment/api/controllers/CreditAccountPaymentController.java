@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -105,7 +106,7 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
-        if (isAccountStatusCheckRequired()) {
+        if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
@@ -213,8 +214,15 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
-    private boolean isAccountStatusCheckRequired() {
-        return ff4j.check("credit-account-payment-liberata-check");
+    private boolean isAccountStatusCheckRequired(Service service) {
+        if (ff4j.check("credit-account-payment-liberata-check")) {
+            if (ff4j.check("check-liberata-account-for-all-services")) {
+                return true;
+            } else {
+                return Service.FINREM == service;
+            }
+        }
+        return false;
     }
 
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
