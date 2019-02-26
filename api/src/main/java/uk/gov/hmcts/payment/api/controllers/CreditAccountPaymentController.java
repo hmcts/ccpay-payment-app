@@ -215,14 +215,11 @@ public class CreditAccountPaymentController {
     }
 
     private boolean isAccountStatusCheckRequired(Service service) {
-        if (ff4j.check("credit-account-payment-liberata-check")) {
-            if (ff4j.check("check-liberata-account-for-all-services")) {
-                return true;
-            } else {
-                return Service.FINREM == service;
-            }
+        if (ff4j.check("check-liberata-account-for-all-services")) {
+            return true;
         }
-        return false;
+
+        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM == service;
     }
 
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {

@@ -511,7 +511,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenNoServiceTriggersLiberataCheck() throws Exception {
+    public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
         setCreditAccountPaymentLiberataCheckFeature(false);
         setCheckLiberataAccountForAllServices(true);
 
@@ -527,7 +527,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        verify(accountService, times(0)).retrieve(request.getAccountNumber());
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
 
         request = objectMapper.readValue(creditAccountPaymentRequestJsonWithProbateJson().getBytes(), CreditAccountPaymentRequest.class);
         result = restActions
@@ -537,7 +537,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        verify(accountService, times(0)).retrieve(request.getAccountNumber());
+        verify(accountService, times(2)).retrieve(request.getAccountNumber());
     }
 
     private void setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception {
