@@ -4,6 +4,13 @@
     </backend>
     <inbound>
         <base/>
+        <choose>
+            <when condition="@(context.Request.Certificate == null || context.Request.Certificate.NotAfter &lt; DateTime.Now || context.Request.Certificate.NotBefore &gt; DateTime.Now || !(new string[] {${allowed_certificate_thumbprints}}.Any(c => c == context.Request.Certificate.Thumbprint)))" >
+                <return-response>
+                    <set-status code="403" reason="Invalid client certificate."/>
+                </return-response>
+            </when>
+        </choose>
         <!-- generate totp -->
         <set-variable name="client_id" value="${s2s_client_id}" />
         <set-variable name="client_secret" value="${s2s_client_secret}" />
