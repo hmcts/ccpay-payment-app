@@ -42,6 +42,17 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mapedStatus)
+            .reference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .dateCreated(payment.getDateCreated())
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
+            .build();
+    }
+
     public PaymentDto toResponseDto(PaymentFeeLink paymentFeeLink, Payment payment) {
         List<PaymentFee> fees = paymentFeeLink.getFees();
         return PaymentDto.payment2DtoWith()
@@ -120,7 +131,7 @@ public class PaymentDtoMapper {
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
-            .statusHistories(payment.getStatusHistories()!= null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -167,8 +178,8 @@ public class PaymentDtoMapper {
             .code(fee.getCode())
             .version(fee.getVersion())
             .volume(fee.getVolume())
-            .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber(): null)
-            .reference(fee.getReference() != null ? fee.getReference(): null)
+            .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber() : null)
+            .reference(fee.getReference() != null ? fee.getReference() : null)
             .build();
 
     }

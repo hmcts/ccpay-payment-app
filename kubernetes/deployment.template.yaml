@@ -42,6 +42,16 @@ spec:
           value: 'jdbc:postgresql://localhost:5432/${SERVICE_NAME}'
         - name: ASB_CONNECTION_STRING
           value: '${ASB_CONNECTION_STRING}'
+        - name: PCI_PAL_ACCOUNT_ID_CMC
+          value: '${PCI_PAL_ACCOUNT_ID_CMC}'
+        - name: PCI_PAL_ACCOUNT_ID_PROBATE
+          value: '${PCI_PAL_ACCOUNT_ID_PROBATE}'
+        - name: PCI_PAL_ACCOUNT_ID_DIVORCE
+          value: '${PCI_PAL_ACCOUNT_ID_DIVORCE}'
+        - name: PCI_PAL_API_URL
+          value: '${PCI_PAL_API_URL}'
+        - name: PCI_PAL_API_KEY
+          value: '${PCI_PAL_API_KEY}'
         envFrom:
         - configMapRef:
             name: ${SERVICE_NAME}-config

@@ -55,6 +55,14 @@ variable "gov_pay_url" {
   default = "https://publicapi.payments.service.gov.uk/v1/payments"
 }
 
+variable "paybubble_home_url" {
+  default = "https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal"
+}
+
+variable "pci_pal_callback_url" {
+  default = "https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback"
+}
+
 variable "liberata_oauth2_base_url" {
   default = "https://bpacustomerportal.liberata.com/pba/public/api/v2"
 }
