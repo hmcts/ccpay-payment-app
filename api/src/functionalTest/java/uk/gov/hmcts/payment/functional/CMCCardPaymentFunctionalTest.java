@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -39,8 +42,6 @@ public class CMCCardPaymentFunctionalTest {
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
-
-    private RestTemplate restTemplate;
 
     @Value("${gov.pay.url}")
     private String govpayUrl;
@@ -129,15 +130,17 @@ public class CMCCardPaymentFunctionalTest {
             assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
         });
 
-        restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer " + govpayCmcKey);
-        HttpEntity<String> auth = new HttpEntity<>("parameters", headers);
-        ResponseEntity<GovPayPayment> res = restTemplate.exchange(govpayUrl + "/" + externalReference[0], HttpMethod.GET, auth, GovPayPayment.class);
+        // Retrieve the payment from govpay
+        GovPayPayment govPayPayment = RestAssured
+            .given()
+            .relaxedHTTPSValidation()
+            .baseUri(govpayUrl)
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + govpayCmcKey)
+            .get("/" + externalReference[0])
+            .then()
+            .statusCode(200).extract().as(GovPayPayment.class);
 
-        GovPayPayment govPayPayment = res.getBody();
-        System.out.println("GovPayReference: " + govPayPayment.getReference());
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getReference(), reference[0]);
         assertEquals(govPayPayment.getPaymentId(), externalReference[0]);
