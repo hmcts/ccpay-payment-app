@@ -1,11 +1,12 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.http.ContentType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
@@ -129,7 +130,13 @@ public class CMCCardPaymentFunctionalTest {
         });
 
         restTemplate = new RestTemplate();
-        ResponseEntity<GovPayPayment> res = restTemplate.getForEntity(govpayUrl, GovPayPayment.class, externalReference[0]);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", USER_TOKEN);
+        headers.add("ServiceAuthorization", SERVICE_TOKEN);
+        HttpEntity<String> auth = new HttpEntity<>("parameters", headers);
+        ResponseEntity<GovPayPayment> res = restTemplate.exchange(govpayUrl + "/" + externalReference[0], HttpMethod.GET, auth, GovPayPayment.class);
+        //ResponseEntity<GovPayPayment> res = restTemplate.getForEntity(govpayUrl, GovPayPayment.class, externalReference[0]);
 
         GovPayPayment govPayPayment = res.getBody();
         assertNotNull(govPayPayment);
