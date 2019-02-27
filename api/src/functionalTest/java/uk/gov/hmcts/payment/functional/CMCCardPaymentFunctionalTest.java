@@ -1,14 +1,14 @@
 package uk.gov.hmcts.payment.functional;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -38,6 +38,8 @@ public class CMCCardPaymentFunctionalTest {
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
+
+    private RestTemplate restTemplate;
 
     @Value("${gov.pay.url}")
     private String govpayUrl;
@@ -126,18 +128,15 @@ public class CMCCardPaymentFunctionalTest {
             assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
         });
 
-        GovPayPayment govPayPayment = RestAssured
-            .given()
-            .relaxedHTTPSValidation()
-            .baseUri(govpayUrl)
-            .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer " + govpayCmcKey)
-            .get("/" + externalReference[0])
-            .andReturn()
-            .as(GovPayPayment.class);
+        restTemplate = new RestTemplate();
+        ResponseEntity<GovPayPayment> res = restTemplate.getForEntity(govpayUrl, GovPayPayment.class, externalReference[0]);
 
+        GovPayPayment govPayPayment = res.getBody();
         assertNotNull(govPayPayment);
-        assertEquals(reference[0], govPayPayment.getReference());
+        assertEquals(govPayPayment.getReference(), reference[0]);
+        assertEquals(govPayPayment.getPaymentId(), externalReference[0]);
+
+
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
