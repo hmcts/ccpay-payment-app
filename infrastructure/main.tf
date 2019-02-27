@@ -21,7 +21,9 @@ locals {
   asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 
   #region API gateway
-  api_policy = "${file("template/api-policy.xml")}"
+  thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)}"
+  thumbprints_in_quotes_str = "${join(",", local.thumbprints_in_quotes)}"
+  api_policy = "${replace(file("template/api-policy.xml"), "ALLOWED_CERTIFICATE_THUMBPRINTS", local.thumbprints_in_quotes_str)}"
   api_base_path = "telephony-api"
   # endregion
 }
@@ -287,6 +289,7 @@ data "template_file" "policy_template" {
   template = "${file("${path.module}/template/api-policy.xml")}"
 
   vars {
+    allowed_certificate_thumbprints = "${local.thumbprints_in_quotes_str}"
     s2s_client_id = "${data.azurerm_key_vault_secret.s2s_client_id.value}"
     s2s_client_secret = "${data.azurerm_key_vault_secret.s2s_client_secret.value}"
     s2s_base_url = "${local.s2sUrl}"
