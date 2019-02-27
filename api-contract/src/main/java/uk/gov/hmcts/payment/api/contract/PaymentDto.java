@@ -79,8 +79,6 @@ public class PaymentDto {
 
     private String reportedDateOffline;
 
-    private String govpayPayhubReference;
-
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;
