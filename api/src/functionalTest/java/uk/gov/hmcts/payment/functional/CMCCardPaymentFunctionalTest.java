@@ -115,7 +115,6 @@ public class CMCCardPaymentFunctionalTest {
     @Test
     public void retrieveAndValidatePayhubPaymentReferenceFromGovPay() throws Exception {
         final String[] reference = new String[1];
-        final String[] externalReference = new String[1];
 
         // create card payment
         dsl.given().userToken(USER_TOKEN)
@@ -124,11 +123,17 @@ public class CMCCardPaymentFunctionalTest {
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
-            externalReference[0] = savedPayment.getExternalReference();
 
             assertNotNull(savedPayment.getReference());
             assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
         });
+
+        // retrieve card payment
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getCardPayment(reference[0])
+            .then().get();
+
 
         // Retrieve the payment from govpay
         GovPayPayment govPayPayment = RestAssured
@@ -137,13 +142,13 @@ public class CMCCardPaymentFunctionalTest {
             .baseUri(govpayUrl)
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer " + govpayCmcKey)
-            .get("/" + externalReference[0])
+            .get("/" + paymentDto.getExternalReference())
             .then()
             .statusCode(200).extract().as(GovPayPayment.class);
 
         assertNotNull(govPayPayment);
-        assertEquals(govPayPayment.getReference(), reference[0]);
-        assertEquals(govPayPayment.getPaymentId(), externalReference[0]);
+        assertEquals(govPayPayment.getReference(), paymentDto.getReference());
+        assertEquals(govPayPayment.getPaymentId(), paymentDto.getExternalReference());
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
