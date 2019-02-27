@@ -1,13 +1,17 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -34,6 +38,12 @@ public class CMCCardPaymentFunctionalTest {
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
+
+    @Value("${gov.pay.url}")
+    private String govpayUrl;
+
+    @Value("${gov.pay.keys.cmc}")
+    private String govpayCmcKey;
 
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
@@ -96,6 +106,39 @@ public class CMCCardPaymentFunctionalTest {
             assertEquals(f.getCalculatedAmount(), new BigDecimal("20.99"));
         });
 
+    }
+
+
+    @Test
+    public void retrieveAndValidatePayhubPaymentReferenceFromGovPay() throws Exception {
+        final String[] reference = new String[1];
+        final String[] externalReference = new String[1];
+
+        // create card payment
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.google.com")
+            .when().createCardPayment(getCardPaymentRequest())
+            .then().created(savedPayment -> {
+            reference[0] = savedPayment.getReference();
+            externalReference[0] = savedPayment.getExternalReference();
+
+            assertNotNull(savedPayment.getReference());
+            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+        });
+
+        GovPayPayment govPayPayment = RestAssured
+            .given()
+            .relaxedHTTPSValidation()
+            .baseUri(govpayUrl)
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + govpayCmcKey)
+            .get("/" + externalReference[0])
+            .andReturn()
+            .as(GovPayPayment.class);
+
+        assertNotNull(govPayPayment);
+        assertEquals(reference[0], govPayPayment.getReference());
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
