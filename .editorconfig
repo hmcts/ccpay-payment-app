@@ -6,6 +6,9 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+[*.txt]
+insert_final_newline = false
+
 [*.{md,markdown}]
 trim_trailing_whitespace = false
 
