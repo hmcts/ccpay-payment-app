@@ -26,7 +26,6 @@ allprojects {
     repositories {
         mavenLocal()
         maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
-        maven { url "http://artifactory.reform.hmcts.net/artifactory/libs-release" }
         jcenter()
         maven { url 'https://repo.spring.io/libs-milestone' }
     }

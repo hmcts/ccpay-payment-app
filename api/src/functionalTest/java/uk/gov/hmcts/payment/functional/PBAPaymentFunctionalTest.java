@@ -84,9 +84,6 @@ public class PBAPaymentFunctionalTest {
 
     @Test
     public void makeAndRetrievePbaPaymentByFinrem() {
-        // run on non PR envs only
-        Assume.assumeTrue(!testProps.baseTestUrl.contains("payment-api-pr-"));
-
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00",Service.FINREM);
@@ -94,7 +91,7 @@ public class PBAPaymentFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
             .statusCode(CREATED.value())
-            .body("status", equalTo("Success"));
+            .body("status", equalTo("Pending"));
 
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
