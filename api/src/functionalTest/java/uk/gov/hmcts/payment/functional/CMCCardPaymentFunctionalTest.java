@@ -100,7 +100,6 @@ public class CMCCardPaymentFunctionalTest {
         assertEquals(paymentDto.getExternalProvider(), "gov pay");
         assertEquals(paymentDto.getServiceName(), "Civil Money Claims");
         assertEquals(paymentDto.getStatus(), "Initiated");
-        assertEquals(paymentDto.getGovpayPayhubReference(), paymentDto.getReference());
         paymentDto.getFees().stream().forEach(f -> {
             assertEquals(f.getVersion(), "1");
             assertEquals(f.getCalculatedAmount(), new BigDecimal("20.99"));
