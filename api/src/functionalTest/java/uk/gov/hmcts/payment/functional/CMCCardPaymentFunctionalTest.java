@@ -132,18 +132,15 @@ public class CMCCardPaymentFunctionalTest {
         restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", USER_TOKEN);
-        headers.add("ServiceAuthorization", SERVICE_TOKEN);
+        headers.add("Authorization", "Bearer " + govpayCmcKey);
         HttpEntity<String> auth = new HttpEntity<>("parameters", headers);
         ResponseEntity<GovPayPayment> res = restTemplate.exchange(govpayUrl + "/" + externalReference[0], HttpMethod.GET, auth, GovPayPayment.class);
-        //ResponseEntity<GovPayPayment> res = restTemplate.getForEntity(govpayUrl, GovPayPayment.class, externalReference[0]);
 
         GovPayPayment govPayPayment = res.getBody();
+        System.out.println("GovPayReference: " + govPayPayment.getReference());
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getReference(), reference[0]);
         assertEquals(govPayPayment.getPaymentId(), externalReference[0]);
-
-
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
