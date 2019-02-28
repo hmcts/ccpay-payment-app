@@ -43,6 +43,8 @@ public class CMCCardPaymentFunctionalTest {
     @Autowired
     private S2sTokenService s2sTokenService;
 
+    private RestTemplate restTemplate;
+
     @Value("${gov.pay.url}")
     private String govpayUrl;
 
@@ -136,15 +138,16 @@ public class CMCCardPaymentFunctionalTest {
 
 
         // Retrieve the payment from govpay
-        GovPayPayment govPayPayment = RestAssured
-            .given()
-            .relaxedHTTPSValidation()
-            .baseUri(govpayUrl)
-            .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer " + govpayCmcKey)
-            .get("/" + paymentDto.getExternalReference())
-            .then()
-            .statusCode(200).extract().as(GovPayPayment.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + govpayCmcKey);
+        HttpEntity<String> httpEntity = new HttpEntity<>("parameters", headers);
+
+        restTemplate = new RestTemplate();
+
+        ResponseEntity<GovPayPayment> res = restTemplate.exchange(govpayUrl + "/" + paymentDto.getExternalReference(),
+            HttpMethod.GET, httpEntity, GovPayPayment.class);
+        GovPayPayment govPayPayment = res.getBody();
 
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getReference(), paymentDto.getReference());
