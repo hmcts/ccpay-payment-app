@@ -1,8 +1,5 @@
 package uk.gov.hmcts.payment.functional;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
-import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -130,14 +126,17 @@ public class CMCCardPaymentFunctionalTest {
             assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
         });
 
-        // retrieve card payment
+        // retrieve govpay reference for the payment
         PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().getCardPayment(reference[0])
             .then().get();
 
 
-        // Retrieve the payment from govpay
+        /**
+         *
+         * Retrieve the payment details from govpay, and validate the payhub payment reference.
+         */
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + govpayCmcKey);
