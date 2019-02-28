@@ -1,0 +1,79 @@
+postgresql:
+  initdbScripts:
+    init.sql: |-
+      CREATE USER payment WITH PASSWORD 'payment';
+      CREATE DATABASE payment WITH OWNER = payment ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+  nameOverride: payment-db
+  persistence:
+    enabled: false
+
+java:
+  image: hmcts.azurecr.io/hmcts/payment-api
+  ingressHost: ${SERVICE_FQDN}
+
+  applicationPort: 8080
+  memoryRequests: 256Mi
+  cpuRequests: 25m
+  memoryLimits: 1024Mi
+  cpuLimits: 2500m
+  environment:
+    SPRING_DATASOURCE_URL: jdbc:postgresql://${SERVICE_NAME}-payment-db:5432/payment
+    SPRING_DATASOURCE_USERNAME: payment
+    SPRING_DATASOURCE_PASSWORD: payment
+    SPRING_LIQUIBASE_ENABLED: true
+
+    REFORM_SERVICE_NAME: payment-api
+    REFORM_TEAM: cc
+    REFORM_ENVIRONMENT: preview
+
+    AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+    AUTH_IDAM_CLIENT_BASEURL: "https://preprod-idamapi.reform.hmcts.net:3511"
+    FEES_REGISTER_URL: "http://fees-register-api-aat.service.core-compute-aat.internal"
+    PAYBUBBLE_HOME_URL: "https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal"
+
+    GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
+    GOV_PAY_AUTH_KEY_CMC: "${GOV_PAY_AUTH_KEY_CMC}"
+    GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND: "${GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND}"
+    GOV_PAY_AUTH_KEY_PROBATE_FRONTEND: "${GOV_PAY_AUTH_KEY_PROBATE_FRONTEND}"
+    GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw"
+
+    PCI_PAL_CALLBACK_URL: "https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback"
+    PCI_PAL_ACCOUNT_ID_CMC: "${PCI_PAL_ACCOUNT_ID_CMC}"
+    PCI_PAL_ACCOUNT_ID_PROBATE: "${PCI_PAL_ACCOUNT_ID_PROBATE}"
+    PCI_PAL_ACCOUNT_ID_DIVORCE: "${PCI_PAL_ACCOUNT_ID_DIVORCE}"
+    PCI_PAL_API_URL: "${PCI_PAL_API_URL}"
+    PCI_PAL_API_KEY: "${PCI_PAL_API_KEY}"
+
+    LIBERATA_OAUTH2_CLIENT_ID: "${LIBERATA_OAUTH2_CLIENT_ID}"
+    LIBERATA_OAUTH2_CLIENT_SECRET: "${LIBERATA_OAUTH2_CLIENT_SECRET}"
+    LIBERATA_OAUTH2_USERNAME: "${LIBERATA_OAUTH2_USERNAME}"
+    LIBERATA_OAUTH2_PASSWORD: "${LIBERATA_OAUTH2_PASSWORD}"
+
+    ASB_CONNECTION_STRING: "${ASB_CONNECTION_STRING}"
+
+    CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    CARD_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    CARD_PAYMENTS_EMAIL_TO: "pepito@grillo.com"
+    CARD_PAYMENTS_EMAIL_MESSAGE: "hi"
+    CARD_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_CMC_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    PBA_CMC_PAYMENTS_EMAIL_TO: "pepito@grillo.com"
+    PBA_CMC_PAYMENTS_EMAIL_MESSAGE: "hi"
+    PBA_CMC_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_DIVORCE_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    PBA_DIVORCE_PAYMENTS_EMAIL_TO: "pepito@grillo.com"
+    PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE: "hi"
+    PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+    SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: "*"
+    SPRING_MAIL_PORT: "25"
+    SPRING_MAIL_HOST: "mta.reform.hmcts.net"
+
+    TRUSTED_S2S_SERVICE_NAMES: "cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp"
+
+    FEATURE_PAYMENTS_SEARCH: "true"
+    FEATURE_SERVICE_CALLBACK: "true"
+
+    APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
