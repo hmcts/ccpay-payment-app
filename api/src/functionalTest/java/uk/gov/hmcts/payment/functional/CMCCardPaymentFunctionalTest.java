@@ -4,10 +4,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -34,6 +38,14 @@ public class CMCCardPaymentFunctionalTest {
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
+
+    private RestTemplate restTemplate;
+
+    @Value("${gov.pay.url}")
+    private String govpayUrl;
+
+    @Value("${gov.pay.keys.cmc}")
+    private String govpayCmcKey;
 
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
@@ -95,6 +107,50 @@ public class CMCCardPaymentFunctionalTest {
             assertEquals(f.getCalculatedAmount(), new BigDecimal("20.99"));
         });
 
+    }
+
+
+    @Test
+    public void retrieveAndValidatePayhubPaymentReferenceFromGovPay() throws Exception {
+        final String[] reference = new String[1];
+
+        // create card payment
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.google.com")
+            .when().createCardPayment(getCardPaymentRequest())
+            .then().created(savedPayment -> {
+            reference[0] = savedPayment.getReference();
+
+            assertNotNull(savedPayment.getReference());
+            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+        });
+
+        // retrieve govpay reference for the payment
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getCardPayment(reference[0])
+            .then().get();
+
+
+        /**
+         *
+         * Retrieve the payment details from govpay, and validate the payhub payment reference.
+         */
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + govpayCmcKey);
+        HttpEntity<String> httpEntity = new HttpEntity<>("parameters", headers);
+
+        restTemplate = new RestTemplate();
+
+        ResponseEntity<GovPayPayment> res = restTemplate.exchange(govpayUrl + "/" + paymentDto.getExternalReference(),
+            HttpMethod.GET, httpEntity, GovPayPayment.class);
+        GovPayPayment govPayPayment = res.getBody();
+
+        assertNotNull(govPayPayment);
+        assertEquals(govPayPayment.getReference(), paymentDto.getReference());
+        assertEquals(govPayPayment.getPaymentId(), paymentDto.getExternalReference());
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
