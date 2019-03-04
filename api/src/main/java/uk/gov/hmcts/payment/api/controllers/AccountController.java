@@ -10,14 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
@@ -47,7 +45,7 @@ public class AccountController {
             LOG.error("Error while calling account", ex);
             throw new AccountNotFoundException("Account not found");
         } catch (Exception ex) {
-            LOG.error("Failed to connect with Liberata. {}", ex.getMessage());
+            LOG.error("Failed to connect with Liberata. {}", ex);
             throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + ex.getMessage());
         }
     }
