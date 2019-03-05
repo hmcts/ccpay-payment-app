@@ -18,23 +18,7 @@ List<LinkedHashMap<String, Object>> secrets = [
         secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET'),
         secret('freg-idam-generated-user-email-pattern', 'GENERATED_USER_EMAIL_PATTERN'),
         secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
-        secret('sb-primary-connection-string', 'ASB_CONNECTION_STRING'),
-        // PCI PAL
-        secret('pci-pal-account-id-cmc', 'PCI_PAL_ACCOUNT_ID_CMC'),
-        secret('pci-pal-account-id-probate', 'PCI_PAL_ACCOUNT_ID_PROBATE'),
-        secret('pci-pal-account-id-divorce', 'PCI_PAL_ACCOUNT_ID_DIVORCE'),
-        secret('pci-pal-api-url', 'PCI_PAL_API_URL'),
-        secret('pci-pal-api-key', 'PCI_PAL_API_KEY'),
-        // Gov pay
-        secret('gov-pay-keys-reference', 'GOV_PAY_AUTH_KEY_REFERENCE'),
-        secret('gov-pay-keys-cmc', 'GOV_PAY_AUTH_KEY_CMC'),
-        secret('gov-pay-keys-divorce', 'GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND'),
-        secret('gov-pay-keys-probate', 'GOV_PAY_AUTH_KEY_PROBATE_FRONTEND'),
-        // Liberata
-        secret('liberata-keys-oauth2-client-id', 'LIBERATA_OAUTH2_CLIENT_ID'),
-        secret('liberata-keys-oauth2-client-secret', 'LIBERATA_OAUTH2_CLIENT_SECRET'),
-        secret('liberata-keys-oauth2-username', 'LIBERATA_OAUTH2_USERNAME'),
-        secret('liberata-keys-oauth2-password', 'LIBERATA_OAUTH2_PASSWORD')
+        secret('gov-pay-keys-cmc', 'GOV_PAY_AUTH_KEY_CMC')
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
