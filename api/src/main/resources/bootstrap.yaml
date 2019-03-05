@@ -1,0 +1,19 @@
+spring:
+  cloud:
+    propertiesvolume:
+      paths: /mnt/secrets/ccpay
+      aliases:
+        ccpay.sb-primary-connection-string: ASB_CONNECTION_STRING
+        ccpay.pci-pal-account-id-cmc: PCI_PAL_ACCOUNT_ID_CMC
+        ccpay.pci-pal-account-id-probate: PCI_PAL_ACCOUNT_ID_PROBATE
+        ccpay.pci-pal-account-id-divorce: PCI_PAL_ACCOUNT_ID_DIVORCE
+        ccpay.pci-pal-api-url: PCI_PAL_API_URL
+        ccpay.pci-pal-api-key: PCI_PAL_API_KEY
+        ccpay.gov-pay-keys-reference: GOV_PAY_AUTH_KEY_REFERENCE
+        ccpay.gov-pay-keys-cmc: GOV_PAY_AUTH_KEY_CMC
+        ccpay.gov-pay-keys-divorce: GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND
+        ccpay.gov-pay-keys-probate: GOV_PAY_AUTH_KEY_PROBATE_FRONTEND
+        ccpay.liberata-keys-oauth2-client-id: LIBERATA_OAUTH2_CLIENT_ID
+        ccpay.liberata-keys-oauth2-client-secret: LIBERATA_OAUTH2_CLIENT_SECRET
+        ccpay.liberata-keys-oauth2-username: LIBERATA_OAUTH2_USERNAME
+        ccpay.liberata-keys-oauth2-password: LIBERATA_OAUTH2_PASSWORD
