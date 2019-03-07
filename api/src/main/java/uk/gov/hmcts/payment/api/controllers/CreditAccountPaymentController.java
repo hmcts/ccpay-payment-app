@@ -127,7 +127,12 @@ public class CreditAccountPaymentController {
                     .status(payment.getPaymentStatus().getName())
                     .errorCode("CA-E0001")
                     .message("You have insufficient funds available")
-                    .build()));
+                    .message("Payment request failed. PBA account " + accountDetails.getAccountName()
+                        + " have insufficient funds available").build()));
+                LOG.info("Payment request failed. PBA account {} has insufficient funds available." +
+                        " Requested payment was {} where available balance is {}",
+                    accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount(),
+                    accountDetails.getAvailableBalance());
             } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -210,6 +215,10 @@ public class CreditAccountPaymentController {
     }
 
     private boolean isAccountStatusCheckRequired(Service service) {
+        if (ff4j.check("check-liberata-account-for-all-services")) {
+            return true;
+        }
+
         return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM == service;
     }
 
