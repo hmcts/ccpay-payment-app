@@ -91,7 +91,7 @@ public class PBAPaymentFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
             .statusCode(CREATED.value())
-            .body("status", equalTo("Pending"));
+            .body("status", equalTo("Success"));
 
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
