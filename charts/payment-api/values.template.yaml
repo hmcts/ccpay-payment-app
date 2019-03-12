@@ -6,7 +6,8 @@ postgresql:
   nameOverride: payment-db
   persistence:
     enabled: false
-
+tags:
+  postgresql-pod: true
 java:
   # Don't modify below here
   image: ${IMAGE_NAME}
