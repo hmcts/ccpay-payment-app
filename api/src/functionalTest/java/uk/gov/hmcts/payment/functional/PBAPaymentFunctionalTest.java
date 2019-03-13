@@ -81,28 +81,6 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByFinremLiberataCheckOff() {
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.FINREM);
-        accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
-            .then()
-            .statusCode(CREATED.value())
-            .body("status", equalTo("Pending"));
-
-        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .setFF4Jfeature("credit-account-payment-liberata-check", false)
-            .when().searchPaymentsByServiceBetweenDates(Service.FINREM, startDate, endDate)
-            .then().getPayments((paymentsResponse -> {
-            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-        }));
-    }
-
-    @Test
     public void makeAndRetrievePbaPaymentByFinremLiberataCheckOn() {
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
@@ -117,7 +95,6 @@ public class PBAPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .setFF4Jfeature("credit-account-payment-liberata-check", true)
             .when().searchPaymentsByServiceBetweenDates(Service.FINREM, startDate, endDate)
             .then().getPayments((paymentsResponse -> {
             Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
