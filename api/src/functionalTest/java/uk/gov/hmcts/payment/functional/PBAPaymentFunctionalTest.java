@@ -4,7 +4,6 @@ import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Assertions;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -66,7 +64,7 @@ public class PBAPaymentFunctionalTest {
     public void makeAndRetrievePbaPaymentsByCMC() {
         // create a PBA payment
         String accountNumber = "PBA234" + RandomUtils.nextInt();
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00",Service.CMC);
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.CMC);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
@@ -83,15 +81,15 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByFinrem() {
+    public void makeAndRetrievePbaPaymentByFinremLiberataCheckOn() {
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00",Service.FINREM);
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.FINREM);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
             .statusCode(CREATED.value())
-            .body("status", equalTo("Pending"));
+            .body("status", equalTo("Success"));
 
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
