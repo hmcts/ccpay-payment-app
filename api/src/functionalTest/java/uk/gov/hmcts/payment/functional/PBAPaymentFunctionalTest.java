@@ -95,7 +95,7 @@ public class PBAPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .setFF4Jfeature("feature.credit.account.payment.liberata.check", false)
+            .setFF4Jfeature("credit-account-payment-liberata-check", false)
             .when().searchPaymentsByServiceBetweenDates(Service.FINREM, startDate, endDate)
             .then().getPayments((paymentsResponse -> {
             Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
@@ -117,7 +117,7 @@ public class PBAPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .setFF4Jfeature("feature.credit.account.payment.liberata.check", true)
+            .setFF4Jfeature("credit-account-payment-liberata-check", true)
             .when().searchPaymentsByServiceBetweenDates(Service.FINREM, startDate, endDate)
             .then().getPayments((paymentsResponse -> {
             Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
