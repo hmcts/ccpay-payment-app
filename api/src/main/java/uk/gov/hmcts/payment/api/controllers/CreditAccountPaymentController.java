@@ -219,7 +219,7 @@ public class CreditAccountPaymentController {
             return true;
         }
 
-        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM == service;
+        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM.getName().equalsIgnoreCase(service.toString());
     }
 
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
