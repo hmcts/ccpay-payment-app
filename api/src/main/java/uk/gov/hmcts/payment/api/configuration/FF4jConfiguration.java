@@ -21,7 +21,6 @@ public class FF4jConfiguration {
     @Value("${feature.payments.service.callback}")
     private boolean paymentServiceCallback = false;
 
-    @Value("${feature.credit.account.payment.liberata.check}")
     private boolean creditAccountPaymentLiberataCheck = true;
 
     @Value("${feature.check.liberata.account.for.all.services}")
