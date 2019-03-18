@@ -218,11 +218,17 @@ public class CreditAccountPaymentController {
     }
 
     private boolean isAccountStatusCheckRequired(Service service) {
-        LOG.info("Service.FINREM.getName(): {}", Service.FINREM.getName());
-        LOG.info("service.toString(): {}", service.toString());
-        LOG.info("Service.FINREM.getName().equalsIgnoreCase(service.toString(): {}", Service.FINREM.getName().equalsIgnoreCase(service.toString()));
-        LOG.info("ff4j.check(\"check-liberata-account-for-all-services\"): {}", ff4j.check("check-liberata-account-for-all-services"));
-        LOG.info("ff4j.check(\"credit-account-payment-liberata-check\")", ff4j.check("credit-account-payment-liberata-check"));
+        LOG.info("Service.FINREM.getName(): {}" +
+                " service.toString(): {}" +
+                " Service.FINREM.getName().equalsIgnoreCase(service.toString()): {}" +
+                " ff4j.check(\"check-liberata-account-for-all-services\"): {}" +
+                " ff4j.check(\"credit-account-payment-liberata-check\"): {}",
+            Service.FINREM.getName(),
+            service.toString(),
+            Service.FINREM.getName().equalsIgnoreCase(service.toString()),
+            ff4j.check("check-liberata-account-for-all-services"),
+            ff4j.check("credit-account-payment-liberata-check")
+        );
 
         if (ff4j.check("check-liberata-account-for-all-services")) {
             return true;
