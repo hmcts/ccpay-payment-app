@@ -107,6 +107,8 @@ public class CreditAccountPaymentController {
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
+            LOG.error("Checking with Liberata");
+
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
@@ -149,6 +151,7 @@ public class CreditAccountPaymentController {
                     .build()));
             }
         } else {
+            LOG.error("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
         }
 
@@ -215,6 +218,12 @@ public class CreditAccountPaymentController {
     }
 
     private boolean isAccountStatusCheckRequired(Service service) {
+        LOG.error("Service.FINREM.getName(): {}", Service.FINREM.getName());
+        LOG.error("service.toString(): {}", service.toString());
+        LOG.error("Service.FINREM.getName().equalsIgnoreCase(service.toString(): {}", Service.FINREM.getName().equalsIgnoreCase(service.toString());
+        LOG.error("ff4j.check(\"check-liberata-account-for-all-services\"): {}", ff4j.check("check-liberata-account-for-all-services"));
+        LOG.error("ff4j.check(\"credit-account-payment-liberata-check\")", ff4j.check("credit-account-payment-liberata-check"));
+
         if (ff4j.check("check-liberata-account-for-all-services")) {
             return true;
         }
