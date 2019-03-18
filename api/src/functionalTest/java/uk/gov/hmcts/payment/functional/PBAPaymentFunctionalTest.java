@@ -82,6 +82,9 @@ public class PBAPaymentFunctionalTest {
 
     @Test
     public void makeAndRetrievePbaPaymentByFinremLiberataCheckOn() {
+        System.out.println("Service.FINREM.getName(): " + Service.FINREM.getName());
+        System.out.println("testProps.existingAccountNumber: " + testProps.existingAccountNumber);
+
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.FINREM);
