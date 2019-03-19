@@ -46,9 +46,7 @@ public class PciPalPaymentServiceTest {
     @Test
     public void getPciPalLink() throws URISyntaxException {
         StringBuilder sb = new StringBuilder();
-        sb.append("apiKey=");
-        sb.append(apiKey);
-        sb.append("&ppAccountId&renderMethod=HTML&orderAmount=20000&orderCurrency=GBP&orderReference=orderReference&callbackURL=www.callback.url.com&customData1&redirectURL=");
+        sb.append("ppAccountID&orderAmount=20000&orderReference=orderReference&callbackURL=www.callback.url.com&customData2&redirectURL=");
         sb.append(redirectUrl);
 
         stubFor(
