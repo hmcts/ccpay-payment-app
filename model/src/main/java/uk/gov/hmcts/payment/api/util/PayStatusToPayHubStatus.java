@@ -1,7 +1,8 @@
 package uk.gov.hmcts.payment.api.util;
 
 public enum PayStatusToPayHubStatus {
-    created("Initiated"), started("Initiated"), submitted("Initiated"), success("Success"), failed("Failed"), cancelled("Failed"), error("Failed"), pending("Pending");
+    created("Initiated"), started("Initiated"), submitted("Initiated"), success("Success"), failed("Failed"), cancelled("Failed"), error("Failed"),
+    pending("Pending"), decline("Failed"), cancelled("Failed);
 
     public String mapedStatus;
 
