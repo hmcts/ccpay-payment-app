@@ -27,7 +27,6 @@ public class PciPalPaymentServiceTest {
     private PciPalPaymentService pciPalPaymentService;
 
     private String url = "";
-    private String apiKey = "apiKey";
     private String callbackUrl = "www.callback.url.com";
 
     @Before
@@ -36,7 +35,6 @@ public class PciPalPaymentServiceTest {
 
         pciPalPaymentService = new PciPalPaymentService(
             url,
-            apiKey,
             callbackUrl
         );
     }
@@ -44,7 +42,7 @@ public class PciPalPaymentServiceTest {
     @Test
     public void getPciPalLink() throws URISyntaxException {
         StringBuilder sb = new StringBuilder();
-        sb.append("&ppAccountId&renderMethod=HTML&orderAmount=20000&orderCurrency=GBP&orderReference=orderReference&callbackURL=www.callback.url.com&customData1");
+        sb.append("ppAccountID&orderAmount=20000&orderReference=orderReference&callbackURL=www.callback.url.com&customData2");
         stubFor(
             post(urlEqualTo("/"))
                 .withRequestBody(

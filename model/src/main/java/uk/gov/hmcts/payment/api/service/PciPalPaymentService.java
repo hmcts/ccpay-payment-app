@@ -38,14 +38,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     private final String callbackUrl;
     private final String url;
-    private final String apiKey;
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
-                                @Value("${pci-pal.api.key}") String apiKey,
                                 @Value("${pci-pal.callback-url}") String callbackUrl) {
         this.url = url;
-        this.apiKey = apiKey;
         this.callbackUrl = callbackUrl;
     }
 
