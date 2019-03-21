@@ -38,14 +38,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     private final String callbackUrl;
     private final String url;
-    private final String apiKey;
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
-                                @Value("${pci-pal.api.key}") String apiKey,
                                 @Value("${pci-pal.callback-url}") String callbackUrl) {
         this.url = url;
-        this.apiKey = apiKey;
         this.callbackUrl = callbackUrl;
     }
 
@@ -62,14 +59,12 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             LOG.error("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair("apiKey", apiKey));
-            params.add(new BasicNameValuePair("ppAccountId", ppAccountID));
-            params.add(new BasicNameValuePair("renderMethod", "HTML"));
+            params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
             params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
-            params.add(new BasicNameValuePair("orderCurrency", pciPalPaymentRequest.getOrderCurrency()));
             params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
             params.add(new BasicNameValuePair("callbackURL", callbackUrl));
-            params.add(new BasicNameValuePair("customData1", pciPalPaymentRequest.getCustomData1()));
+            params.add(new BasicNameValuePair("customData2", pciPalPaymentRequest.getCustomData2()));
+
 
             URIBuilder uriBuilder = new URIBuilder(url);
             uriBuilder.addParameters(params);
