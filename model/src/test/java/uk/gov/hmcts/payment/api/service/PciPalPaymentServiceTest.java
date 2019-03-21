@@ -28,7 +28,6 @@ public class PciPalPaymentServiceTest {
 
     private String url = "";
     private String apiKey = "apiKey";
-    private String redirectUrl = "www.paybubbleHomeUrl.com";
     private String callbackUrl = "www.callback.url.com";
 
     @Before
@@ -38,7 +37,6 @@ public class PciPalPaymentServiceTest {
         pciPalPaymentService = new PciPalPaymentService(
             url,
             apiKey,
-            redirectUrl,
             callbackUrl
         );
     }
@@ -48,8 +46,7 @@ public class PciPalPaymentServiceTest {
         StringBuilder sb = new StringBuilder();
         sb.append("apiKey=");
         sb.append(apiKey);
-        sb.append("&ppAccountId&renderMethod=HTML&orderAmount=20000&orderCurrency=GBP&orderReference=orderReference&callbackURL=www.callback.url.com&customData1&redirectURL=");
-        sb.append(redirectUrl);
+        sb.append("&ppAccountId&renderMethod=HTML&orderAmount=20000&orderCurrency=GBP&orderReference=orderReference&callbackURL=www.callback.url.com&customData1");
 
         stubFor(
             post(urlEqualTo("/"))
