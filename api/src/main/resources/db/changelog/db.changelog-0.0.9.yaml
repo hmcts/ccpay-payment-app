@@ -177,3 +177,48 @@ databaseChangeLog:
         splitStatements:
         sql: >
           INSERT INTO payment_status (name, description) VALUES ('decline', 'Payment declined');
+
+- changeSet:
+    id: 1529403181339-1
+    author: mateuszs
+    changes:
+    - createTable:
+        tableName: site
+        columns:
+        - column:
+            name: id
+            type: varchar(15)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: name
+            type: varchar(255)
+              constraints:
+                nullable: false
+        - column:
+            name: cost_centre
+            type: varchar(255)
+              constraints:
+                nullable: false
+        -column:
+            name: service
+            type: varchar(255)
+              constraints:
+                nullable: false
+
+- changeSet:
+    id: 1529403181339-2
+    author: mateuszs
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          INSERT INTO site (id, name, cost_centre, service) VALUES ('Y431', 'Bromley County Court', '10251430', 'COUNTY');
+          INSERT INTO site (id, name, cost_centre, service) VALUES ('P223', 'Oxford Probate', '10251551', 'Probate');
+          INSERT INTO site (id, name, cost_centre, service) VALUES ('AA01', 'East Midlands Divorce Unit', '10255050', 'Divorce');
+          INSERT INTO site (id, name, cost_centre, service) VALUES ('AA02', 'West Midlands Divorce Unit', '10255056', 'Divorce');
+          INSERT INTO site (id, name, cost_centre, service) VALUES ('AA03', 'SW Regional Divorce Centre', '10253389', 'Divorce');
+          INSERT INTO site (id, name, cost_centre, service) VALUES ('AA04', 'Divorce - C&M', '10256433', 'Divorce');
+          INSERT INTO site (id, name, cost_centre, service) VALUES ('AA00', 'Mids CCBC', '10250500', 'CMCT1');
+          INSERT INTO site (id, name, cost_centre, service) VALUES ('Y689', 'Salford BC', '10250501', 'CMCT2');
