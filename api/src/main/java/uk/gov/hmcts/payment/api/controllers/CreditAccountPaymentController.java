@@ -107,6 +107,8 @@ public class CreditAccountPaymentController {
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
+            LOG.info("Checking with Liberata");
+
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
@@ -149,6 +151,7 @@ public class CreditAccountPaymentController {
                     .build()));
             }
         } else {
+            LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
         }
 
@@ -215,11 +218,23 @@ public class CreditAccountPaymentController {
     }
 
     private boolean isAccountStatusCheckRequired(Service service) {
+        LOG.info("Service.FINREM.getName(): {}" +
+                " service.toString(): {}" +
+                " Service.FINREM.getName().equalsIgnoreCase(service.toString()): {}" +
+                " ff4j.check(\"check-liberata-account-for-all-services\"): {}" +
+                " ff4j.check(\"credit-account-payment-liberata-check\"): {}",
+            Service.FINREM.getName(),
+            service.toString(),
+            Service.FINREM.getName().equalsIgnoreCase(service.toString()),
+            ff4j.check("check-liberata-account-for-all-services"),
+            ff4j.check("credit-account-payment-liberata-check")
+        );
+
         if (ff4j.check("check-liberata-account-for-all-services")) {
             return true;
         }
 
-        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM == service;
+        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM.getName().equalsIgnoreCase(service.toString());
     }
 
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
