@@ -199,18 +199,18 @@ databaseChangeLog:
         - column:
             name: name
             type: varchar(255)
-              constraints:
-                nullable: false
+            constraints:
+              nullable: false
         - column:
             name: sop_reference
             type: varchar(255)
-              constraints:
-                nullable: false
-        -column:
+            constraints:
+              nullable: false
+        - column:
             name: service
             type: varchar(255)
-              constraints:
-                nullable: false
+            constraints:
+              nullable: false
 
 - changeSet:
     id: 1529403181339-2
