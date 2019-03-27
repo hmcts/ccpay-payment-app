@@ -61,6 +61,13 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentGivenDsl setFF4Jfeature(String featureName, boolean value) {
+            String path = "/api/ff4j/store/features/" + featureName + (value ? "enable" : "disable");
+            RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers)
+                .post(path);
+            return this;
+        }
+
         public PaymentWhenDsl when() {
             return new PaymentWhenDsl();
         }
@@ -112,7 +119,7 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl enableSearch(){
+        public PaymentWhenDsl enableSearch() {
             response = newRequest().contentType(ContentType.JSON).post("/api/ff4j/store/features/payment-search/enable");
             return this;
         }

@@ -107,6 +107,8 @@ public class CreditAccountPaymentController {
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
+            LOG.info("Checking with Liberata");
+
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
@@ -127,7 +129,12 @@ public class CreditAccountPaymentController {
                     .status(payment.getPaymentStatus().getName())
                     .errorCode("CA-E0001")
                     .message("You have insufficient funds available")
-                    .build()));
+                    .message("Payment request failed. PBA account " + accountDetails.getAccountName()
+                        + " have insufficient funds available").build()));
+                LOG.info("Payment request failed. PBA account {} has insufficient funds available." +
+                        " Requested payment was {} where available balance is {}",
+                    accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount(),
+                    accountDetails.getAvailableBalance());
             } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -144,6 +151,7 @@ public class CreditAccountPaymentController {
                     .build()));
             }
         } else {
+            LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
         }
 
@@ -210,7 +218,23 @@ public class CreditAccountPaymentController {
     }
 
     private boolean isAccountStatusCheckRequired(Service service) {
-        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM == service;
+        LOG.info("Service.FINREM.getName(): {}" +
+                " service.toString(): {}" +
+                " Service.FINREM.getName().equalsIgnoreCase(service.toString()): {}" +
+                " ff4j.check(\"check-liberata-account-for-all-services\"): {}" +
+                " ff4j.check(\"credit-account-payment-liberata-check\"): {}",
+            Service.FINREM.getName(),
+            service.toString(),
+            Service.FINREM.getName().equalsIgnoreCase(service.toString()),
+            ff4j.check("check-liberata-account-for-all-services"),
+            ff4j.check("credit-account-payment-liberata-check")
+        );
+
+        if (ff4j.check("check-liberata-account-for-all-services")) {
+            return true;
+        }
+
+        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM.getName().equalsIgnoreCase(service.toString());
     }
 
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {

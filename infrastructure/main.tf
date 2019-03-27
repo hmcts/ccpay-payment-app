@@ -21,7 +21,9 @@ locals {
   asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 
   #region API gateway
-  api_policy = "${file("template/api-policy.xml")}"
+  thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)}"
+  thumbprints_in_quotes_str = "${join(",", local.thumbprints_in_quotes)}"
+  api_policy = "${replace(file("template/api-policy.xml"), "ALLOWED_CERTIFICATE_THUMBPRINTS", local.thumbprints_in_quotes_str)}"
   api_base_path = "telephony-api"
   # endregion
 }
@@ -156,6 +158,10 @@ module "payment-api" {
     PCI_PAL_ACCOUNT_ID_DIVORCE = "${data.azurerm_key_vault_secret.pci_pal_account_id_divorce.value}"
     PCI_PAL_API_URL = "${data.azurerm_key_vault_secret.pci_pal_api_url.value}"
     PCI_PAL_API_KEY = "${data.azurerm_key_vault_secret.pci_pal_api_key.value}"
+    PCI_PAL_CALLBACK_URL = "${var.pci_pal_callback_url}"
+
+    # PAYBUBBLE
+    PAYBUBBLE_HOME_URL = "${var.paybubble_home_url}"
 
     # liberata
     LIBERATA_OAUTH2_CLIENT_ID = "${data.azurerm_key_vault_secret.liberata_keys_oauth2_client_id.value}"
@@ -176,7 +182,7 @@ module "payment-api" {
     GOV_PAY_OPERATIONAL_SERVICES = "${var.gov_pay_operational_services}"
 
     # S2S trusted services
-    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,pui_webapp,finrem_payment_service,ccpay_bubble"
+    TRUSTED_S2S_SERVICE_NAMES="cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,pui_webapp,finrem_payment_service,ccpay_bubble,jui_webapp"
 
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"
@@ -283,6 +289,7 @@ data "template_file" "policy_template" {
   template = "${file("${path.module}/template/api-policy.xml")}"
 
   vars {
+    allowed_certificate_thumbprints = "${local.thumbprints_in_quotes_str}"
     s2s_client_id = "${data.azurerm_key_vault_secret.s2s_client_id.value}"
     s2s_client_secret = "${data.azurerm_key_vault_secret.s2s_client_secret.value}"
     s2s_base_url = "${local.s2sUrl}"

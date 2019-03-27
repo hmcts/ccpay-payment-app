@@ -22,7 +22,10 @@ public class FF4jConfiguration {
     private boolean paymentServiceCallback = false;
 
     @Value("${feature.credit.account.payment.liberata.check}")
-    private boolean creditAccountPaymentLiberataCheck = false;
+    private boolean creditAccountPaymentLiberataCheck = true;
+
+    @Value("${feature.check.liberata.account.for.all.services}")
+    private boolean checkLiberataAccountForAllServices = false;
 
     @Bean
     public FF4j getFf4j() {
@@ -39,16 +42,21 @@ public class FF4jConfiguration {
             "Payment Service Callback"
         );
 
-        Feature creditAccountPaymentLiberataCheckFeature = new Feature("credit-account-payment-liberata-check",
-            creditAccountPaymentLiberataCheck, "Liberata account check when creating credit account payment");
+        Feature creditAccountPaymentLiberataCheckFeature = new Feature(
+            "credit-account-payment-liberata-check",
+            creditAccountPaymentLiberataCheck,
+            "Liberata account check when creating credit account payment");
 
-        FF4j ff4j = new FF4j()
+        Feature checkLiberataAccountForAllServicesFeature = new Feature(
+            "check-liberata-account-for-all-services",
+            checkLiberataAccountForAllServices,
+            "If Liberata credit check is enabled and this feature also, then requests from all services will be checked against Liberata");
+
+        return new FF4j()
             .createFeature(paymentSearchFeature)
-            .createFeature(paymentServiceCallbackFeature);
-
-        ff4j.createFeature(creditAccountPaymentLiberataCheckFeature);
-
-        return ff4j;
+            .createFeature(paymentServiceCallbackFeature)
+            .createFeature(creditAccountPaymentLiberataCheckFeature)
+            .createFeature(checkLiberataAccountForAllServicesFeature);
     }
 
     @Bean
