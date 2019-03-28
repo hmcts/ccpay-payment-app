@@ -54,6 +54,7 @@ dependencies {
   compile project(':payment-gov-pay-client')
   compile project(':payment-api-contract')
   compile project(':payment-model')
+  compile project(':payment-reference-data')
   compile group: 'uk.gov.hmcts.reform', name: 'java-logging', version: javaLoggingVersion
   compile group: 'uk.gov.hmcts.reform', name: 'java-logging-appinsights', version: javaLoggingVersion
   compile group: 'uk.gov.hmcts.reform', name: 'java-logging-spring', version: javaLoggingVersion
