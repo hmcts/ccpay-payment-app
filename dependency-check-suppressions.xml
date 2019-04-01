@@ -59,7 +59,6 @@
     </suppress>
     <suppress>
         <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see https://pivotal.io/security/cve-2018-1258</notes>
-        <gav regex="true">^org\.springframework:spring-.*:.*$</gav>
         <cve>CVE-2018-1258</cve>
     </suppress>
 </suppressions>
