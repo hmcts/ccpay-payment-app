@@ -47,4 +47,8 @@ public class FeeDto {
 
     private String remissionReference;
 
+    private String jurisdiction1;
+
+    private String jurisdiction2;
+
 }
