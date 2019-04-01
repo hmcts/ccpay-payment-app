@@ -1,11 +1,13 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.PaymentApiApplication;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
-import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
@@ -21,11 +23,11 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 public class PaymentDtoMapper {
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentDtoMapper.class);
 
     @Autowired
     private FeesService feesService;
@@ -155,6 +157,8 @@ public class PaymentDtoMapper {
                 fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
                 fee.setMemoLine(frFee.getCurrentVersion().getMemoLine());
                 fee.setNaturalAccountCode(frFee.getCurrentVersion().getNaturalAccountCode());
+            } else {
+                LOG.info("No fee found with the code: ", fee.getCode());
             }
         });
         return paymentDto;
