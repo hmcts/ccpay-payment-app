@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -146,10 +148,13 @@ public class PaymentDtoMapper {
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         paymentDto.getFees().forEach(fee -> {
-            Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
-            if (optionalFeeVersionDto.isPresent()) {
-                fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
-                fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+            Map<String, Fee2Dto> frFeeMap = feesService.getFeesDtoMap();
+            if (frFeeMap.containsKey(fee.getCode())) {
+                Fee2Dto frFee = frFeeMap.get(fee.getCode());
+                fee.setJurisdiction1(frFee.getJurisdiction1Dto().getName());
+                fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
+                fee.setMemoLine(frFee.getCurrentVersion().getMemoLine());
+                fee.setNaturalAccountCode(frFee.getCurrentVersion().getNaturalAccountCode());
             }
         });
         return paymentDto;
