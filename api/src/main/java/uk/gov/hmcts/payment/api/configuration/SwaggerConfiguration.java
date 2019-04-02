@@ -78,7 +78,7 @@ public class SwaggerConfiguration {
     }
 
     @Bean
-    public Docket PaymentReferenceDataApi() {
+    public Docket paymentReferenceDataApi() {
         return new Docket(DocumentationType.SWAGGER_2)
             .groupName("reference-data")
             .useDefaultResponseMessages(false)

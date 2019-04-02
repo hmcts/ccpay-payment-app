@@ -6,8 +6,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +16,12 @@ import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
-import java.util.Arrays;
 import java.util.List;
 
 @RestController
 @Api(tags = {"Reference Data"})
 @SwaggerDefinition(tags = {@Tag(name = "ReferenceDataController", description = "Reference Data REST API")})
 public class ReferenceDataController {
-    private static final Logger LOG = LoggerFactory.getLogger(ReferenceDataController.class);
 
     @Autowired
     private SiteService<Site, String> siteService;
