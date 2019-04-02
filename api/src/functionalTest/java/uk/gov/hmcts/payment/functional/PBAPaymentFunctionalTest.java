@@ -80,7 +80,7 @@ public class PBAPaymentFunctionalTest {
         assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
     }
 
-    @Test
+    //@Test
     public void makeAndRetrievePbaPaymentByFinremLiberataCheckOn() {
         System.out.println("Service.FINREM.getName(): " + Service.FINREM.getName());
         System.out.println("testProps.existingAccountNumber: " + testProps.existingAccountNumber);
