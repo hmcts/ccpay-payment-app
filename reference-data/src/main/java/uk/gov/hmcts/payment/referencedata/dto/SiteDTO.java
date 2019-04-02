@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
