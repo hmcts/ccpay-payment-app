@@ -44,8 +44,12 @@ public class ReferenceDataControllerTest {
             .service("service")
             .name("name")
             .build());
-        List<Site> serviceReturn = Collections.singletonList(Site.siteWith().sopReference("sop").siteId("siteID")
-            .service("service").build());
+        List<Site> serviceReturn = Collections.singletonList(Site.siteWith()
+            .sopReference("sop")
+            .siteId("siteID")
+            .name("name")
+            .service("service")
+            .build());
         when(siteServiceMock.findAll()).thenReturn(serviceReturn);
         ResponseEntity<List<SiteDTO>> responseBody = referenceDataController.getSites();
         List<SiteDTO> actualResponse = responseBody.getBody();
