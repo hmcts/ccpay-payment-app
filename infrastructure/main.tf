@@ -135,6 +135,7 @@ module "payment-api" {
   https_only="false"
   capacity = "${var.capacity}"
   common_tags     = "${var.common_tags}"
+  appinsights_instrumentation_key = "${var.appinsights_instrumentation_key}"
   asp_name = "${local.asp_name}"
   asp_rg = "${local.asp_name}"
 
@@ -217,7 +218,6 @@ module "payment-api" {
     REFORM_SERVICE_NAME = "payment-api"
     REFORM_TEAM = "cc"
     REFORM_ENVIRONMENT = "${var.env}"
-    ROOT_APPENDER = "JSON_CONSOLE"
 
     PAYMENT_AUDIT_FILE = "${var.payment_audit_file}"
     # webjob security
