@@ -20,7 +20,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.fees2.register.data.model.Fee;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -28,11 +27,12 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.DbBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.referencedata.model.Site;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -68,6 +68,8 @@ public class PaymentRecordControllerTest {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
+    @Autowired
+    private DbBackdoor dbBackdoor;
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
@@ -107,6 +109,8 @@ public class PaymentRecordControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
 
+        dbBackdoor.createSite(Site.siteWith().siteId("AA99").name("AA99").service("service").sopReference("sopReference").build());
+        dbBackdoor.createSite(Site.siteWith().siteId("AA001").name("AA001").service("service").sopReference("sopReference").build());
     }
 
     @Test
@@ -598,6 +602,40 @@ public class PaymentRecordControllerTest {
             assertThat(fee2.getCalculatedAmount()).isEqualTo(new BigDecimal("2.00"));
             assertThat(fee2.getReference()).isEqualTo("CASE_001");
         }
+    }
+
+    @Test
+    public void ifSiteExistsThenAcceptPayment() throws Exception {
+        PaymentRecordRequest request = getCashPaymentRequest();
+        request.setSiteId("AA001");
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response).isNotNull();
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Success");
+
+        String reference = response.getReference().substring(3, response.getReference().length());
+        assertThat(cd.isValid(reference.replace("-", ""))).isEqualTo(true);
+    }
+
+    @Test
+    @Transactional
+    public void ifSiteDoesNotExistThenDoNotAcceptPayment() throws Exception {
+        PaymentRecordRequest request = getRequestWithNoCcdCaseNumberAndCaseReference();
+        request.setSiteId("non-existing-site-id");
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid siteID: non-existing-site-id");
     }
 
 
