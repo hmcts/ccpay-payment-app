@@ -627,12 +627,12 @@ public class PaymentRecordControllerTest {
     @Test
     @Transactional
     public void ifSiteDoesNotExistThenDoNotAcceptPayment() throws Exception {
-        PaymentRecordRequest request = getRequestWithNoCcdCaseNumberAndCaseReference();
+        PaymentRecordRequest request = getCashPaymentRequest();
         request.setSiteId("non-existing-site-id");
 
         MvcResult result = restActions
             .post("/payment-records", request)
-            .andExpect(status().isUnprocessableEntity())
+            .andExpect(status().isBadRequest())
             .andReturn();
 
         assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid siteID: non-existing-site-id");
