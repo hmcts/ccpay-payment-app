@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import org.slf4j.Logger;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
@@ -65,6 +66,7 @@ public class FeesService {
         return mapOfFeeVersionsDtoMap;
     }
 
+    @Cacheable("map")
     public Map<String, Fee2Dto> getFeesDtoMap() {
         try {
             if (feesDtoMap.isEmpty()) {

@@ -49,6 +49,8 @@ public class PaymentDtoTest {
     private SimpleDateFormat sdf;
     private String giroSlipNo;
     private String reportedDateOffline;
+    private String jurisdiction1;
+    private String jurisdiction2;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -59,12 +61,15 @@ public class PaymentDtoTest {
         volume = 1;
         feeNoVolumeCode = "X0002";
         calculatedAmountForFeeNoVolume = new BigDecimal(1);
+        jurisdiction1 = "family";
+        jurisdiction2 = "probate service";
+
 
         feeWithVolumeDto = new FeeDto(feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            memoLine, naturalAccountCode, null, null, null);
+            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2);
 
         feeNoVolumeDto = new FeeDto(feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            memoLine, naturalAccountCode, null, null, null);
+            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2);
     }
 
     @Before

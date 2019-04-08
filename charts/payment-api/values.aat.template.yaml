@@ -1,4 +1,4 @@
 java:
   environment:
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
-    AUTH_IDAM_CLIENT_BASEURL: "https://preprod-idamapi.reform.hmcts.net:3511"
+    AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
