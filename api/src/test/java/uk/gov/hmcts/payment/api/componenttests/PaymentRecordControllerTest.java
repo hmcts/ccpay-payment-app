@@ -33,6 +33,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
+import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,6 +73,9 @@ public class PaymentRecordControllerTest {
     @Autowired
     private DbBackdoor dbBackdoor;
 
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
+
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     private RestActions restActions;
@@ -96,7 +101,6 @@ public class PaymentRecordControllerTest {
         return configurableListableBeanFactory.resolveEmbeddedValue(content);
     }
 
-
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -109,8 +113,23 @@ public class PaymentRecordControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
 
-        dbBackdoor.createSite(Site.siteWith().siteId("AA99").name("AA99").service("service").sopReference("sopReference").build());
-        dbBackdoor.createSite(Site.siteWith().siteId("AA001").name("AA001").service("service").sopReference("sopReference").build());
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.findAll()).thenReturn(serviceReturn);
     }
 
     @Test
