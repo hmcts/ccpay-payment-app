@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Profile;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.service.AccountService;
 
-@Profile("componenttest")
+@Profile({"componenttest", "local"})
 @Configuration
 public class V2ComponentTestConfiguration {
     @Bean

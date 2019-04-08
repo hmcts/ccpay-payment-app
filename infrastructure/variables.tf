@@ -148,7 +148,7 @@ variable "feature_payments_search" {
 }
 
 variable "feature_credit_account_payment_liberata_check" {
-  default = "false"
+  default = "true"
 }
 
 variable "external_host_name" {
