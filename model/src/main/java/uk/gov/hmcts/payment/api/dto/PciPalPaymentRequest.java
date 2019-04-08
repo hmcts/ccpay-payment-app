@@ -21,6 +21,6 @@ public class PciPalPaymentRequest {
     private String orderCurrency;
     private String orderAmount;
     private String orderReference;
-    private String customData1;
+    private String customData2;
 
 }

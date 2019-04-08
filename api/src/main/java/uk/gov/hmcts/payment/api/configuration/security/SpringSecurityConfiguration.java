@@ -71,6 +71,7 @@ public class SpringSecurityConfiguration {
                 "/v2/**",
                 "/refdata/**",
                 "/health",
+                "/health/liveness",
                 "/info",
                 "/favicon.ico",
                 "/");
