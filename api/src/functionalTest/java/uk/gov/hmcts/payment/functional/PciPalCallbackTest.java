@@ -130,7 +130,7 @@ public class PciPalCallbackTest {
             .service(Service.CMC)
             .currency(CurrencyCode.GBP)
             .externalReference(reference)
-            .siteId("ABCD")
+            .siteId("AA01")
             .fees(
                 Arrays.asList(
                     FeeDto.feeDtoWith()
