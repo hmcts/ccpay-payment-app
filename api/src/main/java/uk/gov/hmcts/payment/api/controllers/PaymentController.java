@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.util.Date;
@@ -173,10 +174,30 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @ApiOperation(value = "Get payment details by payment reference", notes = "Get payment details for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment retrieved"),
+        @ApiResponse(code = 403, message = "Payment info forbidden"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @GetMapping(value = "/payments/{reference}")
+    public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
+        PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
+        return Optional.ofNullable(paymentFeeLink)
+            .map(paymentDtoMapper::toReconciliationResponseDto)
+            .orElseThrow(PaymentNotFoundException::new);
+    }
+
     private Optional<Payment> getPaymentByReference(String reference) {
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(reference);
         return paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(reference)).findAny();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public String notFound(PaymentNotFoundException ex) {
+        return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
