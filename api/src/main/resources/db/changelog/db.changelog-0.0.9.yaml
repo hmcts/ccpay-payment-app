@@ -177,3 +177,14 @@ databaseChangeLog:
         splitStatements:
         sql: >
           INSERT INTO payment_status (name, description) VALUES ('decline', 'Payment declined');
+
+- changeSet:
+      id: 1529403181341-1
+      author: mateuszs
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: net_amount
+                          type: numeric(19, 2)
+                tableName: fee
