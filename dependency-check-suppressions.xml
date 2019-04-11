@@ -61,4 +61,12 @@
         <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see https://pivotal.io/security/cve-2018-1258</notes>
         <cve>CVE-2018-1258</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+    Suppressing as it seems a false positive as per https://github.com/jeremylong/DependencyCheck/issues/1573
+    ]]></notes>
+        <gav regex="true">^io\.netty:netty-tcnative-boringssl-static:.*</gav>
+        <cve>CVE-2014-3488</cve>
+        <cve>CVE-2015-2156</cve>
+    </suppress>
 </suppressions>
