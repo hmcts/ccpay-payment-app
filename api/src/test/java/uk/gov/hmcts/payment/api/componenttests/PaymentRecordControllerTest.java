@@ -20,7 +20,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.fees2.register.data.model.Fee;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -28,11 +27,13 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.DbBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.referencedata.model.Site;
+import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -68,6 +70,11 @@ public class PaymentRecordControllerTest {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
+    @Autowired
+    private DbBackdoor dbBackdoor;
+
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
@@ -94,7 +101,6 @@ public class PaymentRecordControllerTest {
         return configurableListableBeanFactory.resolveEmbeddedValue(content);
     }
 
-
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -107,6 +113,23 @@ public class PaymentRecordControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
 
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.findAll()).thenReturn(serviceReturn);
     }
 
     @Test
@@ -598,6 +621,40 @@ public class PaymentRecordControllerTest {
             assertThat(fee2.getCalculatedAmount()).isEqualTo(new BigDecimal("2.00"));
             assertThat(fee2.getReference()).isEqualTo("CASE_001");
         }
+    }
+
+    @Test
+    public void ifSiteExistsThenAcceptPayment() throws Exception {
+        PaymentRecordRequest request = getCashPaymentRequest();
+        request.setSiteId("AA001");
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(response).isNotNull();
+        assertThat(response.getPaymentGroupReference()).isNotNull();
+        assertThat(response.getReference().matches(PAYMENT_REFERENCE_REFEX)).isEqualTo(true);
+        assertThat(response.getStatus()).isEqualTo("Success");
+
+        String reference = response.getReference().substring(3, response.getReference().length());
+        assertThat(cd.isValid(reference.replace("-", ""))).isEqualTo(true);
+    }
+
+    @Test
+    @Transactional
+    public void ifSiteDoesNotExistThenDoNotAcceptPayment() throws Exception {
+        PaymentRecordRequest request = getCashPaymentRequest();
+        request.setSiteId("non-existing-site-id");
+
+        MvcResult result = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid siteID: non-existing-site-id");
     }
 
 
