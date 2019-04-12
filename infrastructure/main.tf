@@ -5,6 +5,7 @@ provider "azurerm" {
 locals {
   app_full_name = "${var.product}-${var.component}"
   aseName = "core-compute-${var.env}"
+
   local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
   local_ase = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "core-compute-aat" : "core-compute-saat" : local.aseName}"
 
@@ -30,6 +31,11 @@ locals {
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
   resource_group_name = "${var.core_product}-${local.local_env}"
+}
+
+data "azurerm_key_vault_secret" "appinsights_instrumentation_key" {
+  name = "AppInsightsInstrumentationKey"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 data "azurerm_key_vault_secret" "pci_pal_account_id_cmc" {
@@ -134,6 +140,7 @@ module "payment-api" {
   https_only="false"
   capacity = "${var.capacity}"
   common_tags     = "${var.common_tags}"
+  appinsights_instrumentation_key = "${data.azurerm_key_vault_secret.appinsights_instrumentation_key.value}"
   asp_name = "${local.asp_name}"
   asp_rg = "${local.asp_name}"
 
@@ -216,7 +223,6 @@ module "payment-api" {
     REFORM_SERVICE_NAME = "payment-api"
     REFORM_TEAM = "cc"
     REFORM_ENVIRONMENT = "${var.env}"
-    ROOT_APPENDER = "JSON_CONSOLE"
 
     PAYMENT_AUDIT_FILE = "${var.payment_audit_file}"
     # webjob security
