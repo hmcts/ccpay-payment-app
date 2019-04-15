@@ -13,7 +13,6 @@ import uk.gov.hmcts.payment.api.logging.Markers;
 
 import javax.servlet.ServletContextListener;
 
-@EnableCaching
 @EnableFeignClients
 @EnableAsync
 @EnableCaching
