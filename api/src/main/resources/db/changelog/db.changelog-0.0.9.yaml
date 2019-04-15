@@ -229,3 +229,28 @@ databaseChangeLog:
           INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y689', 'Salford BC', '10250501', 'CMCT2');
           INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y608', 'Medway County Court', '10252323', 'County');
           INSERT INTO site (site_id, name, sop_reference, service) VALUES ('Y610', 'Milton Keynes County Court', '10252633', 'County');
+
+- changeSet:
+    id: 1529403181339-3
+    author: mateuszs
+    changes:
+    - sql:
+        splitStatements:
+        sql: >
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA03', 'SW Regional Divorce Centre', '10253389', 'Finrem');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA05', 'Birmingham CTSC', '10251810', 'SJS Common Platform');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA06', 'Stoke CTSC', '10251822', 'SSCS');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA07', 'Stoke CTSC', '10251832', 'Divorce');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA08', 'Birmingham CTSC', '10251841', 'Probate');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA09', 'SW Regional Divorce Centre', '10253389', 'Finrem');
+
+- changeSet:
+      id: 1529403181341-1
+      author: mateuszs
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: net_amount
+                          type: numeric(19, 2)
+                tableName: fee

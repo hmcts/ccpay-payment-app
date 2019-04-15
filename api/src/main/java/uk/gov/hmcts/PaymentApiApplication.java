@@ -16,6 +16,7 @@ import javax.servlet.ServletContextListener;
 @EnableCaching
 @EnableFeignClients
 @EnableAsync
+@EnableCaching
 @SpringBootApplication
 public class PaymentApiApplication {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApiApplication.class);
