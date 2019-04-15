@@ -1,10 +1,13 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
+import uk.gov.hmcts.PaymentApiApplication;
+import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
@@ -18,12 +21,14 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
 public class PaymentDtoMapper {
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentDtoMapper.class);
 
     @Autowired
     private FeesService feesService;
@@ -146,10 +151,15 @@ public class PaymentDtoMapper {
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         paymentDto.getFees().forEach(fee -> {
-            Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
-            if (optionalFeeVersionDto.isPresent()) {
-                fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
-                fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+            Map<String, Fee2Dto> frFeeMap = feesService.getFeesDtoMap();
+            if (frFeeMap.containsKey(fee.getCode())) {
+                Fee2Dto frFee = frFeeMap.get(fee.getCode());
+                fee.setJurisdiction1(frFee.getJurisdiction1Dto().getName());
+                fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
+                fee.setMemoLine(frFee.getCurrentVersion().getMemoLine());
+                fee.setNaturalAccountCode(frFee.getCurrentVersion().getNaturalAccountCode());
+            } else {
+                LOG.info("No fee found with the code: ", fee.getCode());
             }
         });
         return paymentDto;
@@ -167,21 +177,23 @@ public class PaymentDtoMapper {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())
+            .netAmount(feeDto.getNetAmount())
             .version(feeDto.getVersion())
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .build();
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
+        BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+
         return FeeDto.feeDtoWith()
-            .calculatedAmount(fee.getCalculatedAmount())
+            .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
             .version(fee.getVersion())
             .volume(fee.getVolume())
-            .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber() : null)
-            .reference(fee.getReference() != null ? fee.getReference() : null)
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .reference(fee.getReference())
             .build();
-
     }
 
     private List<StatusHistoryDto> toStatusHistoryDtos(List<StatusHistory> statusHistories) {
