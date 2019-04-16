@@ -45,6 +45,10 @@ This project uses [TestContainers](https://www.testcontainers.org/usage/database
 Docker must be installed on the machine you are running tests on and docker environment should have more than 2GB free disk space. 
 
 Windows users may need to enable this [setting](https://github.com/testcontainers/testcontainers-java/issues/350)
+Linux users may need to add their current user to the docker group:
+```bash
+$ sudo usermod -aG docker $USER
+```
 
 To run all unit tests please execute the following command:
 
