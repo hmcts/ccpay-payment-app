@@ -75,7 +75,7 @@ public class RemissionServiceTest {
             assertThat(r.getRemissionReference()).isEqualTo("RM-1555-0684-8011-0463");
         });
 
-        verify(paymentFeeLinkRepository, times(1));
+        verify(paymentFeeLinkRepository, times(1)).save(any(PaymentFeeLink.class));
 
     }
 }
