@@ -78,7 +78,7 @@ public class PaymentsDataUtil {
         return fees;
     }
 
-    public void populateCardPaymentToDb(String number) throws Exception {
+    public Payment populateCardPaymentToDb(String number) throws Exception {
         //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
@@ -103,6 +103,7 @@ public class PaymentsDataUtil {
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
+        return payment;
     }
 
     public Payment populateCreditAccountPaymentToDb(String number) throws Exception {
