@@ -237,12 +237,13 @@ databaseChangeLog:
     - sql:
         splitStatements:
         sql: >
-          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA03', 'SW Regional Divorce Centre', '10253389', 'Finrem');
-          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA05', 'Birmingham CTSC', '10251810', 'SJS Common Platform');
-          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA06', 'Stoke CTSC', '10251822', 'SSCS');
-          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA07', 'Stoke CTSC', '10251832', 'Divorce');
-          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA08', 'Birmingham CTSC', '10251841', 'Probate');
-          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA09', 'SW Regional Divorce Centre', '10253389', 'Finrem');
+          DELETE FROM site WHERE site_id = 'AA03' AND sop_reference = '10253389';
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA03', 'SW Regional Divorce Centre', '10253389', 'Financial Remedy');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA05', 'SJS Single Justice Service - National', '10251810', 'SJS Common Platform');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA06', 'SSCS Service - Stoke CTSC', '10251822', 'SSCS');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA07', 'Divorce Service - Stoke CTSC', '10251832', 'Divorce');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA08', 'Provate Service - Birmingham', '10251841', 'Probate');
+          INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA09', 'Financial Remedy App', '10253389', 'Financial Remedy');
 
 - changeSet:
       id: 1529403181341-1
