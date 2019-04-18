@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.referencedata.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.referencedata.exception.ReferenceDataNotFoundException;
 import uk.gov.hmcts.payment.referencedata.model.Site;
@@ -20,6 +21,7 @@ public class SiteServiceImpl implements SiteService<Site, String> {
     }
 
     @Override
+    @Cacheable("sites")
     public List<Site> findAll() {
         return siteRepository.findAll();
     }
