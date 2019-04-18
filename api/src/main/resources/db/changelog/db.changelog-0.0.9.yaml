@@ -255,3 +255,14 @@ databaseChangeLog:
                           name: net_amount
                           type: numeric(19, 2)
                 tableName: fee
+
+- changeSet:
+    id: 1529403181342-1
+    author: mateuszs
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: site_id
+                type: varchar(255)
+          tableName: remissions
