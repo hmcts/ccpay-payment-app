@@ -189,6 +189,7 @@ public class PaymentDtoMapper {
         return FeeDto.feeDtoWith()
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
+            .netAmount(fee.getNetAmount())
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
