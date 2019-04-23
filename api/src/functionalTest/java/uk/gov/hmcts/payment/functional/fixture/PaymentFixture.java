@@ -62,7 +62,7 @@ public class PaymentFixture {
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
             .reportedDateOffline(DateTime.now().toString())
-            .siteId("AA99")
+            .siteId("AA07")
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))

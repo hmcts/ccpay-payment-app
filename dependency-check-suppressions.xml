@@ -61,4 +61,38 @@
         <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see https://pivotal.io/security/cve-2018-1258</notes>
         <cve>CVE-2018-1258</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+    Suppressing as it seems a false positive as per https://github.com/jeremylong/DependencyCheck/issues/1573
+    ]]></notes>
+        <gav regex="true">^io\.netty:netty-tcnative-boringssl-static:.*</gav>
+        <cve>CVE-2014-3488</cve>
+        <cve>CVE-2015-2156</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+			Not applicable - Randomness vulnerability when using SecureRandomFactoryBean
+			]]></notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2019-3795</cve>
+        <cve>CVE-2019-3778</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            file name: spring-security-rsa-1.0.8.RELEASE.jar
+            This has been updated, but it still shown some vulnerabilities that shouldn't be there
+            Issue reported on the DependencyCheck GitHub repo
+            https://github.com/jeremylong/DependencyCheck/issues/1665
+        ]]>
+        </notes>
+        <gav regex="true">.*</gav>
+        <cpe>cpe:/a:vmware:springsource_spring_security:1.0.8</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_security:1.0.8,</cpe>
+        <cpe>cpe:/a:pivotal_software:spring_security_oauth:1.0.8</cpe>
+        <cpe>cpe:/a:pivotal:spring_security_oauth:1.0.8</cpe>
+        <cve>CVE-2011-2731</cve>
+        <cve>CVE-2011-2732</cve>
+        <cve>CVE-2012-5055</cve>
+        <cve>CVE-2018-1260</cve>
+    </suppress>
 </suppressions>
