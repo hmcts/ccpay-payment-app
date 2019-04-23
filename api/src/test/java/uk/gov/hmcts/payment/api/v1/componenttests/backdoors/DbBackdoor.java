@@ -16,10 +16,6 @@ public class DbBackdoor {
     @Autowired
     private SiteRepository siteRepository;
 
-    public Site createSite(Site site) {
-        return siteRepository.save(site);
-    }
-
     public PaymentOld create(PaymentOldBuilder paymentDetails) {
         return paymentRepository.save(paymentDetails.build());
     }
