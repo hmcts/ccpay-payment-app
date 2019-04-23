@@ -244,3 +244,25 @@ databaseChangeLog:
           INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA07', 'Divorce Service - Stoke CTSC', '10251832', 'Divorce');
           INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA08', 'Provate Service - Birmingham', '10251841', 'Probate');
           INSERT INTO site (site_id, name, sop_reference, service) VALUES ('AA09', 'Financial Remedy App', '10253389', 'Financial Remedy');
+
+- changeSet:
+      id: 1529403181341-1
+      author: mateuszs
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: net_amount
+                          type: numeric(19, 2)
+                tableName: fee
+
+- changeSet:
+    id: 1529403181342-1
+    author: mateuszs
+    changes:
+      - addColumn:
+          columns:
+            - column:
+                name: site_id
+                type: varchar(255)
+          tableName: remissions

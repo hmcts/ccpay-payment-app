@@ -49,4 +49,7 @@ public class Remission {
 
     @Column(name = "payment_group_reference")
     private String paymentGroupReference;
+
+    @Column(name = "site_id")
+    private String siteId;
 }
