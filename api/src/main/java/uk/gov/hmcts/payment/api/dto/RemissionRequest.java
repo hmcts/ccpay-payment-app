@@ -16,6 +16,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -41,9 +42,7 @@ public class RemissionRequest {
 
     private String caseReference;
 
-    private String paymentGroupReference;
-
-    private FeeDto fee;
+    private List<FeeDto> fees;
 
     @NotNull
     private String siteId;
@@ -55,7 +54,6 @@ public class RemissionRequest {
             .beneficiaryName(beneficiaryName)
             .ccdCaseNumber(ccdCaseNumber)
             .caseReference(caseReference)
-            .paymentGroupReference(paymentGroupReference)
             .siteId(siteId)
             .build();
     }
