@@ -20,12 +20,17 @@ import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.referencedata.model.Site;
+import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -62,6 +67,9 @@ public class RemissionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
+
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -72,6 +80,24 @@ public class RemissionControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.findAll()).thenReturn(serviceReturn);
     }
 
     @Test
@@ -84,6 +110,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -103,6 +130,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -125,6 +153,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -149,6 +178,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -166,6 +196,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -184,6 +215,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -203,6 +235,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("-10.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -222,6 +255,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("0.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -241,6 +275,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.001"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -260,6 +295,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -278,6 +314,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -297,6 +334,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -315,6 +353,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -334,6 +373,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -351,6 +391,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -369,6 +410,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -387,6 +429,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         restActions
@@ -405,6 +448,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
             .paymentGroupReference("2018-1234")
+            .siteId("AA001")
             .build();
 
         MvcResult result = restActions
@@ -438,6 +482,7 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
+            .siteId("AA001")
             .hwfReference("HWFref")
             .fee(feeDto)
             .paymentGroupReference(paymentGroupReference)
@@ -470,6 +515,7 @@ public class RemissionControllerTest {
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
+            .siteId("AA001")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
             .fee(feeDto)
@@ -499,6 +545,7 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
+            .siteId("AA001")
             .hwfReference("HWFref")
             .build();
 
@@ -524,6 +571,7 @@ public class RemissionControllerTest {
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
+            .siteId("AA001")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
             .paymentGroupReference(paymentGroupReference)
@@ -544,5 +592,25 @@ public class RemissionControllerTest {
         assertEquals("Group reference are equal", paymentGroupReference, foundPaymentGroupReference);
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(paymentGroupReference);
         assertNotNull(paymentFeeLink);
+    }
+
+    @Test
+    @Transactional
+    public void remissionWithWrongSiteIDShouldNotSaveToDb() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference(hwfReference)
+            .paymentGroupReference("2018-1234")
+            .siteId("AA002")
+            .build();
+
+        restActions
+            .post("/remission", remissionDto)
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 }
