@@ -71,9 +71,6 @@ public class PaymentRecordControllerTest {
     private UserResolverBackdoor userRequestAuthorizer;
 
     @Autowired
-    private DbBackdoor dbBackdoor;
-
-    @Autowired
     private SiteService<Site, String> siteServiceMock;
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;

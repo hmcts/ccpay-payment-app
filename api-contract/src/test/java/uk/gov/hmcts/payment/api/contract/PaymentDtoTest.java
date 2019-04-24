@@ -66,10 +66,10 @@ public class PaymentDtoTest {
 
 
         feeWithVolumeDto = new FeeDto(feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2);
+            memoLine, naturalAccountCode, null, null, null, null, jurisdiction1, jurisdiction2);
 
         feeNoVolumeDto = new FeeDto(feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2);
+            memoLine, naturalAccountCode, null, null, null, null, jurisdiction1, jurisdiction2);
     }
 
     @Before

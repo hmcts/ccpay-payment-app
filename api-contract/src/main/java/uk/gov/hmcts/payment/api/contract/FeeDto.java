@@ -47,8 +47,10 @@ public class FeeDto {
 
     private String remissionReference;
 
+    @Digits(integer = 10, fraction = 2, message = "Net amount cannot have more than 2 decimal places")
+    private BigDecimal netAmount;
+
     private String jurisdiction1;
 
     private String jurisdiction2;
-
 }

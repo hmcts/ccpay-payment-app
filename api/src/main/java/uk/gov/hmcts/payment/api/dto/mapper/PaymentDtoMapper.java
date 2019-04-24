@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -176,21 +177,23 @@ public class PaymentDtoMapper {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())
+            .netAmount(feeDto.getNetAmount())
             .version(feeDto.getVersion())
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .build();
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
+        BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+
         return FeeDto.feeDtoWith()
-            .calculatedAmount(fee.getCalculatedAmount())
+            .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
             .version(fee.getVersion())
             .volume(fee.getVolume())
-            .ccdCaseNumber(fee.getCcdCaseNumber() != null ? fee.getCcdCaseNumber() : null)
-            .reference(fee.getReference() != null ? fee.getReference() : null)
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .reference(fee.getReference())
             .build();
-
     }
 
     private List<StatusHistoryDto> toStatusHistoryDtos(List<StatusHistory> statusHistories) {
