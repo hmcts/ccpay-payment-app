@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import org.slf4j.Logger;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 @Service
 @Transactional
+@CacheConfig(cacheNames = {"feeDtoMap"})
 public class FeesService {
     private static final Logger LOG = getLogger(FeesService.class);
 
@@ -66,7 +68,7 @@ public class FeesService {
         return mapOfFeeVersionsDtoMap;
     }
 
-    @Cacheable("map")
+    @Cacheable
     public Map<String, Fee2Dto> getFeesDtoMap() {
         try {
             if (feesDtoMap.isEmpty()) {
