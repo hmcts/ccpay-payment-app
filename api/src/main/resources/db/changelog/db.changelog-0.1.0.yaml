@@ -60,8 +60,6 @@ databaseChangeLog:
     - addColumn:
         columns:
         - column:
-            constraints:
-                nullable: false
             name: fee_id
             type: INT
         tableName: remission

@@ -4,10 +4,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.Remission;
-import uk.gov.hmcts.payment.api.model.RemissionRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 
 import java.util.Collections;
@@ -35,13 +32,15 @@ public class RemissionServiceImpl implements RemissionService {
         remissionServiceRequest.setRemissionReference(remissionReference);
 
         Remission remission = buildRemission(remissionServiceRequest);
+        PaymentFee fee = remissionServiceRequest.getFee();
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(remissionServiceRequest.getPaymentGroupReference())
             .remissions(Collections.singletonList(remission))
-            .fees(remissionServiceRequest.getFees())
+            .fees(Collections.singletonList(remissionServiceRequest.getFee()))
             .build();
         remission.setPaymentFeeLink(paymentFeeLink);
+        fee.setRemissions(Collections.singletonList(remission));
 
         return paymentFeeLinkRepository.save(paymentFeeLink);
 
@@ -55,6 +54,7 @@ public class RemissionServiceImpl implements RemissionService {
             .beneficiaryName(remissionServiceRequest.getBeneficiaryName())
             .ccdCaseNumber(remissionServiceRequest.getCcdCaseNumber())
             .caseReference(remissionServiceRequest.getCaseReference())
+            .siteId(remissionServiceRequest.getSiteId())
             .build();
     }
 

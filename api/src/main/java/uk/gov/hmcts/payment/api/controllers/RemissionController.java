@@ -66,7 +66,8 @@ public class RemissionController {
             .beneficiaryName(remissionRequest.getBeneficiaryName())
             .ccdCaseNumber(remissionRequest.getCcdCaseNumber())
             .caseReference(remissionRequest.getCaseReference())
-            .fees(remissionDtoMapper.toFees(remissionRequest.getFees()))
+            .siteId(remissionRequest.getSiteId())
+            .fee(remissionDtoMapper.toFee(remissionRequest.getFee()))
             .build();
 
         PaymentFeeLink paymentFeeLink = remissionService.create(remissionServiceRequest);

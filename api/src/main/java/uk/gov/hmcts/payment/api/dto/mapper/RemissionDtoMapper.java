@@ -25,7 +25,7 @@ public class RemissionDtoMapper {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
-    private PaymentFee toFee(FeeDto feeDto) {
+    public PaymentFee toFee(FeeDto feeDto) {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())
