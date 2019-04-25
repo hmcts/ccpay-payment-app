@@ -53,3 +53,39 @@ databaseChangeLog:
         columnName: payment_group_reference
         tableName: remission
 
+- changeSet:
+    id: 1556182260353-5
+    author: tarun
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+                nullable: false
+            name: fee_id
+            type: INT
+        tableName: remission
+
+- changeSet:
+    id: 1556182260353-6
+    author: tarun
+    changes:
+    - addForeignKeyConstraint:
+          baseColumnNames: fee_id
+          baseTableName: remission
+          constraintName: FK_qhrt4c9wdjjkl11rkokgo8614e
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: fee
+
+- changeSet:
+    id: 1556182260353-7
+    author: tarun
+    changes:
+    - dropColumn:
+        columnName: reference
+        tableName: fee
+
+
+

@@ -59,4 +59,8 @@ public class Remission {
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentFeeLink;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fee_id", insertable = false, updatable = false)
+    private PaymentFee fee;
+
 }

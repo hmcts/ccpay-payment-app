@@ -184,7 +184,6 @@ public class PaymentDtoMapper {
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
-            .reference(fee.getReference())
             .build();
     }
 
