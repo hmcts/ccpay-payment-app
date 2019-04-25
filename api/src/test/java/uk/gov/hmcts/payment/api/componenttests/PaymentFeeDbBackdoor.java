@@ -12,7 +12,8 @@ public class PaymentFeeDbBackdoor {
     private PaymentFeeRepository paymentFeeRepository;
 
     public PaymentFee findByReference(String groupReference) {
-        return paymentFeeRepository.findByReference(groupReference).orElseThrow(PaymentFeeNotFoundException::new);
+        //return paymentFeeRepository.findByReference(groupReference).orElseThrow(PaymentFeeNotFoundException::new);
+        return null;
     }
 
     public PaymentFee findByPaymentLinkId(Integer id) {
