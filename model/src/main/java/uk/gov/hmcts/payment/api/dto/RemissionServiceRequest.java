@@ -19,5 +19,6 @@ public class RemissionServiceRequest {
     private String beneficiaryName;
     private String ccdCaseNumber;
     private String caseReference;
-    private List<PaymentFee> fees;
+    private String siteId;
+    private PaymentFee fee;
 }

@@ -42,7 +42,7 @@ public class RemissionRequest {
 
     private String caseReference;
 
-    private List<FeeDto> fees;
+    private FeeDto fee;
 
     @NotNull
     private String siteId;
