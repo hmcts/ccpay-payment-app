@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -17,6 +18,7 @@ import javax.servlet.ServletContextListener;
 @EnableAsync
 @EnableCaching
 @SpringBootApplication
+@EnableCircuitBreaker
 public class PaymentApiApplication {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApiApplication.class);
 
