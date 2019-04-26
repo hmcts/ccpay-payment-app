@@ -28,3 +28,4 @@ api/src/main/resources/application.properties
 api/out/
 model/out/
 gov-pay-client/out/
+reference-data/out/

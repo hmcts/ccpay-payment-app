@@ -812,4 +812,35 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         verify(callbackServiceImplMock, times(0)).callback(payment.getPaymentLink(), payment);
     }
+
+    @Test
+    @Transactional
+    public void retrievePaymentByReference() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+
+        MvcResult result = restActions
+            .get("/payments/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertThat(paymentDto.getPaymentReference()).isEqualTo(payment.getReference());
+        assertThat(paymentDto.getMethod()).isEqualTo(payment.getPaymentMethod().getName());
+        assertThat(paymentDto.getAmount()).isEqualTo(payment.getAmount());
+        assertThat(paymentDto.getCcdCaseNumber()).isEqualTo(payment.getCcdCaseNumber());
+
+    }
+
+    @Test
+    @Transactional
+    public void retrievePaymentByReference_shouldThrow404_whenReferenceIsUnknown() throws Exception {
+        populateCardPaymentToDb("1");
+
+         restActions
+            .get("/payments/" + "some_random")
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    }
 }

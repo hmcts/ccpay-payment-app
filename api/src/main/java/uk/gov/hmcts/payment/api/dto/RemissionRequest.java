@@ -45,6 +45,9 @@ public class RemissionRequest {
 
     private FeeDto fee;
 
+    @NotNull
+    private String siteId;
+
     public Remission toRemission() {
         return Remission.remissionWith()
             .hwfReference(hwfReference)
@@ -53,6 +56,7 @@ public class RemissionRequest {
             .ccdCaseNumber(ccdCaseNumber)
             .caseReference(caseReference)
             .paymentGroupReference(paymentGroupReference)
+            .siteId(siteId)
             .build();
     }
 }
