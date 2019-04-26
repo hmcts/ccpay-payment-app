@@ -21,14 +21,18 @@ import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.referencedata.model.Site;
+import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -65,6 +69,9 @@ public class RemissionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
+
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -75,6 +82,24 @@ public class RemissionControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
+
+        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA99")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build(),
+            Site.siteWith()
+                .sopReference("sop")
+                .siteId("AA001")
+                .name("name")
+                .service("service")
+                .id(1)
+                .build()
+        );
+
+        when(siteServiceMock.findAll()).thenReturn(serviceReturn);
     }
 
     @Test
@@ -86,7 +111,8 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
+            .fee(getFee())
             .build();
 
         restActions
@@ -97,46 +123,48 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    public void correctAndValidRemissionDataShouldSaveToDb() throws Exception {
+    public void correctAndValidRemissionDataShouldSaveToDb() {
         String hwfReference = "HWFref";
-        RemissionRequest remissionRequest = RemissionRequest.createPaymentRecordRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
+            .fee(getFee())
             .build();
 
         restActions
-            .post("/remission", remissionRequest)
+            .post("/remission", remissionDto)
             .andReturn();
 
         Remission savedRemission = remissionDbBackdoor.findByHwfReference(hwfReference);
-        assertEquals(remissionRequest.getCaseReference(), savedRemission.getCaseReference());
-        assertEquals(remissionRequest.getHwfReference(), savedRemission.getHwfReference());
+        assertEquals(remissionDto.getCaseReference(), savedRemission.getCaseReference());
+        assertEquals(remissionDto.getHwfReference(), savedRemission.getHwfReference());
     }
 
     @Test
     @Transactional
     public void duplicatehwfReferenceRemissionShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionRequest = RemissionRequest.createPaymentRecordRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
+            .fee(getFee())
             .build();
 
         restActions
-            .post("/remission", remissionRequest)
+            .post("/remission", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
 
         restActions
-            .post("/remission", remissionRequest)
+            .post("/remission", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -151,6 +179,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
+            .siteId("AA001")
             .build();
 
         restActions
@@ -167,7 +196,7 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -185,7 +214,7 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -204,7 +233,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("-10.00"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -223,7 +252,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("0.00"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -242,7 +271,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.001"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -261,7 +290,8 @@ public class RemissionControllerTest {
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
+            .fee(getFee())
             .build();
 
         restActions
@@ -279,7 +309,8 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
+            .fee(getFee())
             .build();
 
         restActions
@@ -298,7 +329,8 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
+            .fee(getFee())
             .build();
 
         restActions
@@ -316,7 +348,8 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
+            .fee(getFee())
             .build();
 
         restActions
@@ -335,7 +368,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -352,7 +385,7 @@ public class RemissionControllerTest {
             .beneficiaryName("beneficiary")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -370,7 +403,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -388,7 +421,7 @@ public class RemissionControllerTest {
             .caseReference("")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
             .build();
 
         restActions
@@ -406,7 +439,8 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
-            .fees(Arrays.asList(getFee()))
+            .siteId("AA001")
+            .fee(getFee())
             .build();
 
         MvcResult result = restActions
@@ -414,9 +448,8 @@ public class RemissionControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsString(), RemissionDto.class);
-        String returnedRemissionReference = remissionDto.getRemissionReference();
-        assertTrue(returnedRemissionReference.matches(REMISSION_REFERENCE_REGEX));
+        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertTrue(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX));
     }
 
     @Test
@@ -424,7 +457,6 @@ public class RemissionControllerTest {
     public void feeDtoFilledGetsFeeSaved() throws Exception {
         BigDecimal calculatedAmount = new BigDecimal("199.99");
         String feeReference = "feeReference";
-        String paymentGroupReference = "testGroupReference";
 
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(calculatedAmount)
@@ -438,20 +470,21 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
+            .siteId("AA001")
             .hwfReference("HWFref")
-            .fees(Arrays.asList(feeDto))
+            .fee(feeDto)
             .build();
 
         MvcResult result = restActions.post("/remission", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
-        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsString(), RemissionDto.class);
+        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
 
         Remission remission = remissionDbBackdoor.findByRemissionReference(remissionDto.getRemissionReference());
-        PaymentFee paymentFee = remission.getPaymentFeeLink().getFees().get(0);
+        PaymentFee paymentFee = paymentFeeDbBackdoor.findByPaymentLinkId(remission.getPaymentFeeLink().getId());
         assertNotNull(paymentFee);
-        assertThat(paymentFee.getCode()).isEqualTo(feeDto.getCode());
+        assertThat(paymentFee.getCode()).isEqualTo("FEE0001");
     }
 
     @Test
@@ -472,9 +505,10 @@ public class RemissionControllerTest {
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
+            .siteId("AA001")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
-            .fees(Arrays.asList(feeDto))
+            .fee(feeDto)
             .build();
 
         MvcResult result = restActions
@@ -482,8 +516,7 @@ public class RemissionControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-
-        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsString(), RemissionDto.class);
+        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
 
         String returnedRemissionReference = remissionDto.getRemissionReference();
         Remission remission = remissionDbBackdoor.findByRemissionReference(returnedRemissionReference);
@@ -504,8 +537,9 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
+            .siteId("AA001")
             .hwfReference("HWFref")
-            .fees(Arrays.asList(getFee()))
+            .fee(getFee())
             .build();
 
         MvcResult result = restActions
@@ -513,8 +547,7 @@ public class RemissionControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsString(), RemissionDto.class);
-
+        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
         String returnedRemissionReference = remissionDto.getRemissionReference();
         Remission remission = remissionDbBackdoor.findByRemissionReference(returnedRemissionReference);
         assertNotNull(remission);
@@ -530,9 +563,10 @@ public class RemissionControllerTest {
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
+            .siteId("AA001")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
-            .fees(Arrays.asList(getFee()))
+            .fee(getFee())
             .build();
 
         MvcResult result = restActions
@@ -540,16 +574,32 @@ public class RemissionControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-
-        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsString(), RemissionDto.class);
-
-        String returnedRemissionReference = remissionDto.getRemissionReference();
-        Remission remission = remissionDbBackdoor.findByRemissionReference(returnedRemissionReference);
+        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
+        Remission remission = remissionDbBackdoor.findByRemissionReference(remissionDto.getRemissionReference());
         assertNotNull(remission);
         String foundPaymentGroupReference = remission.getPaymentFeeLink().getPaymentReference();
         assertEquals("Group reference are equal", remissionDto.getPaymentGroupReference(), foundPaymentGroupReference);
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(remissionDto.getPaymentGroupReference());
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(foundPaymentGroupReference);
         assertNotNull(paymentFeeLink);
+    }
+
+    @Test
+    @Transactional
+    public void remissionWithWrongSiteIDShouldNotSaveToDb() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionDto = RemissionRequest.createPaymentRecordRequestDtoWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference(hwfReference)
+            .siteId("AA002")
+            .build();
+
+        restActions
+            .post("/remission", remissionDto)
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 
 
