@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.configuration;
 
 import com.google.common.base.Predicate;
 import io.swagger.annotations.ApiParam;
-import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -13,6 +12,7 @@ import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Parameter;
 import springfox.documentation.service.ResolvedMethodParameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.ParameterBuilderPlugin;
@@ -21,32 +21,41 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import uk.gov.hmcts.payment.api.controllers.PaymentExternalAPI;
 
-import static org.apache.commons.lang3.StringUtils.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase;
 
 @Configuration
 @EnableSwagger2
 public class SwaggerConfiguration {
 
+    private List<Parameter> getGlobalOperationParameters() {
+        return Arrays.asList(
+            new ParameterBuilder()
+                .name("Authorization")
+                .description("User authorization header")
+                .required(true)
+                .parameterType("header")
+                .modelRef(new ModelRef("string"))
+                .build(),
+            new ParameterBuilder()
+                .name("ServiceAuthorization")
+                .description("Service authorization header")
+                .required(true)
+                .parameterType("header")
+                .modelRef(new ModelRef("string"))
+                .build());
+    }
+
     @Bean
     public Docket newsApi() {
         return new Docket(DocumentationType.SWAGGER_2)
             .groupName("payment")
-            .globalOperationParameters(Arrays.asList(
-                new ParameterBuilder()
-                    .name("Authorization")
-                    .description("User authorization header")
-                    .required(true)
-                    .parameterType("header")
-                    .modelRef(new ModelRef("string"))
-                    .build(),
-                new ParameterBuilder()
-                    .name("ServiceAuthorization")
-                    .description("Service authorization header")
-                    .required(true)
-                    .parameterType("header")
-                    .modelRef(new ModelRef("string"))
-                    .build())
-            )
+            .globalOperationParameters(getGlobalOperationParameters())
             .useDefaultResponseMessages(false)
             .apiInfo(apiInfo())
             .select()
@@ -59,22 +68,7 @@ public class SwaggerConfiguration {
     public Docket Payment2Api() {
         return new Docket(DocumentationType.SWAGGER_2)
             .groupName("payment2")
-            .globalOperationParameters(Arrays.asList(
-                new ParameterBuilder()
-                    .name("Authorization")
-                    .description("User authorization header")
-                    .required(true)
-                    .parameterType("header")
-                    .modelRef(new ModelRef("string"))
-                    .build(),
-                new ParameterBuilder()
-                    .name("ServiceAuthorization")
-                    .description("Service authorization header")
-                    .required(true)
-                    .parameterType("header")
-                    .modelRef(new ModelRef("string"))
-                    .build())
-            )
+            .globalOperationParameters(getGlobalOperationParameters())
             .useDefaultResponseMessages(false)
             .apiInfo(paymentApiInfo())
             .select()
@@ -84,10 +78,22 @@ public class SwaggerConfiguration {
     }
 
     @Bean
+    public Docket paymentReferenceDataApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+            .groupName("reference-data")
+            .useDefaultResponseMessages(false)
+            .apiInfo(paymentReferenceDataApiInfo())
+            .select()
+            .apis(packagesLike("uk.gov.hmcts.payment.referencedata.controllers"))
+            .paths(PathSelectors.any())
+            .build();
+    }
+
+    @Bean
     public Docket externalApi() {
         return new Docket(DocumentationType.SWAGGER_2)
             .groupName("payment-external-api")
-            .globalOperationParameters(Arrays.asList(
+            .globalOperationParameters(Collections.singletonList(
                 new ParameterBuilder()
                     .name("ServiceAuthorization")
                     .description("Service authorization header")
@@ -119,6 +125,13 @@ public class SwaggerConfiguration {
         return new ApiInfoBuilder()
             .title("Payment API v2 documentation")
             .description("Payment API v2 documentation")
+            .build();
+    }
+
+    private ApiInfo paymentReferenceDataApiInfo() {
+        return new ApiInfoBuilder()
+            .title("Payment Reference Data documentation")
+            .description("Payment Reference Data documentation")
             .build();
     }
 
