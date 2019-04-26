@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.model.Remission;
 
+import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotEmpty;
@@ -42,6 +43,8 @@ public class RemissionRequest {
 
     private String caseReference;
 
+    @NotNull
+    @Valid
     private FeeDto fee;
 
     @NotNull

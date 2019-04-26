@@ -76,14 +76,3 @@ databaseChangeLog:
           initiallyDeferred: false
           referencedColumnNames: id
           referencedTableName: fee
-
-- changeSet:
-    id: 1556182260353-7
-    author: tarun
-    changes:
-    - dropColumn:
-        columnName: reference
-        tableName: fee
-
-
-

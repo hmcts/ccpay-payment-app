@@ -39,6 +39,9 @@ public class PaymentFee {
     @Column(name = "ccd_case_number")
     private String ccdCaseNumber;
 
+    @Column(name = "reference")
+    private String reference;
+
     @Column(name = "net_amount")
     private BigDecimal netAmount;
 
