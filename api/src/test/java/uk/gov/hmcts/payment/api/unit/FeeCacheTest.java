@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.unit;
 
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import lombok.SneakyThrows;
 import org.junit.Before;
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -58,18 +60,21 @@ public class FeeCacheTest {
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-
-        stubFor(post(urlPathMatching("/fees-register/fees"))
-            .willReturn(aResponse()
-                .withStatus(201)
-                .withHeader("Content-Type", "application/json")
-                .withBody(contentsOf("fees-register-responses/allfees.json"))));
     }
 
     @Test
-    public void validateCache() throws  Exception {
-        feesService.getFeesDtoMap(); // call the service.
+    public void testCacheFeesFromFeesRegister() throws  Exception {
+        // Wire-mock fees-register response
+        stubFor(get(urlPathMatching("/fees-register/fees"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("fees-register-responses/allfees.json"))));
 
+        // Invoke fees-register service
+        feesService.getFeesDtoMap();
+
+        // Validate cached fees
         Cache cache = this.cacheManager.getCache("feesDtoMap");
         Map<String, Fee2Dto> feesDtoMap = (HashMap<String, Fee2Dto>)cache.get("getFeesDtoMap").get();
 
