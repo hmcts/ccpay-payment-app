@@ -1,14 +1,12 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import org.slf4j.Logger;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -78,7 +76,7 @@ public class FeesService {
                 }
             }
         } catch (Exception ex) {
-            LOG.error("FeesService  -  Unable to get fees data." + ex.getMessage());
+            LOG.error("FeesService  -  Unable to get fees data. {}", ex.getMessage());
         }
 
         return feesDtoMap;
