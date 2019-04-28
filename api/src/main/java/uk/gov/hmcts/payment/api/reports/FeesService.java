@@ -16,7 +16,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 @Service
 @Transactional
-@CacheConfig(cacheNames = "feesDtoMap")
 public class FeesService {
     private static final Logger LOG = getLogger(FeesService.class);
 
@@ -69,7 +68,7 @@ public class FeesService {
         return mapOfFeeVersionsDtoMap;
     }
 
-    @Cacheable(value = "feesDtoMap", key="#root.method.name")
+    @Cacheable(value = "feesDtoMap", key = "#root.method.name", unless = "#result == null")
     public Map<String, Fee2Dto> getFeesDtoMap() {
         try {
             if (feesDtoMap.isEmpty()) {
