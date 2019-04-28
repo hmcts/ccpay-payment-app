@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -15,7 +16,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 @Service
 @Transactional
-@CacheConfig(cacheNames = {"feeDtoMap"})
+@CacheConfig(cacheNames = "feesDtoMap")
 public class FeesService {
     private static final Logger LOG = getLogger(FeesService.class);
 
@@ -68,7 +69,7 @@ public class FeesService {
         return mapOfFeeVersionsDtoMap;
     }
 
-    @Cacheable
+    @Cacheable(value = "feesDtoMap", key="#root.method.name")
     public Map<String, Fee2Dto> getFeesDtoMap() {
         try {
             if (feesDtoMap.isEmpty()) {
