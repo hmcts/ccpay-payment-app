@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -19,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@ContextConfiguration(classes = TestContextConfiguration.class)
 public class FeeCacheFunctionalTest {
 
     @Autowired
