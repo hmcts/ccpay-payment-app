@@ -95,4 +95,13 @@
         <cve>CVE-2012-5055</cve>
         <cve>CVE-2018-1260</cve>
     </suppress>
+    <suppress>
+        <cve>CVE-2019-0232</cve>
+    </suppress>
+    <suppress>
+        <cve>CVE-2019-0199</cve>
+    </suppress>
+    <suppress>
+        <cve>CVE-2019-10241</cve>
+    </suppress>
 </suppressions>
