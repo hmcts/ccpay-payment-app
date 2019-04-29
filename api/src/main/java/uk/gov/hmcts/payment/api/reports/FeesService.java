@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 
-import java.time.LocalDate;
 import java.util.*;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -21,8 +20,6 @@ public class FeesService {
     private FeesRegisterClient feesRegisterClient;
 
     private Map<String, Fee2Dto> feesDtoMap = Collections.emptyMap();
-
-    private LocalDate feesDtoMapRefreshedDate = LocalDate.now();
 
     public FeesService(FeesRegisterClient feesRegisterClient) {
         this.feesRegisterClient = feesRegisterClient;
@@ -81,14 +78,5 @@ public class FeesService {
 
         return feesDtoMap;
     }
-
-    public void dailyRefreshOfFeesData() {
-        if (feesDtoMapRefreshedDate.isBefore(LocalDate.now())) {
-            feesDtoMap.clear();
-            getFeesDtoMap();
-            feesDtoMapRefreshedDate = LocalDate.now();
-        }
-    }
-
 
 }
