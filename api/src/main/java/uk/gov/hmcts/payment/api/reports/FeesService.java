@@ -19,6 +19,8 @@ public class FeesService {
 
     private FeesRegisterClient feesRegisterClient;
 
+    private Map<String, Fee2Dto> feesDtoMap;
+
     public FeesService(FeesRegisterClient feesRegisterClient) {
         this.feesRegisterClient = feesRegisterClient;
 
