@@ -121,6 +121,7 @@ public class FeeCacheTest {
         return resolvePlaceholders(content);
     }
 
+
     protected String resolvePlaceholders(String content) {
         return configurableListableBeanFactory.resolveEmbeddedValue(content);
     }
