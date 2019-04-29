@@ -88,19 +88,6 @@ public class PaymentsReportServiceTest {
     }
 
     @Test
-    public void shouldInvokeFreeRefresh()  {
-        // given
-        Date startDate = new Date();
-        Date endDate = new Date();
-
-        // when
-        paymentsReportService.generateCsvAndSendEmail(startDate, endDate, PaymentMethodType.PBA, Service.DIVORCE, paymentReportConfig);
-
-        // then
-        verify(feesService).dailyRefreshOfFeesData();
-    }
-
-    @Test
     public void shouldDelegateToEmailService()  {
         // given
         paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String []{"toEmail"}, "emailSubject", "emailMessage", true);
