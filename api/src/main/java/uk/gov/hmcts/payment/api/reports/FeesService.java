@@ -66,7 +66,7 @@ public class FeesService {
         return mapOfFeeVersionsDtoMap;
     }
 
-    @Cacheable(value = "feesDtoMap", key = "#root.method.name", unless = "#result == null")
+    @Cacheable(value = "feesDtoMap", key = "#root.method.name", unless = "#result == null || #result.isEmpty()")
     public Map<String, Fee2Dto> getFeesDtoMap() {
         try {
             if (feesDtoMap.isEmpty()) {
