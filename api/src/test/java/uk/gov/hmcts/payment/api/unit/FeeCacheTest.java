@@ -3,11 +3,9 @@ package uk.gov.hmcts.payment.api.unit;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import lombok.SneakyThrows;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +35,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
+@FixMethodOrder(MethodSorters.DEFAULT)
 public class FeeCacheTest {
 
     @ClassRule
@@ -60,10 +59,18 @@ public class FeeCacheTest {
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+
+        this.cacheManager.getCache("feesDtoMap").clear();
     }
 
+    /**
+     *
+     * Test cached fees when fees-register returns
+     * valid fees
+     *
+     * */
     @Test
-    public void testCacheFeesFromFeesRegister() throws  Exception {
+    public void secondTest() throws  Exception {
         // Wire-mock fees-register response
         stubFor(get(urlPathMatching("/fees-register/fees"))
             .willReturn(aResponse()
@@ -83,6 +90,29 @@ public class FeeCacheTest {
         feesDtoMap.keySet().stream().forEach(k -> {
             assertThat(k.startsWith("FEE")).isTrue();
         });
+    }
+
+    /**
+     *
+     * Test cached fees when fees-register returns
+     * no fees
+     *
+     * */
+    @Test
+    public void firstTest() throws Exception {
+        // Wire-mock fees-register response
+        stubFor(get(urlPathMatching("/fees-register/fees"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("")));
+
+        // Invoke fees-register service
+        feesService.getFeesDtoMap();
+
+        // Validate cached fees
+        Cache cache = this.cacheManager.getCache("feesDtoMap");
+        assertThat(cache.get("getFeesDtoMap")).isNull();
     }
 
     @SneakyThrows
