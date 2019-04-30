@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.reports;
 
 import org.slf4j.Logger;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 

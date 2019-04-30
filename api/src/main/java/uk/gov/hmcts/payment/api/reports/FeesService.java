@@ -14,11 +14,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class FeesService {
     private static final Logger LOG = getLogger(FeesService.class);
 
-    private final FeeRepository feeRepository;
+    private final FeesRegisterAdapter feesRegisterAdapter;
 
     @Autowired
-    public FeesService(FeeRepository feeRepository) {
-        this.feeRepository = feeRepository;
+    public FeesService(FeesRegisterAdapter feesRegisterAdapter) {
+        this.feesRegisterAdapter = feesRegisterAdapter;
 
     }
 
@@ -60,7 +60,7 @@ public class FeesService {
     }
 
     public Map<String, Fee2Dto> getFeesDtoMap() {
-        return feeRepository.getFeesDtoMap();
+        return feesRegisterAdapter.getFeesDtoMap();
     }
 
 }
