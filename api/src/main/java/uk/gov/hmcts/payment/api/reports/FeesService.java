@@ -19,7 +19,6 @@ public class FeesService {
 
     private FeesRegisterClient feesRegisterClient;
 
-    private Map<String, Fee2Dto> feesDtoMap;
 
     public FeesService(FeesRegisterClient feesRegisterClient) {
         this.feesRegisterClient = feesRegisterClient;
@@ -65,12 +64,11 @@ public class FeesService {
 
     @Cacheable(value = "feesDtoMap", key = "#root.method.name", unless = "#result == null || #result.isEmpty()")
     public Map<String, Fee2Dto> getFeesDtoMap() {
+        Map<String, Fee2Dto> feesDtoMap = null;
         try {
-            if (feesDtoMap.isEmpty()) {
-                Optional<Map<String, Fee2Dto>> optionalFeesDtoMap = feesRegisterClient.getFeesDataAsMap();
-                if (optionalFeesDtoMap.isPresent()) {
-                    feesDtoMap = optionalFeesDtoMap.get();
-                }
+            Optional<Map<String, Fee2Dto>> optionalFeesDtoMap = feesRegisterClient.getFeesDataAsMap();
+            if (optionalFeesDtoMap.isPresent()) {
+                feesDtoMap = optionalFeesDtoMap.get();
             }
         } catch (Exception ex) {
             LOG.error("FeesService  -  Unable to get fees data. {}", ex.getMessage());
