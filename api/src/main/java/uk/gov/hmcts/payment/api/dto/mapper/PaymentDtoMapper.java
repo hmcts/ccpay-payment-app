@@ -8,6 +8,7 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.PaymentApiApplication;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
@@ -160,8 +161,12 @@ public class PaymentDtoMapper {
                     Fee2Dto frFee = frFeeMap.get(fee.getCode());
                     fee.setJurisdiction1(frFee.getJurisdiction1Dto().getName());
                     fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
-                    fee.setMemoLine(frFee.getCurrentVersion().getMemoLine());
-                    fee.setNaturalAccountCode(frFee.getCurrentVersion().getNaturalAccountCode());
+
+                    Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+                    if (optionalFeeVersionDto.isPresent()) {
+                        fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
+                        fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+                    }
                 } else {
                     LOG.info("No fee found with the code: ", fee.getCode());
                 }

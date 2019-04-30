@@ -2,9 +2,7 @@ package uk.gov.hmcts.payment.api.reports;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 
@@ -13,7 +11,6 @@ import java.util.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Service
-@Transactional
 public class FeesService {
     private static final Logger LOG = getLogger(FeesService.class);
 

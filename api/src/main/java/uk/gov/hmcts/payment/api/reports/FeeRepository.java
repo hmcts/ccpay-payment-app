@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
@@ -19,7 +20,6 @@ public class FeeRepository {
     private static final Logger LOG = getLogger(FeeRepository.class);
 
     private FeesRegisterClient feesRegisterClient;
-
 
     public FeeRepository(FeesRegisterClient feesRegisterClient) {
         this.feesRegisterClient = feesRegisterClient;
