@@ -88,11 +88,7 @@ public class FeeCacheTest {
         Map<String, Fee2Dto> feesDtoMap = (HashMap<String, Fee2Dto>)cache.get("getFeesDtoMap").get();
 
         assertThat(feesDtoMap).isNotNull();
-        assertThat(feesDtoMap.size() > 0).isTrue();
         assertThat(feesDtoMap.size()).isEqualTo(337);
-        feesDtoMap.keySet().stream().forEach(k -> {
-            assertThat(k.startsWith("FEE")).isTrue();
-        });
         Optional<Fee2Dto> optionalFeeDto = feesDtoMap.values().stream().filter(m -> m.getCode().equals("FEE0339")).findAny();
         if (optionalFeeDto.isPresent()) {
             Fee2Dto feeDto = optionalFeeDto.get();
