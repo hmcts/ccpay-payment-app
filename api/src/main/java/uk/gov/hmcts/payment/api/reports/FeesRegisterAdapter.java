@@ -13,7 +13,6 @@ import java.util.Optional;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Repository
-@Transactional
 public class FeesRegisterAdapter {
 
     private static final Logger LOG = getLogger(FeesRegisterAdapter.class);
