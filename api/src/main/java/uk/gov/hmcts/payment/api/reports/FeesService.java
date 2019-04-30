@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,12 +17,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class FeesService {
     private static final Logger LOG = getLogger(FeesService.class);
 
+    private final FeeRepository feeRepository;
 
-    private FeesRegisterClient feesRegisterClient;
-
-
-    public FeesService(FeesRegisterClient feesRegisterClient) {
-        this.feesRegisterClient = feesRegisterClient;
+    @Autowired
+    public FeesService(FeeRepository feeRepository) {
+        this.feeRepository = feeRepository;
 
     }
 
@@ -62,19 +62,8 @@ public class FeesService {
         return mapOfFeeVersionsDtoMap;
     }
 
-    @Cacheable(value = "feesDtoMap", key = "#root.method.name", unless = "#result == null || #result.isEmpty()")
     public Map<String, Fee2Dto> getFeesDtoMap() {
-        Map<String, Fee2Dto> feesDtoMap = null;
-        try {
-            Optional<Map<String, Fee2Dto>> optionalFeesDtoMap = feesRegisterClient.getFeesDataAsMap();
-            if (optionalFeesDtoMap.isPresent()) {
-                feesDtoMap = optionalFeesDtoMap.get();
-            }
-        } catch (Exception ex) {
-            LOG.error("FeesService  -  Unable to get fees data. {}", ex.getMessage());
-        }
-
-        return feesDtoMap;
+        return feeRepository.getFeesDtoMap();
     }
 
 }

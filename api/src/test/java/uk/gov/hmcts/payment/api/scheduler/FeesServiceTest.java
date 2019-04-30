@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.scheduler;
 
 import com.google.common.collect.ImmutableMap;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +10,7 @@ import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.reports.FeeRepository;
 import uk.gov.hmcts.payment.api.reports.FeesRegisterClient;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 
@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,6 +29,8 @@ import static uk.gov.hmcts.fees2.register.api.contract.Fee2Dto.fee2DtoWith;
 public class FeesServiceTest {
 
     private FeesService feesService;
+
+    private FeeRepository feeRepository;
 
     @Mock
     private FeesRegisterClient feesRegisterClient;
@@ -42,7 +43,8 @@ public class FeesServiceTest {
 
     @Before
     public void setUp()  {
-        feesService = new FeesService(feesRegisterClient);
+        feeRepository = new FeeRepository(feesRegisterClient);
+        feesService = new FeesService(feeRepository);
         }
 
 
