@@ -19,6 +19,7 @@ import javax.servlet.ServletContextListener;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
+@EnableCaching
 @EnableFeignClients
 @EnableAsync
 @SpringBootApplication
