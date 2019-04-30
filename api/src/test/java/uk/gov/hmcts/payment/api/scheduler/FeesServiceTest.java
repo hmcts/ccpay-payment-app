@@ -10,7 +10,7 @@ import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.reports.FeeRepository;
+import uk.gov.hmcts.payment.api.reports.FeesRegisterAdapter;
 import uk.gov.hmcts.payment.api.reports.FeesRegisterClient;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 
@@ -30,7 +30,7 @@ public class FeesServiceTest {
 
     private FeesService feesService;
 
-    private FeeRepository feeRepository;
+    private FeesRegisterAdapter feesRegisterAdapter;
 
     @Mock
     private FeesRegisterClient feesRegisterClient;
@@ -43,8 +43,8 @@ public class FeesServiceTest {
 
     @Before
     public void setUp()  {
-        feeRepository = new FeeRepository(feesRegisterClient);
-        feesService = new FeesService(feeRepository);
+        feesRegisterAdapter = new FeesRegisterAdapter(feesRegisterClient);
+        feesService = new FeesService(feesRegisterAdapter);
         }
 
 
