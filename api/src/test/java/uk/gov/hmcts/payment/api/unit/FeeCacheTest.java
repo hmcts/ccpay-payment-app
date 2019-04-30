@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.unit;
 
-import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import lombok.SneakyThrows;
 import org.junit.*;
@@ -21,7 +20,6 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +35,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@FixMethodOrder(MethodSorters.DEFAULT)
 public class FeeCacheTest {
 
     @ClassRule
