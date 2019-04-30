@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -151,15 +152,19 @@ public class PaymentDtoMapper {
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         paymentDto.getFees().forEach(fee -> {
-            Map<String, Fee2Dto> frFeeMap = feesService.getFeesDtoMap();
-            if (frFeeMap.containsKey(fee.getCode())) {
-                Fee2Dto frFee = frFeeMap.get(fee.getCode());
-                fee.setJurisdiction1(frFee.getJurisdiction1Dto().getName());
-                fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
-                fee.setMemoLine(frFee.getCurrentVersion().getMemoLine());
-                fee.setNaturalAccountCode(frFee.getCurrentVersion().getNaturalAccountCode());
-            } else {
-                LOG.info("No fee found with the code: ", fee.getCode());
+            Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
+            if (optFrFeeMap.isPresent()) {
+                Map<String, Fee2Dto> frFeeMap = optFrFeeMap.get();
+
+                if (frFeeMap.containsKey(fee.getCode())) {
+                    Fee2Dto frFee = frFeeMap.get(fee.getCode());
+                    fee.setJurisdiction1(frFee.getJurisdiction1Dto().getName());
+                    fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
+                    fee.setMemoLine(frFee.getCurrentVersion().getMemoLine());
+                    fee.setNaturalAccountCode(frFee.getCurrentVersion().getNaturalAccountCode());
+                } else {
+                    LOG.info("No fee found with the code: ", fee.getCode());
+                }
             }
         });
         return paymentDto;

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,18 +53,6 @@ public class FeesServiceTest {
 
         // when
         feesService.getFeesDtoMap();
-
-        // then
-        verify(feesRegisterClient,times(1)).getFeesDataAsMap();
-
-    }
-
-    @Test
-    public void shouldGetFeesVersionsData()  {
-        // given
-
-        // when
-        feesService.getFeesVersionsData();
 
         // then
         verify(feesRegisterClient,times(1)).getFeesDataAsMap();
