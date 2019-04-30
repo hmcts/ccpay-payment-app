@@ -21,8 +21,10 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -87,9 +89,22 @@ public class FeeCacheTest {
 
         assertThat(feesDtoMap).isNotNull();
         assertThat(feesDtoMap.size() > 0).isTrue();
+        assertThat(feesDtoMap.size()).isEqualTo(337);
         feesDtoMap.keySet().stream().forEach(k -> {
             assertThat(k.startsWith("FEE")).isTrue();
         });
+        Optional<Fee2Dto> optionalFeeDto = feesDtoMap.values().stream().filter(m -> m.getCode().equals("FEE0339")).findAny();
+        if (optionalFeeDto.isPresent()) {
+            Fee2Dto feeDto = optionalFeeDto.get();
+            assertThat(feeDto.getCode()).isEqualTo("FEE0339");
+            assertThat(feeDto.getFeeType()).isEqualTo("fixed");
+            assertThat(feeDto.getChannelTypeDto().getName()).isEqualTo("default");
+            assertThat(feeDto.getEventTypeDto().getName()).isEqualTo("miscellaneous");
+            assertThat(feeDto.getJurisdiction1Dto().getName()).isEqualTo("family");
+            assertThat(feeDto.getJurisdiction2Dto().getName()).isEqualTo("family court");
+            assertThat(feeDto.getCurrentVersion().getNaturalAccountCode()).isEqualTo("4481102174");
+            assertThat(feeDto.getCurrentVersion().getMemoLine()).isEqualTo("RECEIPT OF FEES - Family misc private");
+        }
     }
 
     /**
