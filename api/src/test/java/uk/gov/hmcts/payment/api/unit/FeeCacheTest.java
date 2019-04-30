@@ -70,7 +70,7 @@ public class FeeCacheTest {
      *
      * */
     @Test
-    public void secondTest() throws  Exception {
+    public void testCacheWithValidFees() throws  Exception {
         // Wire-mock fees-register response
         stubFor(get(urlPathMatching("/fees-register/fees"))
             .willReturn(aResponse()
@@ -99,7 +99,7 @@ public class FeeCacheTest {
      *
      * */
     @Test
-    public void firstTest() throws Exception {
+    public void testCacheWithInValidFeesOrNoFees() throws Exception {
         // Wire-mock fees-register response
         stubFor(get(urlPathMatching("/fees-register/fees"))
             .willReturn(aResponse()

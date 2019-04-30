@@ -104,4 +104,7 @@
     <suppress>
         <cve>CVE-2019-10241</cve>
     </suppress>
+    <suppress>
+        <cve>CVE-2019-10246</cve>
+    </suppress>
 </suppressions>
