@@ -3,7 +3,10 @@ capacity = "2"
 idam_api_url = "https://idam-api.platform.hmcts.net"
 
 card_payments_report_scheduler_enabled = "true"
+bar_payments_report_scheduler_enabled = "true"
 pba_cmc_payments_report_scheduler_enabled = "true"
+pba_probate_payments_report_scheduler_enabled = "true"
+pba_finrem_payments_report_scheduler_enabled = "true"
 pba_divorce_payments_report_scheduler_enabled = "true"
 
 spring_mail_host = "mta.reform.hmcts.net"
@@ -15,9 +18,21 @@ card_payments_email_from = "no-reply@reform.hmcts.net"
 card_payments_email_subject = "CNP: Card Payments Reconciliation Report"
 card_payments_email_message = "Hi <br/><br/>Please find attached today''s reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 
+bar_payments_email_from = "no-reply@reform.hmcts.net"
+bar_payments_email_subject = "CNP: Bar Payments Reconciliation Report"
+bar_payments_email_message = "Hi <br/><br/>Please find attached today''s reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+
 pba_cmc_payments_email_from = "no-reply@reform.hmcts.net"
 pba_cmc_payments_email_subject = "CNP: PBA Reconciliation Report for CMC"
 pba_cmc_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+
+pba_probate_payments_email_from = "no-reply@reform.hmcts.net"
+pba_probate_payments_email_subject = "CNP: PBA Reconciliation Report for PROBATE"
+pba_probate_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+
+pba_finrem_payments_email_from = "no-reply@reform.hmcts.net"
+pba_finrem_payments_email_subject = "CNP: PBA Reconciliation Report for FINREM"
+pba_finrem_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 
 pba_divorce_payments_email_from = "no-reply@reform.hmcts.net"
 pba_divorce_payments_email_subject = "PBA Divorce Reconciliation Report for Divorce"

@@ -1,6 +1,11 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,22 +40,23 @@ public class PaymentReportController {
         this.clock = clock;
     }
 
-    @ApiOperation(value = "Email payment csv reports", notes  = "fetch payments for between dates, enter the date in format YYYY-MM-DD")
+    @ApiOperation(value = "Email payment csv reports", notes = "fetch payments for between dates, enter the date in format YYYY-MM-DD")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Reports sent")
     })
     @RequestMapping(value = "/jobs/email-pay-reports", method = POST)
-    public void generateAndEmailReport(@RequestParam(name = "payment_method") String paymentMethodType,
+    public void generateAndEmailReport(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                        @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                        @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                        @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
 
-        validator.validate(Optional.of(paymentMethodType), serviceType, startDateString, endDateString);
+        validator.validate(paymentMethodType, serviceType, startDateString, endDateString);
 
         Date fromDate = startDateString.map(s -> clock.atStartOfDay(s, FORMATTER)).orElseGet(clock::getYesterdayDate);
         Date toDate = endDateString.map(s -> clock.atEndOfDay(s, FORMATTER)).orElseGet(clock::getTodayDate);
         Service service = serviceType.map(value -> Service.valueOf(value.toUpperCase())).orElse(null);
+        PaymentMethodType paymentMethodTypeName = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase())).orElse(null);
 
-        paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, PaymentMethodType.valueOf(paymentMethodType.toUpperCase()), service);
+        paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, service);
     }
 }
