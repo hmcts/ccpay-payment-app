@@ -17,10 +17,14 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.referencedata.model.Site;
+import uk.gov.hmcts.payment.referencedata.service.SiteService;
+import uk.gov.hmcts.payment.referencedata.service.SiteServiceImpl;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,6 +58,9 @@ public class FeeCacheTest {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private SiteServiceImpl siteService;
 
     @Before
     public void setUp() {
@@ -121,6 +128,25 @@ public class FeeCacheTest {
         // Validate cached fees
         Cache cache = this.cacheManager.getCache("feesDtoMap");
         assertThat(cache.get("getFeesDtoMap")).isNull();
+    }
+
+    @Test
+    public void testCacheForSiteIds() throws Exception {
+        // Invoke site service
+        siteService.getAllSites();
+
+        // Test cache for site ids
+        Cache cache = this.cacheManager.getCache("sites");
+        List<Site> sites = (List<Site>) cache.get("getAllSites").get();
+        assertThat(sites).isNotEmpty();
+        Optional<Site> optSite = sites.stream().filter(s -> s.getSiteId().equals("Y431")).findAny();
+        if (optSite.isPresent()) {
+            Site site = optSite.get();
+            assertThat(site.getSiteId()).isEqualTo("Y431");
+            assertThat(site.getName()).isEqualTo("Bromley County Court");
+            assertThat(site.getSopReference()).isEqualTo("10251430");
+            assertThat(site.getService()).isEqualTo("County");
+        }
     }
 
     @SneakyThrows

@@ -51,7 +51,7 @@ public class ReferenceDataControllerTest {
             .service("service")
             .id(1)
             .build());
-        when(siteServiceMock.findAll()).thenReturn(serviceReturn);
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
         ResponseEntity<List<SiteDTO>> responseBody = referenceDataController.getSites();
         List<SiteDTO> actualResponse = responseBody.getBody();
 
