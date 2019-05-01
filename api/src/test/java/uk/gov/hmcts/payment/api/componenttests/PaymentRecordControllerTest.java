@@ -126,7 +126,7 @@ public class PaymentRecordControllerTest {
                 .build()
         );
 
-        when(siteServiceMock.findAll()).thenReturn(serviceReturn);
+        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
     }
 
     @Test
