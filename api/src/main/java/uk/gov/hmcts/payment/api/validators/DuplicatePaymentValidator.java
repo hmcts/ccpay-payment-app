@@ -32,11 +32,10 @@ public class DuplicatePaymentValidator {
         this.userIdSupplier = userIdSupplier;
     }
 
-    public boolean checkDuplication(Payment payment) {
+    public void checkDuplication(Payment payment) {
         if (paymentRepository.count(findPayment(payment)) > 0) {
             throw new DuplicatePaymentException("duplicate payment");
         }
-        return true;
     }
 
     private Specification findPayment(Payment payment) {
@@ -55,8 +54,9 @@ public class DuplicatePaymentValidator {
         } else {
             predicates.add(cb.equal(root.get("caseReference"), payment.getCaseReference()));
         }
-        Date targetTime = DateUtils.addMinutes(new Date(), -1 * timeInterval);
-        predicates.add(cb.between(root.get("dateCreated"), targetTime, new Date()));
+        Date currentTime = new Date();
+        Date targetTime = DateUtils.addMinutes(currentTime, -1 * timeInterval);
+        predicates.add(cb.between(root.get("dateCreated"), targetTime, currentTime));
         return cb.and(predicates.toArray(new Predicate[0]));
     }
 }
