@@ -3,8 +3,6 @@ package uk.gov.hmcts.payment.api.reports;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
-import java.util.Optional;
-
 public enum PaymentReportType {
 
     CARD,
@@ -15,12 +13,12 @@ public enum PaymentReportType {
     PBA_FINREM;
 
     public static PaymentReportType from(PaymentMethodType paymentMethodType, Service serviceType) {
-        String value;
+        String value = "";
         if (paymentMethodType != null && serviceType != null) {
             value = String.join("_", paymentMethodType.name(), serviceType.name());
         } else if (serviceType != null) {
             value = serviceType.name();
-        } else {
+        } else if (paymentMethodType != null) {
             value = paymentMethodType.name();
         }
 

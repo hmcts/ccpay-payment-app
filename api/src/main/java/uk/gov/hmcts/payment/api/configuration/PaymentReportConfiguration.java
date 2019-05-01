@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.configuration;
 
 import com.google.common.collect.ImmutableMap;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uk.gov.hmcts.payment.api.reports.PaymentReportType;
@@ -18,21 +17,13 @@ import java.util.Map;
 @Configuration
 public class PaymentReportConfiguration {
 
-    @Autowired
-    private CardPaymentReportConfig cardPaymentReportConfig;
-    @Autowired
-    private BarPaymentReportConfig barPaymentReportConfig;
-    @Autowired
-    private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig;
-    @Autowired
-    private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig;
-    @Autowired
-    private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig;
-    @Autowired
-    private PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig;
-
     @Bean
-    public Map<PaymentReportType, PaymentReportConfig> configMap() {
+    public Map<PaymentReportType, PaymentReportConfig> configMap(CardPaymentReportConfig cardPaymentReportConfig,
+                                                                 BarPaymentReportConfig barPaymentReportConfig,
+                                                                 PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig,
+                                                                 PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig,
+                                                                 PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig,
+                                                                 PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig) {
         return ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
             .put(PaymentReportType.CARD, cardPaymentReportConfig)
             .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
