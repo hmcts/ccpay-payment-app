@@ -16,6 +16,6 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
     @Override
     public List<SiteDTO> getSiteIDs() {
-        return SiteDTO.fromSiteList(siteService.findAll());
+        return SiteDTO.fromSiteList(siteService.getAllSites());
     }
 }
