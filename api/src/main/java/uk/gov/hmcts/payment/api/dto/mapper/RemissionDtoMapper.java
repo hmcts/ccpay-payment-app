@@ -29,8 +29,11 @@ public class RemissionDtoMapper {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())
+            .ccdCaseNumber(feeDto.getCcdCaseNumber())
             .version(feeDto.getVersion())
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
+            .netAmount(feeDto.getNetAmount())
+            .reference(feeDto.getReference())
             .build();
     }
 
