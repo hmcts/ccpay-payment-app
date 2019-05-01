@@ -7,7 +7,9 @@ import uk.gov.hmcts.payment.api.model.Remission;
 
 public interface RemissionService {
 
-    PaymentFeeLink create(RemissionServiceRequest remissionServiceRequest) throws CheckDigitException;
+    PaymentFeeLink createRemission(RemissionServiceRequest remissionServiceRequest) throws CheckDigitException;
+
+    PaymentFeeLink createPartialRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference) throws CheckDigitException;
 
     Remission retrieve(String hwfReference);
 }

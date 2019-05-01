@@ -14,12 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
@@ -46,11 +41,10 @@ public class RemissionController {
     @Autowired
     private RemissionDtoMapper remissionDtoMapper;
 
-    @ApiOperation(value = "Create remission record", notes = "Create remission record")
+    @ApiOperation(value = "Create full remission record", notes = "Create full remission record")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Remission created"),
         @ApiResponse(code = 400, message = "Remission creation failed"),
-        @ApiResponse(code = 404, message = "Given payment group reference not found")
     })
     @PostMapping(value = "/remission")
     @ResponseBody
@@ -58,8 +52,35 @@ public class RemissionController {
         throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
 
+        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        PaymentFeeLink paymentFeeLink = remissionService.createRemission(remissionServiceRequest);
+
+        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
+
+    @ApiOperation(value = "Create partial remission record", notes = "Create partial remission record")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Remission created"),
+        @ApiResponse(code = 400, message = "Remission creation failed"),
+        @ApiResponse(code = 404, message = "Given payment group reference not found")
+    })
+    @PostMapping(value = "/remission/payment-group/{payment-group-reference}")
+    @ResponseBody
+    public ResponseEntity<RemissionDto> createPartialRemission(
+        @PathVariable("payment-group-reference") String paymentGroupReference,
+        @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
+        remissionValidator.validate(remissionRequest);
+
+        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        PaymentFeeLink paymentFeeLink = remissionService.createPartialRemission(remissionServiceRequest, paymentGroupReference);
+
+        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
+
+    private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest) {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
-        RemissionServiceRequest remissionServiceRequest = RemissionServiceRequest.remissionServiceRequestWith()
+
+        return RemissionServiceRequest.remissionServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .hwfAmount(remissionRequest.getHwfAmount())
             .hwfReference(remissionRequest.getHwfReference())
@@ -70,9 +91,6 @@ public class RemissionController {
             .fee(remissionDtoMapper.toFee(remissionRequest.getFee()))
             .build();
 
-        PaymentFeeLink paymentFeeLink = remissionService.create(remissionServiceRequest);
-
-        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

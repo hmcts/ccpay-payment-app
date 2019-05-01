@@ -48,15 +48,4 @@ public class RemissionRequest {
 
     @NotNull
     private String siteId;
-
-    public Remission toRemission() {
-        return Remission.remissionWith()
-            .hwfReference(hwfReference)
-            .hwfAmount(hwfAmount)
-            .beneficiaryName(beneficiaryName)
-            .ccdCaseNumber(ccdCaseNumber)
-            .caseReference(caseReference)
-            .siteId(siteId)
-            .build();
-    }
 }
