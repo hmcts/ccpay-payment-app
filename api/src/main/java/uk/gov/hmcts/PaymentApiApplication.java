@@ -47,7 +47,10 @@ public class PaymentApiApplication {
         cacheManager.setCaches(Arrays.asList(
             new CaffeineCache("feesDtoMap", Caffeine.newBuilder()
                 .expireAfterWrite(1440, TimeUnit.MINUTES)
-                    .build())
+                    .build()),
+            new CaffeineCache("sites", Caffeine.newBuilder()
+                .expireAfterWrite(48, TimeUnit.HOURS)
+                .build())
         ));
         return cacheManager;
     }
