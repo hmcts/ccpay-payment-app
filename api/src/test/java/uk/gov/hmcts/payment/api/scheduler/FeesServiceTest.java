@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.scheduler;
 
 import com.google.common.collect.ImmutableMap;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +10,7 @@ import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.reports.FeesRegisterAdapter;
 import uk.gov.hmcts.payment.api.reports.FeesRegisterClient;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 
@@ -30,6 +30,8 @@ public class FeesServiceTest {
 
     private FeesService feesService;
 
+    private FeesRegisterAdapter feesRegisterAdapter;
+
     @Mock
     private FeesRegisterClient feesRegisterClient;
 
@@ -41,7 +43,8 @@ public class FeesServiceTest {
 
     @Before
     public void setUp()  {
-        feesService = new FeesService(feesRegisterClient);
+        feesRegisterAdapter = new FeesRegisterAdapter(feesRegisterClient);
+        feesService = new FeesService(feesRegisterAdapter);
         }
 
 
@@ -52,18 +55,6 @@ public class FeesServiceTest {
 
         // when
         feesService.getFeesDtoMap();
-
-        // then
-        verify(feesRegisterClient,times(1)).getFeesDataAsMap();
-
-    }
-
-    @Test
-    public void shouldGetFeesVersionsData()  {
-        // given
-
-        // when
-        feesService.getFeesVersionsData();
 
         // then
         verify(feesRegisterClient,times(1)).getFeesDataAsMap();

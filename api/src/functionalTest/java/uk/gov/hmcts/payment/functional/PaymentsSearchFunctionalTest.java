@@ -157,6 +157,8 @@ public class PaymentsSearchFunctionalTest {
             assertThat(feeDto.getVersion()).isEqualTo("1");
             assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102133");
             assertThat(feeDto.getMemoLine()).isNotEmpty();
+            assertThat(feeDto.getJurisdiction1()).isEqualTo("civil");
+            assertThat(feeDto.getJurisdiction2()).isEqualTo("county court");
         }));
 
     }
