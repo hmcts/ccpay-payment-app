@@ -122,6 +122,47 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void rejectDuplicatePayment() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+
+        // 2nd request
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldNotRejectDuplicatePaymentIfAmountIsDifferent() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+
+        // different amount for the 2nd request
+        request.setAmount(BigDecimal.valueOf(500.50));
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+    }
+
+    @Test
     public void retrieveCreditAccountPaymentByPaymentReference() throws Exception {
         //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
