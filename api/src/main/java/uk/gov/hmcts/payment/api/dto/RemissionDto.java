@@ -38,5 +38,7 @@ public class RemissionDto {
 
     private String paymentGroupReference;
 
+    private String paymentReference;
+
     private List<FeeDto> fees;
 }

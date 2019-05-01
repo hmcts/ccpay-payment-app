@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
+import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -27,7 +29,7 @@ public class RemissionServiceImpl implements RemissionService {
     }
 
     @Override
-    public PaymentFeeLink create(RemissionServiceRequest remissionServiceRequest) throws CheckDigitException {
+    public PaymentFeeLink createRemission(RemissionServiceRequest remissionServiceRequest) throws CheckDigitException {
         String remissionReference = referenceUtil.getNext("RM");
         remissionServiceRequest.setRemissionReference(remissionReference);
 
@@ -37,13 +39,30 @@ public class RemissionServiceImpl implements RemissionService {
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(remissionServiceRequest.getPaymentGroupReference())
             .remissions(Collections.singletonList(remission))
-            .fees(Collections.singletonList(remissionServiceRequest.getFee()))
+            .fees(Collections.singletonList(fee))
             .build();
-        remission.setPaymentFeeLink(paymentFeeLink);
         fee.setRemissions(Collections.singletonList(remission));
 
         return paymentFeeLinkRepository.save(paymentFeeLink);
 
+    }
+
+    @Override
+    @Transactional
+    public PaymentFeeLink createPartialRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(InvalidPaymentGroupReferenceException::new);
+
+        String remissionReference = referenceUtil.getNext("RM");
+        remissionServiceRequest.setRemissionReference(remissionReference);
+
+        Remission remission = buildRemission(remissionServiceRequest);
+        PaymentFee fee = remissionServiceRequest.getFee();
+
+        paymentFeeLink.setRemissions(Collections.singletonList(remission));
+        paymentFeeLink.setFees(Collections.singletonList(fee));
+        fee.setRemissions(Collections.singletonList(remission));
+
+        return paymentFeeLink;
     }
 
     private Remission buildRemission(RemissionServiceRequest remissionServiceRequest) {
