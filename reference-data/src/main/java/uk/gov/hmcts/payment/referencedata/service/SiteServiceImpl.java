@@ -21,8 +21,8 @@ public class SiteServiceImpl implements SiteService<Site, String> {
     }
 
     @Override
-    @Cacheable("sites")
-    public List<Site> findAll() {
+    @Cacheable(value = "sites", key = "#root.method.name", unless = "#result == null || #result.isEmpty()")
+    public List<Site> getAllSites() {
         return siteRepository.findAll();
     }
 }
