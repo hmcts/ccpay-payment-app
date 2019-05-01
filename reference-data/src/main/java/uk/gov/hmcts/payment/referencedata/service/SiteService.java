@@ -7,5 +7,5 @@ import java.util.List;
 public interface SiteService<T, I> {
     T retrieve(I siteId);
 
-    List<Site> findAll();
+    List<Site> getAllSites();
 }

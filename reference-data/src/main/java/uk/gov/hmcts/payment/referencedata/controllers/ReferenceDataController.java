@@ -33,6 +33,6 @@ public class ReferenceDataController {
     @GetMapping(value = "/reference-data/sites")
     @ResponseBody
     public ResponseEntity<List<SiteDTO>> getSites() {
-        return new ResponseEntity<>(SiteDTO.fromSiteList(siteService.findAll()), HttpStatus.OK);
+        return new ResponseEntity<>(SiteDTO.fromSiteList(siteService.getAllSites()), HttpStatus.OK);
     }
 }
