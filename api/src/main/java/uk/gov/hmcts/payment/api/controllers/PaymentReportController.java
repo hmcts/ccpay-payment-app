@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -19,8 +19,6 @@ import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
-
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @Api(tags = {"Payment Report"})
@@ -44,7 +42,7 @@ public class PaymentReportController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Reports sent")
     })
-    @RequestMapping(value = "/jobs/email-pay-reports", method = POST)
+    @PostMapping(value = "/jobs/email-pay-reports")
     public void generateAndEmailReport(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                        @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                        @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
