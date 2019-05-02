@@ -63,11 +63,12 @@ public class RemissionServiceTest {
             .beneficiaryName("testCreateRemission")
             .hwfAmount(new BigDecimal("100.99"))
             .hwfReference("hwf123456789")
+            .fee(fee)
             .build();
 
         when(paymentFeeLinkRepository.save(any(PaymentFeeLink.class))).thenReturn(paymentFeeLink);
 
-        PaymentFeeLink res = remissionService.create(remissionServiceRequest);
+        PaymentFeeLink res = remissionService.createRemission(remissionServiceRequest);
 
         assertThat(res).isNotNull();
         assertThat(res.getPaymentReference()).isEqualTo("2019-123456789");
