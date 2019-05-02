@@ -344,4 +344,68 @@ public class PaymentDtoTest {
         rowJointer.add(joiner2.toString());
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(rowJointer.toString());
     }
+
+    @Test
+    public void paymentCsvPutsEmptyStringVolumeAmountWhenExists() {
+            List<FeeDto> fees = new ArrayList<>();
+            fees.add(feeWithVolumeDto);
+            testDto.setFees(fees);
+
+            StringJoiner joiner = new StringJoiner(",");
+            joiner.add(serviceName)
+                .add(paymentGroupReference)
+                .add(paymentReference)
+                .add(ccdNumber)
+                .add(caseReference)
+                .add(organisationName)
+                .add(customerReference)
+                .add(accountNumber)
+                .add(sdf.format(dateCreated))
+                .add(sdf.format(dateUpdated))
+                .add(status)
+                .add(channel)
+                .add(method)
+                .add(amount.toString())
+                .add(siteId)
+                .add(feeWithVolumeCode)
+                .add(feeVersion)
+                .add(calculatedAmountForFeeWithVolume.toString())
+                .add("\"" + memoLine + "\"")
+                .add(naturalAccountCode)
+                .add(volume.toString());
+
+            assertThat(testDto.toPaymentCsv()).isEqualTo(joiner.toString());
+        }
+
+    @Test
+    public void paymentCsvPutsEmptyStringVolumeAmountWhenNotExists() {
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(feeNoVolumeDto);
+        testDto.setFees(fees);
+
+        StringJoiner joiner = new StringJoiner(",");
+        joiner.add(serviceName)
+            .add(paymentGroupReference)
+            .add(paymentReference)
+            .add(ccdNumber)
+            .add(caseReference)
+            .add(organisationName)
+            .add(customerReference)
+            .add(accountNumber)
+            .add(sdf.format(dateCreated))
+            .add(sdf.format(dateUpdated))
+            .add(status)
+            .add(channel)
+            .add(method)
+            .add(amount.toString())
+            .add(siteId)
+            .add(feeNoVolumeCode)
+            .add(feeVersion)
+            .add(calculatedAmountForFeeNoVolume.toString())
+            .add("\"" + memoLine + "\"")
+            .add(naturalAccountCode)
+            .add(volume.toString());
+
+        assertThat(testDto.toPaymentCsv()).isEqualTo(joiner.toString());
+    }
 }

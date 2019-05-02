@@ -75,4 +75,12 @@ public class PaymentsReportFacadeTest {
         facade.generateCsvAndSendEmail(new Date(), new Date(), CARD, Service.CMC);
 
     }
+
+    @Test
+    public void shouldThrowExceptionForEmptyValuesForMethodTypeAndService() {
+        exception.expect(UnsupportedOperationException.class);
+
+        // given & when
+        facade.generateCsvAndSendEmail(new Date(), new Date(), null, null);
+    }
 }
