@@ -41,6 +41,7 @@ public class RemissionServiceImpl implements RemissionService {
             .remissions(Collections.singletonList(remission))
             .fees(Collections.singletonList(fee))
             .build();
+        remission.setPaymentFeeLink(paymentFeeLink);
         fee.setRemissions(Collections.singletonList(remission));
 
         return paymentFeeLinkRepository.save(paymentFeeLink);
@@ -60,6 +61,7 @@ public class RemissionServiceImpl implements RemissionService {
 
         paymentFeeLink.setRemissions(Collections.singletonList(remission));
         paymentFeeLink.setFees(Collections.singletonList(fee));
+        remission.setPaymentFeeLink(paymentFeeLink);
         fee.setRemissions(Collections.singletonList(remission));
 
         return paymentFeeLink;
