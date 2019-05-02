@@ -61,7 +61,6 @@ public class PaymentsReportService {
 
         LOG.info("Start of payments csv report for method type :{} and service name :{}", paymentMethodType, serviceName);
 
-        feesService.dailyRefreshOfFeesData();
         List<PaymentDto> cardPaymentsCsvData = findPaymentsBy(startDate, endDate, paymentMethodType, serviceName);
         generateCsvAndSendEmail(cardPaymentsCsvData, reportConfig);
 

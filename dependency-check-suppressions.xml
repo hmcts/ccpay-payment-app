@@ -96,6 +96,18 @@
         <cve>CVE-2018-1260</cve>
     </suppress>
     <suppress>
+        <cve>CVE-2019-0232</cve>
+    </suppress>
+    <suppress>
+        <cve>CVE-2019-0199</cve>
+    </suppress>
+    <suppress>
+        <cve>CVE-2019-10241</cve>
+    </suppress>
+    <suppress>
+        <cve>CVE-2019-10246</cve>
+    </suppress>
+    <suppress>
         <notes><![CDATA[
 			Jetty included by wiremock. No update available yet.
 			]]></notes>
