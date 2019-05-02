@@ -95,4 +95,20 @@
         <cve>CVE-2012-5055</cve>
         <cve>CVE-2018-1260</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+			Jetty included by wiremock. No update available yet.
+			]]></notes>
+        <gav regex="true">^.*org.eclipse.jetty.*$</gav>
+        <cve>CVE-2019-10247</cve>
+        <cve>CVE-2019-10241</cve>
+        <cve>CVE-2019-10246</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+			Apache Tomcat included by azure spring boot et al. No update available yet.
+			]]></notes>
+        <gav regex="true">^.*org.apache.tomcat.embed.*$</gav>
+        <cve>CVE-2019-0232</cve>
+    </suppress>
 </suppressions>
