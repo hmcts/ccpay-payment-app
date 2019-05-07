@@ -40,5 +40,5 @@ public class RemissionDto {
 
     private String paymentReference;
 
-    private List<FeeDto> fees;
+    private FeeDto fees;
 }
