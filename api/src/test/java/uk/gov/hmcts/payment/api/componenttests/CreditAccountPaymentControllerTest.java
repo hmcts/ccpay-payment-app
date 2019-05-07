@@ -122,8 +122,33 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void rejectDuplicatePayment() throws Exception {
+    public void rejectDuplicatePayment_ccdCaseNumber() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        request.setCcdCaseNumber("CCD105");
+        request.setCaseReference(null);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+
+        // 2nd request
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void rejectDuplicatePayment_caseReference() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        request.setCcdCaseNumber(null);
+        request.setCaseReference("33333");
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
