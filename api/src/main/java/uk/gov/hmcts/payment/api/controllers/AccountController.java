@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
+import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 
 @RestController
@@ -33,7 +34,8 @@ public class AccountController {
     @ApiOperation(value = "Get the account status and available balance for a PBA account number", notes = "Get the account status and available balance for a PBA account number")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Account details retrieved"),
-        @ApiResponse(code = 404, message = "Account not found")
+        @ApiResponse(code = 404, message = "Account not found"),
+        @ApiResponse(code = 503, message = "Failed to connect with Liberata")
     })
     @GetMapping(value = "/accounts/{accountNumber}")
     public AccountDto getAccounts(@PathVariable("accountNumber") String accountNumber) {
@@ -42,6 +44,8 @@ public class AccountController {
         } catch (HttpClientErrorException ex) {
             LOG.error("Error while calling account", ex);
             throw new AccountNotFoundException("Account not found");
+        } catch (Exception ex) {
+            throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + ex.getMessage());
         }
     }
 
@@ -51,4 +55,9 @@ public class AccountController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    @ExceptionHandler(LiberataServiceInaccessibleException.class)
+    public String return503(LiberataServiceInaccessibleException ex) {
+        return ex.getMessage();
+    }
 }
