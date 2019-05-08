@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.model.Remission;
 
 import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
@@ -41,6 +40,8 @@ public class RemissionRequest {
     private String ccdCaseNumber;
 
     private String caseReference;
+
+    private String paymentGroupReference;
 
     @NotNull
     @Valid

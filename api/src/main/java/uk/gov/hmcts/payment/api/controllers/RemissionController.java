@@ -53,7 +53,12 @@ public class RemissionController {
         remissionValidator.validate(remissionRequest);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
-        PaymentFeeLink paymentFeeLink = remissionService.createRemission(remissionServiceRequest);
+
+        // TODO
+        // Remove the paymentGroupReference condition for mvp
+        PaymentFeeLink paymentFeeLink = remissionRequest.getPaymentGroupReference() == null ?
+            remissionService.createRemission(remissionServiceRequest) :
+            remissionService.createPartialRemission(remissionServiceRequest, remissionRequest.getPaymentGroupReference());
 
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
@@ -64,7 +69,7 @@ public class RemissionController {
         @ApiResponse(code = 400, message = "Remission creation failed"),
         @ApiResponse(code = 404, message = "Given payment group reference not found")
     })
-    @PostMapping(value = "/remission/payment-group/{payment-group-reference}")
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/remissions")
     @ResponseBody
     public ResponseEntity<RemissionDto> createPartialRemission(
         @PathVariable("payment-group-reference") String paymentGroupReference,

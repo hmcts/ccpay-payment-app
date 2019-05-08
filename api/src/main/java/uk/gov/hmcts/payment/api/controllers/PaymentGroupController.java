@@ -35,7 +35,7 @@ public class PaymentGroupController {
         @ApiResponse(code = 403, message = "Payment info forbidden"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @GetMapping(value = "/payment-group/{payment-group-reference}")
+    @GetMapping(value = "/payment-groups/{payment-group-reference}")
     public ResponseEntity<PaymentGroupDto> retrieve(@PathVariable("payment-group-reference") String paymentGroupReference) {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(InvalidPaymentGroupReferenceException::new);
 
