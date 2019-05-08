@@ -12,7 +12,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -26,6 +30,7 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
@@ -602,6 +607,67 @@ public class RemissionControllerTest {
             .andReturn();
     }
 
+    @Test
+    public void createPartialRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
+        // create a telephony payment
+        MvcResult result1 = restActions
+            .post("/card-payments", getCardPaymentRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertThat(createPaymentResponseDto).isNotNull();
+
+        // create a partial remission
+        MvcResult result2 = restActions
+            .post("/remission/payment-group/" + createPaymentResponseDto.getPaymentGroupReference(), getRemissionRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RemissionDto createRemissionResponseDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertThat(createRemissionResponseDto).isNotNull();
+        assertThat(createRemissionResponseDto.getPaymentGroupReference()).isEqualTo(createPaymentResponseDto.getPaymentGroupReference());
+        assertThat(createRemissionResponseDto.getPaymentReference()).isEqualTo(createPaymentResponseDto.getReference());
+
+    }
+
+    @Test
+    public void createPartialRemissionWithInvalidPaymentGroupReferenceShouldFailTest() throws Exception {
+        restActions
+            .post("/remission/payment-group/2019-0000000001" + getRemissionRequest())
+            .andExpect(status().isBadRequest());
+    }
+
+    private RemissionRequest getRemissionRequest() {
+        return RemissionRequest.createRemissionRequestDtoWith()
+            .beneficiaryName("A partial remission")
+            .ccdCaseNumber("1111-2222-3333-4444")
+            .hwfAmount(new BigDecimal("300"))
+            .hwfReference("HR1111")
+            .siteId("AA001")
+            .fee(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("300"))
+                .code("FEE0111")
+                .version("1")
+                .volume(1)
+                .netAmount(new BigDecimal("300"))
+                .build())
+            .build();
+    }
+
+    private CardPaymentRequest getCardPaymentRequest() {
+        return CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("250"))
+            .ccdCaseNumber("1111-2222-3333-4444")
+            .channel("telephony")
+            .currency(CurrencyCode.GBP)
+            .description("A test telephony payment")
+            .provider("pci pal")
+            .service(Service.DIVORCE)
+            .siteId("AA001")
+            .fees(Collections.singletonList(getFee()))
+            .build();
+    }
 
     private FeeDto getFee() {
         return FeeDto.feeDtoWith()

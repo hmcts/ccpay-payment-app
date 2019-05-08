@@ -65,6 +65,7 @@ public class PaymentGroupDtoMapper {
             .caseReference(remission.getCaseReference())
             .hwfReference(remission.getHwfReference())
             .hwfAmount(remission.getHwfAmount())
+            .feeCode(remission.getFee().getCode())
             .build();
     }
 
@@ -81,7 +82,6 @@ public class PaymentGroupDtoMapper {
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
-            .reference(!fee.getRemissions().isEmpty() ? fee.getRemissions().get(0).getRemissionReference() : null)
             .build();
     }
 }
