@@ -50,17 +50,16 @@ public class RemissionServiceImpl implements RemissionService {
 
     @Override
     @Transactional
-    public PaymentFeeLink createPartialRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference) throws CheckDigitException {
+    public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(InvalidPaymentGroupReferenceException::new);
 
         String remissionReference = referenceUtil.getNext("RM");
         remissionServiceRequest.setRemissionReference(remissionReference);
 
         Remission remission = buildRemission(remissionServiceRequest);
-        PaymentFee fee = remissionServiceRequest.getFee();
+        PaymentFee fee = paymentFeeLink.getFees().get(0);
 
         paymentFeeLink.setRemissions(Collections.singletonList(remission));
-        paymentFeeLink.setFees(Collections.singletonList(fee));
         remission.setPaymentFeeLink(paymentFeeLink);
         fee.setRemissions(Collections.singletonList(remission));
 

@@ -556,8 +556,7 @@ public class RemissionControllerTest {
         String returnedRemissionReference = remissionDto.getRemissionReference();
         Remission remission = remissionDbBackdoor.findByRemissionReference(returnedRemissionReference);
         assertNotNull(remission);
-        String paymentGroupReference = remission.getPaymentFeeLink().getPaymentReference();
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(paymentGroupReference);
+        PaymentFeeLink paymentFeeLink = remission.getPaymentFeeLink();
         assertNotNull(paymentFeeLink);
     }
 
@@ -584,7 +583,7 @@ public class RemissionControllerTest {
         assertNotNull(remission);
         String foundPaymentGroupReference = remission.getPaymentFeeLink().getPaymentReference();
         assertEquals("Group reference are equal", remissionDto.getPaymentGroupReference(), foundPaymentGroupReference);
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(foundPaymentGroupReference);
+        PaymentFeeLink paymentFeeLink = remission.getPaymentFeeLink();
         assertNotNull(paymentFeeLink);
     }
 
@@ -608,7 +607,21 @@ public class RemissionControllerTest {
     }
 
     @Test
-    public void createPartialRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
+    public void createUpfrontRemissionTest() throws Exception {
+        RemissionRequest remissionRequest = getRemissionRequest();
+
+        MvcResult result = restActions
+            .post("/remissions", remissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertThat(remissionDto).isNotNull();
+        assertThat(remissionDto.getRemissionReference()).startsWith("RM");
+    }
+
+    @Test
+    public void createRetrospectiveRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         // create a telephony payment
         MvcResult result1 = restActions
             .post("/card-payments", getCardPaymentRequest())
@@ -620,7 +633,7 @@ public class RemissionControllerTest {
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/remission/payment-group/" + createPaymentResponseDto.getPaymentGroupReference(), getRemissionRequest())
+            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/remissions", getRemissionRequest())
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -628,15 +641,15 @@ public class RemissionControllerTest {
         assertThat(createRemissionResponseDto).isNotNull();
         assertThat(createRemissionResponseDto.getPaymentGroupReference()).isEqualTo(createPaymentResponseDto.getPaymentGroupReference());
         assertThat(createRemissionResponseDto.getPaymentReference()).isEqualTo(createPaymentResponseDto.getReference());
-
     }
 
     @Test
-    public void createPartialRemissionWithInvalidPaymentGroupReferenceShouldFailTest() throws Exception {
+    public void createRetrospectiveRemissionWithInvalidPaymentGroupReferenceShouldFailTest() throws Exception {
         restActions
-            .post("/remission/payment-group/2019-0000000001" + getRemissionRequest())
-            .andExpect(status().isBadRequest());
+            .post("/payment-groups/2019-0000000001/remissions" + getRemissionRequest())
+            .andExpect(status().isNotFound());
     }
+
 
     private RemissionRequest getRemissionRequest() {
         return RemissionRequest.createRemissionRequestDtoWith()
