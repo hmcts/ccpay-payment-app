@@ -55,6 +55,8 @@ public class RemissionController {
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
 
+        // Depending on payment-group-reference present in the request
+        // it is will be upfront remission or a retrospective remission
         PaymentFeeLink paymentFeeLink = remissionRequest.getPaymentGroupReference() == null ?
             remissionService.createRemission(remissionServiceRequest) :
             remissionService.createRetrospectiveRemission(remissionServiceRequest, remissionRequest.getPaymentGroupReference());
@@ -80,6 +82,12 @@ public class RemissionController {
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "Create retrospective remission record", notes = "Create retrospective remission record")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Remission created"),
+        @ApiResponse(code = 400, message = "Remission creation failed"),
+        @ApiResponse(code = 404, message = "Given payment group reference not found"),
+    })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/remissions")
     @ResponseBody
     public ResponseEntity<RemissionDto> createPartialRemission(
