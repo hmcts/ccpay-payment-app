@@ -69,50 +69,50 @@ public class RemissionServiceTest {
         verify(paymentFeeLinkRepository, times(1)).save(any(PaymentFeeLink.class));
     }
 
-//    @Test(expected = InvalidPaymentGroupReferenceException.class)
-//    public void createPartialRemissionWithInvalidPaymentGroupReferenceTest() throws Exception {
-//        Remission remission = getRemission();
-//        PaymentFee fee = getFee();
-//
-//        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-//            .paymentReference("2019-123456799")
-//            .remissions(Collections.singletonList(remission))
-//            .fees(Arrays.asList(fee))
-//            .build();
-//
-//        when(paymentFeeLinkRepository.save(any(PaymentFeeLink.class))).thenReturn(paymentFeeLink);
-//
-//        remissionService.createPartialRemission(RemissionServiceRequest.remissionServiceRequestWith().build(), "2019-000000099");
-//    }
-//
-//    @Test
-//    public void createPartialRemissionWithValidPaymentGroupReferenceTest() throws Exception {
-//        Remission remission = getRemission();
-//        PaymentFee fee = getFee();
-//
-//        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-//            .paymentReference("2019-123456799")
-//            .remissions(Collections.singletonList(remission))
-//            .fees(Arrays.asList(fee))
-//            .build();
-//
-//        when(paymentFeeLinkRepository.findByPaymentReference("2019-123456799")).thenReturn(Optional.ofNullable(paymentFeeLink));
-//
-//        RemissionServiceRequest remissionServiceRequest = RemissionServiceRequest.remissionServiceRequestWith()
-//            .paymentGroupReference("2019-123456799")
-//            .ccdCaseNumber("1111-2222-3333-4444")
-//            .beneficiaryName("testCreateRemission")
-//            .hwfAmount(new BigDecimal("100.99"))
-//            .hwfReference("hwf123456789")
-//            .fee(fee)
-//            .build();
-//
-//        PaymentFeeLink res = remissionService.createPartialRemission(remissionServiceRequest, paymentFeeLink.getPaymentReference());
-//        assertThat(res).isNotNull();
-//        assertThat(res.getPaymentReference()).isEqualTo(paymentFeeLink.getPaymentReference());
-//
-//        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReference(paymentFeeLink.getPaymentReference());
-//    }
+    @Test(expected = InvalidPaymentGroupReferenceException.class)
+    public void createPartialRemissionWithInvalidPaymentGroupReferenceTest() throws Exception {
+        Remission remission = getRemission();
+        PaymentFee fee = getFee();
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("2019-123456799")
+            .remissions(Collections.singletonList(remission))
+            .fees(Arrays.asList(fee))
+            .build();
+
+        when(paymentFeeLinkRepository.save(any(PaymentFeeLink.class))).thenReturn(paymentFeeLink);
+
+        remissionService.createRetrospectiveRemission(RemissionServiceRequest.remissionServiceRequestWith().build(), "2019-000000099");
+    }
+
+    @Test
+    public void createPartialRemissionWithValidPaymentGroupReferenceTest() throws Exception {
+        Remission remission = getRemission();
+        PaymentFee fee = getFee();
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("2019-123456799")
+            .remissions(Collections.singletonList(remission))
+            .fees(Arrays.asList(fee))
+            .build();
+
+        when(paymentFeeLinkRepository.findByPaymentReference("2019-123456799")).thenReturn(Optional.ofNullable(paymentFeeLink));
+
+        RemissionServiceRequest remissionServiceRequest = RemissionServiceRequest.remissionServiceRequestWith()
+            .paymentGroupReference("2019-123456799")
+            .ccdCaseNumber("1111-2222-3333-4444")
+            .beneficiaryName("testCreateRemission")
+            .hwfAmount(new BigDecimal("100.99"))
+            .hwfReference("hwf123456789")
+            .fee(fee)
+            .build();
+
+        PaymentFeeLink res = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentFeeLink.getPaymentReference());
+        assertThat(res).isNotNull();
+        assertThat(res.getPaymentReference()).isEqualTo(paymentFeeLink.getPaymentReference());
+
+        verify(paymentFeeLinkRepository, atLeastOnce()).findByPaymentReference(paymentFeeLink.getPaymentReference());
+    }
 
     private Remission getRemission() {
         return Remission.remissionWith()
