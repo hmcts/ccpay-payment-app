@@ -70,7 +70,7 @@ public class FeesServiceTest {
         Optional<FeeVersionDto> feeVersion = feesService.getFeeVersion("FEE001", "2");
 
         // then
-        assertThat(feeVersion.get()).isEqualTo(Optional.empty());
+        assertThat(feeVersion).isEqualTo(Optional.empty());
     }
 
     @Test
