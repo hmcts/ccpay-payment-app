@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
@@ -43,6 +44,8 @@ public class FeesServiceTest {
 
     @Before
     public void setUp()  {
+        MockitoAnnotations.initMocks(this);
+
         feesRegisterAdapter = new FeesRegisterAdapter(feesRegisterClient);
         feesService = new FeesService(feesRegisterAdapter);
         }
@@ -76,7 +79,7 @@ public class FeesServiceTest {
     public void shouldGetEmptyFeeVersion_whenRuntimeExceptionThrownDueToPartialData()  {
         // given feeCode without currentVersion
         Map<String,Fee2Dto>  versionMap = ImmutableMap.of("2", fee2DtoWith().code("FEE001").build());
-        given(feesRegisterClient.getFeesDataAsMap()).willReturn(Optional.ofNullable(versionMap));
+        given(feesRegisterClient.getFeesDataAsMap()).willReturn(Optional.of(versionMap));
         // when
         Optional<FeeVersionDto> feeVersion = feesService.getFeeVersion("FEE001", "2");
 
