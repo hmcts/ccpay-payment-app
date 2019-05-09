@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
@@ -16,8 +17,8 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     private String baseUrl;
 
     @Override
+    @HystrixCommand(commandKey = "retrievePbaAccount")
     public AccountDto retrieve(String pbaCode) {
-        return restTemplate
-            .getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
+        return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
 }
