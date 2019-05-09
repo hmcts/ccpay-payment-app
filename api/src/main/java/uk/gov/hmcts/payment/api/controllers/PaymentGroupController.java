@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +17,9 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 @Api(tags = {"Payment group"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentGroupController", description = "Payment group REST API")})
 public class PaymentGroupController {
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
 
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
-
 
     private final PaymentDtoMapper paymentDtoMapper;
 
@@ -28,7 +30,7 @@ public class PaymentGroupController {
         this.paymentDtoMapper = paymentDtoMapper;
     }
 
-    @ApiOperation(value = "Get payment details by payment group reference", notes = "Get payment details for supplied payment group reference")
+    @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment retrieved"),
         @ApiResponse(code = 403, message = "Payment info forbidden"),
