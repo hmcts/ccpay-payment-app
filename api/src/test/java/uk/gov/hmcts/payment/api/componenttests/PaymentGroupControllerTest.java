@@ -106,13 +106,14 @@ public class PaymentGroupControllerTest {
 
         // Retrieve payment by payment group reference
         MvcResult result2 = restActions
-            .get("/payment-group/" + paymentDto.getPaymentGroupReference())
+            .get("/payment-groups/" + paymentDto.getPaymentGroupReference())
             .andExpect(status().isOk())
             .andReturn();
 
         paymentDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         assertThat(paymentDto).isNotNull();
+        assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
         assertThat(paymentDto.getReference()).isEqualTo(reference);
         assertThat(paymentDto.getDescription()).isEqualTo("description");
         assertThat(paymentDto.getCcdCaseNumber()).isEqualTo("1234");
