@@ -69,14 +69,14 @@ public class FeesServiceTest {
         Optional<FeeVersionDto> feeVersion = feesService.getFeeVersion("FEE001", "2");
 
         // then
-        assertThat(feeVersion).isEqualTo(Optional.empty());
+        assertThat(feeVersion.get()).isEqualTo(Optional.empty());
     }
 
     @Test
     public void shouldGetEmptyFeeVersion_whenRuntimeExceptionThrownDueToPartialData()  {
         // given feeCode without currentVersion
         Map<String,Fee2Dto>  versionMap = ImmutableMap.of("2", fee2DtoWith().code("FEE001").build());
-        given(feesRegisterClient.getFeesDataAsMap()).willReturn(Optional.of(versionMap));
+        given(feesRegisterClient.getFeesDataAsMap()).willReturn(Optional.ofNullable(versionMap));
         // when
         Optional<FeeVersionDto> feeVersion = feesService.getFeeVersion("FEE001", "2");
 
