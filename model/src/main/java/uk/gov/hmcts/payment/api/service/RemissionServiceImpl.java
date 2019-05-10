@@ -51,15 +51,16 @@ public class RemissionServiceImpl implements RemissionService {
 
     @Override
     @Transactional
-    public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, String feeId) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(InvalidPaymentGroupReferenceException::new);
+    public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
+            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
 
         boolean isFeeExists = paymentFeeLink.getFees().stream()
             .map(PaymentFee::getId)
             .anyMatch(feeId::equals);
 
         if (!isFeeExists) {
-            throw new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists");
+            throw new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists.");
         }
 
         String remissionReference = referenceUtil.getNext("RM");

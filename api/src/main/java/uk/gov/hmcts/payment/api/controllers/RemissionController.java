@@ -22,6 +22,8 @@ import uk.gov.hmcts.payment.api.dto.mapper.RemissionDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.RemissionService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 import uk.gov.hmcts.payment.api.validators.RemissionValidator;
 
 import javax.validation.Valid;
@@ -92,7 +94,7 @@ public class RemissionController {
     @ResponseBody
     public ResponseEntity<RemissionDto> createPartialRemission(
         @PathVariable("payment-group-reference") String paymentGroupReference,
-        @PathVariable("unique_fee_id") String feeId,
+        @PathVariable("unique_fee_id") Integer feeId,
         @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
 
@@ -103,17 +105,15 @@ public class RemissionController {
     }
 
     private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest) {
-        String paymentGroupReference = PaymentReference.getInstance().getNext();
-
         return RemissionServiceRequest.remissionServiceRequestWith()
-            .paymentGroupReference(paymentGroupReference)
+            .paymentGroupReference(remissionRequest.getPaymentGroupReference() != null ?
+                remissionRequest.getPaymentGroupReference() : PaymentReference.getInstance().getNext())
             .hwfAmount(remissionRequest.getHwfAmount())
             .hwfReference(remissionRequest.getHwfReference())
             .beneficiaryName(remissionRequest.getBeneficiaryName())
             .ccdCaseNumber(remissionRequest.getCcdCaseNumber())
             .caseReference(remissionRequest.getCaseReference())
             .siteId(remissionRequest.getSiteId())
-            .paymentGroupReference(remissionRequest.getPaymentGroupReference())
             .fee(remissionDtoMapper.toFee(remissionRequest.getFee()))
             .build();
 
@@ -134,9 +134,9 @@ public class RemissionController {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(InvalidPaymentGroupReferenceException.class)
-    public String return404onInvalidPaymentGroupReference(InvalidPaymentGroupReferenceException ex) {
+    @ExceptionHandler({InvalidPaymentGroupReferenceException.class, PaymentFeeNotFoundException.class})
+    public String return404onInvalidPaymentGroupReference(PaymentException ex) {
         LOG.error("Error while creating remission: {}", ex);
-        return "Payment group reference not found";
+        return ex.getMessage();
     }
 }
