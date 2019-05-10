@@ -1,0 +1,78 @@
+databaseChangeLog:
+- changeSet:
+    id: 1554989041317-1
+    author: tarun
+    changes:
+    - renameTable:
+        newTableName: remission
+        oldTableName: remissions
+
+- changeSet:
+    id: 1554989041317-2
+    author: tarun
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: payment_link_id
+            type: INT
+        tableName: remission
+    - addColumn:
+        columns:
+        - column:
+            name: date_created
+            type: TIMESTAMP WITHOUT TIME ZONE
+        tableName: remission
+    - addColumn:
+        columns:
+        - column:
+            name: date_updated
+            type: TIMESTAMP WITHOUT TIME ZONE
+        tableName: remission
+
+- changeSet:
+    id: 1554989041317-3
+    author: tarun
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: payment_link_id
+        baseTableName: remission
+        constraintName: FK_qhrt9c0pejpl89rkokgo4321n
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: payment_fee_link
+
+- changeSet:
+    id: 1554989041317-4
+    author: tarun
+    changes:
+    - dropColumn:
+        columnName: payment_group_reference
+        tableName: remission
+
+- changeSet:
+    id: 1556182260353-5
+    author: tarun
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: fee_id
+            type: INT
+        tableName: remission
+
+- changeSet:
+    id: 1556182260353-6
+    author: tarun
+    changes:
+    - addForeignKeyConstraint:
+          baseColumnNames: fee_id
+          baseTableName: remission
+          constraintName: FK_qhrt4c9wdjjkl11rkokgo8614e
+          deferrable: false
+          initiallyDeferred: false
+          referencedColumnNames: id
+          referencedTableName: fee

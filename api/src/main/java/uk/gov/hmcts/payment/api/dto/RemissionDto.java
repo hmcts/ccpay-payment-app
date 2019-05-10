@@ -9,30 +9,25 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 
-import javax.validation.Valid;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Digits;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Data
+@Builder(builderMethodName = "remissionDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "createRemissionRequestDtoWith")
-public class RemissionRequest {
-    @NotEmpty
+@Data
+public class RemissionDto {
+
+    private String id;
+
+    private String remissionReference;
+
     private String hwfReference;
 
-    @NotNull
-    @DecimalMin("0.01")
-    @Positive
-    @Digits(integer = 10, fraction = 2, message = "Amount cannot have more than 2 decimal places")
     private BigDecimal hwfAmount;
 
     private String beneficiaryName;
@@ -43,10 +38,9 @@ public class RemissionRequest {
 
     private String paymentGroupReference;
 
-    @NotNull
-    @Valid
-    private FeeDto fee;
+    private String paymentReference;
 
-    @NotNull
-    private String siteId;
+    private String feeCode;
+
+    private FeeDto fees;
 }

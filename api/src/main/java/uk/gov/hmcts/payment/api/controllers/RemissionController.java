@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,28 +14,20 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
+import uk.gov.hmcts.payment.api.dto.mapper.RemissionDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.service.RemissionService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.validators.RemissionValidator;
 
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.Optional;
 
 @RestController
-@Api(tags = {"Remission"})
+@Api(tags = {"Remissions"})
 @SwaggerDefinition(tags = {@Tag(name = "RemissionController", description = "Remission REST API")})
 public class RemissionController {
     private static final Logger LOG = LoggerFactory.getLogger(RemissionController.class);
@@ -48,55 +39,83 @@ public class RemissionController {
     private RemissionValidator remissionValidator;
 
     @Autowired
-    private PaymentFeeLinkRepository paymentFeeLinkRepository;
+    private RemissionDtoMapper remissionDtoMapper;
 
-    @Autowired
-    private PaymentFeeRepository paymentFeeRepository;
-
-    @ApiOperation(value = "Create remission record", notes = "Create remission record")
+    @ApiOperation(value = "Create upfront/retrospective remission (tactical)", notes = "Create upfront/retrospective remission (tactical)")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Remission created"),
         @ApiResponse(code = 400, message = "Remission creation failed"),
-        @ApiResponse(code = 404, message = "Given payment group reference not found")
+        @ApiResponse(code = 404, message = "Given payment group reference not found"),
     })
     @PostMapping(value = "/remission")
     @ResponseBody
-    public ResponseEntity<String> createRemission(@Valid @RequestBody RemissionRequest remissionRequest)
+    public ResponseEntity<RemissionDto> createRemissionV1(@Valid @RequestBody RemissionRequest remissionRequest)
         throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
-        Optional<FeeDto> feeDto = Optional.ofNullable(remissionRequest.getFee());
-        PaymentFee paymentFee = feeDto.map(feeDto1 -> PaymentFee.feeWith()
-            .code(feeDto1.getCode())
-            .version(feeDto1.getVersion())
-            .volume(feeDto1.getVolume())
-            .calculatedAmount(feeDto1.getCalculatedAmount())
-            .ccdCaseNumber(feeDto1.getCcdCaseNumber())
-            .reference(feeDto1.getReference())
-            .build()).orElse(null);
 
-        if (StringUtils.isEmpty(remissionRequest.getPaymentGroupReference())) {
-            String paymentGroupReference = PaymentReference.getInstance().getNext();
-            remissionRequest.setPaymentGroupReference(paymentGroupReference);
-            PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-                .paymentReference(paymentGroupReference)
-                .fees(paymentFee != null ? Collections.singletonList(paymentFee) : null)
-                .build();
+        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
 
-            paymentFeeLinkRepository.save(paymentFeeLink);
-        } else if (feeDto.isPresent()) {
-            PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository
-                .findByPaymentReference(remissionRequest.getPaymentGroupReference())
-                .orElseThrow(InvalidPaymentGroupReferenceException::new);
+        // Depending on payment-group-reference present in the request
+        // it is will be upfront remission or a retrospective remission
+        PaymentFeeLink paymentFeeLink = remissionRequest.getPaymentGroupReference() == null ?
+            remissionService.createRemission(remissionServiceRequest) :
+            remissionService.createRetrospectiveRemission(remissionServiceRequest, remissionRequest.getPaymentGroupReference());
 
-            if (null != paymentFee)
-                paymentFee.setPaymentLink(paymentFeeLink);
+        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
 
-            paymentFeeRepository.save(paymentFee);
-        }
+    @ApiOperation(value = "Create upfront remission record", notes = "Create upfront remission record")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Remission created"),
+        @ApiResponse(code = 400, message = "Remission creation failed"),
+        @ApiResponse(code = 404, message = "Given payment group reference not found"),
+    })
+    @PostMapping(value = "/remissions")
+    @ResponseBody
+    public ResponseEntity<RemissionDto> createRemission(@Valid @RequestBody RemissionRequest remissionRequest)
+        throws CheckDigitException {
+        remissionValidator.validate(remissionRequest);
 
-        String generatedRemissionReference = remissionService.create(remissionRequest.toRemission());
+        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        PaymentFeeLink paymentFeeLink = remissionService.createRemission(remissionServiceRequest);
 
-        return new ResponseEntity<>(generatedRemissionReference, HttpStatus.CREATED);
+        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
+
+    @ApiOperation(value = "Create retrospective remission record", notes = "Create retrospective remission record")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Remission created"),
+        @ApiResponse(code = 400, message = "Remission creation failed"),
+        @ApiResponse(code = 404, message = "Given payment group reference not found"),
+    })
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/remissions")
+    @ResponseBody
+    public ResponseEntity<RemissionDto> createPartialRemission(
+        @PathVariable("payment-group-reference") String paymentGroupReference,
+        @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
+        remissionValidator.validate(remissionRequest);
+
+        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        PaymentFeeLink paymentFeeLink = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentGroupReference);
+
+        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
+
+    private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest) {
+        String paymentGroupReference = PaymentReference.getInstance().getNext();
+
+        return RemissionServiceRequest.remissionServiceRequestWith()
+            .paymentGroupReference(paymentGroupReference)
+            .hwfAmount(remissionRequest.getHwfAmount())
+            .hwfReference(remissionRequest.getHwfReference())
+            .beneficiaryName(remissionRequest.getBeneficiaryName())
+            .ccdCaseNumber(remissionRequest.getCcdCaseNumber())
+            .caseReference(remissionRequest.getCaseReference())
+            .siteId(remissionRequest.getSiteId())
+            .paymentGroupReference(remissionRequest.getPaymentGroupReference())
+            .fee(remissionDtoMapper.toFee(remissionRequest.getFee()))
+            .build();
+
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

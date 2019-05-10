@@ -229,7 +229,6 @@ public class PaymentRecordControllerTest {
             assertThat(chequePayment.getGiroSlipNo()).isEqualTo("434567");
             chequePayment.getFees().stream().forEach(f -> {
                 assertThat(f.getCode()).isEqualTo("FEE0111");
-                assertThat(f.getReference()).isEqualTo("ref_122");
             });
             assertThat(chequePayment.getReportedDateOffline()).isNotNull();
         }
