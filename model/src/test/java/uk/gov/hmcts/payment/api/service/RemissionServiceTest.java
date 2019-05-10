@@ -82,7 +82,7 @@ public class RemissionServiceTest {
 
         when(paymentFeeLinkRepository.save(any(PaymentFeeLink.class))).thenReturn(paymentFeeLink);
 
-        remissionService.createRetrospectiveRemission(RemissionServiceRequest.remissionServiceRequestWith().build(), "2019-000000099");
+        remissionService.createRetrospectiveRemission(RemissionServiceRequest.remissionServiceRequestWith().build(), "2019-000000099", 1);
     }
 
     @Test
@@ -107,7 +107,7 @@ public class RemissionServiceTest {
             .fee(fee)
             .build();
 
-        PaymentFeeLink res = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentFeeLink.getPaymentReference());
+        PaymentFeeLink res = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentFeeLink.getPaymentReference(), 1);
         assertThat(res).isNotNull();
         assertThat(res.getPaymentReference()).isEqualTo(paymentFeeLink.getPaymentReference());
 
@@ -126,6 +126,7 @@ public class RemissionServiceTest {
 
     private PaymentFee getFee() {
         return PaymentFee.feeWith()
+            .id(1)
             .ccdCaseNumber("1111-2222-3333-4444")
             .code("FEE0123")
             .version("1")
