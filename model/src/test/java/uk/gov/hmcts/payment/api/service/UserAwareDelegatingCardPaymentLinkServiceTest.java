@@ -104,7 +104,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
         when(govPayDelegatingPaymentService.retrieve("govPayId", "cmc")).thenReturn(ANOTHER_GOV_PAYMENT_RESPONSE);
 
-        PaymentFeeLink result = cardPaymentService.retrieve(reference);
+        PaymentFeeLink result = cardPaymentService.retrieveWithCallBack(reference);
 
         verify(callbackService, times(1)).callback(any(), any());
 
@@ -149,8 +149,6 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
             PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
 
         when(govPayDelegatingPaymentService.retrieve("govPayId", "cmc")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
-
-        verify(callbackService, times(0)).callback(any(), any());
 
         PaymentFeeLink result = cardPaymentService.retrieve(reference);
         assertNotNull(result.getPayments().get(0));

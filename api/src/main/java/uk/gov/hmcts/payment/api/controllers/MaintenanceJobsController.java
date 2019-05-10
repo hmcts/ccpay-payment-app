@@ -14,7 +14,6 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
@@ -45,7 +44,7 @@ public class MaintenanceJobsController {
     })
     @RequestMapping(value = "/jobs/card-payments-status-update", method = PATCH)
     @Transactional
-    public void updatePaymentsStatus() throws ExecutionException, InterruptedException {
+    public void updatePaymentsStatus() {
 
         List<Reference> referenceList = paymentService.listInitiatedStatusPaymentsReferences();
 
@@ -59,7 +58,7 @@ public class MaintenanceJobsController {
         long count = referenceList
             .stream()
             .map(Reference::getReference)
-            .map(delegatingPaymentService::retrieve)
+            .map(delegatingPaymentService::retrieveWithCallBack)
             .filter(p -> p != null && p.getPayments() != null && p.getPayments().get(0) != null && p.getPayments().get(0).getStatus() != null)
             .count();
 
