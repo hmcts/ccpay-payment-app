@@ -7,6 +7,7 @@ import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
@@ -50,8 +51,17 @@ public class RemissionServiceImpl implements RemissionService {
 
     @Override
     @Transactional
-    public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference) throws CheckDigitException {
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(InvalidPaymentGroupReferenceException::new);
+    public PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
+            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
+
+        boolean isFeeExists = paymentFeeLink.getFees().stream()
+            .map(PaymentFee::getId)
+            .anyMatch(feeId::equals);
+
+        if (!isFeeExists) {
+            throw new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists.");
+        }
 
         String remissionReference = referenceUtil.getNext("RM");
         remissionServiceRequest.setRemissionReference(remissionReference);

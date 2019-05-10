@@ -9,7 +9,7 @@ public interface RemissionService {
 
     PaymentFeeLink createRemission(RemissionServiceRequest remissionServiceRequest) throws CheckDigitException;
 
-    PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference) throws CheckDigitException;
+    PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException;
 
     Remission retrieve(String hwfReference);
 }
