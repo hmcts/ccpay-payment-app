@@ -634,7 +634,7 @@ public class RemissionControllerTest {
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/remissions", getRemissionRequest())
+            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/1/remissions", getRemissionRequest())
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -650,7 +650,7 @@ public class RemissionControllerTest {
     @Test
     public void createRetrospectiveRemissionWithInvalidPaymentGroupReferenceShouldFailTest() throws Exception {
         restActions
-            .post("/payment-groups/2019-0000000001/remissions" + getRemissionRequest())
+            .post("/payment-groups/2019-0000000001/fees/1/remissions" + getRemissionRequest())
             .andExpect(status().isNotFound());
     }
 
