@@ -56,6 +56,7 @@ public class RemissionController {
         remissionValidator.validate(remissionRequest);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        remissionRequest.setPaymentGroupReference(remissionRequest.getPaymentGroupReference());
 
         // Depending on payment-group-reference present in the request
         // it is will be upfront remission or a retrospective remission
@@ -106,8 +107,7 @@ public class RemissionController {
 
     private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest) {
         return RemissionServiceRequest.remissionServiceRequestWith()
-            .paymentGroupReference(remissionRequest.getPaymentGroupReference() != null ?
-                remissionRequest.getPaymentGroupReference() : PaymentReference.getInstance().getNext())
+            .paymentGroupReference(PaymentReference.getInstance().getNext())
             .hwfAmount(remissionRequest.getHwfAmount())
             .hwfReference(remissionRequest.getHwfReference())
             .beneficiaryName(remissionRequest.getBeneficiaryName())
@@ -116,7 +116,6 @@ public class RemissionController {
             .siteId(remissionRequest.getSiteId())
             .fee(remissionDtoMapper.toFee(remissionRequest.getFee()))
             .build();
-
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
