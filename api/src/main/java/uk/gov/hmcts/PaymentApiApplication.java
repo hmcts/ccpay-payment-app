@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -23,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 @EnableFeignClients
 @EnableAsync
 @SpringBootApplication
+@EnableCircuitBreaker
 public class PaymentApiApplication {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApiApplication.class);
 
