@@ -88,10 +88,11 @@ public class RemissionController {
         @ApiResponse(code = 400, message = "Remission creation failed"),
         @ApiResponse(code = 404, message = "Given payment group reference not found"),
     })
-    @PostMapping(value = "/payment-groups/{payment-group-reference}/remissions")
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions")
     @ResponseBody
     public ResponseEntity<RemissionDto> createPartialRemission(
         @PathVariable("payment-group-reference") String paymentGroupReference,
+        @PathVariable("unique_fee_id") String feeId,
         @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
 
