@@ -646,8 +646,6 @@ public class RemissionControllerTest {
         assertThat(createRemissionResponseDto).isNotNull();
         assertThat(createRemissionResponseDto.getPaymentGroupReference()).isEqualTo(createPaymentResponseDto.getPaymentGroupReference());
         assertThat(createRemissionResponseDto.getPaymentReference()).isEqualTo(createPaymentResponseDto.getReference());
-
-        // PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         assertThat(paymentFeeLink.getFees().size()).isEqualTo(1);
     }
 
