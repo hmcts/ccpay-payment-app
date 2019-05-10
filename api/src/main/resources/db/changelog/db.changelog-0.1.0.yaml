@@ -14,7 +14,6 @@ databaseChangeLog:
     - addColumn:
         columns:
         - column:
-            constraints:
             name: payment_link_id
             type: INT
         tableName: remission
