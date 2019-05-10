@@ -632,9 +632,13 @@ public class RemissionControllerTest {
         PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(createPaymentResponseDto).isNotNull();
 
+        // Get fee id
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
+        PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
+
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/1/remissions", getRemissionRequest())
+            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -643,7 +647,7 @@ public class RemissionControllerTest {
         assertThat(createRemissionResponseDto.getPaymentGroupReference()).isEqualTo(createPaymentResponseDto.getPaymentGroupReference());
         assertThat(createRemissionResponseDto.getPaymentReference()).isEqualTo(createPaymentResponseDto.getReference());
 
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
+        // PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         assertThat(paymentFeeLink.getFees().size()).isEqualTo(1);
     }
 
