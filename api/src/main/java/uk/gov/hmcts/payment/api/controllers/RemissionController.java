@@ -59,7 +59,7 @@ public class RemissionController {
         // it is will be upfront remission or a retrospective remission
         PaymentFeeLink paymentFeeLink = remissionRequest.getPaymentGroupReference() == null ?
             remissionService.createRemission(remissionServiceRequest) :
-            remissionService.createRetrospectiveRemission(remissionServiceRequest, remissionRequest.getPaymentGroupReference());
+            remissionService.createRetrospectiveRemission(remissionServiceRequest, remissionRequest.getPaymentGroupReference(), null);
 
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
@@ -97,7 +97,7 @@ public class RemissionController {
         remissionValidator.validate(remissionRequest);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
-        PaymentFeeLink paymentFeeLink = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentGroupReference);
+        PaymentFeeLink paymentFeeLink = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentGroupReference, feeId);
 
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
