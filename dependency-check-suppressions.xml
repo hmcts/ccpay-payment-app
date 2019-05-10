@@ -106,5 +106,6 @@
     </suppress>
     <suppress>
         <cve>CVE-2019-10246</cve>
+        <cve>CVE-2019-10247</cve>
     </suppress>
 </suppressions>
