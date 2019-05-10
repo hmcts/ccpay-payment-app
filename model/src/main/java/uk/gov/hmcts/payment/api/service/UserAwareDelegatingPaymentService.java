@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,11 +71,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final ServiceIdSupplier serviceIdSupplier;
     private final AuditRepository auditRepository;
     private final CallbackService callbackService;
-
-    @Autowired
-    private Environment environment;
-
-    private String[] testProfiles = {"embedded", "local", "componenttest"};
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -172,9 +166,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             .build();
     }
 
-    @Override
-    @Transactional
-    public PaymentFeeLink retrieve(String paymentReference) {
+    private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack) {
 
         final Payment payment = findSavedPayment(paymentReference);
 
@@ -208,7 +200,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     .message(govPayPayment.getState().getMessage())
                     .build()));
 
-                if (payment.getServiceCallbackUrl() != null) {
+                if (shouldCallBack && payment.getServiceCallbackUrl() != null) {
                     callbackService.callback(paymentFeeLink, payment);
                 }
             }
@@ -217,6 +209,19 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         }
 
         return paymentFeeLink;
+    }
+
+    @Override
+    @Transactional
+    public PaymentFeeLink retrieve(String paymentReference) {
+        return retrieve(paymentReference, false);
+    }
+
+    @Override
+    @Transactional
+    public PaymentFeeLink retrieveWithCallBack(String paymentReference) {
+        return retrieve(paymentReference, true);
+
     }
 
     @Override

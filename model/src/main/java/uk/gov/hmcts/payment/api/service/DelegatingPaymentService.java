@@ -13,6 +13,10 @@ public interface DelegatingPaymentService<T, ID> {
 
     T retrieve(ID id);
 
+    default T retrieveWithCallBack(ID id) {
+        throw new UnsupportedOperationException();
+    }
+
     T retrieve(ID id, String paymentTargetService);
 
     List<T> search(PaymentSearchCriteria searchCriteria);
