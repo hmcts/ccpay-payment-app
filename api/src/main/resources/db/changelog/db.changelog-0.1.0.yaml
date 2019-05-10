@@ -15,7 +15,6 @@ databaseChangeLog:
         columns:
         - column:
             constraints:
-              nullable: false
             name: payment_link_id
             type: INT
         tableName: remission
