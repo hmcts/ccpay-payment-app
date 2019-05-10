@@ -632,6 +632,7 @@ public class RemissionControllerTest {
         PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertThat(createPaymentResponseDto).isNotNull();
 
+        // Get fee id
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
@@ -645,7 +646,6 @@ public class RemissionControllerTest {
         assertThat(createRemissionResponseDto).isNotNull();
         assertThat(createRemissionResponseDto.getPaymentGroupReference()).isEqualTo(createPaymentResponseDto.getPaymentGroupReference());
         assertThat(createRemissionResponseDto.getPaymentReference()).isEqualTo(createPaymentResponseDto.getReference());
-
         assertThat(paymentFeeLink.getFees().size()).isEqualTo(1);
     }
 

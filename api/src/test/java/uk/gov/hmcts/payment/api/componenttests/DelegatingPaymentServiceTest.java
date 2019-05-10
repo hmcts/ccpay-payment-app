@@ -60,7 +60,7 @@ public class DelegatingPaymentServiceTest extends TestUtil {
 
         assertNotNull(result);
         result.stream().forEach(g -> {
-            assertThat(g.getPayments().size() > 0).isTrue();
+            assertEquals(g.getPayments().size(), 3);
             g.getPayments().stream().forEach(p -> {
                 assertEquals(p.getPaymentMethod().getName(), "card");
             });
