@@ -43,29 +43,6 @@ public class RemissionController {
     @Autowired
     private RemissionDtoMapper remissionDtoMapper;
 
-    @ApiOperation(value = "Create upfront/retrospective remission (tactical)", notes = "Create upfront/retrospective remission (tactical)")
-    @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Remission created"),
-        @ApiResponse(code = 400, message = "Remission creation failed"),
-        @ApiResponse(code = 404, message = "Given payment group reference not found"),
-    })
-    @PostMapping(value = "/remission")
-    @ResponseBody
-    public ResponseEntity<RemissionDto> createRemissionV1(@Valid @RequestBody RemissionRequest remissionRequest)
-        throws CheckDigitException {
-        remissionValidator.validate(remissionRequest);
-
-        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
-        remissionRequest.setPaymentGroupReference(remissionRequest.getPaymentGroupReference());
-
-        // Depending on payment-group-reference present in the request
-        // it is will be upfront remission or a retrospective remission
-        PaymentFeeLink paymentFeeLink = remissionRequest.getPaymentGroupReference() == null ?
-            remissionService.createRemission(remissionServiceRequest) :
-            remissionService.createRetrospectiveRemission(remissionServiceRequest, remissionRequest.getPaymentGroupReference(), null);
-
-        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
-    }
 
     @ApiOperation(value = "Create upfront remission record", notes = "Create upfront remission record")
     @ApiResponses(value = {
@@ -80,6 +57,7 @@ public class RemissionController {
         remissionValidator.validate(remissionRequest);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        remissionServiceRequest.setFee(remissionDtoMapper.toFee(remissionRequest.getFee()));
         PaymentFeeLink paymentFeeLink = remissionService.createRemission(remissionServiceRequest);
 
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
@@ -114,7 +92,6 @@ public class RemissionController {
             .ccdCaseNumber(remissionRequest.getCcdCaseNumber())
             .caseReference(remissionRequest.getCaseReference())
             .siteId(remissionRequest.getSiteId())
-            .fee(remissionDtoMapper.toFee(remissionRequest.getFee()))
             .build();
     }
 

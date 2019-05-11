@@ -42,5 +42,5 @@ public class RemissionDto {
 
     private String feeCode;
 
-    private FeeDto fees;
+    private FeeDto fee;
 }
