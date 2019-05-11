@@ -66,7 +66,11 @@ public class RemissionServiceImpl implements RemissionService {
         Remission remission = buildRemission(remissionServiceRequest);
 
         paymentFeeLink.setRemissions(Collections.singletonList(remission));
-        fee.getRemissions().add(remission);
+        if (fee.getRemissions() == null || fee.getRemissions().isEmpty()) {
+            fee.setRemissions(Collections.singletonList(remission));
+        } else {
+            fee.getRemissions().add(remission);
+        }
         remission.setPaymentFeeLink(paymentFeeLink);
         remission.setFee(fee);
 
