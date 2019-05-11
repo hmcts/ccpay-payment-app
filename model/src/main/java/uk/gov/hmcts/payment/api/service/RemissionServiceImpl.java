@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 
 import javax.transaction.Transactional;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -55,26 +56,19 @@ public class RemissionServiceImpl implements RemissionService {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
 
-        // Tactical feeCode check if feeId not provided
-        boolean isFeeExists = feeId != null ? paymentFeeLink.getFees().stream()
-            .map(PaymentFee::getId)
-            .anyMatch(feeId::equals) : paymentFeeLink.getFees().stream()
-            .map(PaymentFee::getCode)
-            .anyMatch(remissionServiceRequest.getFee().getCode()::equals);
-
-        if (!isFeeExists) {
-            throw new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists.");
-        }
+        PaymentFee fee = paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
+            .findAny()
+            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists."));
 
         String remissionReference = referenceUtil.getNext("RM");
         remissionServiceRequest.setRemissionReference(remissionReference);
 
         Remission remission = buildRemission(remissionServiceRequest);
-        PaymentFee fee = paymentFeeLink.getFees().get(0);
 
         paymentFeeLink.setRemissions(Collections.singletonList(remission));
+        fee.getRemissions().add(remission);
         remission.setPaymentFeeLink(paymentFeeLink);
-        fee.setRemissions(Collections.singletonList(remission));
+        remission.setFee(fee);
 
         return paymentFeeLink;
     }

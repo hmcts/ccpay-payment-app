@@ -17,7 +17,7 @@ public class RemissionDtoMapper {
         Remission remission = paymentFeeLink.getRemissions().get(0);
         return RemissionDto.remissionDtoWith()
             .remissionReference(remission.getRemissionReference())
-            .paymentReference(paymentFeeLink.getPayments() == null ? null : paymentFeeLink.getPayments().get(0).getReference())
+            .paymentReference(paymentFeeLink.getPayments() == null || paymentFeeLink.getPayments().isEmpty() ? null : paymentFeeLink.getPayments().get(0).getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .build();
     }
