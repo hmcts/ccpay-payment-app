@@ -121,7 +121,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remission)
+            .post("/remissions", remission)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -141,7 +141,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andReturn();
 
         Remission savedRemission = remissionDbBackdoor.findByHwfReference(hwfReference);
@@ -164,12 +164,12 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -188,7 +188,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -205,7 +205,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -223,7 +223,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -242,7 +242,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -261,7 +261,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -280,7 +280,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -300,7 +300,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -319,7 +319,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -339,7 +339,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -358,7 +358,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -377,7 +377,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -394,7 +394,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -412,7 +412,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -430,7 +430,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -449,7 +449,7 @@ public class RemissionControllerTest {
             .build();
 
         MvcResult result = restActions
-            .post("/remission", remission)
+            .post("/remissions", remission)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -480,7 +480,7 @@ public class RemissionControllerTest {
             .fee(feeDto)
             .build();
 
-        MvcResult result = restActions.post("/remission", remissionRequest)
+        MvcResult result = restActions.post("/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -517,7 +517,7 @@ public class RemissionControllerTest {
             .build();
 
         MvcResult result = restActions
-            .post("/remission", remissionRequest)
+            .post("/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -548,7 +548,7 @@ public class RemissionControllerTest {
             .build();
 
         MvcResult result = restActions
-            .post("/remission", remissionRequest)
+            .post("/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -574,7 +574,7 @@ public class RemissionControllerTest {
             .build();
 
         MvcResult result = restActions
-            .post("/remission", remissionRequest)
+            .post("/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -601,7 +601,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remission", remissionDto)
+            .post("/remissions", remissionDto)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
