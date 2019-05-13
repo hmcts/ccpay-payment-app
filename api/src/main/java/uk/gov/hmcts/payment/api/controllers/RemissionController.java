@@ -124,13 +124,6 @@ public class RemissionController {
         return ex.getMessage();
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public String return400onDataIntegrityViolation(MethodArgumentNotValidException ex) {
-        LOG.error("Error while creating remission", ex);
-        return ex.getMessage();
-    }
-
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler({InvalidPaymentGroupReferenceException.class, PaymentFeeNotFoundException.class})
     public String return404onInvalidPaymentGroupReference(PaymentException ex) {
