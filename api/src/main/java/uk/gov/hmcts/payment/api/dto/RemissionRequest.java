@@ -21,7 +21,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "createRemissionRequestDtoWith")
+@Builder(builderMethodName = "createRemissionRequestWith")
 public class RemissionRequest {
     @NotEmpty
     private String hwfReference;

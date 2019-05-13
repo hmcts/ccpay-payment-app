@@ -49,6 +49,7 @@ public class RemissionController {
         @ApiResponse(code = 201, message = "Remission created"),
         @ApiResponse(code = 400, message = "Remission creation failed"),
         @ApiResponse(code = 404, message = "Given payment group reference not found"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @PostMapping(value = "/remission")
     @ResponseBody
@@ -71,6 +72,7 @@ public class RemissionController {
         @ApiResponse(code = 201, message = "Remission created"),
         @ApiResponse(code = 400, message = "Remission creation failed"),
         @ApiResponse(code = 404, message = "Given payment group reference not found"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @PostMapping(value = "/remissions")
     @ResponseBody
@@ -90,6 +92,7 @@ public class RemissionController {
         @ApiResponse(code = 201, message = "Remission created"),
         @ApiResponse(code = 400, message = "Remission creation failed"),
         @ApiResponse(code = 404, message = "Given payment group reference not found"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions")
     @ResponseBody
