@@ -44,6 +44,28 @@ public class RemissionController {
     private RemissionDtoMapper remissionDtoMapper;
 
 
+    @ApiOperation(value = "Create upfront/retrospective remission record", notes = "Create upfront/retrospective remission record")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Remission created"),
+        @ApiResponse(code = 400, message = "Remission creation failed"),
+        @ApiResponse(code = 404, message = "Given payment group reference not found"),
+    })
+    @PostMapping(value = "/remission")
+    @ResponseBody
+    public ResponseEntity<RemissionDto> createRemissionV1(@Valid @RequestBody RemissionRequest remissionRequest)
+        throws CheckDigitException {
+        remissionValidator.validate(remissionRequest);
+
+        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        remissionServiceRequest.setFee(remissionDtoMapper.toFee(remissionRequest.getFee()));
+        PaymentFeeLink paymentFeeLink = remissionRequest.getPaymentGroupReference() == null ?
+            remissionService.createRemission(remissionServiceRequest) :
+            remissionService.createRetrospectiveRemission(remissionServiceRequest, remissionRequest.getPaymentGroupReference(), null);
+
+        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
+
+
     @ApiOperation(value = "Create upfront remission record", notes = "Create upfront remission record")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Remission created"),

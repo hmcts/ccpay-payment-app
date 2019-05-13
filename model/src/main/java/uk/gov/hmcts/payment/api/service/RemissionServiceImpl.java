@@ -56,9 +56,13 @@ public class RemissionServiceImpl implements RemissionService {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
 
-        PaymentFee fee = paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
+        // Tactical check where feeId is null
+        PaymentFee fee = feeId != null ? paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
             .findAny()
-            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists."));
+            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists.")) :
+            paymentFeeLink.getFees().stream().filter(f -> f.getCode().equals(remissionServiceRequest.getFee().getCode()))
+                .findAny()
+                .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with code " + remissionServiceRequest.getFee().getCode() + " does not exists."));
 
         String remissionReference = referenceUtil.getNext("RM");
         remissionServiceRequest.setRemissionReference(remissionReference);
