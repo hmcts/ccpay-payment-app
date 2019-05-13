@@ -93,7 +93,7 @@ public class RemissionController {
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions")
     @ResponseBody
-    public ResponseEntity<RemissionDto> createPartialRemission(
+    public ResponseEntity<RemissionDto> createRetrospectiveRemission(
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @PathVariable("unique_fee_id") Integer feeId,
         @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
