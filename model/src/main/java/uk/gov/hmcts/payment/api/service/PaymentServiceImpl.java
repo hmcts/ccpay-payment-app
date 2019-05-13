@@ -20,10 +20,10 @@ import java.util.List;
 @Service
 public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String> {
 
-    private final static PaymentStatus SUCCESS = new PaymentStatus("success", "success");
-    private final static PaymentStatus FAILED = new PaymentStatus("failed", "failed");
-    private final static PaymentStatus CANCELLED = new PaymentStatus("cancelled", "cancelled");
-    private final static PaymentStatus ERROR = new PaymentStatus("error", "error");
+    private static final PaymentStatus SUCCESS = new PaymentStatus("success", "success");
+    private static final PaymentStatus FAILED = new PaymentStatus("failed", "failed");
+    private static final PaymentStatus CANCELLED = new PaymentStatus("cancelled", "cancelled");
+    private static final PaymentStatus ERROR = new PaymentStatus("error", "error");
     private static final String PCI_PAL = "pci pal";
 
     private final Payment2Repository paymentRepository;

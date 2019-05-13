@@ -152,8 +152,8 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
         PaymentFeeLink result = cardPaymentService.retrieve(reference);
         assertNotNull(result.getPayments().get(0));
-        assertEquals(result.getPayments().get(0).getExternalReference(), "govPayId");
-        assertEquals(result.getPayments().get(0).getReference(), reference);
+        assertEquals("govPayId", result.getPayments().get(0).getExternalReference());
+        assertEquals(reference, result.getPayments().get(0).getReference());
     }
 
     private static final GovPayPayment VALID_GOV_PAYMENT_RESPONSE = govPaymentWith()
