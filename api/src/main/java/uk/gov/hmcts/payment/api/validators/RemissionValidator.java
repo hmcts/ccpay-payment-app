@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.validators;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Component
 public class RemissionValidator {
+
     @Autowired
     private ReferenceDataService<SiteDTO> referenceDataService;
 
