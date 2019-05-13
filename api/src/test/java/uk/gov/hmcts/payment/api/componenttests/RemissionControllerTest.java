@@ -110,7 +110,7 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void correctAndValidRemissionDataShouldReturn201() throws Exception {
-        RemissionRequest remission = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remission = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -130,7 +130,7 @@ public class RemissionControllerTest {
     @Transactional
     public void correctAndValidRemissionDataShouldSaveToDb() {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -153,7 +153,7 @@ public class RemissionControllerTest {
     @Transactional
     public void duplicatehwfReferenceRemissionShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -178,7 +178,7 @@ public class RemissionControllerTest {
     @Transactional
     public void emptyHwfReferenceShouldReturn400() throws Exception {
         String hwfReference = "";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -195,7 +195,7 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullHwfReferenceShouldReturn400() throws Exception {
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -212,7 +212,7 @@ public class RemissionControllerTest {
     @Transactional
     public void nullHwfAmountShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -229,7 +229,7 @@ public class RemissionControllerTest {
     @Transactional
     public void negativeHwfAmountShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -247,7 +247,7 @@ public class RemissionControllerTest {
     @Transactional
     public void hwfAmountEqualToZeroShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -265,7 +265,7 @@ public class RemissionControllerTest {
     @Transactional
     public void hwfAmountWithMoreThan2DecimalPlacesShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -283,7 +283,7 @@ public class RemissionControllerTest {
     @Transactional
     public void emptyCcdCaseNumberShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("")
@@ -303,7 +303,7 @@ public class RemissionControllerTest {
     @Transactional
     public void nullCcdCaseNumberShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .hwfAmount(new BigDecimal("10.00"))
@@ -322,7 +322,7 @@ public class RemissionControllerTest {
     @Transactional
     public void emptyCaseReferenceShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .ccdCaseNumber("CCD1234")
@@ -342,7 +342,7 @@ public class RemissionControllerTest {
     @Transactional
     public void nullCaseReferenceShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
@@ -361,7 +361,7 @@ public class RemissionControllerTest {
     @Transactional
     public void emptyCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .ccdCaseNumber("")
@@ -379,7 +379,7 @@ public class RemissionControllerTest {
     @Transactional
     public void nullCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
@@ -395,7 +395,7 @@ public class RemissionControllerTest {
     @Transactional
     public void nullCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
@@ -412,7 +412,7 @@ public class RemissionControllerTest {
     @Transactional
     public void emptyCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .hwfAmount(new BigDecimal("10.01"))
@@ -428,7 +428,7 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void getRemissionRequestUponSuccessfulCreation() throws Exception {
-        RemissionRequest remission = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remission = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -460,7 +460,7 @@ public class RemissionControllerTest {
             .reference(feeReference)
             .build();
 
-        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -496,7 +496,7 @@ public class RemissionControllerTest {
             .reference(feeReference)
             .build();
 
-        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -527,7 +527,7 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void noFeeAndNoPaymentGroupReferenceAndRemissionGetsCreated() throws Exception {
-        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -553,7 +553,7 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void noFeeWithPaymentGroupReferenceAndRemissionGetsCreated() throws Exception {
-        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -581,7 +581,7 @@ public class RemissionControllerTest {
     @Transactional
     public void remissionWithWrongSiteIDShouldNotSaveToDb() throws Exception {
         String hwfReference = "HWFref";
-        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestDtoWith()
+        RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
@@ -687,7 +687,7 @@ public class RemissionControllerTest {
 
 
     private RemissionRequest getRemissionRequest() {
-        return RemissionRequest.createRemissionRequestDtoWith()
+        return RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
             .ccdCaseNumber("1111-2222-3333-4444")
             .hwfAmount(new BigDecimal("20"))
