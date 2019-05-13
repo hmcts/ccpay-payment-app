@@ -121,7 +121,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remission)
+            .post("/remission", remission)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -141,7 +141,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
+            .post("/remission", remissionDto)
             .andReturn();
 
         Remission savedRemission = remissionDbBackdoor.findByHwfReference(hwfReference);
@@ -164,12 +164,12 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
+            .post("/remission", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
 
         restActions
-            .post("/remissions", remissionDto)
+            .post("/remission", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -188,9 +188,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -205,9 +204,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -223,9 +221,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -242,9 +239,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -261,9 +257,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -280,9 +275,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -300,7 +294,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
+            .post("/remission", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -319,7 +313,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
+            .post("/remission", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -339,7 +333,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
+            .post("/remission", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -358,7 +352,7 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
+            .post("/remission", remissionDto)
             .andExpect(status().isCreated())
             .andReturn();
     }
@@ -377,9 +371,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -394,9 +387,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -412,9 +404,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -430,9 +421,8 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
-            .andReturn();
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -449,7 +439,7 @@ public class RemissionControllerTest {
             .build();
 
         MvcResult result = restActions
-            .post("/remissions", remission)
+            .post("/remission", remission)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -480,7 +470,7 @@ public class RemissionControllerTest {
             .fee(feeDto)
             .build();
 
-        MvcResult result = restActions.post("/remissions", remissionRequest)
+        MvcResult result = restActions.post("/remission", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -517,7 +507,7 @@ public class RemissionControllerTest {
             .build();
 
         MvcResult result = restActions
-            .post("/remissions", remissionRequest)
+            .post("/remission", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -548,7 +538,7 @@ public class RemissionControllerTest {
             .build();
 
         MvcResult result = restActions
-            .post("/remissions", remissionRequest)
+            .post("/remission", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -574,7 +564,7 @@ public class RemissionControllerTest {
             .build();
 
         MvcResult result = restActions
-            .post("/remissions", remissionRequest)
+            .post("/remission", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -601,9 +591,48 @@ public class RemissionControllerTest {
             .build();
 
         restActions
-            .post("/remissions", remissionDto)
-            .andExpect(status().isBadRequest())
+            .post("/remission", remissionDto)
+            .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void createRemissionWithoutFeeShouldFailTest() throws Exception {
+        RemissionRequest remissionRequest = getRemissionRequest();
+        remissionRequest.setFee(null);
+
+        MvcResult result = restActions
+            .post("/remissions", remissionRequest)
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("fee: must not be null");
+    }
+
+    @Test
+    public void createRemissionWithIncorrectHwfAmountShouldFailTest() throws Exception {
+        RemissionRequest remissionRequest = getRemissionRequest();
+        remissionRequest.setHwfAmount(new BigDecimal("550"));
+
+        MvcResult result = restActions
+            .post("/remissions", remissionRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("hwfAmountInvalid: Hwf amount cannot be greater than calculated amount.");
+    }
+
+    @Test
+    public void createRemissionWithNoCcdCaseNumberAndCaseReferenceShoudFailTest() throws Exception {
+        RemissionRequest remissionRequest = getRemissionRequest();
+        remissionRequest.setCcdCaseNumber(null);
+        remissionRequest.setCaseReference(null);
+
+        MvcResult result = restActions
+            .post("/remissions", remissionRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("eitherOneRequired: Either ccdCaseNumber or caseReference is required.");
     }
 
     @Test
@@ -661,7 +690,7 @@ public class RemissionControllerTest {
         return RemissionRequest.createRemissionRequestDtoWith()
             .beneficiaryName("A partial remission")
             .ccdCaseNumber("1111-2222-3333-4444")
-            .hwfAmount(new BigDecimal("300"))
+            .hwfAmount(new BigDecimal("20"))
             .hwfReference("HR1111")
             .siteId("AA001")
             .fee(FeeDto.feeDtoWith()
@@ -669,7 +698,6 @@ public class RemissionControllerTest {
                 .code("FEE0111")
                 .version("1")
                 .volume(1)
-                .netAmount(new BigDecimal("300"))
                 .build())
             .build();
     }

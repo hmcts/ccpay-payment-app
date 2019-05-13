@@ -20,14 +20,6 @@ public class RemissionValidator {
     public void validate(RemissionRequest remissionRequest) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
 
-        if(StringUtils.isEmpty(remissionRequest.getCaseReference()) && StringUtils.isEmpty(remissionRequest.getCcdCaseNumber())) {
-            dto.addFieldError("case_ref_ccd_case_num", "Empty case reference and ccd case number is not allowed");
-        }
-
-        if (remissionRequest.getHwfAmount().compareTo(remissionRequest.getFee().getCalculatedAmount()) == 1) {
-            dto.addFieldError("hwf_amount_calculated_amount", "Hwf amount cannot be greater than calculated amount.");
-        }
-
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
         if (sites.stream().noneMatch(o -> o.getSiteID().equals(remissionRequest.getSiteId()))) {

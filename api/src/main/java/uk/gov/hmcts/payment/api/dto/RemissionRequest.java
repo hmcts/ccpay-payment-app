@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -45,5 +46,16 @@ public class RemissionRequest {
 
     @NotNull
     private String siteId;
+
+    @AssertFalse(message = "Hwf amount cannot be greater than calculated amount.")
+    private boolean isHwfAmountInvalid() {
+        return (hwfAmount != null && fee != null) &&
+            (hwfAmount.compareTo(fee.getCalculatedAmount()) == 1);
+    }
+
+    @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
+    private boolean isEitherOneRequired() {
+        return (ccdCaseNumber == null && caseReference == null);
+    }
 
 }
