@@ -24,6 +24,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 public class FeeDto {
 
+    private Integer id;
+
     @NotEmpty
     private String code;
 
