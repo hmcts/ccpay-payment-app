@@ -44,7 +44,7 @@ public class RemissionController {
     private RemissionDtoMapper remissionDtoMapper;
 
 
-    @ApiOperation(value = "Create upfront/retrospective remission record", notes = "Create upfront/retrospective remission record")
+    @ApiOperation(value = "Create upfront/retrospective remission record", notes = "Create upfront/retrospective remission record - Tactical")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Remission created"),
         @ApiResponse(code = 400, message = "Remission creation failed"),
