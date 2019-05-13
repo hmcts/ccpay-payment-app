@@ -65,10 +65,10 @@ public class PaymentDtoTest {
         jurisdiction2 = "probate service";
 
 
-        feeWithVolumeDto = new FeeDto(feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
+        feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
             memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2);
 
-        feeNoVolumeDto = new FeeDto(feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
+        feeNoVolumeDto = new FeeDto(1, feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
             memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2);
     }
 
