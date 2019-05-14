@@ -6,11 +6,22 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 public enum PaymentReportType {
 
     CARD,
+    DIGITAL_BAR,
     PBA_CMC,
-    PBA_DIVORCE;
+    PBA_DIVORCE,
+    PBA_PROBATE,
+    PBA_FINREM;
 
     public static PaymentReportType from(PaymentMethodType paymentMethodType, Service serviceType) {
-        String value = serviceType != null ? String.join("_", paymentMethodType.name(), serviceType.name()) : paymentMethodType.name();
+        String value = "";
+        if (paymentMethodType != null && serviceType != null) {
+            value = String.join("_", paymentMethodType.name(), serviceType.name());
+        } else if (serviceType != null) {
+            value = serviceType.name();
+        } else if (paymentMethodType != null) {
+            value = paymentMethodType.name();
+        }
+
         try {
             return PaymentReportType.valueOf(value);
         } catch (IllegalArgumentException ex) {

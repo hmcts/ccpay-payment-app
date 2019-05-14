@@ -49,7 +49,7 @@ public class MaintenanceJobsControllerMockTest {
 
         verify(paymentService).listInitiatedStatusPaymentsReferences();
 
-        verify(delegatingPaymentService, times(0)).retrieve(any());
+        verify(delegatingPaymentService, times(0)).retrieveWithCallBack(any());
 
     }
 
@@ -64,7 +64,7 @@ public class MaintenanceJobsControllerMockTest {
 
         verify(paymentService).listInitiatedStatusPaymentsReferences();
 
-        verify(delegatingPaymentService, times(2)).retrieve("xxx");
+        verify(delegatingPaymentService, times(2)).retrieveWithCallBack("xxx");
 
     }
 

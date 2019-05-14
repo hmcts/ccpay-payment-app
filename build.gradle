@@ -1,7 +1,7 @@
 plugins {
     id 'application'
     id "org.sonarqube" version "2.6.2"
-    id 'org.springframework.boot' version '2.1.2.RELEASE'
+    id 'org.springframework.boot' version '2.1.4.RELEASE'
     id 'io.spring.dependency-management' version '1.0.5.RELEASE'
     id 'org.owasp.dependencycheck' version '4.0.2'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
@@ -9,7 +9,7 @@ plugins {
     id 'jacoco'
 }
 
-def springBootVersion = '2.1.2.RELEASE'
+def springBootVersion = '2.1.4.RELEASE'
 def springCloudVersion = 'Finchley.SR2'
 
 allprojects {
@@ -122,6 +122,7 @@ def sonarExclusions = [
         '**/referencedata/dto/*.java',
         '**/api/service/*Service.java',
         '**/referencedata/service/*Service.java',
+        '**/api/service/MockAccountServiceImpl.java',
          '**/api/contract/**',
          '**/api/dto/mapper/**',
          '**/api/reports/config/**',
