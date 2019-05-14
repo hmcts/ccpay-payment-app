@@ -22,7 +22,11 @@ import java.util.stream.Collectors;
 public class PaymentGroupDtoMapper {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupDtoMapper.class);
 
+    private BigDecimal totalHwfAmount;
+
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
+        totalHwfAmount = getTotalHwfRemission(paymentFeeLink.getRemissions());
+
         return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .payments(!paymentFeeLink.getPayments().isEmpty() ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
@@ -57,6 +61,10 @@ public class PaymentGroupDtoMapper {
         return remissions.stream().map(r -> toRemissionDto(r)).collect(Collectors.toList());
     }
 
+    private BigDecimal getTotalHwfRemission(List<Remission> remissions) {
+        return remissions.stream().map(Remission::getHwfAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     private RemissionDto toRemissionDto(Remission remission) {
         return RemissionDto.remissionDtoWith()
             .remissionReference(remission.getRemissionReference())
@@ -74,11 +82,10 @@ public class PaymentGroupDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
-        BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         return FeeDto.feeDtoWith()
-            .calculatedAmount(calculatedAmount)
+            .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
-            .netAmount(fee.getNetAmount())
+            .netAmount(fee.getCalculatedAmount().subtract(totalHwfAmount))
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
