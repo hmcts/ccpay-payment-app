@@ -69,12 +69,14 @@ public class PaymentsReportService {
 
     private List<PaymentDto> findPaymentsBy(Date startDate, Date endDate, PaymentMethodType paymentMethodType, Service serviceName) {
         String serviceType = Optional.ofNullable(serviceName).map(Service::getName).orElse(null);
+        String paymentMethodTypeString = Optional.ofNullable(paymentMethodType).map(PaymentMethodType::getType).orElse(null);
+
         return delegatingPaymentService
             .search(
                 PaymentSearchCriteria.searchCriteriaWith()
                     .startDate(startDate)
                     .endDate(endDate)
-                    .paymentMethod(paymentMethodType.getType())
+                    .paymentMethod(paymentMethodTypeString)
                     .serviceType(serviceType)
                     .build()
             )

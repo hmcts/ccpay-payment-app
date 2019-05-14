@@ -66,6 +66,19 @@ public class PaymentReportControllerMockTest {
     }
 
     @Test
+    public void paymentReportWithNoInputDatesOnlyServiceName() throws Exception {
+        // given
+        given(clock.getYesterdayDate()).willReturn(FROM_DATE);
+        given(clock.getTodayDate()).willReturn(TO_DATE);
+        // when & then
+        this.mockMvc.perform(post("/jobs/email-pay-reports")
+            .param("service_name", "DIGITAL_BAR"))
+            .andExpect(status().isOk());
+
+        verify(paymentsReportFacade).generateCsvAndSendEmail(FROM_DATE, TO_DATE, null, Service.DIGITAL_BAR);
+    }
+
+    @Test
     public void paymentReportWithInputDates() throws Exception {
         // given
         given(clock.atStartOfDay("2018-06-30", DateTimeFormatter.ISO_DATE)).willReturn(FROM_DATE);
