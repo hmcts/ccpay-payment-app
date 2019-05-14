@@ -147,17 +147,11 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
         assertThat(paymentDto.getReference()).isEqualTo(createPaymentResponseDto.getReference());
-        assertThat(paymentDto.getDescription()).isEqualTo("description");
-        assertThat(paymentDto.getCcdCaseNumber()).isEqualTo("1111-2222-3333-4444");
-        assertThat(paymentDto.getServiceName()).isEqualTo("Probate");
         FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
-        assertThat(feeDto.getCode()).isEqualTo("FEE0123");
-        assertThat(feeDto.getVersion()).isEqualTo("1");
-        assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
-        assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("500.00"));
+        assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
+        assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
     }
 
-    @Test
     public void retrievePaymentsAndFeesByPaymentGroupReferenceTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
@@ -194,10 +188,10 @@ public class PaymentGroupControllerTest {
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("550.00"))
+            .amount(new BigDecimal("250.00"))
             .description("description")
-            .ccdCaseNumber("1111-2222-3333-4444")
-            .service(Service.PROBATE)
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .service(Service.DIVORCE)
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")
@@ -209,7 +203,7 @@ public class PaymentGroupControllerTest {
     private RemissionRequest getRemissionRequest() {
         return RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
-            .ccdCaseNumber("1111-2222-3333-4444")
+            .ccdCaseNumber("1111-2222-2222-1111")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
             .siteId("AA001")
@@ -219,8 +213,7 @@ public class PaymentGroupControllerTest {
 
     private FeeDto getFee() {
         return FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("550.00"))
-            .ccdCaseNumber("1111-2222-3333-4444")
+            .calculatedAmount(new BigDecimal("250.00"))
             .version("1")
             .code("FEE0123")
             .build();
