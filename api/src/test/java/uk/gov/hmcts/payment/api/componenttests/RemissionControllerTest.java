@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.models.auth.In;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -659,15 +660,16 @@ public class RemissionControllerTest {
             .andReturn();
 
         PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        Integer feeId = createPaymentResponseDto.getFees().get(0).getId();
+
         assertThat(createPaymentResponseDto).isNotNull();
 
         // Get fee id
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
-        PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
+            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequest())
             .andExpect(status().isCreated())
             .andReturn();
 

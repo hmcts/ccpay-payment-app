@@ -55,6 +55,7 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
             .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
     }
@@ -196,6 +197,7 @@ public class PaymentDtoMapper {
         BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
 
         return FeeDto.feeDtoWith()
+            .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
             .netAmount(fee.getNetAmount())
