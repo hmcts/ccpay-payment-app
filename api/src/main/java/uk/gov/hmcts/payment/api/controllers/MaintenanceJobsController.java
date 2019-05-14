@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -14,9 +14,6 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
 @Api(tags = {"Maintenance Jobs"})
@@ -43,27 +40,27 @@ public class MaintenanceJobsController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Reports sent")
     })
-    @RequestMapping(value = "/jobs/card-payments-status-update", method = PATCH)
+    @PatchMapping(value = "/jobs/card-payments-status-update")
     @Transactional
-    public void updatePaymentsStatus() throws ExecutionException, InterruptedException {
+    public void updatePaymentsStatus() {
 
         List<Reference> referenceList = paymentService.listInitiatedStatusPaymentsReferences();
 
-        LOG.warn("Found " + referenceList.size() + " references that require an status update");
+        LOG.warn("Found {} references that require an status update", referenceList.size());
 
         /* We ask the topic client proxy to keep the reuse the connection to the service bus for the whole batch */
-        if(topicClientProxy != null && referenceList.size() > 0) {
+        if(topicClientProxy != null && !referenceList.isEmpty()) {
             topicClientProxy.setKeepClientAlive(true);
         }
 
         long count = referenceList
             .stream()
             .map(Reference::getReference)
-            .map(delegatingPaymentService::retrieve)
+            .map(delegatingPaymentService::retrieveWithCallBack)
             .filter(p -> p != null && p.getPayments() != null && p.getPayments().get(0) != null && p.getPayments().get(0).getStatus() != null)
             .count();
 
-        LOG.warn(count + " payment references were successfully updated");
+        LOG.warn("{} payment references were successfully updated", count);
 
         if(topicClientProxy != null) {
             topicClientProxy.setKeepClientAlive(false);
