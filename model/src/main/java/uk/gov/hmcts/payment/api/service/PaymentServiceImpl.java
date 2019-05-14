@@ -1,8 +1,10 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
@@ -11,16 +13,17 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.List;
 
 
 @Service
 public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String> {
 
-    private final static PaymentStatus SUCCESS = new PaymentStatus("success", "success");
-    private final static PaymentStatus FAILED = new PaymentStatus("failed", "failed");
-    private final static PaymentStatus CANCELLED = new PaymentStatus("cancelled", "cancelled");
-    private final static PaymentStatus ERROR = new PaymentStatus("error", "error");
+    private static final PaymentStatus SUCCESS = new PaymentStatus("success", "success");
+    private static final PaymentStatus FAILED = new PaymentStatus("failed", "failed");
+    private static final PaymentStatus CANCELLED = new PaymentStatus("cancelled", "cancelled");
+    private static final PaymentStatus ERROR = new PaymentStatus("error", "error");
     private static final String PCI_PAL = "pci pal";
 
     private final Payment2Repository paymentRepository;
@@ -29,9 +32,13 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     private final PaymentStatusRepository paymentStatusRepository;
     private final TelephonyRepository telephonyRepository;
 
+    @Value("${callback.payments.cutoff.time.in.minutes:2}")
+    private int paymentsCutOffTime;
+
     @Autowired
     public PaymentServiceImpl(@Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
-                              Payment2Repository paymentRepository, CallbackService callbackService, PaymentStatusRepository paymentStatusRepository, TelephonyRepository telephonyRepository) {
+                              Payment2Repository paymentRepository, CallbackService callbackService, PaymentStatusRepository paymentStatusRepository,
+                              TelephonyRepository telephonyRepository) {
         this.paymentRepository = paymentRepository;
         this.delegatingPaymentService = delegatingPaymentService;
         this.callbackService = callbackService;
@@ -60,9 +67,10 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
     @Override
     public List<Reference> listInitiatedStatusPaymentsReferences() {
-        return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotIn(
+        Date targetTime = DateUtils.addMinutes(new Date(), -1 * paymentsCutOffTime);
+        return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
             PaymentProvider.GOV_PAY,
-            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED)
+            Lists.newArrayList(SUCCESS, FAILED, ERROR, CANCELLED), targetTime
         );
     }
 
