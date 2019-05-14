@@ -108,7 +108,22 @@ data "azurerm_key_vault_secret" "card_payments_email_to" {
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
+data "azurerm_key_vault_secret" "bar_payments_email_to" {
+  name = "bar-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
+  name = "pba-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pba_probate_payments_email_to" {
+  name = "pba-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pba_finrem_payments_email_to" {
   name = "pba-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
@@ -201,11 +216,29 @@ module "payment-api" {
     CARD_PAYMENTS_EMAIL_SUBJECT = "${var.card_payments_email_subject}"
     CARD_PAYMENTS_EMAIL_MESSAGE = "${var.card_payments_email_message}"
 
+    BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.bar_payments_report_scheduler_enabled}"
+    BAR_PAYMENTS_EMAIL_FROM = "${var.bar_payments_email_from}"
+    BAR_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.bar_payments_email_to.value}"
+    BAR_PAYMENTS_EMAIL_SUBJECT = "${var.bar_payments_email_subject}"
+    BAR_PAYMENTS_EMAIL_MESSAGE = "${var.bar_payments_email_message}"
+
     PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_cmc_payments_report_scheduler_enabled}"
     PBA_CMC_PAYMENTS_EMAIL_FROM = "${var.pba_cmc_payments_email_from}"
     PBA_CMC_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_cmc_payments_email_to.value}"
     PBA_CMC_PAYMENTS_EMAIL_SUBJECT = "${var.pba_cmc_payments_email_subject}"
     PBA_CMC_PAYMENTS_EMAIL_MESSAGE = "${var.pba_cmc_payments_email_message}"
+
+    PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_probate_payments_report_scheduler_enabled}"
+    PBA_PROBATE_PAYMENTS_EMAIL_FROM = "${var.pba_probate_payments_email_from}"
+    PBA_PROBATE_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_probate_payments_email_to.value}"
+    PBA_PROBATE_PAYMENTS_EMAIL_SUBJECT = "${var.pba_probate_payments_email_subject}"
+    PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE = "${var.pba_probate_payments_email_message}"
+
+    PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_finrem_payments_report_scheduler_enabled}"
+    PBA_FINREM_PAYMENTS_EMAIL_FROM = "${var.pba_finrem_payments_email_from}"
+    PBA_FINREM_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_finrem_payments_email_to.value}"
+    PBA_FINREM_PAYMENTS_EMAIL_SUBJECT = "${var.pba_finrem_payments_email_subject}"
+    PBA_FINREM_PAYMENTS_EMAIL_MESSAGE = "${var.pba_finrem_payments_email_message}"
 
     PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_divorce_payments_report_scheduler_enabled}"
     PBA_DIVORCE_PAYMENTS_EMAIL_FROM = "${var.pba_divorce_payments_email_from}"
