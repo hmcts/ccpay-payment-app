@@ -3,11 +3,13 @@ package uk.gov.hmcts.payment.api.service;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 
 @Service
+@Profile("!mock")
 public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
     @Autowired
