@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
@@ -33,11 +34,12 @@ public class PaymentsReportFacadeTest {
     private PaymentsReportService reportService;
 
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
+    private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
     private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig = new PbaCmcPaymentReportConfig("from", null, "subject", "message", false);
 
     @Before
     public void setUp() {
-        Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.of(PaymentReportType.CARD, cardPaymentReportConfig, PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig);
+        Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.of(PaymentReportType.CARD, cardPaymentReportConfig, PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig, PaymentReportType.DIGITAL_BAR, barPaymentReportConfig);
         facade = new PaymentsReportFacade(reportService, map);
     }
 
@@ -52,6 +54,19 @@ public class PaymentsReportFacadeTest {
 
         // then
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, CARD, null, cardPaymentReportConfig);
+    }
+
+    @Test
+    public void shouldDelegateToServiceIfExistingConfigurationForService() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, null, Service.DIGITAL_BAR);
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, Service.DIGITAL_BAR, barPaymentReportConfig);
     }
 
     @Test
@@ -74,5 +89,13 @@ public class PaymentsReportFacadeTest {
         // given & when
         facade.generateCsvAndSendEmail(new Date(), new Date(), CARD, Service.CMC);
 
+    }
+
+    @Test
+    public void shouldThrowExceptionForEmptyValuesForMethodTypeAndService() {
+        exception.expect(UnsupportedOperationException.class);
+
+        // given & when
+        facade.generateCsvAndSendEmail(new Date(), new Date(), null, null);
     }
 }
