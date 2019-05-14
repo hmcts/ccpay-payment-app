@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
@@ -21,13 +23,13 @@ public class PaymentGroupController {
 
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
 
-    private final PaymentDtoMapper paymentDtoMapper;
+    private final PaymentGroupDtoMapper paymentGroupDtoMapper;
 
 
     @Autowired
-    public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentDtoMapper paymentDtoMapper) {
+    public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper) {
         this.paymentGroupService = paymentGroupService;
-        this.paymentDtoMapper = paymentDtoMapper;
+        this.paymentGroupDtoMapper = paymentGroupDtoMapper;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -37,10 +39,10 @@ public class PaymentGroupController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/payment-groups/{payment-group-reference}")
-    public ResponseEntity<PaymentDto> retrievePayment(@PathVariable("payment-group-reference") String paymentGroupReference) {
+    public ResponseEntity<PaymentGroupDto> retrievePayment(@PathVariable("payment-group-reference") String paymentGroupReference) {
         PaymentFeeLink paymentFeeLink = paymentGroupService.findByPaymentGroupReference(paymentGroupReference);
 
-        return new ResponseEntity<>(paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLink), HttpStatus.OK);
+        return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
