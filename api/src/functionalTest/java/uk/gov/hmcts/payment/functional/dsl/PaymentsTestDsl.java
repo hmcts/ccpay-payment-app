@@ -61,6 +61,11 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentGivenDsl serviceCallBackUrl(String url) {
+            headers.put("service-callback-url", url);
+            return this;
+        }
+
         public PaymentGivenDsl setFF4Jfeature(String featureName, boolean value) {
             String path = "/api/ff4j/store/features/" + featureName + (value ? "enable" : "disable");
             RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers)
