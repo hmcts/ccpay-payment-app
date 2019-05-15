@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.PaymentApiApplication;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +56,6 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
-            .fees(toFeeDtos(paymentFeeLink.getFees()))
             .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
     }
@@ -193,13 +194,16 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
+        BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+
         return FeeDto.feeDtoWith()
-            .id(fee.getId())
-            .calculatedAmount(fee.getCalculatedAmount())
+            .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
+            .netAmount(fee.getNetAmount())
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
+            .reference(fee.getReference())
             .build();
     }
 
