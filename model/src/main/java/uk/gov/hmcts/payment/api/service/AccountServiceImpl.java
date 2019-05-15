@@ -20,8 +20,9 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     private String baseUrl;
 
     @Override
-    @HystrixCommand(commandKey = "retrievePbaAccount")
-    @HystrixProperty(name = "hystrix.command.default.execution.timeout.enabled", value = "false")
+     @HystrixCommand(commandKey = "retrievePbaAccount", commandProperties = {
+        @HystrixProperty(name = "execution.timeout.enabled", value = "false")
+    })
     public AccountDto retrieve(String pbaCode) {
         return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
