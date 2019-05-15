@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.PaymentApiApplication;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -55,6 +54,7 @@ public class PaymentDtoMapper {
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mapedStatus)
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
             .dateCreated(payment.getDateCreated())
             .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
@@ -197,6 +197,7 @@ public class PaymentDtoMapper {
         BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
 
         return FeeDto.feeDtoWith()
+            .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
             .netAmount(fee.getNetAmount())
