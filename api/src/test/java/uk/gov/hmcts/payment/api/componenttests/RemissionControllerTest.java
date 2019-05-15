@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.models.auth.In;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
