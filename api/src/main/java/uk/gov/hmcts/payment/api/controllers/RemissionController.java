@@ -52,6 +52,7 @@ public class RemissionController {
     })
     @PostMapping(value = "/remission")
     @ResponseBody
+    @Deprecated
     public ResponseEntity<RemissionDto> createRemissionV1(@Valid @RequestBody RemissionRequest remissionRequest)
         throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
