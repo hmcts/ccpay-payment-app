@@ -34,6 +34,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
     @HystrixProperty(name ="circuitBreaker.requestVolumeThreshold", value = "10"),
     @HystrixProperty(name ="circuitBreaker.errorThresholdPercentage", value = "50"),
     @HystrixProperty(name ="metrics.rollingStats.timeInMilliseconds", value = "60000"),
+    @HystrixProperty(name = "execution.timeout.enabled", value = "false")
 })
 public class GovPayClient {
 
