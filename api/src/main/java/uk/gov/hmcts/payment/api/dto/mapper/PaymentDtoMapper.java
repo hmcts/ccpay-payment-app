@@ -21,7 +21,6 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -194,13 +193,10 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
-        BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
-
         return FeeDto.feeDtoWith()
             .id(fee.getId())
-            .calculatedAmount(calculatedAmount)
+            .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
-            .netAmount(fee.getNetAmount())
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
