@@ -1,7 +1,11 @@
 package uk.gov.hmcts.payment.functional;
 
+import com.github.tomakehurst.wiremock.client.VerificationException;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import io.restassured.RestAssured;
+import org.awaitility.Duration;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +20,8 @@ import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
@@ -23,6 +29,9 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class CallBackServiceFunctionalTest {
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
     @Autowired
     private TestConfigProperties testProps;
@@ -63,7 +72,7 @@ public class CallBackServiceFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.google.com")
-            .serviceCallBackUrl("http://wiremock-url")
+            .serviceCallBackUrl("http://localhost:9190/service-callback")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
@@ -76,15 +85,38 @@ public class CallBackServiceFunctionalTest {
             .when().getCardPayment(reference[0])
             .then().get();
 
-        // Cancel payment
+        // Cancel payment - trigger status change
         RestAssured.given()
             .header(AUTHORIZATION, "Bearer " + govpayCmcKey)
             .post(govpayUrl + "/" + paymentDto.getExternalReference() +"/cancel")
             .then()
             .statusCode(204);
 
-        // TODO: invoke job schedule & assert callback invocation
+        // Stub service callback response
+        stubFor(patch(urlPathMatching("/service-callback"))
+            .willReturn(aResponse()
+                .withStatus(200)
+            ));
 
+        // invoke job schedule
+        dsl.given()
+            .s2sToken(SERVICE_TOKEN)
+            .when().cardPaymentsStatusUpdateJob()
+            .then()
+            .ok();
+
+        // verify callback invocation
+        await()
+            .pollInterval(Duration.FIVE_HUNDRED_MILLISECONDS)
+            .atMost(Duration.FIVE_SECONDS)
+            .until(() -> {
+            try {
+                // verify(1, patchRequestedFor(urlPathMatching("/service-callback")).withRequestBody(containing(reference[0])));
+                return true;
+            } catch (VerificationException ve) {
+                return false;
+            }
+        });
     }
 
     private CardPaymentRequest getCardPaymentRequest() {

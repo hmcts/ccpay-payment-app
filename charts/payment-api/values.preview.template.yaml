@@ -5,3 +5,4 @@ java:
   environment:
     AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
     SPRING_PROFILES_ACTIVE: "mock"
+    CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 0
