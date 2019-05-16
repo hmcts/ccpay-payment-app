@@ -1,18 +1,17 @@
 package uk.gov.hmcts.payment.functional;
 
 import com.github.tomakehurst.wiremock.client.VerificationException;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Duration;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -20,7 +19,7 @@ import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -29,9 +28,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class CallBackServiceFunctionalTest {
-
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
     @Autowired
     private TestConfigProperties testProps;
@@ -72,8 +68,8 @@ public class CallBackServiceFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.google.com")
-            .serviceCallBackUrl("http://localhost:9190/service-callback")
-            .when().createCardPayment(getCardPaymentRequest())
+            .serviceCallBackUrl(testProps.mockCallBackUrl)
+            .when().createCardPayment(PaymentFixture.aCardPaymentRequest("20.99"))
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
             assertEquals("Initiated", savedPayment.getStatus());
@@ -85,18 +81,12 @@ public class CallBackServiceFunctionalTest {
             .when().getCardPayment(reference[0])
             .then().get();
 
-        // Cancel payment - trigger status change
+        // Cancel payment - trigger govPay status change
         RestAssured.given()
             .header(AUTHORIZATION, "Bearer " + govpayCmcKey)
             .post(govpayUrl + "/" + paymentDto.getExternalReference() +"/cancel")
             .then()
             .statusCode(204);
-
-        // Stub service callback response
-        stubFor(patch(urlPathMatching("/service-callback"))
-            .willReturn(aResponse()
-                .withStatus(200)
-            ));
 
         // invoke job schedule
         dsl.given()
@@ -109,18 +99,10 @@ public class CallBackServiceFunctionalTest {
         await()
             .pollInterval(Duration.FIVE_HUNDRED_MILLISECONDS)
             .atMost(Duration.FIVE_SECONDS)
-            .until(() -> {
-            try {
-                // verify(1, patchRequestedFor(urlPathMatching("/service-callback")).withRequestBody(containing(reference[0])));
-                return true;
-            } catch (VerificationException ve) {
-                return false;
-            }
-        });
-    }
-
-    private CardPaymentRequest getCardPaymentRequest() {
-        return PaymentFixture.aCardPaymentRequest("20.99");
+            .until(() -> RestAssured.given()
+                .header(AUTHORIZATION, USER_TOKEN)
+                .header("ServiceAuthorization", SERVICE_TOKEN)
+                .get(testProps.getMockCallBackUrl() + "/" + reference[0]).getStatusCode() == 200);
     }
 
 }

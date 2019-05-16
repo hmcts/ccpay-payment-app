@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 
 @Service
-@Profile("!mock")
+@Profile("!liberataMock")
 public class AccountServiceImpl implements AccountService<AccountDto, String> {
 
     @Autowired

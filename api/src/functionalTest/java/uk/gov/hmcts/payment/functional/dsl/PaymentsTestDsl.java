@@ -135,7 +135,7 @@ public class PaymentsTestDsl {
         }
 
         public PaymentWhenDsl cardPaymentsStatusUpdateJob() {
-            response = newRequest().patch("/jobs/card-payments-status-up");
+            response = newRequest().patch("/jobs/card-payments-status-update");
             return this;
         }
 
