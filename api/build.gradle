@@ -22,6 +22,14 @@ sourceSets {
             srcDir file('src/functionalTest/java')
         }
     }
+    integrationTest {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+            srcDir file('src/integrationTest/java')
+        }
+        resources.srcDir file('src/integrationTest/resources')
+    }
 }
 
 apply plugin: 'idea'
@@ -31,6 +39,8 @@ idea {
         testSourceDirs += project.sourceSets.smokeTest.resources.srcDirs
         testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
         testSourceDirs += project.sourceSets.functionalTest.resources.srcDirs
+        testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
+        testSourceDirs += project.sourceSets.integrationTest.resources.srcDirs
     }
 }
 
@@ -51,32 +61,32 @@ def javaLoggingVersion = '5.0.1'
 
 dependencies {
 
-  compile project(':payment-gov-pay-client')
-  compile project(':payment-api-contract')
-  compile project(':payment-model')
-  compile project(':payment-reference-data')
-  compile group: 'uk.gov.hmcts.reform', name: 'java-logging', version: javaLoggingVersion
-  compile group: 'uk.gov.hmcts.reform', name: 'java-logging-appinsights', version: javaLoggingVersion
-  compile group: 'uk.gov.hmcts.reform', name: 'java-logging-spring', version: javaLoggingVersion
-  compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.2'
-  compile group: 'uk.gov.hmcts.reform', name: 'http-proxy-spring-boot-autoconfigure', version:'1.1.0'
-  compile group: 'org.springframework.boot', name: 'spring-boot-autoconfigure'
-  compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
-  compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
-  compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
-  compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-  compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.1.0.RELEASE'
-  compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version:'0.23.0.RELEASE'
-  compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.5'
-  compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'5.0'
-  compile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.5.2'
-  compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.8'
-  compile group: 'io.springfox', name: 'springfox-swagger-ui', version:'2.9.0'
-  compile group: 'io.springfox', name: 'springfox-swagger2', version:'2.9.0'
-  compile group: 'org.liquibase', name: 'liquibase-core', version:'3.6.2'
-  compile group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.0.14'
-  compile group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
-  compile group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.7.0'
+    compile project(':payment-gov-pay-client')
+    compile project(':payment-api-contract')
+    compile project(':payment-model')
+    compile project(':payment-reference-data')
+    compile group: 'uk.gov.hmcts.reform', name: 'java-logging', version: javaLoggingVersion
+    compile group: 'uk.gov.hmcts.reform', name: 'java-logging-appinsights', version: javaLoggingVersion
+    compile group: 'uk.gov.hmcts.reform', name: 'java-logging-spring', version: javaLoggingVersion
+    compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.2'
+    compile group: 'uk.gov.hmcts.reform', name: 'http-proxy-spring-boot-autoconfigure', version: '1.1.0'
+    compile group: 'org.springframework.boot', name: 'spring-boot-autoconfigure'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.1.0.RELEASE'
+    compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version: '0.23.0.RELEASE'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+    compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '5.0'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.8'
+    compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.0'
+    compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.0'
+    compile group: 'org.liquibase', name: 'liquibase-core', version: '3.6.2'
+    compile group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.0.14'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
+    compile group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.7.0'
 
     compile group: 'org.ff4j', name: 'ff4j-spring-boot-web-api', version: '1.7.1'
     compile group: 'org.ff4j', name: 'ff4j-web', version: '1.7.1'
@@ -96,7 +106,7 @@ dependencies {
     compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-model', version: '2.2.0'
     compile group: 'com.netflix.feign', name: 'feign-jackson', version: '8.18.0'
     compile group: 'uk.gov.hmcts.reform', name: 'health-spring-boot-starter', version: '0.0.3'
-    compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version:'0.0.4'
+    compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.0.4'
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
         exclude(module: 'commons-logging')
@@ -118,6 +128,11 @@ dependencies {
 
     // functional
     functionalTestCompile sourceSets.test.runtimeClasspath
+
+    // integration
+    integrationTestCompile sourceSets.main.runtimeClasspath
+    integrationTestCompile sourceSets.test.runtimeClasspath
+
     compile group: 'com.github.mifmif', name: 'generex', version: '1.0.2'
 
     compile group: 'org.pitest', name: 'pitest', version: '1.3.2'
@@ -135,9 +150,14 @@ task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verifica
     classpath = sourceSets.smokeTest.runtimeClasspath
 }
 
-task functionalTest(type: Test, description: 'Runs the smoke functional', group: 'Verification') {
+task functionalTest(type: Test, description: 'Runs the functional tests', group: 'Verification') {
     testClassesDirs = sourceSets.functionalTest.output.classesDirs
     classpath = sourceSets.functionalTest.runtimeClasspath
+}
+
+task integration(type: Test, description: 'Runs the integration tests', group: 'Verification') {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
 }
 
 pitest {
