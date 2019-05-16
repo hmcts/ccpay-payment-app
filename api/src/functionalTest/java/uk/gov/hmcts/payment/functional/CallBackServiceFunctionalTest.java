@@ -69,7 +69,7 @@ public class CallBackServiceFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.google.com")
             .serviceCallBackUrl(testProps.mockCallBackUrl)
-            .when().createCardPayment(PaymentFixture.aCardPaymentRequest("20.99"))
+            .when().createCardPayment(PaymentFixture.aCardPaymentRequest("50.99"))
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
             assertEquals("Initiated", savedPayment.getStatus());
