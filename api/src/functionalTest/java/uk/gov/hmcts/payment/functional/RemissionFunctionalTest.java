@@ -72,7 +72,7 @@ public class RemissionFunctionalTest {
     @Test
     public void createRetrospectiveRemissionAndRetrieveRemissionByPaymentGroupTest() throws Exception {
 
-        // test create telephony card payment
+        // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://google.co.uk")
@@ -86,7 +86,7 @@ public class RemissionFunctionalTest {
                 FeeDto feeDto = paymentDto.getFees().get(0);
                 Integer feeId = feeDto.getId();
 
-                // test create retrospective remission
+                // TEST create retrospective remission
                 dsl.given().userToken(USER_TOKEN)
                     .s2sToken(SERVICE_TOKEN)
                     .when().createRetrospectiveRemission(getRemissionRequest(), paymentGroupReference, feeId)
@@ -96,7 +96,7 @@ public class RemissionFunctionalTest {
                         assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
                 });
 
-                // test retrieve payments, remissions and fees by payment-group-reference
+                // TEST retrieve payments, remissions and fees by payment-group-reference
                 dsl.given().userToken(USER_TOKEN)
                     .s2sToken(SERVICE_TOKEN)
                     .when().getRemissions(paymentGroupReference)
