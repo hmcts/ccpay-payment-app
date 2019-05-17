@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.service.MockAccountServiceImpl;
 
 import java.util.List;
 
@@ -22,11 +21,11 @@ public class MockCallbackControllerForTesting {
 
     private List<String> callbackList = Lists.newArrayList();
 
-    @PatchMapping("/serviceCallback")
+    @PutMapping("/serviceCallback")
     public ResponseEntity mockCallback(@RequestBody PaymentDto paymentDto) {
         LOG.info("Callback request:{}", paymentDto);
         callbackList.add(paymentDto.getReference());
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/serviceCallback/{reference}")
