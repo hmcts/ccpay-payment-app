@@ -109,7 +109,7 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
-        paymentValidator.checkDuplication(payment);
+        checkDuplication(payment);
 
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
             LOG.info("Checking with Liberata");
@@ -251,4 +251,11 @@ public class CreditAccountPaymentController {
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
         return availableBalance.compareTo(paymentAmount) >= 0;
     }
+
+    private void checkDuplication(Payment payment) {
+        if (ff4j.check("duplicate-payment-check")) {
+            paymentValidator.checkDuplication(payment);
+        }
+    }
+
 }
