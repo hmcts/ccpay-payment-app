@@ -1,10 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
-import com.github.tomakehurst.wiremock.client.VerificationException;
 import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Duration;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +16,6 @@ import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -67,7 +62,7 @@ public class CallBackServiceFunctionalTest {
 
         String serviceCallBackUrl = testProps.mockCallBackUrl.replaceFirst("https", "http"); // internal urls with http only.
 
-        // create card payment
+        // Step 1 : create card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.google.com")
@@ -78,27 +73,27 @@ public class CallBackServiceFunctionalTest {
             assertEquals("Initiated", savedPayment.getStatus());
         });
 
-        // GET card payment
+        // Step 2 : GET card payment
         PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().getCardPayment(reference[0])
             .then().get();
 
-        // Cancel payment - trigger govPay status change
+        // Step 3: Cancel payment - trigger govPay status change
         RestAssured.given()
             .header(AUTHORIZATION, "Bearer " + govpayCmcKey)
             .post(govpayUrl + "/" + paymentDto.getExternalReference() +"/cancel")
             .then()
             .statusCode(204);
 
-        // invoke job schedule
+        // Step 4: invoke job schedule
         dsl.given()
             .s2sToken(SERVICE_TOKEN)
             .when().cardPaymentsStatusUpdateJob()
             .then()
             .ok();
 
-        // verify callback invocation
+        // Step 5: verify callback invocation from azure functions
         await()
             .pollInterval(Duration.FIVE_HUNDRED_MILLISECONDS)
             .atMost(Duration.FIVE_SECONDS)
