@@ -21,15 +21,15 @@ public class PbaProbatePaymentReportConfig implements PaymentReportConfig {
 
     private static final String CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX = "hmcts_credit_account_payments_probate_";
 
-    @Value("${pba.probate.payments.email.from}")
+    @Value("${pba.probate.payments.email.from:dummy}")
     private String from;
-    @Value("${pba.probate.payments.email.to}")
+    @Value("${pba.probate.payments.email.to:dummy}")
     private String[] to;
-    @Value("${pba.probate.payments.email.subject}")
+    @Value("${pba.probate.payments.email.subject:dummy}")
     private String subject;
-    @Value("${pba.probate.payments.email.message}")
+    @Value("${pba.probate.payments.email.message:dummy}")
     private String message;
-    @Value("${pba.probate.payments.report.scheduler.enabled}")
+    @Value("${pba.probate.payments.report.scheduler.enabled:false}")
     private boolean enabled;
 
     @Override

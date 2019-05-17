@@ -21,15 +21,15 @@ public class PbaFinremPaymentReportConfig implements PaymentReportConfig {
 
     private static final String CREDIT_ACCOUNT_PAYMENTS_CSV_FILE_PREFIX = "hmcts_credit_account_payments_finrem_";
 
-    @Value("${pba.finrem.payments.email.from}")
+    @Value("${pba.finrem.payments.email.from:dummy}")
     private String from;
-    @Value("${pba.finrem.payments.email.to}")
+    @Value("${pba.finrem.payments.email.to:dummy}")
     private String[] to;
-    @Value("${pba.finrem.payments.email.subject}")
+    @Value("${pba.finrem.payments.email.subject:dummy}")
     private String subject;
-    @Value("${pba.finrem.payments.email.message}")
+    @Value("${pba.finrem.payments.email.message:dummy}")
     private String message;
-    @Value("${pba.finrem.payments.report.scheduler.enabled}")
+    @Value("${pba.finrem.payments.report.scheduler.enabled:false}")
     private boolean enabled;
 
     @Override
