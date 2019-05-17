@@ -194,6 +194,8 @@ module "payment-api" {
     LIBERATA_OAUTH2_AUTHORIZE_URL = "${var.liberata_oauth2_authorize_url}"
     LIBERATA_OAUTH2_TOKEN_URL = "${var.liberata_oauth2_token_url}"
 
+    CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES = "${var.callback_payments_cutoff_time_in_minutes}"
+
     # gov pay keys
     GOV_PAY_URL = "${var.gov_pay_url}"
     GOV_PAY_AUTH_KEY_REFERENCE = "${data.azurerm_key_vault_secret.gov_pay_keys_reference.value}"
