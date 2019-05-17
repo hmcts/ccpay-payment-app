@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.VerificationException;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Duration;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,12 +65,14 @@ public class CallBackServiceFunctionalTest {
     public void shouldInvokeCallBackForStatusUpdate() throws Exception {
         final String[] reference = new String[1];
 
+        String serviceCallBackUrl = testProps.mockCallBackUrl.replaceFirst("https", "http"); // internal urls with http only.
+
         // create card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.google.com")
-            .serviceCallBackUrl(testProps.mockCallBackUrl)
-            .when().createCardPayment(PaymentFixture.aCardPaymentRequest("50.99"))
+            .serviceCallBackUrl(serviceCallBackUrl)
+            .when().createCardPayment(PaymentFixture.aCardPaymentRequest("30.99"))
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
             assertEquals("Initiated", savedPayment.getStatus());
@@ -102,7 +105,7 @@ public class CallBackServiceFunctionalTest {
             .until(() -> RestAssured.given()
                 .header(AUTHORIZATION, USER_TOKEN)
                 .header("ServiceAuthorization", SERVICE_TOKEN)
-                .get(testProps.getMockCallBackUrl() + "/" + reference[0]).getStatusCode() == 200);
+                .get(testProps.mockCallBackUrl + "/" + reference[0]).getStatusCode() == 200);
     }
 
 }
