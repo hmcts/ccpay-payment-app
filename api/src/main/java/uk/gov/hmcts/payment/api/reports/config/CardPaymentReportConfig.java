@@ -21,15 +21,15 @@ public class CardPaymentReportConfig implements PaymentReportConfig {
 
     private static final String CARD_PAYMENTS_CSV_FILE_PREFIX = "hmcts_card_payments_";
 
-    @Value("${card.payments.email.from}")
+    @Value("${card.payments.email.from:dummy}")
     private String from;
-    @Value("${card.payments.email.to}")
+    @Value("${card.payments.email.to:dummy}")
     private String[] to;
-    @Value("${card.payments.email.subject}")
+    @Value("${card.payments.email.subject:dummy}")
     private String subject;
-    @Value("${card.payments.email.message}")
+    @Value("${card.payments.email.message:dummy}")
     private String message;
-    @Value("${card.payments.report.scheduler.enabled}")
+    @Value("${card.payments.report.scheduler.enabled:false}")
     private boolean enabled;
 
     @Override
