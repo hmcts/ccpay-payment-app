@@ -9,6 +9,7 @@ import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 
@@ -43,6 +44,8 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
     @Mock
     private ServiceIdSupplier serviceIdSupplier;
+    @Mock
+    private UserIdSupplier userIdSupplier;
 
     @InjectMocks
     private UserAwareDelegatingCreditAccountPaymentService creditAccountPaymentService;
@@ -56,6 +59,7 @@ public class UserAwareDelegatingCreditAccountPaymentServiceTest {
 
     @Test
     public void createCreditAccountPaymentTest() throws Exception {
+        when(userIdSupplier.get()).thenReturn("aUser");
         when(referenceUtil.getNext("RC")).thenReturn("RC-1234-1234-1234-1111");
         String reference = referenceUtil.getNext("RC");
 
