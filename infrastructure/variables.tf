@@ -223,3 +223,7 @@ variable telephony_api_gateway_certificate_thumbprints {
   type = "list"
   default = []
 }
+
+variable "spring_profiles_active" {
+  default = "default"
+}
