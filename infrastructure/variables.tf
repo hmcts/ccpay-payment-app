@@ -195,6 +195,10 @@ variable "feature_credit_account_payment_liberata_check" {
   default = "true"
 }
 
+variable "feature_duplicate_payment_check" {
+  default = "true"
+}
+
 variable "external_host_name" {
   default = "payment.nonprod.platform.hmcts.net"
 }
