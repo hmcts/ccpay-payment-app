@@ -207,12 +207,14 @@ public class CreditAccountPaymentController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
+        LOG.error("Error while processing payment request:", ex);
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(DuplicatePaymentException.class)
     public String returnDuplicateError(DuplicatePaymentException ex) {
+        LOG.error("Duplicate pba payments error:", ex);
         return ex.getMessage();
     }
 
