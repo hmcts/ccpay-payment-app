@@ -74,7 +74,6 @@ public class SpringSecurityConfiguration {
                 "/health/liveness",
                 "/info",
                 "/favicon.ico",
-                "/mock-api/**",
                 "/");
         }
 

@@ -61,11 +61,6 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentGivenDsl serviceCallBackUrl(String url) {
-            headers.put("service-callback-url", url);
-            return this;
-        }
-
         public PaymentGivenDsl setFF4Jfeature(String featureName, boolean value) {
             String path = "/api/ff4j/store/features/" + featureName + (value ? "enable" : "disable");
             RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers)
@@ -134,11 +129,6 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl cardPaymentsStatusUpdateJob() {
-            response = newRequest().patch("/jobs/card-payments-status-update");
-            return this;
-        }
-
         public PaymentWhenDsl searchPaymentsBetweenDates(String startDate, String endDate) {
             if (startDate != null && endDate != null) {
                 response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate);
@@ -179,11 +169,6 @@ public class PaymentsTestDsl {
 
         public PaymentThenDsl noContent() {
             response.then().statusCode(204);
-            return this;
-        }
-
-        public PaymentThenDsl ok() {
-            response.then().statusCode(200);
             return this;
         }
 

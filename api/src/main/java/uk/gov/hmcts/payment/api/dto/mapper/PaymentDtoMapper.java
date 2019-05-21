@@ -42,7 +42,6 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
-            .externalReference(payment.getExternalReference())
             .links(new PaymentDto.LinksDto(
                 payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
                 null, null

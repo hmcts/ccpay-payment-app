@@ -4,5 +4,4 @@ java:
   ingressHost: ${SERVICE_FQDN}
   environment:
     AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
-    SPRING_PROFILES_ACTIVE: "liberataMock,callbackMock"
-    CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 0
+    SPRING_PROFILES_ACTIVE: "mock"
