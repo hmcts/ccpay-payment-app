@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import lombok.Data;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
+import org.testcontainers.shaded.org.apache.commons.lang.StringUtils;
+import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -114,7 +117,10 @@ public class PaymentAmountTest {
             return; // temporarily passing the test in PR environment
         }
         // invoke pba payment and assert expectedStatus
-        Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, PaymentFixture.aPbaPaymentRequest(dataPoint.amount, Service.CMC));
+        CreditAccountPaymentRequest request = PaymentFixture.aPbaPaymentRequest(dataPoint.amount, Service.CMC);
+        request.setCaseReference("amountTestPbaCaseReference");
+
+        Response response = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, request);
         if (!OK.equalsIgnoreCase(dataPoint.expectedStatus)) {
             response.then().statusCode(UNPROCESSABLE_ENTITY.value());
         } else {
