@@ -31,7 +31,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 @Component
 @SuppressWarnings(value = "HTTP_PARAMETER_POLLUTION", justification = "No way around it in a client")
 @DefaultProperties(groupKey = "govPay", commandProperties = {
-    @HystrixProperty(name ="circuitBreaker.requestVolumeThreshold", value = "10"),
+    @HystrixProperty(name ="circuitBreaker.requestVolumeThreshold", value = "20"),
     @HystrixProperty(name ="circuitBreaker.errorThresholdPercentage", value = "50"),
     @HystrixProperty(name ="metrics.rollingStats.timeInMilliseconds", value = "60000"),
     @HystrixProperty(name = "execution.timeout.enabled", value = "false")
