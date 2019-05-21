@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.persistence.criteria.Join;
@@ -49,13 +50,14 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private final Payment2Repository paymentRespository;
     private final ReferenceUtil referenceUtil;
     private final ServiceIdSupplier serviceIdSupplier;
+    private final UserIdSupplier userIdSupplier;
 
     @Autowired
     public UserAwareDelegatingCreditAccountPaymentService(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                                           PaymentChannelRepository paymentChannelRepository,
                                                           PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                           PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
-                                                          ReferenceUtil referenceUtil, ServiceIdSupplier serviceIdSupplier) {
+                                                          ReferenceUtil referenceUtil, ServiceIdSupplier serviceIdSupplier, UserIdSupplier userIdSupplier) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
@@ -63,6 +65,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
         this.paymentRespository = paymentRespository;
         this.referenceUtil = referenceUtil;
         this.serviceIdSupplier = serviceIdSupplier;
+        this.userIdSupplier = userIdSupplier;
     }
 
 
@@ -74,6 +77,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
         Payment payment = null;
         try {
             payment = Payment.paymentWith()
+                .userId(userIdSupplier.get())
                 .amount(creditAccount.getAmount())
                 .description(creditAccount.getDescription())
                 .returnUrl(creditAccount.getReturnUrl())

@@ -21,15 +21,15 @@ public class BarPaymentReportConfig implements PaymentReportConfig {
 
     private static final String PAYMENTS_CSV_FILE_PREFIX = "hmcts_bar_payments_";
 
-    @Value("${bar.payments.email.from}")
+    @Value("${bar.payments.email.from:dummy}")
     private String from;
-    @Value("${bar.payments.email.to}")
+    @Value("${bar.payments.email.to:dummy}")
     private String[] to;
-    @Value("${bar.payments.email.subject}")
+    @Value("${bar.payments.email.subject:dummy}")
     private String subject;
-    @Value("${bar.payments.email.message}")
+    @Value("${bar.payments.email.message:dummy}")
     private String message;
-    @Value("${bar.payments.report.scheduler.enabled}")
+    @Value("${bar.payments.report.scheduler.enabled:false}")
     private boolean enabled;
 
     @Override
