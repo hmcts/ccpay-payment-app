@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,8 @@ public class PaymentReportControllerMockTest {
 
     private static final Date FROM_DATE = new Date();
     private static final Date TO_DATE = new Date();
+    private static final Date WEEK_AGO_DATE = new DateTime().minusWeeks(1).toDate();
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE;
 
     private MockMvc mockMvc;
 
@@ -76,6 +79,19 @@ public class PaymentReportControllerMockTest {
             .andExpect(status().isOk());
 
         verify(paymentsReportFacade).generateCsvAndSendEmail(FROM_DATE, TO_DATE, null, Service.DIGITAL_BAR);
+    }
+
+    @Test
+    public void paymentReportWithNoInputDatesOnlyServiceNameAndStartDate() throws Exception {
+        // given
+        given(clock.atStartOfDay(WEEK_AGO_DATE.toString(), FORMATTER)).willReturn(WEEK_AGO_DATE);
+        given(clock.getTodayDate()).willReturn(TO_DATE);
+        // when & then
+        this.mockMvc.perform(post("/jobs/email-pay-reports")
+            .param("service_name", "DIGITAL_BAR").param("start_date", WEEK_AGO_DATE.toString()))
+            .andExpect(status().isOk());
+
+        verify(paymentsReportFacade).generateCsvAndSendEmail(WEEK_AGO_DATE, TO_DATE, null, Service.DIGITAL_BAR);
     }
 
     @Test

@@ -37,8 +37,10 @@ import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
@@ -54,12 +56,12 @@ public class CreditAccountPaymentController {
 
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);
 
-    private static final String DEFAULT_CURRENCY = "GBP";
     private static final String FAILED = "failed";
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
     private final AccountService<AccountDto, String> accountService;
+    private final DuplicatePaymentValidator paymentValidator;
     private final FF4j ff4j;
 
 
@@ -67,10 +69,11 @@ public class CreditAccountPaymentController {
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
-                                          FF4j ff4j) {
+                                          DuplicatePaymentValidator paymentValidator, FF4j ff4j) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
+        this.paymentValidator = paymentValidator;
         this.ff4j = ff4j;
     }
 
@@ -105,6 +108,8 @@ public class CreditAccountPaymentController {
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
+
+        checkDuplication(payment);
 
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
             LOG.info("Checking with Liberata");
@@ -202,6 +207,14 @@ public class CreditAccountPaymentController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
+        LOG.error("Error while processing payment request:", ex);
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(DuplicatePaymentException.class)
+    public String returnDuplicateError(DuplicatePaymentException ex) {
+        LOG.error("Duplicate pba payments error:", ex);
         return ex.getMessage();
     }
 
@@ -240,4 +253,11 @@ public class CreditAccountPaymentController {
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
         return availableBalance.compareTo(paymentAmount) >= 0;
     }
+
+    private void checkDuplication(Payment payment) {
+        if (ff4j.check("duplicate-payment-check")) {
+            paymentValidator.checkDuplication(payment);
+        }
+    }
+
 }

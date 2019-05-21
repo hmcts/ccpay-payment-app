@@ -22,6 +22,7 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
@@ -102,5 +103,23 @@ public class PBAPaymentFunctionalTest {
             .then().getPayments((paymentsResponse -> {
             Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
         }));
+    }
+
+    @Test
+    public void shouldRejectDuplicatePayment() {
+        String accountNumber = "PBA333" + RandomUtils.nextInt();
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("550.50", Service.CMC);
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        // when & then
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
+            .then()
+            .statusCode(CREATED.value())
+            .body("status", equalTo("Pending"));
+
+        // duplicate payment with same details from same user
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
+            .then()
+            .statusCode(BAD_REQUEST.value())
+            .body(equalTo("duplicate payment"));
     }
 }
