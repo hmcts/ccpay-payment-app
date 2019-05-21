@@ -68,7 +68,6 @@ public class PaymentAmountTest {
             AmountDataPoint.of("0.10", OK),
             AmountDataPoint.of("0.99", OK),
 
-            AmountDataPoint.of("1.10", OK),
             AmountDataPoint.of("1.01", OK),
             AmountDataPoint.of("1.09", OK),
             AmountDataPoint.of("1.10", OK),
