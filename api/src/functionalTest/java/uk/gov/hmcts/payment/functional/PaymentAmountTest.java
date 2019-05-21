@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
 import lombok.Data;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
-import org.testcontainers.shaded.org.apache.commons.lang.StringUtils;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
