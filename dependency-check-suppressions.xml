@@ -124,4 +124,11 @@
         <gav regex="true">^.*org.apache.tomcat.embed.*$</gav>
         <cve>CVE-2019-0232</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+			Jakcson databind. No update available yet.
+			]]></notes>
+        <gav regex="true">^.*com.fasterxml.jackson.core.*$</gav>
+        <cve>CVE-2019-12086</cve>
+    </suppress>
 </suppressions>
