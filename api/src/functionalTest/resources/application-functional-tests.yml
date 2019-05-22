@@ -1,0 +1,35 @@
+generated:
+  user:
+    email:
+      pattern: ${GENERATED_USER_EMAIL_PATTERN:freg-test-user-%s@feemail.com}
+gov:
+  pay:
+    keys:
+      cmc: ${GOV_PAY_AUTH_KEY_CMC:abcdef123456abcdef123456}
+    url: https://publicapi.payments.service.gov.uk/v1/payments
+idam:
+  api:
+    url: ${IDAM_API_URL:http://localhost:8001}
+oauth2:
+  client:
+    id: ${OAUTH2_CLIENT_ID:fees_admin_frontend}
+    secret: ${OAUTH2_CLIENT_SECRET:B8pcdxRNPXV2LT5hrXA8}
+  redirect:
+    uri: ${OAUTH2_REDIRECT_URI:https://localhost:3000/oauth2/callback}
+payments:
+  account:
+    existing:
+      account:
+        number: PBA0082848
+    fake:
+      account:
+        number: QWERTYUIOP
+s2s:
+  service:
+    name: ${S2S_SERVICE_NAME:probate_frontend}
+    secret: ${S2S_SERVICE_SECRET:AAAAAAAAAAAAAAAA}
+  url: ${S2S_URL:http://localhost:8002}
+test:
+  url: ${TEST_URL:http://localhost:8080}
+  user:
+    password: ${TEST_USER_PASSWORD:test}

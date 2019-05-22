@@ -1,0 +1,137 @@
+auth:
+  idam:
+    client:
+      baseUrl: http://localhost:8001
+  provider:
+    service:
+      client:
+        baseUrl: http://localhost:8002
+azure:
+  application-insights:
+    instrumentation-key: ${APPINSIGHTS_INSTRUMENTATIONKEY:dummy}
+  servicebus:
+    connection-string: ${ASB_CONNECTION_STRING:dummy}
+bar:
+  payments:
+    email:
+      from: ${BAR_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+      message: ${BAR_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>}
+      subject: ${BAR_PAYMENTS_EMAIL_SUBJECT:subject}
+      to: ${BAR_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+    report:
+      scheduler:
+        enabled: ${BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+card:
+  payments:
+    email:
+      from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+      message: ${CARD_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>}
+      subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+      to: ${CARD_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+    report:
+      scheduler:
+        enabled: ${CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+feature:
+  payments:
+    search: false
+    service:
+      callback: false
+fees:
+  register:
+    url: https://fees-register-api.platform.hmcts.net
+gov:
+  pay:
+    auth:
+      key:
+        probate_frontend: fillThisOut
+    operational_services: ccd_gw
+    url: https://publicapi.payments.service.gov.uk/v1/payments
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health,info
+payments:
+  account:
+    existing:
+      account:
+        number: PBA0082848
+    fake:
+      account:
+        number: QWERTYUIOP
+pba:
+  cmc:
+    payments:
+      email:
+        from: ${PBA_CMC_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+        message: ${PBA_CMC_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+        subject: ${PBA_CMC_PAYMENTS_EMAIL_SUBJECT:subject}
+        to: ${PBA_CMC_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+      report:
+        scheduler:
+          enabled: ${PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+  divorce:
+    payments:
+      email:
+        from: ${PBA_DIVORCE_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+        message: ${PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+        subject: ${PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT:subject}
+        to: ${PBA_DIVORCE_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+      report:
+        scheduler:
+          enabled: ${PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+  finrem:
+    payments:
+      email:
+        from: ${PBA_FINREM_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+        message: ${PBA_FINREM_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+        subject: ${PBA_FINREM_PAYMENTS_EMAIL_SUBJECT:subject}
+        to: ${PBA_FINREM_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+      report:
+        scheduler:
+          enabled: ${PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+  probate:
+    payments:
+      email:
+        from: ${PBA_PROBATE_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+        message: ${PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+        subject: ${PBA_PROBATE_PAYMENTS_EMAIL_SUBJECT:subject}
+        to: ${PBA_PROBATE_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+      report:
+        scheduler:
+          enabled: ${PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+spring:
+  application:
+    name: payment
+  datasource:
+    driver: org.postgresql.Driver
+    password: payment
+    url: jdbc:postgresql://localhost:5432/payment
+    username: payment
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+    enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+  mail:
+    host: ${SPRING_MAIL_HOST:mta.reform.hmcts.net}
+    port: ${SPRING_MAIL_PORT:25}
+    properties:
+      mail:
+        smtp:
+          ssl:
+            trust: ${EMAIL_SMTP_SSL_TRUST:*}
+          starttls:
+            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
+trusted:
+  s2s:
+    service:
+      names: cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,finrem_payment_service,ccpay_bubble,jui_webapp

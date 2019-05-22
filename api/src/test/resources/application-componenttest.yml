@@ -1,0 +1,122 @@
+auth:
+  externalProvider:
+    service:
+      client:
+        baseUrl: http://any.url/
+azure:
+  servicebus:
+    allow-telemetry: false
+    connection-string: Endpoint=sb://ccpay-servicebus-aat.servicebus.windows.net/;SharedAccessKeyName=SendAndListenSharedAccessKey;SharedAccessKey=ATfNGbCzML84hjtH8T0EoAyI1PyLvxMQ/VOd1lr6UCA=
+    subscription-name: defaultServiceCallbackSubscription
+    topic-name: serviceCallbackTopic
+bar:
+  payments:
+    email:
+      from: ${BAR_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+      message: ${BAR_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>}
+      subject: ${BAR_PAYMENTS_EMAIL_SUBJECT:subject}
+      to: ${BAR_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+    report:
+      scheduler:
+        enabled: ${BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+callback:
+  payments:
+    cutoff:
+      time:
+        in:
+          minutes: 0
+card:
+  payments:
+    email:
+      from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+      message: ${CARD_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>}
+      subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+      to: ${CARD_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+    report:
+      scheduler:
+        enabled: ${CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+feature:
+  payments:
+    service:
+      callback: false
+fees:
+  register:
+    url: http://localhost:${wiremock.port}
+gov:
+  pay:
+    auth:
+      key:
+        cmc: cmc-gov-pay-key
+        divorce: divorce-gov-pay-key
+    operational_services: ccd
+    url: http://localhost:${wiremock.port}/v1/payments
+liberata:
+  api:
+    account:
+      url: http://liberata.com
+pba:
+  cmc:
+    payments:
+      email:
+        from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+        message: ${PBA_CMC_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+        subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+        to: ${CARD_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+      report:
+        scheduler:
+          enabled: ${PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+  divorce:
+    payments:
+      email:
+        from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+        message: ${PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+        subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+        to: ${CARD_PAYMENTS_EMAIL_TO:dummy@gmail.com}
+      report:
+        scheduler:
+          enabled: ${PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+  finrem:
+    payments:
+      email:
+        from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+        message: ${PBA_FINREM_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+        subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+        to: ${CARD_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+      report:
+        scheduler:
+          enabled: ${PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+  probate:
+    payments:
+      email:
+        from: ${CARD_PAYMENTS_EMAIL_FROM:dummy@gmail.com}
+        message: ${PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE:Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>}
+        subject: ${CARD_PAYMENTS_EMAIL_SUBJECT:subject}
+        to: ${CARD_PAYMENTS_EMAIL_TO:dummy@HMCTS.net}
+      report:
+        scheduler:
+          enabled: ${PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED:true}
+service:
+  callback:
+    url: https://payment-node-aat.azurewebsites.net/api/HttpTrigger1?code=d2sOqELbiSwkRpxtduieHlAuJYr8aUqjZpeSiUe6yzP7ESX4AOfboQ==
+spring:
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:9.6://localhost/features
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+  mail:
+    host: ${SPRING_MAIL_HOST:email.host}
+    port: ${SPRING_MAIL_PORT:25}
+    properties:
+      mail:
+        smtp:
+          ssl:
+            trust: ${EMAIL_SMTP_SSL_TRUST:*}
+          starttls:
+            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
+trusted:
+  s2s:
+    service:
+      names: cmc,probate_frontend,divorce,divorce_frontend,ccd_gw,bar_api,finrem_payment_service,ccpay_bubble,jui_webapp
+wiremock:
+  port: 9190
