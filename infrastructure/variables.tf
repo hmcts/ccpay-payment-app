@@ -84,6 +84,10 @@ variable "liberata_oauth2_token_url" {
   default = "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
 }
 
+variable "callback_payments_cutoff_time_in_minutes" {
+  default = "0"
+}
+
 variable "gov_pay_operational_services" {
   default = "ccd_gw,api_gw"
 }
@@ -222,4 +226,8 @@ variable "test_frontend_url" {
 variable telephony_api_gateway_certificate_thumbprints {
   type = "list"
   default = []
+}
+
+variable "spring_profiles_active" {
+  default = "default"
 }
