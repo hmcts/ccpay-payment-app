@@ -12,10 +12,6 @@ public class RemissionDbBackdoor {
     @Autowired
     private RemissionRepository remissionRepository;
 
-    public void create(RemissionRequest remissionRequest) {
-        remissionRepository.save(remissionRequest.toRemission());
-    }
-
     public Remission findByHwfReference(String hwfReference) {
         return remissionRepository.findByHwfReference(hwfReference).orElseThrow(RemissionNotFoundException::new);
     }

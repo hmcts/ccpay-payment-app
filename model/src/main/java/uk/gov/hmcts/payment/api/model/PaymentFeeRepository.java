@@ -9,8 +9,6 @@ public interface PaymentFeeRepository extends CrudRepository<PaymentFee, Integer
 
     <S extends PaymentFee> S save(S entity);
 
-    Optional<PaymentFee> findByReference(String reference);
-
     Optional<PaymentFee> findByPaymentLinkId(Integer id);
 
 }
