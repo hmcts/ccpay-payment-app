@@ -43,6 +43,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
+@Transactional
 public class PaymentGroupControllerTest {
 
     @Autowired
