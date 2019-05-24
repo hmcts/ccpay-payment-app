@@ -39,7 +39,6 @@ public class PaymentRecordDtoMapper {
             .version(feeDto.getVersion())
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .ccdCaseNumber(feeDto.getCcdCaseNumber())
-            .reference(feeDto.getReference())
             .build();
     }
 }

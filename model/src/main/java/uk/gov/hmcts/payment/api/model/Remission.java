@@ -4,22 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Entity
 @Data
 @Builder(builderMethodName = "remissionWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "remissions", indexes = {
+@Table(name = "remission", indexes = {
     @Index(name = "ix_remission_hwf_reference", columnList = "hwf_reference"),
     @Index(name = "ix_remission_ccd_case_number", columnList = "ccd_case_number"),
     @Index(name = "ix_remission_remission_reference", columnList = "remission_reference")
@@ -47,9 +44,23 @@ public class Remission {
     @Column(name = "case_reference")
     private String caseReference;
 
-    @Column(name = "payment_group_reference")
-    private String paymentGroupReference;
-
     @Column(name = "site_id")
     private String siteId;
+
+    @CreationTimestamp
+    @Column(name = "date_created")
+    private Date dateCreated;
+
+    @UpdateTimestamp
+    @Column(name = "date_updated")
+    private Date dateUpdated;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
+    private PaymentFeeLink paymentFeeLink;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fee_id", insertable = false, updatable = false)
+    private PaymentFee fee;
+
 }
