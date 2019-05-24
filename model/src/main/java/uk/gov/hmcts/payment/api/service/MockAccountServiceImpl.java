@@ -12,7 +12,7 @@ import uk.gov.hmcts.payment.api.util.AccountStatus;
 import java.math.BigDecimal;
 
 @Service
-@Profile("mock")
+@Profile("liberataMock")
 public class MockAccountServiceImpl implements AccountService<AccountDto, String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MockAccountServiceImpl.class);
