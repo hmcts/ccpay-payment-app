@@ -17,17 +17,4 @@ import static io.restassured.config.JsonConfig.jsonConfig;
 @ComponentScan("uk.gov.hmcts.payment.integration")
 @PropertySource("classpath:application-integration-tests.properties")
 public class IntegrationTestContextConfiguration {
-//    @Value("${test.url:http://localhost:8080}")
-//    private String baseURL;
-//
-//    @PostConstruct
-//    public void initialize() {
-//        RestAssured.config = RestAssured.config()
-//            .objectMapperConfig(
-//                ObjectMapperConfig.objectMapperConfig().jackson2ObjectMapperFactory((cls, charset) -> new ObjectMapper())
-//            )
-//            .jsonConfig(jsonConfig().numberReturnType(JsonPathConfig.NumberReturnType.BIG_DECIMAL));
-//        RestAssured.useRelaxedHTTPSValidation();
-//        RestAssured.baseURI = baseURL;
-//    }
 }
