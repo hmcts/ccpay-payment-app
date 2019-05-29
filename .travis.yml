@@ -15,7 +15,10 @@ cache:
   - $HOME/.gradle/wrapper/
 script:
   - ./gradlew build
-  - ./gradlew -i --stacktrace integration
+  - ls /tmp/swagger-specs.payment2.json
+  - ls /tmp/swagger-specs.payment-external-api.json
+  - ls /tmp/swagger-specs.reference-data.json
+#  - ./gradlew -i --stacktrace integration
   - ./gradlew jacocoTestReport
 after_success:
   - bash <(curl -s https://codecov.io/bash)
