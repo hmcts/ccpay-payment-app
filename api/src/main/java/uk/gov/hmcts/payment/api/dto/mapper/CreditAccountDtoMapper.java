@@ -6,10 +6,10 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -62,7 +62,7 @@ public class CreditAccountDtoMapper {
     }
 
     public PaymentGroupDto toRetrievePaymentGroupReferenceResponse(PaymentFeeLink paymentFeeLink) {
-        return PaymentGroupDto.paymentGroupWith()
+        return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .payments(paymentFeeLink.getPayments().stream().map(this::toPaymentDto).collect(Collectors.toList()))
             .fees(paymentFeeLink.getFees().stream().map(this::toFeeDto).collect(Collectors.toList()))

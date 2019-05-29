@@ -14,9 +14,7 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
-import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
@@ -58,6 +56,11 @@ public class PaymentsTestDsl {
 
         public PaymentGivenDsl returnUrl(String url) {
             headers.put("return-url", url);
+            return this;
+        }
+
+        public PaymentGivenDsl serviceCallBackUrl(String url) {
+            headers.put("service-callback-url", url);
             return this;
         }
 
@@ -103,6 +106,22 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl createUpfrontRemission(RemissionRequest remissionRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(remissionRequest).post("/remissions");
+            return this;
+        }
+
+        public PaymentWhenDsl createRetrospectiveRemission(RemissionRequest remissionRequest, String paymentGroup, Integer feeId) {
+            response = newRequest().contentType(ContentType.JSON).body(remissionRequest)
+                .post("/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions", paymentGroup, feeId);
+            return this;
+        }
+
+        public PaymentWhenDsl getRemissions(String paymentGroupReference) {
+            response = newRequest().get("/payment-groups/{payment-group-reference}", paymentGroupReference);
+            return this;
+        }
+
         public PaymentWhenDsl updatePaymentStatus(String paymentReference, String status) {
             StringBuilder sb = new StringBuilder("/payments/");
             sb.append(paymentReference);
@@ -126,6 +145,11 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl getCardPayment(String reference) {
             response = newRequest().get("/card-payments/" + reference);
+            return this;
+        }
+
+        public PaymentWhenDsl cardPaymentsStatusUpdateJob() {
+            response = newRequest().patch("/jobs/card-payments-status-update");
             return this;
         }
 
@@ -172,9 +196,20 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentThenDsl ok() {
+            response.then().statusCode(200);
+            return this;
+        }
+
         public PaymentThenDsl created(Consumer<PaymentDto> payment) {
             PaymentDto paymentDto = response.then().statusCode(201).extract().as(PaymentDto.class);
             payment.accept(paymentDto);
+            return this;
+        }
+
+        public <T> PaymentThenDsl gotCreated(Class<T> type, Consumer<T> assertions) {
+            T dto = response.then().statusCode(201).extract().as(type);
+            assertions.accept(dto);
             return this;
         }
 

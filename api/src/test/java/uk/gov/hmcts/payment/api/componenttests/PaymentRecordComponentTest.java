@@ -47,7 +47,6 @@ public class PaymentRecordComponentTest {
         savedPaymentGroup.getFees().stream().forEach(f -> {
             assertThat(f.getCode()).isEqualTo("FEE0123");
             assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("6000.00"));
-            assertThat(f.getReference()).isEqualTo("caseRef_123");
             assertThat(f.getVolume()).isEqualTo(1);
             assertThat(f.getVersion()).isEqualTo("1");
         });
@@ -98,7 +97,6 @@ public class PaymentRecordComponentTest {
             .code("FEE0123")
             .version("1")
             .volume(1)
-            .reference("caseRef_123")
             .build();
 
     }
