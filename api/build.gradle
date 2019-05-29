@@ -22,14 +22,6 @@ sourceSets {
             srcDir file('src/functionalTest/java')
         }
     }
-    integrationTest {
-        java {
-            compileClasspath += main.output
-            runtimeClasspath += main.output
-            srcDir file('src/integrationTest/java')
-        }
-        resources.srcDir file('src/integrationTest/resources')
-    }
 }
 
 apply plugin: 'idea'
@@ -39,8 +31,6 @@ idea {
         testSourceDirs += project.sourceSets.smokeTest.resources.srcDirs
         testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
         testSourceDirs += project.sourceSets.functionalTest.resources.srcDirs
-        testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
-        testSourceDirs += project.sourceSets.integrationTest.resources.srcDirs
     }
 }
 
@@ -130,10 +120,6 @@ dependencies {
     // functional
     functionalTestCompile sourceSets.test.runtimeClasspath
 
-    // integration
-    integrationTestCompile sourceSets.main.runtimeClasspath
-    integrationTestCompile sourceSets.test.runtimeClasspath
-
     compile group: 'com.github.mifmif', name: 'generex', version: '1.0.2'
 
     compile group: 'org.pitest', name: 'pitest', version: '1.3.2'
@@ -154,11 +140,6 @@ task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verifica
 task functionalTest(type: Test, description: 'Runs the functional tests', group: 'Verification') {
     testClassesDirs = sourceSets.functionalTest.output.classesDirs
     classpath = sourceSets.functionalTest.runtimeClasspath
-}
-
-task integration(type: Test, description: 'Runs the integration tests', group: 'Verification') {
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
 }
 
 pitest {
