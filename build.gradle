@@ -172,11 +172,6 @@ task functional(type: GradleBuild, description: 'Runs Functional tests', group: 
     tasks = ['functionalTest']
 }
 
-task integration(type: GradleBuild, description: 'Runs Integration tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
-    tasks = ['integrationTest']
-}
-
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
     //forward projectProperties
     startParameter.projectProperties = project.gradle.startParameter.projectProperties
