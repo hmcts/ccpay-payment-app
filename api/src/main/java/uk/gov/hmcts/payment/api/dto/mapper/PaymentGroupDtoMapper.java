@@ -42,6 +42,7 @@ public class PaymentGroupDtoMapper {
     private PaymentDto toPaymentDto(Payment payment) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
+            .dateCreated(payment.getDateCreated())
             .amount(payment.getAmount())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
@@ -54,6 +55,9 @@ public class PaymentGroupDtoMapper {
             .method(payment.getPaymentMethod() != null ? payment.getPaymentMethod().getName() : null)
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .customerReference(payment.getCustomerReference())
+            .organisationName(payment.getOrganisationName())
+            .accountNumber(payment.getPbaNumber())
             .build();
     }
 
