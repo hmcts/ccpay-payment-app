@@ -1,62 +1,62 @@
 package uk.gov.hmcts.payment.api.validators;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsFirst;
 
 @Component
+@Transactional
 public class DuplicatePaymentValidator {
 
-    private final Payment2Repository paymentRepository;
-    private final UserIdSupplier userIdSupplier;
+    private final DuplicateSpecification duplicateSpecification;
+    private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final int timeInterval;
 
+    private Comparator<PaymentFee> FEE_COMPARATOR  = Comparator.comparing(PaymentFee::getCode)
+        .thenComparing(PaymentFee::getVersion)
+        .thenComparing(PaymentFee::getVolume, nullsFirst(naturalOrder()))
+        .thenComparing(PaymentFee::getCalculatedAmount);
+
     @Autowired
-    public DuplicatePaymentValidator(@Value("${duplicate.payment.check.interval.in.minutes:2}") int timeInterval,
-                                     Payment2Repository paymentRepository, UserIdSupplier userIdSupplier) {
-        this.paymentRepository = paymentRepository;
+    public DuplicatePaymentValidator(DuplicateSpecification duplicateSpecification, @Value("${duplicate.payment.check.interval.in.minutes:2}") int timeInterval,
+                                     PaymentFeeLinkRepository paymentFeeLinkRepository) {
+        this.duplicateSpecification = duplicateSpecification;
+        this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.timeInterval = timeInterval;
-        this.userIdSupplier = userIdSupplier;
     }
 
-    public void checkDuplication(Payment payment) {
-        if (paymentRepository.count(findPayment(payment)) > 0) {
-            throw new DuplicatePaymentException("duplicate payment");
+    public void checkDuplication(Payment payment, List<PaymentFee> requestFees) {
+        List<PaymentFeeLink> dbPayments = paymentFeeLinkRepository.findAll(duplicateSpecification.getBy(payment, timeInterval));
+        if (!dbPayments.isEmpty()) {
+            boolean sameFees = dbPayments.stream()
+                .anyMatch(feePredicate(requestFees));
+            if (sameFees) {
+                throw new DuplicatePaymentException("duplicate payment");
+            }
         }
     }
 
-    private Specification findPayment(Payment payment) {
-        return ((root, query, cb) -> getPredicate(root, cb, payment, userIdSupplier.get()));
+    private Predicate<PaymentFeeLink> feePredicate(List<PaymentFee> requestFees) {
+        return p -> p.getFees().size() == requestFees.size() && IntStream.range(0, requestFees.size())
+                    .allMatch(i-> contains(p.getFees(), requestFees.get(i), FEE_COMPARATOR));
     }
 
-    private Predicate getPredicate(Root<Payment> root, CriteriaBuilder cb, Payment payment, String userId) {
-        List<Predicate> predicates = new ArrayList<>();
-
-        predicates.add(cb.equal(root.get("userId"), userId));
-        predicates.add(cb.equal(root.get("amount"), payment.getAmount()));
-        predicates.add(cb.equal(root.get("serviceType"), payment.getServiceType()));
-
-        if (payment.getCcdCaseNumber() != null) {
-            predicates.add(cb.equal(root.get("ccdCaseNumber"), payment.getCcdCaseNumber()));
-        } else {
-            predicates.add(cb.equal(root.get("caseReference"), payment.getCaseReference()));
-        }
-        Date currentTime = new Date();
-        Date targetTime = DateUtils.addMinutes(currentTime, -1 * timeInterval);
-        predicates.add(cb.between(root.get("dateCreated"), targetTime, currentTime));
-        return cb.and(predicates.toArray(new Predicate[0]));
+    private static <T> boolean contains(List<T> list, T item, Comparator<? super T> comparator) {
+        return list.stream().anyMatch(listItem -> comparator.compare(listItem, item) == 0);
     }
+
 }
