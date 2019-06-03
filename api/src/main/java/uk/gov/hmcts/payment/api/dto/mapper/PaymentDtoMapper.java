@@ -38,7 +38,7 @@ public class PaymentDtoMapper {
     public PaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mappedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
@@ -53,7 +53,7 @@ public class PaymentDtoMapper {
     public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mappedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
@@ -70,7 +70,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
@@ -96,7 +96,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
@@ -119,7 +119,7 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(toStatusHistoryDtos(payment.getStatusHistories()))
             .build();
     }
@@ -139,7 +139,7 @@ public class PaymentDtoMapper {
             .customerReference(payment.getCustomerReference())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
@@ -237,7 +237,7 @@ public class PaymentDtoMapper {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .build();
