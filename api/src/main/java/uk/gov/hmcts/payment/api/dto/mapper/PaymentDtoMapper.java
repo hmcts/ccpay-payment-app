@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -37,7 +38,7 @@ public class PaymentDtoMapper {
     public PaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mappedStatus)
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
@@ -52,7 +53,7 @@ public class PaymentDtoMapper {
     public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).mappedStatus)
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
@@ -69,7 +70,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
@@ -95,7 +96,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
@@ -118,7 +119,7 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
             .statusHistories(toStatusHistoryDtos(payment.getStatusHistories()))
             .build();
     }
@@ -138,7 +139,7 @@ public class PaymentDtoMapper {
             .customerReference(payment.getCustomerReference())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
@@ -184,13 +185,15 @@ public class PaymentDtoMapper {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
-    private PaymentFee toFee(FeeDto feeDto) {
+    public PaymentFee toFee(FeeDto feeDto) {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())
             .netAmount(feeDto.getNetAmount())
             .version(feeDto.getVersion())
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
+            .ccdCaseNumber(feeDto.getCcdCaseNumber())
+            .reference(feeDto.getReference())
             .build();
     }
 
@@ -229,5 +232,27 @@ public class PaymentDtoMapper {
         Method method = CardPaymentController.class.getMethod("retrieve", String.class);
         return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
+
+    public PaymentDto toCreateRecordPaymentResponse(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mappedStatus)
+            .reference(payment.getReference())
+            .dateCreated(payment.getDateCreated())
+            .build();
+    }
+
+    public Payment toPaymentRequest(PaymentRecordRequest paymentRecordRequest) {
+        return Payment.paymentWith()
+            .amount(paymentRecordRequest.getAmount())
+            .caseReference(paymentRecordRequest.getReference())
+            .serviceType(paymentRecordRequest.getService().getName())
+            .currency(paymentRecordRequest.getCurrency().getCode())
+            .siteId(paymentRecordRequest.getSiteId())
+            .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
+            .build();
+    }
+
 
 }
