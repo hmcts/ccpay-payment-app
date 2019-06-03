@@ -128,7 +128,7 @@
         <notes><![CDATA[
             tomcat-embed-websocket-9.0.17.jar, included by uk.gov.hmcts.reform:properties-volume-spring-boot-starter:0.0.4, no update available
 			]]></notes>
-        <gav regex="true">^.*org.apache.tomcat.embed:tomcat-embed-websocket.*$</gav>
+        <gav regex="true">^.*org.apache.tomcat.embed.*$</gav>
         <cve>CVE-2019-0221</cve>
     </suppress>
 
