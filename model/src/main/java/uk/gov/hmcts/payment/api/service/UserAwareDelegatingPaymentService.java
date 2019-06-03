@@ -119,7 +119,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             fillTransientDetails(payment, pciPalPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
-                .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).mappedStatus)
+                .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).getMappedStatus())
                 .errorCode(pciPalPayment.getState().getCode())
                 .message(pciPalPayment.getState().getMessage())
                 .build()));
@@ -128,7 +128,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             fillTransientDetails(payment, govPayPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
-                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mappedStatus)
+                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
                 .errorCode(govPayPayment.getState().getCode())
                 .message(govPayPayment.getState().getMessage())
                 .build()));
@@ -195,7 +195,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .externalStatus(govPayPayment.getState().getStatus())
-                    .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mappedStatus)
+                    .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
                     .errorCode(govPayPayment.getState().getCode())
                     .message(govPayPayment.getState().getMessage())
                     .build()));
