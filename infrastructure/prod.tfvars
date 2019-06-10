@@ -51,5 +51,5 @@ pci_pal_callback_url = "https://core-api-mgmt-prod.azure-api.net/telephony-api/t
 
 callback_payments_cutoff_time_in_minutes = 2
 
-feature_duplicate_payment_check = false
+#feature_duplicate_payment_check = false
 
