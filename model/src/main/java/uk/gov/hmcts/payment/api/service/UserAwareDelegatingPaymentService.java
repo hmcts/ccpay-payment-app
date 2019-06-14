@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFound
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentEvent;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
@@ -120,6 +121,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
                 .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                .eventName(PaymentEvent.STATUS_CHANGE)
                 .errorCode(pciPalPayment.getState().getCode())
                 .message(pciPalPayment.getState().getMessage())
                 .build()));
@@ -129,6 +131,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
                 .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                .eventName(PaymentEvent.STATUS_CHANGE)
                 .errorCode(govPayPayment.getState().getCode())
                 .message(govPayPayment.getState().getMessage())
                 .build()));
@@ -196,6 +199,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .externalStatus(govPayPayment.getState().getStatus())
                     .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                    .eventName(PaymentEvent.STATUS_CHANGE)
                     .errorCode(govPayPayment.getState().getCode())
                     .message(govPayPayment.getState().getMessage())
                     .build()));

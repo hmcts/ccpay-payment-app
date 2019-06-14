@@ -81,6 +81,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService<PaymentFee
                 .reference(referenceUtil.getNext("RC"))
                 .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                     .status(paymentStatusRepository.findByNameOrThrow(PAYMENT_STATUS_PENDING).getName())
+                    .eventName(PaymentEvent.STATUS_CHANGE)
                     .build()))
                 .build()))
             .fees(fees)

@@ -1,76 +1,139 @@
 databaseChangeLog:
-- changeSet:
-    id: 1554989041317-1
-    author: tarun
-    changes:
-    - renameTable:
-        newTableName: remission
-        oldTableName: remissions
+  - changeSet:
+      id: 1554989041317-1
+      author: tarun
+      changes:
+        - renameTable:
+            newTableName: remission
+            oldTableName: remissions
 
-- changeSet:
-    id: 1554989041317-2
-    author: tarun
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: payment_link_id
-            type: INT
-        tableName: remission
-    - addColumn:
-        columns:
-        - column:
-            name: date_created
-            type: TIMESTAMP WITHOUT TIME ZONE
-        tableName: remission
-    - addColumn:
-        columns:
-        - column:
-            name: date_updated
-            type: TIMESTAMP WITHOUT TIME ZONE
-        tableName: remission
+  - changeSet:
+      id: 1554989041317-2
+      author: tarun
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: payment_link_id
+                  type: INT
+            tableName: remission
+        - addColumn:
+            columns:
+              - column:
+                  name: date_created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+            tableName: remission
+        - addColumn:
+            columns:
+              - column:
+                  name: date_updated
+                  type: TIMESTAMP WITHOUT TIME ZONE
+            tableName: remission
 
-- changeSet:
-    id: 1554989041317-3
-    author: tarun
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: payment_link_id
-        baseTableName: remission
-        constraintName: FK_qhrt9c0pejpl89rkokgo4321n
-        deferrable: false
-        initiallyDeferred: false
-        referencedColumnNames: id
-        referencedTableName: payment_fee_link
+  - changeSet:
+      id: 1554989041317-3
+      author: tarun
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: payment_link_id
+            baseTableName: remission
+            constraintName: FK_qhrt9c0pejpl89rkokgo4321n
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: id
+            referencedTableName: payment_fee_link
 
-- changeSet:
-    id: 1554989041317-4
-    author: tarun
-    changes:
-    - dropColumn:
-        columnName: payment_group_reference
-        tableName: remission
+  - changeSet:
+      id: 1554989041317-4
+      author: tarun
+      changes:
+        - dropColumn:
+            columnName: payment_group_reference
+            tableName: remission
 
-- changeSet:
-    id: 1556182260353-5
-    author: tarun
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: fee_id
-            type: INT
-        tableName: remission
+  - changeSet:
+      id: 1556182260353-5
+      author: tarun
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: fee_id
+                  type: INT
+            tableName: remission
 
-- changeSet:
-    id: 1556182260353-6
-    author: tarun
-    changes:
-    - addForeignKeyConstraint:
-          baseColumnNames: fee_id
-          baseTableName: remission
-          constraintName: FK_qhrt4c9wdjjkl11rkokgo8614e
-          deferrable: false
-          initiallyDeferred: false
-          referencedColumnNames: id
-          referencedTableName: fee
+  - changeSet:
+      id: 1556182260353-6
+      author: tarun
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: fee_id
+            baseTableName: remission
+            constraintName: FK_qhrt4c9wdjjkl11rkokgo8614e
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: id
+            referencedTableName: fee
+
+  - changeSet:
+      id: 1556182261234-1
+      author: mateuszs
+      changes:
+        - renameTable:
+            oldTableName: status_history
+            newTableName: payment_event_history
+
+  - changeSet:
+      id: 1556182261234-2
+      author: mateuszs
+      changes:
+        - createTable:
+            tableName: payment_event
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(255)
+        - addColumn:
+            columns:
+              - column:
+                  name: event_name
+                  type: varchar(255)
+            tableName: payment_event_history
+        - addForeignKeyConstraint:
+            baseColumnNames: event_name
+            baseTableName: payment_event_history
+            constraintName: FK_m67it6o1sfd3p5erpddsavanj
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: payment_event
+        - insert:
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  value: "STATUS_CHANGE"
+              - column:
+                  name: description
+                  type: varchar(255)
+                  value: "Payment status has been changed"
+            dbms: hsqldb, postgresql
+            tableName: payment_event
+        - insert:
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  value: "CASE_REF_UPDATE"
+              - column:
+                  name: description
+                  type: varchar(255)
+                  value: "Payment case reference has been updated"
+            dbms: hsqldb, postgresql
+            tableName: payment_event

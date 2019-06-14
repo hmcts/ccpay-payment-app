@@ -164,6 +164,8 @@ public class PaymentController {
         Optional<Payment> payment = getPaymentByReference(reference);
 
         if (payment.isPresent()) {
+            // TODO: make it not update the time of the payment
+            // TODO: add status history update
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
             if (payment.get().getServiceCallbackUrl() != null) {
                 callbackService.callback(payment.get().getPaymentLink(), payment.get());

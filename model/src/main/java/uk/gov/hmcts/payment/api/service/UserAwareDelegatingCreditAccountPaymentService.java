@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentEvent;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
@@ -96,6 +97,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                 .reference(referenceUtil.getNext("RC"))
                 .statusHistories(creditAccount.getStatusHistories() == null ? Arrays.asList(StatusHistory.statusHistoryWith()
                     .status(paymentStatusRepository.findByNameOrThrow(creditAccount.getPaymentStatus().getName()).getName())
+                    .eventName(PaymentEvent.STATUS_CHANGE)
                     .build())
                     : creditAccount.getStatusHistories())
                 .build();

@@ -26,7 +26,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name = "status_history")
+@Table(name = "payment_event_history")
 public class StatusHistory {
 
     @Id
@@ -52,6 +52,10 @@ public class StatusHistory {
 
     @Column(name = "message")
     private String message;
+
+    @ManyToOne
+    @JoinColumn(name = "event_name")
+    private PaymentEvent eventName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", insertable = false, updatable = false)

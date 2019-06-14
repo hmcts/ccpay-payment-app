@@ -128,6 +128,7 @@ public class CreditAccountPaymentController {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .status(payment.getPaymentStatus().getName())
+                    .eventName(PaymentEvent.STATUS_CHANGE)
                     .errorCode("CA-E0001")
                     .message("You have insufficient funds available")
                     .message("Payment request failed. PBA account " + accountDetails.getAccountName()
@@ -140,6 +141,7 @@ public class CreditAccountPaymentController {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .status(payment.getPaymentStatus().getName())
+                    .eventName(PaymentEvent.STATUS_CHANGE)
                     .errorCode("CA-E0003")
                     .message("Your account is on hold")
                     .build()));
@@ -147,6 +149,7 @@ public class CreditAccountPaymentController {
                 payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .status(payment.getPaymentStatus().getName())
+                    .eventName(PaymentEvent.STATUS_CHANGE)
                     .errorCode("CA-E0004")
                     .message("Your account is deleted")
                     .build()));

@@ -43,6 +43,7 @@ public class CreditAccountDtoMapper {
             .errorMessage(statusHistory.getMessage())
             .dateCreated(statusHistory.getDateCreated())
             .dateUpdated(statusHistory.getDateUpdated())
+            .eventName(statusHistory.getEventName().getName())
             .build();
     }
 
@@ -111,6 +112,7 @@ public class CreditAccountDtoMapper {
     private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
         return StatusHistoryDto.statusHistoryDtoWith()
             .status(PayStatusToPayHubStatus.valueOf(statusHistory.getStatus()).mapedStatus)
+            .eventName(statusHistory.getEventName().getName())
             .dateCreated(statusHistory.getDateCreated())
             .build();
     }
