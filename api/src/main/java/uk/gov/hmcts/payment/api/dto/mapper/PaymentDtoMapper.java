@@ -220,7 +220,7 @@ public class PaymentDtoMapper {
             .errorCode(statusHistory.getErrorCode())
             .errorMessage(statusHistory.getMessage())
             .dateCreated(statusHistory.getDateCreated())
-            .eventName(statusHistory.getEventName().getName())
+            .eventName(statusHistory.getEventName() != null ? statusHistory.getEventName().getName() : null)
             .build();
     }
 

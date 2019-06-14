@@ -30,8 +30,12 @@ import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentEvent;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentNoUpdate;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.StatusHistoryNoUpdate;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
@@ -40,6 +44,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -82,11 +87,11 @@ public class PaymentController {
         @ApiResponse(code = 200, message = "No content"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @RequestMapping(value = "/payments/{reference}", method = PATCH)
+    @PatchMapping(value = "/payments/{reference}")
     @Transactional
     public ResponseEntity updateCaseReference(@PathVariable("reference") String reference,
                                               @RequestBody @Validated UpdatePaymentRequest request) {
-        Optional<Payment> payment = getPaymentByReference(reference);
+        Optional<PaymentNoUpdate> payment = getPaymentNoUpdateByReference(reference);
 
         if (payment.isPresent()) {
             if (request.getCaseReference() != null) {
@@ -95,6 +100,15 @@ public class PaymentController {
             if (request.getCcdCaseNumber() != null) {
                 payment.get().setCcdCaseNumber(request.getCcdCaseNumber());
             }
+
+            if (payment.get().getStatusHistories() != null) {
+                List<StatusHistoryNoUpdate> statusHistories = payment.get().getStatusHistories();
+                statusHistories.add(StatusHistoryNoUpdate.statusHistoryWith().eventName(PaymentEvent.CASE_REF_UPDATE).build());
+                payment.get().setStatusHistories(statusHistories);
+            } else {
+                payment.get().setStatusHistories(Collections.singletonList(StatusHistoryNoUpdate.statusHistoryWith().eventName(PaymentEvent.CASE_REF_UPDATE).build()));
+            }
+
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
@@ -164,9 +178,16 @@ public class PaymentController {
         Optional<Payment> payment = getPaymentByReference(reference);
 
         if (payment.isPresent()) {
-            // TODO: make it not update the time of the payment
-            // TODO: add status history update
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
+
+            if (payment.get().getStatusHistories() != null) {
+                List<StatusHistory> statusHistories = payment.get().getStatusHistories();
+                statusHistories.add(StatusHistory.statusHistoryWith().eventName(PaymentEvent.STATUS_CHANGE).build());
+                payment.get().setStatusHistories(statusHistories);
+            } else {
+                payment.get().setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith().eventName(PaymentEvent.STATUS_CHANGE).build()));
+            }
+
             if (payment.get().getServiceCallbackUrl() != null) {
                 callbackService.callback(payment.get().getPaymentLink(), payment.get());
             }
@@ -194,6 +215,17 @@ public class PaymentController {
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(reference);
         return paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(reference)).findAny();
+    }
+
+    private Optional<PaymentNoUpdate> getPaymentNoUpdateByReference(String reference) {
+        PaymentFeeLink paymentFeeLink = paymentService.retrieve(reference);
+        Optional<Payment> payment = paymentFeeLink.getPayments().stream()
+            .filter(p -> p.getReference().equals(reference)).findAny();
+        if (payment.isPresent()) {
+            return Optional.ofNullable(PaymentNoUpdate.fromPayment(payment.get()));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
