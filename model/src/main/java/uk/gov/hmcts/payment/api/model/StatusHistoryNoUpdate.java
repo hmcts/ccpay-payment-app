@@ -67,16 +67,16 @@ public class StatusHistoryNoUpdate {
     public static List<StatusHistoryNoUpdate> fromStatusHistoryUpdateList(List<StatusHistory> statusHistoryList) {
         Function<StatusHistory, StatusHistoryNoUpdate> externalToMyLocation
             = statusHistory -> StatusHistoryNoUpdate.statusHistoryWith()
-                .id(statusHistory.getId())
-                .dateCreated(statusHistory.getDateCreated())
-                .dateUpdated(statusHistory.getDateUpdated())
-                .status(statusHistory.getStatus())
-                .externalStatus(statusHistory.getExternalStatus())
-                .errorCode(statusHistory.getErrorCode())
-                .message(statusHistory.getMessage())
-                .eventName(statusHistory.getEventName())
-                .payment(PaymentNoUpdate.fromPayment(statusHistory.getPayment()))
-                .build();
+            .id(statusHistory.getId())
+            .dateCreated(statusHistory.getDateCreated())
+            .dateUpdated(statusHistory.getDateUpdated())
+            .status(statusHistory.getStatus())
+            .externalStatus(statusHistory.getExternalStatus())
+            .errorCode(statusHistory.getErrorCode())
+            .message(statusHistory.getMessage())
+            .eventName(statusHistory.getEventName())
+            .payment(statusHistory.getPayment() != null ? PaymentNoUpdate.fromPayment(statusHistory.getPayment()) : null)
+            .build();
 
         return statusHistoryList.stream()
             .map(externalToMyLocation)

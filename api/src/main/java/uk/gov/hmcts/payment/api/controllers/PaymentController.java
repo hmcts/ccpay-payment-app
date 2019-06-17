@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,13 +43,12 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
 @RestController
 @Api(tags = {"Payment"})
@@ -102,12 +100,12 @@ public class PaymentController {
             }
 
             if (payment.get().getStatusHistories() != null) {
-                List<StatusHistoryNoUpdate> statusHistories = payment.get().getStatusHistories();
-                statusHistories.add(StatusHistoryNoUpdate.statusHistoryWith().eventName(PaymentEvent.CASE_REF_UPDATE).build());
-                payment.get().setStatusHistories(statusHistories);
+                payment.get().getStatusHistories().add(StatusHistoryNoUpdate.statusHistoryWith().payment(payment.get()).eventName(PaymentEvent.CASE_REF_UPDATE).build());
             } else {
                 payment.get().setStatusHistories(Collections.singletonList(StatusHistoryNoUpdate.statusHistoryWith().eventName(PaymentEvent.CASE_REF_UPDATE).build()));
             }
+
+            payment.get()
 
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -181,9 +179,7 @@ public class PaymentController {
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
 
             if (payment.get().getStatusHistories() != null) {
-                List<StatusHistory> statusHistories = payment.get().getStatusHistories();
-                statusHistories.add(StatusHistory.statusHistoryWith().eventName(PaymentEvent.STATUS_CHANGE).build());
-                payment.get().setStatusHistories(statusHistories);
+                payment.get().getStatusHistories().add(StatusHistory.statusHistoryWith().eventName(PaymentEvent.STATUS_CHANGE).build());
             } else {
                 payment.get().setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith().eventName(PaymentEvent.STATUS_CHANGE).build()));
             }

@@ -27,10 +27,12 @@ import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentEvent;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -39,6 +41,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -150,6 +153,55 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void updateCaseReference_forGivenPaymentReferenceTest_addsToStatusHistory() throws Exception {
+        StatusHistory oldStatusHistory = StatusHistory.statusHistoryWith().status("pending").build();
+
+        //Create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("caseReference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Description1")
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .statusHistories(Collections.singletonList(oldStatusHistory))
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference("RC-1519-9028-1909-3890")
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result1 = restActions.
+            get(format("/credit-account-payments/RC-1519-9028-1909-3890"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        /* -- update payment -- */
+        UpdatePaymentRequest updatePaymentRequest = objectMapper.readValue(updatePaymentRequestJson().getBytes(), UpdatePaymentRequest.class);
+        restActions.patch(format("/payments/" + paymentDto.getReference()), updatePaymentRequest)
+            .andExpect(status().isNoContent())
+            .andReturn();
+
+        MvcResult result3 = restActions.
+            get(format("/credit-account-payments/RC-1519-9028-1909-3890"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentFeeLink updatedPaymentFeeLink = db.findByReference("2018-15186168000");
+        assertEquals(updatedPaymentFeeLink.getPayments().get(0).getStatusHistories().size(), 2);
+        assertEquals(updatedPaymentFeeLink.getPayments().get(0).getStatusHistories().get(1).getEventName(), PaymentEvent.CASE_REF_UPDATE.getName());
+    }
+
+    @Test
     public void updateCaseReference_forGivenPaymentReferenceTest_DoesNotUpdateDateUpdated() throws Exception {
         //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
@@ -178,8 +230,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
-        assertEquals(paymentDto.getCaseReference(), "caseReference");
-        assertEquals(paymentDto.getCcdCaseNumber(), "ccdCaseNumber");
+        assertEquals("caseReference", paymentDto.getCaseReference());
+        assertEquals("ccdCaseNumber", paymentDto.getCcdCaseNumber());
         Date dateUpdated = paymentDto.getDateUpdated();
 
         /* -- update payment -- */
@@ -189,8 +241,13 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isNoContent())
             .andReturn();
 
-        PaymentDto paymentUpdatedDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
-        assertEquals(paymentDto.getDateUpdated(), dateUpdated);
+        MvcResult result3 = restActions.
+            get(format("/credit-account-payments/RC-1519-9028-1909-3890"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentUpdatedDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertEquals(paymentUpdatedDto.getDateUpdated(), dateUpdated);
     }
 
     @Test
@@ -882,7 +939,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     public void retrievePaymentByReference_shouldThrow404_whenReferenceIsUnknown() throws Exception {
         populateCardPaymentToDb("1");
 
-         restActions
+        restActions
             .get("/payments/" + "some_random")
             .andExpect(status().isNotFound())
             .andReturn();
