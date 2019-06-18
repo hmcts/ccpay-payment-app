@@ -16,26 +16,28 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.TelephonyCallback;
-import uk.gov.hmcts.payment.api.model.TelephonyRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
@@ -140,6 +142,42 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .andExpect(status().isNotFound());
 
         verify(callbackServiceImplMock, times(0)).callback(dbPayment.getPaymentLink(), dbPayment);
+    }
+
+    @Test
+    public void retrieveTelephonyPaymentWithDeclineStatusShouldShowDeclinedInResponse() throws Exception {
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("550.00"))
+            .caseReference("Reference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Description")
+            .serviceType("DIVORCE")
+            .currency("GBP")
+            .siteId("AA00")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("pci pal").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("decline").build())
+            .reference("RC-1518-9429-1432-7825")
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("550.00")).version("1").code("FEE0123").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2019-15186162099").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result = restActions
+            .get("/card-payments/" + savedPayment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getReference(), payment.getReference());
+        assertEquals(paymentDto.getStatus(), "Declined");
+
     }
 
 }
