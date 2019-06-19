@@ -280,7 +280,8 @@ module "payment-database" {
   database_name = "${var.database_name}"
   sku_name = "GP_Gen5_2"
   sku_tier = "GeneralPurpose"
-  common_tags     = "${var.common_tags}"
+  common_tags = "${var.common_tags}"
+  subscription = "${var.subscription}"
 }
 
 # Populate Vault with DB info
