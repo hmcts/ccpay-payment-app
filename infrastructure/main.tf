@@ -20,6 +20,8 @@ locals {
 
   asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 
+  sku_size = "${var.env == "prod" || var.env == "sprod" || var.env == "aat" ? "I2" : "I1"}"
+  
   #region API gateway
   thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)}"
   thumbprints_in_quotes_str = "${join(",", local.thumbprints_in_quotes)}"
@@ -158,6 +160,7 @@ module "payment-api" {
   appinsights_instrumentation_key = "${data.azurerm_key_vault_secret.appinsights_instrumentation_key.value}"
   asp_name = "${local.asp_name}"
   asp_rg = "${local.asp_name}"
+  instance_size = "${local.sku_size}"
 
   app_settings = {
     # db
