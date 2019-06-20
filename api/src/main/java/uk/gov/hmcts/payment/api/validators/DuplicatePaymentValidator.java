@@ -31,6 +31,11 @@ public class DuplicatePaymentValidator {
         .thenComparing(PaymentFee::getVolume, nullsFirst(naturalOrder()))
         .thenComparing(PaymentFee::getCalculatedAmount);
 
+    private Comparator<Payment> PAYMENT_COMPARATOR  = Comparator.comparing(Payment::getExternalReference)
+        .thenComparing(Payment::getAmount)
+        .thenComparing(Payment::getReference);
+
+
     @Autowired
     public DuplicatePaymentValidator(DuplicateSpecification duplicateSpecification, @Value("${duplicate.payment.check.interval.in.minutes:2}") int timeInterval,
                                      PaymentFeeLinkRepository paymentFeeLinkRepository) {
@@ -50,9 +55,27 @@ public class DuplicatePaymentValidator {
         }
     }
 
+    public void checkPaymentDuplication(Payment payment, List<PaymentFee> requestFees) {
+        List<PaymentFeeLink> dbPayments = paymentFeeLinkRepository.findAll(duplicateSpecification.getBy(payment, timeInterval));
+        if (!dbPayments.isEmpty()) {
+            boolean samePayment = dbPayments.stream()
+                .allMatch(paymentPredicate(payment,requestFees));
+            if (samePayment) {
+                throw new DuplicatePaymentException("duplicate payment");
+            }
+        }
+    }
+
     private Predicate<PaymentFeeLink> feePredicate(List<PaymentFee> requestFees) {
         return p -> p.getFees().size() == requestFees.size() && IntStream.range(0, requestFees.size())
                     .allMatch(i-> contains(p.getFees(), requestFees.get(i), FEE_COMPARATOR));
+    }
+
+    private Predicate<PaymentFeeLink> paymentPredicate(Payment payment,List<PaymentFee> requestFees) {
+        return p -> IntStream.range(0, p.getPayments().size())
+            .anyMatch(i-> contains(p.getPayments(), payment, PAYMENT_COMPARATOR))
+            && IntStream.range(0, requestFees.size())
+            .allMatch(i-> contains(p.getFees(), requestFees.get(i), FEE_COMPARATOR));
     }
 
     private static <T> boolean contains(List<T> list, T item, Comparator<? super T> comparator) {

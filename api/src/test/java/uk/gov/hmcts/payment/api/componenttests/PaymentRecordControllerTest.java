@@ -653,6 +653,40 @@ public class PaymentRecordControllerTest {
         assertThat(result.getResponse().getContentAsString()).isEqualTo("Invalid siteID: non-existing-site-id");
     }
 
+    @Test
+    @Transactional
+    public void testPaymentForDuplicateFeeAndPayDetails() throws Exception {
+        String startDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        PaymentRecordRequest request = getPaymentForDuplicateCases();
+        MvcResult createResult = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+
+        MvcResult duplicateResult = restActions
+            .post("/payment-records", request)
+            .andExpect(status().is5xxServerError())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void testPaymentForDifferentFeeAndPayDetails() throws Exception {
+        String startDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        PaymentRecordRequest request = getChequePaymentForMultipleCases();
+        MvcResult createResult = restActions
+            .post("/payment-records", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentRecordRequest diffRequest = getPaymentForDuplicateCases();
+        MvcResult duplicateResult = restActions
+            .post("/payment-records", diffRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
 
     private PaymentRecordRequest getChequePaymentForMultipleCases() {
         List<FeeDto> fees = new ArrayList<>(2);
@@ -680,6 +714,41 @@ public class PaymentRecordControllerTest {
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
             .externalReference("1234567")
+            .externalProvider("middle office provider")
+            .giroSlipNo("8898234")
+            .reportedDateOffline(DateTime.now().toString())
+            .siteId("AA001")
+            .fees(fees)
+            .build();
+    }
+
+
+    private PaymentRecordRequest getPaymentForDuplicateCases() {
+        List<FeeDto> fees = new ArrayList<>(2);
+        fees.add(FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .code("FEE0001")
+            .reference("CASE_111")
+            .version("1")
+            .volume(1)
+            .build());
+
+        fees.add(FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .code("FEE0001")
+            .reference("CASE_222")
+            .version("1")
+            .volume(1)
+            .build());
+
+
+        return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
+            .amount(new BigDecimal("1100.00"))
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .reference("REF_123")
+            .service(Service.DIGITAL_BAR)
+            .currency(CurrencyCode.GBP)
+            .externalReference("12345678")
             .externalProvider("middle office provider")
             .giroSlipNo("8898234")
             .reportedDateOffline(DateTime.now().toString())

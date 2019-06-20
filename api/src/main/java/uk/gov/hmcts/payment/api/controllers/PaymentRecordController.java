@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.ff4j.FF4j;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
 import uk.gov.hmcts.payment.api.service.PaymentRecordService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
 import javax.validation.Valid;
@@ -53,16 +55,21 @@ public class PaymentRecordController {
     private final PaymentRecordDtoMapper paymentRecordDtoMapper;
     private final PaymentProviderRepository paymentProviderRespository;
     private final ReferenceDataService<SiteDTO> referenceDataService;
+    private final DuplicatePaymentValidator paymentValidator;
+    private final FF4j ff4j;
 
     @Autowired
     public PaymentRecordController(PaymentRecordService<PaymentFeeLink, String> paymentRecordService,
                                    PaymentRecordDtoMapper paymentRecordDtoMapper,
                                    PaymentProviderRepository paymentProviderRespository,
-                                   ReferenceDataService<SiteDTO> referenceDataService) {
+                                   ReferenceDataService<SiteDTO> referenceDataService,
+                                   DuplicatePaymentValidator paymentValidator, FF4j ff4j) {
         this.paymentRecordService = paymentRecordService;
         this.paymentRecordDtoMapper = paymentRecordDtoMapper;
         this.paymentProviderRespository = paymentProviderRespository;
         this.referenceDataService = referenceDataService;
+        this.paymentValidator = paymentValidator;
+        this.ff4j = ff4j;
     }
 
 
@@ -106,6 +113,8 @@ public class PaymentRecordController {
             .map(f -> paymentRecordDtoMapper.toFee(f))
             .collect(Collectors.toList());
 
+        checkDuplication(payment, fees);
+
         LOG.debug("Record payment for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
         PaymentFeeLink paymentFeeLink = paymentRecordService.recordPayment(payment, fees, paymentGroupReference);
@@ -117,6 +126,12 @@ public class PaymentRecordController {
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
         return ex.getMessage();
+    }
+
+    private void checkDuplication(Payment payment, List<PaymentFee> fees) {
+        if (ff4j.check("duplicate-payment-check")) {
+            paymentValidator.checkPaymentDuplication(payment, fees);
+        }
     }
 }
 

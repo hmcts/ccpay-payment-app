@@ -141,6 +141,95 @@ public class DuplicatePaymentValidatorTest {
         validator.checkDuplication(payment, Lists.newArrayList(requestFee));
     }
 
+    @Test
+    public void shouldThrowException_whenMatchingPaymentsWithSameFeePayDetails() {
+        Payment payment = bPayment();
+        Payment dbpayment = cPayment();
+        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+        PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
+            .payments(Arrays.asList(dbpayment))
+            .fees(Arrays.asList(dbFee))
+            .build();
+        given(duplicateSpecification.getBy(payment, TIME_INTERVAL)).willReturn(mockSpecification);
+        given(paymentFeeLinkRepository.findAll(mockSpecification)).willReturn(Lists.newArrayList(paymentFeeLink));
+
+        //  exception expected.
+        exception.expect(DuplicatePaymentException.class);
+        validator.checkPaymentDuplication(payment, Lists.newArrayList(requestFee));
+    }
+
+    @Test
+    public void shouldReturnNoErrors_whenMatchingPaymentsWithDiffFeePayDetails() {
+        Payment payment = bPayment();
+        Payment dbpayment = dPayment();
+        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+        PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
+            .payments(Arrays.asList(dbpayment))
+            .fees(Arrays.asList(dbFee))
+            .build();
+        given(duplicateSpecification.getBy(payment, TIME_INTERVAL)).willReturn(mockSpecification);
+        given(paymentFeeLinkRepository.findAll(mockSpecification)).willReturn(Lists.newArrayList(paymentFeeLink));
+
+        //  no exception expected.
+        validator.checkPaymentDuplication(payment, Lists.newArrayList(requestFee));
+    }
+
+    @Test
+    public void shouldThrowException_whenMultiplePaymentsWithSameFeePayDetails() {
+        Payment payment = bPayment();
+        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+        PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
+            .payments(Arrays.asList(dPayment(), cPayment()))
+            .fees(Arrays.asList(dbFee))
+            .build();
+        given(duplicateSpecification.getBy(payment, TIME_INTERVAL)).willReturn(mockSpecification);
+        given(paymentFeeLinkRepository.findAll(mockSpecification)).willReturn(Lists.newArrayList(paymentFeeLink));
+
+        // exception expected.
+        exception.expect(DuplicatePaymentException.class);
+        validator.checkPaymentDuplication(payment, Lists.newArrayList(requestFee));
+    }
+
+    @Test
+    public void shouldReturnNoErrors_whenMultiplePaymentsWithDiffFeePayDetails() {
+        Payment payment = dPayment();
+        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+        PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
+            .payments(Arrays.asList(bPayment(), cPayment()))
+            .fees(Arrays.asList(dbFee))
+            .build();
+        given(duplicateSpecification.getBy(payment, TIME_INTERVAL)).willReturn(mockSpecification);
+        given(paymentFeeLinkRepository.findAll(mockSpecification)).willReturn(Lists.newArrayList(paymentFeeLink));
+
+        //  no exception expected.
+        validator.checkPaymentDuplication(payment, Lists.newArrayList(requestFee));
+    }
+
+    @Test
+    public void shouldReturnNoErrors_whenMultiplePaymentsWithDiffFeeDetails() {
+        Payment payment = dPayment();
+        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+        PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("12.99")).version("1").code("X0001").volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
+            .payments(Arrays.asList(bPayment(), cPayment()))
+            .fees(Arrays.asList(dbFee))
+            .build();
+        given(duplicateSpecification.getBy(payment, TIME_INTERVAL)).willReturn(mockSpecification);
+        given(paymentFeeLinkRepository.findAll(mockSpecification)).willReturn(Lists.newArrayList(paymentFeeLink));
+
+        //  no exception expected.
+        validator.checkPaymentDuplication(payment, Lists.newArrayList(requestFee));
+    }
+
     private Payment aPayment() {
         return Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
@@ -150,5 +239,39 @@ public class DuplicatePaymentValidatorTest {
             .reference("RC-1519-9028-1909-3890")
             .build();
     }
+
+    private Payment bPayment() {
+        return Payment.paymentWith()
+            .amount(new BigDecimal("13.99"))
+            .ccdCaseNumber("ccdCaseNumber")
+            .serviceType("Probate")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .reference("RC-1519-9028-1909-3890")
+            .externalReference("EXT-550345")
+            .build();
+    }
+
+    private Payment cPayment() {
+        return Payment.paymentWith()
+            .amount(new BigDecimal("13.99"))
+            .ccdCaseNumber("ccdCaseNumber")
+            .serviceType("Probate")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .reference("RC-1519-9028-1909-3890")
+            .externalReference("EXT-550345")
+            .build();
+    }
+
+    private Payment dPayment() {
+        return Payment.paymentWith()
+            .amount(new BigDecimal("13.99"))
+            .ccdCaseNumber("ccdCaseNumber")
+            .serviceType("Probate")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .reference("RC-1519-9028-1909-3890")
+            .externalReference("EXT-550346")
+            .build();
+    }
+
 
 }
