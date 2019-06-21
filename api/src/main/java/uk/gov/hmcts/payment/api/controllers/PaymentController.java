@@ -144,7 +144,7 @@ public class PaymentController {
                     .build()
             );
 
-        List<PaymentDto> paymentDto = paymentFeeLinks.stream()
+        List<PaymentDto> paymentDto = paymentFeeLinks.parallelStream()
             .map(paymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
 
         return new PaymentsResponse(paymentDto);
