@@ -9,7 +9,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.dto.CcdCaseDetailsDto;
 
 @Service
-@Profile("liberataMock")
+@Profile("ccdMock")
 public class MockCcdDataStoreServiceImpl implements CcdDataStoreService<CcdCaseDetailsDto, String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MockCcdDataStoreServiceImpl.class);
