@@ -6,19 +6,21 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import uk.gov.hmcts.payment.api.dto.CcdCaseDetailsDto;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 
 @Service
 @Profile("ccdMock")
-public class MockCcdDataStoreServiceImpl implements CcdDataStoreService<CcdCaseDetailsDto, String> {
+public class MockCcdDataStoreServiceImpl implements CcdDataStoreClientService<CaseDetails, String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MockCcdDataStoreServiceImpl.class);
 
     @Override
-    public CcdCaseDetailsDto retrieve(String ccdCaseReference) {
-        LOG.info("Called mock liberata account service");
+    public CaseDetails getCase(String userAuthToken, String serviceAuthToken, String ccdCaseReference) {
+        LOG.info("Called mock ccd data store service");
         if ("test-ok".equalsIgnoreCase(ccdCaseReference)) {
-            return CcdCaseDetailsDto.ccdCaseDetailsDtoWith().build();
+            return CaseDetails.builder()
+                .jurisdiction("jurisdiction")
+                .build();
         }
 
         throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Unknown test CCD case reference");
