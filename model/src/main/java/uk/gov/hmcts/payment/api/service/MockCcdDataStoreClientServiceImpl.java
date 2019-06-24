@@ -10,9 +10,9 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 
 @Service
 @Profile("ccdMock")
-public class MockCcdDataStoreServiceImpl implements CcdDataStoreClientService<CaseDetails, String> {
+public class MockCcdDataStoreClientServiceImpl implements CcdDataStoreClientService<CaseDetails, String> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MockCcdDataStoreServiceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MockCcdDataStoreClientServiceImpl.class);
 
     @Override
     public CaseDetails getCase(String userAuthToken, String serviceAuthToken, String ccdCaseReference) {
