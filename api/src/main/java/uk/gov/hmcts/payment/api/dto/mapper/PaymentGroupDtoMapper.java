@@ -5,8 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentGroupFeeRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -26,7 +28,6 @@ public class PaymentGroupDtoMapper {
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         totalHwfAmount = getTotalHwfRemission(paymentFeeLink.getRemissions());
-
         return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .payments(!paymentFeeLink.getPayments().isEmpty() ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
@@ -85,10 +86,29 @@ public class PaymentGroupDtoMapper {
         return FeeDto.feeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
-            .netAmount(fee.getCalculatedAmount().subtract(totalHwfAmount))
+            .netAmount(fee.getCalculatedAmount().subtract(totalHwfAmount != null ? totalHwfAmount : new BigDecimal(0)))
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
+            .build();
+    }
+
+    public PaymentFee buildFee(PaymentGroupFeeRequest paymentGroupFeeRequest) {
+        return PaymentFee.feeWith()
+            .version(paymentGroupFeeRequest.getVersion())
+            .volume(paymentGroupFeeRequest.getVolume())
+            .id(paymentGroupFeeRequest.getId())
+            .calculatedAmount(paymentGroupFeeRequest.getCalculatedAmount())
+            .ccdCaseNumber(paymentGroupFeeRequest.getCcdCaseNumber())
+            .reference(paymentGroupFeeRequest.getReference())
+            .code(paymentGroupFeeRequest.getCode())
+            .build();
+    }
+
+    public PaymentGroupFeeDto toPaymentGroupFeeDto(PaymentFeeLink paymentFeeLink) {
+        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
     }
 }
