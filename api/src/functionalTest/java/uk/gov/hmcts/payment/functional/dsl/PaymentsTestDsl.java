@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentGroupFeeRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -114,6 +115,18 @@ public class PaymentsTestDsl {
         public PaymentWhenDsl createRetrospectiveRemission(RemissionRequest remissionRequest, String paymentGroup, Integer feeId) {
             response = newRequest().contentType(ContentType.JSON).body(remissionRequest)
                 .post("/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions", paymentGroup, feeId);
+            return this;
+        }
+
+        public PaymentWhenDsl addNewFeeAndPaymentGroup(PaymentGroupFeeRequest paymentGroupFeeRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
+                .post("/payment-groups/");
+            return this;
+        }
+
+        public PaymentWhenDsl addNewFeetoExistingPaymentGroup(PaymentGroupFeeRequest paymentGroupFeeRequest, String paymentGroupReference) {
+            response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
+                .put("/payment-groups/{payment-group-reference}", paymentGroupReference);
             return this;
         }
 
