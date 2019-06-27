@@ -42,9 +42,11 @@ withPipeline(type, product, app) {
     enableDbMigration()
     enableSecurityScan()
 
+    before('securityScan') {
+        env.TEST_URL='http://payment-api-aat-staging.service.core-compute-aat.internal'
+        sh './gradlew securityZapApi'
+    }
+
 }
 
-before('securityScan') {
-    env.TEST_URL='http://payment-api-aat-staging.service.core-compute-aat.internal'
-    sh './gradlew securityZapApi'
-}
+
