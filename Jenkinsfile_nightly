@@ -39,6 +39,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withPipeline(type, product, app) {
     setVaultName('ccpay')
     loadVaultSecrets(secrets)
+    enableDbMigration()
     enableSecurityScan()
 
 }
