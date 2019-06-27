@@ -172,6 +172,10 @@ task functional(type: GradleBuild, description: 'Runs Functional tests', group: 
     tasks = ['functionalTest']
 }
 
+task securityZapApi(type: Exec, description: 'Security Zap Api verification') {
+    commandLine './security.sh', System.env.TEST_URL
+}
+
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
     //forward projectProperties
     startParameter.projectProperties = project.gradle.startParameter.projectProperties

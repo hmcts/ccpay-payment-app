@@ -40,5 +40,10 @@ withPipeline(type, product, app) {
     setVaultName('ccpay')
     loadVaultSecrets(secrets)
     enableSecurityScan()
+
+}
+
+before('securityScan') {
     env.TEST_URL='http://payment-api-aat-staging.service.core-compute-aat.internal'
+    sh './gradlew securityZapApi'
 }
