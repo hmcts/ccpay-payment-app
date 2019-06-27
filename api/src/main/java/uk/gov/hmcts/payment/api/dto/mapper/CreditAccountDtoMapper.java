@@ -26,7 +26,7 @@ public class CreditAccountDtoMapper {
     public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .statusHistories(payment.getStatusHistories()
@@ -77,7 +77,7 @@ public class CreditAccountDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .description(payment.getDescription())
@@ -99,7 +99,7 @@ public class CreditAccountDtoMapper {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(toStatusHistoryDtos(payment.getStatusHistories()))
             .build();
     }
@@ -110,7 +110,7 @@ public class CreditAccountDtoMapper {
 
     private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
         return StatusHistoryDto.statusHistoryDtoWith()
-            .status(PayStatusToPayHubStatus.valueOf(statusHistory.getStatus()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(statusHistory.getStatus()).getMappedStatus())
             .dateCreated(statusHistory.getDateCreated())
             .build();
     }
@@ -163,7 +163,7 @@ public class CreditAccountDtoMapper {
             .customerReference(payment.getCustomerReference())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).mapedStatus)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
