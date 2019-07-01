@@ -39,13 +39,7 @@ public class TestConfigProperties {
     public String existingAccountNumber;
 
     @Value("${payments.account.fake.account.number}")
-    public String fakeAccountNumber;
-
-    @Value("${payments.ccd.data.store.existing.account.number}")
-    public String existingCcdCaseNumber;
-
-    @Value("${payments.ccd.data.store.fake.account.number}")
-    public String fakeCcdCaseNumber;
+    public String fakeAccountNumber
 
     @Value("${mock.callback.url.endpoint}")
     public String mockCallBackUrl;
