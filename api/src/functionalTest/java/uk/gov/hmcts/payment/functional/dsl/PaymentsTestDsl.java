@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentGroupFeeRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -118,13 +118,13 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl addNewFeeAndPaymentGroup(PaymentGroupFeeRequest paymentGroupFeeRequest) {
+        public PaymentWhenDsl addNewFeeAndPaymentGroup(FeeDto paymentGroupFeeRequest) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .post("/payment-groups/");
             return this;
         }
 
-        public PaymentWhenDsl addNewFeetoExistingPaymentGroup(PaymentGroupFeeRequest paymentGroupFeeRequest, String paymentGroupReference) {
+        public PaymentWhenDsl addNewFeetoExistingPaymentGroup(FeeDto paymentGroupFeeRequest, String paymentGroupReference) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .put("/payment-groups/{payment-group-reference}", paymentGroupReference);
             return this;

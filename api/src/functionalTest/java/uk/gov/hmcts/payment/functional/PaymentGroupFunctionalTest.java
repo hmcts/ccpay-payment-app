@@ -10,11 +10,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentGroupFeeRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -77,7 +75,7 @@ public class PaymentGroupFunctionalTest {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
-            .then().gotCreated(PaymentGroupFeeDto.class, paymentGroupFeeDto -> {
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
             assertThat(paymentGroupFeeDto).isNotNull();
             assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
             assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
@@ -85,7 +83,7 @@ public class PaymentGroupFunctionalTest {
     }
 
     @Test
-    public void createRemissionWithFeeAndRetrieveByPaymentGroupTest() throws Exception {
+    public void givenAFeeAndRemissionInPG_WheAFeeNeedUpdatingthenFeeShouldBeAddedToExistingGroup() throws Exception {
 
         // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
@@ -115,7 +113,7 @@ public class PaymentGroupFunctionalTest {
                 dsl.given().userToken(USER_TOKEN)
                     .s2sToken(SERVICE_TOKEN)
                     .when().addNewFeetoExistingPaymentGroup(getPaymentFeeGroupRequest(), paymentGroupReference)
-                    .then().got(PaymentGroupFeeDto.class, paymentGroupFeeDto -> {
+                    .then().got(PaymentGroupDto.class, paymentGroupFeeDto -> {
                     assertThat(paymentGroupFeeDto).isNotNull();
                     assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
                 });
@@ -166,8 +164,8 @@ public class PaymentGroupFunctionalTest {
             .build();
     }
 
-    private PaymentGroupFeeRequest getPaymentFeeGroupRequest() {
-        return PaymentGroupFeeRequest.createPaymentGroupRequestDtoWith()
+    private FeeDto getPaymentFeeGroupRequest() {
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250.00"))
             .code("FEE3232")
             .version("1")

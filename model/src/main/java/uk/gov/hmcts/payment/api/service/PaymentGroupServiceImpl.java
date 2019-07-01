@@ -26,13 +26,8 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
     }
 
     @Override
-    public PaymentFeeLink addNewFeeWithPaymentGroup(PaymentFee fee, String paymentGroupReference) {
-        PaymentFeeLink feeLink = PaymentFeeLink.paymentFeeLinkWith()
-            .paymentReference(paymentGroupReference)
-            .fees(Lists.newArrayList(fee))
-            .build();
-        fee.setPaymentLink(feeLink);
-
+    public PaymentFeeLink addNewFeeWithPaymentGroup(PaymentFeeLink feeLink) {
+        
         return paymentFeeLinkRepository.save(feeLink);
     }
 
