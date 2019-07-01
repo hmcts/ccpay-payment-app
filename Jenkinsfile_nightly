@@ -42,7 +42,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 
 
-withPipeline(type, product, app) {
+withNightlyPipeline(type, product, app) {
     env.TEST_URL = params.URL_TO_TEST
 
     env.Rules = params.SecurityRules
