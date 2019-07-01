@@ -39,7 +39,7 @@ public class TestConfigProperties {
     public String existingAccountNumber;
 
     @Value("${payments.account.fake.account.number}")
-    public String fakeAccountNumber
+    public String fakeAccountNumber;
 
     @Value("${mock.callback.url.endpoint}")
     public String mockCallBackUrl;
