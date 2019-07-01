@@ -15,11 +15,9 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentGroupFeeRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -188,7 +186,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewFeewithNoPaymentGroupTest() throws Exception {
-        PaymentGroupFeeRequest request = getPaymentGroupFeeRequest();
+        FeeDto request = getNewFee();
 
         restActions
             .post("/payment-groups", request)
@@ -198,7 +196,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewFeewithNoPaymentGroupNegativeTest() throws Exception {
-        PaymentGroupFeeRequest request = getInvalidPaymentGroupFeeRequest();
+        FeeDto request = getInvalidFee();
 
         restActions
             .post("/payment-groups", request)
@@ -209,35 +207,35 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewFeetoExistingPaymentGroupTest() throws Exception {
-        PaymentGroupFeeRequest request = getPaymentGroupFeeRequest();
+        FeeDto request = getNewFee();
 
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andReturn();
 
-        PaymentGroupFeeDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupFeeDto.class);
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), getPaymentGroupConsecutiveFeeRequest())
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), getConsecutiveFee())
             .andExpect(status().isOk())
             .andReturn();
     }
 
     @Test
     public void addNewFeetoExistingPaymentGroupCountTest() throws Exception {
-        PaymentGroupFeeRequest request = getPaymentGroupFeeRequest();
+        FeeDto request = getNewFee();
 
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andReturn();
 
-        PaymentGroupFeeDto paymentGroupFeeDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupFeeDto.class);
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), getPaymentGroupConsecutiveFeeRequest())
+            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), getConsecutiveFee())
             .andReturn();
 
-        PaymentGroupFeeDto paymentGroupDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupFeeDto.class);
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -272,7 +270,7 @@ public class PaymentGroupControllerTest {
 
         // Adding another fee to the exisitng payment group
         restActions
-            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), getPaymentGroupConsecutiveFeeRequest())
+            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), getConsecutiveFee())
             .andReturn();
 
 
@@ -327,8 +325,8 @@ public class PaymentGroupControllerTest {
             .build();
     }
 
-    private PaymentGroupFeeRequest getPaymentGroupFeeRequest(){
-        return PaymentGroupFeeRequest.createPaymentGroupRequestDtoWith()
+    private FeeDto getNewFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -339,8 +337,8 @@ public class PaymentGroupControllerTest {
 
     }
 
-    private PaymentGroupFeeRequest getInvalidPaymentGroupFeeRequest(){
-        return PaymentGroupFeeRequest.createPaymentGroupRequestDtoWith()
+    private FeeDto getInvalidFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .version("1")
             .volume(2)
@@ -350,8 +348,8 @@ public class PaymentGroupControllerTest {
     }
 
 
-    private PaymentGroupFeeRequest getPaymentGroupConsecutiveFeeRequest(){
-        return PaymentGroupFeeRequest.createPaymentGroupRequestDtoWith()
+    private FeeDto getConsecutiveFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
             .version("1")
