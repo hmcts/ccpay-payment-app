@@ -7,10 +7,17 @@ plugins {
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'findbugs'
     id 'jacoco'
+    id "info.solidsoft.pitest" version '1.3.0'
 }
 
 def springBootVersion = '2.1.5.RELEASE'
 def springCloudVersion = 'Finchley.SR2'
+
+def versions = [
+        pitest      : '1.3.2',
+        gradlePitest: '1.3.0',
+        sonarPitest : '0.5'
+]
 
 
 allprojects {
@@ -77,6 +84,9 @@ subprojects {
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
         compileOnly group: 'net.sourceforge.findbugs', name: 'annotations', version: '1.3.2'
         compile group: 'com.github.tomakehurst', name: 'wiremock', version: '2.5.1'
+        compile group: 'org.pitest', name: 'pitest', version: '1.3.2'
+        compile 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
+        compile 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
     }
 
     test {
@@ -162,6 +172,8 @@ sonarqube {
         property "sonar.exclusions", sonarExclusions.join(", ")
         property "sonar.test.exclusions", sonarExclusions.join(", ")
         property "sonar.coverage.exclusions", sonarExclusions.join(", ")
+        property "sonar.pitest.mode", "reuseReport"
+        property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     }
 }
 
@@ -198,5 +210,26 @@ run {
     if (debug == 'true') {
         jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
     }
+}
+
+pitest {
+    targetClasses = [
+            'uk.gov.hmcts.payment.api.configuration.*',
+            'uk.gov.hmcts.payment.api.controllers.*',
+            'uk.gov.hmcts.payment.api.reports.*',
+            'uk.gov.hmcts.payment.api.scheduler.*',
+            'uk.gov.hmcts.payment.api.servicebus.*',
+            'uk.gov.hmcts.payment.api.exception.*',
+            'uk.gov.hmcts.payment.api.validators.*',
+            'uk.gov.hmcts.payment.api.service.*',
+            'uk.gov.hmcts.payment.api.model.*',
+            'uk.gov.hmcts.payment.api.util.*',
+    ]
+    excludedClasses = [
+    ]
+    threads = 10
+    outputFormats = ['XML', 'HTML']
+    timestampedReports = false
+    mutationThreshold = 75
 }
 
