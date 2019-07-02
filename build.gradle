@@ -160,8 +160,16 @@ def sonarExclusions = [
 ]
 
 pitest {
-    excludedClasses = [
+    targetClasses = [
+            'uk.gov.hmcts.payment.api.controllers.*',
+            'uk.gov.hmcts.payment.api.reports.*',
+            'uk.gov.hmcts.payment.api.scheduler.*',
+            'uk.gov.hmcts.payment.api.servicebus.*',
+            'uk.gov.hmcts.payment.api.model.*',
+            'uk.gov.hmcts.payment.api.service.*',
+            'uk.gov.hmcts.payment.api.service.govpay.*',
     ]
+    excludedClasses = []
     threads = 10
     outputFormats = ['XML', 'HTML']
     timestampedReports = false
