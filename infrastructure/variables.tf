@@ -68,6 +68,10 @@ variable "pci_pal_callback_url" {
   default = "https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback"
 }
 
+variable "core_case_data_api_url" {
+  default = "https://ccd-data-store-api-aat.service.core-compute-aat.internal"
+}
+
 variable "liberata_oauth2_base_url" {
   default = "https://bpacustomerportal.liberata.com/pba/public/api/v2"
 }
