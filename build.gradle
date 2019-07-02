@@ -7,10 +7,17 @@ plugins {
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'findbugs'
     id 'jacoco'
+    id 'info.solidsoft.pitest' version '1.3.0'
 }
 
 def springBootVersion = '2.1.5.RELEASE'
 def springCloudVersion = 'Finchley.SR2'
+
+def versions = [
+        pitest: '1.4.2',
+        gradlePitest: '1.3.0',
+        sonarPitest: '0.5'
+]
 
 allprojects {
     apply plugin: 'maven'
@@ -106,6 +113,9 @@ subprojects {
 
 dependencies {
     compile project(':payment-api')
+    compile group: 'org.pitest', name: 'pitest', version: versions.pitest
+    compile group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: versions.gradlePitest
+    compile group: 'org.codehaus.sonar-plugins', name:'sonar-pitest-plugin', version: versions.sonarPitest
 }
 
 mainClassName = 'uk.gov.hmcts.PaymentApiApplication'
@@ -149,9 +159,20 @@ def sonarExclusions = [
          '**/api/external/client/exceptions/**'
 ]
 
+pitest {
+    excludedClasses = [
+            'uk.gov.hmcts.payment.api.v1.componenttests.*'
+    ]
+    threads = 10
+    outputFormats = ['XML', 'HTML']
+    timestampedReports = false
+    mutationThreshold = 80
+}
+
 sonarqube {
     properties {
         property "sonar.host.url", "https://sonar.reform.hmcts.net/"
+        property "sonar.jacoco.itReportPath", "${project.buildDir}/jacoco/apiTest.exec"
         property "sonar.dynamicAnalysis", "reuseReports"
         property "sonar.java.coveragePlugin", "jacoco"
         property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/test.exec"
@@ -159,6 +180,8 @@ sonarqube {
         property "sonar.exclusions", sonarExclusions.join(", ")
         property "sonar.test.exclusions", sonarExclusions.join(", ")
         property "sonar.coverage.exclusions", sonarExclusions.join(", ")
+        property "sonar.pitest.mode", "reuseReport"
+        property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     }
 }
 
