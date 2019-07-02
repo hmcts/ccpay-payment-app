@@ -144,12 +144,15 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 
 pitest {
     targetClasses = [
+            'uk.gov.hmcts.payment.api.configuration.*',
             'uk.gov.hmcts.payment.api.controllers.*',
             'uk.gov.hmcts.payment.api.reports.*',
             'uk.gov.hmcts.payment.api.scheduler.*',
             'uk.gov.hmcts.payment.api.servicebus.*',
             'uk.gov.hmcts.payment.api.exception.*',
             'uk.gov.hmcts.payment.api.validators.*',
+            'uk.gov.hmcts.payment.api.dto.*',
+            'uk.gov.hmcts.payment.api.logging.*'
     ]
     excludedClasses = [
     ]
