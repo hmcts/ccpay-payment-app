@@ -143,11 +143,21 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 }
 
 pitest {
-    targetClasses = ['uk.gov.hmcts.payment.api.*']
-    excludedClasses = ['uk.gov.hmcts.payment.api.configuration.*',
-                       'uk.gov.hmcts.payment.api.dto.mapper.*',
-                       'uk.gov.hmcts.payment.api.exception.*',
-                       'uk.gov.hmcts.payment.api.reports.config.*']
+    targetClasses = [
+            'uk.gov.hmcts.payment.api.configuration.*',
+            'uk.gov.hmcts.payment.api.dto.mapper.*',
+            'uk.gov.hmcts.payment.api.exception.*',
+            'uk.gov.hmcts.payment.api.reports.*',
+            'uk.gov.hmcts.payment.api.controllers.*',
+            'uk.gov.hmcts.payment.api.email.*',
+            'uk.gov.hmcts.payment.api.scheduler.*',
+            'uk.gov.hmcts.payment.api.servicebus.*',
+            'uk.gov.hmcts.payment.api.validators.*',
+            'uk.gov.hmcts.payment.api.model.*',
+            'uk.gov.hmcts.payment.api.service.*',
+            'uk.gov.hmcts.payment.api.util.*'
+    ]
+    excludedClasses = []
     threads = 10
     outputFormats = ['XML', 'HTML']
     timestampedReports = false
