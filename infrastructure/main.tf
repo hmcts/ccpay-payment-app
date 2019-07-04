@@ -38,11 +38,6 @@ data "azurerm_key_vault_secret" "appinsights_instrumentation_key" {
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
-data "azurerm_key_vault_secret" "core_case_data_api_url" {
-  name = "core-case-data-api-url"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
-}
-
 data "azurerm_key_vault_secret" "pci_pal_account_id_cmc" {
   name = "pci-pal-account-id-cmc"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
