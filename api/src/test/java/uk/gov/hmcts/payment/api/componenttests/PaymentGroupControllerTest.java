@@ -352,6 +352,7 @@ public class PaymentGroupControllerTest {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
+            .id(1)
             .version("1")
             .volume(2)
             .reference("BXsd11253")

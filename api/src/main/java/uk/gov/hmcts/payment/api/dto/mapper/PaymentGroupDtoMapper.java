@@ -93,7 +93,6 @@ public class PaymentGroupDtoMapper {
 
     public PaymentFee toPaymentFee(FeeDto feeDto){
         return PaymentFee.feeWith()
-            .id(feeDto.getId())
             .code(feeDto.getCode())
             .version(feeDto.getVersion())
             .calculatedAmount(feeDto.getCalculatedAmount())
