@@ -11,5 +11,7 @@ public interface PaymentGroupService<T, ID> {
 
     T addNewFeeWithPaymentGroup(PaymentFeeLink feeLink);
 
-    T addNewFeetoExistingPaymentGroup(List<PaymentFee> fee, String PaymentGroupReference);
+    T addNewFeetoExistingPaymentGroup(PaymentFee fee, String PaymentGroupReference);
+
+    List<T> search(String ccdCaseNumber);
 }
