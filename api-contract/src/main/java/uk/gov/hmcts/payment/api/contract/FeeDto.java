@@ -53,4 +53,6 @@ public class FeeDto {
     private String jurisdiction1;
 
     private String jurisdiction2;
+
+    private String description;
 }
