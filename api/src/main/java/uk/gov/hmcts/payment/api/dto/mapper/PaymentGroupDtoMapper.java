@@ -2,7 +2,9 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -12,15 +14,20 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 public class PaymentGroupDtoMapper {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupDtoMapper.class);
+
+    @Autowired
+    private FeesService feesService;
 
     private BigDecimal totalHwfAmount;
 
@@ -73,6 +80,7 @@ public class PaymentGroupDtoMapper {
             .hwfReference(remission.getHwfReference())
             .hwfAmount(remission.getHwfAmount())
             .feeCode(remission.getFee().getCode())
+            .dateCreated(remission.getDateCreated())
             .build();
     }
 
@@ -81,6 +89,9 @@ public class PaymentGroupDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
+
+        Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+
         return FeeDto.feeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
@@ -88,6 +99,7 @@ public class PaymentGroupDtoMapper {
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
+            .description( optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getDescription() : null)
             .build();
     }
 
