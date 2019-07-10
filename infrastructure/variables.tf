@@ -69,7 +69,7 @@ variable "pci_pal_callback_url" {
 }
 
 variable "core_case_data_api_url" {
-  default = "https://ccd-data-store-api-aat.service.core-compute-aat.internal"
+  default = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 }
 
 variable "liberata_oauth2_base_url" {
