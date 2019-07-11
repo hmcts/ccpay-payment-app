@@ -21,7 +21,9 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
@@ -52,7 +54,7 @@ public class PaymentGroupFunctionalTest {
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
-            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
+            SERVICE_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1NjI4NDU3NDF9.hcHsb__F8ISHENnlvN8bDUzmYTx7zErD1NLEhW3QoywoEVv1EdV7t3jZ2EShARdfwWfSkIpnb9K40aKjXfPAwg";
             TOKENS_INITIALIZED = true;
         }
     }
@@ -164,15 +166,15 @@ public class PaymentGroupFunctionalTest {
             .build();
     }
 
-    private FeeDto getPaymentFeeGroupRequest() {
-        return FeeDto.feeDtoWith()
+    private List<FeeDto> getPaymentFeeGroupRequest() {
+        return Arrays.asList(FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250.00"))
             .code("FEE3232")
             .version("1")
             .reference("testRef")
             .volume(2)
             .ccdCaseNumber("1111-2222-3333-4444")
-            .build();
+            .build());
     }
 
     private FeeDto getFee() {

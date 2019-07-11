@@ -20,6 +20,7 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -118,13 +119,13 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl addNewFeeAndPaymentGroup(FeeDto paymentGroupFeeRequest) {
+        public PaymentWhenDsl addNewFeeAndPaymentGroup(List<FeeDto> paymentGroupFeeRequest) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .post("/payment-groups/");
             return this;
         }
 
-        public PaymentWhenDsl addNewFeetoExistingPaymentGroup(FeeDto paymentGroupFeeRequest, String paymentGroupReference) {
+        public PaymentWhenDsl addNewFeetoExistingPaymentGroup(List<FeeDto> paymentGroupFeeRequest, String paymentGroupReference) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .put("/payment-groups/{payment-group-reference}", paymentGroupReference);
             return this;
