@@ -270,7 +270,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .build();
 
         restActions
-            .post("/payment-groups", feeRequest)
+            .post("/payment-groups", Arrays.asList(feeRequest))
             .andReturn();
 
         MvcResult result = restActions
@@ -313,7 +313,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result1 = restActions
-            .post("/payment-groups", feeRequest)
+            .post("/payment-groups", Arrays.asList(feeRequest))
             .andReturn();
 
         PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
@@ -402,7 +402,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         // Adding another fee to the exisitng payment group
         restActions
-            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), consecutiveFeeRequest)
+            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), Arrays.asList(consecutiveFeeRequest))
             .andReturn();
 
         // create new payment which inturns creates a payment group
@@ -410,14 +410,14 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         // post new fee which inturns creates a payment group
         MvcResult result12 = restActions
-            .post("/payment-groups", feeRequest)
+            .post("/payment-groups", Arrays.asList(feeRequest))
             .andReturn();
 
         PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result12.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         // update payment group with another fee
         restActions
-            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), consecutiveFeeRequest)
+            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), Arrays.asList(consecutiveFeeRequest))
             .andReturn();
 
         MvcResult result = restActions
