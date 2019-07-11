@@ -69,10 +69,10 @@ public class CaseController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment Groups retrieved"),
         @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 403, message = "Payment Info Forbidden"),
         @ApiResponse(code = 404, message = "Payment Groups not found")
     })
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
-    @PaymentExternalAPI
     public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
 
         List<PaymentGroupDto> paymentGroups = paymentGroupService
@@ -91,6 +91,12 @@ public class CaseController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentException.class)
     public String notFound(PaymentException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(PaymentGroupNotFoundException.class)
+    public String notFound(PaymentGroupNotFoundException ex) {
         return ex.getMessage();
     }
 
