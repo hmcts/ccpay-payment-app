@@ -21,6 +21,7 @@ public class CcdDataStoreClientServiceImpl implements CcdDataStoreClientService<
         @HystrixProperty(name = "execution.timeout.enabled", value = "false")
     })
     public CaseDetails getCase(String userAuthToken, String serviceAuthToken, String ccdCaseReference) {
+        // Get case details from ccd.
         return coreCaseDataApi.getCase(userAuthToken, serviceAuthToken, ccdCaseReference);
     }
 }
