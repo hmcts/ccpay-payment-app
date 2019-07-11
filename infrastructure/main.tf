@@ -20,6 +20,8 @@ locals {
 
   asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 
+  sku_size = "${var.env == "prod" || var.env == "sprod" || var.env == "aat" ? "I2" : "I1"}"
+  
   #region API gateway
   thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)}"
   thumbprints_in_quotes_str = "${join(",", local.thumbprints_in_quotes)}"
@@ -158,6 +160,7 @@ module "payment-api" {
   appinsights_instrumentation_key = "${data.azurerm_key_vault_secret.appinsights_instrumentation_key.value}"
   asp_name = "${local.asp_name}"
   asp_rg = "${local.asp_name}"
+  instance_size = "${local.sku_size}"
 
   app_settings = {
     # db
@@ -172,6 +175,9 @@ module "payment-api" {
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
+
+    # CCD
+    CORE_CASE_DATA_API_URL = "${var.core_case_data_api_url}"
 
     # PCI PAL
     PCI_PAL_ACCOUNT_ID_CMC = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc.value}"
@@ -280,7 +286,8 @@ module "payment-database" {
   database_name = "${var.database_name}"
   sku_name = "GP_Gen5_2"
   sku_tier = "GeneralPurpose"
-  common_tags     = "${var.common_tags}"
+  common_tags = "${var.common_tags}"
+  subscription = "${var.subscription}"
 }
 
 # Populate Vault with DB info
