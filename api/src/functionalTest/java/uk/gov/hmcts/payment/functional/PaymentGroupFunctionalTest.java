@@ -54,7 +54,7 @@ public class PaymentGroupFunctionalTest {
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
-            SERVICE_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1NjI4NDU3NDF9.hcHsb__F8ISHENnlvN8bDUzmYTx7zErD1NLEhW3QoywoEVv1EdV7t3jZ2EShARdfwWfSkIpnb9K40aKjXfPAwg";
+            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
     }
