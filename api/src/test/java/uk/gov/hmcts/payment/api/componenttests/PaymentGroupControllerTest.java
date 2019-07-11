@@ -186,19 +186,33 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewFeewithNoPaymentGroupTest() throws Exception {
-        FeeDto request = getNewFee();
+        List<FeeDto> request = Arrays.asList(getNewFee());
 
-        restActions
+        MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
             .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto1).isNotNull();
+        assertThat(paymentGroupDto1.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto1.getFees().size()).isEqualTo(1);
+
     }
 
     @Test
     public void addNewFeewithNoPaymentGroupNegativeTest() throws Exception {
-        FeeDto request = getInvalidFee();
+        List<FeeDto> request = Arrays.asList(getInvalidFee());
 
-        restActions
+        MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().is4xxClientError())
             .andReturn();
@@ -207,39 +221,61 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewFeetoExistingPaymentGroupTest() throws Exception {
-        FeeDto request = getNewFee();
+        List<FeeDto> request = Arrays.asList(getNewFee());
 
         MvcResult result = restActions
             .post("/payment-groups", request)
+            .andExpect(status().isCreated())
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), getConsecutiveFee())
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), Arrays.asList(getConsecutiveFee()))
             .andExpect(status().isOk())
             .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
     }
 
     @Test
     public void addNewFeetoExistingPaymentGroupCountTest() throws Exception {
-        FeeDto request = getNewFee();
+        List<FeeDto> request = Arrays.asList(getNewFee());
 
         MvcResult result = restActions
             .post("/payment-groups", request)
+            .andExpect(status().isCreated())
             .andReturn();
 
         PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), getConsecutiveFee())
+            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), Arrays.asList(getConsecutiveFee()))
+            .andExpect(status().isOk())
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto1).isNotNull();
+        assertThat(paymentGroupDto1.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto1.getFees().size()).isEqualTo(2);
+
     }
 
 
@@ -270,7 +306,7 @@ public class PaymentGroupControllerTest {
 
         // Adding another fee to the exisitng payment group
         restActions
-            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), getConsecutiveFee())
+            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(),Arrays.asList(getConsecutiveFee()))
             .andReturn();
 
 
@@ -286,10 +322,11 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
         assertThat(paymentDto.getReference()).isEqualTo(createPaymentResponseDto.getReference());
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
         FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
         assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
+
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
