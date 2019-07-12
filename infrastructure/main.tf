@@ -178,6 +178,7 @@ module "payment-api" {
 
     # CCD
     CORE_CASE_DATA_API_URL = "${var.core_case_data_api_url}"
+    CCD_CLIENT_URL = "${var.core_case_data_api_url}"
 
     # PCI PAL
     PCI_PAL_ACCOUNT_ID_CMC = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc.value}"
