@@ -3,7 +3,7 @@ plugins {
     id "org.sonarqube" version "2.6.2"
     id 'org.springframework.boot' version '2.1.5.RELEASE'
     id 'io.spring.dependency-management' version '1.0.5.RELEASE'
-    id 'org.owasp.dependencycheck' version '4.0.2'
+    id 'org.owasp.dependencycheck' version '5.1.1'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'findbugs'
     id 'jacoco'
