@@ -26,12 +26,11 @@ public class PaymentGroupDtoMapper {
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         totalHwfAmount = getTotalHwfRemission(paymentFeeLink.getRemissions());
-
         return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .payments(!paymentFeeLink.getPayments().isEmpty() ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
-            .remissions(toRemissionDtos(paymentFeeLink.getRemissions()))
             .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
+            .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
             .build();
     }
 
@@ -85,10 +84,22 @@ public class PaymentGroupDtoMapper {
         return FeeDto.feeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
-            .netAmount(fee.getCalculatedAmount().subtract(totalHwfAmount))
+            .netAmount(fee.getCalculatedAmount().subtract(totalHwfAmount != null ? totalHwfAmount : new BigDecimal(0)))
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
+            .build();
+    }
+
+    public PaymentFee toPaymentFee(FeeDto feeDto){
+        return PaymentFee.feeWith()
+            .code(feeDto.getCode())
+            .version(feeDto.getVersion())
+            .calculatedAmount(feeDto.getCalculatedAmount())
+            .ccdCaseNumber(feeDto.getCcdCaseNumber())
+            .volume(feeDto.getVolume())
+            .netAmount(feeDto.getNetAmount())
+            .reference(feeDto.getReference())
             .build();
     }
 }
