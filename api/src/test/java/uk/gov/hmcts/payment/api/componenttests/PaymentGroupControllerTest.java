@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -184,6 +184,151 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isNotFound());
     }
 
+    @Test
+    public void addNewFeewithNoPaymentGroupTest() throws Exception {
+        List<FeeDto> request = Arrays.asList(getNewFee());
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto1).isNotNull();
+        assertThat(paymentGroupDto1.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto1.getFees().size()).isEqualTo(1);
+
+    }
+
+    @Test
+    public void addNewFeewithNoPaymentGroupNegativeTest() throws Exception {
+        List<FeeDto> request = Arrays.asList(getInvalidFee());
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+    }
+
+    @Test
+    public void addNewFeetoExistingPaymentGroupTest() throws Exception {
+        List<FeeDto> request = Arrays.asList(getNewFee());
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), Arrays.asList(getConsecutiveFee()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+    }
+
+    @Test
+    public void addNewFeetoExistingPaymentGroupCountTest() throws Exception {
+        List<FeeDto> request = Arrays.asList(getNewFee());
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), Arrays.asList(getConsecutiveFee()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto1).isNotNull();
+        assertThat(paymentGroupDto1.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto1.getFees().size()).isEqualTo(2);
+
+    }
+
+
+    @Test
+    public void retrievePaymentsAndFeesByPaymentGroupReferenceAfterFeeAdditionTest() throws Exception {
+        CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
+
+        MvcResult result1 = restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+
+        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        // Create a remission
+        // Get fee id
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
+        PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
+
+        // create a partial remission
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        // Adding another fee to the exisitng payment group
+        restActions
+            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(),Arrays.asList(getConsecutiveFee()))
+            .andReturn();
+
+
+        // Retrieve payment by payment group reference
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
+        assertThat(paymentDto.getReference()).isEqualTo(createPaymentResponseDto.getReference());
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
+        FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
+        assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
+        assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
+
+    }
+
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("250.00"))
@@ -214,6 +359,41 @@ public class PaymentGroupControllerTest {
             .calculatedAmount(new BigDecimal("250.00"))
             .version("1")
             .code("FEE0123")
+            .build();
+    }
+
+    private FeeDto getNewFee(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+
+    }
+
+    private FeeDto getInvalidFee(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+    }
+
+
+    private FeeDto getConsecutiveFee(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("100.19"))
+            .code("FEE313")
+            .id(1)
+            .version("1")
+            .volume(2)
+            .reference("BXsd11253")
+            .ccdCaseNumber("1111-2222-2222-1111")
             .build();
     }
 }
