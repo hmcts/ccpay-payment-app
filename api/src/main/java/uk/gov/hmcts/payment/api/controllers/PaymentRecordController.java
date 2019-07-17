@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentRecordDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -50,17 +50,17 @@ public class PaymentRecordController {
     private static final String DEFAULT_CURRENCY = "GBP";
 
     private final PaymentRecordService<PaymentFeeLink, String> paymentRecordService;
-    private final PaymentRecordDtoMapper paymentRecordDtoMapper;
+    private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentProviderRepository paymentProviderRespository;
     private final ReferenceDataService<SiteDTO> referenceDataService;
 
     @Autowired
     public PaymentRecordController(PaymentRecordService<PaymentFeeLink, String> paymentRecordService,
-                                   PaymentRecordDtoMapper paymentRecordDtoMapper,
+                                   PaymentDtoMapper paymentDtoMapper,
                                    PaymentProviderRepository paymentProviderRespository,
                                    ReferenceDataService<SiteDTO> referenceDataService) {
         this.paymentRecordService = paymentRecordService;
-        this.paymentRecordDtoMapper = paymentRecordDtoMapper;
+        this.paymentDtoMapper = paymentDtoMapper;
         this.paymentProviderRespository = paymentProviderRespository;
         this.referenceDataService = referenceDataService;
     }
@@ -103,14 +103,14 @@ public class PaymentRecordController {
             .build();
 
         List<PaymentFee> fees = paymentRecordRequest.getFees().stream()
-            .map(f -> paymentRecordDtoMapper.toFee(f))
+            .map(f -> paymentDtoMapper.toFee(f))
             .collect(Collectors.toList());
 
         LOG.debug("Record payment for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
         PaymentFeeLink paymentFeeLink = paymentRecordService.recordPayment(payment, fees, paymentGroupReference);
 
-        return new ResponseEntity<>(paymentRecordDtoMapper.toCreateRecordPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
+        return new ResponseEntity<>(paymentDtoMapper.toCreateRecordPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

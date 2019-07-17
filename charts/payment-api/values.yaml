@@ -44,6 +44,7 @@ java:
     AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
     FEES_REGISTER_URL: "http://fees-register-api-aat.service.core-compute-aat.internal"
     PAYBUBBLE_HOME_URL: "https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal"
+    CORE_CASE_DATA_API_URL: "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 
     GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
     GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw"
