@@ -98,6 +98,18 @@ public class RestActions {
             .accept(APPLICATION_JSON)));
     }
 
+    public ResultActions put(String urlTemplate) {
+        return put(urlTemplate, null);
+    }
+
+    public ResultActions put(String urlTemplate, Object requestBody) {
+        return translateException(() -> mvc.perform(MockMvcRequestBuilders.put(urlTemplate)
+            .headers(httpHeaders)
+            .content(toJson(requestBody))
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)));
+    }
+
     private String toJson(Object o) {
         return translateException(() -> objectMapper.writeValueAsString(o));
     }
