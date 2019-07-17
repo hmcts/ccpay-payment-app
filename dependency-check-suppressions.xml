@@ -63,6 +63,7 @@
         <cve>CVE-2019-8331</cve>
         <cve>CVE-2015-9251</cve>
         <cve>CVE-2012-6708</cve>
+        <cwe>611</cwe>
     </suppress>
     <suppress>
         <notes><![CDATA[
