@@ -51,5 +51,7 @@ pci_pal_callback_url = "https://core-api-mgmt-prod.azure-api.net/telephony-api/t
 
 callback_payments_cutoff_time_in_minutes = 2
 
+core_case_data_api_url = "http://ccd-data-store-api-prod.service.core-compute-prod.internal"
+
 #feature_duplicate_payment_check = false
 
