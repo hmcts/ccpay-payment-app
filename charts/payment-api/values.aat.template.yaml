@@ -4,3 +4,4 @@ java:
   ingressHost: ${SERVICE_FQDN}
   environment:
     AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
+    CORE_CASE_DATA_API_URL: "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
