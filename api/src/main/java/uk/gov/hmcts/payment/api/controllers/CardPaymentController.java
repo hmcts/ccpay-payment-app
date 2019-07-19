@@ -40,6 +40,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -90,6 +91,19 @@ public class CardPaymentController {
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
+        }
+
+        if (request.getCcdCaseNumber() != null) {
+            request.setFees(request.getFees()
+                .stream()
+                .map(feeDto -> {
+                    if (feeDto.getCcdCaseNumber() == null || feeDto.getCcdCaseNumber().isEmpty()) {
+                        feeDto.setCcdCaseNumber(request.getCcdCaseNumber());
+                    }
+                    return feeDto;
+                })
+                .collect(Collectors.toList())
+            );
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
