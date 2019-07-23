@@ -40,6 +40,7 @@ public class TestConfigProperties {
 
     @Value("${payments.account.fake.account.number}")
     public String fakeAccountNumber;
+
     @Value("${mock.callback.url.endpoint}")
     public String mockCallBackUrl;
 }
