@@ -61,7 +61,11 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         List<PaymentFeeLink> paymentFeeLinkWithMatchingFees
             = paymentFeeLinkRepository.findAll(findPaymentGroupsWithMatchingCriteria(ccdCaseNumber, "fees"));
 
-        List<PaymentFeeLink> paymentFeeLinks = Stream.of(paymentFeeLinkWithMatchingPayments, paymentFeeLinkWithMatchingFees)
+        List<PaymentFeeLink> paymentFeeLinkWithMatchingRemissions
+            = paymentFeeLinkRepository.findAll(findPaymentGroupsWithMatchingCriteria(ccdCaseNumber, "remissions"));
+
+        List<PaymentFeeLink> paymentFeeLinks = Stream.of(paymentFeeLinkWithMatchingPayments, paymentFeeLinkWithMatchingFees,
+            paymentFeeLinkWithMatchingRemissions)
             .flatMap(Collection::stream)
             .distinct().collect(Collectors.toList());
 
@@ -82,9 +86,12 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         if (ccdCaseNumber != null & tablejoin.equals("payments")) {
             Join<PaymentFeeLink, Payment> paymentJoin = root.join(tablejoin, JoinType.LEFT);
             predicates.add(cb.or(cb.equal(paymentJoin.get("ccdCaseNumber"), ccdCaseNumber),(cb.equal(paymentJoin.get("caseReference"), ccdCaseNumber))));
-        } else if (ccdCaseNumber != null){
+        } else if (ccdCaseNumber != null & tablejoin.equals("fees")){
             Join<PaymentFeeLink, PaymentFee> paymentFeeJoin = root.join(tablejoin, JoinType.LEFT);
             predicates.add(cb.equal(paymentFeeJoin.get("ccdCaseNumber"), ccdCaseNumber));
+        } else if (ccdCaseNumber != null & tablejoin.equals("remissions")){
+            Join<PaymentFeeLink, Remission> remissionJoin = root.join(tablejoin, JoinType.LEFT);
+            predicates.add(cb.equal(remissionJoin.get("ccdCaseNumber"), ccdCaseNumber));
         }
 
         return cb.and(predicates.toArray(REF));
