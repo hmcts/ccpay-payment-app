@@ -93,6 +93,19 @@ public class CardPaymentController {
             request.setProvider("gov pay");
         }
 
+        if (request.getCcdCaseNumber() != null && request.getFees() != null) {
+            request.setFees(request.getFees()
+                .stream()
+                .map(feeDto -> {
+                    if (feeDto.getCcdCaseNumber() == null || feeDto.getCcdCaseNumber().isEmpty()) {
+                        feeDto.setCcdCaseNumber(request.getCcdCaseNumber());
+                    }
+                    return feeDto;
+                })
+                .collect(Collectors.toList())
+            );
+        }
+
         if (request.getCcdCaseNumber() != null) {
             request.setFees(request.getFees()
                 .stream()
@@ -115,7 +128,7 @@ public class CardPaymentController {
             .currency(request.getCurrency().getCode())
             .siteId(request.getSiteId())
             .serviceType(request.getService().getName())
-            .fees(paymentDtoMapper.toFees(request.getFees()))
+            .fees( (request.getFees() != null) ? paymentDtoMapper.toFees(request.getFees()) : null)
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())

@@ -50,7 +50,7 @@ public class AppInsightsAuditRepository implements AuditRepository {
             .put("amount", payment.getAmount().toString())
             .put("serviceType", payment.getServiceType())
             .put("status", payment.getStatus())
-            .put("fees", toFeeDtoJson(fees))
+            .put("fees", fees != null ? toFeeDtoJson(fees) : "")
             .build();
         telemetry.trackEvent(name, properties,null);
     }
