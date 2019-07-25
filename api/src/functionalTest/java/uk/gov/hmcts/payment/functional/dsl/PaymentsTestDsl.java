@@ -136,6 +136,11 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl getPaymentGroups(String ccdCaseNumber) {
+            response = newRequest().get("/cases/{ccdcasenumber}/paymentgroups", ccdCaseNumber);
+            return this;
+        }
+
         public PaymentWhenDsl updatePaymentStatus(String paymentReference, String status) {
             StringBuilder sb = new StringBuilder("/payments/");
             sb.append(paymentReference);
@@ -259,6 +264,12 @@ public class PaymentsTestDsl {
         public PaymentThenDsl getPayments(Consumer<PaymentsResponse> paymentsResponseAssertions) {
             PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
             paymentsResponseAssertions.accept(paymentsResponse);
+            return this;
+        }
+
+        public PaymentThenDsl getPaymentGroups(Consumer<PaymentGroupResponse> paymentGroupsResponseAssertions) {
+            PaymentGroupResponse paymentGroupsResponse = response.then().statusCode(200).extract().as(PaymentGroupResponse.class);
+            paymentGroupsResponseAssertions.accept(paymentGroupsResponse);
             return this;
         }
 
