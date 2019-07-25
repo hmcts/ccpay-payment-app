@@ -40,6 +40,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.stream.Collectors;
 
 import java.util.stream.Collectors;
 
@@ -94,7 +95,9 @@ public class CardPaymentController {
             request.setProvider("gov pay");
         }
 
+
         if (request.getCcdCaseNumber() != null && request.getFees() != null) {
+          
             request.setFees(request.getFees()
                 .stream()
                 .map(feeDto -> {
