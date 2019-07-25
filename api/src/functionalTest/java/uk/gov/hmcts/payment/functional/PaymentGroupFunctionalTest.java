@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.functional;
 
 
+import org.apache.commons.lang3.RandomUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +55,7 @@ public class PaymentGroupFunctionalTest {
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
+            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -85,7 +87,7 @@ public class PaymentGroupFunctionalTest {
     }
 
     @Test
-    public void givenAFeeAndRemissionInPG_WheAFeeNeedUpdatingthenFeeShouldBeAddedToExistingGroup() throws Exception {
+    public void givenAFeeAndRemissionInPG_WhenAFeeNeedUpdatingthenFeeShouldBeAddedToExistingGroup() throws Exception {
 
         // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
@@ -140,11 +142,97 @@ public class PaymentGroupFunctionalTest {
             });
     }
 
+    @Test
+    public void givenMultipleFeesAndRemissionWithPaymentInPG_WhenCaseIsSearchedShouldBeReturned() throws Exception {
+
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("1")
+            .code("FEE0123")
+            .build();
+
+        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("A partial remission")
+            .ccdCaseNumber(ccdCaseNumber)
+            .hwfAmount(new BigDecimal("50"))
+            .hwfReference("HR1111")
+            .siteId("Y431")
+            .fee(getFee())
+            .build();
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("550"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .channel("telephony")
+            .currency(CurrencyCode.GBP)
+            .description("A test telephony payment")
+            .provider("pci pal")
+            .service(Service.DIVORCE)
+            .siteId("AA001")
+            .fees(Collections.singletonList(feeDto))
+            .build();
+
+        List<FeeDto> feeDtoList = Arrays.asList(FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("250.00"))
+            .code("FEE3232")
+            .version("1")
+            .reference("testRef")
+            .volume(2)
+            .ccdCaseNumber(ccdCaseNumber)
+            .build());
+
+
+        // TEST create telephony card payment
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://google.co.uk")
+            .when().createCardPayment(cardPaymentRequest)
+            .then().gotCreated(PaymentDto.class, paymentDto -> {
+            assertThat(paymentDto).isNotNull();
+            assertThat(paymentDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(feeDto);
+            assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+
+            String paymentGroupReference = paymentDto.getPaymentGroupReference();
+            FeeDto feeDto1 = paymentDto.getFees().get(0);
+            Integer feeId = feeDto1.getId();
+
+            // TEST create retrospective remission
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .when().createRetrospectiveRemission(remissionRequest, paymentGroupReference, feeId)
+                .then().gotCreated(RemissionDto.class, remissionDto -> {
+                assertThat(remissionDto).isNotNull();
+                assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+                assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+            });
+
+            //Test add new Fee to payment group
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .when().addNewFeetoExistingPaymentGroup(feeDtoList, paymentGroupReference)
+                .then().got(PaymentGroupDto.class, paymentGroupFeeDto -> {
+                assertThat(paymentGroupFeeDto).isNotNull();
+                assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+            });
+
+            // TEST retrieve payments, remissions and fees by payment-group-reference
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .when().getPaymentGroups(ccdCaseNumber)
+                .then().getPaymentGroups((paymentGroupsResponse -> {
+                Assertions.assertThat(paymentGroupsResponse.getPaymentGroups().size()).isEqualTo(1);
+            }));
+
+        });
+    }
+
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("550"))
-            .ccdCaseNumber("1111-2222-3333-4444")
+            .ccdCaseNumber("1111-CCD2-3333-4444")
             .channel("telephony")
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
@@ -158,7 +246,7 @@ public class PaymentGroupFunctionalTest {
     private RemissionRequest getRemissionRequest() {
         return RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
-            .ccdCaseNumber("1111-2222-3333-4444")
+            .ccdCaseNumber("1111-CCD2-3333-4444")
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .siteId("Y431")
@@ -173,14 +261,14 @@ public class PaymentGroupFunctionalTest {
             .version("1")
             .reference("testRef")
             .volume(2)
-            .ccdCaseNumber("1111-2222-3333-4444")
+            .ccdCaseNumber("1111-CCD2-3333-4444")
             .build());
     }
 
     private FeeDto getFee() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
-            .ccdCaseNumber("1111-2222-3333-4444")
+            .ccdCaseNumber("1111-CCD2-3333-4444")
             .version("1")
             .code("FEE0123")
             .build();
