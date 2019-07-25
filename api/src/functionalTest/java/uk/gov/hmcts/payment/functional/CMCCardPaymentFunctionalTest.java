@@ -77,6 +77,7 @@ public class CMCCardPaymentFunctionalTest {
 
     @Test
     public void createCMCCardPaymentWithoutFeesTestShouldReturn201Success() {
+
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("29.34"))
             .description("New passport application")
@@ -85,6 +86,7 @@ public class CMCCardPaymentFunctionalTest {
             .currency(CurrencyCode.GBP)
             .siteId("AA101")
             .build();
+
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.google.com")
@@ -94,6 +96,7 @@ public class CMCCardPaymentFunctionalTest {
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
     }
+
 
     @Test
     public void retrieveCMCCardPaymentTestShouldReturn200Success() {
