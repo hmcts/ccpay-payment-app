@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -15,6 +16,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
 import javax.validation.ConstraintViolationException;
@@ -59,11 +61,17 @@ public class PaymentGroupController {
         @ApiResponse(code = 400, message = "Payment group creation failed")
     })
     @PostMapping(value = "/payment-groups")
-    public ResponseEntity<PaymentGroupDto> addNewFee(@Valid @RequestBody List<FeeDto> feeDtoList) {
+    public ResponseEntity<PaymentGroupDto> addNewFee(@Valid @RequestBody PaymentGroupDto paymentGroupDto) {
 
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        List<PaymentFee> feeList = feeDtoList.stream()
+        paymentGroupDto.getFees().stream().forEach(f -> {
+            if (f.getCcdCaseNumber() == null && f.getReference() == null){
+                throw new InvalidFeeRequestException("Either ccdCaseNumber or caseReference is required.");
+            }
+        });
+
+        List<PaymentFee> feeList = paymentGroupDto.getFees().stream()
             .map(paymentGroupDtoMapper::toPaymentFee).collect(Collectors.toList());
 
         PaymentFeeLink feeLink = PaymentFeeLink.paymentFeeLinkWith()
@@ -86,10 +94,16 @@ public class PaymentGroupController {
     })
     @PutMapping(value = "/payment-groups/{payment-group-reference}")
     public ResponseEntity<PaymentGroupDto> addNewFeetoPaymentGroup(@PathVariable("payment-group-reference") String paymentGroupReference,
-                                                                   @Valid @RequestBody List<FeeDto> feeDtoList) {
+                                                                   @Valid @RequestBody PaymentGroupDto paymentGroupDto) {
+
+        paymentGroupDto.getFees().stream().forEach(f -> {
+            if (f.getCcdCaseNumber() == null && f.getReference() == null){
+                throw new InvalidFeeRequestException("Either ccdCaseNumber or caseReference is required.");
+            }
+        });
 
         PaymentFeeLink paymentFeeLink = paymentGroupService.
-            addNewFeetoExistingPaymentGroup(feeDtoList.stream()
+            addNewFeetoExistingPaymentGroup(paymentGroupDto.getFees().stream()
                 .map(paymentGroupDtoMapper::toPaymentFee).collect(Collectors.toList()), paymentGroupReference);
 
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
@@ -104,6 +118,18 @@ public class PaymentGroupController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ConstraintViolationException.class)
     public String return400(ConstraintViolationException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidFeeRequestException.class)
+    public String return400(InvalidFeeRequestException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public String return400(MethodArgumentNotValidException ex) {
         return ex.getMessage();
     }
 }
