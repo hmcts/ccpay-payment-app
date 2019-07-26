@@ -119,13 +119,13 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl addNewFeeAndPaymentGroup(List<FeeDto> paymentGroupFeeRequest) {
+        public PaymentWhenDsl addNewFeeAndPaymentGroup(PaymentGroupDto paymentGroupFeeRequest) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .post("/payment-groups/");
             return this;
         }
 
-        public PaymentWhenDsl addNewFeetoExistingPaymentGroup(List<FeeDto> paymentGroupFeeRequest, String paymentGroupReference) {
+        public PaymentWhenDsl addNewFeetoExistingPaymentGroup(PaymentGroupDto paymentGroupFeeRequest, String paymentGroupReference) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .put("/payment-groups/{payment-group-reference}", paymentGroupReference);
             return this;

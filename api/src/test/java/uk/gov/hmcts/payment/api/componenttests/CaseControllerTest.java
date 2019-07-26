@@ -269,8 +269,12 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeRequest))
+            .build();
+
         restActions
-            .post("/payment-groups", Arrays.asList(feeRequest))
+            .post("/payment-groups", paymentGroupDto)
             .andReturn();
 
         MvcResult result = restActions
@@ -312,14 +316,22 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeRequest))
+            .build();
+
+        PaymentGroupDto consecutivePaymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(consecutiveFeeRequest))
+            .build();
+
         MvcResult result1 = restActions
-            .post("/payment-groups", Arrays.asList(feeRequest))
+            .post("/payment-groups", paymentGroupDto)
             .andReturn();
 
         PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), consecutiveFeeRequest)
+            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), consecutivePaymentGroupDto)
             .andReturn();
 
         MvcResult result = restActions
@@ -386,6 +398,14 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated())
             .andReturn();
 
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(consecutiveFeeRequest))
+            .build();
+
+        PaymentGroupDto newPaymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeRequest))
+            .build();
+
 
         PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
 
@@ -402,7 +422,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         // Adding another fee to the exisitng payment group
         restActions
-            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), Arrays.asList(consecutiveFeeRequest))
+            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), paymentGroupDto)
             .andReturn();
 
         // create new payment which inturns creates a payment group
@@ -410,14 +430,14 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         // post new fee which inturns creates a payment group
         MvcResult result12 = restActions
-            .post("/payment-groups", Arrays.asList(feeRequest))
+            .post("/payment-groups", newPaymentGroupDto)
             .andReturn();
 
         PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result12.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         // update payment group with another fee
         restActions
-            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), Arrays.asList(consecutiveFeeRequest))
+            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), paymentGroupDto)
             .andReturn();
 
         MvcResult result = restActions

@@ -174,14 +174,15 @@ public class PaymentGroupFunctionalTest {
             .fees(Collections.singletonList(feeDto))
             .build();
 
-        List<FeeDto> feeDtoList = Arrays.asList(FeeDto.feeDtoWith()
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+        .fees(Arrays.asList(FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250.00"))
             .code("FEE3232")
             .version("1")
             .reference("testRef")
             .volume(2)
             .ccdCaseNumber(ccdCaseNumber)
-            .build());
+            .build())).build();
 
 
         // TEST create telephony card payment
@@ -211,7 +212,7 @@ public class PaymentGroupFunctionalTest {
             //Test add new Fee to payment group
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().addNewFeetoExistingPaymentGroup(feeDtoList, paymentGroupReference)
+                .when().addNewFeetoExistingPaymentGroup(groupDto, paymentGroupReference)
                 .then().got(PaymentGroupDto.class, paymentGroupFeeDto -> {
                 assertThat(paymentGroupFeeDto).isNotNull();
                 assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
@@ -254,15 +255,16 @@ public class PaymentGroupFunctionalTest {
             .build();
     }
 
-    private List<FeeDto> getPaymentFeeGroupRequest() {
-        return Arrays.asList(FeeDto.feeDtoWith()
+    private PaymentGroupDto getPaymentFeeGroupRequest() {
+        return PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250.00"))
             .code("FEE3232")
             .version("1")
             .reference("testRef")
             .volume(2)
             .ccdCaseNumber("1111-CCD2-3333-4444")
-            .build());
+            .build())).build();
     }
 
     private FeeDto getFee() {
