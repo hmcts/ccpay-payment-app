@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 
+import javax.validation.Valid;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -28,6 +29,7 @@ public class PaymentGroupDto {
 
     private List<RemissionDto> remissions;
 
+    @Valid
     private List<FeeDto> fees;
 
 }
