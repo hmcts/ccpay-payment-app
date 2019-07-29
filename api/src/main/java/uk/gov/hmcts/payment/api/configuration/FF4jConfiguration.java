@@ -30,6 +30,9 @@ public class FF4jConfiguration {
     @Value("${feature.duplicate.payment.check}")
     private boolean duplicatePaymentCheck = true;
 
+    @Value("${feature.case.reference.validation}")
+    private boolean caseRefValidation = false;
+
     @Bean
     public FF4j getFf4j() {
 
@@ -60,12 +63,18 @@ public class FF4jConfiguration {
             duplicatePaymentCheck,
             "duplicate payment check");
 
+        Feature caseRefValidationFeature = new Feature(
+            "caseref-validation",
+            caseRefValidation,
+            "enable validate case id in payhub");
+
         return new FF4j()
             .createFeature(paymentSearchFeature)
             .createFeature(paymentServiceCallbackFeature)
             .createFeature(creditAccountPaymentLiberataCheckFeature)
             .createFeature(checkLiberataAccountForAllServicesFeature)
-            .createFeature(duplicatePaymentCheckFeature);
+            .createFeature(duplicatePaymentCheckFeature)
+            .createFeature(caseRefValidationFeature);
     }
 
     @Bean
