@@ -186,7 +186,9 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewFeewithNoPaymentGroupTest() throws Exception {
-        List<FeeDto> request = Arrays.asList(getNewFee());
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
 
         MvcResult result = restActions
             .post("/payment-groups", request)
@@ -210,18 +212,25 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewFeewithNoPaymentGroupNegativeTest() throws Exception {
-        List<FeeDto> request = Arrays.asList(getInvalidFee());
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getInvalidFee()))
+            .build();
 
         MvcResult result = restActions
             .post("/payment-groups", request)
-            .andExpect(status().is4xxClientError())
+            .andExpect(status().isBadRequest())
             .andReturn();
 
     }
 
     @Test
     public void addNewFeetoExistingPaymentGroupTest() throws Exception {
-        List<FeeDto> request = Arrays.asList(getNewFee());
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
 
         MvcResult result = restActions
             .post("/payment-groups", request)
@@ -235,7 +244,7 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
 
         MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), Arrays.asList(getConsecutiveFee()))
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -248,8 +257,137 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    public void addNewFeewithNoCaseDetailsTest() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFeeWithOutCaseDetails()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    }
+
+    @Test
+    public void addNewFeewithCcdCaseNumberOnlyTest() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFeeWithCCDcasenumberOnly()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
+    @Test
+    public void addNewFeewithCaseReferenceOnlyTest() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFeeWithCaseReferenceOnly()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
+    @Test
+    public void attachNewFeewithNoCaseDetailsTest() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFeeWithOutCaseDetails()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    }
+
+    @Test
+    public void attachNewFeewithCcdCaseNumberOnlyTest() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFeeWithCCDcasenumberOnly()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+    }
+
+    @Test
+    public void attachNewFeewithCaseReferenceOnlyTest() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFeeWithCaseReferenceOnly()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+    }
+
+
+    @Test
     public void addNewFeetoExistingPaymentGroupCountTest() throws Exception {
-        List<FeeDto> request = Arrays.asList(getNewFee());
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getConsecutiveFee()))
+            .build();
 
         MvcResult result = restActions
             .post("/payment-groups", request)
@@ -259,7 +397,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), Arrays.asList(getConsecutiveFee()))
+            .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), consecutiveRequest)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -282,6 +420,10 @@ public class PaymentGroupControllerTest {
     @Test
     public void retrievePaymentsAndFeesByPaymentGroupReferenceAfterFeeAdditionTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getConsecutiveFee()))
+            .build();
 
         MvcResult result1 = restActions
             .withReturnUrl("https://www.google.com")
@@ -306,7 +448,7 @@ public class PaymentGroupControllerTest {
 
         // Adding another fee to the exisitng payment group
         restActions
-            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(),Arrays.asList(getConsecutiveFee()))
+            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(),request)
             .andReturn();
 
 
@@ -370,6 +512,38 @@ public class PaymentGroupControllerTest {
             .volume(2)
             .reference("BXsd1123")
             .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+
+    }
+
+    private FeeDto getNewFeeWithOutCaseDetails(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .build();
+
+    }
+
+    private FeeDto getNewFeeWithCCDcasenumberOnly(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+
+    }
+
+    private FeeDto getNewFeeWithCaseReferenceOnly(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
             .build();
 
     }
