@@ -6,10 +6,9 @@ postgresql:
   nameOverride: payment-db
   persistence:
     enabled: false
-tags:
-  postgresql-pod: true
 java:
-  image: 'https://hmcts.azurecr.io/hmcts/payment-api:latest'
+  image: ${IMAGE_NAME}
+  ingressHost: ${SERVICE_FQDN}
 
   applicationPort: 8080
   keyVaults:
