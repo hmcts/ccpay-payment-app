@@ -146,8 +146,31 @@ public class RemissionControllerTest {
             .andReturn();
 
         Remission savedRemission = remissionDbBackdoor.findByHwfReference(hwfReference);
+        assertEquals(remissionDto.getCcdCaseNumber(), savedRemission.getCcdCaseNumber());
         assertEquals(remissionDto.getCaseReference(), savedRemission.getCaseReference());
         assertEquals(remissionDto.getHwfReference(), savedRemission.getHwfReference());
+    }
+
+    @Test
+    @Transactional
+    public void correctAndValidRemissionWithoutCCDNumberInFeeDataShouldSaveToDb() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference(hwfReference)
+            .siteId("AA001")
+            .fee(getFeeWithOutCCDCaseNumber())
+            .build();
+
+        MvcResult result =  restActions
+            .post("/remission", remissionRequest)
+            .andReturn();
+
+        RemissionDto remissionResultDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertEquals(remissionRequest.getCcdCaseNumber(),remissionResultDto.getFee().getCcdCaseNumber());
     }
 
     @Test
@@ -648,6 +671,7 @@ public class RemissionControllerTest {
         RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
         assertThat(remissionDto).isNotNull();
         assertThat(remissionDto.getRemissionReference()).startsWith("RM");
+        assertThat(remissionRequest.getCcdCaseNumber()).isEqualTo(remissionDto.getFee().getCcdCaseNumber());
     }
 
     @Test
@@ -675,6 +699,8 @@ public class RemissionControllerTest {
 
         RemissionDto createRemissionResponseDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), RemissionDto.class);
         assertThat(createRemissionResponseDto).isNotNull();
+
+        assertThat(createRemissionResponseDto.getFee().getCcdCaseNumber()).isEqualTo(createPaymentResponseDto.getFees().get(0).getCcdCaseNumber());
         assertThat(createRemissionResponseDto.getPaymentGroupReference()).isEqualTo(createPaymentResponseDto.getPaymentGroupReference());
         assertThat(createRemissionResponseDto.getPaymentReference()).isEqualTo(createPaymentResponseDto.getReference());
         assertThat(paymentFeeLink.getFees().size()).isEqualTo(1);
@@ -722,6 +748,14 @@ public class RemissionControllerTest {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("10.00"))
             .ccdCaseNumber("CCD1234")
+            .version("1")
+            .code("FEE0123")
+            .build();
+    }
+
+    private FeeDto getFeeWithOutCCDCaseNumber() {
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("10.00"))
             .version("1")
             .code("FEE0123")
             .build();
