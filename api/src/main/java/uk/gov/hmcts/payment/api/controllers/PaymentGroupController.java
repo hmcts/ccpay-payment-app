@@ -11,10 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -164,7 +162,7 @@ public class PaymentGroupController {
 
             paymentFeeLink = delegatingPaymentService.update(paymentServiceRequest);
             Payment payment = getPayment(paymentFeeLink, paymentServiceRequest.getPaymentReference());
-            PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment,paymentGroupReference );
+            PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
 
             if (paymentDtoRequest.getChannel().equals("telephony") && paymentDtoRequest.getExternalProvider().equals("pci pal")) {
                 PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().
@@ -175,8 +173,9 @@ public class PaymentGroupController {
                 paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentFeeLink, payment, link);
             }
             paymentGroupResponse = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
-            List<PaymentDto> paymentDtoList = paymentGroupResponse.getPayments().stream().filter(
-                paymentDto1 -> ! paymentDto1.getPaymentReference().equals(paymentServiceRequest.getPaymentReference())).collect(Collectors.toList());
+            List<PaymentDto> paymentDtoList = paymentGroupResponse.getPayments().stream()
+                .filter( paymentDto1 -> !paymentDto1.getReference().equals(paymentServiceRequest.getPaymentReference()))
+                .collect(Collectors.toList());
             paymentGroupResponse.setPayments(paymentDtoList);
             paymentGroupResponse.getPayments().add(paymentDto);
         }
