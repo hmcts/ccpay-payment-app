@@ -54,6 +54,21 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
+    public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = delegate.update(paymentServiceRequest);
+
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
+            PAYMENT_ID, payment.getId(),
+            USER_ID, userIdSupplier.get(),
+            EVENT_TYPE, "create",
+            AMOUNT, payment.getAmount(),
+            REFERENCE, payment.getReference()
+        )));
+        return paymentFeeLink;
+    }
+
+    @Override
     public PaymentFeeLink retrieve(String paymentReference) {
         return delegate.retrieve(paymentReference);
     }
