@@ -91,6 +91,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
     @Override
+    public PciPalPayment update(PaymentServiceRequest paymentServiceRequest) {
+        return null;
+    }
+
+    @Override
     public PciPalPayment retrieve(String s) {
         return null;
     }
