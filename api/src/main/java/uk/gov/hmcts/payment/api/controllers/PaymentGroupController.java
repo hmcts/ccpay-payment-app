@@ -176,7 +176,7 @@ public class PaymentGroupController {
             }
             paymentGroupResponse = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
             List<PaymentDto> paymentDtoList = paymentGroupResponse.getPayments().stream().filter(
-                paymentDto1 -> paymentDto1.getPaymentReference() != paymentServiceRequest.getPaymentReference()).collect(Collectors.toList());
+                paymentDto1 -> ! paymentDto1.getPaymentReference().equals(paymentServiceRequest.getPaymentReference())).collect(Collectors.toList());
             paymentGroupResponse.setPayments(paymentDtoList);
             paymentGroupResponse.getPayments().add(paymentDto);
         }
@@ -186,7 +186,7 @@ public class PaymentGroupController {
 
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
         return paymentFeeLink.getPayments().stream().
-            filter(p -> p.getReference() == paymentReference).findFirst().get();
+            filter(p -> p.getReference().equals(paymentReference)).findFirst().orElseThrow(InvalidPaymentGroupReferenceException::new);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
