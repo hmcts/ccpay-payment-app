@@ -60,6 +60,7 @@ public class PaymentGroupDtoMapper {
             .method(payment.getPaymentMethod() != null ? payment.getPaymentMethod().getName() : null)
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .dateCreated(payment.getDateCreated() != null ? payment.getDateCreated() : null)
             .build();
     }
 
