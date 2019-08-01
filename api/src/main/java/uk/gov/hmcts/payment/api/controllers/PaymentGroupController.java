@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
 import io.swagger.annotations.*;
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +12,20 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
@@ -35,11 +45,27 @@ public class PaymentGroupController {
 
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
 
+    private final PaymentDtoMapper paymentDtoMapper;
+
+    private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+
+    private final PciPalPaymentService pciPalPaymentService;
+
+    private final ReferenceUtil referenceUtil;
+
 
     @Autowired
-    public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper) {
+    public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
+                                  DelegatingPaymentService delegatingPaymentService,
+                                  PaymentDtoMapper paymentDtoMapper,
+                                  PciPalPaymentService pciPalPaymentService,
+                                  ReferenceUtil referenceUtil) {
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
+        this.delegatingPaymentService = delegatingPaymentService;
+        this.paymentDtoMapper = paymentDtoMapper;
+        this.pciPalPaymentService = pciPalPaymentService;
+        this.referenceUtil = referenceUtil;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -86,27 +112,81 @@ public class PaymentGroupController {
     }
 
 
-    @ApiOperation(value = "Add new Fee(s) to existing Payment Group", notes = "Add new Fee(s) to existing Payment Group")
+    @ApiOperation(value = "Add new Fee(s)/Payment to existing Payment Group", notes = "Add new Fee(s)/Payment to existing Payment Group")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Fee(s) added to Payment Group"),
+        @ApiResponse(code = 200, message = "Payment group updated"),
         @ApiResponse(code = 400, message = "Payment group creation failed"),
         @ApiResponse(code = 404, message = "Payment Group not found")
     })
     @PutMapping(value = "/payment-groups/{payment-group-reference}")
-    public ResponseEntity<PaymentGroupDto> addNewFeetoPaymentGroup(@PathVariable("payment-group-reference") String paymentGroupReference,
-                                                                   @Valid @RequestBody PaymentGroupDto paymentGroupDto) {
+    public ResponseEntity<PaymentGroupDto> addNewFeetoPaymentGroup( @RequestHeader(value = "return-url") String returnURL,
+                                                                    @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
+                                                                    @PathVariable("payment-group-reference") String paymentGroupReference,
+                                                                    @Valid @RequestBody PaymentGroupDto paymentGroupDto) throws CheckDigitException {
 
-        paymentGroupDto.getFees().stream().forEach(f -> {
-            if (f.getCcdCaseNumber() == null && f.getReference() == null){
-                throw new InvalidFeeRequestException("Either ccdCaseNumber or caseReference is required.");
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().build();
+
+        PaymentGroupDto paymentGroupResponse = PaymentGroupDto.paymentGroupDtoWith().build();
+
+        if(paymentGroupDto.getFees() != null) {
+            paymentGroupDto.getFees().stream().forEach(f -> {
+                if (f.getCcdCaseNumber() == null && f.getReference() == null) {
+                    throw new InvalidFeeRequestException("Either ccdCaseNumber or caseReference is required.");
+                }
+            });
+
+            paymentFeeLink = paymentGroupService.
+                addNewFeetoExistingPaymentGroup(paymentGroupDto.getFees().stream()
+                    .map(paymentGroupDtoMapper::toPaymentFee).collect(Collectors.toList()), paymentGroupReference);
+
+            paymentGroupResponse = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
+        }
+
+        if(paymentGroupDto.getPayments() != null){
+
+            PaymentDto paymentDtoRequest = paymentGroupDto.getPayments().get(0);
+
+            PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
+                .paymentGroupReference(paymentGroupReference)
+                .paymentReference(referenceUtil.getNext("RC"))
+                .description(paymentDtoRequest.getDescription())
+                .returnUrl(returnURL)
+                .ccdCaseNumber(paymentDtoRequest.getCcdCaseNumber())
+                .caseReference(paymentDtoRequest.getCaseReference())
+                .currency(paymentDtoRequest.getCurrency().getCode())
+                .siteId(paymentDtoRequest.getSiteId())
+                .serviceType(paymentDtoRequest.getServiceName())
+                .amount(paymentDtoRequest.getAmount())
+                .serviceCallbackUrl(serviceCallbackUrl)
+                .channel(paymentDtoRequest.getChannel())
+                .provider(paymentDtoRequest.getExternalProvider())
+                .build();
+
+            paymentFeeLink = delegatingPaymentService.update(paymentServiceRequest);
+            Payment payment = getPayment(paymentFeeLink, paymentServiceRequest.getPaymentReference());
+            PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment,paymentGroupReference );
+
+            if (paymentDtoRequest.getChannel().equals("telephony") && paymentDtoRequest.getExternalProvider().equals("pci pal")) {
+                PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().
+                    orderAmount(paymentDtoRequest.getAmount().toString()).orderCurrency(paymentDtoRequest.getCurrency().getCode())
+                    .orderReference(paymentDto.getReference()).build();
+                pciPalPaymentRequest.setCustomData2(payment .getCcdCaseNumber());
+                String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, paymentDtoRequest.getServiceName());
+                paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentFeeLink, payment, link);
             }
-        });
+            paymentGroupResponse = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
+            List<PaymentDto> paymentDtoList = paymentGroupResponse.getPayments().stream().filter(
+                paymentDto1 -> paymentDto1.getPaymentReference() != paymentServiceRequest.getPaymentReference()).collect(Collectors.toList());
+            paymentGroupResponse.setPayments(paymentDtoList);
+            paymentGroupResponse.getPayments().add(paymentDto);
+        }
 
-        PaymentFeeLink paymentFeeLink = paymentGroupService.
-            addNewFeetoExistingPaymentGroup(paymentGroupDto.getFees().stream()
-                .map(paymentGroupDtoMapper::toPaymentFee).collect(Collectors.toList()), paymentGroupReference);
+        return new ResponseEntity<>(paymentGroupResponse, HttpStatus.OK);
+    }
 
-        return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
+    private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
+        return paymentFeeLink.getPayments().stream().
+            filter(p -> p.getReference() == paymentReference).findFirst().get();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

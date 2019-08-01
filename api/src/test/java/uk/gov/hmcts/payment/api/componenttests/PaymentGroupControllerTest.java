@@ -34,6 +34,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -71,6 +73,11 @@ public class PaymentGroupControllerTest {
 
     @Autowired
     private SiteService<Site, String> siteServiceMock;
+
+    @Autowired
+    private PaymentDbBackdoor db;
+
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -254,6 +261,80 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
         assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
 
+    }
+
+
+    @Test
+    public void addNewPaymenttoExistingPaymentGroupTest() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+
+        BigDecimal amount = new BigDecimal("100");
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+            .amount(amount)
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber("1234")
+            .serviceName(Service.PROBATE.getName())
+            .currency(CurrencyCode.GBP)
+            .externalProvider("pci pal")
+            .channel("telephony")
+            .siteId("siteId")
+            .build();
+
+        PaymentGroupDto cardPaymentRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .payments(Arrays.asList(paymentDto))
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), cardPaymentRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupResponseDTO = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + paymentGroupResponseDTO.getPayments().get(0).getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
     @Test

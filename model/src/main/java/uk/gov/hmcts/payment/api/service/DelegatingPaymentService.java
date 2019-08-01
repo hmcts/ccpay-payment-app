@@ -11,6 +11,8 @@ public interface DelegatingPaymentService<T, ID> {
 
     T create(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException;
 
+    T update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException;
+
     T retrieve(ID id);
 
     default T retrieveWithCallBack(ID id) {

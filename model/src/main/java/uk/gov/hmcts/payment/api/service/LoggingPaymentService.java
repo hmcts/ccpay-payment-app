@@ -59,6 +59,11 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
+    public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest) {
+        return null;
+    }
+
+    @Override
     public PaymentFeeLink retrieve(String s, String paymentTargetService) {
         return delegate.retrieve(s, paymentTargetService);
     }
