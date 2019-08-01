@@ -117,7 +117,7 @@ public class PaymentGroupController {
         @ApiResponse(code = 404, message = "Payment Group not found")
     })
     @PutMapping(value = "/payment-groups/{payment-group-reference}")
-    public ResponseEntity<PaymentGroupDto> addNewFeetoPaymentGroup( @RequestHeader(value = "return-url") String returnURL,
+    public ResponseEntity<PaymentGroupDto> addNewFeetoPaymentGroup( @RequestHeader(value = "return-url", required = false) String returnURL,
                                                                     @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
                                                                     @PathVariable("payment-group-reference") String paymentGroupReference,
                                                                     @Valid @RequestBody PaymentGroupDto paymentGroupDto) throws CheckDigitException {
