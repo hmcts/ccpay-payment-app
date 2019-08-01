@@ -22,7 +22,6 @@ build/
 *.class
 
 #### Payment audit log ####
-payment-audit.log
 api/src/main/resources/application.properties
 
 api/out/
