@@ -15,21 +15,13 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
@@ -41,10 +33,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Primary
@@ -147,6 +136,40 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, paymentServiceRequest.getFees());
         return paymentFeeLink;
     }
+
+    @Override
+    @Transactional
+    public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest)
+        throws CheckDigitException {
+
+        Payment payment = buildPayment(paymentServiceRequest.getPaymentReference(), paymentServiceRequest);
+        if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
+            PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
+            PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
+            fillTransientDetails(payment, pciPalPayment);
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
+                .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).getMappedStatus())
+                .errorCode(pciPalPayment.getState().getCode())
+                .message(pciPalPayment.getState().getMessage())
+                .build()));
+        }
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentServiceRequest.
+            getPaymentGroupReference()).orElseThrow(InvalidPaymentGroupReferenceException::new);
+
+        if(paymentFeeLink.getPayments() == null && paymentFeeLink.getPayments().isEmpty()){
+            paymentFeeLink.setPayments(Arrays.asList(payment));
+        } else {
+            paymentFeeLink.getPayments().addAll(Arrays.asList(payment));
+        }
+
+        payment.setPaymentLink(paymentFeeLink);
+
+        auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, paymentFeeLink.getFees());
+        return paymentFeeLink;
+    }
+
 
     private Payment buildPayment(String paymentReference, PaymentServiceRequest paymentServiceRequest) {
         return Payment.paymentWith().userId(userIdSupplier.get())
