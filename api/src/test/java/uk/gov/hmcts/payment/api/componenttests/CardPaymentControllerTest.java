@@ -570,7 +570,10 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber2, paymentFeeLink.getFees().get(1).getCcdCaseNumber());
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b068b78f2f41c7dd8bd126e6301530c92f0a428a
     @Test
     public void creatingCardPaymentWithoutFees() throws Exception {
         String testccdCaseNumber = "1212-2323-3434-5454";

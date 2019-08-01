@@ -27,7 +27,10 @@ import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+<<<<<<< HEAD
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
+=======
+>>>>>>> b068b78f2f41c7dd8bd126e6301530c92f0a428a
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
 import javax.validation.ConstraintViolationException;

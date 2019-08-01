@@ -42,6 +42,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import javax.validation.Valid;
 import java.util.stream.Collectors;
 
+import java.util.stream.Collectors;
+
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -93,6 +95,7 @@ public class CardPaymentController {
             request.setProvider("gov pay");
         }
 
+<<<<<<< HEAD
         if (request.getCcdCaseNumber() != null && request.getFees() != null) {
             request.setFees(request.getFees()
                 .stream()
@@ -107,6 +110,11 @@ public class CardPaymentController {
         }
 
         if (request.getCcdCaseNumber() != null) {
+=======
+
+        if (request.getCcdCaseNumber() != null && request.getFees() != null) {
+          
+>>>>>>> b068b78f2f41c7dd8bd126e6301530c92f0a428a
             request.setFees(request.getFees()
                 .stream()
                 .map(feeDto -> {
