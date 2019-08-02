@@ -100,10 +100,7 @@ public class RestActions {
 
 
     public ResultActions delete(String urlTemplate) {
-        return translateException(() -> mvc.perform(MockMvcRequestBuilders.delete(urlTemplate)
-            .headers(httpHeaders)
-            .contentType(APPLICATION_JSON)
-            .accept(APPLICATION_JSON)));
+        return delete(urlTemplate, null);
     }
 
 
