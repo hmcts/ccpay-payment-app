@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.service.FeesService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 
 @RestController
 @Api(tags = {"Fees"})
@@ -25,13 +24,13 @@ public class FeesController {
         this.feesService = feesService;
     }
 
-    @ApiOperation(value = "Delete fees/remissions details for supplied payment group reference", notes = "Delete fees/remissions details for supplied payment group reference")
+    @ApiOperation(value = "Delete Fees by Id", notes = "Delete Fees by Id")
     @ApiResponses(value = {
         @ApiResponse(code = 204, message = "Fees Deleted"),
         @ApiResponse(code = 400, message = "Fees not found")
     })
     @DeleteMapping(value = "/fees/{feeId}")
-    public ResponseEntity<Boolean> retrievePayment(@PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
+    public ResponseEntity<Boolean> deleteFee(@PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
         feesService.deleteFee(Integer.parseInt(feeId));
         return new ResponseEntity<>(true, HttpStatus.NO_CONTENT);
     }
