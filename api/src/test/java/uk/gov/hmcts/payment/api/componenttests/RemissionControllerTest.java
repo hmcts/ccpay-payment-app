@@ -743,9 +743,54 @@ public class RemissionControllerTest {
 
         PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        System.out.println(createRemissionResponseDto.getFee().getNetAmount());
-        System.out.println(paymentGroupDto.getFees().get(0).getCalculatedAmount());
-        System.out.println(getRemissionRequestForNetAmount().getHwfAmount());
+        assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0).getCalculatedAmount().subtract(getRemissionRequestForNetAmount().getHwfAmount()));
+
+    }
+
+    @Test
+    @Transactional
+    public void createRemissionWithoutFeesShouldBeSuccessfulTest() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        Integer feeId = paymentGroupDto.getFees().get(0).getId();
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // create a partial remission
+        MvcResult result3 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequestForNetAmount())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RemissionDto createRemissionResponseDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertThat(createRemissionResponseDto).isNotNull();
+
+        MvcResult result4 = restActions
+            .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result4.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
         assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0).getCalculatedAmount().subtract(getRemissionRequestForNetAmount().getHwfAmount()));
 
     }
@@ -830,6 +875,18 @@ public class RemissionControllerTest {
                 .version("1")
                 .volume(1)
                 .build())
+            .build();
+    }
+
+    private FeeDto getConsecutiveFee() {
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("100.19"))
+            .code("FEE313")
+            .id(1)
+            .version("1")
+            .volume(2)
+            .reference("BXsd11253")
+            .ccdCaseNumber("1111-2222-2222-1111")
             .build();
     }
 }
