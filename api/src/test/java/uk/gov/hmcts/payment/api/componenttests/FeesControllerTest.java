@@ -48,7 +48,7 @@ public class FeesControllerTest {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
 
     private RestActions restActions;
 
