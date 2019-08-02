@@ -265,6 +265,47 @@ public class TelephonyPaymentsTest {
         });
     }
 
+    //This should be tested for the following:
+    //
+    //Full payment of fee
+    //Partial payment of fee
+    //Against the following services:
+    //
+    //Divorce
+    //Probate
+    //CMC
+    //As part of this ticket, we need to ensure that the right service site IDs are sent to Liberata for the right services
+
+    @Test
+    public void fullPaymentOfFeeForDivorce() {
+
+    }
+
+    @Test
+    public void partialPaymentOfFeeForDivorce() {
+
+    }
+
+    @Test
+    public void fullPaymentOfFeeForProbate() {
+
+    }
+
+    @Test
+    public void partialPaymentOfFeeForProbate() {
+
+    }
+    @Test
+    public void fullPaymentOfFeeForCmc() {
+
+    }
+
+    @Test
+    public void partialPaymentOfFeeForCmc() {
+
+    }
+
+
     private PaymentRecordRequest getTelephonyPayment(String reference) {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .externalProvider("pci pal")
