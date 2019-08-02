@@ -96,9 +96,4 @@ public class RemissionServiceImpl implements RemissionService {
             .build();
     }
 
-    @Override
-    public Remission retrieve(String hwfReference) {
-        Optional<Remission> remission = remissionRepository.findByHwfReference(hwfReference);
-        return remission.orElse(null);
-    }
 }
