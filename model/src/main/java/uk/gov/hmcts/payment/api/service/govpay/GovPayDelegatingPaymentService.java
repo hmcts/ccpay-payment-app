@@ -41,6 +41,11 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
+    public GovPayPayment update(PaymentServiceRequest paymentServiceRequest) {
+        return null;
+    }
+
+    @Override
     public GovPayPayment retrieve(@NonNull String id) {
         return govPayClient.retrievePayment(keyForService(), id);
     }
