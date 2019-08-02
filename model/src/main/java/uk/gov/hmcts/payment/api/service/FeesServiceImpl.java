@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 
@@ -16,7 +17,7 @@ public class FeesServiceImpl implements FeesService {
     }
 
     @Override
-    public void deleteFee(int feeId) {
+    public void deleteFee(int feeId) throws EmptyResultDataAccessException {
         paymentFeeRepository.deleteById(feeId);
     }
 

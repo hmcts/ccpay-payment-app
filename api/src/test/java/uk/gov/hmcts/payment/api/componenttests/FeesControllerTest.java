@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -46,7 +48,6 @@ public class FeesControllerTest {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
-
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private RestActions restActions;
@@ -54,18 +55,13 @@ public class FeesControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    protected PaymentDbBackdoor paymentDbBackdoor;
-
-    @Autowired
-    protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
-
-    @Autowired
-    private SiteService<Site, String> siteServiceMock;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
+
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
 
     @Before
     public void setup() {
@@ -95,19 +91,65 @@ public class FeesControllerTest {
         );
 
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+
     }
 
 
     @Test
-    public void deleteFees() throws Exception {
+    public void deleteFeesTest() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
 
-        MvcResult result = restActions.
-            delete("/fees/1", request)
+        MvcResult result = restActions
+            .post("/payment-groups", request)
             .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        Integer feeId = paymentGroupDto.getFees().get(0).getId();
+        MvcResult result1 = restActions.
+            delete("/fees/"+ feeId)
+            .andExpect(status().isNoContent())
+            .andReturn();
+    }
+
+    @Test
+    public void deleteFeesCreatedUsingRemissionTest() throws Exception {
+
+        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .siteId("AA001")
+            .hwfReference("HWFref")
+            .fee(getFee())
+            .build();
+
+        MvcResult result = restActions
+            .post("/remission", remissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RemissionDto remissionDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
+
+        Integer feeId = remissionDto.getFee().getId();
+        MvcResult result1 = restActions.
+            delete("/fees/"+ feeId)
+            .andExpect(status().isNoContent())
+            .andReturn();
+    }
+
+    @Test
+    public void deleteNoFeesExistingTest() throws Exception {
+
+        Integer feeId = 12;
+        MvcResult result1 = restActions.
+            delete("/fees/"+ feeId)
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 
@@ -120,6 +162,15 @@ public class FeesControllerTest {
             .id(1)
             .reference("BXsd1123")
             .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+    }
+
+    private FeeDto getFee() {
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("10.00"))
+            .ccdCaseNumber("CCD1234")
+            .version("1")
+            .code("FEE0123")
             .build();
     }
 

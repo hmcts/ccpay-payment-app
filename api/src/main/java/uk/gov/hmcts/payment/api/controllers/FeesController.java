@@ -4,13 +4,13 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.service.FeesService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 
 @RestController
 @Api(tags = {"Fees"})
@@ -31,9 +31,15 @@ public class FeesController {
         @ApiResponse(code = 404, message = "Fees not found")
     })
     @DeleteMapping(value = "/fees/{feeId}")
-    public ResponseEntity<Boolean> retrievePayment(@PathVariable("feeId") String feeId)  {
+    public ResponseEntity<Boolean> retrievePayment(@PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
         feesService.deleteFee(Integer.parseInt(feeId));
         return new ResponseEntity<>(true, HttpStatus.NO_CONTENT);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    public String return400(EmptyResultDataAccessException ex) {
+        return ex.getMessage();
     }
 
 }
