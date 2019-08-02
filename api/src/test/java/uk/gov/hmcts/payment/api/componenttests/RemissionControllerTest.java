@@ -793,6 +793,14 @@ public class RemissionControllerTest {
 
         assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0).getCalculatedAmount().subtract(getRemissionRequestForNetAmount().getHwfAmount()));
 
+        MvcResult result5 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RemissionDto createRemissionResponseDto1 = objectMapper.readValue(result5.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertThat(createRemissionResponseDto1).isNotNull();
+
     }
 
     @Test
