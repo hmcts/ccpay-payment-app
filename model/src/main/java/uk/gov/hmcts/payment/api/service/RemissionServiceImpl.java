@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -69,6 +70,9 @@ public class RemissionServiceImpl implements RemissionService {
         Remission remission = buildRemission(remissionServiceRequest);
 
         paymentFeeLink.setRemissions(Collections.singletonList(remission));
+
+        fee.setNetAmount(fee.getCalculatedAmount().subtract(remission.getHwfAmount() != null ? remission.getHwfAmount() : new BigDecimal(0)));
+
         if (fee.getRemissions() == null || fee.getRemissions().isEmpty()) {
             fee.setRemissions(Collections.singletonList(remission));
         } else {
