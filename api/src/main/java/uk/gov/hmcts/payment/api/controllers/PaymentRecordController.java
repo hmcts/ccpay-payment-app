@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,8 +38,6 @@ import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @Api(tags = {"Payment Record"})
@@ -65,7 +62,6 @@ public class PaymentRecordController {
         this.paymentProviderRespository = paymentProviderRespository;
         this.referenceDataService = referenceDataService;
     }
-
 
     @ApiOperation(value = "Record a payment", notes = "Record a payment")
     @ApiResponses(value = {
