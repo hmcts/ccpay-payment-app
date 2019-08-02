@@ -27,8 +27,8 @@ public class FeesController {
 
     @ApiOperation(value = "Delete fees/remissions details for supplied payment group reference", notes = "Delete fees/remissions details for supplied payment group reference")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Fees Deleted"),
-        @ApiResponse(code = 404, message = "Fees not found")
+        @ApiResponse(code = 204, message = "Fees Deleted"),
+        @ApiResponse(code = 400, message = "Fees not found")
     })
     @DeleteMapping(value = "/fees/{feeId}")
     public ResponseEntity<Boolean> retrievePayment(@PathVariable("feeId") String feeId) throws EmptyResultDataAccessException {
