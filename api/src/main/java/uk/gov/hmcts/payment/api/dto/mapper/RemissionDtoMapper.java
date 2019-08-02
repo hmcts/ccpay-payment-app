@@ -36,6 +36,7 @@ public class RemissionDtoMapper {
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
             .version(fee.getVersion())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
             .volume(fee.getVolume())
             .build();
     }
