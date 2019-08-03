@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,22 +11,20 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 
 @Service
 public class RemissionServiceImpl implements RemissionService {
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
-    private final RemissionRepository remissionRepository;
     private final ReferenceUtil referenceUtil;
 
     @Autowired
     public RemissionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
-                                RemissionRepository remissionRepository,
                                 ReferenceUtil referenceUtil) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
-        this.remissionRepository = remissionRepository;
         this.referenceUtil = referenceUtil;
     }
 
@@ -68,9 +67,12 @@ public class RemissionServiceImpl implements RemissionService {
 
         Remission remission = buildRemission(remissionServiceRequest);
 
-        paymentFeeLink.setRemissions(Collections.singletonList(remission));
-        if (fee.getRemissions() == null || fee.getRemissions().isEmpty()) {
-            fee.setRemissions(Collections.singletonList(remission));
+        paymentFeeLink.setRemissions(Lists.newArrayList(remission));
+
+        fee.setNetAmount(fee.getCalculatedAmount().subtract(remission.getHwfAmount()));
+
+        if (fee.getRemissions() == null) {
+            fee.setRemissions(Lists.newArrayList(remission));
         } else {
             fee.getRemissions().add(remission);
         }
@@ -92,9 +94,4 @@ public class RemissionServiceImpl implements RemissionService {
             .build();
     }
 
-    @Override
-    public Remission retrieve(String hwfReference) {
-        Optional<Remission> remission = remissionRepository.findByHwfReference(hwfReference);
-        return remission.orElse(null);
-    }
 }

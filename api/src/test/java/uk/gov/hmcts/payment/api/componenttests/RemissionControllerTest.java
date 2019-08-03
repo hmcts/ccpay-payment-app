@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -707,6 +708,102 @@ public class RemissionControllerTest {
     }
 
     @Test
+    @Transactional
+    public void createRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        Integer feeId = paymentGroupDto.getFees().get(0).getId();
+
+        // create a partial remission
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequestForNetAmount())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RemissionDto createRemissionResponseDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertThat(createRemissionResponseDto).isNotNull();
+
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0).getCalculatedAmount().subtract(getRemissionRequestForNetAmount().getHwfAmount()));
+
+    }
+
+    @Test
+    @Transactional
+    public void createRemissionWithoutFeesShouldBeSuccessfulTest() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        Integer feeId = paymentGroupDto.getFees().get(0).getId();
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // create a partial remission
+        MvcResult result3 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequestForNetAmount())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RemissionDto createRemissionResponseDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertThat(createRemissionResponseDto).isNotNull();
+
+        MvcResult result4 = restActions
+            .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result4.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0).getCalculatedAmount().subtract(getRemissionRequestForNetAmount().getHwfAmount()));
+
+        MvcResult result5 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RemissionDto createRemissionResponseDto1 = objectMapper.readValue(result5.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertThat(createRemissionResponseDto1).isNotNull();
+
+    }
+
+    @Test
     public void createRetrospectiveRemissionWithInvalidPaymentGroupReferenceShouldFailTest() throws Exception {
         restActions
             .post("/payment-groups/2019-0000000001/fees/1/remissions" + getRemissionRequest())
@@ -758,6 +855,46 @@ public class RemissionControllerTest {
             .calculatedAmount(new BigDecimal("10.00"))
             .version("1")
             .code("FEE0123")
+            .build();
+    }
+
+    private FeeDto getNewFee(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("250"))
+            .code("FEE312")
+            .version("1")
+            .volume(1)
+            .reference("BXsd1123")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+
+    }
+
+    private RemissionRequest getRemissionRequestForNetAmount() {
+        return RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("A partial remission")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .hwfAmount(new BigDecimal("150"))
+            .hwfReference("HR1111")
+            .siteId("AA001")
+            .fee(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("250"))
+                .code("FEE312")
+                .version("1")
+                .volume(1)
+                .build())
+            .build();
+    }
+
+    private FeeDto getConsecutiveFee() {
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("100.19"))
+            .code("FEE313")
+            .id(1)
+            .version("1")
+            .volume(2)
+            .reference("BXsd11253")
+            .ccdCaseNumber("1111-2222-2222-1111")
             .build();
     }
 }
