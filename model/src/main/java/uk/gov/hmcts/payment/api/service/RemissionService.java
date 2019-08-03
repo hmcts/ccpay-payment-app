@@ -11,5 +11,4 @@ public interface RemissionService {
 
     PaymentFeeLink createRetrospectiveRemission(RemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException;
 
-    Remission retrieve(String hwfReference);
 }
