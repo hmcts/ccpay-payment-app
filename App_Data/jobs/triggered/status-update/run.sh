@@ -1,14 +1,2 @@
 #!/bin/sh
-source $WEBROOT_PATH/App_Data/jobs/triggered/s2sToken.sh
-
-if [ "$SLOT" == "PRODUCTION" ]
-then
-    AUTH_TOKEN=$(s2sToken)
-    printf "Invoke status-update endpoint on :%s\n" $PAYMENT_SERVER_URL
-
-    curl -X PATCH $PAYMENT_SERVER_URL/jobs/card-payments-status-update -H "ServiceAuthorization: Bearer $AUTH_TOKEN" -d {}
-
-    printf "\nFinished updating status"
-else
-    printf "Unsupported app slot:%s to run this job. \n" $SLOT
-fi
+java -jar scheduled-jobs-1.0-all.jar $WEBJOB_S2S_CLIENT_SECRET $AUTH_PROVIDER_SERVICE_CLIENT_BASEURL $WEBJOB_S2S_CLIENT_ID $PAYMENT_SERVER_URL status-update

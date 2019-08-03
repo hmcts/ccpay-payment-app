@@ -214,6 +214,9 @@ dependencies {
 }
 
 task copyDependencies(type: Copy) {
-    from configurations.localDeps
-    into 'App_Data/jobs/triggered/status-update'
+        from configurations.localDeps
+        into 'App_Data/jobs/triggered/status-update'
+    }
+build {
+    dependsOn copyDependencies
 }
