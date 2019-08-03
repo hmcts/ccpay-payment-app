@@ -98,6 +98,20 @@ public class RestActions {
             .accept(APPLICATION_JSON)));
     }
 
+
+    public ResultActions delete(String urlTemplate) {
+        return delete(urlTemplate, null);
+    }
+
+
+    public ResultActions delete(String urlTemplate, Object requestBody) {
+        return translateException(() -> mvc.perform(MockMvcRequestBuilders.delete(urlTemplate)
+            .headers(httpHeaders)
+            .content(toJson(requestBody))
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)));
+    }
+
     public ResultActions put(String urlTemplate) {
         return put(urlTemplate, null);
     }
