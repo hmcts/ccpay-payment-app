@@ -204,3 +204,16 @@ run {
     }
 }
 
+configurations {
+    localDeps
+}
+
+dependencies {
+    localDeps group:'uk.gov.hmcts.reform.payment', name:'ccpay-scheduled-jobs', version:'1.1.0'
+    compile configurations.localDeps
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.localDeps
+    into 'App_Data/jobs/triggered/status-update'
+}
