@@ -204,6 +204,10 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().get(0).getCalculatedAmount()).isEqualTo(new BigDecimal("92.19"));
+        assertThat(paymentGroupDto.getFees().get(0).getNetAmount()).isEqualTo(new BigDecimal("92.19"));
+
         MvcResult result3 = restActions
             .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
             .andExpect(status().isOk())
