@@ -225,13 +225,14 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
-        BigDecimal calculatedAmount = fee.getNetAmount().equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : fee.getNetAmount();
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : new BigDecimal(0.0);
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
         return FeeDto.feeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
-            .netAmount(fee.getNetAmount().equals(fee.getCalculatedAmount()) ? null : fee.getNetAmount())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
