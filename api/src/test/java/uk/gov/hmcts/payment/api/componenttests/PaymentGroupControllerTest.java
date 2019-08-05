@@ -510,22 +510,21 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
 
 
-        BigDecimal amount = new BigDecimal("200.11");
+        BigDecimal amount = new BigDecimal("200");
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.CMC)
-            .siteId("siteID")
-            .ccdCaseNumber("1234")
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .withHeader("service-callback-url", "http://payments.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
@@ -538,8 +537,6 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
-
-        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
