@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.apache.http.MethodNotSupportedException;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -11,7 +12,7 @@ public interface DelegatingPaymentService<T, ID> {
 
     T create(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException;
 
-    T update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException;
+    T update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException, MethodNotSupportedException;
 
     T retrieve(ID id);
 
