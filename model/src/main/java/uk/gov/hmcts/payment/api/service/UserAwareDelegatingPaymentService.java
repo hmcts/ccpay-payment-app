@@ -149,6 +149,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
+    @Transactional
     public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest)
         throws CheckDigitException, MethodNotSupportedException {
 
