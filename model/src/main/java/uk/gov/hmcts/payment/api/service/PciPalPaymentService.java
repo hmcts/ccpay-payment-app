@@ -47,7 +47,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
-        LOG.error("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
+        LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
             String ppAccountID = null;
             if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
@@ -57,7 +57,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
                 ppAccountID = ppAccountIDProbate;
 
-            LOG.error("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
+            LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
             params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
