@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.apache.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,7 +148,7 @@ public class PaymentGroupController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @PathVariable("payment-group-reference") String paymentGroupReference,
-        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
+        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
