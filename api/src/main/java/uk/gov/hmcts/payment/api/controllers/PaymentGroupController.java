@@ -234,7 +234,7 @@ public class PaymentGroupController {
             .paymentStatus(bulkScanPaymentRequest.getPaymentStatus())
             .documentControlNumber(bulkScanPaymentRequest.getDocumentControlNumber())
             .payerName(bulkScanPaymentRequest.getPayerName())
-            .bankedDate(bulkScanPaymentRequest.getBankedDate())
+            .bankedDate(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
             .build();
 
         PaymentFeeLink paymentFeeLink = paymentGroupService.addNewPaymenttoExistingPaymentGroup(payment, paymentGroupReference);

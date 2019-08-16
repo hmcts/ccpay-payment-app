@@ -133,7 +133,7 @@ public class Payment {
     private String documentControlNumber;
 
     @Column(name = "banked_date")
-    private String bankedDate;
+    private Date bankedDate;
 
     @Column(name = "payer_name")
     private String payerName;
