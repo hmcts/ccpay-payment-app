@@ -129,4 +129,13 @@ public class Payment {
     @Column(name = "service_callback_url")
     private String serviceCallbackUrl;
 
+    @Column(name = "document_control_number")
+    private String documentControlNumber;
+
+    @Column(name = "banked_date")
+    private String bankedDate;
+
+    @Column(name = "payer_name")
+    private String payerName;
+
 }
