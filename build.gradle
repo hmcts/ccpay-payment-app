@@ -203,20 +203,32 @@ run {
         jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
     }
 }
-
 configurations {
     localDeps
 }
-
 dependencies {
-    localDeps group:'uk.gov.hmcts.reform.payment', name:'ccpay-scheduled-jobs', version:'1.1.0'
+    localDeps group:'uk.gov.hmcts.reform.payment', name:'ccpay-scheduled-jobs', version:'1.1.8'
     compile configurations.localDeps
 }
-
-task copyDependencies(type: Copy) {
+assemble.doLast {
+    copy {
         from configurations.localDeps
-        into 'App_Data/jobs/triggered/status-update'
+        into "${project.rootDir}/App_Data/jobs/triggered/status-update"
     }
-build {
-    dependsOn copyDependencies
+    copy {
+        from configurations.localDeps
+        into "${project.rootDir}/App_Data/jobs/triggered/bar-csv-report"
+    }
+    copy {
+        from configurations.localDeps
+        into "${project.rootDir}/App_Data/jobs/triggered/card-csv-report"
+    }
+    copy {
+        from configurations.localDeps
+        into "${project.rootDir}/App_Data/jobs/triggered/pba-csv-report"
+    }
+    copy {
+        from configurations.localDeps
+        into "${project.rootDir}/App_Data/jobs/triggered/pba-finrem-weekly-csv-report"
+    }
 }
