@@ -48,8 +48,6 @@ public class BulkScanPaymentRequest {
 
     private PaymentChannel paymentChannel;
 
-    private PaymentStatus paymentStatus;
-
     private CurrencyCode currency;
 
     private String externalProvider;
