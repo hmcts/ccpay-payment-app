@@ -231,7 +231,6 @@ public class PaymentGroupController {
             .giroSlipNo(bulkScanPaymentRequest.getGiroSlipNo())
             .reportedDateOffline(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
             .paymentChannel(bulkScanPaymentRequest.getPaymentChannel())
-            .paymentStatus(bulkScanPaymentRequest.getPaymentStatus())
             .documentControlNumber(bulkScanPaymentRequest.getDocumentControlNumber())
             .payerName(bulkScanPaymentRequest.getPayerName())
             .bankedDate(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
