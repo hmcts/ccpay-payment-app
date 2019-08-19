@@ -598,7 +598,7 @@ public class PaymentGroupControllerTest {
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
             .ccdCaseNumber("1231-1231-3453-4333")
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulkscan").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
             .bankedDate(DateTime.now().toString())
             .paymentMethod(PaymentMethodType.CHEQUE)
