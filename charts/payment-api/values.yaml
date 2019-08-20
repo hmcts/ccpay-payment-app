@@ -1,9 +1,9 @@
 postgresql:
   image:
     tag: 10.7.0-r68
-  postgresqlUsername: bspayment
-  postgresqlPassword: bspayment
-  postgresqlDatabase: bspayment
+  postgresqlUsername: payment
+  postgresqlPassword: payment
+  postgresqlDatabase: payment
   service:
     port: 5432
 java:
