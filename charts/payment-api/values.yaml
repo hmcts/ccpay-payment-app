@@ -35,6 +35,10 @@ java:
     SPRING_DATASOURCE_USERNAME: payment
     SPRING_DATASOURCE_PASSWORD: payment
     SPRING_LIQUIBASE_ENABLED: true
+    POSTGRES_DATABASE : payment
+    POSTGRES_HOST: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
+    POSTGRES_PORT: 5432
+
 
     REFORM_SERVICE_NAME: payment-api
     REFORM_TEAM: cc
