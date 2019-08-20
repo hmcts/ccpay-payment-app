@@ -1,11 +1,11 @@
 postgresql:
-  initdbScripts:
-    init.sql: |-
-      CREATE USER payment WITH PASSWORD 'payment';
-      CREATE DATABASE payment WITH OWNER = payment ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
-  nameOverride: payment-db
-  persistence:
-    enabled: false
+  image:
+    tag: 10.7.0-r68
+  postgresqlUsername: bspayment
+  postgresqlPassword: bspayment
+  postgresqlDatabase: bspayment
+  service:
+    port: 5432
 java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
@@ -30,10 +30,14 @@ java:
         - liberata-keys-oauth2-username
         - liberata-keys-oauth2-password
   environment:
-    SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
-    SPRING_DATASOURCE_USERNAME: payment
-    SPRING_DATASOURCE_PASSWORD: payment
-    SPRING_LIQUIBASE_ENABLED: true
+
+    POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+    POSTGRES_NAME: "{{ .Values.postgresql.postgresqlDatabase}}"
+    POSTGRES_USER: "{{ .Values.postgresql.postgresqlUsername}}"
+    POSTGRES_PASSWORD: "{{ .Values.postgresql.postgresqlPassword}}"
+    POSTGRES_PORT: 5432
+    LOGBACK_REQUIRE_ALERT_LEVEL: 'false'
+    LOGBACK_REQUIRE_ERROR_CODE: 'false'
 
     REFORM_SERVICE_NAME: payment-api
     REFORM_TEAM: cc
