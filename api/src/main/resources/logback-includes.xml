@@ -1,13 +1,11 @@
 <included>
-    <appender name="PAYMENT_AUDIT_FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${PAYMENT_AUDIT_FILE:-payment-audit.log}</file>
-        <append>true</append>
-        <encoder>
+    <appender name="PAYMENT_AUDIT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout>
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{10}:%line: %msg%n</pattern>
-        </encoder>
+        </layout>
     </appender>
 
     <logger name="uk.gov.hmcts.payment.api.model.LoggingPaymentService">
-        <appender-ref ref="PAYMENT_AUDIT_FILE" />
+        <appender-ref ref="PAYMENT_AUDIT_CONSOLE" />
     </logger>
 </included>
