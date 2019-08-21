@@ -64,6 +64,10 @@ $ ./gradlew test
 
 Please refer to Swagger UI and Gov.UK Pay for more details.
 
+### Useful Links
+
+Use Bar Idam mock for setting up Idam and S2S in local.
+
 
 ### Useful Links
 * https://gds-payments.gelato.io/docs/versions/1.0.0/resources/general
