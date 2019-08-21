@@ -579,6 +579,131 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    public void addInvalidDateBulkScanPayment() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate("23-04-2019")
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    public void addNoPaymentMethodBulkScanPayment() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate("23-04-2019")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+
+    @Test
+    public void addNoDCNBulkScanPayment() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate("23-04-2019")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    public void addNullRequestorBulkScanPayment() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
     public void addvalidBulkScanPayment() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
