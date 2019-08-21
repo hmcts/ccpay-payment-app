@@ -1,5 +1,5 @@
 <included>
-    <appender name="PAYMENT_AUDIT_CONSOLE" class="ch.qos.logback.core.FileAppender">
+    <appender name="PAYMENT_AUDIT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <layout>
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{10}:%line: %msg%n</pattern>
          </layout>
