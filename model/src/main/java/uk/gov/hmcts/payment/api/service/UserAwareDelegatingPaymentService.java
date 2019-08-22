@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.apache.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,7 +151,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     @Override
     @Transactional
     public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest)
-        throws CheckDigitException {
+        throws CheckDigitException, MethodNotSupportedException {
 
         Payment payment = buildPayment(paymentServiceRequest.getPaymentReference(), paymentServiceRequest);
         if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
@@ -162,18 +164,21 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 .errorCode(pciPalPayment.getState().getCode())
                 .message(pciPalPayment.getState().getMessage())
                 .build()));
+        } else {
+            throw new MethodNotSupportedException("Only Telephony payments are supported");
         }
+
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentServiceRequest.
             getPaymentGroupReference()).orElseThrow(InvalidPaymentGroupReferenceException::new);
 
-        if(paymentFeeLink.getPayments() != null){
-            paymentFeeLink.getPayments().addAll(Arrays.asList(payment));
-        } else {
-            paymentFeeLink.setPayments(Arrays.asList(payment));
-        }
-
         payment.setPaymentLink(paymentFeeLink);
+
+        if(paymentFeeLink.getPayments() != null){
+            paymentFeeLink.getPayments().addAll(Lists.newArrayList(payment));
+        } else {
+            paymentFeeLink.setPayments(Lists.newArrayList(payment));
+        }
 
         auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, paymentFeeLink.getFees());
         return paymentFeeLink;

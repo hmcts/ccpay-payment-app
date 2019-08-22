@@ -544,6 +544,7 @@ public class PaymentGroupControllerTest {
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
