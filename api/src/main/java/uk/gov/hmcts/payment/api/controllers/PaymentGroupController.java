@@ -224,6 +224,7 @@ public class PaymentGroupController {
             .paymentProvider(paymentProvider)
             .serviceType(bulkScanPaymentRequest.getService().getName())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequest.getPaymentMethod().getType()).build())
+            .paymentStatus(bulkScanPaymentRequest.getPaymentStatus())
             .siteId(bulkScanPaymentRequest.getSiteId())
             .giroSlipNo(bulkScanPaymentRequest.getGiroSlipNo())
             .reportedDateOffline(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
