@@ -34,7 +34,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withPipeline(type, product, app) {
     setVaultName('ccpay')
     loadVaultSecrets(secrets)
-    enableDbMigration() // for liquibase update
+    //enableDbMigration() // for liquibase update
     enableDockerBuild()
     installCharts()
     enableSlackNotifications('#cc-payments-tech')

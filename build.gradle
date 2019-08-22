@@ -207,7 +207,7 @@ configurations {
     localDeps
 }
 dependencies {
-    localDeps group:'uk.gov.hmcts.reform.payment', name:'ccpay-scheduled-jobs', version:'1.2.3'
+    localDeps group:'uk.gov.hmcts.reform.payment', name:'ccpay-scheduled-jobs', version:'1.2.4'
     compile configurations.localDeps
 }
 assemble.doLast {
