@@ -64,8 +64,8 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(PaymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + PaymentGroupReference + " does not exists."));
 
-        payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().toString()));
-        payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().toString()).getMappedStatus());
+        payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()));
+        payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         payment.setPaymentLink(paymentFeeLink);
 
         if(paymentFeeLink.getPayments() != null){

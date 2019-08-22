@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -601,6 +602,8 @@ public class PaymentGroupControllerTest {
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
             .bankedDate("23-04-2019")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("BCH82173823")
             .paymentMethod(PaymentMethodType.CHEQUE)
             .build();
 
@@ -632,6 +635,8 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("1231-1231-3453-4333")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("BCH82173823")
             .bankedDate("23-04-2019")
             .build();
 
@@ -663,6 +668,8 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("1231-1231-3453-4333")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
+            .paymentStatus(PaymentStatus.CREATED)
+            .giroSlipNo("BCH82173823")
             .bankedDate("23-04-2019")
             .build();
 
@@ -693,6 +700,8 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("1231-1231-3453-4333")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("BCH82173823")
             .bankedDate(DateTime.now().toString())
             .paymentMethod(PaymentMethodType.CHEQUE)
             .build();
@@ -726,6 +735,8 @@ public class PaymentGroupControllerTest {
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
             .bankedDate(DateTime.now().toString())
+            .giroSlipNo("BCH82173823")
+            .paymentStatus(PaymentStatus.SUCCESS)
             .paymentMethod(PaymentMethodType.CHEQUE)
             .build();
 
