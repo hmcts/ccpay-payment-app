@@ -763,7 +763,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result2 = restActions
             .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
     }
 
@@ -779,7 +779,9 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("1231-1231-3453-4333")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
+            .giroSlipNo("BCH82173823")
             .bankedDate(DateTime.now().toString())
+            .paymentStatus(PaymentStatus.SUCCESS)
             .paymentMethod(PaymentMethodType.CHEQUE)
             .build();
 
