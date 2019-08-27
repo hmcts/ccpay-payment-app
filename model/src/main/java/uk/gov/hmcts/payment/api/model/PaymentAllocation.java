@@ -1,21 +1,22 @@
 package uk.gov.hmcts.payment.api.model;
 
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @Data
 @Builder(builderMethodName = "paymentAllocationWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "payment_allocation_status")
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "payment_allocation")
 public class PaymentAllocation {
 
     @Id
@@ -26,7 +27,7 @@ public class PaymentAllocation {
     private String paymentReference;
 
     @Column(name = "payment_group_reference")
-    private String paymentGroup_Reference;
+    private String paymentGroupReference;
 
     @ManyToOne
     @JoinColumn(name = "allocation_status")

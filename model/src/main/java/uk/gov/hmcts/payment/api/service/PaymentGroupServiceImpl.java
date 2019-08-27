@@ -65,10 +65,10 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(PaymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + PaymentGroupReference + " does not exists."));
 
-        payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow("success"));
-        payment.setStatus(PayStatusToPayHubStatus.valueOf("success").getMappedStatus());
+        payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()));
+        payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-            .status(paymentStatusRepository.findByNameOrThrow("success").getName())
+            .status(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()).getName())
             .build()));
         payment.setPaymentLink(paymentFeeLink);
 
@@ -85,10 +85,10 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
     @Transactional
     public PaymentFeeLink addNewBulkScanPayment(Payment payment, String PaymentGroupReference) {
 
-        payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow("success"));
-        payment.setStatus(PayStatusToPayHubStatus.valueOf("success").getMappedStatus());
+        payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()));
+        payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-            .status(paymentStatusRepository.findByNameOrThrow("success").getName())
+            .status(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()).getName())
             .build()));
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()

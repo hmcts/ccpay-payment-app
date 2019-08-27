@@ -277,6 +277,7 @@ public class PaymentGroupController {
             .paymentChannel(bulkScanPaymentRequest.getPaymentChannel())
             .documentControlNumber(bulkScanPaymentRequest.getDocumentControlNumber())
             .payerName(bulkScanPaymentRequest.getPayerName())
+            .paymentStatus(bulkScanPaymentRequest.getPaymentStatus())
             .bankedDate(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
             .build();
 
