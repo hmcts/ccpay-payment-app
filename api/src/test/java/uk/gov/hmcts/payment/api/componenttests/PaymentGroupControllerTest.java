@@ -616,6 +616,49 @@ public class PaymentGroupControllerTest {
     }
 
 
+    @Test
+    public void addInvalidNewBulkScanPayment() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA07")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    public void addNewvalidBulkScanPayment() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
+    }
+
+
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("250.00"))
