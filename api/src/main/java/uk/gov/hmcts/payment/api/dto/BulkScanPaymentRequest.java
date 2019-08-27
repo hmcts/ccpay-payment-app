@@ -44,14 +44,21 @@ public class BulkScanPaymentRequest {
     @JsonProperty("requestor")
     private Service service;
 
+    @NotNull
     private String ccdCaseNumber;
 
+    @NotNull
     private PaymentChannel paymentChannel;
 
+    @NotNull
+    private PaymentStatus paymentStatus;
+
+    @NotNull
     private CurrencyCode currency;
 
     private String externalProvider;
 
+    @NotNull
     private String giroSlipNo;
 
     @NotNull

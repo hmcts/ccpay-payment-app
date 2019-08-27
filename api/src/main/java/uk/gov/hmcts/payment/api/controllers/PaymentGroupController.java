@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -43,7 +41,6 @@ import java.util.stream.Collectors;
 @RestController
 @Api(tags = {"Payment group"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentGroupController", description = "Payment group REST API")})
-@Validated
 public class PaymentGroupController {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
 
@@ -227,6 +224,7 @@ public class PaymentGroupController {
             .paymentProvider(paymentProvider)
             .serviceType(bulkScanPaymentRequest.getService().getName())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequest.getPaymentMethod().getType()).build())
+            .paymentStatus(bulkScanPaymentRequest.getPaymentStatus())
             .siteId(bulkScanPaymentRequest.getSiteId())
             .giroSlipNo(bulkScanPaymentRequest.getGiroSlipNo())
             .reportedDateOffline(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
@@ -301,12 +299,6 @@ public class PaymentGroupController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ConstraintViolationException.class)
-    public String return400(ConstraintViolationException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentNotFoundException.class)
     public String return400(PaymentNotFoundException ex) {
         return ex.getMessage();
@@ -319,8 +311,8 @@ public class PaymentGroupController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public String return400(MethodArgumentNotValidException ex) {
+    @ExceptionHandler(MethodNotSupportedException.class)
+    public String return400(MethodNotSupportedException ex) {
         return ex.getMessage();
     }
 }
