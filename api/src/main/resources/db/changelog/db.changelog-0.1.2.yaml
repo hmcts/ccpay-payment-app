@@ -30,8 +30,10 @@ databaseChangeLog:
                         - column:
                               name: id
                               type: INT
+                              autoIncrement: true
                               constraints:
                                   primaryKey: true
+                                  primaryKeyName: paymentAllocationsPK
                                   nullable: false
                         - column:
                               name: payment_reference
