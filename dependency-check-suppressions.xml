@@ -64,6 +64,7 @@
         <cve>CVE-2015-9251</cve>
         <cve>CVE-2012-6708</cve>
         <cve>CVE-2019-12814</cve>
+        <cve>CVE-2019-12384</cve>
         <cwe>611</cwe>
     </suppress>
     <suppress>
