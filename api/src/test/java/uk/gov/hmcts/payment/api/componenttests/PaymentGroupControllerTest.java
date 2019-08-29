@@ -693,18 +693,19 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-            .amount(new BigDecimal(100.00))
-            .siteId("AA001")
-            .currency(CurrencyCode.GBP)
-            .documentControlNumber("DCN293842342342834278348")
             .ccdCaseNumber("1231-1231-3453-4333")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-            .payerName("CCD User")
             .paymentStatus(PaymentStatus.SUCCESS)
-            .giroSlipNo("BCH82173823")
-            .bankedDate(DateTime.now().toString())
-            .paymentMethod(PaymentMethodType.CHEQUE)
             .build();
+
+        bulkScanPaymentRequest.setAmount(new BigDecimal(100.00));
+        bulkScanPaymentRequest.setSiteId("AA001");
+        bulkScanPaymentRequest.setCurrency(CurrencyCode.GBP);
+        bulkScanPaymentRequest.setDocumentControlNumber("DCN293842342342834278348");
+        bulkScanPaymentRequest.setPayerName("CCD User");
+        bulkScanPaymentRequest.setBankedDate(DateTime.now().toString());
+        bulkScanPaymentRequest.setGiroSlipNo("BCH82173823");
+        bulkScanPaymentRequest.setPaymentMethod(PaymentMethodType.CHEQUE);
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
