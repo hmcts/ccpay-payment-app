@@ -1,17 +1,2 @@
 #!/bin/sh
-source $WEBROOT_PATH/App_Data/jobs/triggered/s2sToken.sh
-
-if [ "$SLOT" == "PRODUCTION" ]
-then
-    AUTH_TOKEN=$(s2sToken)
-    URL=$PAYMENT_SERVER_URL/jobs/email-pay-reports?service_name=DIGITAL_BAR
-    printf "Invoking email-pay-reports on :%s \n" $URL
-
-    curl -X POST $URL -H "ServiceAuthorization: Bearer $AUTH_TOKEN" -d {}
-
-    printf "\nFinished emailing CARD csv report"
-else
-    printf "Unsupported app slot:%s to run this job. \n" $SLOT
-fi
-
-
+java -jar ./ccpay-scheduled-jobs-1.2.4.jar $SLOT $WEBJOB_S2S_CLIENT_SECRET $AUTH_PROVIDER_SERVICE_CLIENT_BASEURL $WEBJOB_S2S_CLIENT_ID $PAYMENT_SERVER_URL bar-csv-report
