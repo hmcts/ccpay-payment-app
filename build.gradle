@@ -203,32 +203,3 @@ run {
         jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
     }
 }
-configurations {
-    localDeps
-}
-dependencies {
-    localDeps group:'uk.gov.hmcts.reform.payment', name:'ccpay-scheduled-jobs', version:'1.2.4'
-    compile configurations.localDeps
-}
-assemble.doLast {
-    copy {
-        from configurations.localDeps
-        into "${project.rootDir}/App_Data/jobs/triggered/status-update"
-    }
-    copy {
-        from configurations.localDeps
-        into "${project.rootDir}/App_Data/jobs/triggered/bar-csv-report"
-    }
-    copy {
-        from configurations.localDeps
-        into "${project.rootDir}/App_Data/jobs/triggered/card-csv-report"
-    }
-    copy {
-        from configurations.localDeps
-        into "${project.rootDir}/App_Data/jobs/triggered/pba-csv-report"
-    }
-    copy {
-        from configurations.localDeps
-        into "${project.rootDir}/App_Data/jobs/triggered/pba-finrem-weekly-csv-report"
-    }
-}
