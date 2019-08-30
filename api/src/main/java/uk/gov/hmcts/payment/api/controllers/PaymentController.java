@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.CallbackService;
@@ -40,6 +41,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -144,10 +146,11 @@ public class PaymentController {
                     .build()
             );
 
-        List<PaymentDto> paymentDto = paymentFeeLinks.parallelStream()
-            .map(paymentDtoMapper::toReconciliationResponseDto).collect(Collectors.toList());
-
-        return new PaymentsResponse(paymentDto);
+        final List<PaymentDto> paymentDtos = new ArrayList<>();
+        for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
+            populatePaymentDtos(paymentDtos, paymentFeeLink);
+        }
+        return new PaymentsResponse(paymentDtos);
 
     }
 
@@ -193,6 +196,17 @@ public class PaymentController {
         return paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(reference)).findAny();
     }
+
+    private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink) {
+        final List<Payment> payments = paymentFeeLink.getPayments();
+        for (final Payment p: payments) {
+            final String paymentReference = paymentFeeLink.getPaymentReference();
+            final List<PaymentFee> fees = paymentFeeLink.getFees();
+            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDto(p, paymentReference, fees);
+            paymentDtos.add(paymentDto);
+        }
+    }
+
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)
