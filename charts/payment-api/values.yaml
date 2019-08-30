@@ -1,8 +1,3 @@
-postgresql:
-  nameOverride: payment-db
-  persistence:
-    enabled: false
-  enabled: true
 java:
   applicationPort: 8080
   keyVaults:
@@ -84,3 +79,5 @@ java:
     FEATURE_SERVICE_CALLBACK: "true"
 
     APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
+  postgresql:
+    nameOverride: payment-db
