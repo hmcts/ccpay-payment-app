@@ -1,12 +1,3 @@
-postgresql:
-  nameOverride: payment-db
-  enabled: true
-  postgresqlUsername: payment
-  postgresqlPassword: payment
-  postgresqlDatabase: payment
-  extraEnv:
-    - name: POSTGRESQL_DATABASE
-      value: payment
 java:
   applicationPort: 8080
   keyVaults:
