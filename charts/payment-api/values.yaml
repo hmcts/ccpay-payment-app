@@ -24,11 +24,11 @@ java:
     SPRING_DATASOURCE_USERNAME: payment
     SPRING_DATASOURCE_PASSWORD: payment
     SPRING_LIQUIBASE_ENABLED: true
-    POSTGRESQL_DATABASE : payment
+    POSTGRESQL_DATABASE : javadatabase
     POSTGRESQL_HOST: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
     POSTGRESQL_PORT: 5432
-    POSTGRESQL_USERNAME: payment
-    POSTGRESQL_PASSWORD: payment
+    POSTGRESQL_USERNAME: javapostgres
+    POSTGRESQL_PASSWORD: javapassword
 
 
     REFORM_SERVICE_NAME: payment-api
@@ -89,9 +89,3 @@ java:
 
   postgresql:
     nameOverride: payment-db
-    postgresqlUsername: javapostgres
-    postgresqlPassword: javapassword
-    postgresqlDatabase : javadatabase
-    extraEnv:
-      - name: POSTGRESQL_DATABASE
-        value: javadatabase
