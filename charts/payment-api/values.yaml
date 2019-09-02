@@ -85,3 +85,6 @@ java:
     FEATURE_SERVICE_CALLBACK: "true"
 
     APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
+
+  postgresql:
+    nameOverride: payment-db
