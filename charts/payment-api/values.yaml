@@ -84,3 +84,6 @@ java:
 
   postgresql:
     nameOverride: payment-db
+    postgresqlUsername: payment
+    postgresqlPassword: payment
+    postgresqlDatabase: payment
