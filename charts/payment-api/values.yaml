@@ -87,3 +87,10 @@ java:
     postgresqlUsername: payment
     postgresqlPassword: payment
     postgresqlDatabase: payment
+    initdbScripts:
+      init.sql: |-
+        CREATE USER payment WITH PASSWORD 'payment';
+        CREATE DATABASE payment WITH OWNER = payment ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+    extraEnv:
+      - name: POSTGRESQL_DATABASE
+        value: payment
