@@ -89,3 +89,9 @@ java:
 
   postgresql:
     nameOverride: payment-db
+    postgresqlUsername: javapostgres
+    postgresqlPassword: javapassword
+    postgresqlDatabase : javadatabase
+    extraEnv:
+      - name: POSTGRESQL_DATABASE
+        value: javadatabase
