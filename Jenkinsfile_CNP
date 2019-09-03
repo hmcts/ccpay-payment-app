@@ -40,7 +40,6 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 
 withPipeline(type, product, app) {
-    disableLegacyDeployment()
     overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
     enableDbMigration('ccpay') // for liquibase update
