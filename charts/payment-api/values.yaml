@@ -1,15 +1,4 @@
-postgresql:
-  initdbScripts:
-    init.sql: |-
-      CREATE USER payment WITH PASSWORD 'payment';
-      CREATE DATABASE payment WITH OWNER = payment ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
-  nameOverride: payment-db
-  persistence:
-    enabled: false
 java:
-  image: ${IMAGE_NAME}
-  ingressHost: ${SERVICE_FQDN}
-
   applicationPort: 8080
   keyVaults:
     "ccpay":
@@ -35,11 +24,6 @@ java:
     SPRING_DATASOURCE_USERNAME: payment
     SPRING_DATASOURCE_PASSWORD: payment
     SPRING_LIQUIBASE_ENABLED: true
-    POSTGRESQL_DATABASE : payment
-    POSTGRESQL_HOST: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
-    POSTGRESQL_PORT: 5432
-    POSTGRESQL_USERNAME: payment
-    POSTGRESQL_PASSWORD: payment
 
 
     REFORM_SERVICE_NAME: payment-api
@@ -97,3 +81,12 @@ java:
     FEATURE_SERVICE_CALLBACK: "true"
 
     APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
+
+  postgresql:
+    nameOverride: payment-db
+    postgresqlUsername: payment
+    postgresqlPassword: payment
+    postgresqlDatabase: payment
+    extraEnv:
+      - name: POSTGRESQL_DATABASE
+        value: payment

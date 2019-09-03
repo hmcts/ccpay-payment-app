@@ -160,6 +160,7 @@
             the feasibility of upgrading to a higher version of gradle.
         </notes>
         <cve>CVE-2019-15052</cve>
+        <cve>CVE-2019-10086</cve>
     </suppress>
 
 </suppressions>
