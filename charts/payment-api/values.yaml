@@ -30,10 +30,17 @@ java:
         - liberata-keys-oauth2-username
         - liberata-keys-oauth2-password
   environment:
+
     SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
     SPRING_DATASOURCE_USERNAME: payment
     SPRING_DATASOURCE_PASSWORD: payment
     SPRING_LIQUIBASE_ENABLED: true
+    POSTGRESQL_DATABASE : payment
+    POSTGRESQL_HOST: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
+    POSTGRESQL_PORT: 5432
+    POSTGRESQL_USERNAME: payment
+    POSTGRESQL_PASSWORD: payment
+
 
     REFORM_SERVICE_NAME: payment-api
     REFORM_TEAM: cc
