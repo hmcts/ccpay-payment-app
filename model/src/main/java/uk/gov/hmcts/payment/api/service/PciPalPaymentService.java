@@ -37,23 +37,17 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private String ppAccountIDDivorce;
 
     private final String callbackUrl;
-    private final String redirectUrl;
     private final String url;
-    private final String apiKey;
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
-                                @Value("${pci-pal.api.key}") String apiKey,
-                                @Value("${paybubble.home.url}") String redirectUrl,
                                 @Value("${pci-pal.callback-url}") String callbackUrl) {
         this.url = url;
-        this.apiKey = apiKey;
-        this.redirectUrl = redirectUrl;
         this.callbackUrl = callbackUrl;
     }
 
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
-        LOG.error("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
+        LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
             String ppAccountID = null;
             if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
@@ -63,17 +57,14 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
                 ppAccountID = ppAccountIDProbate;
 
-            LOG.error("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
+            LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair("apiKey", apiKey));
-            params.add(new BasicNameValuePair("ppAccountId", ppAccountID));
-            params.add(new BasicNameValuePair("renderMethod", "HTML"));
+            params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
             params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
-            params.add(new BasicNameValuePair("orderCurrency", pciPalPaymentRequest.getOrderCurrency()));
             params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
             params.add(new BasicNameValuePair("callbackURL", callbackUrl));
-            params.add(new BasicNameValuePair("customData1", pciPalPaymentRequest.getCustomData1()));
-            params.add(new BasicNameValuePair("redirectURL", redirectUrl));
+            params.add(new BasicNameValuePair("customData2", pciPalPaymentRequest.getCustomData2()));
+
 
             URIBuilder uriBuilder = new URIBuilder(url);
             uriBuilder.addParameters(params);
@@ -97,6 +88,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             .state(State.stateWith().code("code").finished(false).message("message").status("created").build()).build();
         LOG.info("PciPal service called, returning with: {}", payment);
         return payment;
+    }
+
+    @Override
+    public PciPalPayment update(PaymentServiceRequest paymentServiceRequest) {
+        return null;
     }
 
     @Override

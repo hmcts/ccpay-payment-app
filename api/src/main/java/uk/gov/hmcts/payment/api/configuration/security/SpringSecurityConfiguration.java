@@ -74,6 +74,7 @@ public class SpringSecurityConfiguration {
                 "/health/liveness",
                 "/info",
                 "/favicon.ico",
+                "/mock-api/**",
                 "/");
         }
 
@@ -87,9 +88,11 @@ public class SpringSecurityConfiguration {
                 .logout().disable()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority("payments")
+                .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority("payments")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority("payments", "citizen")
                 .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority("payments","pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority("payments", "citizen")
+                .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
                 .anyRequest().authenticated();
         }

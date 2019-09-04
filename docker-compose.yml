@@ -8,7 +8,7 @@ services:
         - http_proxy
         - https_proxy
         - no_proxy
-    image: hmcts.azurecr.io/hmcts/payment-api
+    image: hmctspublic.azurecr.io/payment/api
     environment:
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8080/
       - auth.idam.client.baseUrl=https://idam-test.dev.ccidam.reform.hmcts.net
@@ -17,6 +17,11 @@ services:
       - CARD_PAYMENTS_EMAIL_TO=pepito@grillo.com
       - CARD_PAYMENTS_EMAIL_MESSAGE=hi
       - CARD_PAYMENTS_EMAIL_SUBJECT=Docker Env Card Payments Reconciliation Report
+      - BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED=true
+      - BAR_PAYMENTS_EMAIL_FROM=no-reply@reform.hmcts.net
+      - BAR_PAYMENTS_EMAIL_TO=pepito@grillo.com
+      - BAR_PAYMENTS_EMAIL_MESSAGE=hi
+      - BAR_PAYMENTS_EMAIL_SUBJECT=Docker Env Bar Payments Reconciliation Report
       - FEATURE_PAYMENTS_SEARCH=true
       - FEES_REGISTER_URL=https://ccfr-fees-api:8080
       - GOV_PAY_AUTH_KEY_CMC=la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3
@@ -30,6 +35,16 @@ services:
       - PBA_CMC_PAYMENTS_EMAIL_TO=pepito@grillo.com
       - PBA_CMC_PAYMENTS_EMAIL_MESSAGE=hi
       - PBA_CMC_PAYMENTS_EMAIL_SUBJECT=Docker Env Card Payments Reconciliation Report
+      - PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED=true
+      - PBA_PROBATE_PAYMENTS_EMAIL_FROM=no-reply@reform.hmcts.net
+      - PBA_PROBATE_PAYMENTS_EMAIL_TO=pepito@grillo.com
+      - PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE=hi
+      - PBA_PROBATE_PAYMENTS_EMAIL_SUBJECT=Docker Env Card Payments Reconciliation Report
+      - PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED=true
+      - PBA_FINREM_PAYMENTS_EMAIL_FROM=no-reply@reform.hmcts.net
+      - PBA_FINREM_PAYMENTS_EMAIL_TO=pepito@grillo.com
+      - PBA_FINREM_PAYMENTS_EMAIL_MESSAGE=hi
+      - PBA_FINREM_PAYMENTS_EMAIL_SUBJECT=Docker Env Card Payments Reconciliation Report
       - PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED=true
       - PBA_DIVORCE_PAYMENTS_EMAIL_FROM=no-reply@reform.hmcts.net
       - PBA_DIVORCE_PAYMENTS_EMAIL_TO=pepito@grillo.com
@@ -49,6 +64,7 @@ services:
       - TRUSTED_S2S_SERVICE_NAMES=cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp
       - PAYBUBBLE_HOME_URL=https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal
       - PCI_PAL_CALLBACK_URL=https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback
+      - ASB_CONNECTION_STRING=some-azure-service-bus-connection-string
     ports:
      - 8080:8080
     depends_on:
@@ -68,7 +84,7 @@ services:
 
   # service-auth-provider
   service-auth-provider-api:
-    image: hmcts.azurecr.io/hmcts/rpe-service-auth-provider
+    image: hmctspublic.azurecr.io/rpe/service-auth-provider
     environment:
       - auth.provider.service.server.jwtKey=wThK0f0/lh3FlxFcL4xUWDMI5C1J9KyQBgXV4wseh1e5J1uYJIjvTvArHxQDrYoHJ23xFxjHkOnvNbR5dXRoxA==
       - auth.provider.service.server.microserviceKeys.divorce=AAAAAAAAAAAAAAAA
@@ -77,7 +93,7 @@ services:
       - 8085:8080
 
   ccfr-fees-api:
-    image: hmcts.azurecr.io/hmcts/fees-register-api
+    image: hmctspublic.azurecr.io/fees-register/api
     container_name: ccfr-fees-api
     environment:
     - SPRING_DATASOURCE_URL=jdbc:postgresql://ccfr-fees-database:5432/fees_register

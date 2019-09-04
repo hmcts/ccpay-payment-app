@@ -27,6 +27,12 @@ public class FF4jConfiguration {
     @Value("${feature.check.liberata.account.for.all.services}")
     private boolean checkLiberataAccountForAllServices = false;
 
+    @Value("${feature.duplicate.payment.check}")
+    private boolean duplicatePaymentCheck = true;
+
+    @Value("${feature.case.reference.validation}")
+    private boolean caseRefValidation = false;
+
     @Bean
     public FF4j getFf4j() {
 
@@ -52,11 +58,23 @@ public class FF4jConfiguration {
             checkLiberataAccountForAllServices,
             "If Liberata credit check is enabled and this feature also, then requests from all services will be checked against Liberata");
 
+        Feature duplicatePaymentCheckFeature = new Feature(
+            "duplicate-payment-check",
+            duplicatePaymentCheck,
+            "duplicate payment check");
+
+        Feature caseRefValidationFeature = new Feature(
+            "caseref-validation",
+            caseRefValidation,
+            "enable validate case id in payhub");
+
         return new FF4j()
             .createFeature(paymentSearchFeature)
             .createFeature(paymentServiceCallbackFeature)
             .createFeature(creditAccountPaymentLiberataCheckFeature)
-            .createFeature(checkLiberataAccountForAllServicesFeature);
+            .createFeature(checkLiberataAccountForAllServicesFeature)
+            .createFeature(duplicatePaymentCheckFeature)
+            .createFeature(caseRefValidationFeature);
     }
 
     @Bean

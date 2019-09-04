@@ -1,0 +1,92 @@
+java:
+  applicationPort: 8080
+  keyVaults:
+    "ccpay":
+      resourceGroup: ccpay
+      secrets:
+        - sb-primary-connection-string
+        - pci-pal-account-id-cmc
+        - pci-pal-account-id-probate
+        - pci-pal-account-id-divorce
+        - pci-pal-api-url
+        - pci-pal-api-key
+        - gov-pay-keys-reference
+        - gov-pay-keys-cmc
+        - gov-pay-keys-divorce
+        - gov-pay-keys-probate
+        - liberata-keys-oauth2-client-id
+        - liberata-keys-oauth2-client-secret
+        - liberata-keys-oauth2-username
+        - liberata-keys-oauth2-password
+  environment:
+
+    SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
+    SPRING_DATASOURCE_USERNAME: payment
+    SPRING_DATASOURCE_PASSWORD: payment
+    SPRING_LIQUIBASE_ENABLED: true
+
+
+    REFORM_SERVICE_NAME: payment-api
+    REFORM_TEAM: cc
+    REFORM_ENVIRONMENT: preview
+
+    AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+    AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
+    FEES_REGISTER_URL: "http://fees-register-api-aat.service.core-compute-aat.internal"
+    PAYBUBBLE_HOME_URL: "https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal"
+    CORE_CASE_DATA_API_URL: "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
+
+    GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
+    GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw"
+    PCI_PAL_CALLBACK_URL: "https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback"
+
+    TRUSTED_S2S_SERVICE_NAMES: "cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp"
+
+    CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    CARD_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    CARD_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
+    CARD_PAYMENTS_EMAIL_MESSAGE: "hi"
+    CARD_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    BAR_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    BAR_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
+    BAR_PAYMENTS_EMAIL_MESSAGE: "hi"
+    BAR_PAYMENTS_EMAIL_SUBJECT: "Docker Env Bar Payments Reconciliation Report"
+    PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_CMC_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    PBA_CMC_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
+    PBA_CMC_PAYMENTS_EMAIL_MESSAGE: "hi"
+    PBA_CMC_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_PROBATE_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    PBA_PROBATE_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
+    PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE: "hi"
+    PBA_PROBATE_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_FINREM_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    PBA_FINREM_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
+    PBA_FINREM_PAYMENTS_EMAIL_MESSAGE: "hi"
+    PBA_FINREM_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
+    PBA_DIVORCE_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
+    PBA_DIVORCE_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
+    PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE: "hi"
+    PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+    SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: "*"
+    SPRING_MAIL_PORT: "25"
+    SPRING_MAIL_HOST: "mta.reform.hmcts.net"
+
+    FEATURE_PAYMENTS_SEARCH: "true"
+    FEATURE_SERVICE_CALLBACK: "true"
+
+    APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
+
+  postgresql:
+    nameOverride: payment-db
+    postgresqlUsername: payment
+    postgresqlPassword: payment
+    postgresqlDatabase: payment
+    extraEnv:
+      - name: POSTGRESQL_DATABASE
+        value: payment

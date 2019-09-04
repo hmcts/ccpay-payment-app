@@ -182,4 +182,8 @@ public class PaymentDto {
 
         return result.toString();
     }
+
+    public String toPaymentCsv() {
+        return toCreditAccountPaymentCsv();
+    }
 }

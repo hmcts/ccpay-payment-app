@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Data
@@ -42,5 +42,10 @@ public class PaymentFee {
     @Column(name = "reference")
     private String reference;
 
+    @Column(name = "net_amount")
+    private BigDecimal netAmount;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "fee_id", referencedColumnName = "id")
+    private List<Remission> remissions;
 }

@@ -24,6 +24,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 public class FeeDto {
 
+    private Integer id;
+
     @NotEmpty
     private String code;
 
@@ -45,6 +47,12 @@ public class FeeDto {
 
     private String reference;
 
-    private String remissionReference;
+    @Digits(integer = 10, fraction = 2, message = "Net amount cannot have more than 2 decimal places")
+    private BigDecimal netAmount;
 
+    private String jurisdiction1;
+
+    private String jurisdiction2;
+
+    private String description;
 }

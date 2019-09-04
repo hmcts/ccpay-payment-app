@@ -20,6 +20,10 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
+import java.math.BigDecimal;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -80,4 +84,22 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    @Transactional
+    public void searchCreditPayments_whichHaveNetAmountAsCalculatedAmount() throws Exception {
+        BigDecimal calculatedAmount = new BigDecimal("13.33");
+        BigDecimal netAmount = new BigDecimal("23.33");
+        populateCreditAccountPaymentToDbWithNetAmountForFee("1", calculatedAmount, netAmount);
+
+        MvcResult result = restActions
+            .get("/pba-accounts/123456/payments")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+
+        assertEquals(1, paymentsResponse.getPayments().size());
+        assertEquals(netAmount,  paymentsResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount());
+        assertNotNull("net_amount should be set", paymentsResponse.getPayments().get(0).getFees().get(0).getNetAmount());
+    }
 }

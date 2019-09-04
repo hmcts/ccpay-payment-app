@@ -28,6 +28,11 @@ variable "jenkins_AAD_objectId" {
   description                 = "(Required) The Azure AD object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies."
 }
 
+variable "appinsights_instrumentation_key" {
+  description = "Instrumentation key of the App Insights instance this webapp should use. Module will create own App Insights resource if this is not provided"
+  default = ""
+}
+
 variable "microservice" {
   type = "string"
   default = "payment-app"
@@ -63,6 +68,10 @@ variable "pci_pal_callback_url" {
   default = "https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback"
 }
 
+variable "core_case_data_api_url" {
+  default = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
+}
+
 variable "liberata_oauth2_base_url" {
   default = "https://bpacustomerportal.liberata.com/pba/public/api/v2"
 }
@@ -77,6 +86,10 @@ variable "liberata_oauth2_authorize_url" {
 
 variable "liberata_oauth2_token_url" {
   default = "https://bpacustomerportal.liberata.com/pba/public/oauth/token"
+}
+
+variable "callback_payments_cutoff_time_in_minutes" {
+  default = "0"
 }
 
 variable "gov_pay_operational_services" {
@@ -109,6 +122,19 @@ variable "card_payments_email_message" {
   default = "Hi <br/><br/>Please find attached today''s reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 }
 
+variable "bar_payments_report_scheduler_enabled" {
+  default = "true"
+}
+variable "bar_payments_email_from" {
+  default = "no-reply@reform.hmcts.net"
+}
+variable "bar_payments_email_subject" {
+  default = "CNP Test Env: Bar Payments Reconciliation Report"
+}
+variable "bar_payments_email_message" {
+  default = "Hi <br/><br/>Please find attached today''s reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+}
+
 variable "pba_cmc_payments_report_scheduler_enabled" {
   default = "true"
 }
@@ -119,6 +145,32 @@ variable "pba_cmc_payments_email_subject" {
   default = "CNP Test Env : PBA Reconciliation Report for CMC"
 }
 variable "pba_cmc_payments_email_message" {
+  default = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+}
+
+variable "pba_probate_payments_report_scheduler_enabled" {
+  default = "true"
+}
+variable "pba_probate_payments_email_from" {
+  default = "no-reply@reform.hmcts.net"
+}
+variable "pba_probate_payments_email_subject" {
+  default = "CNP Test Env : PBA Reconciliation Report for PROBATE"
+}
+variable "pba_probate_payments_email_message" {
+  default = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+}
+
+variable "pba_finrem_payments_report_scheduler_enabled" {
+  default = "true"
+}
+variable "pba_finrem_payments_email_from" {
+  default = "no-reply@reform.hmcts.net"
+}
+variable "pba_finrem_payments_email_subject" {
+  default = "CNP Test Env : PBA Reconciliation Report for FINREM"
+}
+variable "pba_finrem_payments_email_message" {
   default = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 }
 
@@ -148,7 +200,11 @@ variable "feature_payments_search" {
 }
 
 variable "feature_credit_account_payment_liberata_check" {
-  default = "false"
+  default = "true"
+}
+
+variable "feature_duplicate_payment_check" {
+  default = "true"
 }
 
 variable "external_host_name" {
@@ -174,4 +230,8 @@ variable "test_frontend_url" {
 variable telephony_api_gateway_certificate_thumbprints {
   type = "list"
   default = []
+}
+
+variable "spring_profiles_active" {
+  default = "default"
 }

@@ -8,15 +8,7 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -48,9 +40,15 @@ public class PaymentFeeLink {
     @ToString.Exclude
     private List<Payment> payments;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     @ToString.Exclude
     private List<PaymentFee> fees;
+
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
+    @ToString.Exclude
+    private List<Remission> remissions;
 
 }

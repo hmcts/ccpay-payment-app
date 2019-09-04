@@ -61,7 +61,6 @@ public class PaymentsReportService {
 
         LOG.info("Start of payments csv report for method type :{} and service name :{}", paymentMethodType, serviceName);
 
-        feesService.dailyRefreshOfFeesData();
         List<PaymentDto> cardPaymentsCsvData = findPaymentsBy(startDate, endDate, paymentMethodType, serviceName);
         generateCsvAndSendEmail(cardPaymentsCsvData, reportConfig);
 
@@ -70,12 +69,14 @@ public class PaymentsReportService {
 
     private List<PaymentDto> findPaymentsBy(Date startDate, Date endDate, PaymentMethodType paymentMethodType, Service serviceName) {
         String serviceType = Optional.ofNullable(serviceName).map(Service::getName).orElse(null);
+        String paymentMethodTypeString = Optional.ofNullable(paymentMethodType).map(PaymentMethodType::getType).orElse(null);
+
         return delegatingPaymentService
             .search(
                 PaymentSearchCriteria.searchCriteriaWith()
                     .startDate(startDate)
                     .endDate(endDate)
-                    .paymentMethod(paymentMethodType.getType())
+                    .paymentMethod(paymentMethodTypeString)
                     .serviceType(serviceType)
                     .build()
             )

@@ -45,6 +45,10 @@ This project uses [TestContainers](https://www.testcontainers.org/usage/database
 Docker must be installed on the machine you are running tests on and docker environment should have more than 2GB free disk space. 
 
 Windows users may need to enable this [setting](https://github.com/testcontainers/testcontainers-java/issues/350)
+Linux users may need to add their current user to the docker group:
+```bash
+$ sudo usermod -aG docker $USER
+```
 
 To run all unit tests please execute the following command:
 
@@ -63,8 +67,8 @@ Please refer to Swagger UI and Gov.UK Pay for more details.
 
 ### Useful Links
 * https://gds-payments.gelato.io/docs/versions/1.0.0/resources/general
-* https://git.reform.hmcts.net/common-components/reference-app
-* https://git.reform.hmcts.net/common-components/reference-web
+* https://github.com/hmcts/ccpay-reference-app
+* https://github.com/hmcts/ccpay-reference-web
 
 ## How to generate Liquibase yaml file
 Liquibase is used to update the database changes. Perform following steps to create and update the new yaml file. 

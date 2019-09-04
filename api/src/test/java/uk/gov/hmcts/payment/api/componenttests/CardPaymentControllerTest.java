@@ -479,6 +479,164 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
+    @Test
+    public void creatingCardPaymentWithCcdCaseNumberInsideFeeGetsSavedProperly() throws Exception {
+        String testCcdCaseNumber = "test_case_number_1234";
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .ccdCaseNumber(testCcdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .ccdCaseNumber(testCcdCaseNumber)
+                .build())).build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals("Ccd case number inside fee is correct in the response", testCcdCaseNumber, paymentDto.getFees().get(0).getCcdCaseNumber());
+        PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
+        assertNotNull(paymentFeeLink);
+        assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber, paymentFeeLink.getFees().get(0).getCcdCaseNumber());
+    }
+
+    @Test
+    public void creatingCardPaymentWithCcdCaseNumberOnPaymentLevelOnlySavesCcdCaseNumberInsideFees() throws Exception {
+        String testCcdCaseNumber = "test_case_number_1234";
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .ccdCaseNumber(testCcdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build())).build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals("Ccd case number inside fee is correct in the response", testCcdCaseNumber, paymentDto.getFees().get(0).getCcdCaseNumber());
+        PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
+        assertNotNull(paymentFeeLink);
+        assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber, paymentFeeLink.getFees().get(0).getCcdCaseNumber());
+    }
+
+    @Test
+    public void creatingCardPaymentWithCcdCaseNumberOnPaymentLevelOnlySavesCcdCaseNumberInsideFeesAndDoesNotOverwriteAlreadySetCcdCaseNumberInFee() throws Exception {
+        String testCcdCaseNumber = "test_case_number_1234";
+        String testCcdCaseNumber2 = "test_case_number_4321";
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .ccdCaseNumber(testCcdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build(), FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("300.11"))
+                .code("X0002")
+                .ccdCaseNumber(testCcdCaseNumber2)
+                .version("1")
+                .build())).build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals("Ccd case number inside fee is correct in the response", testCcdCaseNumber, paymentDto.getFees().get(0).getCcdCaseNumber());
+        PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
+        assertNotNull(paymentFeeLink);
+        assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber, paymentFeeLink.getFees().get(0).getCcdCaseNumber());
+        assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber2, paymentFeeLink.getFees().get(1).getCcdCaseNumber());
+    }
+
+    @Test
+    public void creatingCardPaymentWithoutFees() throws Exception {
+        String testccdCaseNumber = "1212-2323-3434-5454";
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .ccdCaseNumber(testccdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
+        assertNotNull(paymentFeeLink);
+    }
+
+    @Test
+    public void creatingCardPaymentWithNullFees() throws Exception {
+        String testccdCaseNumber = "1212-2323-3434-5454";
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .ccdCaseNumber(testccdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .fees(null)
+            .build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
+        assertEquals(paymentDto.getStatus() , "Initiated");
+        assertNotNull(paymentFeeLink);
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }

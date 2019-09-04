@@ -1,11 +1,12 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.apache.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
@@ -42,10 +44,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Primary
@@ -72,11 +71,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final ServiceIdSupplier serviceIdSupplier;
     private final AuditRepository auditRepository;
     private final CallbackService callbackService;
-
-    @Autowired
-    private Environment environment;
-
-    private String[] testProfiles = {"embedded", "local", "componenttest"};
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -125,7 +119,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             fillTransientDetails(payment, pciPalPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
-                .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).getMappedStatus())
                 .errorCode(pciPalPayment.getState().getCode())
                 .message(pciPalPayment.getState().getMessage())
                 .build()));
@@ -134,7 +128,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             fillTransientDetails(payment, govPayPayment);
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                 .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
-                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
                 .errorCode(govPayPayment.getState().getCode())
                 .message(govPayPayment.getState().getMessage())
                 .build()));
@@ -154,6 +148,43 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         return paymentFeeLink;
     }
 
+    @Override
+    @Transactional
+    public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest)
+        throws CheckDigitException, MethodNotSupportedException {
+
+        Payment payment = buildPayment(paymentServiceRequest.getPaymentReference(), paymentServiceRequest);
+        if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
+            PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
+            PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
+            fillTransientDetails(payment, pciPalPayment);
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
+                .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).getMappedStatus())
+                .errorCode(pciPalPayment.getState().getCode())
+                .message(pciPalPayment.getState().getMessage())
+                .build()));
+        } else {
+            throw new MethodNotSupportedException("Only Telephony payments are supported");
+        }
+
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentServiceRequest.
+            getPaymentGroupReference()).orElseThrow(InvalidPaymentGroupReferenceException::new);
+
+        payment.setPaymentLink(paymentFeeLink);
+
+        if(paymentFeeLink.getPayments() != null){
+            paymentFeeLink.getPayments().addAll(Lists.newArrayList(payment));
+        } else {
+            paymentFeeLink.setPayments(Lists.newArrayList(payment));
+        }
+
+        auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, paymentFeeLink.getFees());
+        return paymentFeeLink;
+    }
+
+
     private Payment buildPayment(String paymentReference, PaymentServiceRequest paymentServiceRequest) {
         return Payment.paymentWith().userId(userIdSupplier.get())
             .amount(paymentServiceRequest.getAmount())
@@ -172,9 +203,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             .build();
     }
 
-    @Override
-    @Transactional
-    public PaymentFeeLink retrieve(String paymentReference) {
+    private PaymentFeeLink retrieve(String paymentReference, boolean shouldCallBack) {
 
         final Payment payment = findSavedPayment(paymentReference);
 
@@ -203,12 +232,12 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
                 payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .externalStatus(govPayPayment.getState().getStatus())
-                    .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).mapedStatus)
+                    .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
                     .errorCode(govPayPayment.getState().getCode())
                     .message(govPayPayment.getState().getMessage())
                     .build()));
 
-                if (payment.getServiceCallbackUrl() != null) {
+                if (shouldCallBack && payment.getServiceCallbackUrl() != null) {
                     callbackService.callback(paymentFeeLink, payment);
                 }
             }
@@ -217,6 +246,19 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         }
 
         return paymentFeeLink;
+    }
+
+    @Override
+    @Transactional
+    public PaymentFeeLink retrieve(String paymentReference) {
+        return retrieve(paymentReference, false);
+    }
+
+    @Override
+    @Transactional
+    public PaymentFeeLink retrieveWithCallBack(String paymentReference) {
+        return retrieve(paymentReference, true);
+
     }
 
     @Override

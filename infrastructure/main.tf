@@ -1,10 +1,10 @@
 provider "azurerm" {
-  version = "1.19.0"
+  version = "1.22.1"
 }
 
 locals {
   app_full_name = "${var.product}-${var.component}"
-  aseName = "${data.terraform_remote_state.core_apps_compute.ase_name[0]}"
+  aseName = "core-compute-${var.env}"
 
   local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
   local_ase = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "core-compute-aat" : "core-compute-saat" : local.aseName}"
@@ -20,6 +20,8 @@ locals {
 
   asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 
+  sku_size = "${var.env == "prod" || var.env == "sprod" || var.env == "aat" ? "I2" : "I1"}"
+  
   #region API gateway
   thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)}"
   thumbprints_in_quotes_str = "${join(",", local.thumbprints_in_quotes)}"
@@ -31,6 +33,11 @@ locals {
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
   resource_group_name = "${var.core_product}-${local.local_env}"
+}
+
+data "azurerm_key_vault_secret" "appinsights_instrumentation_key" {
+  name = "AppInsightsInstrumentationKey"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 data "azurerm_key_vault_secret" "pci_pal_account_id_cmc" {
@@ -103,7 +110,22 @@ data "azurerm_key_vault_secret" "card_payments_email_to" {
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
+data "azurerm_key_vault_secret" "bar_payments_email_to" {
+  name = "bar-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
+  name = "pba-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pba_probate_payments_email_to" {
+  name = "pba-payments-email-to"
+  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+}
+
+data "azurerm_key_vault_secret" "pba_finrem_payments_email_to" {
   name = "pba-payments-email-to"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
@@ -135,8 +157,10 @@ module "payment-api" {
   https_only="false"
   capacity = "${var.capacity}"
   common_tags     = "${var.common_tags}"
+  appinsights_instrumentation_key = "${data.azurerm_key_vault_secret.appinsights_instrumentation_key.value}"
   asp_name = "${local.asp_name}"
   asp_rg = "${local.asp_name}"
+  instance_size = "${local.sku_size}"
 
   app_settings = {
     # db
@@ -151,6 +175,10 @@ module "payment-api" {
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
+
+    # CCD
+    CORE_CASE_DATA_API_URL = "${var.core_case_data_api_url}"
+    CCD_CLIENT_URL = "${var.core_case_data_api_url}"
 
     # PCI PAL
     PCI_PAL_ACCOUNT_ID_CMC = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc.value}"
@@ -172,6 +200,8 @@ module "payment-api" {
     LIBERATA_OAUTH2_BASE_URL = "${var.liberata_oauth2_base_url}"
     LIBERATA_OAUTH2_AUTHORIZE_URL = "${var.liberata_oauth2_authorize_url}"
     LIBERATA_OAUTH2_TOKEN_URL = "${var.liberata_oauth2_token_url}"
+
+    CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES = "${var.callback_payments_cutoff_time_in_minutes}"
 
     # gov pay keys
     GOV_PAY_URL = "${var.gov_pay_url}"
@@ -195,11 +225,29 @@ module "payment-api" {
     CARD_PAYMENTS_EMAIL_SUBJECT = "${var.card_payments_email_subject}"
     CARD_PAYMENTS_EMAIL_MESSAGE = "${var.card_payments_email_message}"
 
+    BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.bar_payments_report_scheduler_enabled}"
+    BAR_PAYMENTS_EMAIL_FROM = "${var.bar_payments_email_from}"
+    BAR_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.bar_payments_email_to.value}"
+    BAR_PAYMENTS_EMAIL_SUBJECT = "${var.bar_payments_email_subject}"
+    BAR_PAYMENTS_EMAIL_MESSAGE = "${var.bar_payments_email_message}"
+
     PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_cmc_payments_report_scheduler_enabled}"
     PBA_CMC_PAYMENTS_EMAIL_FROM = "${var.pba_cmc_payments_email_from}"
     PBA_CMC_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_cmc_payments_email_to.value}"
     PBA_CMC_PAYMENTS_EMAIL_SUBJECT = "${var.pba_cmc_payments_email_subject}"
     PBA_CMC_PAYMENTS_EMAIL_MESSAGE = "${var.pba_cmc_payments_email_message}"
+
+    PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_probate_payments_report_scheduler_enabled}"
+    PBA_PROBATE_PAYMENTS_EMAIL_FROM = "${var.pba_probate_payments_email_from}"
+    PBA_PROBATE_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_probate_payments_email_to.value}"
+    PBA_PROBATE_PAYMENTS_EMAIL_SUBJECT = "${var.pba_probate_payments_email_subject}"
+    PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE = "${var.pba_probate_payments_email_message}"
+
+    PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_finrem_payments_report_scheduler_enabled}"
+    PBA_FINREM_PAYMENTS_EMAIL_FROM = "${var.pba_finrem_payments_email_from}"
+    PBA_FINREM_PAYMENTS_EMAIL_TO = "${data.azurerm_key_vault_secret.pba_finrem_payments_email_to.value}"
+    PBA_FINREM_PAYMENTS_EMAIL_SUBJECT = "${var.pba_finrem_payments_email_subject}"
+    PBA_FINREM_PAYMENTS_EMAIL_MESSAGE = "${var.pba_finrem_payments_email_message}"
 
     PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED = "${var.pba_divorce_payments_report_scheduler_enabled}"
     PBA_DIVORCE_PAYMENTS_EMAIL_FROM = "${var.pba_divorce_payments_email_from}"
@@ -210,6 +258,7 @@ module "payment-api" {
     FEES_REGISTER_URL = "${local.fees_register_url}"
     FEATURE_PAYMENTS_SEARCH = "${var.feature_payments_search}"
     FEATURE_CREDIT_ACCOUNT_PAYMENT_LIBERATA_CHECK = "${var.feature_credit_account_payment_liberata_check}"
+    FEATURE_DUPLICATE_PAYMENT_CHECK = "${var.feature_duplicate_payment_check}"
 
     PAYMENT_SERVER_URL = "${local.website_url}"
 
@@ -217,7 +266,6 @@ module "payment-api" {
     REFORM_SERVICE_NAME = "payment-api"
     REFORM_TEAM = "cc"
     REFORM_ENVIRONMENT = "${var.env}"
-    ROOT_APPENDER = "JSON_CONSOLE"
 
     PAYMENT_AUDIT_FILE = "${var.payment_audit_file}"
     # webjob security
@@ -225,6 +273,8 @@ module "payment-api" {
     WEBJOB_S2S_CLIENT_SECRET = "${data.azurerm_key_vault_secret.webjob_s2s_client_secret.value}"
 
     ASB_CONNECTION_STRING ="${data.terraform_remote_state.shared_infra.topic_primary_send_and_listen_connection_string}"
+
+    SPRING_PROFILES_ACTIVE = "${var.spring_profiles_active}"
   }
 }
 
@@ -237,37 +287,38 @@ module "payment-database" {
   database_name = "${var.database_name}"
   sku_name = "GP_Gen5_2"
   sku_tier = "GeneralPurpose"
-  common_tags     = "${var.common_tags}"
+  common_tags = "${var.common_tags}"
+  subscription = "${var.subscription}"
 }
 
 # Populate Vault with DB info
 
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
-  name      = "${local.app_full_name}-POSTGRES-USER"
+  name      = "${var.component}-POSTGRES-USER"
   value     = "${module.payment-database.user_name}"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
-  name      = "${local.app_full_name}-POSTGRES-PASS"
+  name      = "${var.component}-POSTGRES-PASS"
   value     = "${module.payment-database.postgresql_password}"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
-  name      = "${local.app_full_name}-POSTGRES-HOST"
+  name      = "${var.component}-POSTGRES-HOST"
   value     = "${module.payment-database.host_name}"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
-  name      = "${local.app_full_name}-POSTGRES-PORT"
+  name      = "${var.component}-POSTGRES-PORT"
   value     = "${module.payment-database.postgresql_listen_port}"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
-  name      = "${local.app_full_name}-POSTGRES-DATABASE"
+  name      = "${var.component}-POSTGRES-DATABASE"
   value     = "${module.payment-database.postgresql_database}"
   vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
 }

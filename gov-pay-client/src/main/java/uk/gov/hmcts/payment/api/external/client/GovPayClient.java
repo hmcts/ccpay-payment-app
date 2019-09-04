@@ -2,6 +2,9 @@ package uk.gov.hmcts.payment.api.external.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,12 +24,19 @@ import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayClientException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 @Component
 @SuppressWarnings(value = "HTTP_PARAMETER_POLLUTION", justification = "No way around it in a client")
+@DefaultProperties(groupKey = "govPay", commandProperties = {
+    @HystrixProperty(name ="circuitBreaker.requestVolumeThreshold", value = "20"),
+    @HystrixProperty(name ="circuitBreaker.errorThresholdPercentage", value = "50"),
+    @HystrixProperty(name ="metrics.rollingStats.timeInMilliseconds", value = "60000"),
+    @HystrixProperty(name = "execution.timeout.enabled", value = "false")
+})
 public class GovPayClient {
 
     private final String url;
@@ -45,6 +55,7 @@ public class GovPayClient {
         this.errorTranslator = errorTranslator;
     }
 
+    @HystrixCommand(commandKey = "createCardPayment")
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         return withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
@@ -54,6 +65,7 @@ public class GovPayClient {
         });
     }
 
+    @HystrixCommand(commandKey = "retrieveCardPayment", ignoreExceptions = {GovPayPaymentNotFoundException.class})
     public GovPayPayment retrievePayment(String authorizationKey, String govPayId) {
         return withIOExceptionHandling(() -> {
             HttpGet request = getRequestFor(authorizationKey, url + "/" + govPayId);

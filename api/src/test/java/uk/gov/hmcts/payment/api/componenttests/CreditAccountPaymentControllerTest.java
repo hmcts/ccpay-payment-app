@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +18,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
@@ -116,6 +118,114 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         setCreditAccountPaymentLiberataCheckFeature(true);
 
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void rejectDuplicatePayment_ccdCaseNumber() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        request.setCcdCaseNumber("CCD105");
+        request.setCaseReference(null);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+
+        // 2nd request
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void rejectDuplicatePayment_caseReference() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        request.setCcdCaseNumber(null);
+        request.setCaseReference("33333");
+
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+
+        // 2nd request
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldNotRejectDuplicatePaymentIfAmountIsDifferent() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+
+        // different amount for the 2nd request
+        request.setAmount(BigDecimal.valueOf(500.50));
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void shouldNotRejectDuplicatePaymentIfFeeCodeIsDifferent() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+
+        // different fee code for the 2nd request
+        FeeDto x0102 = FeeDto.feeDtoWith().code("X0102").version("1").calculatedAmount(BigDecimal.valueOf(101.89)).build();
+        request.setFees(Lists.newArrayList(x0102));
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void shouldNotRejectDuplicatePaymentIfFeeVersionIsDifferent() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName", new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isCreated());
+
+        // different fee version for the 2nd request
+        FeeDto x0101_v4 = FeeDto.feeDtoWith().code("X0101").version("4").calculatedAmount(BigDecimal.valueOf(101.89)).build();
+        request.setFees(Lists.newArrayList(x0101_v4));
         restActions
             .post(format("/credit-account-payments"), request)
             .andExpect(status().isCreated());

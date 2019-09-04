@@ -26,4 +26,7 @@ payment-audit.log
 api/src/main/resources/application.properties
 
 api/out/
+api-contract/out/
 gov-pay-client/out/
+model/out/
+reference-data/out/

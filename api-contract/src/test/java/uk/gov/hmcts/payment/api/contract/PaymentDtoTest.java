@@ -49,6 +49,9 @@ public class PaymentDtoTest {
     private SimpleDateFormat sdf;
     private String giroSlipNo;
     private String reportedDateOffline;
+    private String jurisdiction1;
+    private String jurisdiction2;
+    private String feeDescription;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -59,12 +62,16 @@ public class PaymentDtoTest {
         volume = 1;
         feeNoVolumeCode = "X0002";
         calculatedAmountForFeeNoVolume = new BigDecimal(1);
+        jurisdiction1 = "family";
+        jurisdiction2 = "probate service";
+        feeDescription = "Fee Description";
 
-        feeWithVolumeDto = new FeeDto(feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            memoLine, naturalAccountCode, null, null, null);
 
-        feeNoVolumeDto = new FeeDto(feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            memoLine, naturalAccountCode, null, null, null);
+        feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
+            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription);
+
+        feeNoVolumeDto = new FeeDto(1, feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
+            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription);
     }
 
     @Before
@@ -343,5 +350,69 @@ public class PaymentDtoTest {
         rowJointer.add(joiner.toString());
         rowJointer.add(joiner2.toString());
         assertThat(testDto.toCreditAccountPaymentCsv()).isEqualTo(rowJointer.toString());
+    }
+
+    @Test
+    public void paymentCsvPutsEmptyStringVolumeAmountWhenExists() {
+            List<FeeDto> fees = new ArrayList<>();
+            fees.add(feeWithVolumeDto);
+            testDto.setFees(fees);
+
+            StringJoiner joiner = new StringJoiner(",");
+            joiner.add(serviceName)
+                .add(paymentGroupReference)
+                .add(paymentReference)
+                .add(ccdNumber)
+                .add(caseReference)
+                .add(organisationName)
+                .add(customerReference)
+                .add(accountNumber)
+                .add(sdf.format(dateCreated))
+                .add(sdf.format(dateUpdated))
+                .add(status)
+                .add(channel)
+                .add(method)
+                .add(amount.toString())
+                .add(siteId)
+                .add(feeWithVolumeCode)
+                .add(feeVersion)
+                .add(calculatedAmountForFeeWithVolume.toString())
+                .add("\"" + memoLine + "\"")
+                .add(naturalAccountCode)
+                .add(volume.toString());
+
+            assertThat(testDto.toPaymentCsv()).isEqualTo(joiner.toString());
+        }
+
+    @Test
+    public void paymentCsvPutsEmptyStringVolumeAmountWhenNotExists() {
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(feeNoVolumeDto);
+        testDto.setFees(fees);
+
+        StringJoiner joiner = new StringJoiner(",");
+        joiner.add(serviceName)
+            .add(paymentGroupReference)
+            .add(paymentReference)
+            .add(ccdNumber)
+            .add(caseReference)
+            .add(organisationName)
+            .add(customerReference)
+            .add(accountNumber)
+            .add(sdf.format(dateCreated))
+            .add(sdf.format(dateUpdated))
+            .add(status)
+            .add(channel)
+            .add(method)
+            .add(amount.toString())
+            .add(siteId)
+            .add(feeNoVolumeCode)
+            .add(feeVersion)
+            .add(calculatedAmountForFeeNoVolume.toString())
+            .add("\"" + memoLine + "\"")
+            .add(naturalAccountCode)
+            .add(volume.toString());
+
+        assertThat(testDto.toPaymentCsv()).isEqualTo(joiner.toString());
     }
 }

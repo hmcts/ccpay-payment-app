@@ -104,7 +104,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
         when(govPayDelegatingPaymentService.retrieve("govPayId", "cmc")).thenReturn(ANOTHER_GOV_PAYMENT_RESPONSE);
 
-        PaymentFeeLink result = cardPaymentService.retrieve(reference);
+        PaymentFeeLink result = cardPaymentService.retrieveWithCallBack(reference);
 
         verify(callbackService, times(1)).callback(any(), any());
 
@@ -150,12 +150,10 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
         when(govPayDelegatingPaymentService.retrieve("govPayId", "cmc")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
-        verify(callbackService, times(0)).callback(any(), any());
-
         PaymentFeeLink result = cardPaymentService.retrieve(reference);
         assertNotNull(result.getPayments().get(0));
-        assertEquals(result.getPayments().get(0).getExternalReference(), "govPayId");
-        assertEquals(result.getPayments().get(0).getReference(), reference);
+        assertEquals("govPayId", result.getPayments().get(0).getExternalReference());
+        assertEquals(reference, result.getPayments().get(0).getReference());
     }
 
     private static final GovPayPayment VALID_GOV_PAYMENT_RESPONSE = govPaymentWith()

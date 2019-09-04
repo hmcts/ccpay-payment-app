@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import com.google.common.collect.ImmutableMap;
 import net.logstash.logback.argument.StructuredArguments;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.apache.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -41,6 +42,21 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     @Override
     public PaymentFeeLink create(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = delegate.create(paymentServiceRequest);
+
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
+            PAYMENT_ID, payment.getId(),
+            USER_ID, userIdSupplier.get(),
+            EVENT_TYPE, "create",
+            AMOUNT, payment.getAmount(),
+            REFERENCE, payment.getReference()
+        )));
+        return paymentFeeLink;
+    }
+
+    @Override
+    public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException, MethodNotSupportedException {
+        PaymentFeeLink paymentFeeLink = delegate.update(paymentServiceRequest);
 
         Payment payment = paymentFeeLink.getPayments().get(0);
         LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
