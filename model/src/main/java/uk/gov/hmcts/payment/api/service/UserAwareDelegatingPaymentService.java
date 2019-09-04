@@ -168,6 +168,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             throw new MethodNotSupportedException("Only Telephony payments are supported");
         }
 
+
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentServiceRequest.
             getPaymentGroupReference()).orElseThrow(InvalidPaymentGroupReferenceException::new);
 

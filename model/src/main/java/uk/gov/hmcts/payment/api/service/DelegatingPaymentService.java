@@ -4,7 +4,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
+import org.apache.http.MethodNotSupportedException;
 
 import java.util.List;
 

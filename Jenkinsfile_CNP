@@ -13,12 +13,20 @@ def product = "payment"
 
 def app = "api"
 
-List<LinkedHashMap<String, Object>> secrets = [
+def vaultOverrides = [
+    'preview': 'aat',
+    'hmctsdemo': 'aat',
+
+]
+
+def secrets = [
+    'ccpay-${env}': [
         secret('cmc-service-secret', 'S2S_SERVICE_SECRET'),
         secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET'),
         secret('freg-idam-generated-user-email-pattern', 'GENERATED_USER_EMAIL_PATTERN'),
         secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
         secret('gov-pay-keys-cmc', 'GOV_PAY_AUTH_KEY_CMC')
+    ]
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
@@ -32,9 +40,10 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 
 withPipeline(type, product, app) {
-    setVaultName('ccpay')
+    enableAksStagingDeployment()
+    overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
-    enableDbMigration() // for liquibase update
+    enableDbMigration('ccpay') // for liquibase update
     enableDockerBuild()
     installCharts()
     enableSlackNotifications('#cc-payments-tech')
