@@ -1,14 +1,17 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
 import javax.persistence.criteria.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -23,8 +26,11 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
 
-    public PaymentGroupServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository) {
+    private final PaymentStatusRepository paymentStatusRepository;
+
+    public PaymentGroupServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository, PaymentStatusRepository paymentStatusRepository) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
+        this.paymentStatusRepository = paymentStatusRepository;
     }
 
     @Override
@@ -47,6 +53,26 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         paymentFeeLink.getFees().addAll(fees);
 
         fees.stream().forEach(fee -> fee.setPaymentLink(paymentFeeLink));
+
+        return paymentFeeLink;
+    }
+
+    @Override
+    @Transactional
+    public PaymentFeeLink addNewPaymenttoExistingPaymentGroup(Payment payment, String PaymentGroupReference) {
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(PaymentGroupReference)
+            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + PaymentGroupReference + " does not exists."));
+
+        payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()));
+        payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
+        payment.setPaymentLink(paymentFeeLink);
+
+        if(paymentFeeLink.getPayments() != null){
+            paymentFeeLink.getPayments().addAll(Lists.newArrayList(payment));
+        } else {
+            paymentFeeLink.setPayments(Lists.newArrayList(payment));
+        }
 
         return paymentFeeLink;
     }
