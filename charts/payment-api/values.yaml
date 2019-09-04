@@ -1,15 +1,4 @@
-postgresql:
-  initdbScripts:
-    init.sql: |-
-      CREATE USER payment WITH PASSWORD 'payment';
-      CREATE DATABASE payment WITH OWNER = payment ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
-  nameOverride: payment-db
-  persistence:
-    enabled: false
 java:
-  image: ${IMAGE_NAME}
-  ingressHost: ${SERVICE_FQDN}
-
   applicationPort: 8080
   keyVaults:
     "ccpay":
@@ -30,10 +19,12 @@ java:
         - liberata-keys-oauth2-username
         - liberata-keys-oauth2-password
   environment:
+
     SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
     SPRING_DATASOURCE_USERNAME: payment
     SPRING_DATASOURCE_PASSWORD: payment
     SPRING_LIQUIBASE_ENABLED: true
+
 
     REFORM_SERVICE_NAME: payment-api
     REFORM_TEAM: cc
@@ -90,3 +81,12 @@ java:
     FEATURE_SERVICE_CALLBACK: "true"
 
     APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
+
+  postgresql:
+    nameOverride: payment-db
+    postgresqlUsername: payment
+    postgresqlPassword: payment
+    postgresqlDatabase: payment
+    extraEnv:
+      - name: POSTGRESQL_DATABASE
+        value: payment

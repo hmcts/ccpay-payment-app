@@ -5,29 +5,33 @@ import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
@@ -37,7 +41,6 @@ import java.util.stream.Collectors;
 @RestController
 @Api(tags = {"Payment group"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentGroupController", description = "Payment group REST API")})
-@Validated
 public class PaymentGroupController {
 
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
@@ -52,18 +55,26 @@ public class PaymentGroupController {
 
     private final ReferenceUtil referenceUtil;
 
+    private final ReferenceDataService<SiteDTO> referenceDataService;
+
+    private final PaymentProviderRepository paymentProviderRepository;
+
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
                                   DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
                                   PaymentDtoMapper paymentDtoMapper, PciPalPaymentService pciPalPaymentService,
-                                  ReferenceUtil referenceUtil) {
+                                  ReferenceUtil referenceUtil,
+                                  ReferenceDataService<SiteDTO> referenceDataService,
+                                  PaymentProviderRepository paymentProviderRespository){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.pciPalPaymentService = pciPalPaymentService;
         this.referenceUtil = referenceUtil;
+        this.referenceDataService = referenceDataService;
+        this.paymentProviderRepository = paymentProviderRespository;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -183,6 +194,52 @@ public class PaymentGroupController {
         return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "Record a Bulk Scan Payment", notes = "Record a Bulk Scan Payment")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Bulk Scan Payment created"),
+        @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+    })
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments")
+    @ResponseBody
+    public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference,
+                                                @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
+
+        List<SiteDTO> sites = referenceDataService.getSiteIDs();
+
+        if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequest.getSiteId()))) {
+            throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequest.getSiteId());
+        }
+
+        PaymentProvider paymentProvider = bulkScanPaymentRequest.getExternalProvider() != null ?
+            paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequest.getExternalProvider())
+            : null;
+
+        Payment payment = Payment.paymentWith()
+            .reference(referenceUtil.getNext("RC"))
+            .amount(bulkScanPaymentRequest.getAmount())
+            .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
+            .currency(bulkScanPaymentRequest.getCurrency().getCode())
+            .paymentProvider(paymentProvider)
+            .serviceType(bulkScanPaymentRequest.getService().getName())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequest.getPaymentMethod().getType()).build())
+            .paymentStatus(bulkScanPaymentRequest.getPaymentStatus())
+            .siteId(bulkScanPaymentRequest.getSiteId())
+            .giroSlipNo(bulkScanPaymentRequest.getGiroSlipNo())
+            .reportedDateOffline(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+            .paymentChannel(bulkScanPaymentRequest.getPaymentChannel())
+            .documentControlNumber(bulkScanPaymentRequest.getDocumentControlNumber())
+            .payerName(bulkScanPaymentRequest.getPayerName())
+            .bankedDate(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+            .build();
+
+        PaymentFeeLink paymentFeeLink = paymentGroupService.addNewPaymenttoExistingPaymentGroup(payment, paymentGroupReference);
+
+        Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
+
+        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+    }
+
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
         return paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference)).findAny()
             .orElseThrow(() -> new PaymentNotFoundException("Payment with reference " + paymentReference + " does not exists."));
@@ -191,12 +248,6 @@ public class PaymentGroupController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(InvalidPaymentGroupReferenceException.class)
     public String return403(InvalidPaymentGroupReferenceException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ConstraintViolationException.class)
-    public String return400(ConstraintViolationException ex) {
         return ex.getMessage();
     }
 
@@ -213,8 +264,8 @@ public class PaymentGroupController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public String return400(MethodArgumentNotValidException ex) {
+    @ExceptionHandler(MethodNotSupportedException.class)
+    public String return400(MethodNotSupportedException ex) {
         return ex.getMessage();
     }
 }
