@@ -287,6 +287,10 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
         }
 
+        if (searchCriteria.getPaymentStatus() != null) {
+            predicates.add(cb.equal(paymentJoin.get("paymentStatus"), PaymentStatus.paymentStatusWith().name(searchCriteria.getPaymentStatus()).build()));
+        }
+
         Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
 
         if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {

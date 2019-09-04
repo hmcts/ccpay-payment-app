@@ -132,6 +132,32 @@ public class PaymentsDataUtil {
         return payment;
     }
 
+    public Payment populateCreditAccountPaymentToDbForPaymentStatusSuccess(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Description" + number)
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .pbaNumber("123456")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .reference("RC-1519-9028-1909-000" + number)
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        return payment;
+    }
+
     public Payment populateCreditAccountPaymentToDbWithNetAmountForFee(String number, BigDecimal calculatedAmount, BigDecimal netAmount) throws Exception {
         //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
@@ -255,7 +281,7 @@ public class PaymentsDataUtil {
             .reference(reference)
             .build();
 
-        if(withServiceCallbackURL) {
+        if (withServiceCallbackURL) {
             payment.setServiceCallbackUrl("www.gooooooogle.com");
         }
 
@@ -263,7 +289,6 @@ public class PaymentsDataUtil {
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference(reference).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
-
 
 
         return payment;
@@ -285,6 +310,28 @@ public class PaymentsDataUtil {
             assertThat(p.getChannel()).isEqualTo("online");
             assertThat(p.getMethod()).isEqualTo("payment by account");
             assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getSiteId()).isEqualTo("AA02");
+            assertThat(p.getAccountNumber()).isEqualTo("123456");
+            assertThat(p.getDateCreated()).isNotNull();
+            assertThat(p.getDateUpdated()).isNotNull();
+            p.getFees().stream().forEach(f -> {
+                assertThat(f.getCode()).isEqualTo("FEE0002");
+                assertThat(f.getVersion()).isEqualTo("1");
+                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
+            });
+        });
+    }
+
+    protected void assertPaymentStatus(List<PaymentDto> payments) {
+        assertThat(payments.size()).isEqualTo(1);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
+            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+            assertThat(p.getCaseReference()).isEqualTo("Reference2");
+            assertThat(p.getAmount()).isEqualTo(new BigDecimal("11.99"));
+            assertThat(p.getChannel()).isEqualTo("online");
+            assertThat(p.getMethod()).isEqualTo("payment by account");
+            assertThat(p.getStatus()).isEqualTo("Success");
             assertThat(p.getSiteId()).isEqualTo("AA02");
             assertThat(p.getAccountNumber()).isEqualTo("123456");
             assertThat(p.getDateCreated()).isNotNull();

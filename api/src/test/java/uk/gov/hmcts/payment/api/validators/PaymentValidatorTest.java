@@ -21,19 +21,19 @@ public class PaymentValidatorTest {
     @Test
     public void shouldReturnNoErrors() {
         // no exception expected, none thrown: passes.
-        validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(NOW_STRING));
+        validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(NOW_STRING),"success");
     }
 
     @Test
     public void shouldReturnNoErrorsWhenDatesEmpty() {
         // no exception expected, none thrown: passes.
-        validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.empty(), Optional.empty());
+        validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.empty(), Optional.empty(),"success");
     }
 
     @Test
     public void shouldThrowValidationExceptionWithPaymentMethodError() {
 
-        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("UNKNOWN"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(NOW_STRING)); });
+        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("UNKNOWN"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(NOW_STRING),"success"); });
 
         assertThat(thrown).isInstanceOf(ValidationErrorException.class);
         ValidationErrorException ex = (ValidationErrorException) thrown;
@@ -47,7 +47,7 @@ public class PaymentValidatorTest {
     @Test
     public void shouldThrowValidationExceptionWithServiceNameError() {
 
-        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("CARD"), Optional.of("UNKNOWN"), Optional.of(NOW_STRING), Optional.of(NOW_STRING)); });
+        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("CARD"), Optional.of("UNKNOWN"), Optional.of(NOW_STRING), Optional.of(NOW_STRING),"success"); });
 
         assertThat(thrown).isInstanceOf(ValidationErrorException.class);
         ValidationErrorException ex = (ValidationErrorException) thrown;
@@ -61,7 +61,7 @@ public class PaymentValidatorTest {
     @Test
     public void shouldThrowValidationExceptionWithFutureStartDateError() {
 
-        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(FUTURE_STRING), Optional.of(NOW_STRING)); });
+        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(FUTURE_STRING), Optional.of(NOW_STRING),"success"); });
 
         assertThat(thrown).isInstanceOf(ValidationErrorException.class);
         ValidationErrorException ex = (ValidationErrorException) thrown;
@@ -75,7 +75,7 @@ public class PaymentValidatorTest {
     @Test
     public void shouldThrowValidationExceptionWithFutureEndDateError() {
 
-        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(FUTURE_STRING)); });
+        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(FUTURE_STRING),"success"); });
 
         assertThat(thrown).isInstanceOf(ValidationErrorException.class);
         ValidationErrorException ex = (ValidationErrorException) thrown;
@@ -88,7 +88,7 @@ public class PaymentValidatorTest {
     @Test
     public void shouldThrowValidationExceptionWhenStartDateIsGreaterThanEndDate() {
 
-        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(LocalDate.now().minusDays(1).format(ISO_DATE))); });
+        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(LocalDate.now().minusDays(1).format(ISO_DATE)),"success"); });
 
         assertThat(thrown).isInstanceOf(ValidationErrorException.class);
         ValidationErrorException ex = (ValidationErrorException) thrown;
@@ -97,5 +97,19 @@ public class PaymentValidatorTest {
         assertThat(ex.getErrors().hasErrors()).isTrue();
         assertThat(ex.getErrors().getFieldErrors().get(0).getField()).isEqualTo("dates");
         assertThat(ex.getErrors().getFieldErrors().get(0).getMessage()).isEqualTo("Start date cannot be greater than end date");
+    }
+
+    @Test
+    public void shouldThrowValidationExceptionWhenPaymentStatusIsInvalid() {
+
+        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.of(NOW_STRING), Optional.of(NOW_STRING),"test"); });
+
+        assertThat(thrown).isInstanceOf(ValidationErrorException.class);
+        ValidationErrorException ex = (ValidationErrorException) thrown;
+
+        assertThat(ex.getMessage()).isEqualTo("Error occurred in the payment params");
+        assertThat(ex.getErrors().hasErrors()).isTrue();
+        assertThat(ex.getErrors().getFieldErrors().get(0).getField()).isEqualTo("payment_status");
+        assertThat(ex.getErrors().getFieldErrors().get(0).getMessage()).isEqualTo("Invalid payment status requested");
     }
 }

@@ -116,7 +116,7 @@ public class PaymentReportControllerMockTest {
         // given
 
         doThrow(new ValidationErrorException("validation failed", null))
-            .when(validator).validate(Optional.of("CARD"), Optional.of("UNKNOWN"), Optional.of("2018-06-30"), Optional.of("2018-07-01"));
+            .when(validator).validate(Optional.of("CARD"), Optional.of("UNKNOWN"), Optional.of("2018-06-30"), Optional.of("2018-07-01"),null);
         // when & then
         this.mockMvc.perform(post("/jobs/email-pay-reports")
             .param("payment_method", "CARD")

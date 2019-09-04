@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.util.PaymentStatus;
 
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
@@ -26,7 +27,7 @@ public class PaymentValidator {
         this.dateUtil = dateUtil;
     }
 
-    public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString) {
+    public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString,String paymentStatus) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
         if (paymentMethodType.isPresent() && !EnumUtils.isValidEnum(PaymentMethodType.class, paymentMethodType.get().toUpperCase())) {
             dto.addFieldError("payment_method", "Invalid payment method requested");
@@ -34,6 +35,10 @@ public class PaymentValidator {
 
         if (serviceType.isPresent() && !EnumUtils.isValidEnum(Service.class, serviceType.get().toUpperCase())) {
             dto.addFieldError("service_name", "Invalid service name requested");
+        }
+
+        if (paymentStatus!=null && !EnumUtils.isValidEnum(PaymentStatus.class, paymentStatus.toUpperCase())) {
+            dto.addFieldError("payment_status", "Invalid payment status requested");
         }
 
         Optional<LocalDateTime> startDate = parseAndValidateDate(startDateString, "start_date", dto);

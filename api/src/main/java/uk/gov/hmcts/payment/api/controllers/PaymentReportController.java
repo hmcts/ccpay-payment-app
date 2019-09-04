@@ -48,7 +48,7 @@ public class PaymentReportController {
                                        @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                        @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
 
-        validator.validate(paymentMethodType, serviceType, startDateString, endDateString);
+        validator.validate(paymentMethodType, serviceType, startDateString, endDateString,null);
 
         Date fromDate = startDateString.map(s -> clock.atStartOfDay(s, FORMATTER)).orElseGet(clock::getYesterdayDate);
         Date toDate = endDateString.map(s -> clock.atEndOfDay(s, FORMATTER)).orElseGet(clock::getTodayDate);

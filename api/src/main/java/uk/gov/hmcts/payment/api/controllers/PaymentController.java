@@ -114,14 +114,15 @@ public class PaymentController {
                                              @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                              @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
-                                             @RequestParam(name = "pba_number", required = false) String pbaNumber
+                                             @RequestParam(name = "pba_number", required = false) String pbaNumber,
+                                             @RequestParam(name = "payment_status", required = false) String paymentStatus
     ) {
 
         if (!ff4j.check("payment-search")) {
             throw new PaymentException("Payment search feature is not available for usage.");
         }
 
-        validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
+        validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString,paymentStatus);
 
         Date fromDateTime = Optional.ofNullable(startDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
             .map(LocalDateTime::toDate)
@@ -139,6 +140,7 @@ public class PaymentController {
                     .endDate(toDateTime)
                     .ccdCaseNumber(ccdCaseNumber)
                     .pbaNumber(pbaNumber)
+                    .paymentStatus(paymentStatus)
                     .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
                     .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
                     .build()

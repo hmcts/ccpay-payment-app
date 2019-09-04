@@ -21,4 +21,6 @@ public class PaymentSearchCriteria {
 
     private String pbaNumber;
 
+    private String paymentStatus;
+
 }

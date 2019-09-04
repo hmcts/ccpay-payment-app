@@ -313,6 +313,27 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    @Transactional
+    public void searchCreditPayments_withPaymentStatus() throws Exception {
+
+        populateCreditAccountPaymentToDbForPaymentStatusSuccess("2");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?payment_status=success")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+
+        assertPaymentStatus(paymentsResponse.getPayments());
+
+    }
+
 
     @Test
     @Transactional
