@@ -140,7 +140,7 @@ public class PaymentController {
                     .endDate(toDateTime)
                     .ccdCaseNumber(ccdCaseNumber)
                     .pbaNumber(pbaNumber)
-                    .paymentStatus(paymentStatus)
+                    .paymentStatus(paymentStatus!=null ? paymentStatus.toLowerCase():null)
                     .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
                     .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
                     .build()
@@ -153,7 +153,7 @@ public class PaymentController {
 
     }
 
-    @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
+            @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 204, message = "No content"),
         @ApiResponse(code = 404, message = "Payment not found")
