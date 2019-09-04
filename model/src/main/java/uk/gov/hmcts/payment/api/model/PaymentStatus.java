@@ -17,6 +17,7 @@ import javax.persistence.*;
 public class PaymentStatus {
 
     public final static PaymentStatus CREATED = new PaymentStatus("created", "created");
+    public final static PaymentStatus SUCCESS = new PaymentStatus("success", "success");
 
     @Id
     @Column(name = "name", nullable = false)
