@@ -67,8 +67,8 @@ Please refer to Swagger UI and Gov.UK Pay for more details.
 
 ### Useful Links
 * https://gds-payments.gelato.io/docs/versions/1.0.0/resources/general
-* https://git.reform.hmcts.net/common-components/reference-app
-* https://git.reform.hmcts.net/common-components/reference-web
+* https://github.com/hmcts/ccpay-reference-app
+* https://github.com/hmcts/ccpay-reference-web
 
 ## How to generate Liquibase yaml file
 Liquibase is used to update the database changes. Perform following steps to create and update the new yaml file. 

@@ -40,6 +40,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -92,6 +93,19 @@ public class CardPaymentController {
             request.setProvider("gov pay");
         }
 
+        if (request.getCcdCaseNumber() != null && request.getFees() != null) {
+            request.setFees(request.getFees()
+                .stream()
+                .map(feeDto -> {
+                    if (feeDto.getCcdCaseNumber() == null || feeDto.getCcdCaseNumber().isEmpty()) {
+                        feeDto.setCcdCaseNumber(request.getCcdCaseNumber());
+                    }
+                    return feeDto;
+                })
+                .collect(Collectors.toList())
+            );
+        }
+
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .description(request.getDescription())
@@ -101,7 +115,7 @@ public class CardPaymentController {
             .currency(request.getCurrency().getCode())
             .siteId(request.getSiteId())
             .serviceType(request.getService().getName())
-            .fees(paymentDtoMapper.toFees(request.getFees()))
+            .fees((request.getFees() != null) ? paymentDtoMapper.toFees(request.getFees()) : null)
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())

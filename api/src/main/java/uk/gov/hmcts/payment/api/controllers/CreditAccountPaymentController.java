@@ -29,11 +29,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -57,6 +53,7 @@ public class CreditAccountPaymentController {
     private static final Logger LOG = LoggerFactory.getLogger(CreditAccountPaymentController.class);
 
     private static final String FAILED = "failed";
+    private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
     private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
     private final CreditAccountDtoMapper creditAccountDtoMapper;
@@ -102,14 +99,13 @@ public class CreditAccountPaymentController {
             .organisationName(creditAccountPaymentRequest.getOrganisationName())
             .pbaNumber(creditAccountPaymentRequest.getAccountNumber())
             .siteId(creditAccountPaymentRequest.getSiteId())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name(PAYMENT_CHANNEL_ONLINE).build())
             .build();
 
         List<PaymentFee> fees = creditAccountPaymentRequest.getFees().stream()
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
-
-        checkDuplication(payment);
 
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
             LOG.info("Checking with Liberata");
@@ -159,6 +155,8 @@ public class CreditAccountPaymentController {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
         }
+
+        checkDuplication(payment, fees);
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
@@ -254,9 +252,9 @@ public class CreditAccountPaymentController {
         return availableBalance.compareTo(paymentAmount) >= 0;
     }
 
-    private void checkDuplication(Payment payment) {
+    private void checkDuplication(Payment payment, List<PaymentFee> fees) {
         if (ff4j.check("duplicate-payment-check")) {
-            paymentValidator.checkDuplication(payment);
+            paymentValidator.checkDuplication(payment, fees);
         }
     }
 

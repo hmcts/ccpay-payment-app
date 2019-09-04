@@ -1,16 +1,16 @@
 package uk.gov.hmcts.payment.api.util;
 
-public enum PayStatusToPayHubStatus {
-    created("Initiated"), started("Initiated"), submitted("Initiated"), success("Success"), failed("Failed"), cancelled("Failed"), error("Failed"), pending("Pending");
+import lombok.Getter;
+import lombok.Setter;
 
-    public String mapedStatus;
+public enum PayStatusToPayHubStatus {
+    created("Initiated"), started("Initiated"), submitted("Initiated"), success("Success"), failed("Failed"), cancelled("Failed"), error("Failed"), pending("Pending"), decline("Declined");
+
+    @Getter
+    @Setter
+    private String mappedStatus;
 
     PayStatusToPayHubStatus(String status) {
-        this.mapedStatus = status;
+        this.mappedStatus = status;
     }
-
-    String getMapedStatus() {
-        return mapedStatus;
-    }
-
 }

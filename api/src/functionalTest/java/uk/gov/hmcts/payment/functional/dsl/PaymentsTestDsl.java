@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -117,8 +119,31 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl addNewFeeAndPaymentGroup(PaymentGroupDto paymentGroupFeeRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
+                .post("/payment-groups/");
+            return this;
+        }
+
+        public PaymentWhenDsl createBulkScanPayment(BulkScanPaymentRequest bulkScanPaymentRequest, String paymentGroupReference) {
+            response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequest)
+                .post("/payment-groups/{payment-group-reference}/bulk-scan-payments", paymentGroupReference );
+            return this;
+        }
+
+        public PaymentWhenDsl addNewFeetoExistingPaymentGroup(PaymentGroupDto paymentGroupFeeRequest, String paymentGroupReference) {
+            response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
+                .put("/payment-groups/{payment-group-reference}", paymentGroupReference);
+            return this;
+        }
+
         public PaymentWhenDsl getRemissions(String paymentGroupReference) {
             response = newRequest().get("/payment-groups/{payment-group-reference}", paymentGroupReference);
+            return this;
+        }
+
+        public PaymentWhenDsl getPaymentGroups(String ccdCaseNumber) {
+            response = newRequest().get("/cases/{ccdcasenumber}/paymentgroups", ccdCaseNumber);
             return this;
         }
 
@@ -245,6 +270,12 @@ public class PaymentsTestDsl {
         public PaymentThenDsl getPayments(Consumer<PaymentsResponse> paymentsResponseAssertions) {
             PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
             paymentsResponseAssertions.accept(paymentsResponse);
+            return this;
+        }
+
+        public PaymentThenDsl getPaymentGroups(Consumer<PaymentGroupResponse> paymentGroupsResponseAssertions) {
+            PaymentGroupResponse paymentGroupsResponse = response.then().statusCode(200).extract().as(PaymentGroupResponse.class);
+            paymentGroupsResponseAssertions.accept(paymentGroupsResponse);
             return this;
         }
 

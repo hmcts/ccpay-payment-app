@@ -1,9 +1,5 @@
 dependencies:
   - name: java
-    version: ~2.0.4
-    repository: '@hmcts'
-  - name: postgresql
-    version: ~3.1.0
-    repository: '@stable'
-    tags:
-      - postgresql-pod
+    version: ~2.2.2
+    repository: '@hmctspublic'
+

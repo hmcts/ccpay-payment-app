@@ -58,6 +58,7 @@ public class RemissionController {
         remissionValidator.validate(remissionRequest);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        remissionRequest.getFee().setCcdCaseNumber(remissionRequest.getCcdCaseNumber());
         remissionServiceRequest.setFee(remissionDtoMapper.toFee(remissionRequest.getFee()));
         PaymentFeeLink paymentFeeLink = remissionRequest.getPaymentGroupReference() == null ?
             remissionService.createRemission(remissionServiceRequest) :
@@ -81,6 +82,7 @@ public class RemissionController {
         remissionValidator.validate(remissionRequest);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        remissionRequest.getFee().setCcdCaseNumber(remissionRequest.getCcdCaseNumber());
         remissionServiceRequest.setFee(remissionDtoMapper.toFee(remissionRequest.getFee()));
         PaymentFeeLink paymentFeeLink = remissionService.createRemission(remissionServiceRequest);
 

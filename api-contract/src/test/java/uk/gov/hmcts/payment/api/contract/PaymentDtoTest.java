@@ -51,6 +51,7 @@ public class PaymentDtoTest {
     private String reportedDateOffline;
     private String jurisdiction1;
     private String jurisdiction2;
+    private String feeDescription;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -63,13 +64,14 @@ public class PaymentDtoTest {
         calculatedAmountForFeeNoVolume = new BigDecimal(1);
         jurisdiction1 = "family";
         jurisdiction2 = "probate service";
+        feeDescription = "Fee Description";
 
 
         feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2);
+            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription);
 
         feeNoVolumeDto = new FeeDto(1, feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2);
+            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription);
     }
 
     @Before
