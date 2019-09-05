@@ -1,3 +1,5 @@
+postgresql:
+  enabled: true
 java:
   # Don't modify below here
   image: ${IMAGE_NAME}
