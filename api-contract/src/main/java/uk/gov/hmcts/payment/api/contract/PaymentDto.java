@@ -79,6 +79,12 @@ public class PaymentDto {
 
     private String reportedDateOffline;
 
+    private String documentControlNumber;
+
+    private Date bankedDate;
+
+    private String payerName;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;
