@@ -52,6 +52,9 @@ public class PaymentDtoTest {
     private String jurisdiction1;
     private String jurisdiction2;
     private String feeDescription;
+    private String documentControlNumber;
+    private Date bankedDate;
+    private String payerName;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -105,12 +108,15 @@ public class PaymentDtoTest {
         paymentGroupReference = "paymentGroupReference";
         giroSlipNo = "giroSlipNo";
         reportedDateOffline = "2018-09-05";
+        documentControlNumber = "12345";
+        bankedDate = new Date();
+        payerName = "test";
 
 
         testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference, reportedDateOffline,
+            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,
             null, statusHistories, giroSlipNo, links);
     }
 
