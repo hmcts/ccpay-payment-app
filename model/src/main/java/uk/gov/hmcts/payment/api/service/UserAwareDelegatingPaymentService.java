@@ -37,7 +37,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -273,13 +272,13 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private static Specification findPayments(PaymentSearchCriteria searchCriteria) {
-        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
+        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria));
     }
 
     private static Predicate getPredicate(
         Root<Payment> root,
         CriteriaBuilder cb,
-        PaymentSearchCriteria searchCriteria, CriteriaQuery<?> query) {
+        PaymentSearchCriteria searchCriteria) {
         List<Predicate> predicates = new ArrayList<>();
 
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
@@ -309,7 +308,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         if (searchCriteria.getPbaNumber() != null) {
             predicates.add(cb.equal(paymentJoin.get("pbaNumber"), searchCriteria.getPbaNumber()));
         }
-        query.groupBy(root.get("id"));
+
         return cb.and(predicates.toArray(REF));
     }
 
