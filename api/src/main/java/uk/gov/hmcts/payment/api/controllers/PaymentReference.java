@@ -27,8 +27,8 @@ public class PaymentReference {
         DateTime dateTime = new DateTime(DateTimeZone.UTC);
         long dateTimeinMillis = dateTime.getMillis() / 100;
 
-        String nextValue = String.format("%010d", dateTimeinMillis);
-        return LocalDateTime.now().getYear() + "-" + nextValue;
+        String nextVal = String.format("%010d", dateTimeinMillis);
+        return LocalDateTime.now().getYear() + "-" + nextVal + + (random.nextInt(89)+10);
     }
 
 }
