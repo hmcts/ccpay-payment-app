@@ -93,6 +93,6 @@ public class IdamService {
     }
 
     private String nextUserEmail() {
-        return String.format(testConfig.getGeneratedUserEmailPattern(), RandomStringUtils.randomAlphanumeric(10));
+        return String.format(testConfig.getGeneratedUserEmailPattern(), RandomStringUtils.randomAlphanumeric(99));
     }
 }
