@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import javax.persistence.criteria.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,6 +67,9 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
 
         payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()));
         payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
+        payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+            .status(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()).getName())
+            .build()));
         payment.setPaymentLink(paymentFeeLink);
 
         if(paymentFeeLink.getPayments() != null){
@@ -75,6 +79,24 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         }
 
         return paymentFeeLink;
+    }
+
+    @Override
+    @Transactional
+    public PaymentFeeLink addNewBulkScanPayment(Payment payment, String PaymentGroupReference) {
+
+        payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()));
+        payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
+        payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+            .status(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()).getName())
+            .build()));
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference(PaymentGroupReference)
+            .payments(Arrays.asList(payment))
+            .build();
+
+        return  paymentFeeLinkRepository.save(paymentFeeLink);
     }
 
 
