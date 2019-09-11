@@ -6,11 +6,11 @@
 
 HMCTS Payment Gateway is a small wrapper around GOV.UK Pay service adding some basic user/service authorization, 
 enforcing useful payment reference structure and collecting data across multiple GOV.UK Pay accounts that will allow 
-better financial reporting and reconciliation.   
+better financial reporting and reconciliation.  
  
 ### Integration prerequisites
 
-For a successful integration with HMCTS Payment Gateway you will require the following:
+For a successful integration with HMCTS Payment Gateway you will require the following:-
 * **GOV.UK Pay API key**. Before you start, you should get a dedicated GOV.UK Pay account created for you. Once it is done, 
 you should use GOV.UK Pay admin console to create your API key(-s) and provide them to us.
 * **IDAM**. All requests to Payment Gateway require a valid user JWT token to be passed in "Authorization" header. 
