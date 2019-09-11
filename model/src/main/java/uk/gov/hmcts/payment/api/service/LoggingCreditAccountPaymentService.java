@@ -75,6 +75,7 @@ public class LoggingCreditAccountPaymentService implements CreditAccountPaymentS
 
         List<PaymentFeeLink> paymentFeeLinks =  delegate.search(startDate, endDate);
         LOG.info("PaymentFeeLinks found: {}", paymentFeeLinks.size());
+        LOG.info("startDate", startDate);
         return paymentFeeLinks;
     }
 }
