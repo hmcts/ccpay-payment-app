@@ -91,6 +91,8 @@ public class PaymentDto {
 
     private List<StatusHistoryDto> statusHistories;
 
+    private List<PaymentAllocationDto> paymentAllocation;
+
     private String giroSlipNo;
 
     @JsonProperty("_links")

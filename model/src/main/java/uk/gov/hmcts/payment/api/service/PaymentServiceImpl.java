@@ -66,6 +66,11 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
+    public Payment createPayment(Payment payment) {
+        return paymentRepository.save(payment);
+    }
+
+    @Override
     public List<Reference> listInitiatedStatusPaymentsReferences() {
         Date targetTime = DateUtils.addMinutes(new Date(), -1 * paymentsCutOffTime);
         return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(

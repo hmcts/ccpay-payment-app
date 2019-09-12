@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1554989041318-1
+      author: aravindan
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: payment_id
+                  type: INT
+            tableName: payment_allocation
+  - changeSet:
+      id: 1554989041418-2
+      author: aravindan
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: payment_id
+            baseTableName: payment_allocation
+            constraintName: FK_qhrt9c0pejpl89rkokgo4421n
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: id
+            referencedTableName: payment
