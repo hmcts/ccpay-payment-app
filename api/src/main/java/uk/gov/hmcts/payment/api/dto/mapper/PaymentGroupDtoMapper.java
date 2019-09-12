@@ -6,14 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
@@ -64,6 +62,7 @@ public class PaymentGroupDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
+            .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .build();
     }
 
@@ -71,6 +70,15 @@ public class PaymentGroupDtoMapper {
         return remissions.stream().map(r -> toRemissionDto(r)).collect(Collectors.toList());
     }
 
+    private List<PaymentAllocationDto> toPaymentAllocationDtos(List<PaymentAllocation> paymentAllocation) {
+        return paymentAllocation.stream().map(pa -> toPaymentAllocationDto(pa)).collect(Collectors.toList());
+    }
+
+    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
+            .build();
+    }
     private BigDecimal getTotalHwfRemission(List<Remission> remissions) {
         return remissions != null ? remissions.stream().map(Remission::getHwfAmount).reduce(BigDecimal.ZERO, BigDecimal::add) : new BigDecimal("0.00");
     }

@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.dto.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -177,6 +177,7 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -255,6 +256,10 @@ public class PaymentDtoMapper {
         return statusHistories.stream().map(this::toStatusHistoryDto).collect(Collectors.toList());
     }
 
+    private List<PaymentAllocationDto> toPaymentAllocationDtos(List<PaymentAllocation> paymentAllocation) {
+        return paymentAllocation.stream().map(this::toPaymentAllocationDto).collect(Collectors.toList());
+    }
+
     private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
         return StatusHistoryDto.statusHistoryDtoWith()
             .status(statusHistory.getStatus())
@@ -293,7 +298,7 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
+    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
             .paymentGroupReference(paymentAllocation.getPaymentGroupReference())

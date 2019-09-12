@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,17 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.RemissionRequest;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
+import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -31,14 +21,12 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
