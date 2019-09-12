@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.functional.idam.IdamApi.UserGroup;
 import uk.gov.hmcts.payment.functional.idam.models.User;
 
 import java.util.Base64;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -93,6 +94,6 @@ public class IdamService {
     }
 
     private String nextUserEmail() {
-        return String.format(testConfig.getGeneratedUserEmailPattern(), RandomStringUtils.randomAlphanumeric(99), RandomStringUtils.randomAlphanumeric(99));
+        return String.format(testConfig.getGeneratedUserEmailPattern(), UUID.randomUUID().toString());
     }
 }
