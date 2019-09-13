@@ -67,7 +67,7 @@ public class CallBackServiceFunctionalTest {
      * Currently this test uses a Mock-API for serviceCallBack which is hosted in payment-app itself (Ideally a hosted mock server required)
      * </ul><p>
      */
-    @Test
+    //@Test
     public void shouldInvokeCallBackForStatusUpdate() {
         final String[] reference = new String[1];
 
