@@ -70,10 +70,10 @@ public class PaymentsDataUtil {
 
     public static List<PaymentFee> getFeesData() {
         List<PaymentFee> fees = new ArrayList<>();
-        fees.add(feeWith().code("X0011").version("1").build());
-        fees.add(feeWith().code("X0022").version("2").build());
-        fees.add(feeWith().code("X0033").version("3").build());
-        fees.add(feeWith().code("X0044").version("4").build());
+        fees.add(feeWith().code("X0011").version("1").calculatedAmount(new BigDecimal(100)).build());
+        fees.add(feeWith().code("X0022").version("2").calculatedAmount(new BigDecimal(200)).build());
+        fees.add(feeWith().code("X0033").version("3").calculatedAmount(new BigDecimal(140)).build());
+        fees.add(feeWith().code("X0044").version("4").calculatedAmount(new BigDecimal(190)).build());
 
         return fees;
     }

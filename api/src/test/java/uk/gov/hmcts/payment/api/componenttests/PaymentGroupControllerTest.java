@@ -210,6 +210,10 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().get(0).getCalculatedAmount()).isEqualTo(new BigDecimal("92.19"));
+        assertThat(paymentGroupDto.getFees().get(0).getNetAmount()).isEqualTo(new BigDecimal("92.19"));
+
         MvcResult result3 = restActions
             .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
             .andExpect(status().isOk())
@@ -516,22 +520,21 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
 
 
-        BigDecimal amount = new BigDecimal("200.11");
+        BigDecimal amount = new BigDecimal("200");
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.CMC)
-            .siteId("siteID")
-            .ccdCaseNumber("1234")
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .withHeader("service-callback-url", "http://payments.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
@@ -545,10 +548,9 @@ public class PaymentGroupControllerTest {
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
-        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
-
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
         assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
