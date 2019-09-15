@@ -29,10 +29,7 @@ public class PaymentGroupDtoMapper {
     @Autowired
     private FeesService feesService;
 
-    private BigDecimal totalHwfAmount;
-
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
-        totalHwfAmount = getTotalHwfRemission(paymentFeeLink.getRemissions());
         return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
@@ -68,10 +65,6 @@ public class PaymentGroupDtoMapper {
         return remissions.stream().map(r -> toRemissionDto(r)).collect(Collectors.toList());
     }
 
-    private BigDecimal getTotalHwfRemission(List<Remission> remissions) {
-        return remissions != null ? remissions.stream().map(Remission::getHwfAmount).reduce(BigDecimal.ZERO, BigDecimal::add) : new BigDecimal("0.00");
-    }
-
     private RemissionDto toRemissionDto(Remission remission) {
         return RemissionDto.remissionDtoWith()
             .remissionReference(remission.getRemissionReference())
@@ -96,7 +89,7 @@ public class PaymentGroupDtoMapper {
         return FeeDto.feeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
-            .netAmount(fee.getCalculatedAmount().subtract(totalHwfAmount != null ? totalHwfAmount : new BigDecimal(0)))
+            .netAmount(fee.getNetAmount())
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
@@ -115,7 +108,7 @@ public class PaymentGroupDtoMapper {
             .calculatedAmount(feeDto.getCalculatedAmount())
             .ccdCaseNumber(feeDto.getCcdCaseNumber())
             .volume(feeDto.getVolume())
-            .netAmount(feeDto.getNetAmount())
+            .netAmount(feeDto.getCalculatedAmount())
             .reference(feeDto.getReference())
             .build();
     }

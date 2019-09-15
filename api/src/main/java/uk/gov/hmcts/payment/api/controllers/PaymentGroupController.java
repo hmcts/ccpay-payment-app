@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 @Api(tags = {"Payment group"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentGroupController", description = "Payment group REST API")})
 public class PaymentGroupController {
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
 
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
 
