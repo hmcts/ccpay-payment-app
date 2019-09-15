@@ -136,6 +136,12 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl createBulkScanPaymentWithPaymentGroup(BulkScanPaymentRequest bulkScanPaymentRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequest)
+                .post("/payment-groups/bulk-scan-payments" );
+            return this;
+        }
+
         public PaymentWhenDsl addNewFeetoExistingPaymentGroup(PaymentGroupDto paymentGroupFeeRequest, String paymentGroupReference) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .put("/payment-groups/{payment-group-reference}", paymentGroupReference);

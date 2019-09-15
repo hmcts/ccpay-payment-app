@@ -13,6 +13,8 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
+
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -59,6 +61,10 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         Payment payment = paymentRepository.findByReferenceAndPaymentProvider(paymentReference,
             PaymentProvider.paymentProviderWith().name(PCI_PAL).build()).orElseThrow(PaymentNotFoundException::new);
         payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
+
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .status(status)
+                    .build()));	
         if (payment.getServiceCallbackUrl() != null) {
             callbackService.callback(payment.getPaymentLink(), payment);
         }
