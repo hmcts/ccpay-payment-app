@@ -210,6 +210,10 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().get(0).getCalculatedAmount()).isEqualTo(new BigDecimal("92.19"));
+        assertThat(paymentGroupDto.getFees().get(0).getNetAmount()).isEqualTo(new BigDecimal("92.19"));
+
         MvcResult result3 = restActions
             .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
             .andExpect(status().isOk())
@@ -516,22 +520,21 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
 
 
-        BigDecimal amount = new BigDecimal("200.11");
+        BigDecimal amount = new BigDecimal("200");
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.CMC)
-            .siteId("siteID")
-            .ccdCaseNumber("1234")
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .withHeader("service-callback-url", "http://payments.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
@@ -545,10 +548,9 @@ public class PaymentGroupControllerTest {
 
         PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
 
-        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
-
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
         assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
@@ -743,6 +745,51 @@ public class PaymentGroupControllerTest {
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
+    }
+
+
+    @Test
+    public void addInvalidNewBulkScanPayment() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA07")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+    }
+
+    @Test
+    public void addNewvalidBulkScanPayment() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .giroSlipNo("BCH82173823")
+            .bankedDate(DateTime.now().toString())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 

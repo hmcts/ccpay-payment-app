@@ -103,6 +103,11 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl createTelephonyCardPayment(CardPaymentRequest cardPaymentRequest, String paymentGroupReference) {
+            response = newRequest().contentType(ContentType.JSON).body(cardPaymentRequest).post("/payment-groups/{payment-group-reference}/card-payments", paymentGroupReference);
+            return this;
+        }
+
         public PaymentWhenDsl createTelephonyPayment(PaymentRecordRequest paymentRecordRequest) {
             response = newRequest().contentType(ContentType.JSON).body(paymentRecordRequest).post("/payment-records");
             return this;
@@ -128,6 +133,12 @@ public class PaymentsTestDsl {
         public PaymentWhenDsl createBulkScanPayment(BulkScanPaymentRequest bulkScanPaymentRequest, String paymentGroupReference) {
             response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequest)
                 .post("/payment-groups/{payment-group-reference}/bulk-scan-payments", paymentGroupReference );
+            return this;
+        }
+
+        public PaymentWhenDsl createBulkScanPaymentWithPaymentGroup(BulkScanPaymentRequest bulkScanPaymentRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequest)
+                .post("/payment-groups/bulk-scan-payments" );
             return this;
         }
 
