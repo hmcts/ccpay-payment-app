@@ -13,11 +13,9 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.dto.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
@@ -264,13 +262,14 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
-        BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
         return FeeDto.feeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
-            .netAmount(fee.getNetAmount())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
@@ -317,6 +316,20 @@ public class PaymentDtoMapper {
             .currency(paymentRecordRequest.getCurrency().getCode())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
+            .build();
+    }
+
+    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
+            .paymentGroupReference(paymentAllocation.getPaymentGroupReference())
+            .paymentReference(paymentAllocation.getPaymentReference())
+            .id(paymentAllocation.getId().toString())
+            .dateCreated(paymentAllocation.getDateCreated())
+            .receivingEmailAddress(paymentAllocation.getReceivingEmailAddress())
+            .sendingEmailAddress(paymentAllocation.getSendingEmailAddress())
+            .receivingOffice(paymentAllocation.getReceivingOffice())
+            .unidentifiedReason(paymentAllocation.getUnidentifiedReason())
             .build();
     }
 

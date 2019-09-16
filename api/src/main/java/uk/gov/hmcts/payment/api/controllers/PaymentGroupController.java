@@ -33,7 +33,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
-import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,7 +41,6 @@ import java.util.stream.Collectors;
 @Api(tags = {"Payment group"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentGroupController", description = "Payment group REST API")})
 public class PaymentGroupController {
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
 
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
 
@@ -241,6 +239,53 @@ public class PaymentGroupController {
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "Record a Bulk Scan Payment with Payment Group", notes = "Record a Bulk Scan Payment with Payment Group")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Bulk Scan Payment with payment group created"),
+        @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+    })
+    @PostMapping(value = "/payment-groups/bulk-scan-payments")
+    @ResponseBody
+    public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPayment(@Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
+
+        List<SiteDTO> sites = referenceDataService.getSiteIDs();
+
+        String paymentGroupReference = PaymentReference.getInstance().getNext();
+
+        if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequest.getSiteId()))) {
+            throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequest.getSiteId());
+        }
+
+        PaymentProvider paymentProvider = bulkScanPaymentRequest.getExternalProvider() != null ?
+            paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequest.getExternalProvider())
+            : null;
+
+        Payment payment = Payment.paymentWith()
+            .reference(referenceUtil.getNext("RC"))
+            .amount(bulkScanPaymentRequest.getAmount())
+            .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
+            .currency(bulkScanPaymentRequest.getCurrency().getCode())
+            .paymentProvider(paymentProvider)
+            .serviceType(bulkScanPaymentRequest.getService().getName())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequest.getPaymentMethod().getType()).build())
+            .siteId(bulkScanPaymentRequest.getSiteId())
+            .giroSlipNo(bulkScanPaymentRequest.getGiroSlipNo())
+            .reportedDateOffline(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+            .paymentChannel(bulkScanPaymentRequest.getPaymentChannel())
+            .documentControlNumber(bulkScanPaymentRequest.getDocumentControlNumber())
+            .payerName(bulkScanPaymentRequest.getPayerName())
+            .paymentStatus(bulkScanPaymentRequest.getPaymentStatus())
+            .bankedDate(DateTime.parse(bulkScanPaymentRequest.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+            .build();
+
+        PaymentFeeLink paymentFeeLink = paymentGroupService.addNewBulkScanPayment(payment, paymentGroupReference);
+
+        Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
+
+        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+    }
+
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
         return paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference)).findAny()
             .orElseThrow(() -> new PaymentNotFoundException("Payment with reference " + paymentReference + " does not exists."));
@@ -267,6 +312,12 @@ public class PaymentGroupController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodNotSupportedException.class)
     public String return400(MethodNotSupportedException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PaymentException.class)
+    public String return400(PaymentException ex) {
         return ex.getMessage();
     }
 }

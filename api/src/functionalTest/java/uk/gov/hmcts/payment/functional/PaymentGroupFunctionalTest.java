@@ -153,6 +153,56 @@ public class PaymentGroupFunctionalTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
+            .service(Service.DIVORCE)
+            .siteId("AA01")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN2903423425343478348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User1")
+            .bankedDate(DateTime.now().toString())
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .giroSlipNo("GH716376")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("450.00"))
+                .code("FEE3132")
+                .version("1")
+                .reference("testRef1")
+                .volume(2)
+                .ccdCaseNumber("1111-CCD2-3353-4464")
+                .build())).build();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(paymentGroupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+            assertThat(paymentGroupFeeDto).isNotNull();
+            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(paymentGroupDto);
+
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .when().createBulkScanPayment(bulkScanPaymentRequest,paymentGroupFeeDto.getPaymentGroupReference())
+                .then().gotCreated(PaymentDto.class, paymentDto -> {
+                    assertThat(paymentDto.getReference()).isNotNull();
+                    assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
+                    assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
+            });
+
+        });
+
+    }
+
+    @Test
+    public void givenABulkScanPaymentNeedsMappingthenPaymentShouldBeCreatedWithPaymentGroup() throws Exception {
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
             .service(Service.DIGITAL_BAR)
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
@@ -166,25 +216,25 @@ public class PaymentGroupFunctionalTest {
             .giroSlipNo("GH716276")
             .build();
 
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
-            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
-
 
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPayment(bulkScanPaymentRequest,paymentGroupFeeDto.getPaymentGroupReference())
+                .when().createBulkScanPaymentWithPaymentGroup(bulkScanPaymentRequest)
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
-                    assertThat(paymentDto.getReference()).isNotNull();
-                    assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
-                    assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
-            });
+                assertThat(paymentDto.getReference()).isNotNull();
+                assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
 
-        });
+                dsl.given().userToken(USER_TOKEN)
+                    .s2sToken(SERVICE_TOKEN)
+                    .when().getRemissions(paymentDto.getPaymentGroupReference())
+                    .then().got(PaymentGroupDto.class, paymentGroupDto -> {
+                    assertThat(paymentGroupDto).isNotNull();
+                    assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(bulkScanPaymentRequest);
+                    assertThat(paymentGroupDto.getFees().size()).isEqualTo(0);
+
+                });
+
+            });
 
     }
 
@@ -273,6 +323,60 @@ public class PaymentGroupFunctionalTest {
             }));
 
         });
+    }
+
+
+    @Test
+    public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturned() throws Exception {
+
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("110.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("1")
+            .code("FEE0123")
+            .description("Application for a third party debt order")
+            .jurisdiction1("civil")
+            .jurisdiction2("Country")
+            .memoLine("Receipt of Fees")
+            .naturalAccountCode("4481102145")
+            .build();
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("110"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .channel("telephony")
+            .currency(CurrencyCode.GBP)
+            .description("A test telephony payment")
+            .provider("pci pal")
+            .service(Service.DIVORCE)
+            .siteId("AA007")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+            assertThat(paymentGroupFeeDto).isNotNull();
+
+            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://google.co.uk")
+                .when().createTelephonyCardPayment(cardPaymentRequest, paymentGroupReference)
+                .then().gotCreated(PaymentDto.class, paymentDto -> {
+                assertThat(paymentDto).isNotNull();
+                assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
+
+            });
+
+        });
+
     }
 
 

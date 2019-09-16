@@ -1,23 +1,71 @@
 databaseChangeLog:
-- changeSet:
-    id: 1565874423345-1
-    author: vinoth
-    changes:
-        - addColumn:
-            columns:
-            - column:
-                name: document_control_number
-                type: varchar(255)
-            - column:
-                name: banked_date
-                type: TIMESTAMP WITHOUT TIME ZONE
-            - column:
-                name: payer_name
-                type: varchar(255)
-            tableName: payment
-        - sql:
-              splitStatements:
-              sql: >
-                  INSERT INTO payment_provider (name, description) VALUES ('exela', 'Exela Bulk Scan Payment');
-                  INSERT INTO payment_channel (name, description) VALUES ('bulk scan', 'Through Bulk Scan');
+    - changeSet:
+          id: 1566391213678-1
+          author: vinoth
+          changes:
+              - createTable:
+                    tableName: payment_allocation_status
+                    columns:
+                        - column:
+                              name: name
+                              type: varchar(50)
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                        - column:
+                              name: description
+                              type: varchar(1000)
+              - sql:
+                    splitStatements: true
+                    sql: >
+                        INSERT INTO payment_allocation_status (name, description)
+                          VALUES
+                            ('Allocated', 'Allocated bulk scan payments'),
+                            ('Transferred', 'Transferred bulk scan payments'),
+                            ('Unidentified', 'Unidentified bulk scan payments');
 
+              - createTable:
+                    tableName: payment_allocation
+                    columns:
+                        - column:
+                              name: id
+                              type: INT
+                              autoIncrement: true
+                              constraints:
+                                  primaryKey: true
+                                  primaryKeyName: paymentAllocationsPK
+                                  nullable: false
+                        - column:
+                              name: payment_reference
+                              type: varchar(255)
+                        - column:
+                              name: payment_group_reference
+                              type: varchar(255)
+                        - column:
+                              name: allocation_status
+                              type: varchar(255)
+                        - column:
+                              name: unidentified_reason
+                              type: varchar(255)
+                        - column:
+                              name: receiving_office
+                              type: varchar(255)
+                        - column:
+                              name: receiving_email_address
+                              type: varchar(255)
+                        - column:
+                              name: sending_email_address
+                              type: varchar(255)
+                        - column:
+                              name: user_id
+                              type: varchar(255)
+                        - column:
+                              name: date_created
+                              type: TIMESTAMP WITHOUT TIME ZONE
+
+              - addForeignKeyConstraint:
+                  baseColumnNames: allocation_status
+                  baseTableName: payment_allocation
+                  constraintName: FK_boc1od01im8po7i8e9biph5df
+                  referencedColumnNames: name
+                  referencedTableName: payment_allocation_status
