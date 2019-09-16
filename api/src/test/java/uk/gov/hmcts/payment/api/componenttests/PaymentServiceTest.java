@@ -4,6 +4,7 @@ import org.assertj.core.util.Lists;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.Reference;
@@ -23,6 +24,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 public class PaymentServiceTest extends TestUtil {
 
     @Autowired
+    @Qualifier("paymentServiceImpl")
     protected PaymentService paymentService;
 
     private PaymentsDataUtil paymentsDataUtil;
