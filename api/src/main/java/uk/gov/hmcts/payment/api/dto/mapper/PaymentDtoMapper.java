@@ -303,7 +303,7 @@ public class PaymentDtoMapper {
             .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
             .paymentGroupReference(paymentAllocation.getPaymentGroupReference())
             .paymentReference(paymentAllocation.getPaymentReference())
-            .id(paymentAllocation.getId().toString())
+            .id(paymentAllocation.getId()!=null ? paymentAllocation.getId().toString():null)
             .dateCreated(paymentAllocation.getDateCreated())
             .receivingEmailAddress(paymentAllocation.getReceivingEmailAddress())
             .sendingEmailAddress(paymentAllocation.getSendingEmailAddress())
