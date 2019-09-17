@@ -35,7 +35,7 @@ public class PaymentAllocationController {
 
     @Autowired
     public PaymentAllocationController(PaymentAllocationService paymentAllocationService,
-                                       PaymentDtoMapper paymentDtoMapper,PaymentService paymentService,Payment2Repository paymentRepository) {
+                                       PaymentDtoMapper paymentDtoMapper,PaymentService<PaymentFeeLink, String> paymentService,Payment2Repository paymentRepository) {
         this.paymentAllocationService = paymentAllocationService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.paymentService = paymentService;
