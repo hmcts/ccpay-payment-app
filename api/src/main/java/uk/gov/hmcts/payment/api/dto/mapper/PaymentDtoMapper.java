@@ -193,6 +193,34 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
+    public PaymentDto toReconciliationResponseDto(final Payment payment, final String paymentReference, final List<PaymentFee> fees) {
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+            .paymentReference(payment.getReference())
+            .paymentGroupReference(paymentReference)
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .amount(payment.getAmount())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .accountNumber(payment.getPbaNumber())
+            .organisationName(payment.getOrganisationName())
+            .customerReference(payment.getCustomerReference())
+            .channel(payment.getPaymentChannel().getName())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .dateCreated(payment.getDateCreated())
+            .dateUpdated(payment.getDateUpdated())
+            .method(payment.getPaymentMethod().getName())
+            .giroSlipNo(payment.getGiroSlipNo())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .externalReference(payment.getExternalReference())
+            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .fees(toFeeDtos(fees))
+            .build();
+        return enrichWithFeeData(paymentDto);
+    }
+
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         paymentDto.getFees().forEach(fee -> {
             Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
@@ -238,13 +266,14 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
-        BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
         return FeeDto.feeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
-            .netAmount(fee.getNetAmount())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
