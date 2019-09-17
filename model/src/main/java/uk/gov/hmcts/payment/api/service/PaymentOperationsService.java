@@ -44,11 +44,6 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
 
     }
 
-    @Override
-    public Payment createPayment(Payment payment) {
-        return null;
-    }
-
     private static final Specification constructPaymentSpecification(final PaymentSearchCriteria searchCriteria) {
         return ((root, query, cb) -> constructPredicate(root, cb, searchCriteria, query));
     }

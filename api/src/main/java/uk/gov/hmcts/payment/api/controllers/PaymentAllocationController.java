@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentAllocationService;
@@ -30,12 +31,15 @@ public class PaymentAllocationController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
 
+    private final Payment2Repository paymentRepository;
+
     @Autowired
     public PaymentAllocationController(PaymentAllocationService paymentAllocationService,
-                                       PaymentDtoMapper paymentDtoMapper,PaymentService paymentService) {
+                                       PaymentDtoMapper paymentDtoMapper,PaymentService paymentService,Payment2Repository paymentRepository) {
         this.paymentAllocationService = paymentAllocationService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.paymentService = paymentService;
+        this.paymentRepository = paymentRepository;
     }
 
 
@@ -65,7 +69,7 @@ public class PaymentAllocationController {
 
             paymentAllocationList.add(paymentAllocation);
             payment.get().setPaymentAllocation(paymentAllocationList);
-            Payment paymentResponse = paymentService.createPayment(payment.get());
+            Payment paymentResponse = paymentRepository.save(payment.get());
             PaymentAllocationDto allocationDto = new PaymentAllocationDto();
             for(PaymentAllocation allocation: paymentResponse.getPaymentAllocation())
             {
