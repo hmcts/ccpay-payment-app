@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
@@ -69,8 +68,6 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
     @MockBean
     private Payment2Repository paymentRepository;
 
-    @Autowired
-    private PaymentDtoMapper paymentDtoMapper;
 
     @Autowired
     private PaymentDbBackdoor db;
