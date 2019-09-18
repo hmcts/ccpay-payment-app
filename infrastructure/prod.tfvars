@@ -1,6 +1,6 @@
 vault_section = "prod"
 capacity = "2"
-idam_api_url = "https://idam-api.platform.hmcts.net"
+idam_api_url = "https://hmcts-access.service.gov.uk"
 
 card_payments_report_scheduler_enabled = "true"
 bar_payments_report_scheduler_enabled = "true"
