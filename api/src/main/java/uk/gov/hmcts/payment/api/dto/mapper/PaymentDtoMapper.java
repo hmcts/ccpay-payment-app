@@ -160,7 +160,7 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+    public PaymentDto toReconciliationResponseDtos(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
@@ -186,6 +186,35 @@ public class PaymentDtoMapper {
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
             .documentControlNumber(payment.getDocumentControlNumber())
+            .externalReference(payment.getExternalReference())
+            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .build();
+        return enrichWithFeeData(paymentDto);
+    }
+
+    public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+            .paymentReference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .amount(payment.getAmount())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .accountNumber(payment.getPbaNumber())
+            .organisationName(payment.getOrganisationName())
+            .customerReference(payment.getCustomerReference())
+            .channel(payment.getPaymentChannel().getName())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .dateCreated(payment.getDateCreated())
+            .dateUpdated(payment.getDateUpdated())
+            .method(payment.getPaymentMethod().getName())
+            .giroSlipNo(payment.getGiroSlipNo())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
             .fees(toFeeDtos(paymentFeeLink.getFees()))
