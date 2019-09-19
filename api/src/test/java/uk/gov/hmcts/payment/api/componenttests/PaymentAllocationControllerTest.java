@@ -217,6 +217,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
         when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(payment));
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
 
+
         MvcResult result = restActions
             .post("/payment-allocations", request)
             .andExpect(status().isCreated())
@@ -228,6 +229,24 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
         assertTrue(paymentAllocationDto.getPaymentGroupReference().equals(request.getPaymentGroupReference()));
         //assertThat(paymentAllocationDto.getDateCreated().getDate()).isEqualTo(new Date().getDate());
         assertThat(paymentAllocationDto.getUnidentifiedReason()).isEqualTo(request.getUnidentifiedReason());
+
+    }
+    @Test
+    public void paymentIsNotFound() throws Exception {
+        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
+            .paymentGroupReference("2018-00000000001")
+            .paymentReference("RC-1519-9028-2432-00011")
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Unidentified").build())
+            .unidentifiedReason("payment is unidentified sent back to exela")
+            .build();
+        when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(payment));
+        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
+
+        MvcResult result = restActions
+            .post("/payment-allocations", request)
+            .andExpect(status().isNotFound())
+            .andReturn();
 
     }
 
