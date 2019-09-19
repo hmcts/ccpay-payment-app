@@ -315,7 +315,7 @@ public class PaymentDtoMapper {
     }
 
     private List<PaymentAllocationDto> toPaymentAllocationDtos(List<PaymentAllocation> paymentAllocation) {
-        return paymentAllocation.stream().map(this::toPaymentAllocationDto).collect(Collectors.toList());
+        return paymentAllocation.stream().map(this::toPaymentAllocationDtos).collect(Collectors.toList());
     }
 
     private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
@@ -370,5 +370,10 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentAllocationDto toPaymentAllocationDtos(PaymentAllocation paymentAllocation) {
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
+            .build();
+    }
 
 }

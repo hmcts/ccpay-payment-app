@@ -45,6 +45,9 @@ public class PaymentAllocationDto {
 
     private String userId;
 
+    // This field added due to Libereta Changes. This is just a duplication of paymentAllocationStatus and unidentifiedReason parameters.
+    private String allocationStatus;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 

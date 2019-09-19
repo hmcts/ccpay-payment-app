@@ -73,7 +73,7 @@ public class PaymentGroupDtoMapper {
 
     public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
         return PaymentAllocationDto.paymentAllocationDtoWith()
-            .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
             .build();
     }
     private BigDecimal getTotalHwfRemission(List<Remission> remissions) {
