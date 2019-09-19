@@ -73,10 +73,8 @@ public class PaymentAllocationController {
             PaymentAllocationDto allocationDto = new PaymentAllocationDto();
             for(PaymentAllocation allocation: paymentResponse.getPaymentAllocation())
             {
-                if(allocation.getPaymentReference().equals(paymentAllocationDto.getPaymentReference()))
-                {
-                    allocationDto = paymentDtoMapper.toPaymentAllocationDto(allocation);
-                }
+                allocationDto = paymentDtoMapper.toPaymentAllocationDto(allocation);
+
             }
 
 
