@@ -164,5 +164,10 @@
         <cve>CVE-2019-15052</cve>
         <cve>CVE-2019-10086</cve>
     </suppress>
+    <suppress>
+        <cve>CVE-2019-14540</cve>
+        <cve>CVE-2019-16335</cve>
+        <cve>CVE-2019-3795</cve>
+    </suppress>
 
 </suppressions>
