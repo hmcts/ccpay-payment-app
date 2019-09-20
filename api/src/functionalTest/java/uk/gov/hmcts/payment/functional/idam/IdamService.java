@@ -69,6 +69,8 @@ public class IdamService {
         LOG.info("base64Authorisation : " + base64Authorisation);
         LOG.info("testConfig.getOauth2().getClientId() : " + testConfig.getOauth2().getClientId());
         LOG.info("testConfig.getOauth2().getRedirectUrl() : " + testConfig.getOauth2().getRedirectUrl());
+        LOG.info("testConfig.getOauth2().getClientSecret() : " + testConfig.getOauth2().getClientSecret());
+        LOG.info("testConfig.getS2sServiceSecret() : " + testConfig.getS2sServiceSecret());
 
         IdamApi.AuthenticateUserResponse authenticateUserResponse = idamApi.authenticateUser(
             BASIC + base64Authorisation,
