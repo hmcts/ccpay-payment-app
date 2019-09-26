@@ -1,4 +1,5 @@
 java:
+  image: hmctspublic.azurecr.io/payment/api:latest
   applicationPort: 8080
   keyVaults:
     "ccpay":
