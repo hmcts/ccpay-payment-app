@@ -46,20 +46,22 @@ public class ExcelGeneratorUtil {
                 int rowIdx = 1;
                 for (PaymentFeeLink paymentFeelink : paymentFeeLink) {
                     for (Payment payment : paymentFeelink.getPayments()) {
-                        Row row = sheet.createRow(rowIdx++);
-                        for (PaymentAllocation paymentAllocation : payment.getPaymentAllocation()) {
-                            row.createCell(0).setCellValue(payment.getSiteId());
-                            row.createCell(1).setCellValue(payment.getServiceType());
-                            row.createCell(2).setCellValue(paymentAllocation.getPaymentAllocationStatus().getName());
-                            row.createCell(3).setCellValue(paymentAllocation.getReceivingOffice());
-                            row.createCell(4).setCellValue(paymentAllocation.getUnidentifiedReason());
-                            row.createCell(5).setCellValue(payment.getCaseReference());
-                            row.createCell(6).setCellValue(payment.getCcdCaseNumber());
-                            row.createCell(7).setCellValue(payment.getBankedDate());
-                            row.createCell(8).setCellValue(payment.getGiroSlipNo());
-                            row.createCell(9).setCellValue(payment.getDocumentControlNumber());
-                            row.createCell(10).setCellValue(payment.getPaymentMethod().getName());
-                            row.createCell(11).setCellValue(payment.getAmount().toString());
+                        if(payment.getPaymentProvider().getName().equals("exela")) {
+                            Row row = sheet.createRow(rowIdx++);
+                            for (PaymentAllocation paymentAllocation : payment.getPaymentAllocation()) {
+                                row.createCell(0).setCellValue(payment.getSiteId());
+                                row.createCell(1).setCellValue(payment.getServiceType());
+                                row.createCell(2).setCellValue(paymentAllocation.getPaymentAllocationStatus().getName());
+                                row.createCell(3).setCellValue(paymentAllocation.getReceivingOffice());
+                                row.createCell(4).setCellValue(paymentAllocation.getUnidentifiedReason());
+                                row.createCell(5).setCellValue(payment.getCaseReference());
+                                row.createCell(6).setCellValue(payment.getCcdCaseNumber());
+                                row.createCell(7).setCellValue(payment.getBankedDate());
+                                row.createCell(8).setCellValue(payment.getGiroSlipNo());
+                                row.createCell(9).setCellValue(payment.getDocumentControlNumber());
+                                row.createCell(10).setCellValue(payment.getPaymentMethod().getName());
+                                row.createCell(11).setCellValue(payment.getAmount().toString());
+                            }
                         }
                     }
                 }

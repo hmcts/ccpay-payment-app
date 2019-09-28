@@ -90,7 +90,9 @@ public class BulkScanningReportController {
             throw new PaymentException(ex);
         } finally {
             try {
-                in.close();
+                if(in !=null) {
+                    in.close();
+                }
             } catch (IOException e) {
                 LOG.error(e.getMessage());
             }
