@@ -11,7 +11,6 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.service.PaymentAllocationService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -25,8 +24,6 @@ import java.util.Optional;
 @SwaggerDefinition(tags = {@Tag(name = "PaymentAllocationController", description = "Payment Allocation REST API")})
 public class PaymentAllocationController {
 
-    private final PaymentAllocationService paymentAllocationService;
-
     private final PaymentDtoMapper paymentDtoMapper;
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
@@ -34,9 +31,7 @@ public class PaymentAllocationController {
     private final Payment2Repository paymentRepository;
 
     @Autowired
-    public PaymentAllocationController(PaymentAllocationService paymentAllocationService,
-                                       PaymentDtoMapper paymentDtoMapper,PaymentService<PaymentFeeLink, String> paymentService,Payment2Repository paymentRepository) {
-        this.paymentAllocationService = paymentAllocationService;
+    public PaymentAllocationController(PaymentDtoMapper paymentDtoMapper,PaymentService<PaymentFeeLink, String> paymentService,Payment2Repository paymentRepository) {
         this.paymentDtoMapper = paymentDtoMapper;
         this.paymentService = paymentService;
         this.paymentRepository = paymentRepository;

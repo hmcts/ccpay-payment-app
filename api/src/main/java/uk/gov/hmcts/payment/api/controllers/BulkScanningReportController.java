@@ -50,7 +50,6 @@ public class BulkScanningReportController {
         @RequestParam("date_from") Date fromDate,
         @RequestParam("date_to") Date toDate,
         @RequestParam("report_type") ReportType reportType) {
-        LOG.info("Retrieving payments for reportType : {}", reportType);
         ByteArrayInputStream in = null;
         try {
 
@@ -83,7 +82,6 @@ public class BulkScanningReportController {
                     .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                     .body(new InputStreamResource(in));
             } else {
-                LOG.info("Payment Records not found for Report-Type : {}", reportType);
                 return new ResponseEntity(HttpStatus.NOT_FOUND);
             }
         } catch (Exception ex) {
