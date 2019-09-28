@@ -29,12 +29,12 @@ public class DateUtil {
 
     public static String getDateForReportName(Date date){
         java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("ddMMyy");
-        return dateToLocalDateTime(date).format(reportNameDateFormat);
+        return date == null ? null : dateToLocalDateTime(date).format(reportNameDateFormat);
     }
 
     public static String getDateTimeForReportName(Date date){
         java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("ddMMyy_HHmmss");
-        return dateToLocalDateTime(date).format(reportNameDateFormat);
+        return date == null ? null : dateToLocalDateTime(date).format(reportNameDateFormat);
     }
 
     public static LocalDateTime dateToLocalDateTime(Date date) {
