@@ -7,9 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import javax.validation.constraints.NotEmpty;
 
 import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
@@ -55,4 +55,6 @@ public class FeeDto {
     private String jurisdiction2;
 
     private String description;
+
+    private String caseReference;
 }

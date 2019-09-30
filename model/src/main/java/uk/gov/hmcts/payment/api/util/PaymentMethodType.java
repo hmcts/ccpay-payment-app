@@ -7,7 +7,8 @@ public enum PaymentMethodType {
     CASH("cash"),
     CHEQUE("cheque"),
     POSTAL_ORDER("postal order"),
-    BARCLAY_CARD("barclay card");
+    BARCLAY_CARD("barclay card"),
+    ALL("all");
 
     String type;
 
