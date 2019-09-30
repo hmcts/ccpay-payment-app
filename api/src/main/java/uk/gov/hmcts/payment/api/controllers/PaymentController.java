@@ -187,7 +187,7 @@ public class PaymentController {
         for (final Payment p: payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
-            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDto(p, paymentReference, fees);
+            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(p, paymentReference, fees);
             paymentDtos.add(paymentDto);
         }
     }

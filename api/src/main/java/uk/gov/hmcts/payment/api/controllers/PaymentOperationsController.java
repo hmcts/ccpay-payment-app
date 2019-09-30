@@ -1,11 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -109,7 +104,7 @@ public class PaymentOperationsController {
             final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
-            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDto(payment, paymentReference, fees);
+            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees);
             paymentDtos.add(paymentDto);
         }
         return paymentDtos;

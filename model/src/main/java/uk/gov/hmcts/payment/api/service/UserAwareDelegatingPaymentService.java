@@ -17,17 +17,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
@@ -36,16 +26,13 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 @Service
 @Primary
@@ -285,7 +272,18 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
         if (searchCriteria.getPaymentMethod() != null) {
-            predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
+            if(searchCriteria.getPaymentMethod().equalsIgnoreCase("all"))
+            {
+                Predicate predicateCheque = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("cheque").build());
+                Predicate predicateCard = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("card").build());
+                Predicate predicateFinal = cb.or(predicateCheque,predicateCard);
+                predicates.add(predicateFinal);
+            }
+            else
+            {
+                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
+            }
+
         }
 
         Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
