@@ -260,23 +260,6 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
 
     }
 
-    @Test
-    @Transactional
-    public void shouldNotGenerateReportWhenPaymentIsNull() throws Exception {
-
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(null);
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
-            .andExpect(status().isNotFound())
-            .andReturn();
-
-    }
 
     @Test
     @Transactional

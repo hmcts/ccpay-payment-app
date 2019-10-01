@@ -1,13 +1,11 @@
 package uk.gov.hmcts.payment.api.util;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -15,12 +13,11 @@ import static org.apache.poi.ss.usermodel.IndexedColors.BLACK;
 import static uk.gov.hmcts.payment.api.util.ReportType.PROCESSED_UNALLOCATED;
 
 public class ExcelGeneratorUtil {
-    public static ByteArrayInputStream exportToExcel(ReportType reportType,  List<PaymentFeeLink> paymentFeeLink) throws IOException {
+    public static Workbook exportToExcel(ReportType reportType,  List<PaymentFeeLink> paymentFeeLink) throws IOException {
 
-        String[] colsUnallocated = {"Resp_Service ID", "Resp_Service Name", "Allocation_Status", "Receiving_Office", "Allocation_Reason", "CCD_Exception_Ref", "CCD_Case_Ref", "Date_Banked", "BGC_Batch", "Payment_Asset_DCN", "Payment_Method", "Amount", "Updated_by"};
+        String[] colsUnallocated = {"Resp_Service ID", "Resp_Service Name", "Allocation_Status", "Receiving_Office", "Allocation_Reason", "CCD_Exception_Ref", "CCD_Case_Ref", "Date_Banked", "BGC_Batch", "Payment_Asset_DCN", "Payment_Method", "Amount"};
         try(
-            Workbook workbook = new XSSFWorkbook();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            Workbook workbook = new HSSFWorkbook();
         ){
             CreationHelper createHelper = workbook.getCreationHelper();
 
@@ -41,11 +38,7 @@ public class ExcelGeneratorUtil {
             // CellStyle for Age
             CellStyle ageCellStyle = workbook.createCellStyle();
             ageCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("#"));
-
-
-
-            workbook.write(out);
-            return new ByteArrayInputStream(out.toByteArray());
+            return workbook;
         }
     }
 
@@ -77,6 +70,10 @@ public class ExcelGeneratorUtil {
                         }
                     }
                 }
+            }
+
+            for(int i = 0; i < colsUnallocated.length; i++) {
+                sheet.autoSizeColumn(i);
             }
         }
     }
