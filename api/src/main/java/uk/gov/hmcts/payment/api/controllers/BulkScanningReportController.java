@@ -52,7 +52,7 @@ public class BulkScanningReportController {
         @RequestParam("date_to") Date toDate,
         @RequestParam("report_type") ReportType reportType, HttpServletResponse response) {
         byte[] reportBytes = null;
-        HSSFWorkbook workbook = null;
+        HSSFWorkbook workbook = new HSSFWorkbook();
         try {
 
             List<PaymentFeeLink> paymentFeeLinks = paymentService
