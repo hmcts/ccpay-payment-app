@@ -89,9 +89,7 @@ public class BulkScanningReportController {
             throw new PaymentException(ex);
         } finally {
             try {
-                if (workbook != null) {
-                    workbook.close();
-                }
+                workbook.close();
             } catch (IOException e) {
                 LOG.error(e.getMessage());
             }
