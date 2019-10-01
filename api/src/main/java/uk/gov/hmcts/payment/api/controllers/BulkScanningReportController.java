@@ -1,10 +1,10 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,7 +19,8 @@ import uk.gov.hmcts.payment.api.util.ExcelGeneratorUtil;
 import uk.gov.hmcts.payment.api.util.ReportType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
-import java.io.ByteArrayInputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -46,11 +47,12 @@ public class BulkScanningReportController {
         @ApiResponse(code = 404, message = "No Data found to generate Report")
     })
     @GetMapping("/payment/bulkscan-report-download")
-    public ResponseEntity retrieveBulkScanReports(
+    public ResponseEntity<?> retrieveBulkScanReports(
         @RequestParam("date_from") Date fromDate,
         @RequestParam("date_to") Date toDate,
-        @RequestParam("report_type") ReportType reportType) {
-        ByteArrayInputStream in = null;
+        @RequestParam("report_type") ReportType reportType, HttpServletResponse response) {
+        byte[] reportBytes = null;
+        HSSFWorkbook workbook = null;
         try {
 
             List<PaymentFeeLink> paymentFeeLinks = paymentService
@@ -66,30 +68,29 @@ public class BulkScanningReportController {
             if (Optional.ofNullable(paymentFeeLinks).isPresent()) {
                 LOG.info("No of Records exists : {}", paymentFeeLinks.size());
 
-                    in =  ExcelGeneratorUtil.exportToExcel(reportType,paymentFeeLinks);
+                workbook = (HSSFWorkbook) ExcelGeneratorUtil.exportToExcel(reportType, paymentFeeLinks);
+            }
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                workbook.write(baos);
+                reportBytes = baos.toByteArray();
 
-                    HttpHeaders headers = new HttpHeaders();
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+
                 String fileName = reportType.toString() + "_"
                     + getDateForReportName(fromDate) + "_To_"
                     + getDateForReportName(toDate) + "_RUN_"
-                    + getDateTimeForReportName(new Date(System.currentTimeMillis()));
-                String headerValue = "attachment; filename=" + fileName;
-                headers.add("Content-Disposition", headerValue);
+                    + getDateTimeForReportName(new Date(System.currentTimeMillis()))
+                    + ".xls";
+                response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+                return new ResponseEntity<byte[]>(reportBytes, headers, HttpStatus.OK);
 
-                return ResponseEntity
-                    .ok()
-                    .headers(headers)
-                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
-                    .body(new InputStreamResource(in));
-            } else {
-                return new ResponseEntity(HttpStatus.NOT_FOUND);
-            }
         } catch (Exception ex) {
             throw new PaymentException(ex);
         } finally {
             try {
-                if(in !=null) {
-                    in.close();
+                if (workbook != null) {
+                    workbook.close();
                 }
             } catch (IOException e) {
                 LOG.error(e.getMessage());
