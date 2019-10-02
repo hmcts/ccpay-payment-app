@@ -33,6 +33,7 @@ import java.util.Optional;
 
 import static uk.gov.hmcts.payment.api.util.DateUtil.getDateForReportName;
 import static uk.gov.hmcts.payment.api.util.DateUtil.getDateTimeForReportName;
+import static uk.gov.hmcts.payment.api.util.ReportType.PROCESSED_UNALLOCATED;
 
 @RestController
 @Api(tags = {"Bulk Scanning Report"})
@@ -60,6 +61,7 @@ public class BulkScanningReportController {
         @RequestParam("report_type") ReportType reportType, HttpServletResponse response) {
         byte[] reportBytes = null;
         HSSFWorkbook workbook = null;
+        HttpHeaders headers = new HttpHeaders();
         try {
 
             List<PaymentFeeLink> paymentFeeLinks = paymentService
@@ -76,12 +78,11 @@ public class BulkScanningReportController {
                 LOG.info("No of Records exists : {}", paymentFeeLinks.size());
 
                 workbook = (HSSFWorkbook) ExcelGeneratorUtil.exportToExcel(reportType, paymentFeeLinks);
-            }
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 workbook.write(baos);
                 reportBytes = baos.toByteArray();
 
-                HttpHeaders headers = new HttpHeaders();
+
                 headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
 
                 String fileName = reportType.toString() + "_"
@@ -90,6 +91,8 @@ public class BulkScanningReportController {
                     + getDateTimeForReportName(new Date(System.currentTimeMillis()))
                     + ".xls";
                 response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+            }
+
                 return new ResponseEntity<byte[]>(reportBytes, headers, HttpStatus.OK);
 
         } catch (Exception ex) {
@@ -126,7 +129,7 @@ public class BulkScanningReportController {
             );
 
         final List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
-        if(reportType.equals("PROCESSED_UNALLOCATED")) {
+        if(reportType.equals(PROCESSED_UNALLOCATED)) {
             for (final PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
                 populateBulkScanningReportDtos(bulkScanningReportDtoList, paymentFeeLink);
             }
