@@ -254,7 +254,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=UNDER_AND_OVER_PAYMENT")
+            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=SURPLUS_AND_SHORTFALL")
             .andExpect(status().isOk())
             .andReturn();
 
