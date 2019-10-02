@@ -12,7 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.contract.BulkScanningReportDto;
+import uk.gov.hmcts.payment.api.contract.BulkScanningReportResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.mapper.BulkScanningReportMapper;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.ExcelGeneratorUtil;
@@ -22,6 +26,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -35,10 +40,12 @@ import static uk.gov.hmcts.payment.api.util.DateUtil.getDateTimeForReportName;
 public class BulkScanningReportController {
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private static final Logger LOG = LoggerFactory.getLogger(BulkScanningReportController.class);
+    private final BulkScanningReportMapper bulkScanningReportMapper;
 
     @Autowired
-    public BulkScanningReportController(PaymentService<PaymentFeeLink, String> paymentService) {
+    public BulkScanningReportController(PaymentService<PaymentFeeLink, String> paymentService,BulkScanningReportMapper bulkScanningReportMapper) {
         this.paymentService = paymentService;
+        this.bulkScanningReportMapper = bulkScanningReportMapper;
     }
 
     @ApiOperation("API to generate Report for Bulk Scan Payment System")
@@ -52,7 +59,7 @@ public class BulkScanningReportController {
         @RequestParam("date_to") Date toDate,
         @RequestParam("report_type") ReportType reportType, HttpServletResponse response) {
         byte[] reportBytes = null;
-        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFWorkbook workbook = null;
         try {
 
             List<PaymentFeeLink> paymentFeeLinks = paymentService
@@ -89,10 +96,49 @@ public class BulkScanningReportController {
             throw new PaymentException(ex);
         } finally {
             try {
-                workbook.close();
+                if (Optional.ofNullable(workbook).isPresent()) {
+                    workbook.close();
+                }
             } catch (IOException e) {
                 LOG.error(e.getMessage());
             }
+        }
+    }
+
+    @ApiOperation("API to generate Report for Bulk Scan Payment System")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "Report Generated"),
+        @ApiResponse(code = 404, message = "No Data found to generate Report")
+    })
+    @GetMapping("/payment/bulkscan-data-report")
+    public BulkScanningReportResponse getBulkScanReports(
+        @RequestParam("date_from") Date fromDate,
+        @RequestParam("date_to") Date toDate,
+        @RequestParam("report_type") ReportType reportType) {
+
+        List<PaymentFeeLink> paymentFeeLinks = paymentService
+            .search(
+                PaymentSearchCriteria
+                    .searchCriteriaWith()
+                    .startDate(fromDate)
+                    .endDate(toDate)
+                    .build()
+            );
+
+        final List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
+        if(reportType.equals("PROCESSED_UNALLOCATED")) {
+            for (final PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
+                populateBulkScanningReportDtos(bulkScanningReportDtoList, paymentFeeLink);
+            }
+        }
+        return new BulkScanningReportResponse(bulkScanningReportDtoList);
+    }
+
+    private void populateBulkScanningReportDtos(final List<BulkScanningReportDto> bulkScanningReportDtoList, final PaymentFeeLink paymentFeeLink) {
+        final List<Payment> payments = paymentFeeLink.getPayments();
+        for (final Payment payment: payments) {
+            final BulkScanningReportDto bulkScanningReportDto = bulkScanningReportMapper.toBulkScanningReportdto(payment);
+            bulkScanningReportDtoList.add(bulkScanningReportDto);
         }
     }
 }
