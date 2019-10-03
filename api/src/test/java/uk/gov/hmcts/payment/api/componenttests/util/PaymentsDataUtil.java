@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,6 +101,41 @@ public class PaymentsDataUtil {
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populateCardPaymentToDbForPaymentAllocation(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
+            .paymentReference("RC-1519-9028-2432-000"+number)
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
+            .receivingOffice("Home office")
+            .receivingEmailAddress("receiver@receiver.com")
+            .sendingEmailAddress("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)));
         payment.setPaymentLink(paymentFeeLink);
         return payment;
     }

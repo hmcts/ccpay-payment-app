@@ -1,10 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -125,6 +121,10 @@ public class Payment {
     @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
     @ToString.Exclude
     private List<StatusHistory> statusHistories;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
+    private List<PaymentAllocation> paymentAllocation;
 
     @Column(name = "service_callback_url")
     private String serviceCallbackUrl;

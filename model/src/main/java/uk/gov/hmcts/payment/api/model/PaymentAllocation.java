@@ -1,10 +1,7 @@
 package uk.gov.hmcts.payment.api.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -51,5 +48,11 @@ public class PaymentAllocation {
     @CreationTimestamp
     @Column(name = "date_created")
     private Date dateCreated;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    private Payment payment;
+
 
 }

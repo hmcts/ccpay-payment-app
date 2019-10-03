@@ -25,12 +25,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -38,7 +33,9 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -145,6 +142,48 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         MvcResult result2 = restActions.
             patch(format("/payments/" + paymentDto.getReference()), updatePaymentRequest)
             .andExpect(status().isNoContent())
+            .andReturn();
+    }
+
+    @Test
+    public void getPaymentsBasedOnPaymentReference() throws Exception {
+        //Create a payment in remissionDbBackdoor
+
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith()
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Allocated").build())
+            .paymentGroupReference("2018-15186168000")
+            .paymentReference("RC-1519-9028-1909-3890")
+            .build();
+        List<PaymentAllocation> paymentAllocationsList = new ArrayList<>();
+        paymentAllocationsList.add(paymentAllocation);
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("caseReference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Description1")
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .paymentAllocation(paymentAllocationsList)
+            .reference("RC-1519-9028-1909-3890")
+            .bankedDate(new Date())
+            .documentControlNumber("12345")
+            .payerName("test")
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+
+        MvcResult result = restActions
+            .get("/payments/RC-1519-9028-1909-3890")
+            .andExpect(status().isOk())
             .andReturn();
     }
 
