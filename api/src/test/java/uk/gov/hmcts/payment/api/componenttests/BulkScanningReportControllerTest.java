@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -36,6 +37,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -362,12 +364,32 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .statusHistories(Arrays.asList(statusHistory))
             .paymentAllocation(Arrays.asList(paymentAllocation))
             .build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0005").volume(1).build();
+        RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("A partial remission")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .hwfAmount(new BigDecimal("50.00"))
+            .hwfReference("HR1111")
+            .siteId("AA001")
+            .build();
+       Remission remission= Remission.remissionWith()
+            .remissionReference("12345")
+            .hwfReference("HR1111")
+            .hwfAmount(new BigDecimal("50.00"))
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .siteId("AA001")
+            .build();
         List<Payment> paymentList = new ArrayList<>();
         PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
         List<PaymentFeeLink> feeLinkList = new ArrayList<>();
-
+        List<PaymentFee> fees = new ArrayList<>();
+        List<Remission> remissions = new ArrayList<>();
+        remissions.add(remission);
+        fees.add(fee);
         paymentList.add(payment);
         paymentFeeLink.setPayments(paymentList);
+        paymentFeeLink.setFees(fees);
+        paymentFeeLink.setRemissions(remissions);
         feeLinkList.add(paymentFeeLink);
         when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(feeLinkList);
 
