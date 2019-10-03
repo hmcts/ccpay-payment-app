@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.BulkScanningReportDto;
-import uk.gov.hmcts.payment.api.contract.BulkScanningReportResponse;
+import uk.gov.hmcts.payment.api.contract.BulkScanningUnderOverPaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.BulkScanningReportMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -34,6 +34,7 @@ import java.util.Optional;
 import static uk.gov.hmcts.payment.api.util.DateUtil.getDateForReportName;
 import static uk.gov.hmcts.payment.api.util.DateUtil.getDateTimeForReportName;
 import static uk.gov.hmcts.payment.api.util.ReportType.PROCESSED_UNALLOCATED;
+import static uk.gov.hmcts.payment.api.util.ReportType.SURPLUS_AND_SHORTFALL;
 
 @RestController
 @Api(tags = {"Bulk Scanning Report"})
@@ -114,7 +115,7 @@ public class BulkScanningReportController {
         @ApiResponse(code = 404, message = "No Data found to generate Report")
     })
     @GetMapping("/payment/bulkscan-data-report")
-    public BulkScanningReportResponse getBulkScanReports(
+    public ResponseEntity<List<?>> getBulkScanReports(
         @RequestParam("date_from") Date fromDate,
         @RequestParam("date_to") Date toDate,
         @RequestParam("report_type") ReportType reportType) {
@@ -131,16 +132,22 @@ public class BulkScanningReportController {
         final List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
         if(reportType.equals(PROCESSED_UNALLOCATED)) {
             for (final PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
-                populateBulkScanningReportDtos(bulkScanningReportDtoList, paymentFeeLink);
+                populateBulkScanningUnallocatedReportDtos(bulkScanningReportDtoList, paymentFeeLink);
             }
+            return new ResponseEntity<>(bulkScanningReportDtoList, HttpStatus.OK);
         }
-        return new BulkScanningReportResponse(bulkScanningReportDtoList);
+        else if(reportType.equals(SURPLUS_AND_SHORTFALL))
+        {
+            List<BulkScanningUnderOverPaymentDto> underOverPaymentDtoList = bulkScanningReportMapper.toSurplusAndShortfallReportdto(paymentFeeLinks);
+            return new ResponseEntity<>(underOverPaymentDtoList, HttpStatus.OK);
+        }
+      return null;
     }
 
-    private void populateBulkScanningReportDtos(final List<BulkScanningReportDto> bulkScanningReportDtoList, final PaymentFeeLink paymentFeeLink) {
+    private void populateBulkScanningUnallocatedReportDtos(final List<BulkScanningReportDto> bulkScanningReportDtoList, final PaymentFeeLink paymentFeeLink) {
         final List<Payment> payments = paymentFeeLink.getPayments();
         for (final Payment payment: payments) {
-            final BulkScanningReportDto bulkScanningReportDto = bulkScanningReportMapper.toBulkScanningReportdto(payment);
+            final BulkScanningReportDto bulkScanningReportDto = bulkScanningReportMapper.toBulkScanningUnallocatedReportdto(payment);
             bulkScanningReportDtoList.add(bulkScanningReportDto);
         }
     }
