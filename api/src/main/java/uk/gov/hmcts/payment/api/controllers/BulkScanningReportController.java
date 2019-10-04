@@ -129,10 +129,13 @@ public class BulkScanningReportController {
                     .build()
             );
 
-        final List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
+        List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
         if(reportType.equals(PROCESSED_UNALLOCATED)) {
-            for (final PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
-                populateBulkScanningUnallocatedReportDtos(bulkScanningReportDtoList, paymentFeeLink);
+            for (PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
+                for (Payment payment: paymentFeeLink.getPayments()) {
+                    bulkScanningReportDtoList = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payment,bulkScanningReportDtoList);
+
+                }
             }
             return new ResponseEntity<>(bulkScanningReportDtoList, HttpStatus.OK);
         }
@@ -142,13 +145,5 @@ public class BulkScanningReportController {
             return new ResponseEntity<>(underOverPaymentDtoList, HttpStatus.OK);
         }
       return null;
-    }
-
-    private void populateBulkScanningUnallocatedReportDtos(final List<BulkScanningReportDto> bulkScanningReportDtoList, final PaymentFeeLink paymentFeeLink) {
-        final List<Payment> payments = paymentFeeLink.getPayments();
-        for (final Payment payment: payments) {
-            final BulkScanningReportDto bulkScanningReportDto = bulkScanningReportMapper.toBulkScanningUnallocatedReportdto(payment);
-            bulkScanningReportDtoList.add(bulkScanningReportDto);
-        }
     }
 }
