@@ -42,7 +42,6 @@ public class BulkScanningReportMapper {
     }
 
     public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<PaymentFeeLink> paymentFeeLinks) {
-        BigDecimal totalAmount = new BigDecimal(0);
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
 
         for(PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
@@ -53,7 +52,7 @@ public class BulkScanningReportMapper {
 
             BigDecimal paymentAmount = calculatePaymentAmount(paymentFeeLink.getPayments());
 
-            totalAmount = feeAmount.subtract((paymentAmount.add(remissionAmount)));
+            BigDecimal totalAmount = feeAmount.subtract((paymentAmount.add(remissionAmount)));
             if(totalAmount.compareTo(BigDecimal.ZERO) != 0)
           {
             Payment payment = paymentFeeLink.getPayments().get(0);
