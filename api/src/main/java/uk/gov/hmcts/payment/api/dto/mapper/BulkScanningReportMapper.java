@@ -12,27 +12,32 @@ import java.util.List;
 @Component
 public class BulkScanningReportMapper {
 
-    public BulkScanningReportDto toBulkScanningUnallocatedReportdto(Payment payment) {
+    public List<BulkScanningReportDto> toBulkScanningUnallocatedReportDto(Payment payment,List<BulkScanningReportDto> bulkScanningReportDtoList) {
 
         BulkScanningReportDto bulkScanningReportDto = new BulkScanningReportDto();
 
                 if(payment.getPaymentProvider().getName().equals("exela")) {
                     for (PaymentAllocation paymentAllocation : payment.getPaymentAllocation()) {
-                        bulkScanningReportDto.setRespServiceId(payment.getSiteId());
-                        bulkScanningReportDto.setRespServiceName(payment.getServiceType());
-                        bulkScanningReportDto.setAllocationStatus(paymentAllocation.getPaymentAllocationStatus().getName());
-                        bulkScanningReportDto.setReceivingOffice(paymentAllocation.getReceivingOffice());
-                        bulkScanningReportDto.setAllocationReason(paymentAllocation.getUnidentifiedReason());
-                        bulkScanningReportDto.setCcdExceptionReference(payment.getCaseReference());
-                        bulkScanningReportDto.setCcdCaseReference(payment.getCcdCaseNumber());
-                        bulkScanningReportDto.setDateBanked(payment.getBankedDate());
-                        bulkScanningReportDto.setBgcBatch(payment.getGiroSlipNo());
-                        bulkScanningReportDto.setPaymentAssetDCN(payment.getDocumentControlNumber());
-                        bulkScanningReportDto.setPaymentMethod(payment.getPaymentMethod().getName());
-                        bulkScanningReportDto.setAmount(payment.getAmount().toString());
+                        String allocationStatus = paymentAllocation.getPaymentAllocationStatus().getName();
+                     if(allocationStatus.equals("Transferred") || allocationStatus.equals("Unidentified")) {
+                         bulkScanningReportDto.setRespServiceId(payment.getSiteId());
+                         bulkScanningReportDto.setRespServiceName(payment.getServiceType());
+                         bulkScanningReportDto.setAllocationStatus(paymentAllocation.getPaymentAllocationStatus().getName());
+                         bulkScanningReportDto.setReceivingOffice(paymentAllocation.getReceivingOffice());
+                         bulkScanningReportDto.setAllocationReason(paymentAllocation.getUnidentifiedReason());
+                         bulkScanningReportDto.setCcdExceptionReference(payment.getCaseReference());
+                         bulkScanningReportDto.setCcdCaseReference(payment.getCcdCaseNumber());
+                         bulkScanningReportDto.setDateBanked(payment.getBankedDate());
+                         bulkScanningReportDto.setBgcBatch(payment.getGiroSlipNo());
+                         bulkScanningReportDto.setPaymentAssetDCN(payment.getDocumentControlNumber());
+                         bulkScanningReportDto.setPaymentMethod(payment.getPaymentMethod().getName());
+                         bulkScanningReportDto.setAmount(payment.getAmount().toString());
+                         bulkScanningReportDtoList.add(bulkScanningReportDto);
+                     }
                     }
+
                 }
-        return bulkScanningReportDto;
+        return bulkScanningReportDtoList;
 
     }
 
@@ -43,18 +48,15 @@ public class BulkScanningReportMapper {
         for(PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
             BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto = new BulkScanningUnderOverPaymentDto();
             BigDecimal feeAmount = calculateFeeAmount(paymentFeeLink.getFees());
-            //totalFee = totalFee.add(feeAmount);
 
             BigDecimal remissionAmount = calculateRemissionAmount(paymentFeeLink.getRemissions());
-            //totalRemission = totalRemission.add(remissionAmount);
 
             BigDecimal paymentAmount = calculatePaymentAmount(paymentFeeLink.getPayments());
-            //totalPayment = totalPayment.add(paymentAmount);
 
             totalAmount = feeAmount.subtract((paymentAmount.add(remissionAmount)));
             if(totalAmount.compareTo(BigDecimal.ZERO) != 0)
           {
-            for (Payment payment : paymentFeeLink.getPayments()) {
+            Payment payment = paymentFeeLink.getPayments().get(0);
                 bulkScanningUnderOverPaymentDto.setRespServiceId(payment.getSiteId());
                 bulkScanningUnderOverPaymentDto.setRespServiceName(payment.getServiceType());
                 bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
@@ -64,7 +66,6 @@ public class BulkScanningReportMapper {
               bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalAmount.compareTo(BigDecimal.ZERO) > 0 ? "Surplus" : "Shortfall");
               bulkScanningUnderOverPaymentDto.setProcessedDate(paymentFeeLink.getDateUpdated());
               underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
-        }
         }
     return underOverPaymentDtos;
     }
