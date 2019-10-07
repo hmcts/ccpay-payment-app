@@ -245,8 +245,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=ccdCaseNumber1")
+            .get("/payments?ccd_case_number=ccdCaseNumber1"+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -341,8 +344,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
         MvcResult result = restActions
-            .get("/payments?pba_number=123456")
+            .get("/payments?pba_number=123456"+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -365,8 +371,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber())
+            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -528,13 +537,14 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCreditAccountPaymentToDb("1");
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&payment_method=CARD")
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate+ "&payment_method=CARD")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -566,7 +576,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDb("2");
         populateCreditAccountPaymentToDb("1");
-
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
         restActions
@@ -574,7 +584,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/payments?end_date=" + endDate + "&payment_method=CARD")
+            .get("/payments?end_date=" + endDate +"&start_date=" + startDate +"&payment_method=CARD")
             .andExpect(status().isOk())
             .andReturn();
 
