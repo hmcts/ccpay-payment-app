@@ -6,6 +6,10 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.DateTimeParser;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
 @Component
 public class DateUtil {
 
@@ -21,6 +25,20 @@ public class DateUtil {
 
     public DateTimeFormatter getIsoDateTimeFormatter() {
         return new DateTimeFormatterBuilder().append(null, ISO_DATE_TIME_PARSERS).toFormatter();
+    }
+
+    public static String getDateForReportName(Date date){
+        java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("ddMMyy");
+        return date == null ? null : dateToLocalDateTime(date).format(reportNameDateFormat);
+    }
+
+    public static String getDateTimeForReportName(Date date){
+        java.time.format.DateTimeFormatter reportNameDateFormat = java.time.format.DateTimeFormatter.ofPattern("ddMMyy_HHmmss");
+        return date == null ? null : dateToLocalDateTime(date).format(reportNameDateFormat);
+    }
+
+    public static LocalDateTime dateToLocalDateTime(Date date) {
+        return date == null ? null : LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
     }
 
 }
