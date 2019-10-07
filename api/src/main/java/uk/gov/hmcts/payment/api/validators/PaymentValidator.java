@@ -28,6 +28,11 @@ public class PaymentValidator {
 
     public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
+
+        if (!startDateString.isPresent() || !endDateString.isPresent()) {
+            dto.addFieldError("dates", "Start date or End date cannot be empty");
+        }
+
         if (paymentMethodType.isPresent() && !EnumUtils.isValidEnum(PaymentMethodType.class, paymentMethodType.get().toUpperCase())) {
             dto.addFieldError("payment_method", "Invalid payment method requested");
         }
