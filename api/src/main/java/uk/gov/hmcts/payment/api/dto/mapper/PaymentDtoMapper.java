@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -222,7 +223,7 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDto(final Payment payment, final String paymentReference, final List<PaymentFee> fees) {
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees) {
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentReference)
@@ -238,14 +239,16 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
+            .bankedDate(payment.getBankedDate())
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-            .externalReference(payment.getExternalReference())
+            .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
-            .fees(toFeeDtos(fees))
+            .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
             .build();
         return enrichWithFeeData(paymentDto);
     }
@@ -276,6 +279,17 @@ public class PaymentDtoMapper {
 
     private List<FeeDto> toFeeDtos(List<PaymentFee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
+    }
+
+    private List<FeeDto> toFeeDtosWithCaseRererence(List<PaymentFee> fees, String caseReference) {
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        for(PaymentFee paymentFee : fees)
+        {
+            FeeDto feeDto = toFeeDtoWithCaseReference(paymentFee,caseReference);
+            feeDtoList.add(feeDto);
+        }
+        return feeDtoList;
     }
 
     public List<PaymentFee> toFees(List<FeeDto> feeDtos) {
@@ -310,12 +324,33 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    private FeeDto toFeeDtoWithCaseReference(PaymentFee fee, String caseReference) {
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
+
+        return FeeDto.feeDtoWith()
+            .id(fee.getId())
+            .calculatedAmount(calculatedAmount)
+            .code(fee.getCode())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
+            .version(fee.getVersion())
+            .volumeAmount(fee.getVolume())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .caseReference(caseReference)
+            .reference(fee.getReference())
+            .build();
+    }
+
     private List<StatusHistoryDto> toStatusHistoryDtos(List<StatusHistory> statusHistories) {
         return statusHistories.stream().map(this::toStatusHistoryDto).collect(Collectors.toList());
     }
 
     private List<PaymentAllocationDto> toPaymentAllocationDtos(List<PaymentAllocation> paymentAllocation) {
         return paymentAllocation.stream().map(this::toPaymentAllocationDtos).collect(Collectors.toList());
+    }
+
+    private List<PaymentAllocationDto> toPaymentAllocationDtoForLibereta(List<PaymentAllocation> paymentAllocation) {
+        return paymentAllocation.stream().map(this::toPaymentAllocationDtoForLibereta).collect(Collectors.toList());
     }
 
     private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
@@ -367,6 +402,15 @@ public class PaymentDtoMapper {
             .sendingEmailAddress(paymentAllocation.getSendingEmailAddress())
             .receivingOffice(paymentAllocation.getReceivingOffice())
             .unidentifiedReason(paymentAllocation.getUnidentifiedReason())
+            .build();
+    }
+
+    public PaymentAllocationDto toPaymentAllocationDtoForLibereta(PaymentAllocation paymentAllocation) {
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
+            .allocationReason(paymentAllocation.getUnidentifiedReason())
+            .dateCreated(paymentAllocation.getDateCreated())
+            .receivingOffice(paymentAllocation.getReceivingOffice())
             .build();
     }
 
