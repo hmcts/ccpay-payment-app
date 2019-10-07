@@ -57,4 +57,8 @@ public class FeeDto {
     private String description;
 
     private String caseReference;
+
+    //Duplicate of volume field to be in consistent with libereta document
+    @Positive
+    private Integer volumeAmount;
 }

@@ -334,7 +334,7 @@ public class PaymentDtoMapper {
             .code(fee.getCode())
             .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
             .version(fee.getVersion())
-            .volume(fee.getVolume())
+            .volumeAmount(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .caseReference(caseReference)
             .reference(fee.getReference())
