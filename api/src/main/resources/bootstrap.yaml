@@ -17,4 +17,6 @@ spring:
         ccpay.liberata-keys-oauth2-client-secret: LIBERATA_OAUTH2_CLIENT_SECRET
         ccpay.liberata-keys-oauth2-username: LIBERATA_OAUTH2_USERNAME
         ccpay.liberata-keys-oauth2-password: LIBERATA_OAUTH2_PASSWORD
-        ccpay.payment-api-POSTGRES-PASS: spring.datasource.password
+        ccpay.api-POSTGRES-PASS: spring.datasource.password
+        ccpay.core-case-data-api-url: CORE_CASE_DATA_API_URL
+

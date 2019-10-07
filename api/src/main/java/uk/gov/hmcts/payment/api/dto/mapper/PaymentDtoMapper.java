@@ -13,11 +13,9 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.dto.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
@@ -50,8 +48,46 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toCardPaymentDto(Payment payment, String paymentGroupReference) {
+
+        return PaymentDto.payment2DtoWith()
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
+            .reference(payment.getReference())
+            .paymentGroupReference(paymentGroupReference)
+            .dateCreated(payment.getDateCreated())
+            .externalReference(payment.getExternalReference())
+            .links(new PaymentDto.LinksDto(
+                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
+                null, null
+            ))
+            .build();
+    }
+
+    public PaymentDto toBulkScanPaymentDto(Payment payment, String paymentGroupReference) {
+
+        return PaymentDto.payment2DtoWith()
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
+            .reference(payment.getReference())
+            .paymentGroupReference(paymentGroupReference)
+            .dateCreated(payment.getDateCreated())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .build();
+    }
+
+
     public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
+            .reference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .fees(paymentFeeLink.getFees() != null ? toFeeDtos(paymentFeeLink.getFees()) : null)
+            .dateCreated(payment.getDateCreated())
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
+            .build();
+    }
+
+    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, String link) {
         return PaymentDto.payment2DtoWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
@@ -153,6 +189,34 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
+    public PaymentDto toReconciliationResponseDto(final Payment payment, final String paymentReference, final List<PaymentFee> fees) {
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+            .paymentReference(payment.getReference())
+            .paymentGroupReference(paymentReference)
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .amount(payment.getAmount())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .accountNumber(payment.getPbaNumber())
+            .organisationName(payment.getOrganisationName())
+            .customerReference(payment.getCustomerReference())
+            .channel(payment.getPaymentChannel().getName())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .dateCreated(payment.getDateCreated())
+            .dateUpdated(payment.getDateUpdated())
+            .method(payment.getPaymentMethod().getName())
+            .giroSlipNo(payment.getGiroSlipNo())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .externalReference(payment.getExternalReference())
+            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .fees(toFeeDtos(fees))
+            .build();
+        return enrichWithFeeData(paymentDto);
+    }
+
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         paymentDto.getFees().forEach(fee -> {
             Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
@@ -198,13 +262,14 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
-        BigDecimal calculatedAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
         return FeeDto.feeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
-            .netAmount(fee.getNetAmount())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
             .version(fee.getVersion())
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
@@ -251,6 +316,20 @@ public class PaymentDtoMapper {
             .currency(paymentRecordRequest.getCurrency().getCode())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
+            .build();
+    }
+
+    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
+            .paymentGroupReference(paymentAllocation.getPaymentGroupReference())
+            .paymentReference(paymentAllocation.getPaymentReference())
+            .id(paymentAllocation.getId().toString())
+            .dateCreated(paymentAllocation.getDateCreated())
+            .receivingEmailAddress(paymentAllocation.getReceivingEmailAddress())
+            .sendingEmailAddress(paymentAllocation.getSendingEmailAddress())
+            .receivingOffice(paymentAllocation.getReceivingOffice())
+            .unidentifiedReason(paymentAllocation.getUnidentifiedReason())
             .build();
     }
 

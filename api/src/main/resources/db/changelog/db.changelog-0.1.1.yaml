@@ -1,0 +1,23 @@
+databaseChangeLog:
+- changeSet:
+    id: 1565874423345-1
+    author: vinoth
+    changes:
+        - addColumn:
+            columns:
+            - column:
+                name: document_control_number
+                type: varchar(255)
+            - column:
+                name: banked_date
+                type: TIMESTAMP WITHOUT TIME ZONE
+            - column:
+                name: payer_name
+                type: varchar(255)
+            tableName: payment
+        - sql:
+              splitStatements:
+              sql: >
+                  INSERT INTO payment_provider (name, description) VALUES ('exela', 'Exela Bulk Scan Payment');
+                  INSERT INTO payment_channel (name, description) VALUES ('bulk scan', 'Through Bulk Scan');
+

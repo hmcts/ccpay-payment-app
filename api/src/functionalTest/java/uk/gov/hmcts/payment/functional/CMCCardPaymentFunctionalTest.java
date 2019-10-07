@@ -11,6 +11,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -72,6 +74,27 @@ public class CMCCardPaymentFunctionalTest {
         });
 
     }
+
+    @Test
+    public void createCMCCardPaymentWithoutFeesTestShouldReturn201Success() {
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("29.34"))
+            .description("New passport application")
+            .caseReference("aCaseReference")
+            .service(Service.CMC)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA101")
+            .build();
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.google.com")
+            .when().createCardPayment(cardPaymentRequest)
+            .then().created(paymentDto -> {
+            assertNotNull(paymentDto.getReference());
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+        });
+    }
+
 
     @Test
     public void retrieveCMCCardPaymentTestShouldReturn200Success() {

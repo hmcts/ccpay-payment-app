@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.apache.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +32,12 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -41,10 +45,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Primary
@@ -148,6 +149,43 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         return paymentFeeLink;
     }
 
+    @Override
+    @Transactional
+    public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest)
+        throws CheckDigitException, MethodNotSupportedException {
+
+        Payment payment = buildPayment(paymentServiceRequest.getPaymentReference(), paymentServiceRequest);
+        if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
+            PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
+            PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
+            fillTransientDetails(payment, pciPalPayment);
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
+                .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).getMappedStatus())
+                .errorCode(pciPalPayment.getState().getCode())
+                .message(pciPalPayment.getState().getMessage())
+                .build()));
+        } else {
+            throw new MethodNotSupportedException("Only Telephony payments are supported");
+        }
+
+
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentServiceRequest.
+            getPaymentGroupReference()).orElseThrow(InvalidPaymentGroupReferenceException::new);
+
+        payment.setPaymentLink(paymentFeeLink);
+
+        if(paymentFeeLink.getPayments() != null){
+            paymentFeeLink.getPayments().addAll(Lists.newArrayList(payment));
+        } else {
+            paymentFeeLink.setPayments(Lists.newArrayList(payment));
+        }
+
+        auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, paymentFeeLink.getFees());
+        return paymentFeeLink;
+    }
+
+
     private Payment buildPayment(String paymentReference, PaymentServiceRequest paymentServiceRequest) {
         return Payment.paymentWith().userId(userIdSupplier.get())
             .amount(paymentServiceRequest.getAmount())
@@ -235,13 +273,13 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private static Specification findPayments(PaymentSearchCriteria searchCriteria) {
-        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria));
+        return ((root, query, cb) -> getPredicate(root, cb, searchCriteria, query));
     }
 
     private static Predicate getPredicate(
         Root<Payment> root,
         CriteriaBuilder cb,
-        PaymentSearchCriteria searchCriteria) {
+        PaymentSearchCriteria searchCriteria, CriteriaQuery<?> query) {
         List<Predicate> predicates = new ArrayList<>();
 
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
@@ -271,7 +309,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         if (searchCriteria.getPbaNumber() != null) {
             predicates.add(cb.equal(paymentJoin.get("pbaNumber"), searchCriteria.getPbaNumber()));
         }
-
+        query.groupBy(root.get("id"));
         return cb.and(predicates.toArray(REF));
     }
 
