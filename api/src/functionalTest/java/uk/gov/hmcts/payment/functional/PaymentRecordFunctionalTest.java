@@ -50,15 +50,15 @@ public class PaymentRecordFunctionalTest {
 
     @Before
     public void setUp() throws Exception {
-        if (!TOKENS_INITIALIZED) {
+/*        if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
             TOKENS_INITIALIZED = true;
-        }
+        }*/
     }
 
 
-    public void createPaymentRecordAndValidateSearchResults() throws Exception {
+/*    public void createPaymentRecordAndValidateSearchResults() throws Exception {
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)
@@ -84,7 +84,7 @@ public class PaymentRecordFunctionalTest {
                     assertThat(feeDto.getVolume()).isEqualTo(1);
             }));
         });
-    }
+    }*/
 
     private PaymentRecordRequest getPaymentRecordRequest() {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
