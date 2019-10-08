@@ -58,7 +58,6 @@ public class PaymentRecordFunctionalTest {
     }
 
 
-    @Test
     public void createPaymentRecordAndValidateSearchResults() throws Exception {
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 

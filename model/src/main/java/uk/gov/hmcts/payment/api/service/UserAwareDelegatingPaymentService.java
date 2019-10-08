@@ -276,7 +276,12 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
             {
                 Predicate predicateCheque = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("cheque").build());
                 Predicate predicateCard = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("card").build());
-                Predicate predicateFinal = cb.or(predicateCheque,predicateCard);
+                Predicate predicateDD = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("direct debit").build());
+                Predicate predicateCash = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("cash").build());
+                Predicate predicatePBA = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("payment by account").build());
+                Predicate predicateAllPay = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("all pay").build());
+                Predicate predicatePO = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("postal order").build());
+                Predicate predicateFinal = cb.or(predicateCheque,predicateCard,predicateDD,predicateCash,predicatePBA,predicateAllPay,predicatePO);
                 predicates.add(predicateFinal);
             }
             else
