@@ -172,5 +172,9 @@
         <cve>CVE-2019-10086</cve>
         <cve>CVE-2019-16370</cve>
     </suppress>
-
+    <suppress>
+        <notes> Vulnerabilities for Jackson Databind jar, currently we don't have solution </notes>
+        <cve>CVE-2019-16942</cve>
+        <cve>CVE-2019-16943</cve>
+    </suppress>
 </suppressions>
