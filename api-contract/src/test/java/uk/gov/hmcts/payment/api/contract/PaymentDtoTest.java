@@ -52,6 +52,9 @@ public class PaymentDtoTest {
     private String jurisdiction1;
     private String jurisdiction2;
     private String feeDescription;
+    private String documentControlNumber;
+    private Date bankedDate;
+    private String payerName;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -65,13 +68,14 @@ public class PaymentDtoTest {
         jurisdiction1 = "family";
         jurisdiction2 = "probate service";
         feeDescription = "Fee Description";
+        caseReference = "12345";
 
 
         feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription);
+            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,volume);
 
         feeNoVolumeDto = new FeeDto(1, feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription);
+            memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,volume);
     }
 
     @Before
@@ -82,6 +86,7 @@ public class PaymentDtoTest {
         dateCreated = currentDateTime.toDate();
         dateUpdated = currentDateTime.plusDays(1).toDate();
         List<StatusHistoryDto> statusHistories = new ArrayList<>();
+        List<PaymentAllocationDto> paymentAllocations = new ArrayList<>();
         PaymentDto.LinksDto links = new PaymentDto.LinksDto();
 
         amount = new BigDecimal(1);
@@ -105,13 +110,16 @@ public class PaymentDtoTest {
         paymentGroupReference = "paymentGroupReference";
         giroSlipNo = "giroSlipNo";
         reportedDateOffline = "2018-09-05";
+        documentControlNumber = "12345";
+        bankedDate = new Date();
+        payerName = "test";
 
 
         testDto = new PaymentDto(id, amount, description, reference, dateCreated, dateUpdated,
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
-            organisationName, paymentGroupReference, reportedDateOffline,
-            null, statusHistories, giroSlipNo, links);
+            organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,
+            null, statusHistories, paymentAllocations,giroSlipNo, links);
     }
 
     @Test

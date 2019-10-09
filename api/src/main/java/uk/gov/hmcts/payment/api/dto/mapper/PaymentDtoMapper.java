@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.dto.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -160,6 +161,39 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toReconciliationResponseDtos(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+            .paymentReference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .amount(payment.getAmount())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .accountNumber(payment.getPbaNumber())
+            .organisationName(payment.getOrganisationName())
+            .customerReference(payment.getCustomerReference())
+            .channel(payment.getPaymentChannel().getName())
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
+            .dateCreated(payment.getDateCreated())
+            .dateUpdated(payment.getDateUpdated())
+            .method(payment.getPaymentMethod().getName())
+            .giroSlipNo(payment.getGiroSlipNo())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .bankedDate(payment.getBankedDate())
+            .payerName(payment.getPayerName())
+            .documentControlNumber(payment.getDocumentControlNumber())
+            .externalReference(payment.getExternalReference())
+            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .build();
+        return enrichWithFeeData(paymentDto);
+    }
+
     public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
@@ -189,7 +223,7 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDto(final Payment payment, final String paymentReference, final List<PaymentFee> fees) {
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees) {
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentReference)
@@ -205,14 +239,16 @@ public class PaymentDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
+            .bankedDate(payment.getBankedDate())
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-            .externalReference(payment.getExternalReference())
+            .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
-            .fees(toFeeDtos(fees))
+            .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
             .build();
         return enrichWithFeeData(paymentDto);
     }
@@ -243,6 +279,17 @@ public class PaymentDtoMapper {
 
     private List<FeeDto> toFeeDtos(List<PaymentFee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
+    }
+
+    private List<FeeDto> toFeeDtosWithCaseRererence(List<PaymentFee> fees, String caseReference) {
+
+        List<FeeDto> feeDtoList = new ArrayList<>();
+        for(PaymentFee paymentFee : fees)
+        {
+            FeeDto feeDto = toFeeDtoWithCaseReference(paymentFee,caseReference);
+            feeDtoList.add(feeDto);
+        }
+        return feeDtoList;
     }
 
     public List<PaymentFee> toFees(List<FeeDto> feeDtos) {
@@ -277,8 +324,33 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    private FeeDto toFeeDtoWithCaseReference(PaymentFee fee, String caseReference) {
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
+
+        return FeeDto.feeDtoWith()
+            .id(fee.getId())
+            .calculatedAmount(calculatedAmount)
+            .code(fee.getCode())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
+            .version(fee.getVersion())
+            .volumeAmount(fee.getVolume())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .caseReference(caseReference)
+            .reference(fee.getReference())
+            .build();
+    }
+
     private List<StatusHistoryDto> toStatusHistoryDtos(List<StatusHistory> statusHistories) {
         return statusHistories.stream().map(this::toStatusHistoryDto).collect(Collectors.toList());
+    }
+
+    private List<PaymentAllocationDto> toPaymentAllocationDtos(List<PaymentAllocation> paymentAllocation) {
+        return paymentAllocation.stream().map(this::toPaymentAllocationDtos).collect(Collectors.toList());
+    }
+
+    private List<PaymentAllocationDto> toPaymentAllocationDtoForLibereta(List<PaymentAllocation> paymentAllocation) {
+        return paymentAllocation.stream().map(this::toPaymentAllocationDtoForLibereta).collect(Collectors.toList());
     }
 
     private StatusHistoryDto toStatusHistoryDto(StatusHistory statusHistory) {
@@ -319,12 +391,12 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
+    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
             .paymentGroupReference(paymentAllocation.getPaymentGroupReference())
             .paymentReference(paymentAllocation.getPaymentReference())
-            .id(paymentAllocation.getId().toString())
+            .id(paymentAllocation.getId()!=null ? paymentAllocation.getId().toString():null)
             .dateCreated(paymentAllocation.getDateCreated())
             .receivingEmailAddress(paymentAllocation.getReceivingEmailAddress())
             .sendingEmailAddress(paymentAllocation.getSendingEmailAddress())
@@ -333,5 +405,19 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentAllocationDto toPaymentAllocationDtoForLibereta(PaymentAllocation paymentAllocation) {
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
+            .allocationReason(paymentAllocation.getUnidentifiedReason())
+            .dateCreated(paymentAllocation.getDateCreated())
+            .receivingOffice(paymentAllocation.getReceivingOffice())
+            .build();
+    }
+
+    public PaymentAllocationDto toPaymentAllocationDtos(PaymentAllocation paymentAllocation) {
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
+            .build();
+    }
 
 }

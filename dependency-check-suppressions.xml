@@ -67,6 +67,10 @@
         <cve>CVE-2019-14379</cve>
         <cve>CVE-2019-14439</cve>
         <cve>CVE-2019-12384</cve>
+        <cve>CVE-2019-14540</cve>
+        <cve>CVE-2019-16335</cve>
+        <cve>CVE-2019-16370</cve>
+        <cve>CVE-2019-12402</cve>
         <cwe>611</cwe>
     </suppress>
     <suppress>
@@ -153,6 +157,9 @@
         <cve>CVE-2019-12814</cve>
         <cve>CVE-2019-14379</cve>
         <cve>CVE-2019-14439</cve>
+        <cve>CVE-2019-16335</cve>
+        <cve>CVE-2019-14540</cve>
+        <cve>CVE-2019-16869</cve>
     </suppress>
     <suppress>
         <notes>We are bound by the gradle version in the CNP environments. Currently all gradle versions upto 5.6 are
@@ -163,6 +170,7 @@
         </notes>
         <cve>CVE-2019-15052</cve>
         <cve>CVE-2019-10086</cve>
+        <cve>CVE-2019-16370</cve>
     </suppress>
 
 </suppressions>

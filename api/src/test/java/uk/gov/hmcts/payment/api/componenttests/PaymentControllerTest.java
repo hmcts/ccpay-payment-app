@@ -25,12 +25,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -38,7 +33,9 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -149,6 +146,48 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void getPaymentsBasedOnPaymentReference() throws Exception {
+        //Create a payment in remissionDbBackdoor
+
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith()
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Allocated").build())
+            .paymentGroupReference("2018-15186168000")
+            .paymentReference("RC-1519-9028-1909-3890")
+            .build();
+        List<PaymentAllocation> paymentAllocationsList = new ArrayList<>();
+        paymentAllocationsList.add(paymentAllocation);
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("caseReference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Description1")
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .paymentAllocation(paymentAllocationsList)
+            .reference("RC-1519-9028-1909-3890")
+            .bankedDate(new Date())
+            .documentControlNumber("12345")
+            .payerName("test")
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+
+        MvcResult result = restActions
+            .get("/payments/RC-1519-9028-1909-3890")
+            .andExpect(status().isOk())
+            .andReturn();
+    }
+
+    @Test
     public void upateCaseReferenceValidation_forEmptyValues() throws Exception {
         UpdatePaymentRequest updatePaymentRequest = objectMapper.readValue(updatePaymentInvalidRequestJson().getBytes(), UpdatePaymentRequest.class);
         MvcResult result = restActions.
@@ -206,8 +245,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=ccdCaseNumber1")
+            .get("/payments?ccd_case_number=ccdCaseNumber1"+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -302,8 +344,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
         MvcResult result = restActions
-            .get("/payments?pba_number=123456")
+            .get("/payments?pba_number=123456"+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -326,8 +371,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber())
+            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -489,13 +537,14 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populateCreditAccountPaymentToDb("1");
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&payment_method=CARD")
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate+ "&payment_method=CARD")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -527,7 +576,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDb("2");
         populateCreditAccountPaymentToDb("1");
-
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
         restActions
@@ -535,7 +584,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/payments?end_date=" + endDate + "&payment_method=CARD")
+            .get("/payments?end_date=" + endDate +"&start_date=" + startDate +"&payment_method=CARD")
             .andExpect(status().isOk())
             .andReturn();
 
