@@ -44,13 +44,13 @@ public class DateUtil {
 
     public static Date atStartOfDay(Date date) {
         LocalDateTime localDateTime = dateToLocalDateTime(date);
-        LocalDateTime startOfDay = localDateTime.with(LocalTime.MIN);
+        LocalDateTime startOfDay = localDateTime == null ? null : localDateTime.with(LocalTime.MIN);
         return localDateTimeToDate(startOfDay);
     }
 
     public static Date atEndOfDay(Date date) {
         LocalDateTime localDateTime = dateToLocalDateTime(date);
-        LocalDateTime endOfDay = localDateTime.with(LocalTime.MAX);
+        LocalDateTime endOfDay = localDateTime == null ? null : localDateTime.with(LocalTime.MAX);
         return localDateTimeToDate(endOfDay);
     }
 
