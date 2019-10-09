@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.BulkScanningReportDto;
 import uk.gov.hmcts.payment.api.contract.BulkScanningUnderOverPaymentDto;
@@ -12,14 +14,18 @@ import java.util.List;
 @Component
 public class BulkScanningReportMapper {
 
-    public List<BulkScanningReportDto> toBulkScanningUnallocatedReportDto(Payment payment,List<BulkScanningReportDto> bulkScanningReportDtoList) {
+    private static final Logger LOG = LoggerFactory.getLogger(BulkScanningReportMapper.class);
 
+    public List<BulkScanningReportDto> toBulkScanningUnallocatedReportDto(Payment payment,List<BulkScanningReportDto> bulkScanningReportDtoList) {
+        LOG.info("Inside BulkScanningReportMapper");
         BulkScanningReportDto bulkScanningReportDto = new BulkScanningReportDto();
 
-                if(payment.getPaymentProvider().getName().equals("exela")) {
+                if(payment.getPaymentProvider()!=null && payment.getPaymentProvider().getName().equals("exela")) {
+                    LOG.info("Payment provider is exela and not null");
                     for (PaymentAllocation paymentAllocation : payment.getPaymentAllocation()) {
                         String allocationStatus = paymentAllocation.getPaymentAllocationStatus().getName();
                      if(allocationStatus.equals("Transferred") || allocationStatus.equals("Unidentified")) {
+                         LOG.info("Allocation status is Transferred or Unidentified");
                          bulkScanningReportDto.setRespServiceId(payment.getSiteId());
                          bulkScanningReportDto.setRespServiceName(payment.getServiceType());
                          bulkScanningReportDto.setAllocationStatus(paymentAllocation.getPaymentAllocationStatus().getName());
@@ -35,7 +41,7 @@ public class BulkScanningReportMapper {
                          bulkScanningReportDtoList.add(bulkScanningReportDto);
                      }
                     }
-
+                    LOG.info("Unallocated Report list size"+bulkScanningReportDtoList.size());
                 }
         return bulkScanningReportDtoList;
 
@@ -43,8 +49,9 @@ public class BulkScanningReportMapper {
 
     public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<PaymentFeeLink> paymentFeeLinks) {
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
-
+        LOG.info("paymentFeeLinks list size"+paymentFeeLinks.size());
         for(PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
+
             BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto = new BulkScanningUnderOverPaymentDto();
             BigDecimal feeAmount = calculateFeeAmount(paymentFeeLink.getFees());
 
@@ -54,6 +61,7 @@ public class BulkScanningReportMapper {
 
             BigDecimal totalAmount = feeAmount.subtract((paymentAmount.add(remissionAmount)));
             if(totalAmount.compareTo(BigDecimal.ZERO) != 0)
+                LOG.info("totalAmount not Zero");
           {
             Payment payment = paymentFeeLink.getPayments().get(0);
                 bulkScanningUnderOverPaymentDto.setRespServiceId(payment.getSiteId());
@@ -66,6 +74,7 @@ public class BulkScanningReportMapper {
               bulkScanningUnderOverPaymentDto.setProcessedDate(paymentFeeLink.getDateUpdated());
               underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
         }
+        LOG.info("Surplus and Shortfall Report list size"+underOverPaymentDtos.size());
     return underOverPaymentDtos;
     }
 
