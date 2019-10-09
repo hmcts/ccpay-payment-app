@@ -128,9 +128,10 @@ public class BulkScanningReportController {
                     .endDate(toDate)
                     .build()
             );
-
+        LOG.info("No of Records exists : {}", paymentFeeLinks.size());
         List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
         if(reportType.equals(PROCESSED_UNALLOCATED)) {
+            LOG.info("Processed and Unallocated report section");
             for (PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
                 for (Payment payment: paymentFeeLink.getPayments()) {
                     bulkScanningReportDtoList = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payment,bulkScanningReportDtoList);
@@ -141,6 +142,7 @@ public class BulkScanningReportController {
         }
         else if(reportType.equals(SURPLUS_AND_SHORTFALL))
         {
+            LOG.info("Surplus and Shortfall report section");
             List<BulkScanningUnderOverPaymentDto> underOverPaymentDtoList = bulkScanningReportMapper.toSurplusAndShortfallReportdto(paymentFeeLinks);
             return new ResponseEntity<>(underOverPaymentDtoList, HttpStatus.OK);
         }
