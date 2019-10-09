@@ -31,8 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.payment.api.util.DateUtil.getDateForReportName;
-import static uk.gov.hmcts.payment.api.util.DateUtil.getDateTimeForReportName;
+import static uk.gov.hmcts.payment.api.util.DateUtil.*;
 import static uk.gov.hmcts.payment.api.util.ReportType.PROCESSED_UNALLOCATED;
 import static uk.gov.hmcts.payment.api.util.ReportType.SURPLUS_AND_SHORTFALL;
 
@@ -124,8 +123,8 @@ public class BulkScanningReportController {
             .search(
                 PaymentSearchCriteria
                     .searchCriteriaWith()
-                    .startDate(fromDate)
-                    .endDate(toDate)
+                    .startDate(atStartOfDay(fromDate))
+                    .endDate(atEndOfDay(toDate))
                     .build()
             );
         LOG.info("No of Records exists : {}", paymentFeeLinks.size());
