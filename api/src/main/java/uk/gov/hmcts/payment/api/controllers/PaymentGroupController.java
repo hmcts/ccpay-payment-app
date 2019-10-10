@@ -7,8 +7,6 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -264,7 +262,8 @@ public class PaymentGroupController {
         Payment payment = Payment.paymentWith()
             .reference(referenceUtil.getNext("RC"))
             .amount(bulkScanPaymentRequest.getAmount())
-            .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
+            //For exception record scenario mapping the exception record field to CaseReference field. Exception record is being passed from front end in the ccdCaseNumber field.
+            .caseReference(bulkScanPaymentRequest.getCcdCaseNumber())
             .currency(bulkScanPaymentRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
             .serviceType(bulkScanPaymentRequest.getService().getName())
