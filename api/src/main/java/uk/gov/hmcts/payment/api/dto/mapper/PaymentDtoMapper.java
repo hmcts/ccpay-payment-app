@@ -70,7 +70,7 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentGroupReference)
             .dateCreated(payment.getDateCreated())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .ccdCaseNumber(payment.getCcdCaseNumber()!=null ? payment.getCcdCaseNumber(): payment.getCaseReference())
             .build();
     }
 
