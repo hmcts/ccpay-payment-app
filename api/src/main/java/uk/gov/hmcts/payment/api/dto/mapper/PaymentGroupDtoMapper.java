@@ -92,6 +92,7 @@ public class PaymentGroupDtoMapper {
             .netAmount(fee.getNetAmount())
             .version(fee.getVersion())
             .volume(fee.getVolume())
+            .feeAmount(fee.getFeeAmount())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .reference(fee.getReference())
             .id(fee.getId())
@@ -108,6 +109,7 @@ public class PaymentGroupDtoMapper {
             .calculatedAmount(feeDto.getCalculatedAmount())
             .ccdCaseNumber(feeDto.getCcdCaseNumber())
             .volume(feeDto.getVolume())
+            .feeAmount(feeDto.getFeeAmount())
             .netAmount(feeDto.getCalculatedAmount())
             .reference(feeDto.getReference())
             .build();

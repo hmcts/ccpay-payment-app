@@ -69,3 +69,13 @@ databaseChangeLog:
                   constraintName: FK_boc1od01im8po7i8e9biph5df
                   referencedColumnNames: name
                   referencedTableName: payment_allocation_status
+    - changeSet:
+        id: 1554989041678-2
+        author: subroto
+        changes:
+          - addColumn:
+              columns:
+                - column:
+                    name: fee_amount
+                    type: numeric(19, 2)
+              tableName: fee

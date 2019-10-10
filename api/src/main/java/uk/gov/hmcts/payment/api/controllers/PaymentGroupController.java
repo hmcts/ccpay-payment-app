@@ -101,7 +101,7 @@ public class PaymentGroupController {
 
         paymentGroupDto.getFees().stream().forEach(f -> {
             if (f.getCcdCaseNumber() == null && f.getReference() == null){
-                throw new InvalidFeeRequestException("Either ccdCaseNumber or caseReference is required.");
+                throw new InvalidFeeRequestException("Either ccdCaseNumber or caseRefer/payment-groups/ence is required.");
             }
         });
 
