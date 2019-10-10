@@ -69,7 +69,7 @@ public class BulkScanningReportMapper {
                         bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
                         bulkScanningUnderOverPaymentDto.setBalance(totalAmount);
                         bulkScanningUnderOverPaymentDto.setPaymentAmount(paymentAmount);
-                        bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalAmount.compareTo(BigDecimal.ZERO) > 0 ? "Surplus" : "Shortfall");
+                        bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalAmount.compareTo(BigDecimal.ZERO) > 0 ? "Shortfall" : "Surplus");
                         bulkScanningUnderOverPaymentDto.setProcessedDate(paymentFeeLink.getDateUpdated());
                         underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
                     }
