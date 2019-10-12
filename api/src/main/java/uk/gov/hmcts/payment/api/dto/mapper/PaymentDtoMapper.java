@@ -246,7 +246,7 @@ public class PaymentDtoMapper {
             .bankedDate(payment.getBankedDate())
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-            .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
+            .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
             .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
             .build();
