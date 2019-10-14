@@ -331,6 +331,27 @@ public class PaymentsDataUtil {
         });
     }
 
+    protected void assertPbaPaymentsForLibereta(List<PaymentDto> payments) {
+        assertThat(payments.size()).isEqualTo(1);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
+            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+            assertThat(p.getCaseReference()).isEqualTo("Reference2");
+            assertThat(p.getAmount()).isEqualTo(new BigDecimal("11.99"));
+            assertThat(p.getChannel()).isEqualTo("online");
+            assertThat(p.getMethod()).isEqualTo("payment by account");
+            assertThat(p.getStatus()).isEqualTo("initiated");
+            assertThat(p.getSiteId()).isEqualTo("AA02");
+            assertThat(p.getAccountNumber()).isEqualTo("123456");
+            assertThat(p.getDateCreated()).isNotNull();
+            assertThat(p.getDateUpdated()).isNotNull();
+            p.getFees().stream().forEach(f -> {
+                assertThat(f.getCode()).isEqualTo("FEE0002");
+                assertThat(f.getVersion()).isEqualTo("1");
+                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
+            });
+        });
+    }
     @SneakyThrows
     protected String contentsOf(String fileName) {
         String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
