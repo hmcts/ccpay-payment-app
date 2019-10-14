@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -41,7 +42,8 @@ public class BulkScanningReportMapper {
                          bulkScanningReportDtoList.add(bulkScanningReportDto);
                      }
                     }
-                    LOG.info("Unallocated Report list size"+bulkScanningReportDtoList.size());
+                    bulkScanningReportDtoList.sort(Comparator.comparing(BulkScanningReportDto::getRespServiceId).thenComparing(BulkScanningReportDto::getAllocationStatus));
+                    LOG.info("Unallocated Report list size : {}",bulkScanningReportDtoList.size());
                 }
         return bulkScanningReportDtoList;
 
@@ -49,7 +51,7 @@ public class BulkScanningReportMapper {
 
     public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<PaymentFeeLink> paymentFeeLinks) {
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
-        LOG.info("paymentFeeLinks list size"+paymentFeeLinks.size());
+        LOG.info("paymentFeeLinks list size : {}",paymentFeeLinks.size());
         for(PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
             for (Payment payment : paymentFeeLink.getPayments()) {
                 if (payment.getPaymentProvider() != null && payment.getPaymentProvider().getName().equals("exela")) {
@@ -77,7 +79,8 @@ public class BulkScanningReportMapper {
                 }
             }
         }
-        LOG.info("Surplus and Shortfall Report list size"+underOverPaymentDtos.size());
+        underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId).thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
+        LOG.info("Surplus and Shortfall Report list size : {}",underOverPaymentDtos.size());
     return underOverPaymentDtos;
     }
 
