@@ -237,7 +237,7 @@ public class PaymentDtoMapper {
             .customerReference(payment.getCustomerReference())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
             .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
@@ -270,7 +270,7 @@ public class PaymentDtoMapper {
                         fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
                     }
                 } else {
-                    LOG.info("No fee found with the code: ", fee.getCode());
+                    LOG.info("No fee found with the code: {}", fee.getCode());
                 }
             }
         });
@@ -407,7 +407,7 @@ public class PaymentDtoMapper {
 
     public PaymentAllocationDto toPaymentAllocationDtoForLibereta(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
-            .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus() !=null ? paymentAllocation.getPaymentAllocationStatus().getName().toLowerCase():null)
             .allocationReason(paymentAllocation.getUnidentifiedReason())
             .dateCreated(paymentAllocation.getDateCreated())
             .receivingOffice(paymentAllocation.getReceivingOffice())
