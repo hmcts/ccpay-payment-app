@@ -270,7 +270,7 @@ public class PaymentDtoMapper {
                         fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
                     }
                 } else {
-                    LOG.info("No fee found with the code: ", fee.getCode());
+                    LOG.info("No fee found with the code: {}", fee.getCode());
                 }
             }
         });
