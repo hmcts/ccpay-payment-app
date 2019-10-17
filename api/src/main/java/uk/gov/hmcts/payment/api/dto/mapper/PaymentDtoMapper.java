@@ -188,7 +188,7 @@ public class PaymentDtoMapper {
             .payerName(payment.getPayerName())
             .documentControlNumber(payment.getDocumentControlNumber())
             .externalReference(payment.getExternalReference())
-            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
         return enrichWithFeeData(paymentDto);
@@ -217,7 +217,7 @@ public class PaymentDtoMapper {
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getExternalReference())
-            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
         return enrichWithFeeData(paymentDto);
@@ -247,7 +247,7 @@ public class PaymentDtoMapper {
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
-            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
             .build();
         return enrichWithFeeData(paymentDto);

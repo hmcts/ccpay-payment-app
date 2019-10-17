@@ -77,7 +77,7 @@ public class PaymentDto {
 
     private String paymentGroupReference;
 
-    private String reportedDateOffline;
+    private Date reportedDateOffline;
 
     private String documentControlNumber;
 
