@@ -29,9 +29,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
@@ -73,7 +71,7 @@ public class TelephonyPaymentsTest {
             .returnUrl("https://www.google.com")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "success", paymentDto.getStatus());
         });
     }
 
@@ -91,7 +89,7 @@ public class TelephonyPaymentsTest {
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
             String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "success", paymentDto.getStatus());
             //update the status
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
@@ -113,7 +111,7 @@ public class TelephonyPaymentsTest {
                         .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
                 PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
                 assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
-                assertEquals("payment status is properly set", "Success", paymentRetrieved.getStatus());
+                assertEquals("payment status is properly set", "success", paymentRetrieved.getStatus());
             });
         });
     }
@@ -132,7 +130,7 @@ public class TelephonyPaymentsTest {
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
             String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "success", paymentDto.getStatus());
             //update the status
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
@@ -155,7 +153,7 @@ public class TelephonyPaymentsTest {
                 PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
 
                 assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
-                assertEquals("payment status is properly set", "Failed", paymentRetrieved.getStatus());
+                assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
             });
         });
     }
@@ -174,7 +172,7 @@ public class TelephonyPaymentsTest {
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
             String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "success", paymentDto.getStatus());
             //update the status
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
@@ -195,7 +193,7 @@ public class TelephonyPaymentsTest {
                         .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
                 PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
                 assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
-                assertEquals("payment status is properly set", "Failed", paymentRetrieved.getStatus());
+                assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
             });
         });
     }
@@ -226,7 +224,7 @@ public class TelephonyPaymentsTest {
             .when().createCardPayment(paymentRequest)
             .then().created(paymentDto -> {
             assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "initiated", paymentDto.getStatus());
         });
     }
 
@@ -257,7 +255,7 @@ public class TelephonyPaymentsTest {
             .when().createCardPayment(paymentRequest)
             .then().created(paymentDto -> {
             assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "initiated", paymentDto.getStatus());
             String[] schemes = {"https"};
             UrlValidator urlValidator = new UrlValidator(schemes);
             assertNotNull(paymentDto.getLinks().getNextUrl());
