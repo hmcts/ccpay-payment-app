@@ -48,7 +48,7 @@ public class PaymentDtoTest {
     private String id;
     private SimpleDateFormat sdf;
     private String giroSlipNo;
-    private String reportedDateOffline;
+    private Date reportedDateOffline;
     private String jurisdiction1;
     private String jurisdiction2;
     private String feeDescription;
@@ -109,7 +109,7 @@ public class PaymentDtoTest {
         organisationName = "organisationName";
         paymentGroupReference = "paymentGroupReference";
         giroSlipNo = "giroSlipNo";
-        reportedDateOffline = "2018-09-05";
+        reportedDateOffline = new Date();
         documentControlNumber = "12345";
         bankedDate = new Date();
         payerName = "test";
