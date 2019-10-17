@@ -28,7 +28,6 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.DbBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -542,8 +541,6 @@ public class PaymentRecordControllerTest {
         assertThat(response2.getPayments().size()).isGreaterThan(0);
 
         assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotNull();
-        assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotBlank();
-        assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotEmpty();
 
     }
 
