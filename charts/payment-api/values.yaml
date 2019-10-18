@@ -26,6 +26,8 @@ java:
     SPRING_DATASOURCE_PASSWORD: payment
     SPRING_LIQUIBASE_ENABLED: true
 
+    RUN_DB_MIGRATION_ON_STARTUP: 'false'
+    S2S_URL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
 
     REFORM_SERVICE_NAME: payment-api
     REFORM_TEAM: cc
