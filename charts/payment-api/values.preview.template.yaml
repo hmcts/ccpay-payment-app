@@ -7,4 +7,3 @@ java:
   environment:
     SPRING_PROFILES_ACTIVE: "liberataMock,callbackMock,ccdMock"
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 0
-    CORE_CASE_DATA_API_URL: "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
