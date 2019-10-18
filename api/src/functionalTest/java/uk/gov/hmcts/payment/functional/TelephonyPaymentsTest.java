@@ -71,7 +71,7 @@ public class TelephonyPaymentsTest {
             .returnUrl("https://www.google.com")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
-            assertEquals("payment status is properly set", "success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
         });
     }
 
@@ -89,7 +89,7 @@ public class TelephonyPaymentsTest {
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
             String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
             //update the status
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
@@ -130,7 +130,7 @@ public class TelephonyPaymentsTest {
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
             String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
             //update the status
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
@@ -172,7 +172,7 @@ public class TelephonyPaymentsTest {
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
             String referenceNumber = paymentDto.getReference();
-            assertEquals("payment status is properly set", "success", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
             //update the status
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
@@ -224,7 +224,7 @@ public class TelephonyPaymentsTest {
             .when().createCardPayment(paymentRequest)
             .then().created(paymentDto -> {
             assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-            assertEquals("payment status is properly set", "initiated", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
     }
 
@@ -255,7 +255,7 @@ public class TelephonyPaymentsTest {
             .when().createCardPayment(paymentRequest)
             .then().created(paymentDto -> {
             assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-            assertEquals("payment status is properly set", "initiated", paymentDto.getStatus());
+            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
             String[] schemes = {"https"};
             UrlValidator urlValidator = new UrlValidator(schemes);
             assertNotNull(paymentDto.getLinks().getNextUrl());
