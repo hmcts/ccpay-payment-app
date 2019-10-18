@@ -7,8 +7,6 @@ properties(
 
 @Library('Infrastructure')
 
-import uk.gov.hmcts.contino.AppPipelineDsl
-
 def type = "java"
 
 def product = "payment"
@@ -39,10 +37,17 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
       envVariable: envVar
     ]
 }
+
+import uk.gov.hmcts.contino.AppPipelineDsl
+
+withPipeline(product) {
+
+
     enablePactAs([
-            AppPipelineDsl.PactRoles.CONSUMER,
-            AppPipelineDsl.PactRoles.PROVIDER
+        AppPipelineDsl.PactRoles.CONSUMER,
+        AppPipelineDsl.PactRoles.PROVIDER
     ])
+}
 
 withPipeline(type, product, app) {
     enableAksStagingDeployment()
