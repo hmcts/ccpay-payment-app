@@ -37,7 +37,10 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
       envVariable: envVar
     ]
 }
-
+    enablePactAs([
+            AppPipelineDsl.PactRoles.CONSUMER,
+            AppPipelineDsl.PactRoles.PROVIDER
+    ])
 
 withPipeline(type, product, app) {
     enableAksStagingDeployment()
