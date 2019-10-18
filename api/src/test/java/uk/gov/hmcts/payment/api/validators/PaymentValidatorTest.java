@@ -25,16 +25,9 @@ public class PaymentValidatorTest {
     }
 
     @Test
-    public void shouldReturnErrorsWhenDatesAreEmpty() {
+    public void shouldReturnNoErrorsWhenDatesEmpty() {
         // no exception expected, none thrown: passes.
-        Throwable thrown = catchThrowable(() -> { validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.empty(), Optional.empty()); });
-        assertThat(thrown).isInstanceOf(ValidationErrorException.class);
-        ValidationErrorException ex = (ValidationErrorException) thrown;
-
-        assertThat(ex.getMessage()).isEqualTo("Error occurred in the payment params");
-        assertThat(ex.getErrors().hasErrors()).isTrue();
-        assertThat(ex.getErrors().getFieldErrors().get(0).getField()).isEqualTo("dates");
-        assertThat(ex.getErrors().getFieldErrors().get(0).getMessage()).isEqualTo("Start date or End date cannot be empty");
+        validator.validate(Optional.of("PBA"), Optional.of("CMC"), Optional.empty(), Optional.empty());
     }
 
     @Test
