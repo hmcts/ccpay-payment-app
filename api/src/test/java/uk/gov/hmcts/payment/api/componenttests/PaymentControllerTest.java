@@ -297,7 +297,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
             assertThat(p.getChannel()).isEqualTo("online");
             assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getStatus()).isEqualTo("initiated");
             assertThat(p.getSiteId()).isEqualTo("AA02");
             assertThat(p.getDateCreated()).isNotNull();
             assertThat(p.getDateUpdated()).isNotNull();
@@ -329,7 +329,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertPbaPayments(paymentsResponse.getPayments());
+        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
 
     }
 
@@ -354,7 +354,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
 
-        assertPbaPayments(paymentsResponse.getPayments());
+        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
 
     }
 
@@ -381,7 +381,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
 
-        assertPbaPayments(paymentsResponse.getPayments());
+        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
 
     }
 
@@ -558,7 +558,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
             assertThat(p.getChannel()).isEqualTo("online");
             assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getStatus()).isEqualTo("initiated");
             assertThat(p.getSiteId()).isEqualTo("AA02");
             assertThat(p.getDateCreated()).isNotNull();
             assertThat(p.getDateUpdated()).isNotNull();
@@ -598,7 +598,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
             assertThat(p.getChannel()).isEqualTo("online");
             assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getStatus()).isEqualTo("initiated");
             assertThat(p.getSiteId()).isEqualTo("AA02");
             assertThat(p.getDateCreated()).isNotNull();
             assertThat(p.getDateUpdated()).isNotNull();
@@ -756,7 +756,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
-            assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getStatus()).isEqualTo("initiated");
             assertThat(p.getExternalProvider()).isEqualTo("pci pal");
             assertThat(p.getChannel()).isEqualTo("telephony");
         });
@@ -777,7 +777,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(payments);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
-            assertThat(p.getStatus()).isEqualTo("Success");
+            assertThat(p.getStatus()).isEqualTo("success");
         });
     }
 

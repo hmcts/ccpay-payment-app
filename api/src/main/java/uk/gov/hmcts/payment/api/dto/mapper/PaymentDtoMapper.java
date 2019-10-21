@@ -71,7 +71,7 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentGroupReference)
             .dateCreated(payment.getDateCreated())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .ccdCaseNumber(payment.getCcdCaseNumber()!=null ? payment.getCcdCaseNumber(): payment.getCaseReference())
             .build();
     }
 
@@ -188,7 +188,7 @@ public class PaymentDtoMapper {
             .payerName(payment.getPayerName())
             .documentControlNumber(payment.getDocumentControlNumber())
             .externalReference(payment.getExternalReference())
-            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
         return enrichWithFeeData(paymentDto);
@@ -217,7 +217,7 @@ public class PaymentDtoMapper {
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getExternalReference())
-            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
         return enrichWithFeeData(paymentDto);
@@ -237,7 +237,7 @@ public class PaymentDtoMapper {
             .customerReference(payment.getCustomerReference())
             .channel(payment.getPaymentChannel().getName())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase())
             .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
             .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
             .dateCreated(payment.getDateCreated())
@@ -246,8 +246,8 @@ public class PaymentDtoMapper {
             .bankedDate(payment.getBankedDate())
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-            .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
-            .reportedDateOffline(payment.getReportedDateOffline() != null ? payment.getReportedDateOffline().toString() : null)
+            .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
+            .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
             .build();
         return enrichWithFeeData(paymentDto);
@@ -270,7 +270,7 @@ public class PaymentDtoMapper {
                         fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
                     }
                 } else {
-                    LOG.info("No fee found with the code: ", fee.getCode());
+                    LOG.info("No fee found with the code: {}", fee.getCode());
                 }
             }
         });
@@ -407,7 +407,7 @@ public class PaymentDtoMapper {
 
     public PaymentAllocationDto toPaymentAllocationDtoForLibereta(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
-            .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus() !=null ? paymentAllocation.getPaymentAllocationStatus().getName().toLowerCase():null)
             .allocationReason(paymentAllocation.getUnidentifiedReason())
             .dateCreated(paymentAllocation.getDateCreated())
             .receivingOffice(paymentAllocation.getReceivingOffice())
