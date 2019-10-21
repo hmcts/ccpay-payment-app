@@ -41,7 +41,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     private final static String PAYMENT_CHANNEL_TELEPHONY = "telephony";
     private final static String PAYMENT_PROVIDER_PCI_PAL = "pci pal";
-    private final static String PAYMENT_BY_CARD = "card";
+    private final static String PAYMENT_METHOD = "paymentMethod";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD = "card";
 
@@ -200,7 +200,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         String paymentService = payment.getS2sServiceName();
 
         if (null == paymentService || paymentService.trim().equals("")) {
-            LOG.error("Unable to determine the payment service which created this payment-Ref:" + paymentReference);
+            LOG.error("Unable to determine the payment service which created this payment-Ref: {}",paymentReference);
         }
 
         paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
@@ -274,19 +274,19 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         if (searchCriteria.getPaymentMethod() != null) {
             if(searchCriteria.getPaymentMethod().equalsIgnoreCase("all"))
             {
-                Predicate predicateCheque = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("cheque").build());
-                Predicate predicateCard = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("card").build());
-                Predicate predicateDD = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("direct debit").build());
-                Predicate predicateCash = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("cash").build());
-                Predicate predicatePBA = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("payment by account").build());
-                Predicate predicateAllPay = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("all pay").build());
-                Predicate predicatePO = cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name("postal order").build());
+                Predicate predicateCheque = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cheque").build());
+                Predicate predicateCard = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("card").build());
+                Predicate predicateDD = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("direct debit").build());
+                Predicate predicateCash = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cash").build());
+                Predicate predicatePBA = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("payment by account").build());
+                Predicate predicateAllPay = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("all pay").build());
+                Predicate predicatePO = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("postal order").build());
                 Predicate predicateFinal = cb.or(predicateCheque,predicateCard,predicateDD,predicateCash,predicatePBA,predicateAllPay,predicatePO);
                 predicates.add(predicateFinal);
             }
             else
             {
-                predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
+                predicates.add(cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
             }
 
         }
@@ -317,8 +317,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
-        return paymentRespository.findByReferenceAndPaymentMethod(paymentReference,
-            PaymentMethod.paymentMethodWith().name(PAYMENT_BY_CARD).build()).orElseThrow(PaymentNotFoundException::new);
+        return paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
     }
 
     private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {
