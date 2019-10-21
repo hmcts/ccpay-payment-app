@@ -1,0 +1,59 @@
+{
+    "provider": {
+        "name": "Idam_api"
+    },
+    "consumer": {
+        "name": "payment_api"
+    },
+    "interactions": [
+        {
+            "description": "Provider receives a GET /details request from an Doc Assembly API",
+            "request": {
+                "method": "GET",
+                "path": "/details",
+                "headers": {
+                    "Authorization": "111"
+                }
+            },
+            "response": {
+                "status": 200,
+                "headers": {
+                    "Content-Type": "application/json; charset=UTF-8"
+                },
+                "body": {
+                    "forename": "Case",
+                    "surname": "Officer",
+                    "roles": "[\"caseofficer-ia\"]",
+                    "id": "123",
+                    "email": "ia-caseofficer@fake.hmcts.net"
+                },
+                "matchingRules": {
+                    "header": {
+                        "Content-Type": {
+                            "matchers": [
+                                {
+                                    "match": "regex",
+                                    "regex": "application/json;\\s?charset=(utf|UTF)-8"
+                                }
+                            ],
+                            "combine": "AND"
+                        }
+                    }
+                }
+            },
+            "providerStates": [
+                {
+                    "name": "Idam successfully returns user details"
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "pactSpecification": {
+            "version": "3.0.0"
+        },
+        "pact-jvm": {
+            "version": "3.5.24"
+        }
+    }
+}

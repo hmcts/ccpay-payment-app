@@ -181,9 +181,6 @@ task contract(type: Test, description: 'Runs the consumer Pact tests', group: 'V
     classpath = sourceSets.contractTest.runtimeClasspath
     systemProperty 'pact.rootDir', "${rootDir}/pacts"
     environment("APPINSIGHTS_INSTRUMENTATIONKEY", "test-key")
-    doLast {
-        println 'tutorialspoint'
-    }
 }
 test {
     useJUnitPlatform()

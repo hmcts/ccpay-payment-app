@@ -42,7 +42,7 @@ public class IdamConsumerTest {
         RestAssured.config().encoderConfig(new EncoderConfig("UTF-8", "UTF-8"));
     }
 
-    @Pact(provider = "idam_api", consumer = "payment_api")
+    @Pact(provider = "Idam_api", consumer = "payment_api")
     public RequestResponsePact executeGetUserDetailsAndGet200(PactDslWithProvider builder) {
 
         Map<String, String> headers = Maps.newHashMap();
