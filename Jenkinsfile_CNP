@@ -38,8 +38,6 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
-import uk.gov.hmcts.contino.AppPipelineDsl
-
 
 withPipeline(type, product, app) {
     enableAksStagingDeployment()
@@ -49,9 +47,4 @@ withPipeline(type, product, app) {
     enableDockerBuild()
     installCharts()
     enableSlackNotifications('#cc-payments-tech')
-
-    enablePactAs([
-        AppPipelineDsl.PactRoles.CONSUMER,
-        AppPipelineDsl.PactRoles.PROVIDER
-    ])
 }
