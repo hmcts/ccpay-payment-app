@@ -29,7 +29,6 @@ allprojects {
         jcenter()
         maven { url 'https://repo.spring.io/libs-milestone' }
     }
-
     dependencyManagement {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
@@ -44,27 +43,11 @@ allprojects {
                     //version: dependencyManagement.importedProperties['jackson.version'] solves CVE-2019-12086
             ) {
                 entry 'jackson-core'
-                //entry 'jackson-databind'
+                entry 'jackson-databind'
             }
         }
     }
 }
-
-
-configurations.all {
-    resolutionStrategy {
-        eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group in ['com.fasterxml.jackson.core', 'com.fasterxml.jackson.module', 'com.fasterxml.jackson.datatype']) {
-                details.useVersion '2.10.0'
-            }
-            if (details.requested.name == 'jackson-databind') {
-                details.useVersion '2.10.0'
-            }
-        }
-    }
-}
-
-
 
 subprojects {
     apply plugin: 'java'
@@ -84,7 +67,7 @@ subprojects {
     }
 
     dependencies {
-        compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.0'
+        compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.9.2'
         compile group: 'joda-time', name: 'joda-time', version: '2.9.9'
         compile group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
         compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.0.4'
