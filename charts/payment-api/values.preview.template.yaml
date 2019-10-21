@@ -11,3 +11,7 @@ java:
     S2S_URL: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
+
+    FEES_REGISTER_URL: "http://fees-register-api-aat.service.core-compute-aat.internal"
+    PAYBUBBLE_HOME_URL: "https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal"
+    PCI_PAL_CALLBACK_URL: "https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback"
