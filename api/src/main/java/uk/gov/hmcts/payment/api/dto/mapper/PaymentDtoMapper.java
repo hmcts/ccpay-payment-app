@@ -71,7 +71,7 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentGroupReference)
             .dateCreated(payment.getDateCreated())
-            .ccdCaseNumber(payment.getCcdCaseNumber()!=null ? payment.getCcdCaseNumber(): payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
             .build();
     }
 
@@ -247,6 +247,7 @@ public class PaymentDtoMapper {
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
+            .reportedDateOffline(payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
             .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
             .build();
         return enrichWithFeeData(paymentDto);
@@ -333,7 +334,7 @@ public class PaymentDtoMapper {
             .code(fee.getCode())
             .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
             .version(fee.getVersion())
-            .volumeAmount(fee.getVolume())
+            .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .caseReference(caseReference)
             .reference(fee.getReference())
