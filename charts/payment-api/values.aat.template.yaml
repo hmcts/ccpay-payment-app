@@ -4,8 +4,6 @@ java:
   ingressHost: ${SERVICE_FQDN}
   aadIdentityName: ccpay
   environment:
-    AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
-    CORE_CASE_DATA_API_URL: "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
     SPRING_DATASOURCE_URL: "jdbc:postgresql://payment-postgres-db-aat.postgres.database.azure.com:5432/payment"
     SPRING_DATASOURCE_USERNAME: payment@payment-postgres-db-aat
     SPRING_LIQUIBASE_ENABLED: true
