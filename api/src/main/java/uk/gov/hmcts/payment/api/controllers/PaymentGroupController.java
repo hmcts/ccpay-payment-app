@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
 import javax.validation.Valid;
@@ -285,12 +286,19 @@ public class PaymentGroupController {
     }
 
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
-        return paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference)).findAny().get();
+        return paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference)).findAny()
+            .orElseThrow(() -> new PaymentNotFoundException("Payment with reference " + paymentReference + " does not exists."));
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(InvalidPaymentGroupReferenceException.class)
     public String return403(InvalidPaymentGroupReferenceException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public String return400(PaymentNotFoundException ex) {
         return ex.getMessage();
     }
 
