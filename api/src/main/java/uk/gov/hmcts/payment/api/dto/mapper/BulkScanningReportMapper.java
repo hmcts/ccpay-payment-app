@@ -51,7 +51,7 @@ public class BulkScanningReportMapper {
 
     public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<PaymentFeeLink> paymentFeeLinks) {
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
-        LOG.info("paymentFeeLinks list size : {}",paymentFeeLinks.size());
+        LOG.info("paymentFeeLinks list size. : {}",paymentFeeLinks.size());
         for(PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
             for (Payment payment : paymentFeeLink.getPayments()) {
                 if (payment.getPaymentProvider() != null && payment.getPaymentProvider().getName().equals("exela")) {
@@ -63,25 +63,33 @@ public class BulkScanningReportMapper {
                     BigDecimal paymentAmount = calculatePaymentAmount(paymentFeeLink.getPayments());
 
                     BigDecimal totalAmount = feeAmount.subtract((paymentAmount.add(remissionAmount)));
-                    if (totalAmount.compareTo(BigDecimal.ZERO) != 0)
-                        LOG.info("totalAmount not Zero");
-                    {
-                        bulkScanningUnderOverPaymentDto.setRespServiceId(payment.getSiteId());
-                        bulkScanningUnderOverPaymentDto.setRespServiceName(payment.getServiceType());
-                        bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
-                        bulkScanningUnderOverPaymentDto.setBalance(totalAmount);
-                        bulkScanningUnderOverPaymentDto.setPaymentAmount(paymentAmount);
-                        bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalAmount.compareTo(BigDecimal.ZERO) > 0 ? "Shortfall" : "Surplus");
-                        bulkScanningUnderOverPaymentDto.setProcessedDate(paymentFeeLink.getDateUpdated());
-                        underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
-                    }
-
+                    generateData(underOverPaymentDtos, paymentFeeLink, payment, bulkScanningUnderOverPaymentDto, paymentAmount, totalAmount);
                 }
             }
         }
         underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId).thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
         LOG.info("Surplus and Shortfall Report list size : {}",underOverPaymentDtos.size());
     return underOverPaymentDtos;
+    }
+
+    private void generateData(List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos, PaymentFeeLink paymentFeeLink, Payment payment, BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto, BigDecimal paymentAmount, BigDecimal totalAmount) {
+        if (totalAmount.compareTo(BigDecimal.ZERO) != 0)
+        {
+            LOG.info("totalAmount not Zero");
+            for (PaymentAllocation paymentAllocation : payment.getPaymentAllocation()) {
+                String allocationStatus = paymentAllocation.getPaymentAllocationStatus().getName();
+                if (allocationStatus.equals("Allocated")) {
+                    bulkScanningUnderOverPaymentDto.setRespServiceId(payment.getSiteId());
+                    bulkScanningUnderOverPaymentDto.setRespServiceName(payment.getServiceType());
+                    bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
+                    bulkScanningUnderOverPaymentDto.setBalance(totalAmount);
+                    bulkScanningUnderOverPaymentDto.setPaymentAmount(paymentAmount);
+                    bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalAmount.compareTo(BigDecimal.ZERO) > 0 ? "Shortfall" : "Surplus");
+                    bulkScanningUnderOverPaymentDto.setProcessedDate(paymentFeeLink.getDateUpdated());
+                    underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
+                }
+            }
+        }
     }
 
     private BigDecimal calculatePaymentAmount(List<Payment> payments) {
