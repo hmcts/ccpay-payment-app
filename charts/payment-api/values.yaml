@@ -5,6 +5,7 @@ java:
     "ccpay":
       resourceGroup: ccpay
       secrets:
+        - api-POSTGRES-PASS
         - sb-primary-connection-string
         - pci-pal-account-id-cmc
         - pci-pal-account-id-probate
