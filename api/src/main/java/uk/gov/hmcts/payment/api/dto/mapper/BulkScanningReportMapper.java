@@ -55,7 +55,7 @@ public class BulkScanningReportMapper {
         for(PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
             for (Payment payment : paymentFeeLink.getPayments()) {
                 if (payment.getPaymentProvider() != null && payment.getPaymentProvider().getName().equals("exela")) {
-                    BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto = new BulkScanningUnderOverPaymentDto();
+
                     BigDecimal feeAmount = calculateFeeAmount(paymentFeeLink.getFees());
 
                     BigDecimal remissionAmount = calculateRemissionAmount(paymentFeeLink.getRemissions());
@@ -63,7 +63,7 @@ public class BulkScanningReportMapper {
                     BigDecimal paymentAmount = calculatePaymentAmount(paymentFeeLink.getPayments());
 
                     BigDecimal totalAmount = feeAmount.subtract((paymentAmount.add(remissionAmount)));
-                    generateData(underOverPaymentDtos, paymentFeeLink, payment, bulkScanningUnderOverPaymentDto, paymentAmount, totalAmount);
+                    generateData(underOverPaymentDtos, paymentFeeLink, payment, paymentAmount, totalAmount);
                 }
             }
         }
@@ -72,13 +72,14 @@ public class BulkScanningReportMapper {
     return underOverPaymentDtos;
     }
 
-    private void generateData(List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos, PaymentFeeLink paymentFeeLink, Payment payment, BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto, BigDecimal paymentAmount, BigDecimal totalAmount) {
+    private void generateData(List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos, PaymentFeeLink paymentFeeLink, Payment payment, BigDecimal paymentAmount, BigDecimal totalAmount) {
         if (totalAmount.compareTo(BigDecimal.ZERO) != 0)
         {
             LOG.info("totalAmount not Zero");
             for (PaymentAllocation paymentAllocation : payment.getPaymentAllocation()) {
                 String allocationStatus = paymentAllocation.getPaymentAllocationStatus().getName();
                 if (allocationStatus.equals("Allocated")) {
+                    BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto = new BulkScanningUnderOverPaymentDto();
                     bulkScanningUnderOverPaymentDto.setRespServiceId(payment.getSiteId());
                     bulkScanningUnderOverPaymentDto.setRespServiceName(payment.getServiceType());
                     bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
@@ -86,7 +87,10 @@ public class BulkScanningReportMapper {
                     bulkScanningUnderOverPaymentDto.setPaymentAmount(paymentAmount);
                     bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalAmount.compareTo(BigDecimal.ZERO) > 0 ? "Shortfall" : "Surplus");
                     bulkScanningUnderOverPaymentDto.setProcessedDate(paymentFeeLink.getDateUpdated());
-                    underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
+                    boolean caseReferenceCheck= underOverPaymentDtos.stream().anyMatch(c -> c.getCcdCaseReference().equals(payment.getCcdCaseNumber()));
+                    if(!caseReferenceCheck) {
+                        underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
+                    }
                 }
             }
         }
