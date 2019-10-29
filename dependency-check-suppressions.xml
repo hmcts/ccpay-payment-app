@@ -173,4 +173,9 @@
         <cve>CVE-2019-16370</cve>
     </suppress>
 
+    <suppress>
+        <notes><![CDATA[
+   file name: jackson-mapper-asl-1.9.13.jar we are onl latest version. fixes not available yet.
+   ]]></notes>
+    </suppress>
 </suppressions>
