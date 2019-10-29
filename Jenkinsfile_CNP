@@ -7,8 +7,6 @@ properties(
 
 @Library('Infrastructure')
 
-import uk.gov.hmcts.contino.AppPipelineDsl.PactRoles as PactRoles
-
 def type = "java"
 
 def product = "payment"
@@ -49,9 +47,6 @@ withPipeline(type, product, app) {
     enableDockerBuild()
     installCharts()
     enableSlackNotifications('#cc-payments-tech')
-    enablePactAs([
-        AppPipelineDsl.PactRoles.CONSUMER
-    ])
 }
 
 
