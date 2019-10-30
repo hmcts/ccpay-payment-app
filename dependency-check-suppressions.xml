@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
     <suppress>
+        <notes>suppress false positives - only relevant if endpoints are exposed</notes>
+        <gav regex="true">^org\.codehaus\.jackson:jackson-mapper-asl.*$</gav>
+        <cve>CVE-2017-17485</cve>
+        <cve>CVE-2018-5968</cve>
+        <cve>CVE-2017-7525</cve>
+        <cve>CVE-2017-15095</cve>
+        <cve>CVE-2018-14718</cve>
+        <cve>CVE-2018-1000873</cve>
+        <cve>CVE-2018-7489</cve>
+        <cve>CVE-2019-14540</cve>
+        <cve>CVE-2019-16335</cve>
+        <cve>CVE-2019-17267</cve>
+    </suppress>
+    <suppress>
         <notes><![CDATA[
    file name: feign-form-spring-3.3.0.jar fixes are yet not available.
    ]]></notes>
@@ -76,6 +90,10 @@
         <cve>CVE-2019-16942</cve>
         <cve>CVE-2019-16943</cve>
         <cve>CVE-2019-17531</cve>
+        <cve>CVE-2015-0203</cve>
+        <cve>CVE-2015-0223</cve>
+        <cve>CVE-2015-0224</cve>
+        <cve>CVE-2019-0223</cve>
         <cwe>611</cwe>
     </suppress>
     <suppress>
@@ -173,5 +191,6 @@
         <cve>CVE-2019-15052</cve>
         <cve>CVE-2019-10086</cve>
     </suppress>
+
 
 </suppressions>
