@@ -7,6 +7,8 @@ plugins {
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'findbugs'
     id 'jacoco'
+    id 'au.com.dius.pact' version '3.5.24'
+
 }
 
 def springBootVersion = '2.1.6.RELEASE'
@@ -183,6 +185,11 @@ task functional(type: GradleBuild, description: 'Runs Functional tests', group: 
     tasks = ['functionalTest']
 }
 
+task contract(type: GradleBuild, description: 'Runs the consumer Pact tests', group: 'Verification') {
+    buildFile = './api/build.gradle'
+    tasks = ['contract']
+}
+
 task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
     //forward projectProperties
     startParameter.projectProperties = project.gradle.startParameter.projectProperties
@@ -201,5 +208,13 @@ run {
     def debug = System.getProperty("debug")
     if (debug == 'true') {
         jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
+    }
+}
+
+pact {
+    publish {
+        pactDirectory = 'pacts/'
+        pactBrokerUrl = System.getenv("PACT_BROKER_FULL_URL") ?: 'http://localhost:80'
+        tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     }
 }

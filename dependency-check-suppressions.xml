@@ -156,6 +156,10 @@
         <cve>CVE-2019-16335</cve>
         <cve>CVE-2019-14540</cve>
         <cve>CVE-2019-16869</cve>
+        <cve>CVE-2019-16942</cve>
+        <cve>CVE-2019-16943</cve>
+        <cve>CVE-2019-17267</cve>
+        <cve>CVE-2019-17531</cve>
     </suppress>
     <suppress>
         <notes>We are bound by the gradle version in the CNP environments. Currently all gradle versions upto 5.6 are
