@@ -6,6 +6,7 @@ properties(
 )
 
 @Library('Infrastructure')
+import uk.gov.hmcts.contino.AppPipelineDsl
 
 def type = "java"
 
@@ -40,6 +41,9 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 
 withPipeline(type, product, app) {
+    enablePactAs([
+        AppPipelineDsl.PactRoles.CONSUMER
+    ])
     enableAksStagingDeployment()
     overrideVaultEnvironments(vaultOverrides)
     loadVaultSecrets(secrets)
