@@ -12,6 +12,7 @@ plugins {
 def springBootVersion = '2.1.6.RELEASE'
 def springCloudVersion = 'Finchley.SR2'
 
+
 allprojects {
     apply plugin: 'maven'
     apply plugin: 'io.spring.dependency-management'
