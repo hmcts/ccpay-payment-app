@@ -178,9 +178,11 @@ task contract(type: Test, description: 'Runs the consumer Pact tests', group: 'V
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
     systemProperty 'pact.rootDir', "${rootDir}/pacts"
-    environment("APPINSIGHTS_INSTRUMENTATIONKEY", "test-key")
 }
 
+test {
+    useJUnitPlatform()
+}
 pitest {
     targetClasses = ['uk.gov.hmcts.payment.api.*']
     excludedClasses = ['uk.gov.hmcts.payment.api.configuration.*',
