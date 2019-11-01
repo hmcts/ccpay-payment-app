@@ -3,7 +3,7 @@ plugins {
     id "org.sonarqube" version "2.6.2"
     id 'org.springframework.boot' version '2.1.6.RELEASE'
     id 'io.spring.dependency-management' version '1.0.8.RELEASE'
-    id 'org.owasp.dependencycheck' version '5.1.1'
+    id 'org.owasp.dependencycheck' version '5.2.2'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'findbugs'
     id 'jacoco'
@@ -155,11 +155,11 @@ def sonarExclusions = [
         '**/api/service/MockAccountServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
-         '**/api/contract/**',
-         '**/api/dto/mapper/**',
-         '**/api/reports/config/**',
-         '**/api/external/client/dto/**',
-         '**/api/external/client/exceptions/**'
+        '**/api/contract/**',
+        '**/api/dto/mapper/**',
+        '**/api/reports/config/**',
+        '**/api/external/client/dto/**',
+        '**/api/external/client/exceptions/**'
 ]
 
 sonarqube {
