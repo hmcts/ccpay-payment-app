@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -44,8 +45,9 @@ public class BulkScanPaymentRequest {
     @JsonProperty("requestor")
     private Service service;
 
-    @NotNull
     private String ccdCaseNumber;
+
+    private String exceptionRecord;
 
     @NotNull
     private PaymentChannel paymentChannel;
@@ -86,4 +88,11 @@ public class BulkScanPaymentRequest {
         }
         return false;
     }
+
+    @AssertFalse(message = "Either ccdCaseNumber or exceptionRecord is required.")
+    private boolean isEitherOneRequired() {
+        return (StringUtils.isEmpty(ccdCaseNumber) && StringUtils.isEmpty(exceptionRecord));
+    }
+
 }
+
