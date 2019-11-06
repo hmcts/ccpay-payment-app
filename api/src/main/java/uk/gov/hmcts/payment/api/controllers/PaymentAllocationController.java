@@ -60,8 +60,9 @@ public class PaymentAllocationController {
                 .paymentReference(paymentAllocationDto.getPaymentReference())
                 .paymentGroupReference(paymentAllocationDto.getPaymentGroupReference())
                 .paymentAllocationStatus(paymentAllocationDto.getPaymentAllocationStatus())
-                .receivingEmailAddress(paymentAllocationDto.getReceivingEmailAddress())
-                .sendingEmailAddress(paymentAllocationDto.getSendingEmailAddress())
+                .reason(paymentAllocationDto.getReason())
+                .explanation(paymentAllocationDto.getExplanation())
+                .userName(paymentAllocationDto.getUserName())
                 .receivingOffice(paymentAllocationDto.getReceivingOffice())
                 .unidentifiedReason(paymentAllocationDto.getUnidentifiedReason())
                 .build();
