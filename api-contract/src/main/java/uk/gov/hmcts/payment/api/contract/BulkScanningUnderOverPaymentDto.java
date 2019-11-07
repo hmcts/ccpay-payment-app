@@ -30,4 +30,10 @@ public class BulkScanningUnderOverPaymentDto {
     private String ccdCaseReference;
 
     private Date processedDate;
+
+    private String reason;
+
+    private String explanation;
+
+    private String userName;
 }

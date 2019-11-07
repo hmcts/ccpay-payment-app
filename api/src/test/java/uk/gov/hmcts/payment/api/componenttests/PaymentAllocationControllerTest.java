@@ -184,8 +184,8 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
             .paymentReference("RC-1519-9028-2432-0001")
             .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
             .receivingOffice("Home office")
-            .receivingEmailAddress("receiver@receiver.com")
-            .sendingEmailAddress("sender@sender.com")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
             .userId("userId")
             .build();
         when(paymentRepository.findByReference(anyString())).thenReturn(Optional.of(payment));
@@ -201,7 +201,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
     assertTrue(paymentAllocationDto.getPaymentReference().equals(request.getPaymentReference()));
     assertTrue(paymentAllocationDto.getPaymentGroupReference().equals(request.getPaymentGroupReference()));
     //assertThat(paymentAllocationDto.getDateCreated().getDate()).isEqualTo(new Date().getDate());
-    assertThat(paymentAllocationDto.getReceivingEmailAddress()).isEqualTo(request.getReceivingEmailAddress());
+    assertThat(paymentAllocationDto.getReason()).isEqualTo(request.getReason());
 
     }
 
