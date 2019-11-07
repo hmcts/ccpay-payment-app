@@ -154,11 +154,11 @@ def sonarExclusions = [
         '**/api/service/MockAccountServiceImpl.java',
         '**/api/service/MockCcdDataStoreClientServiceImpl.java',
         '**/api/controllers/mock/MockCallbackControllerForTesting.java',
-         '**/api/contract/**',
-         '**/api/dto/mapper/**',
-         '**/api/reports/config/**',
-         '**/api/external/client/dto/**',
-         '**/api/external/client/exceptions/**'
+        '**/api/contract/**',
+        '**/api/dto/mapper/**',
+        '**/api/reports/config/**',
+        '**/api/external/client/dto/**',
+        '**/api/external/client/exceptions/**'
 ]
 
 sonarqube {
