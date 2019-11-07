@@ -262,8 +262,8 @@ public class PaymentGroupController {
         Payment payment = Payment.paymentWith()
             .reference(referenceUtil.getNext("RC"))
             .amount(bulkScanPaymentRequest.getAmount())
-            //For exception record scenario mapping the exception record field to CaseReference field. Exception record is being passed from front end in the ccdCaseNumber field.
-            .caseReference(bulkScanPaymentRequest.getCcdCaseNumber())
+            .caseReference(bulkScanPaymentRequest.getExceptionRecord())
+            .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
             .currency(bulkScanPaymentRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
             .serviceType(bulkScanPaymentRequest.getService().getName())

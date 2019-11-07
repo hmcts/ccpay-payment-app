@@ -922,6 +922,37 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    public void addNewvalidBulkScanPaymentWithExceptionRecordAndCCDCaseNumber() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .exceptionRecord("1231-1231-3453-5333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .giroSlipNo("BCH82173823")
+            .bankedDate(DateTime.now().toString())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
+        assertTrue(paymentsResponse.getCaseReference().equals("1231-1231-3453-5333"));
+    }
+
+    @Test
     public void shouldThrowErrorWhenSiteIdIsInvalid() throws Exception{
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -942,6 +973,29 @@ public class PaymentGroupControllerTest {
         MvcResult result2 = restActions
             .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
             .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    public void shouldThrowErrorWhenBothCCDNumberAndExceptionRecordIsEmpty() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA07")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .giroSlipNo("BCH82173823")
+            .bankedDate(DateTime.now().toString())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
     }
 
