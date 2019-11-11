@@ -399,8 +399,9 @@ public class PaymentDtoMapper {
             .paymentReference(paymentAllocation.getPaymentReference())
             .id(paymentAllocation.getId()!=null ? paymentAllocation.getId().toString():null)
             .dateCreated(paymentAllocation.getDateCreated())
-            .receivingEmailAddress(paymentAllocation.getReceivingEmailAddress())
-            .sendingEmailAddress(paymentAllocation.getSendingEmailAddress())
+            .reason(paymentAllocation.getReason())
+            .explanation(paymentAllocation.getExplanation())
+            .userName(paymentAllocation.getUserName())
             .receivingOffice(paymentAllocation.getReceivingOffice())
             .unidentifiedReason(paymentAllocation.getUnidentifiedReason())
             .build();
