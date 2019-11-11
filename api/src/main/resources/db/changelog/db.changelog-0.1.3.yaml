@@ -21,3 +21,14 @@ databaseChangeLog:
             initiallyDeferred: false
             referencedColumnNames: id
             referencedTableName: payment
+  - changeSet:
+      id: 1554989041418-3
+      author: ayan
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE payment_allocation RENAME COLUMN sending_email_address TO reason;
+              ALTER TABLE payment_allocation RENAME COLUMN receiving_email_address TO explanation;
+              ALTER TABLE payment_allocation ADD COLUMN user_name varchar(255);

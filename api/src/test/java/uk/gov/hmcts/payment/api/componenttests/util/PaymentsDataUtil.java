@@ -112,8 +112,8 @@ public class PaymentsDataUtil {
             .paymentReference("RC-1519-9028-2432-000"+number)
             .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
             .receivingOffice("Home office")
-            .receivingEmailAddress("receiver@receiver.com")
-            .sendingEmailAddress("sender@sender.com")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
             .userId("userId")
             .build();
         Payment payment = Payment.paymentWith()

@@ -39,11 +39,13 @@ public class PaymentAllocationDto {
 
     private String receivingOffice;
 
-    private String receivingEmailAddress;
+    private String reason;
 
-    private String sendingEmailAddress;
+    private String explanation;
 
     private String userId;
+
+    private String userName;
 
     // This field added due to Libereta Changes. This is just a duplication of paymentAllocationStatus and unidentifiedReason parameters.
     private String allocationStatus;
