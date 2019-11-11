@@ -104,7 +104,7 @@ public class PaymentOperationsController {
             final PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
-            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees);
+            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j);
             paymentDtos.add(paymentDto);
         }
         return paymentDtos;
