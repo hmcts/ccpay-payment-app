@@ -15,7 +15,7 @@ import static uk.gov.hmcts.payment.api.util.ReportType.PROCESSED_UNALLOCATED;
 public class ExcelGeneratorUtil {
     public static Workbook exportToExcel(ReportType reportType,  List<PaymentFeeLink> paymentFeeLink) throws IOException {
 
-        String[] colsUnallocated = {"Resp_Service ID", "Resp_Service Name", "Allocation_Status", "Receiving_Office", "Allocation_Reason", "CCD_Exception_Ref", "CCD_Case_Ref", "Date_Banked", "BGC_Batch", "Payment_Asset_DCN", "Payment_Method", "Amount"};
+        String[] colsUnallocated = {"Resp_Service ID", "Resp_Service Name", "Allocation_Status", "Receiving_Office", "Allocation_Reason", "CCD_Exception_Ref", "CCD_Case_Ref", "Date_Banked", "BGC_Batch", "Payment_Asset_DCN", "Payment_Method", "Amount", "Reason", "Explanation", "UserName"};
         try(
             Workbook workbook = new HSSFWorkbook();
         ){
@@ -67,6 +67,9 @@ public class ExcelGeneratorUtil {
                             row.createCell(9).setCellValue(payment.getDocumentControlNumber());
                             row.createCell(10).setCellValue(payment.getPaymentMethod().getName());
                             row.createCell(11).setCellValue(payment.getAmount().toString());
+                            row.createCell(12).setCellValue(paymentAllocation.getReason());
+                            row.createCell(13).setCellValue(paymentAllocation.getExplanation());
+                            row.createCell(14).setCellValue(paymentAllocation.getUserName());
                         }
                     }
                 }

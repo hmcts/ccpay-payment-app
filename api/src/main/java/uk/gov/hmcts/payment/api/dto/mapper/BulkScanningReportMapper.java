@@ -87,6 +87,9 @@ public class BulkScanningReportMapper {
                     bulkScanningUnderOverPaymentDto.setPaymentAmount(paymentAmount);
                     bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalAmount.compareTo(BigDecimal.ZERO) > 0 ? "Shortfall" : "Surplus");
                     bulkScanningUnderOverPaymentDto.setProcessedDate(paymentFeeLink.getDateUpdated());
+                    bulkScanningUnderOverPaymentDto.setReason(paymentAllocation.getReason());
+                    bulkScanningUnderOverPaymentDto.setExplanation(paymentAllocation.getExplanation());
+                    bulkScanningUnderOverPaymentDto.setUserName(paymentAllocation.getUserName());
                     boolean caseReferenceCheck= underOverPaymentDtos.stream().anyMatch(c -> c.getCcdCaseReference().equals(payment.getCcdCaseNumber()));
                     if(!caseReferenceCheck) {
                         underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
