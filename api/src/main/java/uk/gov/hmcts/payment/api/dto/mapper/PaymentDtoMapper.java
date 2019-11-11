@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import lombok.SneakyThrows;
+import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,35 +225,39 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees) {
-        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
-            .paymentReference(payment.getReference())
-            .paymentGroupReference(paymentReference)
-            .serviceName(payment.getServiceType())
-            .siteId(payment.getSiteId())
-            .amount(payment.getAmount())
-            .caseReference(payment.getCaseReference())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
-            .accountNumber(payment.getPbaNumber())
-            .organisationName(payment.getOrganisationName())
-            .customerReference(payment.getCustomerReference())
-            .channel(payment.getPaymentChannel().getName())
-            .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase())
-            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
-            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
-            .dateCreated(payment.getDateCreated())
-            .dateUpdated(payment.getDateUpdated())
-            .method(payment.getPaymentMethod().getName())
-            .bankedDate(payment.getBankedDate())
-            .giroSlipNo(payment.getGiroSlipNo())
-            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-            .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
-            .reportedDateOffline(payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
-            .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
-            .build();
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j) {
+            PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+                .paymentReference(payment.getReference())
+                .paymentGroupReference(paymentReference)
+                .serviceName(payment.getServiceType())
+                .siteId(payment.getSiteId())
+                .amount(payment.getAmount())
+                .caseReference(payment.getCaseReference())
+                .ccdCaseNumber(payment.getCcdCaseNumber())
+                .accountNumber(payment.getPbaNumber())
+                .organisationName(payment.getOrganisationName())
+                .customerReference(payment.getCustomerReference())
+                .channel(payment.getPaymentChannel().getName())
+                .currency(CurrencyCode.valueOf(payment.getCurrency()))
+                .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase())
+                .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+                .dateCreated(payment.getDateCreated())
+                .dateUpdated(payment.getDateUpdated())
+                .method(payment.getPaymentMethod().getName())
+                .bankedDate(payment.getBankedDate())
+                .giroSlipNo(payment.getGiroSlipNo())
+                .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+                .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
+                .reportedDateOffline(payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
+                .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
+                .build();
+
+        if (ff4j.check("bulk-scan-check")) {
+            paymentDto.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
+        }
         return enrichWithFeeData(paymentDto);
     }
+
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         paymentDto.getFees().forEach(fee -> {
