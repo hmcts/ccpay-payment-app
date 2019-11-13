@@ -2,27 +2,4 @@ java:
   # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
-  aadIdentityName: ccpay
-  environment:
-    SPRING_DATASOURCE_URL: "jdbc:postgresql://payment-postgres-db-aat.postgres.database.azure.com:5432/payment"
-    SPRING_DATASOURCE_USERNAME: payment@payment-postgres-db-aat
-    SPRING_LIQUIBASE_ENABLED: true
-  keyVaults:
-    "ccpay":
-      resourceGroup: ccpay
-      secrets:
-        - api-POSTGRES-PASS
-        - sb-primary-connection-string
-        - pci-pal-account-id-cmc
-        - pci-pal-account-id-probate
-        - pci-pal-account-id-divorce
-        - pci-pal-api-url
-        - pci-pal-api-key
-        - gov-pay-keys-reference
-        - gov-pay-keys-cmc
-        - gov-pay-keys-divorce
-        - gov-pay-keys-probate
-        - liberata-keys-oauth2-client-id
-        - liberata-keys-oauth2-client-secret
-        - liberata-keys-oauth2-username
-        - liberata-keys-oauth2-password
+
