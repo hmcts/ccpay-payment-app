@@ -10,3 +10,4 @@ java:
     CORE_CASE_DATA_API_URL: "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
+    SPRING_CLOUD_PROPERTIESVOLUME_ENABLED: false
