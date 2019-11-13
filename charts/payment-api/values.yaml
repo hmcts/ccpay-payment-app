@@ -1,6 +1,7 @@
 java:
   image: hmctspublic.azurecr.io/payment/api:latest
   applicationPort: 8080
+  ingressHost: payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
@@ -20,12 +21,15 @@ java:
         - liberata-keys-oauth2-client-secret
         - liberata-keys-oauth2-username
         - liberata-keys-oauth2-password
-  environment:
+        - AppInsightsInstrumentationKey
 
-    SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ .Release.Name }}-payment-db:5432/payment"
-    SPRING_DATASOURCE_USERNAME: payment
-    SPRING_DATASOURCE_PASSWORD: payment
-    SPRING_LIQUIBASE_ENABLED: true
+  environment:
+    SPRING_LIQUIBASE_ENABLED: false
+    POSTGRES_PORT: 5432
+    POSTGRES_HOST: payment-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
+    POSTGRES_NAME: payment
+    POSTGRES_USERNAME: payment@payment-postgres-db-{{ .Values.global.environment }}
+    POSTGRES_CONNECTION_OPTIONS: ?sslmode=require
 
     RUN_DB_MIGRATION_ON_STARTUP: 'false'
     S2S_URL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
@@ -86,11 +90,4 @@ java:
 
     APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
 
-  postgresql:
-    nameOverride: payment-db
-    postgresqlUsername: payment
-    postgresqlPassword: payment
-    postgresqlDatabase: payment
-    extraEnv:
-      - name: POSTGRESQL_DATABASE
-        value: payment
+
