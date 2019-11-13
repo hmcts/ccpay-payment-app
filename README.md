@@ -6,7 +6,7 @@
 
 HMCTS Payment Gateway is a small wrapper around GOV.UK Pay service adding some basic user/service authorization, 
 enforcing useful payment reference structure and collecting data across multiple GOV.UK Pay accounts that will allow 
-better financial reporting and reconciliation.   
+better financial reporting and reconciliation. 
  
 ### Integration prerequisites
 
