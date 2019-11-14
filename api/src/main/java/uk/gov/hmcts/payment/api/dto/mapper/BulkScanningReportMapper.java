@@ -20,18 +20,19 @@ public class BulkScanningReportMapper {
     private static final Logger LOG = LoggerFactory.getLogger(BulkScanningReportMapper.class);
 
     public List<BulkScanningReportDto> toBulkScanningUnallocatedReportDto(List<Payment> payments) {
-        LOG.info("Inside BulkScanningReportMapper");
+        LOG.info("Payments size inside toBulkScanningUnallocatedReportDto: {}",payments.size());
         List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
 
         payments = payments.stream()
             .filter(payment -> payment.getPaymentProvider().getName().equalsIgnoreCase("exela"))
             .collect(Collectors.toList());
-
+        LOG.info("Payments size after filtering exela payments: {}",payments.size());
         bulkScanningReportDtoList = payments.stream()
             .filter(payment ->
                 (payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Transferred") ||
                     payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Unidentified")))
             .map(payment -> {
+                LOG.info("Transferred or Unidentified");
                 BulkScanningReportDto bulkScanningReportDto = new BulkScanningReportDto();
                 bulkScanningReportDto.setRespServiceId(payment.getSiteId());
                 bulkScanningReportDto.setRespServiceName(payment.getServiceType());
@@ -49,7 +50,7 @@ public class BulkScanningReportMapper {
             }).collect(Collectors.toList());
 
         bulkScanningReportDtoList.sort(Comparator.comparing(BulkScanningReportDto::getRespServiceId).thenComparing(BulkScanningReportDto::getAllocationStatus));
-        LOG.info("Unallocated Report list size : {}",bulkScanningReportDtoList.size());
+        LOG.info("Final Unallocated Report list size : {}",bulkScanningReportDtoList.size());
         return bulkScanningReportDtoList;
     }
 
@@ -69,16 +70,18 @@ public class BulkScanningReportMapper {
         payments = payments.stream()
             .filter(payment -> checkPaymentsFromExela(payment.getPaymentLink()))
             .collect(Collectors.toList());
+        LOG.info("Payments size after checkPaymentsFromExela: {}",payments.size());
         payments = payments.stream()
             .filter(payment -> checkGroupOutstanding(payment))
             .collect(Collectors.toList());
+        LOG.info("Payments size after checkGroupOutstanding: {}",payments.size());
         payments = payments.stream()
             .filter(payment ->
                 (Optional.ofNullable(payment).isPresent() && Optional.ofNullable(payment.getPaymentAllocation()).isPresent() && payment.getPaymentAllocation().size() > 0 &&
                     (! payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Transferred") &&
                         ! payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Unidentified"))))
             .collect(Collectors.toList());
-
+        LOG.info("Payments size after filtering Transferred and Unidentified: {}",payments.size());
         underOverPaymentDtos = payments.stream()
             .map(payment -> {
                 BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto = new BulkScanningUnderOverPaymentDto();
@@ -95,11 +98,14 @@ public class BulkScanningReportMapper {
                         (payment1.getDateCreated().before(payment.getDateCreated()) ||
                             payment1.getDateCreated().equals(payment.getDateCreated())))
                     .collect(Collectors.toList()));
-
+                LOG.info("TotalPaymentReceived: {}",totalPaymentReceived);
                 BigDecimal totalOutStanding = feeAmount.subtract((totalPaymentReceived.add(remissionAmount)));
+
+                LOG.info("Total Outstanding: {}",totalOutStanding);
 
                 if (totalOutStanding.compareTo(BigDecimal.ZERO) != 0)
                 {
+                    LOG.info("Total Outstanding is not Zero");
                     bulkScanningUnderOverPaymentDto.setRespServiceId(payment.getSiteId());
                     bulkScanningUnderOverPaymentDto.setRespServiceName(payment.getServiceType());
                     bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
@@ -116,7 +122,7 @@ public class BulkScanningReportMapper {
             })
             .collect(Collectors.toList());
         underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId).thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
-        LOG.info("Surplus and Shortfall Report list size : {}",underOverPaymentDtos.size());
+        LOG.info("Surplus and Shortfall Report list final size : {}",underOverPaymentDtos.size());
         return underOverPaymentDtos;
     }
 
