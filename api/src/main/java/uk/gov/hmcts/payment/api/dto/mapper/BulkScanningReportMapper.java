@@ -5,98 +5,137 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.BulkScanningReportDto;
 import uk.gov.hmcts.payment.api.contract.BulkScanningUnderOverPaymentDto;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.Remission;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class BulkScanningReportMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(BulkScanningReportMapper.class);
 
-    public List<BulkScanningReportDto> toBulkScanningUnallocatedReportDto(Payment payment,List<BulkScanningReportDto> bulkScanningReportDtoList) {
-        LOG.info("Inside BulkScanningReportMapper");
-        BulkScanningReportDto bulkScanningReportDto = new BulkScanningReportDto();
+    public List<BulkScanningReportDto> toBulkScanningUnallocatedReportDto(List<Payment> payments) {
+        LOG.info("Payments size inside toBulkScanningUnallocatedReportDto: {}",payments.size());
+        List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
 
-                if(payment.getPaymentProvider()!=null && payment.getPaymentProvider().getName().equals("exela")) {
-                    LOG.info("Payment provider is exela and not null");
-                    for (PaymentAllocation paymentAllocation : payment.getPaymentAllocation()) {
-                        String allocationStatus = paymentAllocation.getPaymentAllocationStatus().getName();
-                     if(allocationStatus.equals("Transferred") || allocationStatus.equals("Unidentified")) {
-                         LOG.info("Allocation status is Transferred or Unidentified");
-                         bulkScanningReportDto.setRespServiceId(payment.getSiteId());
-                         bulkScanningReportDto.setRespServiceName(payment.getServiceType());
-                         bulkScanningReportDto.setAllocationStatus(paymentAllocation.getPaymentAllocationStatus().getName());
-                         bulkScanningReportDto.setReceivingOffice(paymentAllocation.getReceivingOffice());
-                         bulkScanningReportDto.setAllocationReason(paymentAllocation.getUnidentifiedReason());
-                         bulkScanningReportDto.setCcdExceptionReference(payment.getCaseReference());
-                         bulkScanningReportDto.setCcdCaseReference(payment.getCcdCaseNumber());
-                         bulkScanningReportDto.setDateBanked(payment.getBankedDate());
-                         bulkScanningReportDto.setBgcBatch(payment.getGiroSlipNo());
-                         bulkScanningReportDto.setPaymentAssetDCN(payment.getDocumentControlNumber());
-                         bulkScanningReportDto.setPaymentMethod(payment.getPaymentMethod().getName());
-                         bulkScanningReportDto.setAmount(payment.getAmount().toString());
-                         bulkScanningReportDtoList.add(bulkScanningReportDto);
-                     }
-                    }
-                    bulkScanningReportDtoList.sort(Comparator.comparing(BulkScanningReportDto::getRespServiceId).thenComparing(BulkScanningReportDto::getAllocationStatus));
-                    LOG.info("Unallocated Report list size : {}",bulkScanningReportDtoList.size());
-                }
+        payments = payments.stream()
+            .filter(payment -> payment.getPaymentProvider().getName().equalsIgnoreCase("exela"))
+            .collect(Collectors.toList());
+        LOG.info("Payments size after filtering exela payments: {}",payments.size());
+        bulkScanningReportDtoList = payments.stream()
+            .filter(payment ->
+                (payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Transferred") ||
+                    payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Unidentified")))
+            .map(payment -> {
+                LOG.info("Transferred or Unidentified");
+                BulkScanningReportDto bulkScanningReportDto = new BulkScanningReportDto();
+                bulkScanningReportDto.setRespServiceId(payment.getSiteId());
+                bulkScanningReportDto.setRespServiceName(payment.getServiceType());
+                bulkScanningReportDto.setAllocationStatus(payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName());
+                bulkScanningReportDto.setReceivingOffice(payment.getPaymentAllocation().get(0).getReceivingOffice());
+                bulkScanningReportDto.setAllocationReason(payment.getPaymentAllocation().get(0).getUnidentifiedReason());
+                bulkScanningReportDto.setCcdExceptionReference(payment.getCaseReference());
+                bulkScanningReportDto.setCcdCaseReference(payment.getCcdCaseNumber());
+                bulkScanningReportDto.setDateBanked(payment.getBankedDate());
+                bulkScanningReportDto.setBgcBatch(payment.getGiroSlipNo());
+                bulkScanningReportDto.setPaymentAssetDCN(payment.getDocumentControlNumber());
+                bulkScanningReportDto.setPaymentMethod(payment.getPaymentMethod().getName());
+                bulkScanningReportDto.setAmount(payment.getAmount().toString());
+                return bulkScanningReportDto;
+            }).collect(Collectors.toList());
+
+        bulkScanningReportDtoList.sort(Comparator.comparing(BulkScanningReportDto::getRespServiceId).thenComparing(BulkScanningReportDto::getAllocationStatus));
+        LOG.info("Final Unallocated Report list size : {}",bulkScanningReportDtoList.size());
         return bulkScanningReportDtoList;
-
     }
 
-    public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<PaymentFeeLink> paymentFeeLinks) {
+    private boolean checkPaymentsFromExela(PaymentFeeLink paymentFeeLink){
+        return paymentFeeLink.getPayments().stream()
+            .anyMatch(payment ->
+                payment.getPaymentProvider()
+                    .getName()
+                    .equalsIgnoreCase("exela")
+            );
+    }
+
+    public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<Payment> payments, Date toDate) {
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
-        LOG.info("paymentFeeLinks list size. : {}",paymentFeeLinks.size());
-        for(PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
-            for (Payment payment : paymentFeeLink.getPayments()) {
-                if (payment.getPaymentProvider() != null && payment.getPaymentProvider().getName().equals("exela")) {
+        LOG.info("SurplusAndShortfall payments size : {}",payments.size());
 
-                    BigDecimal feeAmount = calculateFeeAmount(paymentFeeLink.getFees());
+        payments = payments.stream()
+            .filter(payment -> checkPaymentsFromExela(payment.getPaymentLink()))
+            .collect(Collectors.toList());
+        LOG.info("Payments size after checkPaymentsFromExela: {}",payments.size());
+        payments = payments.stream()
+            .filter(payment -> checkGroupOutstanding(payment))
+            .collect(Collectors.toList());
+        LOG.info("Payments size after checkGroupOutstanding: {}",payments.size());
+        payments = payments.stream()
+            .filter(payment ->
+                (Optional.ofNullable(payment).isPresent() && Optional.ofNullable(payment.getPaymentAllocation()).isPresent() && payment.getPaymentAllocation().size() > 0 &&
+                    (! payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Transferred") &&
+                        ! payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Unidentified"))))
+            .collect(Collectors.toList());
+        LOG.info("Payments size after filtering Transferred and Unidentified: {}",payments.size());
+        underOverPaymentDtos = payments.stream()
+            .map(payment -> {
+                BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto = new BulkScanningUnderOverPaymentDto();
 
-                    BigDecimal remissionAmount = calculateRemissionAmount(paymentFeeLink.getRemissions());
+                BigDecimal feeAmount = calculateFeeAmount(payment.getPaymentLink().getFees());
 
-                    BigDecimal paymentAmount = calculatePaymentAmount(paymentFeeLink.getPayments());
+                BigDecimal remissionAmount = calculateRemissionAmount(payment.getPaymentLink().getRemissions());
 
-                    BigDecimal totalAmount = feeAmount.subtract((paymentAmount.add(remissionAmount)));
-                    generateData(underOverPaymentDtos, paymentFeeLink, payment, paymentAmount, totalAmount);
-                }
-            }
-        }
-        underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId).thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
-        LOG.info("Surplus and Shortfall Report list size : {}",underOverPaymentDtos.size());
-    return underOverPaymentDtos;
-    }
+                BigDecimal paymentAmount = payment.getAmount();
 
-    private void generateData(List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos, PaymentFeeLink paymentFeeLink, Payment payment, BigDecimal paymentAmount, BigDecimal totalAmount) {
-        if (totalAmount.compareTo(BigDecimal.ZERO) != 0)
-        {
-            LOG.info("totalAmount not Zero");
-            for (PaymentAllocation paymentAllocation : payment.getPaymentAllocation()) {
-                String allocationStatus = paymentAllocation.getPaymentAllocationStatus().getName();
-                if (allocationStatus.equals("Allocated")) {
-                    BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto = new BulkScanningUnderOverPaymentDto();
+                BigDecimal totalPaymentReceived = calculatePaymentAmount(payment.getPaymentLink().getPayments()
+                    .stream()
+                    .filter(payment1 ->
+                        (payment1.getDateCreated().before(payment.getDateCreated()) ||
+                            payment1.getDateCreated().equals(payment.getDateCreated())))
+                    .collect(Collectors.toList()));
+                LOG.info("TotalPaymentReceived: {}",totalPaymentReceived);
+                BigDecimal totalOutStanding = feeAmount.subtract((totalPaymentReceived.add(remissionAmount)));
+
+                LOG.info("Total Outstanding: {}",totalOutStanding);
+
+                if (totalOutStanding.compareTo(BigDecimal.ZERO) != 0)
+                {
+                    LOG.info("Total Outstanding is not Zero");
                     bulkScanningUnderOverPaymentDto.setRespServiceId(payment.getSiteId());
                     bulkScanningUnderOverPaymentDto.setRespServiceName(payment.getServiceType());
                     bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
-                    bulkScanningUnderOverPaymentDto.setBalance(totalAmount);
+                    bulkScanningUnderOverPaymentDto.setBalance(totalOutStanding);
                     bulkScanningUnderOverPaymentDto.setPaymentAmount(paymentAmount);
-                    bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalAmount.compareTo(BigDecimal.ZERO) > 0 ? "Shortfall" : "Surplus");
-                    bulkScanningUnderOverPaymentDto.setProcessedDate(paymentFeeLink.getDateUpdated());
-                    bulkScanningUnderOverPaymentDto.setReason(paymentAllocation.getReason());
-                    bulkScanningUnderOverPaymentDto.setExplanation(paymentAllocation.getExplanation());
-                    bulkScanningUnderOverPaymentDto.setUserName(paymentAllocation.getUserName());
-                    boolean caseReferenceCheck= underOverPaymentDtos.stream().anyMatch(c -> c.getCcdCaseReference().equals(payment.getCcdCaseNumber()));
-                    if(!caseReferenceCheck) {
-                        underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
-                    }
+                    bulkScanningUnderOverPaymentDto.setSurplusShortfall(totalOutStanding.compareTo(BigDecimal.ZERO) > 0 ? "Shortfall" : "Surplus");
+                    bulkScanningUnderOverPaymentDto.setProcessedDate(payment.getDateCreated());
+                    bulkScanningUnderOverPaymentDto.setReason(payment.getPaymentAllocation().get(0).getReason());
+                    bulkScanningUnderOverPaymentDto.setExplanation(payment.getPaymentAllocation().get(0).getExplanation());
+                    bulkScanningUnderOverPaymentDto.setUserName(payment.getPaymentAllocation().get(0).getUserName());
+                    bulkScanningUnderOverPaymentDto.setCcdExceptionReference(payment.getCaseReference());
                 }
-            }
-        }
+                return bulkScanningUnderOverPaymentDto;
+            })
+            .collect(Collectors.toList());
+        underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId).thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
+        LOG.info("Surplus and Shortfall Report list final size : {}",underOverPaymentDtos.size());
+        return underOverPaymentDtos;
+    }
+
+    private boolean checkGroupOutstanding(Payment payment) {
+        BigDecimal feeAmount = calculateFeeAmount(payment.getPaymentLink().getFees());
+
+        BigDecimal remissionAmount = calculateRemissionAmount(payment.getPaymentLink().getRemissions());
+
+        BigDecimal totalPaymentReceived = calculatePaymentAmount(payment.getPaymentLink().getPayments());
+
+        BigDecimal totalOutStanding = feeAmount.subtract((totalPaymentReceived.add(remissionAmount)));
+
+        return totalOutStanding.compareTo(BigDecimal.ZERO) != 0;
     }
 
     private BigDecimal calculatePaymentAmount(List<Payment> payments) {
@@ -104,7 +143,7 @@ public class BulkScanningReportMapper {
         BigDecimal paymentAmount = new BigDecimal(0);
         for(Payment payment : payments)
         {
-           BigDecimal calculatedAmount = payment.getAmount();
+            BigDecimal calculatedAmount = payment.getAmount();
             paymentAmount= paymentAmount.add(calculatedAmount);
 
         }

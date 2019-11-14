@@ -36,4 +36,6 @@ public class BulkScanningUnderOverPaymentDto {
     private String explanation;
 
     private String userName;
+
+    private String ccdExceptionReference;
 }
