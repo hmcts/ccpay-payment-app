@@ -5,6 +5,7 @@ java:
     "ccpay":
       resourceGroup: ccpay
       secrets:
+        - api-POSTGRES-PASS
         - sb-primary-connection-string
         - pci-pal-account-id-cmc
         - pci-pal-account-id-probate
@@ -26,20 +27,23 @@ java:
     SPRING_DATASOURCE_PASSWORD: payment
     SPRING_LIQUIBASE_ENABLED: true
 
+    RUN_DB_MIGRATION_ON_STARTUP: 'false'
+    S2S_URL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
 
     REFORM_SERVICE_NAME: payment-api
     REFORM_TEAM: cc
     REFORM_ENVIRONMENT: preview
 
-    AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
-    AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
-    FEES_REGISTER_URL: "http://fees-register-api-aat.service.core-compute-aat.internal"
-    PAYBUBBLE_HOME_URL: "https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal"
-    CORE_CASE_DATA_API_URL: "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
+    AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+
+    AUTH_IDAM_CLIENT_BASEURL: https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net
+    FEES_REGISTER_URL: http://fees-register-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+    PAYBUBBLE_HOME_URL: https://ccpay-bubble-frontend-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+    CORE_CASE_DATA_API_URL: http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
 
     GOV_PAY_URL: "https://publicapi.payments.service.gov.uk/v1/payments"
     GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw"
-    PCI_PAL_CALLBACK_URL: "https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback"
+    PCI_PAL_CALLBACK_URL: https://core-api-mgmt-{{ .Values.global.environment }}.azure-api.net/telephony-api/telephony/callback
 
     TRUSTED_S2S_SERVICE_NAMES: "cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
