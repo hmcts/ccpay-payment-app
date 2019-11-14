@@ -215,6 +215,7 @@ public class PaymentGroupController {
         Payment payment = Payment.paymentWith()
             .reference(referenceUtil.getNext("RC"))
             .amount(bulkScanPaymentRequest.getAmount())
+            .caseReference(bulkScanPaymentRequest.getExceptionRecord())
             .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
             .currency(bulkScanPaymentRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
