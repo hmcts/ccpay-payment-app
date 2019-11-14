@@ -93,7 +93,7 @@ public class BulkScanningReportController {
                 response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
             }
 
-                return new ResponseEntity<byte[]>(reportBytes, headers, HttpStatus.OK);
+            return new ResponseEntity<byte[]>(reportBytes, headers, HttpStatus.OK);
 
         } catch (Exception ex) {
             throw new PaymentException(ex);
@@ -119,32 +119,21 @@ public class BulkScanningReportController {
         @RequestParam("date_to") Date toDate,
         @RequestParam("report_type") ReportType reportType) {
 
-        List<PaymentFeeLink> paymentFeeLinks = paymentService
-            .search(
-                PaymentSearchCriteria
-                    .searchCriteriaWith()
-                    .startDate(atStartOfDay(fromDate))
-                    .endDate(atEndOfDay(toDate))
-                    .build()
-            );
-        LOG.info("No of Records exists : {}", paymentFeeLinks.size());
+        List<Payment> payments = paymentService.getPayments(atStartOfDay(fromDate), atEndOfDay(toDate));
+        LOG.info("No of payments exists for the date-range: {}", payments.size());
         List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
         if(reportType.equals(PROCESSED_UNALLOCATED)) {
             LOG.info("Processed and Unallocated report section");
-            for (PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
-                for (Payment payment: paymentFeeLink.getPayments()) {
-                    bulkScanningReportDtoList = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payment,bulkScanningReportDtoList);
+            bulkScanningReportDtoList = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payments);
 
-                }
-            }
             return new ResponseEntity<>(bulkScanningReportDtoList, HttpStatus.OK);
         }
         else if(reportType.equals(SURPLUS_AND_SHORTFALL))
         {
             LOG.info("Surplus and Shortfall report section");
-            List<BulkScanningUnderOverPaymentDto> underOverPaymentDtoList = bulkScanningReportMapper.toSurplusAndShortfallReportdto(paymentFeeLinks);
+            List<BulkScanningUnderOverPaymentDto> underOverPaymentDtoList = bulkScanningReportMapper.toSurplusAndShortfallReportdto(payments, atEndOfDay(toDate));
             return new ResponseEntity<>(underOverPaymentDtoList, HttpStatus.OK);
         }
-      return null;
+        return null;
     }
 }
