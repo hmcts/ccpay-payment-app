@@ -71,6 +71,11 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
+    public List<Payment> getPayments(Date atStartOfDay, Date atEndOfDay) {
+        return paymentRepository.findAllByDateCreatedBetween(atStartOfDay, atEndOfDay).orElse(Collections.EMPTY_LIST);
+    }
+
+    @Override
     public List<Reference> listInitiatedStatusPaymentsReferences() {
         Date targetTime = DateUtils.addMinutes(new Date(), -1 * paymentsCutOffTime);
         return paymentRepository.findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
