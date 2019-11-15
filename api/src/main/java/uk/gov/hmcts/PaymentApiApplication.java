@@ -1,6 +1,8 @@
 package uk.gov.hmcts;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import liquibase.configuration.GlobalConfiguration;
+import liquibase.configuration.LiquibaseConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -30,6 +32,10 @@ public class PaymentApiApplication {
 
     public static void main(String[] args) {
         try {
+            //Setting Liquibase DB Lock property before Spring starts up.
+            LiquibaseConfiguration.getInstance()
+                .getConfiguration(GlobalConfiguration.class)
+                .setUseDbLock(true);
             SpringApplication.run(PaymentApiApplication.class, args);
         } catch (RuntimeException ex) {
             LOG.error(Markers.fatal, "Application crashed with error message: ", ex);
