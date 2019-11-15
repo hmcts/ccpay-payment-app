@@ -310,6 +310,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
             .andExpect(status().isOk())
@@ -370,6 +374,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
@@ -569,6 +577,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
@@ -773,6 +785,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+
         MvcResult result1 = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
@@ -806,6 +822,59 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
             assertThat(p.getStatus()).isEqualTo("success");
+        });
+    }
+
+    @Test
+    @Transactional
+    public void updatePaymentStatusForPaymentReferenceWhenBulkScanDisabled() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1433";
+        populateTelephonyPaymentToDb(paymentReference, false);
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/disable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
+            assertThat(p.getStatus()).isEqualTo("Initiated");
+            assertThat(p.getExternalProvider()).isEqualTo("pci pal");
+            assertThat(p.getChannel()).isEqualTo("telephony");
+        });
+
+        // Update payment status with valid payment reference
+        restActions
+            .patch("/payments/" + paymentReference + "/status/success")
+            .andExpect(status().isNoContent());
+
+
+        MvcResult result2 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        payments = response.getPayments();
+        assertNotNull(payments);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
+            assertThat(p.getStatus()).isEqualTo("Success");
         });
     }
 
