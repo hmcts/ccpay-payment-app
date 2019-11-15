@@ -63,6 +63,9 @@ public class GovPayClient {
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         return withIOExceptionHandling(() -> {
             LOG.info("Gov payment url: with Auth key as {}", authorizationKey);
+
+            System.out.println("Gov payment url: with Auth key as {}" + authorizationKey);
+
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
             checkNotAnError(response);
