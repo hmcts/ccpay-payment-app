@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import sun.rmi.runtime.Log;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
@@ -63,9 +62,6 @@ public class GovPayClient {
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         return withIOExceptionHandling(() -> {
             LOG.info("Gov payment url: with Auth key as {}", authorizationKey);
-
-            System.out.println("Gov payment url: with Auth key as {}" + authorizationKey);
-
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
             checkNotAnError(response);
