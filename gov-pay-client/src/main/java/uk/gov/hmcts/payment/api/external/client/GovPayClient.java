@@ -17,9 +17,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import sun.rmi.runtime.Log;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
@@ -38,6 +41,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
     @HystrixProperty(name = "execution.timeout.enabled", value = "false")
 })
 public class GovPayClient {
+    private static final Logger LOG = LoggerFactory.getLogger(GovPayClient.class);
 
     private final String url;
     private final HttpClient httpClient;
@@ -58,6 +62,7 @@ public class GovPayClient {
     @HystrixCommand(commandKey = "createCardPayment")
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         return withIOExceptionHandling(() -> {
+            LOG.info("Gov payment url: with Auth key as {}", authorizationKey);
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
             checkNotAnError(response);
