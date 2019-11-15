@@ -238,7 +238,7 @@ public class PaymentDtoMapper {
                 .customerReference(payment.getCustomerReference())
                 .channel(payment.getPaymentChannel().getName())
                 .currency(CurrencyCode.valueOf(payment.getCurrency()))
-                .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase())
+                .status(ff4j.check("bulk-scan-check") ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
                 .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
                 .dateCreated(payment.getDateCreated())
                 .dateUpdated(payment.getDateUpdated())
