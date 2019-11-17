@@ -19,6 +19,9 @@ java:
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
     AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
 
+    #Below key required for preview pipeline
+    GOV_PAY_AUTH_KEY_CMC: 8ln764q6jrbgqvvvv40uggsea3h1p602v79gdrt7ni66mrmpk416ulohvd
+
     postgresql:
       postgresqlUsername: payment
       postgresqlPassword: payment
