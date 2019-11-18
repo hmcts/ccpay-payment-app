@@ -11,7 +11,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -63,7 +66,7 @@ public class BulkScanningReportMapper {
             );
     }
 
-    public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<Payment> payments, Date toDate) {
+    public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<Payment> payments) {
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
         LOG.info("SurplusAndShortfall payments size : {}",payments.size());
 
