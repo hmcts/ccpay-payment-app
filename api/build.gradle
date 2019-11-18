@@ -73,7 +73,7 @@ dependencies {
   compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.9.2'
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version:'2.9.0'
   compile group: 'io.springfox', name: 'springfox-swagger2', version:'2.9.0'
-  compile group: 'org.liquibase', name: 'liquibase-core', version:'3.7.0'
+  compile group: 'uk.gov.hmcts.reform', name: 'liquibase-core', version:'3.8.1'
   compile group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.1.6'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
   compile group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.7.0'
