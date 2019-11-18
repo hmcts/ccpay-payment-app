@@ -124,7 +124,7 @@ public class BulkScanningReportMapper {
                 return bulkScanningUnderOverPaymentDto;
             })
             .collect(Collectors.toList());
-        underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId).thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
+        underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId));
         LOG.info("Surplus and Shortfall Report list final size : {}",underOverPaymentDtos.size());
         return underOverPaymentDtos;
     }
