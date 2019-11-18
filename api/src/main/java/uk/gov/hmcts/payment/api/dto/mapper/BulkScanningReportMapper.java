@@ -11,7 +11,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,7 +27,7 @@ public class BulkScanningReportMapper {
         List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
 
         payments = payments.stream()
-            .filter(payment -> payment.getPaymentProvider().getName().equalsIgnoreCase("exela"))
+            .filter(payment -> payment.getPaymentProvider() != null && payment.getPaymentProvider().getName().equalsIgnoreCase("exela"))
             .collect(Collectors.toList());
         LOG.info("Payments size after filtering exela payments: {}",payments.size());
         bulkScanningReportDtoList = payments.stream()
@@ -57,13 +60,13 @@ public class BulkScanningReportMapper {
     private boolean checkPaymentsFromExela(PaymentFeeLink paymentFeeLink){
         return paymentFeeLink.getPayments().stream()
             .anyMatch(payment ->
-                payment.getPaymentProvider()
+                payment.getPaymentProvider() != null && payment.getPaymentProvider()
                     .getName()
                     .equalsIgnoreCase("exela")
             );
     }
 
-    public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<Payment> payments, Date toDate) {
+    public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<Payment> payments) {
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
         LOG.info("SurplusAndShortfall payments size : {}",payments.size());
 
