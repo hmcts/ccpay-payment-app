@@ -109,6 +109,7 @@ public class BulkScanningReportMapper {
                 if (totalOutStanding.compareTo(BigDecimal.ZERO) != 0)
                 {
                     LOG.info("Total Outstanding is not Zero");
+                    LOG.info("Site Id: {}",payment.getSiteId());
                     bulkScanningUnderOverPaymentDto.setRespServiceId(payment.getSiteId());
                     bulkScanningUnderOverPaymentDto.setRespServiceName(payment.getServiceType());
                     bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
@@ -124,7 +125,7 @@ public class BulkScanningReportMapper {
                 return bulkScanningUnderOverPaymentDto;
             })
             .collect(Collectors.toList());
-        underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId));
+        //underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId).thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
         LOG.info("Surplus and Shortfall Report list final size : {}",underOverPaymentDtos.size());
         return underOverPaymentDtos;
     }
