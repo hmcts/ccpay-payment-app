@@ -131,7 +131,7 @@ public class BulkScanningReportController {
         else if(reportType.equals(SURPLUS_AND_SHORTFALL))
         {
             LOG.info("Surplus and Shortfall report section");
-            List<BulkScanningUnderOverPaymentDto> underOverPaymentDtoList = bulkScanningReportMapper.toSurplusAndShortfallReportdto(payments, atEndOfDay(toDate));
+            List<BulkScanningUnderOverPaymentDto> underOverPaymentDtoList = bulkScanningReportMapper.toSurplusAndShortfallReportdto(payments);
             return new ResponseEntity<>(underOverPaymentDtoList, HttpStatus.OK);
         }
         return null;
