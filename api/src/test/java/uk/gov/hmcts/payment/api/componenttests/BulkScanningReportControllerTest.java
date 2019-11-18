@@ -17,7 +17,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -26,10 +25,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -109,13 +105,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .paymentAllocation(Arrays.asList(paymentAllocation))
             .build();
         List<Payment> paymentList = new ArrayList<>();
-        PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
-        List<PaymentFeeLink> feeLinkList = new ArrayList<>();
-
         paymentList.add(payment);
-        paymentFeeLink.setPayments(paymentList);
-        feeLinkList.add(paymentFeeLink);
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(feeLinkList);
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -123,7 +114,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
+            .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -161,13 +152,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .paymentAllocation(Arrays.asList(paymentAllocation))
             .build();
         List<Payment> paymentList = new ArrayList<>();
-        PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
-        List<PaymentFeeLink> feeLinkList = new ArrayList<>();
-
         paymentList.add(payment);
-        paymentFeeLink.setPayments(paymentList);
-        feeLinkList.add(paymentFeeLink);
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(feeLinkList);
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -175,7 +161,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
+            .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -190,7 +176,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=DATA_LOSS")
+            .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=DATA_LOSS")
             .andExpect(status().is5xxServerError())
             .andReturn();
 
@@ -204,7 +190,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
+            .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().is5xxServerError())
             .andReturn();
 
@@ -212,62 +198,9 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
 
     @Test
     @Transactional
-    public void shouldNotGenerateReportWhenReportTypeIsNotValid() throws Exception {
-
-        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
-        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000")
-            .paymentReference("RC-1519-9028-2432-000")
-            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
-            .receivingOffice("Home office")
-            .reason("receiver@receiver.com")
-            .explanation("sender@sender.com")
-            .userId("userId")
-            .build();
-        Payment payment = Payment.paymentWith()
-            .amount(new BigDecimal("99.99"))
-            .caseReference("Reference")
-            .ccdCaseNumber("ccdCaseNumber")
-            .description("Test payments statuses for ")
-            .serviceType("PROBATE")
-            .currency("GBP")
-            .siteId("AA0")
-            .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .externalReference("e2kkddts5215h9qqoeuth5c0v")
-            .reference("RC-1519-9028-2432-000")
-            .statusHistories(Arrays.asList(statusHistory))
-            .paymentAllocation(Arrays.asList(paymentAllocation))
-            .build();
-        List<Payment> paymentList = new ArrayList<>();
-        PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
-        List<PaymentFeeLink> feeLinkList = new ArrayList<>();
-
-        paymentList.add(payment);
-        paymentFeeLink.setPayments(paymentList);
-        feeLinkList.add(paymentFeeLink);
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(feeLinkList);
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=SURPLUS_AND_SHORTFALL")
-            .andExpect(status().isOk())
-            .andReturn();
-
-    }
-
-
-    @Test
-    @Transactional
     public void shouldNotGenerateReportWhenPaymentIsEmpty() throws Exception {
 
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(Collections.emptyList());
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(Collections.emptyList());
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -275,7 +208,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .get("/payment/bulkscan-report-download?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
+            .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -313,16 +246,13 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .paymentAllocation(Arrays.asList(paymentAllocation))
             .build();
         List<Payment> paymentList = new ArrayList<>();
-        PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
-        List<PaymentFeeLink> feeLinkList = new ArrayList<>();
-
-        paymentList.add(payment);
-        paymentFeeLink.setPayments(paymentList);
-        feeLinkList.add(paymentFeeLink);
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(feeLinkList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        paymentList.add(payment);
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+
 
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -335,12 +265,12 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
 
     @Test
     @Transactional
-    public void shouldGenerateReportWhenReportTypeIsSurplus() throws Exception {
+    public void shouldNotGenerateReportWhenPaymentAllocationStatusIsInvalid() throws Exception {
 
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000")
             .paymentReference("RC-1519-9028-2432-000")
-            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred1").build())
             .receivingOffice("Home office")
             .reason("receiver@receiver.com")
             .explanation("sender@sender.com")
@@ -364,6 +294,57 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .statusHistories(Arrays.asList(statusHistory))
             .paymentAllocation(Arrays.asList(paymentAllocation))
             .build();
+        List<Payment> paymentList = new ArrayList<>();
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        paymentList.add(payment);
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
+            .andExpect(status().isOk())
+            .andReturn();
+
+    }
+
+
+    @Test
+    @Transactional
+    public void shouldGenerateReportWhenReportTypeIsSurplus() throws Exception {
+
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000")
+            .paymentReference("RC-1519-9028-2432-000")
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Allocated").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Test payments statuses for ")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v")
+            .reference("RC-1519-9028-2432-000")
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .dateCreated(new Date())
+            .build();
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0005").volume(1).build();
         RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
@@ -381,17 +362,17 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .build();
         List<Payment> paymentList = new ArrayList<>();
         PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
-        List<PaymentFeeLink> feeLinkList = new ArrayList<>();
         List<PaymentFee> fees = new ArrayList<>();
         List<Remission> remissions = new ArrayList<>();
         remissions.add(remission);
         fees.add(fee);
-        paymentList.add(payment);
         paymentFeeLink.setPayments(paymentList);
         paymentFeeLink.setFees(fees);
         paymentFeeLink.setRemissions(remissions);
-        feeLinkList.add(paymentFeeLink);
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(feeLinkList);
+        payment.setPaymentLink(paymentFeeLink);
+        paymentList.add(payment);
+
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -437,13 +418,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .paymentAllocation(Arrays.asList(paymentAllocation))
             .build();
         List<Payment> paymentList = new ArrayList<>();
-        PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
-        List<PaymentFeeLink> feeLinkList = new ArrayList<>();
-
         paymentList.add(payment);
-        paymentFeeLink.setPayments(paymentList);
-        feeLinkList.add(paymentFeeLink);
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(feeLinkList);
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
