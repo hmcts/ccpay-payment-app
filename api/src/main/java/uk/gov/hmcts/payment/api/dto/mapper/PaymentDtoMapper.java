@@ -225,6 +225,8 @@ public class PaymentDtoMapper {
     }
 
     public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j) {
+        boolean isExelaPayment = payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela");
+        boolean bulkScanCheck = ff4j.check("bulk-scan-check");
             PaymentDto paymentDto = PaymentDto.payment2DtoWith()
                 .paymentReference(payment.getReference())
                 .paymentGroupReference(paymentReference)
@@ -238,7 +240,7 @@ public class PaymentDtoMapper {
                 .customerReference(payment.getCustomerReference())
                 .channel(payment.getPaymentChannel().getName())
                 .currency(CurrencyCode.valueOf(payment.getCurrency()))
-                .status(ff4j.check("bulk-scan-check") ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+                .status(bulkScanCheck ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
                 .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
                 .dateCreated(payment.getDateCreated())
                 .dateUpdated(payment.getDateUpdated())
@@ -246,12 +248,12 @@ public class PaymentDtoMapper {
                 .bankedDate(payment.getBankedDate())
                 .giroSlipNo(payment.getGiroSlipNo())
                 .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-                .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
-                .reportedDateOffline(payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
-                .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
+                .externalReference(isExelaPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
+                .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
+                .fees(isExelaPayment ? toFeeDtosWithCaseRererence(fees,payment.getCaseReference()) : toFeeDtos(fees))
                 .build();
 
-        if (ff4j.check("bulk-scan-check")) {
+        if (bulkScanCheck && isExelaPayment) {
             paymentDto.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
         }
         return enrichWithFeeData(paymentDto);
@@ -285,6 +287,7 @@ public class PaymentDtoMapper {
     private List<FeeDto> toFeeDtos(List<PaymentFee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
+
 
     private List<FeeDto> toFeeDtosWithCaseRererence(List<PaymentFee> fees, String caseReference) {
 
