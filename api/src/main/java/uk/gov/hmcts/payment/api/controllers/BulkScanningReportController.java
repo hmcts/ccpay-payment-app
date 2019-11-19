@@ -53,11 +53,9 @@ public class BulkScanningReportController {
 
         List<Payment> payments = paymentService.getPayments(atStartOfDay(fromDate), atEndOfDay(toDate));
         LOG.info("No of payments exists for the date-range: {}", payments.size());
-        List<BulkScanningReportDto> bulkScanningReportDtoList = new ArrayList<>();
         if(reportType.equals(PROCESSED_UNALLOCATED)) {
             LOG.info("Processed and Unallocated report section");
-            bulkScanningReportDtoList = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payments);
-
+            List<BulkScanningReportDto> bulkScanningReportDtoList = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payments);
             return new ResponseEntity<>(bulkScanningReportDtoList, HttpStatus.OK);
         }
         else if(reportType.equals(SURPLUS_AND_SHORTFALL))
