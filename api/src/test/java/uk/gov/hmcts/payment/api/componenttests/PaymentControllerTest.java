@@ -927,6 +927,90 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         verify(callbackServiceImplMock, times(1)).callback(updatedPaymentFeeLink, updatedPaymentFeeLink.getPayments().get(0));
     }
 
+    @Test
+    @Transactional
+    public void shouldCheckExelaPaymentsWhenBulkScanIsToggledOn() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        populatePaymentToDbForExelaPayments(paymentReference);
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    public void shouldCheckExelaPaymentsWhenBulkScanIsToggledOnAndPaymentProviderIsNull() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        populatePaymentToDbForExelaPaymentsWithoutPaymentProvider(paymentReference);
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    public void shouldCheckExelaPaymentsWhenBulkScanIsToggledOff() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        populatePaymentToDbForExelaPayments(paymentReference);
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/disable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+    }
+
     // if callback URL does not exist make sure not to call callback service
     @Test
     @Transactional
