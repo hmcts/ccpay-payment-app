@@ -367,6 +367,99 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
+    public void searchCreditPayments_withValidBetweenDates_shouldReturnAllPayments() throws Exception {
+
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=ALL")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+
+    }
+
+    @Test
+    @Transactional
+    public void searchCreditPayments_withValidBetweenDates_shouldReturnPaymentsBasedOnServiceType() throws Exception {
+
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=DIVORCE")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(0);
+
+    }
+
+    @Test
+    @Transactional
+    public void searchCreditPayments_withValidStartDate_shouldReturnAllPayments() throws Exception {
+
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?start_date=" + startDate + "&payment_method=ALL")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+
+    }
+
+    @Test
+    @Transactional
+    public void searchCreditPayments_withValidEndDate_shouldReturnAllPayments() throws Exception {
+
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/payments?end_date=" + endDate + "&payment_method=ALL")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(0);
+    }
+
+    @Test
+    @Transactional
     public void searchCreditPayments_withPbaNumber() throws Exception {
 
         populateCardPaymentToDb("1");
