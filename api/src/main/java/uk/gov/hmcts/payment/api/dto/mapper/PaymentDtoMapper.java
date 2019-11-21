@@ -346,17 +346,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public Payment toPaymentRequest(PaymentRecordRequest paymentRecordRequest) {
-        return Payment.paymentWith()
-            .amount(paymentRecordRequest.getAmount())
-            .caseReference(paymentRecordRequest.getReference())
-            .serviceType(paymentRecordRequest.getService().getName())
-            .currency(paymentRecordRequest.getCurrency().getCode())
-            .siteId(paymentRecordRequest.getSiteId())
-            .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
-            .build();
-    }
-
     public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
