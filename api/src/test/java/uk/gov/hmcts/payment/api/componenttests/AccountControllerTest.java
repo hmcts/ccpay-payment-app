@@ -13,6 +13,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.controllers.AccountController;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
+import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 
@@ -50,6 +51,12 @@ public class AccountControllerTest {
     @Test(expected = AccountNotFoundException.class)
     public void gettingNonExistingAccountNumberThrowsAccountNotFoundException() {
         when(accountServiceMock.retrieve("PBA4321")).thenThrow(HttpClientErrorException.class);
+        accountController.getAccounts("PBA4321");
+    }
+
+    @Test(expected = LiberataServiceInaccessibleException.class)
+    public void gettingNonExistingAccountNumberThrowsLiberataServiceInaccessibleException() {
+        when(accountServiceMock.retrieve("PBA4321")).thenThrow(LiberataServiceInaccessibleException.class);
         accountController.getAccounts("PBA4321");
     }
 
