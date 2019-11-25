@@ -32,6 +32,9 @@ public class PaymentFee {
     @Column(name = "calculated_amount")
     private BigDecimal calculatedAmount;
 
+    @Column(name = "fee_amount")
+    private BigDecimal feeAmount;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentLink;
