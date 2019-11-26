@@ -45,7 +45,7 @@ public class PaymentDtoMapper {
             .externalReference(payment.getExternalReference())
             .links(new PaymentDto.LinksDto(
                 payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                null, null
+                null, payment.getCancelUrl() == null ? null : new PaymentDto.LinkDto(payment.getCancelUrl(), "GET")
             ))
             .build();
     }
