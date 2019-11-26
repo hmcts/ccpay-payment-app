@@ -32,7 +32,6 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
      envVariable: envVar
     ]
 }
-
 withNightlyPipeline(type, product, component) {
     env.TEST_URL = params.URL_TO_TEST
     loadVaultSecrets(secrets)
