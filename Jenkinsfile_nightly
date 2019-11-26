@@ -1,0 +1,42 @@
+#!groovy
+
+properties([
+    // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
+    pipelineTriggers([cron('H 22 * * *')]),
+    parameters([
+        string(name: 'URL_TO_TEST', defaultValue: 'http://payment-api-aat.service.core-compute-aat.internal', description: 'The URL you want to run these tests against'),
+    ])
+])
+
+@Library("Infrastructure")
+
+def type = "java"
+def product = "payment"
+def app = "api"
+
+def secrets = [
+    'ccpay-${env}': [
+        secret('cmc-service-secret', 'S2S_SERVICE_SECRET'),
+        secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET'),
+        secret('freg-idam-generated-user-email-pattern', 'GENERATED_USER_EMAIL_PATTERN'),
+        secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
+        secret('gov-pay-keys-cmc', 'GOV_PAY_AUTH_KEY_CMC')
+    ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+    [$class     : 'AzureKeyVaultSecret',
+     secretType : 'Secret',
+     name       : secretName,
+     version    : '',
+     envVariable: envVar
+    ]
+}
+
+withNightlyPipeline(type, product, component) {
+    env.TEST_URL = params.URL_TO_TEST
+    loadVaultSecrets(secrets)
+    enableSecurityScan()
+    enableMutationTest()
+    enableSlackNotifications('#cc-payments-tech')
+}
