@@ -27,5 +27,5 @@ java:
       postgresqlPassword: payment
       postgresqlDatabase: payment
 
-postgresql:
-  enabled: true
+  postgresql:
+    enabled: true
