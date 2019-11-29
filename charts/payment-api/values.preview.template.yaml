@@ -20,7 +20,7 @@ java:
     AUTH_IDAM_CLIENT_BASEURL: "https://idam-api.aat.platform.hmcts.net"
 
     #Below key required for preview pipeline
-    GOV_PAY_AUTH_KEY_CMC: 8ln764q6jrbgqvvvv40uggsea3h1p602v79gdrt7ni66mrmpk416ulohvd
+    #GOV_PAY_AUTH_KEY_CMC: 8ln764q6jrbgqvvvv40uggsea3h1p602v79gdrt7ni66mrmpk416ulohvd
     APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
     postgresql:
       postgresqlUsername: payment
