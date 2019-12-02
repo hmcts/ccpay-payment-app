@@ -12,7 +12,7 @@ properties([
 
 def type = "java"
 def product = "payment"
-def app = "api"
+def component = "api"
 
 def secrets = [
     'ccpay-${env}': [
