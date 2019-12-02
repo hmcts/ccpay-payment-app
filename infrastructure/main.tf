@@ -67,7 +67,7 @@ data "azurerm_key_vault_secret" "pci_pal_api_key" {
 
 data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_id" {
   name = "liberata-keys-oauth2-client-id"
-  key_vault_uri = data.azurerm_key_vault.payment_key_vault.id
+  key_vault_uri = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_secret" {
