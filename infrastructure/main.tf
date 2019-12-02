@@ -96,7 +96,7 @@ data "azurerm_key_vault_secret" "gov_pay_keys_cmc" {
 }
 
 //created seperate kv for cmc claim store and copied claim store value
-data "azurerm_key_vault_secret" "gov-pay-keys-cmc-claim-store" {
+resource "azurerm_key_vault_secret" "gov-pay-keys-cmc-claim-store" {
   name = "gov-pay-keys-cmc-claim-store"
   value = "${data.azurerm_key_vault_secret.gov_pay_keys_cmc.value}"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
