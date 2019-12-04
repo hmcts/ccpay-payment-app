@@ -66,6 +66,7 @@ public class BulkScanningReportMapper {
         };
     }
 
+    //Method to make sure payment group has atleast one exela/bulk scan payments. If not we won't consider that payment group for Surplus and Shortfall report.
     private boolean checkPaymentsFromExela(PaymentFeeLink paymentFeeLink){
         return paymentFeeLink.getPayments().stream()
             .filter(payment -> Objects.nonNull(payment.getPaymentProvider()))
@@ -87,10 +88,14 @@ public class BulkScanningReportMapper {
             .filter(payment -> checkPaymentsFromExela(payment.getPaymentLink()))
             .collect(Collectors.toList());
         LOG.info("Payments size after checkPaymentsFromExela: {}",payments.size());
+
         payments = payments.stream()
             .filter(payment -> checkGroupOutstanding(payment))
             .collect(Collectors.toList());
         LOG.info("Payments size after checkGroupOutstanding: {}",payments.size());
+        /*Filter for ignoring telephony, online payments and bulk scan payments which are Unidentified or Transferred. As we cannot
+        have surplus and shortfall payments in online and telephony payments.
+         */
         payments = payments.stream()
             .filter(payment -> Objects.nonNull(payment))
             .filter(payment -> Objects.nonNull(payment.getPaymentAllocation()) && payment.getPaymentAllocation().size() > 0)
@@ -129,6 +134,8 @@ public class BulkScanningReportMapper {
         };
     }
 
+    /*This method is to check if the particular payment group has any surplus/shortfall. If the total outstanding is 0 then those payments will not be
+    considered for this report.*/
     private boolean checkGroupOutstanding(Payment payment) {
         BigDecimal feeAmount = calculateFeeAmount(payment.getPaymentLink().getFees());
 
@@ -140,6 +147,11 @@ public class BulkScanningReportMapper {
 
         return totalOutStanding.compareTo(BigDecimal.ZERO) != 0;
     }
+
+    /*Method to check the group outstanding at payment level. For example if you have 1000£ fee and two payments 200£ each
+     1. For 1st payment total outstanding will be 800
+     2. For 2nd payment total outstanding will be 600
+     */
 
     private BigDecimal getGroupOutstandingForDateRange(Payment payment){
         BigDecimal feeAmount = calculateFeeAmount(payment.getPaymentLink().getFees());
@@ -159,9 +171,16 @@ public class BulkScanningReportMapper {
         return totalOutStanding;
     }
 
+    //Method to calculate the total payment amount for a particular payment group. And we are considering only payments which are success.
     private BigDecimal calculatePaymentAmount(List<Payment> payments) {
 
         BigDecimal paymentAmount = new BigDecimal(0);
+        payments = payments.stream()
+            .filter(payment -> Objects.nonNull(payment.getPaymentStatus()))
+            .filter(payment -> Objects.nonNull(payment.getPaymentStatus().getName()))
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success"))
+            .collect(Collectors.toList());
+        LOG.info("Payments size after filtering success payments: {}",payments.size());
         for(Payment payment : payments)
         {
             BigDecimal calculatedAmount = payment.getAmount();
@@ -171,6 +190,7 @@ public class BulkScanningReportMapper {
         return paymentAmount;
     }
 
+    //Method to calculate the total remmission amount for a particular payment group.
     private BigDecimal calculateRemissionAmount(List<Remission> remissions) {
 
         BigDecimal remissionAmount = new BigDecimal(0);
@@ -182,6 +202,7 @@ public class BulkScanningReportMapper {
         return remissionAmount;
     }
 
+    //Method to calculate the total fee amount for a particular payment group.
     private BigDecimal calculateFeeAmount(List<PaymentFee> fees) {
         BigDecimal feeAmount = new BigDecimal(0);
         for(PaymentFee paymentFee : fees)
