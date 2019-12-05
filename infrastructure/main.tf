@@ -21,7 +21,7 @@ locals {
   asp_name = "${var.env == "prod" ? "payment-api-prod" : "${var.core_product}-${var.env}"}"
 
   sku_size = "${var.env == "prod" || var.env == "sprod" || var.env == "aat" ? "I2" : "I1"}"
-  
+
   #region API gateway
   thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)}"
   thumbprints_in_quotes_str = "${join(",", local.thumbprints_in_quotes)}"
@@ -37,112 +37,119 @@ data "azurerm_key_vault" "payment_key_vault" {
 
 data "azurerm_key_vault_secret" "appinsights_instrumentation_key" {
   name = "AppInsightsInstrumentationKey"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pci_pal_account_id_cmc" {
   name = "pci-pal-account-id-cmc"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pci_pal_account_id_probate" {
   name = "pci-pal-account-id-probate"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pci_pal_account_id_divorce" {
   name = "pci-pal-account-id-divorce"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pci_pal_api_url" {
   name = "pci-pal-api-url"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pci_pal_api_key" {
   name = "pci-pal-api-key"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_id" {
   name = "liberata-keys-oauth2-client-id"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "liberata_keys_oauth2_client_secret" {
   name = "liberata-keys-oauth2-client-secret"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "liberata_keys_oauth2_username" {
   name = "liberata-keys-oauth2-username"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "liberata_keys_oauth2_password" {
   name = "liberata-keys-oauth2-password"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_reference" {
   name = "gov-pay-keys-reference"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_cmc" {
   name = "gov-pay-keys-cmc"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
+}
+
+//created seperate kv for cmc claim store and copied claim store value
+resource "azurerm_key_vault_secret" "gov-pay-keys-cmc-claim-store" {
+  name = "gov-pay-keys-cmc-claim-store"
+  value = "${data.azurerm_key_vault_secret.gov_pay_keys_cmc.value}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_probate" {
   name = "gov-pay-keys-probate"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_divorce" {
   name = "gov-pay-keys-divorce"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "card_payments_email_to" {
   name = "card-payments-email-to"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "bar_payments_email_to" {
   name = "bar-payments-email-to"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
   name = "pba-payments-email-to"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_probate_payments_email_to" {
   name = "pba-payments-email-to"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_finrem_payments_email_to" {
   name = "pba-payments-email-to"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_divorce_payments_email_to" {
   name = "pba-divorce-payments-email-to"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "webjob_s2s_client_secret" {
   name = "gateway-s2s-client-secret"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "webjob_s2s_client_id" {
   name = "gateway-s2s-client-id"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 module "payment-api" {
@@ -296,31 +303,31 @@ module "payment-database" {
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name      = "${var.component}-POSTGRES-USER"
   value     = "${module.payment-database.user_name}"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name      = "${var.component}-POSTGRES-PASS"
   value     = "${module.payment-database.postgresql_password}"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
   name      = "${var.component}-POSTGRES-HOST"
   value     = "${module.payment-database.host_name}"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
   name      = "${var.component}-POSTGRES-PORT"
   value     = "${module.payment-database.postgresql_listen_port}"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name      = "${var.component}-POSTGRES-DATABASE"
   value     = "${module.payment-database.postgresql_database}"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 
@@ -328,12 +335,12 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
 
 data "azurerm_key_vault_secret" "s2s_client_secret" {
   name = "gateway-s2s-client-secret"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "s2s_client_id" {
   name = "gateway-s2s-client-id"
-  vault_uri = "${data.azurerm_key_vault.payment_key_vault.vault_uri}"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "template_file" "policy_template" {
