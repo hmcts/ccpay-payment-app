@@ -66,7 +66,7 @@ java:
     FEATURE_PAYMENTS_SEARCH: "true"
     FEATURE_SERVICE_CALLBACK: "true"
 
-    APPINSIGHTS_INSTRUMENTATIONKEY: fake-key
+
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
@@ -80,6 +80,7 @@ java:
         - pci-pal-api-key
         - gov-pay-keys-reference
         - gov-pay-keys-cmc
+        - gov-pay-keys-cmc-claim-store
         - gov-pay-keys-divorce
         - gov-pay-keys-probate
         - liberata-keys-oauth2-client-id
