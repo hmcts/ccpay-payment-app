@@ -36,7 +36,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withNightlyPipeline("java", product, component) {
     env.TEST_URL = params.URL_TO_TEST
     loadVaultSecrets(secrets)
-    enableSecurityScan()
+    /*enableSecurityScan()*/
     enableMutationTest()
     enableSlackNotifications('#cc-payments-tech')
 }
