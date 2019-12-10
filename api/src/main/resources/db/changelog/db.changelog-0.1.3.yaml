@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1554989041518-1
+      author: aravind
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: retrospective_reason
+                  type: varchar(255)
+            tableName: remission

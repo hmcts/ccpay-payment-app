@@ -55,6 +55,9 @@ public class Remission {
     @Column(name = "date_updated")
     private Date dateUpdated;
 
+    @Column(name = "retrospective_reason")
+    private String retrospectiveReason;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentFeeLink;

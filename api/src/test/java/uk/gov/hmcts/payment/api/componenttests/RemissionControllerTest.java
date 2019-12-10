@@ -897,4 +897,27 @@ public class RemissionControllerTest {
             .ccdCaseNumber("1111-2222-2222-1111")
             .build();
     }
+
+    @Test
+    @Transactional
+    public void correctAndValidRetrospectiveRemissionWithoutCCDNumberInFeeDataShouldSaveToDbWithReason() throws Exception {
+        String hwfReference = "HWFref";
+        RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference(hwfReference)
+            .siteId("AA001")
+            .fee(getFeeWithOutCCDCaseNumber())
+            .retrospectiveReason("test")
+            .build();
+
+        MvcResult result =  restActions
+            .post("/remission", remissionRequest)
+            .andReturn();
+
+        RemissionDto remissionResultDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertEquals(remissionRequest.getCcdCaseNumber(),remissionResultDto.getFee().getCcdCaseNumber());
+    }
 }

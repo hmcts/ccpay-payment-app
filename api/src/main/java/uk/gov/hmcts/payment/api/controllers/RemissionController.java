@@ -119,6 +119,7 @@ public class RemissionController {
             .ccdCaseNumber(remissionRequest.getCcdCaseNumber())
             .caseReference(remissionRequest.getCaseReference())
             .siteId(remissionRequest.getSiteId())
+            .retrospectiveReason(remissionRequest.getRetrospectiveReason())
             .build();
     }
 

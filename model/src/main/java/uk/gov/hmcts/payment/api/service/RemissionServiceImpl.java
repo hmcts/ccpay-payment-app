@@ -91,6 +91,7 @@ public class RemissionServiceImpl implements RemissionService {
             .ccdCaseNumber(remissionServiceRequest.getCcdCaseNumber())
             .caseReference(remissionServiceRequest.getCaseReference())
             .siteId(remissionServiceRequest.getSiteId())
+            .retrospectiveReason(remissionServiceRequest.getRetrospectiveReason())
             .build();
     }
 

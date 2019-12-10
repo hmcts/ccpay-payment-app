@@ -39,6 +39,8 @@ public class RemissionRequest {
 
     private String paymentGroupReference;
 
+    private String retrospectiveReason;
+
     @NotNull
     @Valid
     private FeeDto fee;
