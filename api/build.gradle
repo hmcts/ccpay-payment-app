@@ -38,6 +38,9 @@ sonarqube {
     properties {
         property "sonar.pitest.mode", "reuseReport"
         property "sonar.pitest.reportsDirectory", "build/reports/pitest"
+        property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/professionalapi/configuration/**," +
+                "src/main/java/uk/gov/hmcts/reform/professionalapi/SystemDateProvider.java," +
+                "src/main/java/uk/gov/hmcts/reform/professionalapi/Application.java"
     }
 }
 
@@ -144,13 +147,14 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 
 pitest {
     targetClasses = ['uk.gov.hmcts.payment.api.*']
-    excludedClasses = ['uk.gov.hmcts.payment.api.v1.controllers.*',
+    excludedClasses = ['uk.gov.hmcts.payment.api.v1',
                        'uk.gov.hmcts.payment.api.configuration.*',
                        'uk.gov.hmcts.payment.api.dto.mapper.*',
                        'uk.gov.hmcts.payment.api.exception.*',
                        'uk.gov.hmcts.payment.api.reports.config.*']
     threads = 10
     outputFormats = ['XML', 'HTML']
-    timestampedReports = false
-    mutationThreshold = 75
+    historyInputLocation = ['build/reports/pitest/fastermutationtesting']
+    historyOutputLocation = ['build/reports/pitest/fastermutationtestingoutput']
+    mutationThreshold = 90
 }
