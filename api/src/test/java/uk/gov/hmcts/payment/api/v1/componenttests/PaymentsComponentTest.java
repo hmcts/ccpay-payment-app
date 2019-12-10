@@ -24,7 +24,7 @@ import static uk.gov.hmcts.payment.api.v1.model.PaymentOld.paymentWith;
 
 public class PaymentsComponentTest extends TestUtil {
 
-    private static final String USER_ID = "userId";
+    private static final String USER_ID = "3";
 
     @Autowired
     private ObjectMapper objectMapper;
