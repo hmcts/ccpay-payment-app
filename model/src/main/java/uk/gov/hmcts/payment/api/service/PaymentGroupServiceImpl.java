@@ -11,11 +11,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
 import javax.persistence.criteria.*;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -115,7 +111,10 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         List<PaymentFeeLink> paymentFeeLinks = Stream.of(paymentFeeLinkWithMatchingPayments, paymentFeeLinkWithMatchingFees,
             paymentFeeLinkWithMatchingRemissions)
             .flatMap(Collection::stream)
-            .distinct().collect(Collectors.toList());
+            .distinct()
+            .collect(Collectors.toList());
+
+        paymentFeeLinks.sort(Comparator.comparing(PaymentFeeLink::getDateUpdated));
 
         return paymentFeeLinks;
 

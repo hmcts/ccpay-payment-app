@@ -6,14 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
@@ -58,11 +56,28 @@ public class PaymentGroupDtoMapper {
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .dateCreated(payment.getDateCreated() != null ? payment.getDateCreated() : null)
+            .documentControlNumber(payment.getDocumentControlNumber())
+            .bankedDate(payment.getBankedDate())
+            .payerName(payment.getPayerName())
+            .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .build();
     }
 
     private List<RemissionDto> toRemissionDtos(List<Remission> remissions) {
         return remissions.stream().map(r -> toRemissionDto(r)).collect(Collectors.toList());
+    }
+
+    private List<PaymentAllocationDto> toPaymentAllocationDtos(List<PaymentAllocation> paymentAllocation) {
+        return paymentAllocation.stream().map(pa -> toPaymentAllocationDto(pa)).collect(Collectors.toList());
+    }
+
+    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
+            .build();
+    }
+    private BigDecimal getTotalHwfRemission(List<Remission> remissions) {
+        return remissions != null ? remissions.stream().map(Remission::getHwfAmount).reduce(BigDecimal.ZERO, BigDecimal::add) : new BigDecimal("0.00");
     }
 
     private RemissionDto toRemissionDto(Remission remission) {
@@ -92,6 +107,7 @@ public class PaymentGroupDtoMapper {
             .netAmount(fee.getNetAmount())
             .version(fee.getVersion())
             .volume(fee.getVolume())
+            .feeAmount(fee.getFeeAmount())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .reference(fee.getReference())
             .id(fee.getId())
@@ -108,6 +124,7 @@ public class PaymentGroupDtoMapper {
             .calculatedAmount(feeDto.getCalculatedAmount())
             .ccdCaseNumber(feeDto.getCcdCaseNumber())
             .volume(feeDto.getVolume())
+            .feeAmount(feeDto.getFeeAmount())
             .netAmount(feeDto.getCalculatedAmount())
             .reference(feeDto.getReference())
             .build();

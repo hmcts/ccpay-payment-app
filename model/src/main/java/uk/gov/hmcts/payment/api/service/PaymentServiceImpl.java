@@ -13,7 +13,6 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -64,11 +63,16 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
 
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
                     .status(status)
-                    .build()));	
+                    .build()));
         if (payment.getServiceCallbackUrl() != null) {
             callbackService.callback(payment.getPaymentLink(), payment);
         }
         telephonyRepository.save(TelephonyCallback.telephonyCallbackWith().paymentReference(paymentReference).payload(payload).build());
+    }
+
+    @Override
+    public List<Payment> getPayments(Date atStartOfDay, Date atEndOfDay) {
+        return paymentRepository.findAllByDateCreatedBetween(atStartOfDay, atEndOfDay).orElse(Collections.EMPTY_LIST);
     }
 
     @Override

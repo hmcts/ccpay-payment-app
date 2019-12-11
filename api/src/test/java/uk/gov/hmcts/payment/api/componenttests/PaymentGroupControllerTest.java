@@ -36,17 +36,15 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -557,6 +555,56 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
     public void addInvalidBulkScanPayment() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -754,6 +802,80 @@ public class PaymentGroupControllerTest {
         assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
     }
 
+    @Test
+    public void shouldThrowErrorWhenInvalidSiteId() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("aaaa")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate(DateTime.now().toString())
+            .giroSlipNo("BCH82173823")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    }
+
+    @Test
+    public void shouldReturnSuccessWhenExternalProviderIsExela() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate(DateTime.now().toString())
+            .giroSlipNo("BCH82173823")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .externalProvider("exela")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
+    }
 
     @Test
     public void addInvalidNewBulkScanPayment() throws Exception{
@@ -799,6 +921,113 @@ public class PaymentGroupControllerTest {
         assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
     }
 
+    @Test
+    public void addNewvalidBulkScanPaymentWithExceptionRecordAndCCDCaseNumber() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .exceptionRecord("1231-1231-3453-5333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .giroSlipNo("BCH82173823")
+            .bankedDate(DateTime.now().toString())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
+        assertTrue(paymentsResponse.getCaseReference().equals("1231-1231-3453-5333"));
+    }
+
+    @Test
+    public void shouldThrowErrorWhenSiteIdIsInvalid() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("aaaaa")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .giroSlipNo("BCH82173823")
+            .bankedDate(DateTime.now().toString())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    public void shouldThrowErrorWhenBothCCDNumberAndExceptionRecordIsEmpty() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA07")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .giroSlipNo("BCH82173823")
+            .bankedDate(DateTime.now().toString())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+    }
+
+    @Test
+    public void shouldReturnSuccessWhenPaymentProviderIsExela() throws Exception{
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .giroSlipNo("BCH82173823")
+            .bankedDate(DateTime.now().toString())
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .externalProvider("exela")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
+    }
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()

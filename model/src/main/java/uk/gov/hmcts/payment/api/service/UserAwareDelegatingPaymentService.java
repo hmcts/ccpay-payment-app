@@ -17,17 +17,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
@@ -36,16 +26,13 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 @Service
 @Primary
@@ -54,7 +41,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     private final static String PAYMENT_CHANNEL_TELEPHONY = "telephony";
     private final static String PAYMENT_PROVIDER_PCI_PAL = "pci pal";
-    private final static String PAYMENT_BY_CARD = "card";
+    private final static String PAYMENT_METHOD = "paymentMethod";
     private final static String PAYMENT_STATUS_CREATED = "created";
     private final static String PAYMENT_METHOD_CARD = "card";
 
@@ -213,7 +200,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         String paymentService = payment.getS2sServiceName();
 
         if (null == paymentService || paymentService.trim().equals("")) {
-            LOG.error("Unable to determine the payment service which created this payment-Ref:" + paymentReference);
+            LOG.error("Unable to determine the payment service which created this payment-Ref: {}",paymentReference);
         }
 
         paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), paymentService);
@@ -285,7 +272,23 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         Join<PaymentFeeLink, Payment> paymentJoin = root.join("payments", JoinType.LEFT);
 
         if (searchCriteria.getPaymentMethod() != null) {
-            predicates.add(cb.equal(paymentJoin.get("paymentMethod"), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
+            if(searchCriteria.getPaymentMethod().equalsIgnoreCase("all"))
+            {
+                Predicate predicateCheque = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cheque").build());
+                Predicate predicateCard = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("card").build());
+                Predicate predicateDD = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("direct debit").build());
+                Predicate predicateCash = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("cash").build());
+                Predicate predicatePBA = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("payment by account").build());
+                Predicate predicateAllPay = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("all pay").build());
+                Predicate predicatePO = cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name("postal order").build());
+                Predicate predicateFinal = cb.or(predicateCheque,predicateCard,predicateDD,predicateCash,predicatePBA,predicateAllPay,predicatePO);
+                predicates.add(predicateFinal);
+            }
+            else
+            {
+                predicates.add(cb.equal(paymentJoin.get(PAYMENT_METHOD), PaymentMethod.paymentMethodWith().name(searchCriteria.getPaymentMethod()).build()));
+            }
+
         }
 
         Expression<Date> dateUpdatedExpr = cb.function("date_trunc", Date.class, cb.literal("seconds"), paymentJoin.get("dateUpdated"));
@@ -314,8 +317,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private Payment findSavedPayment(@NotNull String paymentReference) {
-        return paymentRespository.findByReferenceAndPaymentMethod(paymentReference,
-            PaymentMethod.paymentMethodWith().name(PAYMENT_BY_CARD).build()).orElseThrow(PaymentNotFoundException::new);
+        return paymentRespository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
     }
 
     private void fillTransientDetails(Payment payment, GovPayPayment govPayPayment) {

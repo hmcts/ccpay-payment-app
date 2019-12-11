@@ -1,11 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -14,15 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
@@ -45,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
@@ -186,7 +172,7 @@ public class PaymentController {
     public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         return Optional.ofNullable(paymentFeeLink)
-            .map(paymentDtoMapper::toReconciliationResponseDto)
+            .map(paymentDtoMapper::toReconciliationResponseDtos)
             .orElseThrow(PaymentNotFoundException::new);
     }
 
@@ -201,7 +187,7 @@ public class PaymentController {
         for (final Payment p: payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
-            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDto(p, paymentReference, fees);
+            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(p, paymentReference, fees,ff4j);
             paymentDtos.add(paymentDto);
         }
     }

@@ -1,10 +1,7 @@
 package uk.gov.hmcts.payment.api.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -39,17 +36,26 @@ public class PaymentAllocation {
     @Column(name = "receiving_office")
     private String receivingOffice;
 
-    @Column(name = "receiving_email_address")
-    private String receivingEmailAddress;
+    @Column(name = "reason")
+    private String reason;
 
-    @Column(name = "sending_email_address")
-    private String sendingEmailAddress;
+    @Column(name = "explanation")
+    private String explanation;
 
     @Column(name = "user_id")
     private String userId;
 
+    @Column(name = "user_name")
+    private String userName;
+
     @CreationTimestamp
     @Column(name = "date_created")
     private Date dateCreated;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    private Payment payment;
+
 
 }
