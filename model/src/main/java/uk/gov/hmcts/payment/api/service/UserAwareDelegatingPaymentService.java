@@ -328,7 +328,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         payment.setExternalReference(govPayPayment.getPaymentId());
         payment.setDescription(govPayPayment.getDescription());
         payment.setReturnUrl(govPayPayment.getReturnUrl());
+        LOG.info("Payment URL from Gov pay: {}", govPayPayment.getLinks().getNextUrl());
         payment.setNextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()));
+        LOG.info("Cancel URL from Gov pay: {}", govPayPayment.getLinks().getCancel());
         payment.setCancelUrl(hrefFor(govPayPayment.getLinks().getCancel()));
         payment.setRefundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()));
     }
