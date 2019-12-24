@@ -56,6 +56,7 @@ public class PaymentGroupDtoMapper {
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .dateCreated(payment.getDateCreated() != null ? payment.getDateCreated() : null)
+            .dateUpdated(payment.getDateUpdated() != null ? payment.getDateUpdated() : null)
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
