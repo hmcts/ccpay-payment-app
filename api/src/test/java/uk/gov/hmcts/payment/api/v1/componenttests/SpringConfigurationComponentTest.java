@@ -9,8 +9,10 @@ public class SpringConfigurationComponentTest extends TestUtil {
     @Test
     public void invalidRequestShouldResultIn400() throws Exception {
         restActions
-            .withAuthorizedUser("userId")
+            .withAuthorizedUser("3")
+            .withUserId("3")
             .withAuthorizedService("divorce")
-            .post("/users/userId/payments/", "{ invalid json }").andExpect(status().isBadRequest());
+            .post("/users/3/payments/", "{ invalid json }").andExpect(status().isBadRequest());
+
     }
 }
