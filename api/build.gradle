@@ -70,7 +70,7 @@ dependencies {
   compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.9'
   compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'5.0'
   compile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.5.2'
-  compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.1'
+  compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.0'
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version:'2.9.0'
   compile group: 'io.springfox', name: 'springfox-swagger2', version:'2.9.0'
   compile group: 'uk.gov.hmcts.reform', name: 'liquibase-core', version:'3.8.1'
