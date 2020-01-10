@@ -60,20 +60,11 @@
         <cve>CVE-2018-10237</cve>
     </suppress>
     <suppress>
-        <cve>CVE-2011-1068</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2013-1282</cve>
-    </suppress>
-    <suppress>
         <cve>CVE-2019-10101</cve>
         <cve>CVE-2019-10102</cve>
         <cve>CVE-2019-10103</cve>
         <cve>CVE-2018-17187</cve>
         <cve>CVE-2019-11358</cve>
-        <cve>CVE-2018-14040</cve>
-        <cve>CVE-2018-14041</cve>
-        <cve>CVE-2018-14042</cve>
         <cve>CVE-2019-8331</cve>
         <cve>CVE-2015-9251</cve>
         <cve>CVE-2012-6708</cve>
@@ -89,12 +80,6 @@
         <cwe>611</cwe>
     </suppress>
     <suppress>
-        <notes><![CDATA[
-   org.slf4j:slf4j-api:1.7.25 -> inherited from org.springframework.boot:spring-boot-starter-web. No fix available yet.
-   ]]></notes>
-        <cve>CVE-2018-8088</cve>
-    </suppress>
-    <suppress>
         <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see https://pivotal.io/security/cve-2018-1258</notes>
         <cve>CVE-2018-1258</cve>
     </suppress>
@@ -105,14 +90,6 @@
         <gav regex="true">^io\.netty:netty-tcnative-boringssl-static:.*</gav>
         <cve>CVE-2014-3488</cve>
         <cve>CVE-2015-2156</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			Not applicable - Randomness vulnerability when using SecureRandomFactoryBean
-			]]></notes>
-        <gav regex="true">.*</gav>
-        <cve>CVE-2019-3795</cve>
-        <cve>CVE-2019-3778</cve>
     </suppress>
     <suppress>
         <notes><![CDATA[
