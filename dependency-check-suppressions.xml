@@ -92,60 +92,6 @@
         <cve>CVE-2015-2156</cve>
     </suppress>
     <suppress>
-        <notes><![CDATA[
-            file name: spring-security-rsa-1.0.8.RELEASE.jar
-            This has been updated, but it still shown some vulnerabilities that shouldn't be there
-            Issue reported on the DependencyCheck GitHub repo
-            https://github.com/jeremylong/DependencyCheck/issues/1665
-        ]]>
-        </notes>
-        <gav regex="true">.*</gav>
-        <cpe>cpe:/a:vmware:springsource_spring_security:1.0.8</cpe>
-        <cpe>cpe:/a:pivotal_software:spring_security:1.0.8,</cpe>
-        <cpe>cpe:/a:pivotal_software:spring_security_oauth:1.0.8</cpe>
-        <cpe>cpe:/a:pivotal:spring_security_oauth:1.0.8</cpe>
-        <cve>CVE-2011-2731</cve>
-        <cve>CVE-2011-2732</cve>
-        <cve>CVE-2012-5055</cve>
-        <cve>CVE-2018-1260</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-0232</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-0199</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-10241</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-10246</cve>
-        <cve>CVE-2019-10247</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			Jetty included by wiremock. No update available yet.
-			]]></notes>
-        <gav regex="true">^.*org.eclipse.jetty.*$</gav>
-        <cve>CVE-2019-10247</cve>
-        <cve>CVE-2019-10241</cve>
-        <cve>CVE-2019-10246</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			Apache Tomcat included by azure spring boot et al. No update available yet.
-			]]></notes>
-        <gav regex="true">^.*org.apache.tomcat.embed.*$</gav>
-        <cve>CVE-2019-0232</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-            tomcat-embed-websocket-9.0.17.jar, included by uk.gov.hmcts.reform:properties-volume-spring-boot-starter:0.0.4, no update available
-			]]></notes>
-        <gav regex="true">^.*org.apache.tomcat.embed.*$</gav>
-        <cve>CVE-2019-0221</cve>
-    </suppress>
-    <suppress>
         <notes>We are bound by the gradle version in the CNP environments. Currently all gradle versions upto 5.6 are
             impacted. As this is a third party related issue,
             we are awaiting a fix from Gradle dev team. As soon as the fix is available from the gradle, we will provide
