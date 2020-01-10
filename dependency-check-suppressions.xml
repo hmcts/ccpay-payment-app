@@ -146,11 +146,6 @@
         <cve>CVE-2019-0221</cve>
     </suppress>
     <suppress>
-        <cve>CVE-2019-12814</cve>
-        <cve>CVE-2019-14379</cve>
-        <cve>CVE-2019-14439</cve>
-    </suppress>
-    <suppress>
         <notes>We are bound by the gradle version in the CNP environments. Currently all gradle versions upto 5.6 are
             impacted. As this is a third party related issue,
             we are awaiting a fix from Gradle dev team. As soon as the fix is available from the gradle, we will provide
