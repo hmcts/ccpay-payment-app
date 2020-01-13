@@ -44,8 +44,6 @@ public class PaymentController {
     private final PaymentDtoMapper paymentDtoMapper;
     private final PaymentValidator validator;
     private final FF4j ff4j;
-
-    private final DateUtil dateUtil;
     private final DateTimeFormatter formatter;
 
     @Autowired
@@ -59,7 +57,6 @@ public class PaymentController {
         this.paymentDtoMapper = paymentDtoMapper;
         this.validator = paymentValidator;
         this.ff4j = ff4j;
-        this.dateUtil = dateUtil;
         this.formatter = dateUtil.getIsoDateTimeFormatter();
     }
 
