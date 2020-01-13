@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
     <suppress>
         <notes>suppress false positives - only relevant if endpoints are exposed</notes>
         <gav regex="true">^org\.codehaus\.jackson:jackson-mapper-asl.*$</gav>
@@ -23,14 +23,6 @@
         <cve>CVE-2018-1271</cve>
         <cve>CVE-2018-1272</cve>
     </suppress>
-
-    <suppress>
-        <notes><![CDATA[
-   file name: postgresql-42.2.5.jar we are onl latest version. fixes not available yet.
-   ]]></notes>
-        <gav regex="true">^org\.postgresql:postgresql:.*$</gav>
-        <cpe>cpe:/a:postgresql:postgresql</cpe>
-    </suppress>
     <suppress>
         <notes><![CDATA[
    file name: jstl-1.2.jar
@@ -53,22 +45,12 @@
         <cve>CVE-2010-0538</cve>
     </suppress>
     <suppress>
-        <notes><![CDATA[
-   file name: AppleJavaExtensions-1.4.jar  fix in PAY-1438
-   ]]></notes>
-        <gav regex="true">^com\.google\.guava:guava:.*$</gav>
-        <cve>CVE-2018-10237</cve>
-    </suppress>
-    <suppress>
         <cve>CVE-2019-10101</cve>
         <cve>CVE-2019-10102</cve>
         <cve>CVE-2019-10103</cve>
-        <cve>CVE-2018-17187</cve>
         <cve>CVE-2019-11358</cve>
-        <cve>CVE-2019-8331</cve>
         <cve>CVE-2015-9251</cve>
         <cve>CVE-2012-6708</cve>
-        <cve>CVE-2019-16370</cve>
         <cve>CVE-2019-16869</cve>
         <cve>CVE-2015-0203</cve>
         <cve>CVE-2015-0223</cve>
@@ -76,19 +58,12 @@
         <cve>CVE-2019-0223</cve>
         <cve>CVE-2019-12418</cve>
         <cve>CVE-2019-17563</cve>
+        <cve>CVE-2018-17187</cve>
         <cwe>611</cwe>
     </suppress>
     <suppress>
         <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see https://pivotal.io/security/cve-2018-1258</notes>
         <cve>CVE-2018-1258</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-    Suppressing as it seems a false positive as per https://github.com/jeremylong/DependencyCheck/issues/1573
-    ]]></notes>
-        <gav regex="true">^io\.netty:netty-tcnative-boringssl-static:.*</gav>
-        <cve>CVE-2014-3488</cve>
-        <cve>CVE-2015-2156</cve>
     </suppress>
     <suppress>
         <notes>We are bound by the gradle version in the CNP environments. Currently all gradle versions upto 5.6 are
