@@ -28,10 +28,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 
@@ -183,13 +181,29 @@ public class PaymentController {
     }
 
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink) {
-        final List<Payment> payments = paymentFeeLink.getPayments();
+        //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
+        List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
         for (final Payment p: payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
             final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(p, paymentReference, fees,ff4j);
             paymentDtos.add(paymentDto);
         }
+    }
+
+    private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(PaymentFeeLink paymentFeeLink) {
+        List<Payment> payments = paymentFeeLink.getPayments();
+        boolean bulkScanCheck = ff4j.check("bulk-scan-check");
+        if(!bulkScanCheck) {
+            payments = Optional.ofNullable(payments)
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .filter(payment -> Objects.nonNull(payment.getPaymentProvider()))
+                .filter(payment -> Objects.nonNull(payment.getPaymentProvider().getName()))
+                .filter(payment -> !payment.getPaymentProvider().getName().equalsIgnoreCase("exela"))
+                .collect(Collectors.toList());
+        }
+        return payments;
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
