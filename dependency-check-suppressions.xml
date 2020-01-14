@@ -198,5 +198,10 @@
         <cve>CVE-2019-16942</cve>
         <cve>CVE-2019-16943</cve>
     </suppress>
+    <suppress>
+        <cpe>cpe:/a:apache_tomcat:apache_tomcat:9.0.21</cpe>
+        <cve>CVE-2019-12418</cve>
+        <cve>CVE-2019-17563</cve>
+    </suppress>
 
 </suppressions>
