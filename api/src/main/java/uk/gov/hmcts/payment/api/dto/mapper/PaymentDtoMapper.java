@@ -228,6 +228,8 @@ public class PaymentDtoMapper {
     public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j) {
         boolean isExelaPayment = payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
+        LOG.info("bulkScanCheck value in PaymentDtoMapper: {}",bulkScanCheck);
+        LOG.info("isExelaPayment value in PaymentDtoMapper: {}",isExelaPayment);
             PaymentDto paymentDto = PaymentDto.payment2DtoWith()
                 .paymentReference(payment.getReference())
                 .paymentGroupReference(paymentReference)
