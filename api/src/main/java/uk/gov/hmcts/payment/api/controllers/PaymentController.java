@@ -4,6 +4,8 @@ import io.swagger.annotations.*;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +40,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 @SwaggerDefinition(tags = {@Tag(name = "PaymentController", description = "Payment REST API")})
 public class PaymentController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentController.class);
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final CallbackService callbackService;
     private final PaymentStatusRepository paymentStatusRepository;
@@ -191,6 +194,7 @@ public class PaymentController {
     private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(PaymentFeeLink paymentFeeLink) {
         List<Payment> payments = paymentFeeLink.getPayments();
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
+        LOG.info("bulkScanCheck value: {}",bulkScanCheck);
         if(!bulkScanCheck) {
             payments = Optional.ofNullable(payments)
                 .orElseGet(Collections::emptyList)
