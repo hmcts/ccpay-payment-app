@@ -6,6 +6,8 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,6 +34,7 @@ public class PaymentRecordFunctionalTest {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordFunctionalTest.class);
 
     @Autowired
     private TestConfigProperties testProps;
@@ -74,15 +77,16 @@ public class PaymentRecordFunctionalTest {
                 .s2sToken(SERVICE_TOKEN)
                 .when().searchPaymentsBetweenDates(startDate, endDate)
                 .then().getPayments((paymentsResponse -> {
-                    assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
+                LOG.info("paymentsResponse: {}",paymentsResponse.getPayments().size());
+                assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
 
-                    FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-                    assertThat(feeDto.getCode()).isEqualTo("FEE0333");
-                    assertThat(feeDto.getVersion()).isEqualTo("1");
-                    assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
-                    assertThat(feeDto.getReference()).isNotNull();
-                    assertThat(feeDto.getReference()).isEqualTo("REF_123");
-                    assertThat(feeDto.getVolume()).isEqualTo(1);
+                FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
+                assertThat(feeDto.getCode()).isEqualTo("FEE0333");
+                assertThat(feeDto.getVersion()).isEqualTo("1");
+                assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
+                assertThat(feeDto.getReference()).isNotNull();
+                assertThat(feeDto.getReference()).isEqualTo("REF_123");
+                assertThat(feeDto.getVolume()).isEqualTo(1);
             }));
         });
     }

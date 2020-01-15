@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,6 +64,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
+
     RestActions restActions;
 
     @Autowired
@@ -94,8 +99,11 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .postWithFormData("/telephony/callback", rawFormData)
             .andExpect(status().isNoContent());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber())
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -103,7 +111,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         List<PaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);
-        assertEquals("Success", payments.get(0).getStatus());
+        assertEquals("success", payments.get(0).getStatus());
 
     }
 

@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,6 +96,114 @@ public class PaymentsDataUtil {
             .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
             .reference("RC-1519-9028-2432-000" + number)
             .statusHistories(Arrays.asList(statusHistory))
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populateCardPaymentToDbForPaymentAllocation(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
+            .paymentReference("RC-1519-9028-2432-000"+number)
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populatePaymentToDbForExelaPayments(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
+            .paymentReference("RC-1519-9028-2432-000"+number)
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populatePaymentToDbForExelaPaymentsWithoutPaymentProvider(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
+            .paymentReference("RC-1519-9028-2432-000"+number)
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
             .build();
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
@@ -297,6 +404,27 @@ public class PaymentsDataUtil {
         });
     }
 
+    protected void assertPbaPaymentsForLibereta(List<PaymentDto> payments) {
+        assertThat(payments.size()).isEqualTo(1);
+        payments.stream().forEach(p -> {
+            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
+            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+            assertThat(p.getCaseReference()).isEqualTo("Reference2");
+            assertThat(p.getAmount()).isEqualTo(new BigDecimal("11.99"));
+            assertThat(p.getChannel()).isEqualTo("online");
+            assertThat(p.getMethod()).isEqualTo("payment by account");
+            assertThat(p.getStatus()).isEqualTo("initiated");
+            assertThat(p.getSiteId()).isEqualTo("AA02");
+            assertThat(p.getAccountNumber()).isEqualTo("123456");
+            assertThat(p.getDateCreated()).isNotNull();
+            assertThat(p.getDateUpdated()).isNotNull();
+            p.getFees().stream().forEach(f -> {
+                assertThat(f.getCode()).isEqualTo("FEE0002");
+                assertThat(f.getVersion()).isEqualTo("1");
+                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
+            });
+        });
+    }
     @SneakyThrows
     protected String contentsOf(String fileName) {
         String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
