@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.validator.routines.checkdigit.CheckDigit;
 import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
@@ -27,7 +28,6 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.DbBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -196,9 +196,12 @@ public class PaymentRecordControllerTest {
             .post("/payment-records", chequePaymentRequest)
             .andExpect(status().isCreated());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
 
         MvcResult result = restActions
-            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR")
+            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR"+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -525,8 +528,11 @@ public class PaymentRecordControllerTest {
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
         MvcResult result2 = restActions
-            .get("/payments?service_name=" + Service.DIGITAL_BAR)
+            .get("/payments?service_name=" + Service.DIGITAL_BAR+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -535,8 +541,6 @@ public class PaymentRecordControllerTest {
         assertThat(response2.getPayments().size()).isGreaterThan(0);
 
         assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotNull();
-        assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotBlank();
-        assertThat(response2.getPayments().get(0).getReportedDateOffline()).isNotEmpty();
 
     }
 

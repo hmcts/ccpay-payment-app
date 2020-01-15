@@ -72,6 +72,12 @@ public class AccountControllerTest {
         accountController.getAccounts("PBA4321");
     }
 
+    @Test(expected = LiberataServiceInaccessibleException.class)
+    public void gettingNonExistingAccountNumberThrowsLiberataServiceInaccessibleException() {
+        when(accountServiceMock.retrieve("PBA4321")).thenThrow(LiberataServiceInaccessibleException.class);
+        accountController.getAccounts("PBA4321");
+    }
+
     @Test
     public void gettingNonExistingAccountNumberReturns404() throws Exception {
         String errorMessage = "errorMessage";
