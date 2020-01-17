@@ -51,6 +51,8 @@ public class CardPaymentRequest {
 
     private String channel;
 
+    private String language;
+
     @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
