@@ -202,7 +202,6 @@
         <cve>CVE-2019-17563</cve>
     </suppress>
     <suppress>
-        <cpe>cpe:/a:fasterxml:jackson-databind:2.9.9</cpe>
         <cve>CVE-2019-20330</cve>
     </suppress>
 
