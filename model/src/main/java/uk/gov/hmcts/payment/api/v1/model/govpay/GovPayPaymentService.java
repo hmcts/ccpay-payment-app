@@ -28,9 +28,10 @@ public class GovPayPaymentService implements PaymentService<GovPayPayment, Strin
     public GovPayPayment create(int amount,
                                 @NonNull String reference,
                                 @NonNull String description,
-                                @NonNull String returnUrl
+                                @NonNull String returnUrl,
+                                String language
                                  ) {
-        return govPayClient.createPayment(keyForCurrentService(), new CreatePaymentRequest(amount, reference, description, returnUrl,null));
+        return govPayClient.createPayment(keyForCurrentService(), new CreatePaymentRequest(amount, reference, description, returnUrl, language));
     }
 
     @Override

@@ -37,11 +37,11 @@ public class UserAwareDelegatingPaymentServiceTest {
 
     @Test
     public void checkCreateWiring() {
-        when(govPayPaymentService.create(100, "reference", "description", "returnUrl")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
+        when(govPayPaymentService.create(100, "reference", "description", "returnUrl","language")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
         when(paymentRepository.save(PaymentOld.paymentWith().govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).userId(USER_ID).build()))
                 .thenReturn(PaymentOld.paymentWith().id(999).govPayId(VALID_GOV_PAYMENT_RESPONSE.getPaymentId()).build());
 
-        PaymentOld paymentOld = paymentService.create(100, "reference", "description", "returnUrl");
+        PaymentOld paymentOld = paymentService.create(100, "reference", "description", "returnUrl","language");
         assertThat(paymentOld).isEqualTo(mapToPayment(999, VALID_GOV_PAYMENT_RESPONSE.getPaymentId(), VALID_GOV_PAYMENT_RESPONSE));
     }
 
