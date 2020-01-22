@@ -47,8 +47,12 @@
         <cve>CVE-2018-1000873</cve>
         <cve>CVE-2018-7489</cve>
         <cve>CVE-2019-17267</cve>
-        <cve>CVE-2019-16335</cve>h
+        <cve>CVE-2019-16335</cve>
         <cve>CVE-2019-14540</cve>
+        <cve>CVE-2015-0223</cve>
+        <cve>CVE-2015-0224</cve>
+        <cve>CVE-2019-0223</cve>
+        <cve>CVE-2015-0203</cve>
         <cwe>611</cwe>
     </suppress>
     <suppress>
