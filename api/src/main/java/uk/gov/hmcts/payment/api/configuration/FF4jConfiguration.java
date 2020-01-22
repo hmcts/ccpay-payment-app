@@ -33,6 +33,12 @@ public class FF4jConfiguration {
     @Value("${feature.case.reference.validation}")
     private boolean caseRefValidation = false;
 
+    @Value("${feature.bulk.scan.payments.check}")
+    private boolean isBulkScanPaymentsEnabled = true;
+
+    @Value("${feature.bulk.scan.payments.check.pay.bubble}")
+    private boolean isBulkScanPayBubbleEnabled = true;
+
     @Bean
     public FF4j getFf4j() {
 
@@ -68,13 +74,25 @@ public class FF4jConfiguration {
             caseRefValidation,
             "enable validate case id in payhub");
 
+        Feature bulkScanEnablingFeature = new Feature(
+            "bulk-scan-check",
+            isBulkScanPaymentsEnabled,
+            "enable bulkScan payments");
+
+        Feature bulkScanPayBubbleFeature = new Feature(
+            "bulk-scan-enabling-fe",
+            isBulkScanPayBubbleEnabled,
+            "enable bulkScan payBubble check");
+
         return new FF4j()
             .createFeature(paymentSearchFeature)
             .createFeature(paymentServiceCallbackFeature)
             .createFeature(creditAccountPaymentLiberataCheckFeature)
             .createFeature(checkLiberataAccountForAllServicesFeature)
             .createFeature(duplicatePaymentCheckFeature)
-            .createFeature(caseRefValidationFeature);
+            .createFeature(caseRefValidationFeature)
+            .createFeature(bulkScanEnablingFeature)
+            .createFeature(bulkScanPayBubbleFeature);
     }
 
     @Bean

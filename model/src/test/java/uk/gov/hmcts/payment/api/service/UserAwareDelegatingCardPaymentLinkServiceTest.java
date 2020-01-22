@@ -7,16 +7,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -27,11 +18,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment.govPaymentWith;
 
 public class UserAwareDelegatingCardPaymentLinkServiceTest {
@@ -95,12 +82,10 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
         paymentFeeLinkRepository.findByPaymentReference("1").orElseThrow(PaymentNotFoundException::new);
 
-        when(paymentRespository.findByReferenceAndPaymentMethod(reference,
-            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
+        when(paymentRespository.findByReference(reference))
             .thenReturn(Optional.of(payment1));
 
-        paymentRespository.findByReferenceAndPaymentMethod(reference,
-            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
+        paymentRespository.findByReference(reference).orElseThrow(PaymentNotFoundException::new);
 
         when(govPayDelegatingPaymentService.retrieve("govPayId", "cmc")).thenReturn(ANOTHER_GOV_PAYMENT_RESPONSE);
 
@@ -133,7 +118,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
             .build()));
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference("1").orElseThrow(PaymentNotFoundException::new);
-        when(paymentRespository.findByReferenceAndPaymentMethod(reference, PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build())).thenReturn(Optional.of(Payment.paymentWith().id(1)
+        when(paymentRespository.findByReference(reference)).thenReturn(Optional.of(Payment.paymentWith().id(1)
             .externalReference("govPayId")
             .serviceType("cmc")
             .reference(reference)
@@ -145,8 +130,7 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
             .paymentLink(paymentFeeLink)
             .build()));
 
-        Payment payment = paymentRespository.findByReferenceAndPaymentMethod(reference,
-            PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()).orElseThrow(PaymentNotFoundException::new);
+        Payment payment = paymentRespository.findByReference(reference).orElseThrow(PaymentNotFoundException::new);
 
         when(govPayDelegatingPaymentService.retrieve("govPayId", "cmc")).thenReturn(VALID_GOV_PAYMENT_RESPONSE);
 
