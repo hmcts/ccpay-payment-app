@@ -92,6 +92,8 @@
         <cve>CVE-2015-0223</cve>
         <cve>CVE-2015-0224</cve>
         <cve>CVE-2019-0223</cve>
+        <cve>CVE-2019-12418</cve>
+        <cve>CVE-2019-17563</cve>
         <cwe>611</cwe>
     </suppress>
     <suppress>
