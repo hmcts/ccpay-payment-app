@@ -9,11 +9,7 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,6 +42,11 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
     @Override
     public void updateTelephonyPaymentStatus(final String reference, final String status, final String payload) {
 
+    }
+
+    @Override
+    public List<Payment> getPayments(Date atStartOfDay, Date atEndOfDay) {
+        return null;
     }
 
     private static final Specification constructPaymentSpecification(final PaymentSearchCriteria searchCriteria) {

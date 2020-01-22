@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.dto;
+package uk.gov.hmcts.payment.api.contract;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -39,11 +39,18 @@ public class PaymentAllocationDto {
 
     private String receivingOffice;
 
-    private String receivingEmailAddress;
+    private String reason;
 
-    private String sendingEmailAddress;
+    private String explanation;
 
     private String userId;
+
+    private String userName;
+
+    // This field added due to Libereta Changes. This is just a duplication of paymentAllocationStatus and unidentifiedReason parameters.
+    private String allocationStatus;
+
+    private String allocationReason;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
