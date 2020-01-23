@@ -104,16 +104,19 @@ resource "azurerm_key_vault_secret" "gov-pay-keys-cmc-claim-store" {
 
 resource "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
   name = "pba-cmc-payments-email-to"
+  value = "${data.azurerm_key_vault_secret.gov_pay_keys_cmc.value}"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 resource "azurerm_key_vault_secret" "pba_probate_payments_email_to" {
   name = "pba-probate-payments-email-to"
+  value = "${data.azurerm_key_vault_secret.gov_pay_keys_cmc.value}"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 resource "azurerm_key_vault_secret" "pba_finrem_payments_email_to" {
   name = "pba-finrem-payments-email-to"
+  value = "${data.azurerm_key_vault_secret.gov_pay_keys_cmc.value}"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
