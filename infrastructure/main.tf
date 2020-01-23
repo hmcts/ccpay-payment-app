@@ -102,6 +102,21 @@ resource "azurerm_key_vault_secret" "gov-pay-keys-cmc-claim-store" {
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
+resource "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
+  name = "pba-cmc-payments-email-to"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
+}
+
+resource "azurerm_key_vault_secret" "pba_probate_payments_email_to" {
+  name = "pba-probate-payments-email-to"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
+}
+
+resource "azurerm_key_vault_secret" "pba_finrem_payments_email_to" {
+  name = "pba-finrem-payments-email-to"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
+}
+
 data "azurerm_key_vault_secret" "gov_pay_keys_probate" {
   name = "gov-pay-keys-probate"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
@@ -123,17 +138,17 @@ data "azurerm_key_vault_secret" "bar_payments_email_to" {
 }
 
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
-  name = "pba-payments-email-to"
+  name = "pba-cmc-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_probate_payments_email_to" {
-  name = "pba-payments-email-to"
+  name = "pba-probate-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_finrem_payments_email_to" {
-  name = "pba-payments-email-to"
+  name = "pba-finrem-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
