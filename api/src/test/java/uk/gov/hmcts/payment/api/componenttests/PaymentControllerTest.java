@@ -259,7 +259,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
 
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
     }
 
 
