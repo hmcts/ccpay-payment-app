@@ -1105,7 +1105,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         List<PaymentDto> payments = response.getPayments();
         assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        assertThat(payments.size()).isEqualTo(0);
     }
 
     // if callback URL does not exist make sure not to call callback service
