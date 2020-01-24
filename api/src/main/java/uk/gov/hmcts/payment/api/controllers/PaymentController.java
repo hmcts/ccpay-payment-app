@@ -199,9 +199,9 @@ public class PaymentController {
             payments = Optional.ofNullable(payments)
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .filter(payment -> Objects.nonNull(payment.getPaymentProvider()))
-                .filter(payment -> Objects.nonNull(payment.getPaymentProvider().getName()))
-                .filter(payment -> !payment.getPaymentProvider().getName().equalsIgnoreCase("exela"))
+                .filter(payment -> Objects.nonNull(payment.getPaymentChannel()))
+                .filter(payment -> Objects.nonNull(payment.getPaymentChannel().getName()))
+                .filter(payment -> !payment.getPaymentChannel().getName().equalsIgnoreCase("bulk scan"))
                 .collect(Collectors.toList());
         }
         return payments;
