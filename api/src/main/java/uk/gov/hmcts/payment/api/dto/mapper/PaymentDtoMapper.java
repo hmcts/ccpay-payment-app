@@ -15,7 +15,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -226,7 +225,7 @@ public class PaymentDtoMapper {
     }
 
     public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j) {
-        boolean isExelaPayment = payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela");
+        boolean isExelaPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         LOG.info("bulkScanCheck value in PaymentDtoMapper: {}",bulkScanCheck);
         LOG.info("isExelaPayment value in PaymentDtoMapper: {}",isExelaPayment);
