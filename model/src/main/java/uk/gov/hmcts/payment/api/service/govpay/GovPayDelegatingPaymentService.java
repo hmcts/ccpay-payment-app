@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.service.govpay;
 
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
@@ -19,6 +21,7 @@ import java.util.List;
 
 @Service
 public class GovPayDelegatingPaymentService implements DelegatingPaymentService<GovPayPayment, String> {
+    private static final Logger LOG = LoggerFactory.getLogger(GovPayDelegatingPaymentService.class);
     private final GovPayKeyRepository govPayKeyRepository;
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
@@ -35,6 +38,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     @Override
     public GovPayPayment create(PaymentServiceRequest paymentServiceRequest) {
         String key = keyForService();
+        LOG.info("Language value in GovPayDelegatingPaymentService: {}", paymentServiceRequest.getLanguage());
         return govPayClient.createPayment(key, new CreatePaymentRequest(paymentServiceRequest.getAmount().movePointRight(2).intValue(),
             paymentServiceRequest.getPaymentReference(), paymentServiceRequest.getDescription(),
             paymentServiceRequest.getReturnUrl(),paymentServiceRequest.getLanguage()));
