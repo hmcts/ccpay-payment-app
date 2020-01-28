@@ -120,6 +120,7 @@ public class CardPaymentController {
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())
             .provider(request.getProvider())
+            .language(request.getLanguage())
             .build();
 
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
