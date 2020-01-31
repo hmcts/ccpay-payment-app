@@ -188,4 +188,21 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    public void updateTelephonyPaymentStatus_throw400IfBadRequest() throws Exception {
+        String rawFormData = "orderReference=RC-invalid-reference&ppAccountID=1210&" +
+            "transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
+            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
+            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
+
+        String paymentReference = "RC-1519-9028-1909-1435";
+        Payment dbPayment = populateTelephonyPaymentToDb(paymentReference, false);
+
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isBadRequest());
+
+        verify(callbackServiceImplMock, times(0)).callback(dbPayment.getPaymentLink(), dbPayment);
+    }
+
 }

@@ -66,18 +66,6 @@ public class BulkScanningReportMapper {
         };
     }
 
-    //Method to make sure payment group has atleast one exela/bulk scan payments. If not we won't consider that payment group for Surplus and Shortfall report.
-    private boolean checkPaymentsFromExela(PaymentFeeLink paymentFeeLink){
-        return paymentFeeLink.getPayments().stream()
-            .filter(payment -> Objects.nonNull(payment.getPaymentProvider()))
-            .filter(payment -> Objects.nonNull(payment.getPaymentProvider().getName()))
-            .anyMatch(payment ->
-                    payment.getPaymentProvider()
-                    .getName()
-                    .equalsIgnoreCase("exela")
-            );
-    }
-
     public List<BulkScanningUnderOverPaymentDto> toSurplusAndShortfallReportdto(List<Payment> payments) {
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
         LOG.info("SurplusAndShortfall payments size : {}",payments.size());
