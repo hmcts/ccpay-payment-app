@@ -125,6 +125,7 @@ public class CardPaymentController {
             //change language to lower case before sending to gov pay
             .build();
 
+        LOG.info("Language Value : {}",paymentServiceRequest.getLanguage());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
 

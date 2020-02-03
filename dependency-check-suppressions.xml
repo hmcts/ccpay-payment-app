@@ -94,6 +94,7 @@
         <cve>CVE-2019-0223</cve>
         <cve>CVE-2019-12418</cve>
         <cve>CVE-2019-17563</cve>
+        <cve>CVE-2020-5398</cve>
         <cwe>611</cwe>
     </suppress>
     <suppress>
@@ -203,5 +204,15 @@
         <cve>CVE-2019-12418</cve>
         <cve>CVE-2019-17563</cve>
     </suppress>
-
+    <suppress>
+        <cve>CVE-2019-20330</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+			Applicationinsights-core-2.3.1.jar for timebeing suppressed
+			]]></notes>
+        <gav regex="true">.*</gav>
+        <cve>CVE-2019-20445</cve>
+        <cve>CVE-2019-20445</cve>
+    </suppress>
 </suppressions>
