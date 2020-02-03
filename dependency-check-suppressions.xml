@@ -207,5 +207,10 @@
     <suppress>
         <cve>CVE-2019-20330</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[applicationinsights-core-2.3.1.jar]]></notes>
+        <cve>CVE-2019-20444</cve>
+        <cve>CVE-2019-20445</cve>
+    </suppress>
 
 </suppressions>
