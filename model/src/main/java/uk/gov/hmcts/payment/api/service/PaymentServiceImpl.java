@@ -59,7 +59,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     public void updateTelephonyPaymentStatus(String paymentReference, String status, String payload) {
         Payment payment = paymentRepository.findByReferenceAndPaymentProvider(paymentReference,
             PaymentProvider.paymentProviderWith().name(PCI_PAL).build()).orElseThrow(PaymentNotFoundException::new);
-        if(payment.getStatus() != null && !payment.getStatus().equalsIgnoreCase(PaymentStatus.SUCCESS.toString())){
+        if(payment.getPaymentStatus() != null && !payment.getPaymentStatus().equals(PaymentStatus.SUCCESS)){
             payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
 
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
