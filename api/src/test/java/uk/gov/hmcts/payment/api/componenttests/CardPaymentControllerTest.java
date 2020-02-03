@@ -637,6 +637,34 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentFeeLink);
     }
 
+    @Test
+    public void createCardPayment_InvalidLanguageAttribute_shouldReturn422Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .ccdCaseNumber("1234-1234-1234-1234")
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build()))
+            .language("GBR")
+            .build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertEquals(result.getResponse().getContentAsString(), "validLanguage: Invalid value for language attribute.");
+    }
+
+
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
@@ -684,4 +712,5 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "  ]\n" +
             "}";
     }
+
 }
