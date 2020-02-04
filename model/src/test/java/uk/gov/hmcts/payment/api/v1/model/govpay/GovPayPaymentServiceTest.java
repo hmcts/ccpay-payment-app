@@ -30,11 +30,12 @@ public class GovPayPaymentServiceTest {
         when(govPayKeyRepository.getKey(SERVICE_ID)).thenReturn(GOV_PAY_KEY);
     }
 
-/*    @Test
+   @Test
     public void createShouldDelegateToClient() {
-        govPayPaymentService.create(100, "reference", "description", "returnUrl");
+        govPayPaymentService.create(100, "reference", "description", "returnUrl","language");
         verify(govPayClient).createPayment(GOV_PAY_KEY, new CreatePaymentRequest(100, "reference", "description", "returnUrl","language"));
-    }*/
+    }
+
 
     @Test
     public void retrieveShouldDelegateToClient() {
