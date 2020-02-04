@@ -213,6 +213,6 @@
 			]]></notes>
         <gav regex="true">.*</gav>
         <cve>CVE-2019-20445</cve>
-        <cve>CVE-2019-20445</cve>
+        <cve>CVE-2019-20444</cve>
     </suppress>
 </suppressions>
