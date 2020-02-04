@@ -121,9 +121,12 @@ public class CardPaymentController {
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())
             .provider(request.getProvider())
-            .language(request.getLanguage())
+            .language((StringUtils.isBlank(request.getLanguage()) || request.getLanguage() != null
+                && request.getLanguage().equalsIgnoreCase("string")) ? null : StringUtils.lowerCase(request.getLanguage()))
+            //change language to lower case before sending to gov pay
             .build();
 
+        LOG.info("Language Value : {}",paymentServiceRequest.getLanguage());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
 
