@@ -106,6 +106,7 @@ public class CardPaymentController {
             );
         }
 
+        LOG.info("Language Value : {}",request.getLanguage());
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .description(request.getDescription())
