@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.*;
@@ -16,6 +18,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -32,6 +35,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     private final CallbackService callbackService;
     private final PaymentStatusRepository paymentStatusRepository;
     private final TelephonyRepository telephonyRepository;
+    private final AuditRepository paymentAuditRepository;
 
     @Value("${callback.payments.cutoff.time.in.minutes:2}")
     private int paymentsCutOffTime;
@@ -39,12 +43,13 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     @Autowired
     public PaymentServiceImpl(@Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
                               Payment2Repository paymentRepository, CallbackService callbackService, PaymentStatusRepository paymentStatusRepository,
-                              TelephonyRepository telephonyRepository) {
+                              TelephonyRepository telephonyRepository, AuditRepository paymentAuditRepository) {
         this.paymentRepository = paymentRepository;
         this.delegatingPaymentService = delegatingPaymentService;
         this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
         this.telephonyRepository = telephonyRepository;
+        this.paymentAuditRepository = paymentAuditRepository;
     }
 
     @Override
@@ -69,6 +74,14 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
                 callbackService.callback(payment.getPaymentLink(), payment);
             }
             telephonyRepository.save(TelephonyCallback.telephonyCallbackWith().paymentReference(paymentReference).payload(payload).build());
+        }else {
+            Map<String, String> properties = new ImmutableMap.Builder<String, String>()
+                .put("PaymentReference", paymentReference)
+                .put("RequestedStatus", status)
+                .put("Payload", payload)
+                .put("ExistingStatus", payment.getPaymentStatus().getName())
+                .build();
+            paymentAuditRepository.trackEvent("DUPLICATE_STATUS_UPDATE", properties);
         }
     }
 
