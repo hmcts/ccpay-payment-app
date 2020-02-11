@@ -93,4 +93,9 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
         return paymentFeeLinks;
     }
 
+    @Override
+    public void cancel(String paymentReference) {
+        LOG.info("Cancel payment for supplied payment reference : {}", paymentReference);
+    }
+
 }

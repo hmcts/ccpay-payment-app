@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -42,9 +43,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import javax.validation.Valid;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -167,6 +166,25 @@ public class CardPaymentController {
         return paymentDtoMapper.toRetrievePaymentStatusesDto(delegatingPaymentService.retrieve(paymentReference));
     }
 
+    @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 204, message = "Cancellation of payment successful"),
+        @ApiResponse(code = 400, message = "Cancellation of payment failed"),
+        @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
+        @ApiResponse(code = 403, message = "Forbidden-Access Denied"),
+        @ApiResponse(code = 404, message = "Payment Not found"),
+        @ApiResponse(code = 500, message = "Downstream system error")
+    })
+    @PostMapping(value = "/card-payments/{reference}/cancel")
+    public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
+        delegatingPaymentService.cancel(paymentReference);
+        return new ResponseEntity(NO_CONTENT);
+    }
+
+    @ExceptionHandler(value = {GovPayCancellationFailedException.class})
+    public ResponseEntity cancellationFailedException(GovPayCancellationFailedException ex) {
+        return new ResponseEntity(BAD_REQUEST);
+    }
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
