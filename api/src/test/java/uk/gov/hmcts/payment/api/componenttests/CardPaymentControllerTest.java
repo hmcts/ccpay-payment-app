@@ -680,6 +680,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         MvcResult result2 = restActions
             .post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isBadRequest())
+            .andReturn();
     }
 
     @Test
@@ -733,7 +734,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated())
             .andReturn();
     }
-  
+
   public void creatingCardPaymentWithWelshLanguage() throws Exception {
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
