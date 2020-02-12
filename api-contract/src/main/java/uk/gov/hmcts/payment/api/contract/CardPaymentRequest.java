@@ -9,18 +9,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
-import javax.validation.constraints.NotEmpty;
+import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Language;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
-
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
+@SuppressWarnings("unused")
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 @Data
@@ -51,6 +53,8 @@ public class CardPaymentRequest {
 
     private String channel;
 
+    private String language;
+
     @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
@@ -61,5 +65,12 @@ public class CardPaymentRequest {
     @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
     private boolean isEitherOneRequired() {
         return (ccdCaseNumber == null && caseReference == null);
+    }
+
+    @AssertFalse(message =  "Invalid value for language attribute.")
+    private boolean isValidLanguage() {
+                return !StringUtils.isBlank(language) && !language.equalsIgnoreCase("string")
+                    && Arrays.stream(Language.values()).noneMatch(language1 ->
+                    language1.getLanguage().equalsIgnoreCase(language));
     }
 }
