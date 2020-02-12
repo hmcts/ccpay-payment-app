@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -635,6 +636,103 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
         assertEquals(paymentDto.getStatus() , "Initiated");
         assertNotNull(paymentFeeLink);
+    }
+
+    @Test
+    @Transactional
+    public void cancelPaymentSuccess_shouldReturn204Test() throws Exception {
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(204)
+                .withHeader("Content-Type", "application/json")));
+
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isNoContent())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void cancelPaymentBadRequest_shouldReturn400Test() throws Exception {
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(204)
+                .withHeader("Content-Type", "application/json")));
+
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isNoContent())
+            .andReturn();
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(400)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"code\":\"P0501\",\"description\":\"Cancellation of payment failed\"}")));
+
+        MvcResult result2 = restActions
+            .post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void cancelPaymentIncorrectPaymentRef_shouldReturn404Test() throws Exception {
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(404)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"code\":\"P0200\",\"description\":\"Govpay Payment Not Found\"}")));
+
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void cancelPaymentInternalServerError_shouldReturn500Test() throws Exception {
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(500)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"code\":\"P0198\",\"description\":\"GovPayDownstreamSystemErrorException\"}")));
+
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+    }
+
+    @NotNull
+    private MvcResult createMockPayment() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+        return restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {
