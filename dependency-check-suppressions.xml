@@ -207,5 +207,9 @@
     <suppress>
         <cve>CVE-2019-20330</cve>
     </suppress>
+    <suppress>
+        <cve>CVE-2019-20445</cve>
+        <cve>CVE-2019-20444</cve>
+    </suppress>
 
 </suppressions>
