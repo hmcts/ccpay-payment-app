@@ -719,23 +719,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
-    @NotNull
-    private MvcResult createMockPayment() throws Exception {
-        stubFor(post(urlPathMatching("/v1/payments"))
-            .willReturn(aResponse()
-                .withStatus(201)
-                .withHeader("Content-Type", "application/json")
-                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
-
-        return restActions
-            .withReturnUrl("https://www.google.com")
-            .withHeader("service-callback-url", "http://payments.com")
-            .post("/card-payments", cardPaymentRequest())
-            .andExpect(status().isCreated())
-            .andReturn();
-    }
-
-  public void creatingCardPaymentWithWelshLanguage() throws Exception {
+    @Test
+    public void creatingCardPaymentWithWelshLanguage() throws Exception {
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
                 .withStatus(201)
@@ -767,6 +752,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
+    @Test
     public void createCardPayment_InvalidLanguageAttribute_shouldReturn422Test() throws Exception {
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("200.11"))
@@ -790,6 +776,22 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         assertEquals(result.getResponse().getContentAsString(), "validLanguage: Invalid value for language attribute.");
+    }
+
+    @NotNull
+    private MvcResult createMockPayment() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+        return restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {
