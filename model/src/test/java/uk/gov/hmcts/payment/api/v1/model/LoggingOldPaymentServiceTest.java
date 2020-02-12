@@ -28,7 +28,7 @@ public class LoggingOldPaymentServiceTest {
 
     @Test
     public void createPaymentShouldBeLogged() {
-        loggingOldPaymentService.create(100, "reference", "any", "any");
+        loggingOldPaymentService.create(100, "reference", "any", "any",null);
         testAppender.assertEvent(0, INFO, "PaymentOld event", ImmutableMap.of(
             "paymentId", 1,
             "userId", "userId",
@@ -61,7 +61,7 @@ public class LoggingOldPaymentServiceTest {
 
     private static class FakePaymentService implements PaymentService<PaymentOld, Integer> {
         @Override
-        public PaymentOld create(int amount, String reference, String description, String returnUrl) {
+        public PaymentOld create(int amount, String reference, String description, String returnUrl,String language) {
             return PaymentOld.paymentWith().id(1).amount(amount).reference(reference).build();
         }
 

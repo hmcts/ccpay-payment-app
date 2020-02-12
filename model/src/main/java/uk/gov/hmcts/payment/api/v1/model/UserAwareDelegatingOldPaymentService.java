@@ -21,8 +21,8 @@ public class UserAwareDelegatingOldPaymentService implements PaymentService<Paym
     }
 
     @Override
-    public PaymentOld create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl) {
-        GovPayPayment govPayPayment = delegate.create(amount, reference, description, returnUrl);
+    public PaymentOld create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl, String language) {
+        GovPayPayment govPayPayment = delegate.create(amount, reference, description, returnUrl, language);
         PaymentOld paymentOld = paymentRepository.save(PaymentOld.paymentWith().govPayId(govPayPayment.getPaymentId()).userId(userIdSupplier.get()).build());
         fillTransientDetails(paymentOld, govPayPayment);
         return paymentOld;
