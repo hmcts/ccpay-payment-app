@@ -60,7 +60,7 @@ public class PaymentOldController {
                 request.getAmount(),
                 request.getReference(),
                 request.getDescription(),
-                request.getReturnUrl()
+                request.getReturnUrl(),null
         );
 
         return new ResponseEntity<>(paymentDtoFactory.toDto(paymentOld), CREATED);

@@ -52,7 +52,7 @@ public class GovPayDelegatingPaymentServiceTest {
         when(serviceIdSupplier.get()).thenReturn("divorce");
         String key = govPayKeyRepository.getKey("divorce");
 
-        CreatePaymentRequest createPaymentRequest = new CreatePaymentRequest(10000, "reference", "description", "https://www.google.com");
+        CreatePaymentRequest createPaymentRequest = new CreatePaymentRequest(10000, "reference", "description", "https://www.google.com","language");
         when(govPayClient.createPayment("divorce-gov-pay-key", createPaymentRequest)).thenReturn(GovPayPayment.govPaymentWith()
             .amount(10000)
             .state(new State("created", false, null, null))
@@ -69,7 +69,7 @@ public class GovPayDelegatingPaymentServiceTest {
                 "GBP", "siteId", "divorce",
                 Collections.singletonList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10000")).code("feeCode")
                     .version("1")
-                    .build()), new BigDecimal("100"), null, null, null));
+                    .build()), new BigDecimal("100"), null, null, null,"language"));
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getAmount(), new Integer(10000));
         assertEquals(govPayPayment.getState().getStatus(), "created");
