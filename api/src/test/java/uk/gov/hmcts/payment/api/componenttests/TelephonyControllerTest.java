@@ -111,7 +111,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         List<PaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);
-        assertEquals("Success", payments.get(0).getStatus());
+        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
 
     }
 
