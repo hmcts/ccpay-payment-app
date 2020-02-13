@@ -621,11 +621,71 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void givenLiberataCheckOnAndCheckLiberataAccountForAllSericesOffThenOnlyFPLATriggersLiberataCheck() throws Exception {
+        setCreditAccountPaymentLiberataCheckFeature(true);
+        setCheckLiberataAccountForAllServices(false);
+
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        MvcResult result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
+
+        request = objectMapper.readValue(creditAccountPaymentRequestJsonWithProbateJson().getBytes(), CreditAccountPaymentRequest.class);
+        result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
+    }
+
+    @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
         setCreditAccountPaymentLiberataCheckFeature(false);
         setCheckLiberataAccountForAllServices(true);
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        MvcResult result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
+
+        request = objectMapper.readValue(creditAccountPaymentRequestJsonWithProbateJson().getBytes(), CreditAccountPaymentRequest.class);
+        result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        verify(accountService, times(2)).retrieve(request.getAccountNumber());
+    }
+
+    @Test
+    public void givenLiberataCheckOffAndCheckLiberataAccountForAllServicesOnThenAllServicesTriggerLiberataCheck_FPLA() throws Exception {
+        setCreditAccountPaymentLiberataCheckFeature(false);
+        setCheckLiberataAccountForAllServices(true);
+
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
@@ -754,6 +814,28 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     private String creditAccountPaymentRequestJsonWithFinRemJson() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"FINREM\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"AA101\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String creditAccountPaymentRequestJsonWithFPLAJson() {
         return "{\n" +
             "  \"amount\": 101.89,\n" +
             "  \"description\": \"New passport application\",\n" +
