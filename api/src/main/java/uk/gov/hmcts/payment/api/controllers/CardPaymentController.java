@@ -8,6 +8,7 @@ import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,16 +62,19 @@ public class CardPaymentController {
     private final PaymentDtoMapper paymentDtoMapper;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
     private final PciPalPaymentService pciPalPaymentService;
+    private final FF4j ff4j;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService,
-                                 PciPalPaymentService pciPalPaymentService) {
+                                 PciPalPaymentService pciPalPaymentService,
+                                 FF4j ff4j) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
         this.pciPalPaymentService = pciPalPaymentService;
+        this.ff4j = ff4j;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -182,6 +186,9 @@ public class CardPaymentController {
     })
     @PostMapping(value = "/card-payments/{reference}/cancel")
     public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
+        if (!ff4j.check("payment-cancel")) {
+            throw new PaymentException("Payment cancel feature is not available for usage.");
+        }
         delegatingPaymentService.cancel(paymentReference);
         return new ResponseEntity(NO_CONTENT);
     }
