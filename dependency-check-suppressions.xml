@@ -53,6 +53,9 @@
         <cve>CVE-2015-0224</cve>
         <cve>CVE-2019-0223</cve>
         <cve>CVE-2015-0203</cve>
+        <cve>CVE-2020-5398</cve>
+        <cve>CVE-2019-20445</cve>
+        <cve>CVE-2019-20444</cve>
         <cwe>611</cwe>
     </suppress>
     <suppress>
