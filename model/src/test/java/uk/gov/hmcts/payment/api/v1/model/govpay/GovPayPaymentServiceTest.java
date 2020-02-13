@@ -32,8 +32,8 @@ public class GovPayPaymentServiceTest {
 
     @Test
     public void createShouldDelegateToClient() {
-        govPayPaymentService.create(100, "reference", "description", "returnUrl");
-        verify(govPayClient).createPayment(GOV_PAY_KEY, new CreatePaymentRequest(100, "reference", "description", "returnUrl"));
+        govPayPaymentService.create(100, "reference", "description", "returnUrl","language");
+        verify(govPayClient).createPayment(GOV_PAY_KEY, new CreatePaymentRequest(100, "reference", "description", "returnUrl","language"));
     }
 
     @Test

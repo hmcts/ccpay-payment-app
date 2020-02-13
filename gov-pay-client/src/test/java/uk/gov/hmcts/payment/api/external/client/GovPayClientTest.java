@@ -38,7 +38,7 @@ public class GovPayClientTest {
             post(urlEqualTo("/"))
                 .withHeader("Authorization", matching("Bearer token"))
                 .withRequestBody(
-                    new EqualToJsonPattern("{ \"amount\": 12000, \"reference\": \"reference\", \"description\": \"description\", \"return_url\": \"return_url\" }", true, false)
+                    new EqualToJsonPattern("{ \"amount\": 12000, \"reference\": \"reference\", \"description\": \"description\", \"return_url\": \"return_url\", \"language\": \"language\"}", true, false)
                 )
                 .willReturn(aResponse()
                     .withStatus(200)
@@ -46,7 +46,7 @@ public class GovPayClientTest {
                 )
         );
 
-        CreatePaymentRequest request = new CreatePaymentRequest(12000, "reference", "description", "return_url");
+        CreatePaymentRequest request = new CreatePaymentRequest(12000, "reference", "description", "return_url","language");
         GovPayPayment payment = client.createPayment("token", request);
         assertThat(payment.getAmount()).isEqualTo(12000);
     }

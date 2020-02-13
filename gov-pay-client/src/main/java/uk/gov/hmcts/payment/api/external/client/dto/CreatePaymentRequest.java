@@ -21,4 +21,5 @@ public class CreatePaymentRequest {
     private String reference;
     private String description;
     private String returnUrl;
+    private String language;
 }

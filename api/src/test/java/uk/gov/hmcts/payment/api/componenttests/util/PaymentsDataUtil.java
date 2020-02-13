@@ -160,7 +160,7 @@ public class PaymentsDataUtil {
             .currency("GBP")
             .siteId("AA0" + number)
             .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
