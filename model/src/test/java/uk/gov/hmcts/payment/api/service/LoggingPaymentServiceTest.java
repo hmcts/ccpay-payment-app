@@ -41,7 +41,7 @@ public class LoggingPaymentServiceTest {
             "https://www.google.com", "ccdCaseNumber", "caseReference",
             "GBP", "siteId", "divorce",
             Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()),
-            new BigDecimal("10000"), null, null, null)
+            new BigDecimal("10000"), null, null, null,null)
         )).thenReturn(PaymentFeeLink.paymentFeeLinkWith().id(1)
             .payments(Arrays.asList(Payment.paymentWith()
                 .id(1)
@@ -63,7 +63,7 @@ public class LoggingPaymentServiceTest {
             "description", "https://www.google.com", "ccdCaseNumber",
             "caseReference", "GBP", "siteId", "divorce",
             Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal(10000)).code("X0001").version("1").build()),
-            new BigDecimal("10000"), null, null, null)
+            new BigDecimal("10000"), null, null, null,null)
         );
         assertNotNull(paymentFeeLink);
         paymentFeeLink.getPayments().stream().forEach(p -> {
