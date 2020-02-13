@@ -17,6 +17,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,7 +40,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
     @HystrixProperty(name = "execution.timeout.enabled", value = "false")
 })
 public class GovPayClient {
-
+    private static final Logger LOG = LoggerFactory.getLogger(GovPayClient.class);
     private final String url;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -57,6 +59,7 @@ public class GovPayClient {
 
     @HystrixCommand(commandKey = "createCardPayment")
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
+        LOG.info("Inside createPayment in GovPayClient");
         return withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
@@ -98,9 +101,11 @@ public class GovPayClient {
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, HttpEntity entity) throws JsonProcessingException {
+        LOG.info("Inside postRequestFor in GovPayClient");
         HttpPost request = new HttpPost(url);
         request.setEntity(entity);
         request.addHeader(authorizationHeader(authorizationKey));
+        LOG.info("Request value: {}", request);
         return request;
     }
 

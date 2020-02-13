@@ -95,7 +95,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .currency("GBP")
             .siteId("AA0")
             .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
@@ -143,6 +143,53 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .siteId("AA0")
             .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v")
+            .reference("RC-1519-9028-2432-000")
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .build();
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
+            .andExpect(status().isOk())
+            .andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    public void shouldGenerateEmptyReportWhenPaymentProviderIsExelaAndAllocationStatusIsUnidentified() throws Exception {
+
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000")
+            .paymentReference("RC-1519-9028-2432-000")
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Unidentified").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Test payments statuses for ")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
@@ -236,7 +283,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .currency("GBP")
             .siteId("AA0")
             .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
@@ -335,7 +382,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .currency("GBP")
             .siteId("AA0")
             .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
@@ -385,6 +432,80 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .andReturn();
 
     }
+
+    @Test
+    @Transactional
+    public void shouldGenerateReportWhenReportTypeIsSurplusAndStatusIsSuccess() throws Exception {
+
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000")
+            .paymentReference("RC-1519-9028-2432-000")
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Allocated").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Test payments statuses for ")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v")
+            .reference("RC-1519-9028-2432-000")
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .dateCreated(new Date())
+            .build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0005").volume(1).build();
+        RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("A partial remission")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .hwfAmount(new BigDecimal("50.00"))
+            .hwfReference("HR1111")
+            .siteId("AA001")
+            .build();
+        Remission remission= Remission.remissionWith()
+            .remissionReference("12345")
+            .hwfReference("HR1111")
+            .hwfAmount(new BigDecimal("50.00"))
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .siteId("AA001")
+            .build();
+        List<Payment> paymentList = new ArrayList<>();
+        PaymentFeeLink paymentFeeLink = new PaymentFeeLink();
+        List<PaymentFee> fees = new ArrayList<>();
+        List<Remission> remissions = new ArrayList<>();
+        remissions.add(remission);
+        fees.add(fee);
+        paymentFeeLink.setPayments(paymentList);
+        paymentFeeLink.setFees(fees);
+        paymentFeeLink.setRemissions(remissions);
+        payment.setPaymentLink(paymentFeeLink);
+        paymentList.add(payment);
+
+        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=SURPLUS_AND_SHORTFALL")
+            .andExpect(status().isOk())
+            .andReturn();
+
+    }
+
 
     @Test
     @Transactional
