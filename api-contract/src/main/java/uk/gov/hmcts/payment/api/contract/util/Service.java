@@ -6,7 +6,7 @@ public enum Service {
     PROBATE("Probate"),
     FINREM("Finrem"),
     DIGITAL_BAR("Digital Bar"),
-    FPLA("FPLA");
+    FPL("FPL");
 
     private String name;
 

@@ -841,7 +841,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "  \"description\": \"New passport application\",\n" +
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
-            "  \"service\": \"FINREM\",\n" +
+            "  \"service\": \"FPL\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"site_id\": \"AA101\",\n" +
             "  \"customer_reference\": \"CUST101\",\n" +
