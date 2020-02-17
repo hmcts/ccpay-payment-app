@@ -4,7 +4,6 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
-import org.apache.http.MethodNotSupportedException;
 
 import java.util.List;
 
@@ -23,5 +22,7 @@ public interface DelegatingPaymentService<T, ID> {
     T retrieve(ID id, String paymentTargetService);
 
     List<T> search(PaymentSearchCriteria searchCriteria);
+
+    void cancel(String paymentReference);
 
 }
