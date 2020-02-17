@@ -639,7 +639,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         verify(accountService, times(1)).retrieve(request.getAccountNumber());
 
-        request = objectMapper.readValue(creditAccountPaymentRequestJsonWithProbateJson().getBytes(), CreditAccountPaymentRequest.class);
+        request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
         result = restActions
             .post("/credit-account-payments", request)
             .andExpect(status().isCreated())
@@ -699,7 +699,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         verify(accountService, times(1)).retrieve(request.getAccountNumber());
 
-        request = objectMapper.readValue(creditAccountPaymentRequestJsonWithProbateJson().getBytes(), CreditAccountPaymentRequest.class);
+        request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAJson().getBytes(), CreditAccountPaymentRequest.class);
         result = restActions
             .post("/credit-account-payments", request)
             .andExpect(status().isCreated())
