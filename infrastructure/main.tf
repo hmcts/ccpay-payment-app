@@ -123,17 +123,17 @@ data "azurerm_key_vault_secret" "bar_payments_email_to" {
 }
 
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
-  name = "pba-cmc-payments-email-to"
+  name = "pba-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_probate_payments_email_to" {
-  name = "pba-probate-payments-email-to"
+  name = "pba-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_finrem_payments_email_to" {
-  name = "pba-finrem-payments-email-to"
+  name = "pba-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
