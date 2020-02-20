@@ -110,6 +110,9 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         return null;
     }
 
+    @Override
+    public void cancel(String paymentReference) {}
+
     private interface CheckedExceptionProvider<T> {
         T get() throws IOException, URISyntaxException;
     }

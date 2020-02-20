@@ -123,17 +123,17 @@ data "azurerm_key_vault_secret" "bar_payments_email_to" {
 }
 
 data "azurerm_key_vault_secret" "pba_cmc_payments_email_to" {
-  name = "pba-payments-email-to"
+  name = "pba-cmc-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_probate_payments_email_to" {
-  name = "pba-payments-email-to"
+  name = "pba-probate-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
 data "azurerm_key_vault_secret" "pba_finrem_payments_email_to" {
-  name = "pba-payments-email-to"
+  name = "pba-finrem-payments-email-to"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
@@ -219,7 +219,7 @@ module "payment-api" {
     GOV_PAY_OPERATIONAL_SERVICES = "${var.gov_pay_operational_services}"
 
     # S2S trusted services
-    TRUSTED_S2S_SERVICE_NAMES="cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,pui_webapp,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp"
+    TRUSTED_S2S_SERVICE_NAMES="cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,pui_webapp,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service"
 
     SPRING_MAIL_HOST = "${var.spring_mail_host}"
     SPRING_MAIL_PORT = "${var.spring_mail_port}"
