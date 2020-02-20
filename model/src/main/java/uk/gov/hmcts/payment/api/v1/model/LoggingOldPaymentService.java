@@ -28,8 +28,8 @@ public class LoggingOldPaymentService implements PaymentService<PaymentOld, Inte
     }
 
     @Override
-    public PaymentOld create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl) {
-        PaymentOld paymentOld = delegate.create(amount, reference, description, returnUrl);
+    public PaymentOld create(int amount, @NonNull String reference, @NonNull String description, @NonNull String returnUrl, String language) {
+        PaymentOld paymentOld = delegate.create(amount, reference, description, returnUrl,null);
         LOG.info("PaymentOld event", StructuredArguments.entries(ImmutableMap.of(
             PAYMENT_ID, paymentOld.getId(),
             USER_ID, userIdSupplier.get(),

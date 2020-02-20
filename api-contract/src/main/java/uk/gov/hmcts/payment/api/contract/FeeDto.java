@@ -39,6 +39,8 @@ public class FeeDto {
     @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
     private BigDecimal calculatedAmount;
 
+    private BigDecimal feeAmount;
+
     private String memoLine;
 
     private String naturalAccountCode;
@@ -58,7 +60,4 @@ public class FeeDto {
 
     private String caseReference;
 
-    //Duplicate of volume field to be in consistent with libereta document
-    @Positive
-    private Integer volumeAmount;
 }

@@ -56,6 +56,7 @@ public class PaymentGroupDtoMapper {
             .externalReference(payment.getExternalReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .dateCreated(payment.getDateCreated() != null ? payment.getDateCreated() : null)
+            .dateUpdated(payment.getDateUpdated() != null ? payment.getDateUpdated() : null)
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
@@ -107,6 +108,7 @@ public class PaymentGroupDtoMapper {
             .netAmount(fee.getNetAmount())
             .version(fee.getVersion())
             .volume(fee.getVolume())
+            .feeAmount(fee.getFeeAmount())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .reference(fee.getReference())
             .id(fee.getId())
@@ -123,6 +125,7 @@ public class PaymentGroupDtoMapper {
             .calculatedAmount(feeDto.getCalculatedAmount())
             .ccdCaseNumber(feeDto.getCcdCaseNumber())
             .volume(feeDto.getVolume())
+            .feeAmount(feeDto.getFeeAmount())
             .netAmount(feeDto.getCalculatedAmount())
             .reference(feeDto.getReference())
             .build();

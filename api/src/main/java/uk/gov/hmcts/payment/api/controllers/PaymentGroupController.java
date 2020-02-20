@@ -1,7 +1,12 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
@@ -19,7 +24,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.model.*;
+
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
@@ -28,6 +33,12 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
@@ -215,6 +226,7 @@ public class PaymentGroupController {
         Payment payment = Payment.paymentWith()
             .reference(referenceUtil.getNext("RC"))
             .amount(bulkScanPaymentRequest.getAmount())
+            .caseReference(bulkScanPaymentRequest.getExceptionRecord())
             .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
             .currency(bulkScanPaymentRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
@@ -262,8 +274,8 @@ public class PaymentGroupController {
         Payment payment = Payment.paymentWith()
             .reference(referenceUtil.getNext("RC"))
             .amount(bulkScanPaymentRequest.getAmount())
-            //For exception record scenario mapping the exception record field to CaseReference field. Exception record is being passed from front end in the ccdCaseNumber field.
-            .caseReference(bulkScanPaymentRequest.getCcdCaseNumber())
+            .caseReference(bulkScanPaymentRequest.getExceptionRecord())
+            .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
             .currency(bulkScanPaymentRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
             .serviceType(bulkScanPaymentRequest.getService().getName())

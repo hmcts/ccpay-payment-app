@@ -112,8 +112,8 @@ public class PaymentsDataUtil {
             .paymentReference("RC-1519-9028-2432-000"+number)
             .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
             .receivingOffice("Home office")
-            .receivingEmailAddress("receiver@receiver.com")
-            .sendingEmailAddress("sender@sender.com")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
             .userId("userId")
             .build();
         Payment payment = Payment.paymentWith()
@@ -136,6 +136,79 @@ public class PaymentsDataUtil {
             .build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populatePaymentToDbForExelaPayments(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
+            .paymentReference("RC-1519-9028-2432-000"+number)
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populatePaymentToDbForExelaPaymentsWithoutPaymentProvider(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
+            .paymentReference("RC-1519-9028-2432-000"+number)
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         return payment;
     }

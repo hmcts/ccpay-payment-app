@@ -8,6 +8,7 @@ import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -42,9 +44,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import javax.validation.Valid;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -62,16 +62,19 @@ public class CardPaymentController {
     private final PaymentDtoMapper paymentDtoMapper;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
     private final PciPalPaymentService pciPalPaymentService;
+    private final FF4j ff4j;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService,
-                                 PciPalPaymentService pciPalPaymentService) {
+                                 PciPalPaymentService pciPalPaymentService,
+                                 FF4j ff4j) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
         this.pciPalPaymentService = pciPalPaymentService;
+        this.ff4j = ff4j;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -106,6 +109,7 @@ public class CardPaymentController {
             );
         }
 
+        LOG.info("Language Value : {}",request.getLanguage());
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .description(request.getDescription())
@@ -120,8 +124,12 @@ public class CardPaymentController {
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())
             .provider(request.getProvider())
+            .language((StringUtils.isBlank(request.getLanguage()) || request.getLanguage() != null
+                && request.getLanguage().equalsIgnoreCase("string")) ? null : StringUtils.lowerCase(request.getLanguage()))
+            //change language to lower case before sending to gov pay
             .build();
 
+        LOG.info("Language Value : {}",paymentServiceRequest.getLanguage());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
 
@@ -167,6 +175,28 @@ public class CardPaymentController {
         return paymentDtoMapper.toRetrievePaymentStatusesDto(delegatingPaymentService.retrieve(paymentReference));
     }
 
+    @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 204, message = "Cancellation of payment successful"),
+        @ApiResponse(code = 400, message = "Cancellation of payment failed"),
+        @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
+        @ApiResponse(code = 403, message = "Forbidden-Access Denied"),
+        @ApiResponse(code = 404, message = "Payment Not found"),
+        @ApiResponse(code = 500, message = "Downstream system error")
+    })
+    @PostMapping(value = "/card-payments/{reference}/cancel")
+    public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
+        if (!ff4j.check("payment-cancel")) {
+            throw new PaymentException("Payment cancel feature is not available for usage.");
+        }
+        delegatingPaymentService.cancel(paymentReference);
+        return new ResponseEntity(NO_CONTENT);
+    }
+
+    @ExceptionHandler(value = {GovPayCancellationFailedException.class})
+    public ResponseEntity cancellationFailedException(GovPayCancellationFailedException ex) {
+        return new ResponseEntity(BAD_REQUEST);
+    }
 
     @ExceptionHandler(value = {GovPayPaymentNotFoundException.class, PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {

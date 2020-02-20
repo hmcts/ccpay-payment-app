@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.dto.mapper;
 
 import lombok.SneakyThrows;
+import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -71,7 +71,8 @@ public class PaymentDtoMapper {
             .reference(payment.getReference())
             .paymentGroupReference(paymentGroupReference)
             .dateCreated(payment.getDateCreated())
-            .ccdCaseNumber(payment.getCcdCaseNumber()!=null ? payment.getCcdCaseNumber(): payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .caseReference(payment.getCaseReference())
             .build();
     }
 
@@ -223,35 +224,43 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees) {
-        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
-            .paymentReference(payment.getReference())
-            .paymentGroupReference(paymentReference)
-            .serviceName(payment.getServiceType())
-            .siteId(payment.getSiteId())
-            .amount(payment.getAmount())
-            .caseReference(payment.getCaseReference())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
-            .accountNumber(payment.getPbaNumber())
-            .organisationName(payment.getOrganisationName())
-            .customerReference(payment.getCustomerReference())
-            .channel(payment.getPaymentChannel().getName())
-            .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase())
-            .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
-            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null)
-            .dateCreated(payment.getDateCreated())
-            .dateUpdated(payment.getDateUpdated())
-            .method(payment.getPaymentMethod().getName())
-            .bankedDate(payment.getBankedDate())
-            .giroSlipNo(payment.getGiroSlipNo())
-            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-            .externalReference(payment.getPaymentProvider() !=null && payment.getPaymentProvider().getName().equals("exela") ? payment.getDocumentControlNumber() : payment.getExternalReference())
-            .reportedDateOffline(payment.getReportedDateOffline())
-            .fees(toFeeDtosWithCaseRererence(fees,payment.getCaseReference()))
-            .build();
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j) {
+        boolean isExelaPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
+        boolean bulkScanCheck = ff4j.check("bulk-scan-check");
+        LOG.info("bulkScanCheck value in PaymentDtoMapper: {}",bulkScanCheck);
+        LOG.info("isExelaPayment value in PaymentDtoMapper: {}",isExelaPayment);
+            PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+                .paymentReference(payment.getReference())
+                .paymentGroupReference(paymentReference)
+                .serviceName(payment.getServiceType())
+                .siteId(payment.getSiteId())
+                .amount(payment.getAmount())
+                .caseReference(payment.getCaseReference())
+                .ccdCaseNumber(payment.getCcdCaseNumber())
+                .accountNumber(payment.getPbaNumber())
+                .organisationName(payment.getOrganisationName())
+                .customerReference(payment.getCustomerReference())
+                .channel(payment.getPaymentChannel().getName())
+                .currency(CurrencyCode.valueOf(payment.getCurrency()))
+                .status(bulkScanCheck ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+                .statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
+                .dateCreated(payment.getDateCreated())
+                .dateUpdated(payment.getDateUpdated())
+                .method(payment.getPaymentMethod().getName())
+                .bankedDate(payment.getBankedDate())
+                .giroSlipNo(payment.getGiroSlipNo())
+                .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+                .externalReference(isExelaPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
+                .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
+                .fees(isExelaPayment ? toFeeDtosWithCaseRererence(fees,payment.getCaseReference()) : toFeeDtos(fees))
+                .build();
+
+        if (bulkScanCheck && isExelaPayment) {
+            paymentDto.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
+        }
         return enrichWithFeeData(paymentDto);
     }
+
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         paymentDto.getFees().forEach(fee -> {
@@ -280,6 +289,7 @@ public class PaymentDtoMapper {
     private List<FeeDto> toFeeDtos(List<PaymentFee> fees) {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
+
 
     private List<FeeDto> toFeeDtosWithCaseRererence(List<PaymentFee> fees, String caseReference) {
 
@@ -334,7 +344,7 @@ public class PaymentDtoMapper {
             .code(fee.getCode())
             .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
             .version(fee.getVersion())
-            .volumeAmount(fee.getVolume())
+            .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .caseReference(caseReference)
             .reference(fee.getReference())
@@ -380,17 +390,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public Payment toPaymentRequest(PaymentRecordRequest paymentRecordRequest) {
-        return Payment.paymentWith()
-            .amount(paymentRecordRequest.getAmount())
-            .caseReference(paymentRecordRequest.getReference())
-            .serviceType(paymentRecordRequest.getService().getName())
-            .currency(paymentRecordRequest.getCurrency().getCode())
-            .siteId(paymentRecordRequest.getSiteId())
-            .giroSlipNo(paymentRecordRequest.getGiroSlipNo())
-            .build();
-    }
-
     public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
@@ -398,8 +397,9 @@ public class PaymentDtoMapper {
             .paymentReference(paymentAllocation.getPaymentReference())
             .id(paymentAllocation.getId()!=null ? paymentAllocation.getId().toString():null)
             .dateCreated(paymentAllocation.getDateCreated())
-            .receivingEmailAddress(paymentAllocation.getReceivingEmailAddress())
-            .sendingEmailAddress(paymentAllocation.getSendingEmailAddress())
+            .reason(paymentAllocation.getReason())
+            .explanation(paymentAllocation.getExplanation())
+            .userName(paymentAllocation.getUserName())
             .receivingOffice(paymentAllocation.getReceivingOffice())
             .unidentifiedReason(paymentAllocation.getUnidentifiedReason())
             .build();

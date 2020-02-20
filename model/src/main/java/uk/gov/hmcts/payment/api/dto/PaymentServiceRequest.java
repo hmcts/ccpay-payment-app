@@ -26,4 +26,5 @@ public class PaymentServiceRequest {
     private String serviceCallbackUrl;
     private String channel;
     private String provider;
+    private String language;
 }
