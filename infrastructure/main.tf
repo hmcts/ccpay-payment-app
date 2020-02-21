@@ -142,6 +142,11 @@ data "azurerm_key_vault_secret" "pba_divorce_payments_email_to" {
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
+data "azurerm_key_vault_secret" "pba_fpl_payments_email_to" {
+  name = "pba-fpl-payments-email-to"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
+}
+
 data "azurerm_key_vault_secret" "webjob_s2s_client_secret" {
   name = "gateway-s2s-client-secret"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
