@@ -213,7 +213,7 @@
         <cve>CVE-2019-20445</cve>
     </suppress>
     <suppress>
-        <notes><![CDATA[jackson-databind:2.9.9.jar]]></notes>
+        <notes><![CDATA[jackson:2.9.9.jar]]></notes>
         <cve>CVE-2020-8840</cve>
     </suppress>
 </suppressions>
