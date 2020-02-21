@@ -1,5 +1,6 @@
 capacity = "2"
-idam_api_url = "https://idam-api.ithc.platform.hmcts.net"
+//idam_api_url = "https://idam-api.ithc.platform.hmcts.net"
+idam_api_url = "https://idam-web-public-aks.ithc.platform.hmcts.net"
 
 external_host_name ="payment.ithc.platform.hmcts.net"
 
