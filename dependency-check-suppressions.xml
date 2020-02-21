@@ -212,4 +212,8 @@
         <cve>CVE-2019-20444</cve>
         <cve>CVE-2019-20445</cve>
     </suppress>
+    <suppress>
+        <notes>jackson-databind-2.9.9.3.jar</notes>
+        <cve>CVE-2020-8840</cve>
+    </suppress>
 </suppressions>
