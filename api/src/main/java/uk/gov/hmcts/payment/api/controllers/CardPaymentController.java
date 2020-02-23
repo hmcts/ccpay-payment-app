@@ -177,12 +177,6 @@ public class CardPaymentController {
         return new ResponseEntity(NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {GovPayException.class})
-    public ResponseEntity httpClientErrorException(GovPayException e) {
-        LOG.error("Error while calling payments", e);
-        return new ResponseEntity(INTERNAL_SERVER_ERROR);
-    }
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {

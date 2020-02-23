@@ -7,8 +7,10 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,32 +23,23 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.external.client.dto.Error;
+import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -85,6 +78,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @InjectMocks
+    private CardPaymentController cardPaymentController;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -150,6 +146,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .post("/card-payments", cardPaymentInvalidRequestJson())
             .andExpect(status().isBadRequest());
     }
+
 
     @Test
     public void createCardPayment_withMissingCcdCaseNumberAndCaseReference_shouldReturn422Test() throws Exception {
@@ -696,7 +693,19 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(result.getResponse().getContentAsString(), "validLanguage: Invalid value for language attribute.");
     }
 
+    @Test
+    public void getting400PaymentException() throws Exception {
+        String errorMessage = "errorMessage";
+        PaymentException ex = new PaymentException(errorMessage);
+        assertEquals(errorMessage, cardPaymentController.return400(ex));
+    }
 
+    @Test
+    public void getting403AccessDeniedException() throws Exception {
+        String errorMessage = "errorMessage";
+        AccessDeniedException ex = new AccessDeniedException(errorMessage);
+        assertEquals(errorMessage, cardPaymentController.return403(ex));
+    }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
