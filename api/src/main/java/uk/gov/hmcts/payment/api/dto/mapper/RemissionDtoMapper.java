@@ -3,13 +3,9 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
-import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class RemissionDtoMapper {
@@ -26,9 +22,6 @@ public class RemissionDtoMapper {
             .build();
     }
 
-    public List<PaymentFee> toFees(List<FeeDto> feeDtos) {
-        return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
-    }
 
     public FeeDto toFeeDto(PaymentFee fee) {
         return FeeDto.feeDtoWith()

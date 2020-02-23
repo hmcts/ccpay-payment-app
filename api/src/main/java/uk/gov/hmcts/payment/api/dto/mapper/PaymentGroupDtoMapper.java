@@ -77,9 +77,6 @@ public class PaymentGroupDtoMapper {
             .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
             .build();
     }
-    private BigDecimal getTotalHwfRemission(List<Remission> remissions) {
-        return remissions != null ? remissions.stream().map(Remission::getHwfAmount).reduce(BigDecimal.ZERO, BigDecimal::add) : new BigDecimal("0.00");
-    }
 
     private RemissionDto toRemissionDto(Remission remission) {
         return RemissionDto.remissionDtoWith()
