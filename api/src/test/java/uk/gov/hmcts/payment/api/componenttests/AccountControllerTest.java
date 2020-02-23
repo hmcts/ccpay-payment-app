@@ -85,6 +85,13 @@ public class AccountControllerTest {
         assertEquals(errorMessage, accountController.return404(ex));
     }
 
+    @Test
+    public void getting503LiberataServiceInaccessibleException() throws Exception {
+        String errorMessage = "errorMessage";
+        LiberataServiceInaccessibleException ex = new LiberataServiceInaccessibleException(errorMessage);
+        assertEquals(errorMessage, accountController.return503(ex));
+    }
+
     @Test(expected = LiberataServiceInaccessibleException.class)
     public void getLiberataServiceInaccessibleException() {
         AccountDto expectedDto = new AccountDto("PBA4324", "accountName", new BigDecimal(100),
