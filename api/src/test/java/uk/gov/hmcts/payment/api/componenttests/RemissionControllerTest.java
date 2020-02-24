@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,6 +19,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.controllers.RemissionController;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
@@ -26,6 +29,7 @@ import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
@@ -35,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -54,6 +58,9 @@ public class RemissionControllerTest {
     private final static String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
 
     private RestActions restActions;
+
+    @InjectMocks
+    private RemissionController remissionController;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -810,6 +817,19 @@ public class RemissionControllerTest {
             .andExpect(status().isNotFound());
     }
 
+    @Test
+    public void getting400DataIntegrityViolationException() throws Exception {
+        String errorMessage = "errorMessage";
+        DataIntegrityViolationException ex = new DataIntegrityViolationException(errorMessage);
+        assertEquals(errorMessage, remissionController.return400onDataIntegrityViolation(ex));
+    }
+
+    @Test
+    public void getting400InvalidPaymentGroupReferenceException() throws Exception {
+        String errorMessage = "errorMessage";
+        InvalidPaymentGroupReferenceException ex = new InvalidPaymentGroupReferenceException(errorMessage);
+        assertEquals(errorMessage, remissionController.return404onInvalidPaymentGroupReference(ex));
+    }
 
     private RemissionRequest getRemissionRequest() {
         return RemissionRequest.createRemissionRequestWith()
