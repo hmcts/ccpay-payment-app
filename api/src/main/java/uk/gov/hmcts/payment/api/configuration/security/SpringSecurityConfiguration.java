@@ -76,6 +76,8 @@ public class SpringSecurityConfiguration {
                 "/info",
                 "/favicon.ico",
                 "/mock-api/**",
+                "/hystrix.stream",
+                "/hystrix",
                 "/");
         }
 
