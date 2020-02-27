@@ -1,19 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
-    <suppress>
-        <notes>suppress false positives - only relevant if endpoints are exposed</notes>
-        <gav regex="true">^org\.codehaus\.jackson:jackson-mapper-asl.*$</gav>
-        <cve>CVE-2017-17485</cve>
-        <cve>CVE-2018-5968</cve>
-        <cve>CVE-2017-7525</cve>
-        <cve>CVE-2017-15095</cve>
-        <cve>CVE-2018-14718</cve>
-        <cve>CVE-2018-1000873</cve>
-        <cve>CVE-2018-7489</cve>
-        <cve>CVE-2019-14540</cve>
-        <cve>CVE-2019-16335</cve>
-        <cve>CVE-2019-17267</cve>
-    </suppress>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
     <suppress>
         <notes><![CDATA[
    file name: feign-form-spring-3.3.0.jar fixes are yet not available.
@@ -22,14 +8,6 @@
         <cve>CVE-2018-1270</cve>
         <cve>CVE-2018-1271</cve>
         <cve>CVE-2018-1272</cve>
-    </suppress>
-
-    <suppress>
-        <notes><![CDATA[
-   file name: postgresql-42.2.5.jar we are onl latest version. fixes not available yet.
-   ]]></notes>
-        <gav regex="true">^org\.postgresql:postgresql:.*$</gav>
-        <cpe>cpe:/a:postgresql:postgresql</cpe>
     </suppress>
     <suppress>
         <notes><![CDATA[
@@ -53,139 +31,36 @@
         <cve>CVE-2010-0538</cve>
     </suppress>
     <suppress>
-        <notes><![CDATA[
-   file name: AppleJavaExtensions-1.4.jar  fix in PAY-1438
-   ]]></notes>
-        <gav regex="true">^com\.google\.guava:guava:.*$</gav>
-        <cve>CVE-2018-10237</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2011-1068</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2013-1282</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-10101</cve>
-        <cve>CVE-2019-10102</cve>
-        <cve>CVE-2019-10103</cve>
-        <cve>CVE-2018-17187</cve>
         <cve>CVE-2019-11358</cve>
-        <cve>CVE-2018-14040</cve>
-        <cve>CVE-2018-14041</cve>
-        <cve>CVE-2018-14042</cve>
-        <cve>CVE-2019-8331</cve>
         <cve>CVE-2015-9251</cve>
         <cve>CVE-2012-6708</cve>
-        <cve>CVE-2019-12814</cve>
-        <cve>CVE-2019-14379</cve>
-        <cve>CVE-2019-14439</cve>
-        <cve>CVE-2019-12384</cve>
+        <cve>CVE-2019-16869</cve>
+        <cve>CVE-2019-17563</cve>
+        <cve>CVE-2018-17187</cve>
+        <cve>CVE-2019-12418</cve>
         <cve>CVE-2019-12402</cve>
-        <cve>CVE-2019-14540</cve>
-        <cve>CVE-2019-16335</cve>
-        <cve>CVE-2019-16370</cve>
-        <cve>CVE-2019-12402</cve>
+        <cve>CVE-2017-17485</cve>
+        <cve>CVE-2018-5968</cve>
+        <cve>CVE-2017-7525</cve>
+        <cve>CVE-2017-15095</cve>
+        <cve>CVE-2018-14718</cve>
+        <cve>CVE-2018-1000873</cve>
+        <cve>CVE-2018-7489</cve>
         <cve>CVE-2019-17267</cve>
-        <cve>CVE-2019-17531</cve>
-        <cve>CVE-2015-0203</cve>
+        <cve>CVE-2019-16335</cve>
+        <cve>CVE-2019-14540</cve>
         <cve>CVE-2015-0223</cve>
         <cve>CVE-2015-0224</cve>
         <cve>CVE-2019-0223</cve>
-        <cve>CVE-2019-12418</cve>
-        <cve>CVE-2019-17563</cve>
+        <cve>CVE-2015-0203</cve>
         <cve>CVE-2020-5398</cve>
+        <cve>CVE-2019-20445</cve>
+        <cve>CVE-2019-20444</cve>
         <cwe>611</cwe>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-   org.slf4j:slf4j-api:1.7.25 -> inherited from org.springframework.boot:spring-boot-starter-web. No fix available yet.
-   ]]></notes>
-        <cve>CVE-2018-8088</cve>
     </suppress>
     <suppress>
         <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see https://pivotal.io/security/cve-2018-1258</notes>
         <cve>CVE-2018-1258</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-    Suppressing as it seems a false positive as per https://github.com/jeremylong/DependencyCheck/issues/1573
-    ]]></notes>
-        <gav regex="true">^io\.netty:netty-tcnative-boringssl-static:.*</gav>
-        <cve>CVE-2014-3488</cve>
-        <cve>CVE-2015-2156</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			Not applicable - Randomness vulnerability when using SecureRandomFactoryBean
-			]]></notes>
-        <gav regex="true">.*</gav>
-        <cve>CVE-2019-3795</cve>
-        <cve>CVE-2019-3778</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-            file name: spring-security-rsa-1.0.8.RELEASE.jar
-            This has been updated, but it still shown some vulnerabilities that shouldn't be there
-            Issue reported on the DependencyCheck GitHub repo
-            https://github.com/jeremylong/DependencyCheck/issues/1665
-        ]]>
-        </notes>
-        <gav regex="true">.*</gav>
-        <cpe>cpe:/a:vmware:springsource_spring_security:1.0.8</cpe>
-        <cpe>cpe:/a:pivotal_software:spring_security:1.0.8,</cpe>
-        <cpe>cpe:/a:pivotal_software:spring_security_oauth:1.0.8</cpe>
-        <cpe>cpe:/a:pivotal:spring_security_oauth:1.0.8</cpe>
-        <cve>CVE-2011-2731</cve>
-        <cve>CVE-2011-2732</cve>
-        <cve>CVE-2012-5055</cve>
-        <cve>CVE-2018-1260</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-0232</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-0199</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-10241</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-10246</cve>
-        <cve>CVE-2019-10247</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			Jetty included by wiremock. No update available yet.
-			]]></notes>
-        <gav regex="true">^.*org.eclipse.jetty.*$</gav>
-        <cve>CVE-2019-10247</cve>
-        <cve>CVE-2019-10241</cve>
-        <cve>CVE-2019-10246</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-			Apache Tomcat included by azure spring boot et al. No update available yet.
-			]]></notes>
-        <gav regex="true">^.*org.apache.tomcat.embed.*$</gav>
-        <cve>CVE-2019-0232</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-            tomcat-embed-websocket-9.0.17.jar, included by uk.gov.hmcts.reform:properties-volume-spring-boot-starter:0.0.4, no update available
-			]]></notes>
-        <gav regex="true">^.*org.apache.tomcat.embed.*$</gav>
-        <cve>CVE-2019-0221</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-12814</cve>
-        <cve>CVE-2019-14379</cve>
-        <cve>CVE-2019-14439</cve>
-        <cve>CVE-2019-16942</cve>
-        <cve>CVE-2019-16943</cve>
-        <cve>CVE-2019-16335</cve>
-        <cve>CVE-2019-14540</cve>
-        <cve>CVE-2019-16869</cve>
     </suppress>
     <suppress>
         <notes>We are bound by the gradle version in the CNP environments. Currently all gradle versions upto 5.6 are
@@ -196,20 +71,6 @@
         </notes>
         <cve>CVE-2019-15052</cve>
         <cve>CVE-2019-10086</cve>
-        <cve>CVE-2019-16942</cve>
-        <cve>CVE-2019-16943</cve>
     </suppress>
-    <suppress>
-        <cpe>cpe:/a:apache_tomcat:apache_tomcat:9.0.21</cpe>
-        <cve>CVE-2019-12418</cve>
-        <cve>CVE-2019-17563</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2019-20330</cve>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[applicationinsights-core-2.3.1.jar]]></notes>
-        <cve>CVE-2019-20444</cve>
-        <cve>CVE-2019-20445</cve>
-    </suppress>
+
 </suppressions>
