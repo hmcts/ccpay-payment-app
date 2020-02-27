@@ -765,6 +765,21 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated());
     }
 
+    @Test
+    public void createCreditAccountPaymentTest_FPLA_InvalidSiteId() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLAInvalidSiteId().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        MvcResult result = restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isUnprocessableEntity()).andReturn();
+        assertEquals(result.getResponse().getContentAsString(), "validSiteId: Invalid Site ID (URN) provided for FPL. Accepted values are ABA3");
+    }
+
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
         return "{\n" +
             "  \"amount\": 101.89,\n" +
@@ -858,7 +873,29 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "  \"case_reference\": \"12345\",\n" +
             "  \"service\": \"FPL\",\n" +
             "  \"currency\": \"GBP\",\n" +
-            "  \"site_id\": \"AA101\",\n" +
+            "  \"site_id\": \"ABA3\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String creditAccountPaymentRequestJsonWithFPLAInvalidSiteId() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"FPL\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"AA08\",\n" +
             "  \"customer_reference\": \"CUST101\",\n" +
             "  \"organisation_name\": \"ORG101\",\n" +
             "  \"account_number\": \"AC101010\",\n" +
