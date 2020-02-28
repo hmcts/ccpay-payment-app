@@ -1,11 +1,13 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -29,10 +31,7 @@ import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Primary
@@ -61,6 +60,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final CallbackService callbackService;
 
     private static final Predicate[] REF = new Predicate[0];
+
+    @Value("${gov.pay.url}") String govpayUrl;
 
     @Autowired
     public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier,
@@ -172,7 +173,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         return paymentFeeLink;
     }
 
-
     private Payment buildPayment(String paymentReference, PaymentServiceRequest paymentServiceRequest) {
         return Payment.paymentWith().userId(userIdSupplier.get())
             .amount(paymentServiceRequest.getAmount())
@@ -257,6 +257,19 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     @Override
     public List<PaymentFeeLink> search(PaymentSearchCriteria searchCriteria) {
         return paymentFeeLinkRepository.findAll(findPayments(searchCriteria));
+    }
+
+    @Override
+    public void cancel(String paymentReference) {
+        Payment payment = findSavedPayment(paymentReference);
+        delegateGovPay.cancel(govpayUrl + "/" + payment.getExternalReference() + "/cancel");
+        Map<String, String> properties = new ImmutableMap.Builder<String, String>()
+            .put("paymentReference", payment.getReference())
+            .put("amount", payment.getAmount().toString())
+            .put("CcdCaseNumber", payment.getCcdCaseNumber())
+            .put("ExternalReference", payment.getExternalReference())
+            .build();
+        auditRepository.trackEvent("CANCEL_CARD_PAYMENT", properties);
     }
 
     private static Specification findPayments(PaymentSearchCriteria searchCriteria) {
