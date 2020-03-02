@@ -84,5 +84,6 @@
     <suppress>
         <notes>tomcat-embed-websocket @9.0.21</notes>
         <cve>CVE-2020-1938</cve>
+        <cve>CVE-2019-10797</cve>
     </suppress>
 </suppressions>
