@@ -55,6 +55,11 @@ data "azurerm_key_vault_secret" "pci_pal_account_id_divorce" {
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
 
+data "azurerm_key_vault_secret" "pci_pal_account_id_fpl" {
+  name = "pci-pal-account-id-fpl"
+  key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
+}
+
 data "azurerm_key_vault_secret" "pci_pal_api_url" {
   name = "pci-pal-api-url"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
@@ -191,6 +196,7 @@ module "payment-api" {
     PCI_PAL_ACCOUNT_ID_CMC = "${data.azurerm_key_vault_secret.pci_pal_account_id_cmc.value}"
     PCI_PAL_ACCOUNT_ID_PROBATE = "${data.azurerm_key_vault_secret.pci_pal_account_id_probate.value}"
     PCI_PAL_ACCOUNT_ID_DIVORCE = "${data.azurerm_key_vault_secret.pci_pal_account_id_divorce.value}"
+    PCI_PAL_ACCOUNT_ID_FPL = "${data.azurerm_key_vault_secret.pci_pal_account_id_fpl.value}"
     PCI_PAL_API_URL = "${data.azurerm_key_vault_secret.pci_pal_api_url.value}"
     PCI_PAL_API_KEY = "${data.azurerm_key_vault_secret.pci_pal_api_key.value}"
     PCI_PAL_CALLBACK_URL = "${var.pci_pal_callback_url}"
