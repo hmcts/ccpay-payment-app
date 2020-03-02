@@ -6,8 +6,6 @@ import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -27,6 +25,9 @@ import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayClientException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
@@ -93,6 +94,16 @@ public class GovPayClient {
             HttpResponse response = httpClient.execute(request);
             checkNotAnError(response);
             return null;
+        });
+    }
+
+    @HystrixCommand(commandKey = "health", ignoreExceptions = {GovPayPaymentNotFoundException.class})
+    public GovPayPayment healthInfo(String authorizationKey) {
+        return withIOExceptionHandling(() -> {
+            HttpGet request = getRequestFor(authorizationKey, url);
+            HttpResponse response = httpClient.execute(request);
+            checkNotAnError(response);
+            return objectMapper.readValue(response.getEntity().getContent(), GovPayPayment.class);
         });
     }
 
