@@ -29,12 +29,15 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_PROBATE = "probate";
     private static final String SERVICE_TYPE_CMC = "cmc";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
+    private static final String SERVICE_TYPE_FPL = "fpl";
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
     @Value("${pci-pal.account.id.probate}")
     private String ppAccountIDProbate;
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
+    @Value("${pci-pal.account.id.fpl}")
+    private String ppAccountIDFPL;
 
     private final String callbackUrl;
     private final String url;
@@ -47,7 +50,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
-        LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
+        LOG.debug("CMC: {} DIVORCE: {} PROBATE: {} FPL: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate, ppAccountIDFPL);
         return withIOExceptionHandling(() -> {
             String ppAccountID = null;
             if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
@@ -56,6 +59,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                 ppAccountID = ppAccountIDCmc;
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
                 ppAccountID = ppAccountIDProbate;
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FPL))
+                ppAccountID = ppAccountIDFPL;
 
             LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
