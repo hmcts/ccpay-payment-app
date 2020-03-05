@@ -50,19 +50,27 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
 
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
-        LOG.debug("CMC: {} DIVORCE: {} PROBATE: {} FPL: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate, ppAccountIDFPL);
+        LOG.info("CMC: {} DIVORCE: {} PROBATE: {} FPL: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate, ppAccountIDFPL);
         return withIOExceptionHandling(() -> {
             String ppAccountID = null;
-            if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
+            if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
+                LOG.info("Inside Divorce");
                 ppAccountID = ppAccountIDDivorce;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
+            }
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
+                LOG.info("Inside CMC");
                 ppAccountID = ppAccountIDCmc;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
+            }
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
+                LOG.info("Inside Probate");
                 ppAccountID = ppAccountIDProbate;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FPL))
+            }
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FPL)) {
+                LOG.info("Inside FPL");
                 ppAccountID = ppAccountIDFPL;
+            }
 
-            LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
+            LOG.info("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
             params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
