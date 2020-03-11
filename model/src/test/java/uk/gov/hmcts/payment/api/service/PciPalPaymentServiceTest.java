@@ -66,4 +66,31 @@ public class PciPalPaymentServiceTest {
         HttpGet getRequest = new HttpGet(uriBuilder.build());
         assertThat(response).isEqualTo(getRequest.getURI().toString());
     }
+    @Test
+    public void getPciPalLinkForFPL() throws URISyntaxException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ppAccountID&orderAmount=20000&orderReference=orderReference&callbackURL=www.callback.url.com&customData2");
+        stubFor(
+            post(urlEqualTo("/"))
+                .withRequestBody(
+                    new EqualToPattern(sb.toString())
+                )
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBodyFile("pci-pal-response.txt")
+                )
+        );
+
+        PciPalPaymentRequest request = PciPalPaymentRequest.pciPalPaymentRequestWith()
+            .orderAmount("200")
+            .orderCurrency("GBP")
+            .orderReference("orderReference")
+            .build();
+
+        String response = pciPalPaymentService.getPciPalLink(request, "fpl");
+
+        URIBuilder uriBuilder = new URIBuilder(url + "?" + sb.toString());
+        HttpGet getRequest = new HttpGet(uriBuilder.build());
+        assertThat(response).isEqualTo(getRequest.getURI().toString());
+    }
 }

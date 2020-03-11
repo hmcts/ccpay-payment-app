@@ -2,7 +2,6 @@ java:
   image: hmctspublic.azurecr.io/payment/api:latest
   applicationPort: 8080
   ingressHost: payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
-  aadIdentityName: ccpay
   environment:
     POSTGRES_PORT: 5432
     POSTGRES_HOST: payment-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
@@ -81,6 +80,7 @@ java:
         - pci-pal-account-id-cmc
         - pci-pal-account-id-probate
         - pci-pal-account-id-divorce
+        - pci-pal-account-id-fpl
         - pci-pal-api-url
         - pci-pal-api-key
         - gov-pay-keys-reference
