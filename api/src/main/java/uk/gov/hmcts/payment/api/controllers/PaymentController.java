@@ -131,6 +131,7 @@ public class PaymentController {
             );
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
+        LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", paymentFeeLinks.size());
         for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
             populatePaymentDtos(paymentDtos, paymentFeeLink);
         }
