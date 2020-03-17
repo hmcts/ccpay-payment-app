@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.validators;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,8 @@ import static java.util.Comparator.nullsFirst;
 @Component
 @Transactional
 public class DuplicatePaymentValidator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DuplicatePaymentValidator.class);
 
     private final DuplicateSpecification duplicateSpecification;
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -45,6 +49,7 @@ public class DuplicatePaymentValidator {
             boolean sameFees = dbPayments.stream()
                 .anyMatch(feePredicate(requestFees));
             if (sameFees) {
+                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Duplicate Payment!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
                 throw new DuplicatePaymentException("duplicate payment");
             }
         }
