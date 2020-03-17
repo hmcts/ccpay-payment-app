@@ -49,7 +49,9 @@ public class DuplicatePaymentValidator {
             boolean sameFees = dbPayments.stream()
                 .anyMatch(feePredicate(requestFees));
             if (sameFees) {
-                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Duplicate Payment!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+                if(payment != null && payment.getPaymentStatus() != null) {
+                    LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Duplicate Payment!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+                }
                 throw new DuplicatePaymentException("duplicate payment");
             }
         }
