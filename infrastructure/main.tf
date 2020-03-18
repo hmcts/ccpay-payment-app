@@ -180,6 +180,7 @@ module "payment-api" {
 
     # idam
     AUTH_IDAM_CLIENT_BASEURL = "${var.idam_api_url}"
+    OIDC_ISSUER = "https://forgerock-am.service.core-compute-idam-${var.env}.internal:8443/openam/oauth2/hmcts"
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
 
