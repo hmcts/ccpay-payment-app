@@ -3,6 +3,8 @@ package uk.gov.hmcts.payment.api.configuration.security;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -11,27 +13,35 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
-import uk.gov.hmcts.reform.auth.checker.core.service.Service;
-import uk.gov.hmcts.reform.auth.checker.core.user.User;
-import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
+import org.springframework.security.oauth2.jwt.*;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @EnableWebSecurity
 public class SpringSecurityConfiguration {
 
+
+    @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
+    private String issuerUri;
+
+    @Value("${oidc.issuer}")
+    private String issuerOverride;
+
     @Configuration
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
-        private AuthCheckerServiceOnlyFilter authCheckerServiceOnlyFilter;
+        private ServiceAuthFilter serviceAuthFilter;
+
 
         @Autowired
-        public ExternalApiSecurityConfigurationAdapter(RequestAuthorizer<Service> serviceRequestAuthorizer,
-                                           AuthenticationManager authenticationManager) {
-            authCheckerServiceOnlyFilter = new AuthCheckerServiceOnlyFilter(serviceRequestAuthorizer);
-            authCheckerServiceOnlyFilter.setAuthenticationManager(authenticationManager);
+        public ExternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter) {
+            this.serviceAuthFilter = serviceAuthFilter;
         }
 
         protected void configure(HttpSecurity http) throws Exception {
@@ -43,10 +53,12 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.POST, "/telephony/callback")
                     .antMatchers(  "/jobs/**")
                     .and()
-                .addFilter(authCheckerServiceOnlyFilter)
                 .csrf().disable()
-                .authorizeRequests()
-                .anyRequest().authenticated();
+                .formLogin().disable()
+                .logout().disable()
+                .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         }
     }
 
@@ -57,9 +69,7 @@ public class SpringSecurityConfiguration {
         private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
 
         @Autowired
-        public InternalApiSecurityConfigurationAdapter(RequestAuthorizer<User> userRequestAuthorizer,
-                                           RequestAuthorizer<Service> serviceRequestAuthorizer,
-                                           AuthenticationManager authenticationManager) {
+        public InternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter) {
             authCheckerFilter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
             authCheckerFilter.setAuthenticationManager(authenticationManager);
         }
@@ -97,6 +107,19 @@ public class SpringSecurityConfiguration {
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
                 .anyRequest().authenticated();
         }
+    }
+
+    @Bean
+    JwtDecoder jwtDecoder() {
+        NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder)JwtDecoders.fromOidcIssuerLocation(issuerUri);
+
+        // We are using issuerOverride instead of issuerUri as SIDAM has the wrong issuer at the moment
+        OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
+        OAuth2TokenValidator<Jwt> withIssuer = new JwtIssuerValidator(issuerOverride);
+        OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(withTimestamp, withIssuer);
+
+        jwtDecoder.setJwtValidator(validator);
+        return jwtDecoder;
     }
 
 }
