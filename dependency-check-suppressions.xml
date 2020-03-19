@@ -75,5 +75,6 @@
     <suppress>
         <notes><![CDATA[jackson:2.9.9.jar]]></notes>
         <cve>CVE-2020-8840</cve>
+        <cve>CVE-2019-17195</cve>
     </suppress>
 </suppressions>
