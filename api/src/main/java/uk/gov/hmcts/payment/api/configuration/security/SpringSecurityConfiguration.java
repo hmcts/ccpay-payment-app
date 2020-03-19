@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
@@ -58,54 +59,13 @@ public class SpringSecurityConfiguration {
                 .logout().disable()
                 .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        }
-    }
-
-    @Configuration
-    @Order(2)
-    public static class InternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-
-        private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
-
-        @Autowired
-        public InternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter) {
-            authCheckerFilter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
-            authCheckerFilter.setAuthenticationManager(authenticationManager);
-        }
-
-        @Override
-        public void configure(WebSecurity web) {
-            web.ignoring().antMatchers("/swagger-ui.html",
-                "/webjars/springfox-swagger-ui/**",
-                "/swagger-resources/**",
-                "/v2/**",
-                "/refdata/**",
-                "/health",
-                "/health/liveness",
-                "/info",
-                "/favicon.ico",
-                "/mock-api/**",
-                "/");
-        }
-
-        @Override
-        @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED", justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
-        protected void configure(HttpSecurity http) throws Exception {
-            http.addFilter(authCheckerFilter)
-                .sessionManagement().sessionCreationPolicy(STATELESS).and()
-                .csrf().disable()
-                .formLogin().disable()
-                .logout().disable()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority("payments")
-                .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority("payments")
-                .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority("payments", "citizen")
-                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority("payments","pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
-                .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority("payments", "citizen")
-                .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/**").permitAll()
-                .anyRequest().authenticated();
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .oauth2ResourceServer()
+                .jwt()
+                .and()
+                .and()
+                .oauth2Client();
         }
     }
 
