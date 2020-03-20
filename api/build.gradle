@@ -88,6 +88,12 @@ dependencies {
         exclude(module: 'slf4j-simple')
     }
 
+
+    compile group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.1'
+    compile "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
+
+
+
     compile group: 'commons-io', name: 'commons-io', version: '2.5'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail'
     compile group: 'org.springframework.retry', name: 'spring-retry'
