@@ -5,7 +5,8 @@ public enum Service {
     DIVORCE("Divorce"),
     PROBATE("Probate"),
     FINREM("Finrem"),
-    DIGITAL_BAR("Digital Bar");
+    DIGITAL_BAR("Digital Bar"),
+    FPL("Family Public Law AND Adoption");
 
     private String name;
 
