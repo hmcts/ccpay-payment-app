@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.configuration.security;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -12,13 +13,9 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
-import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
-import uk.gov.hmcts.reform.auth.checker.core.service.Service;
-import uk.gov.hmcts.reform.auth.checker.core.user.User;
-import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
+
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @EnableWebSecurity
 public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter{
@@ -26,7 +23,7 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter{
     private final ServiceAuthFilter serviceAuthFilter;
 
     public SpringSecurityConfiguration(final ServiceAuthFilter serviceAuthFilter) {
-    this.serviceAuthFilter = serviceAuthFilter;
+        this.serviceAuthFilter = serviceAuthFilter;
     }
 
     @Override
@@ -56,6 +53,8 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter{
             .and()
             .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
             .csrf().disable()
+            .formLogin().disable()
+            .logout().disable()
             .authorizeRequests()
             .anyRequest().authenticated();
     }
