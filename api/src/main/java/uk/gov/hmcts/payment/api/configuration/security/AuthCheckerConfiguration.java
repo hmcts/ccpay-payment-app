@@ -13,8 +13,17 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.context.annotation.Lazy;
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
+import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
+import uk.gov.hmcts.reform.authorisation.validators.ServiceAuthTokenValidator;
+import uk.gov.hmcts.reform.idam.client.IdamApi;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @Configuration
+@Lazy
+@EnableFeignClients(basePackageClasses = {IdamApi.class, ServiceAuthorisationApi.class})
 public class AuthCheckerConfiguration {
 
     @Value("#{'${trusted.s2s.service.names}'.split(',')}")
@@ -39,5 +48,10 @@ public class AuthCheckerConfiguration {
     @Bean
     public Function<HttpServletRequest, Collection<String>> authorizedServicesExtractor() {
         return (any) -> authorizedServices;
+    }
+
+    @Bean
+    public AuthTokenValidator authTokenValidator(final ServiceAuthorisationApi serviceAuthorisationApi) {
+        return new ServiceAuthTokenValidator(serviceAuthorisationApi);
     }
 }
