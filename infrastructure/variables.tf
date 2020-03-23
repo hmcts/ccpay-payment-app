@@ -184,7 +184,20 @@ variable "pba_divorce_payments_email_subject" {
   default = "CNP Test Env : PBA Reconciliation Report for Divorce"
 }
 variable "pba_divorce_payments_email_message" {
-  default = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+  default = "Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>"
+}
+
+variable "pba_fpl_payments_report_scheduler_enabled" {
+  default = "true"
+}
+variable "pba_fpl_payments_email_from" {
+  default = "no-reply@reform.hmcts.net"
+}
+variable "pba_fpl_payments_email_subject" {
+  default = "CNP Test Env : PBA FPL Reconciliation Report"
+}
+variable "pba_fpl_payments_email_message" {
+  default = "Hi <br/><br/>Please find attached today's Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team <br/><br/>"
 }
 
 variable "payment_audit_file" {
