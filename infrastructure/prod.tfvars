@@ -8,6 +8,7 @@ pba_cmc_payments_report_scheduler_enabled = "true"
 pba_probate_payments_report_scheduler_enabled = "true"
 pba_finrem_payments_report_scheduler_enabled = "true"
 pba_divorce_payments_report_scheduler_enabled = "true"
+pba_fpl_payments_report_scheduler_enabled = "true"
 
 spring_mail_host = "mta.reform.hmcts.net"
 spring_mail_port = "25"
@@ -35,8 +36,12 @@ pba_finrem_payments_email_subject = "CNP: PBA Reconciliation Report for FINREM"
 pba_finrem_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 
 pba_divorce_payments_email_from = "no-reply@reform.hmcts.net"
-pba_divorce_payments_email_subject = "PBA Divorce Reconciliation Report for Divorce"
+pba_divorce_payments_email_subject = "CNP: PBA Divorce Reconciliation Report for Divorce"
 pba_divorce_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+
+pba_fpl_payments_email_from = "no-reply@reform.hmcts.net"
+pba_fpl_payments_email_subject = "CNP:PBA Reconciliation Report for FPL"
+pba_fpl_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
 
 feature_payments_search = true
 
