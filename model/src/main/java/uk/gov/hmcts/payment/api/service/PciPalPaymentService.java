@@ -54,19 +54,19 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         return withIOExceptionHandling(() -> {
             String ppAccountID = null;
             if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
-                LOG.info("Inside Divorce");
+                LOG.info("Divorce Service");
                 ppAccountID = ppAccountIDDivorce;
             }
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
-                LOG.info("Inside CMC");
+                LOG.info("CMC Service");
                 ppAccountID = ppAccountIDCmc;
             }
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
-                LOG.info("Inside Probate");
+                LOG.info("Probate Service");
                 ppAccountID = ppAccountIDProbate;
             }
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FPL)) {
-                LOG.info("Inside FPL");
+                LOG.info("FPL Service");
                 ppAccountID = ppAccountIDFPL;
             }
 

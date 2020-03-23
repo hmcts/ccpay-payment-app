@@ -115,6 +115,7 @@ public class CardPaymentController {
             .build();
 
         LOG.info("Language Value : {}",paymentServiceRequest.getLanguage());
+        LOG.info("Service Name Value : {}",paymentServiceRequest.getServiceType());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
 
