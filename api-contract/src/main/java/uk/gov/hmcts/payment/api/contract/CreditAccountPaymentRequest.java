@@ -69,7 +69,7 @@ public class CreditAccountPaymentRequest {
     }
 
     @AssertFalse(message = "Invalid Site ID (URN) provided for FPL. Accepted values are ABA3")
-    public boolean isValidSiteId() {
+    private boolean isValidSiteId() {
         String[] validSiteIds = {"ABA3"};
         if(null != service && service.getName().equalsIgnoreCase(Service.FPL.getName())) {
             return siteId != null && !Arrays.asList(validSiteIds).stream().anyMatch(vm -> vm.equalsIgnoreCase(
