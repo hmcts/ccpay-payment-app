@@ -7,16 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.controllers.PaymentExternalAPI;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+
+import javax.validation.Valid;
 
 
 @RestController
@@ -44,7 +42,7 @@ public class TelephonyController {
     })
     @PaymentExternalAPI
     @PostMapping(path = "/telephony/callback", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity updateTelephonyPaymentStatus(@ModelAttribute TelephonyCallbackDto callbackDto) {
+    public ResponseEntity updateTelephonyPaymentStatus(@Valid @ModelAttribute TelephonyCallbackDto callbackDto) {
         LOG.info("Received callback request from pci-apl : {}", callbackDto);
         paymentService.updateTelephonyPaymentStatus(callbackDto.getOrderReference(),
             callbackDto.getTransactionResult().toLowerCase(), callbackDto.toString());
