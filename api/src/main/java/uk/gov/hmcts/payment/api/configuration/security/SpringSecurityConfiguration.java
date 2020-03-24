@@ -32,8 +32,6 @@ public class SpringSecurityConfiguration {
 
         private ServiceAuthFilter serviceAuthFilter;
 
-        private List<String> authorisedServices = new ArrayList<>();
-
         @Inject
         public ExternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter) {
             super();
