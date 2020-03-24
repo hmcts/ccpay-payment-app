@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnl
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,10 +34,10 @@ public class SpringSecurityConfiguration {
 
         private List<String> authorisedServices = new ArrayList<>();
 
-        @Autowired
-        public ExternalApiSecurityConfigurationAdapter(final AuthTokenValidator authTokenValidator) {
-            authorisedServices.add("ccpay-bubble");
-            serviceAuthFilter = new ServiceAuthFilter(authTokenValidator, authorisedServices);
+        @Inject
+        public ExternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter) {
+            super();
+            this.serviceAuthFilter =  serviceAuthFilter;
         }
 
         protected void configure(HttpSecurity http) throws Exception {
@@ -63,12 +64,10 @@ public class SpringSecurityConfiguration {
 
         private ServiceAuthFilter serviceAuthFilter;
 
-        private List<String> authorisedServices = new ArrayList<>();
-
         @Autowired
-        public InternalApiSecurityConfigurationAdapter(final AuthTokenValidator authTokenValidator) {
-            authorisedServices.add("ccpay-bubble");
-            serviceAuthFilter = new ServiceAuthFilter(authTokenValidator, authorisedServices);
+        public InternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter) {
+            super();
+            this.serviceAuthFilter =  serviceAuthFilter;
         }
 
         @Override
