@@ -183,6 +183,10 @@ module "payment-api" {
     # service-auth-provider
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL = "${local.s2sUrl}"
 
+    # OpenIdConnect
+
+    IDAM_S2S_URL = "${local.s2sUrl}"
+
     # CCD
     CORE_CASE_DATA_API_URL = "${var.core_case_data_api_url}"
     CCD_CLIENT_URL = "${var.core_case_data_api_url}"
