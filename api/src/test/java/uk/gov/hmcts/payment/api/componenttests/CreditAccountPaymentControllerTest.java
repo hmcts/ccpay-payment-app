@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
@@ -644,6 +645,20 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         verify(accountService, times(2)).retrieve(request.getAccountNumber());
+
+        // Retrieve payment by payment group reference
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentDto paymentDtoForCredit = paymentGroupDto.getPayments().get(0);
+        //PAY-2856-Missing PBA details changes
+        assertTrue(paymentDtoForCredit.getAccountNumber().equalsIgnoreCase("AC101010"));
+        assertTrue(paymentDtoForCredit.getCustomerReference().equalsIgnoreCase("CUST101"));
+        assertTrue(paymentDtoForCredit.getOrganisationName().equalsIgnoreCase("ORG101"));
+
     }
 
 
