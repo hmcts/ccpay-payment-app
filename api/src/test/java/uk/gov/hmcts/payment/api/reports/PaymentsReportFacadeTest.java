@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
 
 import java.util.Date;
 import java.util.Map;
@@ -36,10 +37,12 @@ public class PaymentsReportFacadeTest {
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
     private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
     private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig = new PbaCmcPaymentReportConfig("from", null, "subject", "message", false);
+    private PbaFplPaymentReportConfig pbaFplPaymentReportConfig = new PbaFplPaymentReportConfig("from", null, "subject", "message", true);
 
     @Before
     public void setUp() {
-        Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.of(PaymentReportType.CARD, cardPaymentReportConfig, PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig, PaymentReportType.DIGITAL_BAR, barPaymentReportConfig);
+        Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.of(PaymentReportType.CARD, cardPaymentReportConfig, PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig,
+            PaymentReportType.DIGITAL_BAR, barPaymentReportConfig, PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig);
         facade = new PaymentsReportFacade(reportService, map);
     }
 
@@ -97,5 +100,19 @@ public class PaymentsReportFacadeTest {
 
         // given & when
         facade.generateCsvAndSendEmail(new Date(), new Date(), null, null);
+    }
+
+    @Test
+    public void fplDelegateFPLConfigurationService() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, Service.FPL);
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, Service.FPL, pbaFplPaymentReportConfig);
+
     }
 }
