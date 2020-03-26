@@ -10,7 +10,8 @@ public enum PaymentReportType {
     PBA_CMC,
     PBA_DIVORCE,
     PBA_PROBATE,
-    PBA_FINREM;
+    PBA_FINREM,
+    PBA_FPL;
 
     public static PaymentReportType from(PaymentMethodType paymentMethodType, Service serviceType) {
         String value = "";

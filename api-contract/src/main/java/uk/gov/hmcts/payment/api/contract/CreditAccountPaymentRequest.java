@@ -9,14 +9,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
-
-import javax.validation.constraints.*;
-
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.Valid;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -67,6 +66,17 @@ public class CreditAccountPaymentRequest {
     @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
     private boolean isEitherOneRequired() {
         return (ccdCaseNumber == null && caseReference == null);
+    }
+
+    @AssertFalse(message = "Invalid Site ID (URN) provided for FPL. Accepted values are ABA3")
+    private boolean isValidSiteId() {
+        String[] validSiteIds = {"ABA3"};
+        if(null != service && service.getName().equalsIgnoreCase(Service.FPL.getName())) {
+            return siteId != null && !Arrays.asList(validSiteIds).stream().anyMatch(vm -> vm.equalsIgnoreCase(
+                siteId));
+        } else {
+            return false;
+        }
     }
 
 }
