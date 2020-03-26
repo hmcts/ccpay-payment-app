@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.configuration.security;
 
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -11,13 +10,15 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
+import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
 import uk.gov.hmcts.reform.auth.checker.spring.serviceonly.AuthCheckerServiceOnlyFilter;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
-import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.function.Function;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -58,14 +59,20 @@ public class SpringSecurityConfiguration {
     @Order(2)
     public static class InternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
-        private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
+        //private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
 
         private ServiceAuthFilter serviceAuthFilter;
 
-        @Autowired
-        public InternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter) {
+        private V1EndpointsPathParamSecurityFilter v1EndpointsPathParamSecurityFilter;
+
+        @Inject
+        public InternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter, final Function<HttpServletRequest, Optional<String>> userIdExtractor,
+                                                       final Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
+                                                       final SecurityUtils securityUtils) {
             super();
             this.serviceAuthFilter =  serviceAuthFilter;
+            this.v1EndpointsPathParamSecurityFilter = new V1EndpointsPathParamSecurityFilter(
+                userIdExtractor, authorizedRolesExtractor, securityUtils);
         }
 
         @Override
@@ -87,6 +94,7 @@ public class SpringSecurityConfiguration {
         @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED", justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         protected void configure(HttpSecurity http) throws Exception {
             http.addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(v1EndpointsPathParamSecurityFilter, BearerTokenAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(STATELESS).and()
                 .csrf().disable()
                 .formLogin().disable()
