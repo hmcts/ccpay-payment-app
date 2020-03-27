@@ -4,6 +4,7 @@ import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.ff4j.FF4j;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
@@ -74,7 +77,12 @@ public class CardPaymentController {
     public ResponseEntity<PaymentDto> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
-        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
+        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
+
+        if(! new URI(returnURL).getHost().matches(".*([\\-\\.]hmcts.net|[\\-\\.]gov.uk)")) {
+            return new ResponseEntity("return-url must belong to hmcts.net/gov.uk", BAD_REQUEST);
+        }
+
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
@@ -97,7 +105,7 @@ public class CardPaymentController {
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
-            .description(request.getDescription())
+            .description(Encode.forHtml(request.getDescription()))
             .returnUrl(returnURL)
             .ccdCaseNumber(request.getCcdCaseNumber())
             .caseReference(request.getCaseReference())
