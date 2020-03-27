@@ -66,7 +66,7 @@ public class CMCCardPaymentFunctionalTest {
     public void createCMCCardPaymentTestShouldReturn201Success() {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.google.com")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
@@ -87,7 +87,7 @@ public class CMCCardPaymentFunctionalTest {
             .build();
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.google.com")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
@@ -102,7 +102,7 @@ public class CMCCardPaymentFunctionalTest {
         // create card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.google.com")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
@@ -139,7 +139,7 @@ public class CMCCardPaymentFunctionalTest {
         // create card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.google.com")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();

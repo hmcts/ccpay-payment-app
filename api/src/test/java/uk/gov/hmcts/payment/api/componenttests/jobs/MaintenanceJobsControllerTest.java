@@ -127,7 +127,7 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
         // Create Payment
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.google.com")
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", serviceCallbackUrl)
             .post("/card-payments", cardPaymentRequest())
             .andExpect(status().isCreated())

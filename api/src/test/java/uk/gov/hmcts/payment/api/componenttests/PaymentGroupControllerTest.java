@@ -124,7 +124,7 @@ public class PaymentGroupControllerTest {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -165,7 +165,7 @@ public class PaymentGroupControllerTest {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -441,7 +441,7 @@ public class PaymentGroupControllerTest {
             .build();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -532,7 +532,7 @@ public class PaymentGroupControllerTest {
             .build();
 
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
@@ -598,7 +598,7 @@ public class PaymentGroupControllerTest {
             .build();
 
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
