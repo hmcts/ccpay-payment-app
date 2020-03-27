@@ -64,6 +64,11 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
         return null;
     }
 
+    @Override
+    public void cancel(String cancelUrl) {
+        govPayClient.cancelPayment(keyForService(), cancelUrl);
+    }
+
     private String hrefFor(Link link) {
         if (link == null) {
             throw new UnsupportedOperationException("Requested action is not available for the payment");

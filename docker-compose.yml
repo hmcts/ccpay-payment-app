@@ -50,6 +50,11 @@ services:
       - PBA_DIVORCE_PAYMENTS_EMAIL_TO=pepito@grillo.com
       - PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE=hi
       - PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT=Docker Env Card Payments Reconciliation Report
+      - PBA_FPL_PAYMENTS_REPORT_SCHEDULER_ENABLED=true
+      - PBA_FPL_PAYMENTS_EMAIL_FROM=no-reply@reform.hmcts.net
+      - PBA_FPL_PAYMENTS_EMAIL_TO=pepito@grillo.com
+      - PBA_FPL_PAYMENTS_EMAIL_MESSAGE=hi
+      - PBA_FPL_PAYMENTS_EMAIL_SUBJECT=Docker Env Card Payments Reconciliation Report
       - REFORM_ENVIRONMENT=aat
       - REFORM_SERVICE_NAME=payment-api
       - REFORM_TEAM=cc
@@ -61,7 +66,7 @@ services:
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST=*
       - SPRING_MAIL_PORT=25
       - SPRING_MAIL_HOST=mta.reform.hmcts.net
-      - TRUSTED_S2S_SERVICE_NAMES=cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp
+      - TRUSTED_S2S_SERVICE_NAMES=cmc,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service
       - PAYBUBBLE_HOME_URL=https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal
       - PCI_PAL_CALLBACK_URL=https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback
       - ASB_CONNECTION_STRING=some-azure-service-bus-connection-string
