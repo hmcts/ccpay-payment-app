@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -22,14 +23,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -39,14 +33,9 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -637,12 +626,197 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentFeeLink);
     }
 
+    @Test
+    public void creatingCardPaymentWithWelshLanguage() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-welsh-language.json"))));
+
+        String testccdCaseNumber = "1212-1234-1111-2222";
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test Welsh Language support")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .ccdCaseNumber(testccdCaseNumber)
+            .provider("gov pay")
+            .channel("telephony")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build()))
+            .language("CY")
+            .build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
+    @Test
+    public void createCardPayment_InvalidLanguageAttribute_shouldReturn422Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .ccdCaseNumber("1234-1234-1234-1234")
+            .currency(CurrencyCode.GBP)
+            .description("Test Language validation Checks")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build()))
+            .language("GBR")
+            .build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertEquals(result.getResponse().getContentAsString(), "validLanguage: Invalid value for language attribute.");
+    }
+
+    @Test
+    public void cancelPayment_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
+        restActions
+            .post("/api/ff4j/store/features/payment-cancel/disable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        result = restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("Payment cancel feature is not available for usage.");
+    }
+
+    @Test
+    @Transactional
+    public void cancelPaymentSuccess_shouldReturn204Test() throws Exception {
+        restActions
+            .post("/api/ff4j/store/features/payment-cancel/enable")
+            .andExpect(status().isAccepted());
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(204)
+                .withHeader("Content-Type", "application/json")));
+
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isNoContent())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void cancelPaymentBadRequest_shouldReturn400Test() throws Exception {
+        restActions
+            .post("/api/ff4j/store/features/payment-cancel/enable")
+            .andExpect(status().isAccepted());
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(204)
+                .withHeader("Content-Type", "application/json")));
+
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isNoContent())
+            .andReturn();
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(400)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"code\":\"P0501\",\"description\":\"Cancellation of payment failed\"}")));
+
+        MvcResult result2 = restActions
+            .post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void cancelPaymentIncorrectPaymentRef_shouldReturn404Test() throws Exception {
+        restActions
+            .post("/api/ff4j/store/features/payment-cancel/enable")
+            .andExpect(status().isAccepted());
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(404)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"code\":\"P0200\",\"description\":\"Govpay Payment Not Found\"}")));
+
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void cancelPaymentInternalServerError_shouldReturn500Test() throws Exception {
+        restActions
+            .post("/api/ff4j/store/features/payment-cancel/enable")
+            .andExpect(status().isAccepted());
+        MvcResult result = createMockPayment();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        stubFor(post(urlPathMatching("/v1/payments/" + paymentDto.getExternalReference() + "/cancel"))
+            .willReturn(aResponse()
+                .withStatus(500)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"code\":\"P0198\",\"description\":\"GovPayDownstreamSystemErrorException\"}")));
+
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
 
     private CardPaymentRequest cardPaymentRequestWithCaseReference() throws Exception {
         return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
+    }
+
+    @NotNull
+    private MvcResult createMockPayment() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+        return restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest())
+            .andExpect(status().isCreated())
+            .andReturn();
     }
 
 

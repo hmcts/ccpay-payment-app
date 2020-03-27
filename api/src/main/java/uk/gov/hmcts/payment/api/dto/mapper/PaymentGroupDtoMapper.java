@@ -39,7 +39,7 @@ public class PaymentGroupDtoMapper {
     private List<PaymentDto> toPaymentDtos(List<Payment> payments) {
         return payments.stream().map(p -> toPaymentDto(p)).collect(Collectors.toList());
     }
-
+    //added missing pba account details
     private PaymentDto toPaymentDto(Payment payment) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())
@@ -47,6 +47,9 @@ public class PaymentGroupDtoMapper {
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
             .caseReference(payment.getCaseReference())
             .ccdCaseNumber(payment.getCcdCaseNumber())
+            .accountNumber(payment.getPbaNumber())
+            .organisationName(payment.getOrganisationName())
+            .customerReference(payment.getCustomerReference())
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())

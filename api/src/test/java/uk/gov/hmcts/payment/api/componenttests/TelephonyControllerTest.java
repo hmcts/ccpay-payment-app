@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,7 +112,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         List<PaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);
-        assertEquals("success", payments.get(0).getStatus());
+        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
 
     }
 
@@ -187,5 +188,75 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertEquals(paymentDto.getStatus(), "Declined");
 
     }
+
+    @Test
+    public void updateTelephonyPaymentStatus_throw400IfBadRequest() throws Exception {
+        String rawFormData = "orderReference=RC-invalid-reference&ppAccountID=1210&" +
+            "transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
+            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
+            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
+
+        String paymentReference = "RC-1519-9028-1909-1435";
+        Payment dbPayment = populateTelephonyPaymentToDb(paymentReference, false);
+
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isBadRequest());
+
+        verify(callbackServiceImplMock, times(0)).callback(dbPayment.getPaymentLink(), dbPayment);
+    }
+
+    @Test
+    public void updateTelephonyPaymentStatus_ShouldNotBeUpdatedWithDuplicateReq() throws Exception {
+        String rawFormData = "orderCurrency=&orderAmount=488.50&orderReference=RC-1519-9028-1909-1435&ppAccountID=1210&" +
+            "transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
+            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
+            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
+
+        String paymentReference = "RC-1519-9028-1909-1435";
+        //Create Telephony Payment
+        Payment dbPayment = populateTelephonyPaymentToDb(paymentReference, false);
+
+        //Update Telephony Payment Status from PCI PAL - 1st time
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isNoContent());
+
+        //Validate & capture Update_timestamp - After 1st PCI PAL Callback Request
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertThat(payments.size()).isEqualTo(1);
+        assertEquals(payments.get(0).getPaymentReference(), paymentReference);
+        Date updatedTsForFirstReq = payments.get(0).getDateUpdated();
+
+        //Update Telephony Payment Status from PCI PAL - 2nd time(Duplicate)
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isNoContent());
+
+        //Validate & capture Update_timestamp - After 2nd PCI PAL Callback Request(Duplicate)
+        result = restActions
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        payments = response.getPayments();
+        assertThat(payments.size()).isEqualTo(1);
+        assertEquals(payments.get(0).getPaymentReference(), paymentReference);
+        Date updatedTsForSecondReq = payments.get(0).getDateUpdated();
+
+        //UpdateTimeStamp should not be changed after 2nd Request(Duplicate)
+        assertEquals(updatedTsForFirstReq, updatedTsForSecondReq);
+    }
+
 
 }
