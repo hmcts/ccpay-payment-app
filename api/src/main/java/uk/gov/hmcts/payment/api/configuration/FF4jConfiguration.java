@@ -39,6 +39,9 @@ public class FF4jConfiguration {
     @Value("${feature.bulk.scan.payments.check.pay.bubble}")
     private boolean isBulkScanPayBubbleEnabled = true;
 
+    @Value("${feature.payments.cancel}")
+    private boolean paymentCancel = true;
+
     @Bean
     public FF4j getFf4j() {
 
@@ -84,6 +87,12 @@ public class FF4jConfiguration {
             isBulkScanPayBubbleEnabled,
             "enable bulkScan payBubble check");
 
+        Feature paymentCancelFeature = new Feature(
+            "payment-cancel",
+            paymentCancel,
+            "Payments cancel API"
+        );
+
         return new FF4j()
             .createFeature(paymentSearchFeature)
             .createFeature(paymentServiceCallbackFeature)
@@ -92,7 +101,8 @@ public class FF4jConfiguration {
             .createFeature(duplicatePaymentCheckFeature)
             .createFeature(caseRefValidationFeature)
             .createFeature(bulkScanEnablingFeature)
-            .createFeature(bulkScanPayBubbleFeature);
+            .createFeature(bulkScanPayBubbleFeature)
+            .createFeature(paymentCancelFeature);
     }
 
     @Bean
