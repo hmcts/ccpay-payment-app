@@ -95,15 +95,12 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
-        LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
-            payment.getCcdCaseNumber(), payment.getServiceType(), payment.getPbaNumber(), payment.getAmount(), fees.size());
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
-            LOG.info("Checking with Liberata for Service : {}", creditAccountPaymentRequest.getService());
+            LOG.info("Checking with Liberata");
 
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
-                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
             } catch (HttpClientErrorException ex) {
                 LOG.error("Account information could not be found, exception: {}", ex.getMessage());
                 throw new AccountNotFoundException("Account information could not be found");
@@ -116,7 +113,6 @@ public class CreditAccountPaymentController {
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
 
         checkDuplication(payment, fees);
@@ -124,35 +120,32 @@ public class CreditAccountPaymentController {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
-            LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
         }
 
-        LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
     private Payment createPaymentInstanceFromRequest(@RequestBody @Valid CreditAccountPaymentRequest creditAccountPaymentRequest) {
         return Payment.paymentWith()
-                .amount(creditAccountPaymentRequest.getAmount())
-                .description(creditAccountPaymentRequest.getDescription())
-                .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
-                .caseReference(creditAccountPaymentRequest.getCaseReference())
-                .currency(creditAccountPaymentRequest.getCurrency().getCode())
-                .serviceType(creditAccountPaymentRequest.getService().getName())
-                .customerReference(creditAccountPaymentRequest.getCustomerReference())
-                .organisationName(creditAccountPaymentRequest.getOrganisationName())
-                .pbaNumber(creditAccountPaymentRequest.getAccountNumber())
-                .siteId(creditAccountPaymentRequest.getSiteId())
-                .paymentChannel(PaymentChannel.paymentChannelWith().name(PAYMENT_CHANNEL_ONLINE).build())
-                .build();
+            .amount(creditAccountPaymentRequest.getAmount())
+            .description(creditAccountPaymentRequest.getDescription())
+            .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
+            .caseReference(creditAccountPaymentRequest.getCaseReference())
+            .currency(creditAccountPaymentRequest.getCurrency().getCode())
+            .serviceType(creditAccountPaymentRequest.getService().getName())
+            .customerReference(creditAccountPaymentRequest.getCustomerReference())
+            .organisationName(creditAccountPaymentRequest.getOrganisationName())
+            .pbaNumber(creditAccountPaymentRequest.getAccountNumber())
+            .siteId(creditAccountPaymentRequest.getSiteId())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name(PAYMENT_CHANNEL_ONLINE).build())
+            .build();
     }
 
     private void setPaymentStatus(@RequestBody @Valid CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails) {
         if (accountDetails.getStatus() == AccountStatus.ACTIVE && isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
             creditAccountPaymentRequest.getAmount())) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -165,7 +158,6 @@ public class CreditAccountPaymentController {
                     " Requested payment was {} where available balance is {}",
                 accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount(),
                 accountDetails.getAvailableBalance());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -173,7 +165,6 @@ public class CreditAccountPaymentController {
                 .errorCode("CA-E0003")
                 .message("Your account is on hold")
                 .build()));
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.DELETED) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -181,7 +172,6 @@ public class CreditAccountPaymentController {
                 .errorCode("CA-E0004")
                 .message("Your account is deleted")
                 .build()));
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         }
     }
 

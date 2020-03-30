@@ -23,14 +23,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -40,15 +33,9 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -671,6 +658,65 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void creatingCardPaymentWithWelshLanguage() throws Exception {
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-welsh-language.json"))));
+
+        String testccdCaseNumber = "1212-1234-1111-2222";
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test Welsh Language support")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .ccdCaseNumber(testccdCaseNumber)
+            .provider("gov pay")
+            .channel("telephony")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build()))
+            .language("CY")
+            .build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
+    @Test
+    public void createCardPayment_InvalidLanguageAttribute_shouldReturn422Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .ccdCaseNumber("1234-1234-1234-1234")
+            .currency(CurrencyCode.GBP)
+            .description("Test Language validation Checks")
+            .service(Service.CMC)
+            .siteId("siteID")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build()))
+            .language("GBR")
+            .build();
+
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertEquals(result.getResponse().getContentAsString(), "validLanguage: Invalid value for language attribute.");
+    }
+
+    @Test
     public void cancelPayment_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
         restActions
             .post("/api/ff4j/store/features/payment-cancel/disable")
@@ -780,63 +826,12 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
-    @Test
-    public void creatingCardPaymentWithWelshLanguage() throws Exception {
-        stubFor(post(urlPathMatching("/v1/payments"))
-            .willReturn(aResponse()
-                .withStatus(201)
-                .withHeader("Content-Type", "application/json")
-                .withBody(contentsOf("gov-pay-responses/create-payment-response-welsh-language.json"))));
-
-        String testccdCaseNumber = "1212-1234-1111-2222";
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("200.11"))
-            .currency(CurrencyCode.GBP)
-            .description("Test Welsh Language support")
-            .service(Service.CMC)
-            .siteId("siteID")
-            .ccdCaseNumber(testccdCaseNumber)
-            .provider("gov pay")
-            .channel("telephony")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("200.11"))
-                .code("X0001")
-                .version("1")
-                .build()))
-            .language("CY")
-            .build();
-
-
-        MvcResult result = restActions
-            .post("/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
+    private CardPaymentRequest cardPaymentRequest() throws Exception {
+        return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
 
-    @Test
-    public void createCardPayment_InvalidLanguageAttribute_shouldReturn422Test() throws Exception {
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("200.11"))
-            .ccdCaseNumber("1234-1234-1234-1234")
-            .currency(CurrencyCode.GBP)
-            .description("Test Language validation Checks")
-            .service(Service.CMC)
-            .siteId("siteID")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("200.11"))
-                .code("X0001")
-                .version("1")
-                .build()))
-            .language("GBR")
-            .build();
-
-
-        MvcResult result = restActions
-            .post("/card-payments", cardPaymentRequest)
-            .andExpect(status().isUnprocessableEntity())
-            .andReturn();
-
-        assertEquals(result.getResponse().getContentAsString(), "validLanguage: Invalid value for language attribute.");
+    private CardPaymentRequest cardPaymentRequestWithCaseReference() throws Exception {
+        return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
     }
 
     @NotNull
@@ -853,14 +848,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .post("/card-payments", cardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();
-    }
-
-    private CardPaymentRequest cardPaymentRequest() throws Exception {
-        return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
-    }
-
-    private CardPaymentRequest cardPaymentRequestWithCaseReference() throws Exception {
-        return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
     }
 
 
@@ -902,5 +889,4 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "  ]\n" +
             "}";
     }
-
 }

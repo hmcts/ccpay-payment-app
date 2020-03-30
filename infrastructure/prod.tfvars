@@ -43,6 +43,10 @@ pba_fpl_payments_email_from = "no-reply@reform.hmcts.net"
 pba_fpl_payments_email_subject = "CNP:PBA FPL Reconciliation Report"
 pba_fpl_payments_email_message = "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
 
+pba_fpl_payments_email_from = "no-reply@reform.hmcts.net"
+pba_fpl_payments_email_subject = "CNP:PBA Reconciliation Report for FPL"
+pba_fpl_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+
 feature_payments_search = true
 
 external_host_name ="payment.platform.hmcts.net"

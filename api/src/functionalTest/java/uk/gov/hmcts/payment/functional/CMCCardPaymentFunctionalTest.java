@@ -99,7 +99,6 @@ public class CMCCardPaymentFunctionalTest {
     @Test
     public void retrieveCMCCardPaymentTestShouldReturn200Success() {
         final String[] reference = new String[1];
-
         // create card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
