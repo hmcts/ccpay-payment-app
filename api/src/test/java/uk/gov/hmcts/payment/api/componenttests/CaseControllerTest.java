@@ -392,7 +392,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
+            //.withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -497,7 +497,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
+            //.withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
