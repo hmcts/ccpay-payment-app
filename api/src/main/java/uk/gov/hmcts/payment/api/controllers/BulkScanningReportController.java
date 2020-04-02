@@ -17,7 +17,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.ReportType;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -50,6 +49,16 @@ public class BulkScanningReportController {
         @RequestParam("date_from") Date fromDate,
         @RequestParam("date_to") Date toDate,
         @RequestParam("report_type") ReportType reportType) {
+
+        //---Start Delay API Response
+        try {
+            Thread.sleep(3 *   // minutes to sleep
+                60 *   // seconds to a minute
+                1000); // milliseconds to a second
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //---End
 
         List<Payment> payments = paymentService.getPayments(atStartOfDay(fromDate), atEndOfDay(toDate));
         LOG.info("No of payments exists for the date-range: {}", payments.size());
