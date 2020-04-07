@@ -18,7 +18,7 @@ public class SendMessageApplication {
 
     public static void main(String[] args) throws Exception{
 
-        TopicClientProxy client = new TopicClientProxy("Endpoint=sb://ccpay-servicebus-aat.servicebus.windows.net/;SharedAccessKeyName=SendAndListenSharedAccessKey;SharedAccessKey=ATfNGbCzML84hjtH8T0EoAyI1PyLvxMQ/VOd1lr6UCA=", "serviceCallbackTopic");
+        TopicClientProxy client = new TopicClientProxy("Endpoint=sb://ccpay-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndListenSharedAccessKey;SharedAccessKey=sulCw3ukm4C5FRr0K+Gfra9JT6mk3a3WrCvshHbk8gA=", "serviceCallbackTopic");
 
         Payment payment = CardPaymentComponentTest.getPaymentsData().get(2);
 
@@ -37,6 +37,7 @@ public class SendMessageApplication {
         msg.setProperties(Collections.singletonMap("serviceCallbackUrl", payment.getServiceCallbackUrl()));
 
         client.send(msg);
+        /*client.send(msg);
         client.send(msg);
         client.send(msg);
         client.send(msg);
@@ -46,8 +47,7 @@ public class SendMessageApplication {
         client.send(msg);
         client.send(msg);
         client.send(msg);
-        client.send(msg);
-        client.send(msg);
+        client.send(msg);*/
 
         client.close();
 
