@@ -45,11 +45,7 @@ allprojects {
                 entry 'jackson-core'
                 entry 'jackson-databind'
             }
-            //solves CVE-2019-14893 , CVE-2020-10672, CVE-2020-10673
-            dependency('org.springframework.security.oauth:spring-security-oauth2:2.3.8.RELEASE') {
-                exclude group: 'org.codehaus.jackson' , name: 'jackson-mapper-asl'
-            }
-                   
+            dependency('org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE')
         }
     }
 }
