@@ -18,17 +18,17 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class V1EndpointsPathParamSecurityFilter extends OncePerRequestFilter {
+public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(V1EndpointsPathParamSecurityFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServiceAndUserAuthFilter.class);
 
     private final Function<HttpServletRequest, Optional<String>> userIdExtractor;
     private final Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor;
     private final SecurityUtils securityUtils;
 
-    public V1EndpointsPathParamSecurityFilter(Function<HttpServletRequest, Optional<String>> userIdExtractor,
-                                              Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
-                                              SecurityUtils securityUtils) {
+    public ServiceAndUserAuthFilter(Function<HttpServletRequest, Optional<String>> userIdExtractor,
+                                    Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
+                                    SecurityUtils securityUtils) {
         this.userIdExtractor = userIdExtractor;
         this.authorizedRolesExtractor = authorizedRolesExtractor;
         this.securityUtils = securityUtils;
