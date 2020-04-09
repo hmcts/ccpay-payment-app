@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.configuration.security;
 
-
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -108,7 +107,7 @@ public class SpringSecurityConfiguration {
             this.serviceAndUserAuthFilter = new ServiceAndUserAuthFilter(
                 userIdExtractor, authorizedRolesExtractor, securityUtils);
             jwtAuthenticationConverter = new JwtAuthenticationConverter();
-            jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+            //jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
         }
 
         @Override
