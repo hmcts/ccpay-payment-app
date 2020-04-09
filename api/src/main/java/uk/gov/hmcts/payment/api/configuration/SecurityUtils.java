@@ -2,27 +2,71 @@ package uk.gov.hmcts.payment.api.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
-
 import java.util.Collection;
-import java.util.Objects;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+/**
+ * Utility class for security related operations
+ */
 @Service
 public class SecurityUtils {
     private final AuthTokenGenerator authTokenGenerator;
     private final IdamRepository idamRepository;
+
+    private static final String AUTHORISED_ROLE_PAYMENT = "payments";
+    private static final String AUTHORISED_ROLE_CITIZEN = "citizen";
 
     @Autowired
     public SecurityUtils(final AuthTokenGenerator authTokenGenerator, IdamRepository idamRepository) {
         this.authTokenGenerator = authTokenGenerator;
         this.idamRepository = idamRepository;
     }
+
+    /**
+     * Check if a user is authenticated and has any roles (authorities)
+     * Change this if you care about specific roles
+     *
+     * @return true if the user is authenticated, false otherwise.
+     */
+    public static boolean isAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && getAuthorities(authentication).findAny().isPresent();
+    }
+
+    private static Stream<String> getAuthorities(Authentication authentication) {
+        Collection<? extends GrantedAuthority> authorities;
+        //added condition for claims
+        if (authentication instanceof JwtAuthenticationToken &&
+            ((JwtAuthenticationToken) authentication).getToken().getClaims().containsKey("roles")){
+            authorities = extractAuthorityFromClaims(((JwtAuthenticationToken) authentication).getToken().getClaims());
+        } else {
+            authorities = authentication.getAuthorities();
+        }
+        return authorities.stream()
+            .map(GrantedAuthority::getAuthority);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<GrantedAuthority> extractAuthorityFromClaims(Map<String, Object> claims) {
+        return ((List<String>) claims.get("roles"))
+            .stream()
+            .map(SimpleGrantedAuthority::new)
+            .collect(Collectors.toList());
+    }
+
+    /*Below methods will be refactored soon based on usages*/
 
     public HttpHeaders authorizationHeaders() {
         final HttpHeaders headers = new HttpHeaders();
@@ -55,10 +99,6 @@ public class SecurityUtils {
         return jwt.getTokenValue();
     }
 
-    public boolean isAuthenticated() {
-        return Objects.nonNull(SecurityContextHolder.getContext().getAuthentication());
-    }
-
     private String getUserBearerToken() {
         return "Bearer " + getUserToken();
     }
@@ -66,7 +106,7 @@ public class SecurityUtils {
     public String getUserRolesHeader() {
         Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
         return authorities.stream()
-                             .map(GrantedAuthority::getAuthority)
-                             .collect(Collectors.joining(","));
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(","));
     }
 }
