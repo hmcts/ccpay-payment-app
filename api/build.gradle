@@ -90,6 +90,10 @@ dependencies {
     compile group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '7.9'
     implementation "io.github.openfeign:feign-httpclient:10.7.0"
     //compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '1.0.0.RELEASE'
+    compile group: 'org.springframework.security', name: 'spring-security-oauth2-jose', version: '5.2.2.RELEASE'
+    compile group: 'org.springframework.security', name: 'spring-security-oauth2-resource-server', version: '5.2.2.RELEASE'
+    compile group: 'org.springframework.security', name: 'spring-security-oauth2-core', version: '5.2.2.RELEASE'
+
     // for open id connect
 
     compile group: 'org.ff4j', name: 'ff4j-spring-boot-web-api', version: '1.7.1'
