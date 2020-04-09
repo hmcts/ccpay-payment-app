@@ -82,4 +82,9 @@
         <cve>CVE-2020-8840</cve>
         <cve>CVE-2020-1938</cve>
     </suppress>
+    <suppress>
+        <cve>CVE-2019-14893</cve>
+        <cve>CVE-2020-10672</cve>
+        <cve>CVE-2020-10673</cve>
+    </suppress>
 </suppressions>
