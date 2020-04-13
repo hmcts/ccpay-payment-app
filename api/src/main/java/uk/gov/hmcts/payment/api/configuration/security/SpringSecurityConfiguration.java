@@ -134,7 +134,7 @@ public class SpringSecurityConfiguration {
                     .sessionManagement().sessionCreationPolicy(STATELESS).and()
                     .csrf().disable()
                     .formLogin().disable()
-                    //.logout().disable()
+                    .logout().disable()
                     .authorizeRequests()
                     .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority("payments")
                     .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority("payments")
