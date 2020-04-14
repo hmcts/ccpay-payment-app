@@ -10,6 +10,7 @@ better financial reporting and reconciliation.
  
 ### Integration prerequisites
 
+
 For a successful integration with HMCTS Payment Gateway you will require the following:
 * **GOV.UK Pay API key**. Before you start, you should get a dedicated GOV.UK Pay account created for you. Once it is done, 
 you should use GOV.UK Pay admin console to create your API key(-s) and provide them to us.
