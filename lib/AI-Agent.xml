@@ -4,6 +4,7 @@
     <Instrumentation>
         <BuiltIn enabled="true">
             <HTTP enabled="true"/>
+            <Logging enabled="false" /><!-- So to capture logging in hmcts way -->
         </BuiltIn>
         <!-- Add class/method level insights here -->
     </Instrumentation>
