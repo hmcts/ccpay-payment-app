@@ -95,7 +95,7 @@ dependencies {
     compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-api-contract', version: '2.2.0'
     compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-model', version: '2.2.0'
     compile group: 'com.netflix.feign', name: 'feign-jackson', version: '8.18.0'
-    compile group: 'uk.gov.hmcts.reform', name: 'health-spring-boot-starter', version: '0.0.3'
+    compile group: 'uk.gov.hmcts.reform', name: 'health-spring-boot-starter', version: '0.0.5'
     compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version:'0.0.4'
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
