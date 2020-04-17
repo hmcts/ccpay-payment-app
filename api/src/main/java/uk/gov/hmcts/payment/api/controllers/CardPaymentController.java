@@ -80,7 +80,7 @@ public class CardPaymentController {
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
 
         if(! new URI(returnURL).getHost().matches(".*([\\-\\.]hmcts.net|[\\-\\.]gov.uk)")) {
-            return new ResponseEntity("returnUrl: must belong to hmcts.net/gov.uk", BAD_REQUEST);
+            return new ResponseEntity("returnUrl: Must be an external domain of hmcts.net or gov.uk", BAD_REQUEST);
         }
 
         String paymentGroupReference = PaymentReference.getInstance().getNext();
