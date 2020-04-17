@@ -793,6 +793,43 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
+    @Test
+    public void createCardPayment_withInvalidReturnUrl_shouldReturn400Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = cardPaymentRequest();
+
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RestActions restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.invalid.uk");
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertEquals(result.getResponse().getContentAsString(), "returnUrl: Must be an external domain of hmcts.net or gov.uk");
+    }
+
+    @Test
+    public void createCardPayment_withXssDescription_shouldReturn400Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = cardPaymentRequest();
+
+        cardPaymentRequest.setDescription("<script>(function(){alert('xss2')})();</script>");
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertEquals(paymentDto.getDescription(), "&lt;script&gt;(function(){alert(&#39;xss2&#39;)})();&lt;/script&gt;");
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
