@@ -50,16 +50,6 @@ public class BulkScanningReportController {
         @RequestParam("date_to") Date toDate,
         @RequestParam("report_type") ReportType reportType) {
 
-        //---Start Delay API Response
-        try {
-            Thread.sleep(3 *   // minutes to sleep
-                60 *   // seconds to a minute
-                1000); // milliseconds to a second
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        //---End
-
         List<Payment> payments = paymentService.getPayments(atStartOfDay(fromDate), atEndOfDay(toDate));
         LOG.info("No of payments exists for the date-range: {}", payments.size());
         if(reportType.equals(PROCESSED_UNALLOCATED)) {
