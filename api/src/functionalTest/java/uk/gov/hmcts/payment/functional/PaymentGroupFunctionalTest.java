@@ -138,9 +138,11 @@ public class PaymentGroupFunctionalTest {
                         assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
                         assertThat(paymentGroupDto.getFees().get(1)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
 
-                        BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
-                            .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
-                        assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
+                        if(paymentGroupDto.getFees().get(0).getCode().equalsIgnoreCase("FEE0123")) {
+                            BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
+                                .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
+                            assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
+                        }
                 });
 
             });
