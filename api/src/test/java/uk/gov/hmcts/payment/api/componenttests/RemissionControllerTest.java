@@ -49,7 +49,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class RemissionControllerTest {
 
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private final static String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
 
@@ -680,6 +680,7 @@ public class RemissionControllerTest {
     public void createRetrospectiveRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         // create a telephony payment
         MvcResult result1 = restActions
+            .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", getCardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();

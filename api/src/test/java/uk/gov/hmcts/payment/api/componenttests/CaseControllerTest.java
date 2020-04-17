@@ -93,6 +93,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         restActions
             .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
         List<Site> serviceReturn = Arrays.asList(Site.siteWith()
