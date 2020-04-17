@@ -110,7 +110,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
 
         MvcResult result = restActions
-            //.withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest())
             .andExpect(status().isCreated())
@@ -135,7 +134,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCardPaymentWithInvalidInputDataShouldReturnStatusBadRequestTest() throws Exception {
         restActions
-            //.withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .post("/card-payments", cardPaymentInvalidRequestJson())
             .andExpect(status().isBadRequest());
     }
