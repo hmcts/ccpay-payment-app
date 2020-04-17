@@ -811,7 +811,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertEquals(result.getResponse().getContentAsString(), "returnUrl: Must be an external domain of hmcts.net or gov.uk");
+        assertEquals("returnUrl: Must be an external domain of hmcts.net or gov.uk", result.getResponse().getContentAsString());
     }
 
     /*@Test
