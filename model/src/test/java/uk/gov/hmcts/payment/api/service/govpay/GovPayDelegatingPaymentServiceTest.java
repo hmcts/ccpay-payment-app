@@ -52,7 +52,7 @@ public class GovPayDelegatingPaymentServiceTest {
         when(serviceIdSupplier.get()).thenReturn("divorce");
         String key = govPayKeyRepository.getKey("divorce");
 
-        CreatePaymentRequest createPaymentRequest = new CreatePaymentRequest(10000, "reference", "description", "https://www.google.com","language");
+        CreatePaymentRequest createPaymentRequest = new CreatePaymentRequest(10000, "reference", "description", "https://www.moneyclaims.service.gov.uk","language");
         when(govPayClient.createPayment("divorce-gov-pay-key", createPaymentRequest)).thenReturn(GovPayPayment.govPaymentWith()
             .amount(10000)
             .state(new State("created", false, null, null))
