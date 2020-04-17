@@ -10,7 +10,7 @@ dependencies {
 
     compile group: 'com.querydsl', name: 'querydsl-jpa', version:'4.2.2'
     compile group: 'commons-validator', name: 'commons-validator', version:'1.6'
-    compile group: 'uk.gov.hmcts.reform', name: 'java-logging-appinsights', version: '3.0.1'
+    compile group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: '5.1.1'
     compile group: 'com.netflix.hystrix', name: 'hystrix-javanica', version: '1.5.12'
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
