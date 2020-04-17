@@ -89,4 +89,3 @@ databaseChangeLog:
               - column:
                   name: payment_id
                   type: INT
-

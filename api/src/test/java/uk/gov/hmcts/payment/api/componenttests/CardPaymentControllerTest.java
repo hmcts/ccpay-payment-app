@@ -88,7 +88,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .withReturnUrl("https://www.gooooogle.com");
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
     }
 
@@ -110,7 +110,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.google.com")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest())
             .andExpect(status().isCreated())
@@ -135,7 +134,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCardPaymentWithInvalidInputDataShouldReturnStatusBadRequestTest() throws Exception {
         restActions
-            .withReturnUrl("https://www.google.com")
             .post("/card-payments", cardPaymentInvalidRequestJson())
             .andExpect(status().isBadRequest());
     }
@@ -364,7 +362,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.google.com")
+            //.withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -457,7 +455,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.google.com")
+            //.withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .post("/card-payments", cardPaymentRequestWithCaseReference())
             .andExpect(status().isCreated())
             .andReturn();
@@ -826,6 +824,27 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
+    @Test
+    public void createCardPayment_withInvalidReturnUrl_shouldReturn400Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = cardPaymentRequest();
+
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RestActions restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.invalid.uk");
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertEquals("returnUrl: Must be an external domain of hmcts.net or gov.uk", result.getResponse().getContentAsString());
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
@@ -843,7 +862,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
 
         return restActions
-            .withReturnUrl("https://www.google.com")
+            //.withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest())
             .andExpect(status().isCreated())

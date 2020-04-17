@@ -131,6 +131,7 @@ public class PaymentController {
             );
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
+        LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", paymentFeeLinks.size());
         for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
             populatePaymentDtos(paymentDtos, paymentFeeLink);
         }
@@ -183,6 +184,7 @@ public class PaymentController {
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
+        LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
         for (final Payment p: payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
@@ -196,6 +198,7 @@ public class PaymentController {
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         LOG.info("bulkScanCheck value: {}",bulkScanCheck);
         if(!bulkScanCheck) {
+            LOG.info("BSP Feature OFF : No of Payments retrieved for Liberata Pull : {}", payments.size());
             payments = Optional.ofNullable(payments)
                 .orElseGet(Collections::emptyList)
                 .stream()

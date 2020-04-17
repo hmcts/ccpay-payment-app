@@ -30,7 +30,6 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
@@ -97,7 +96,7 @@ public class PaymentGroupFunctionalTest {
         // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://google.co.uk")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().gotCreated(PaymentDto.class, paymentDto -> {
                 assertThat(paymentDto).isNotNull();
@@ -139,9 +138,11 @@ public class PaymentGroupFunctionalTest {
                         assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
                         assertThat(paymentGroupDto.getFees().get(1)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
 
-                        BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
-                            .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
-                        assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
+                        if(paymentGroupDto.getFees().get(0).getCode().equalsIgnoreCase("FEE0123")) {
+                            BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
+                                .subtract(paymentGroupDto.getRemissions().get(0).getHwfAmount());
+                            assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
+                        }
                 });
 
             });
@@ -284,7 +285,7 @@ public class PaymentGroupFunctionalTest {
         // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://google.co.uk")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
             .then().gotCreated(PaymentDto.class, paymentDto -> {
             assertThat(paymentDto).isNotNull();
@@ -366,7 +367,7 @@ public class PaymentGroupFunctionalTest {
 
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://google.co.uk")
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when().createTelephonyCardPayment(cardPaymentRequest, paymentGroupReference)
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
                 assertThat(paymentDto).isNotNull();
