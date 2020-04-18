@@ -107,7 +107,7 @@ public class SpringSecurityConfiguration {
             this.serviceAndUserAuthFilter = new ServiceAndUserAuthFilter(
                 userIdExtractor, authorizedRolesExtractor, securityUtils);
             jwtAuthenticationConverter = new JwtAuthenticationConverter();
-            //jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+            jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
         }
 
         @Override
