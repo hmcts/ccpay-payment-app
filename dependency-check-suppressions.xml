@@ -82,6 +82,15 @@
         <cve>CVE-2020-8840</cve>
     </suppress>
     <suppress>
+        <notes>tomcat-embed-websocket @9.0.21</notes>
+        <cve>CVE-2020-1938</cve>
+        <cve>CVE-2020-1935</cve>
+    </suppress>
+    <suppress>
+        <cve>CVE-2019-14893</cve>
+        <cve>CVE-2020-10672</cve>
+        <cve>CVE-2020-10673</cve>
+        <cve>CVE-2020-11612</cve>
         <cve>CVE-2019-17195</cve>
     </suppress>
 </suppressions>
