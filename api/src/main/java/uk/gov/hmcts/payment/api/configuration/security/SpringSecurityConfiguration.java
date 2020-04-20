@@ -53,7 +53,7 @@ public class SpringSecurityConfiguration {
             try {
                 http
                     .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
-                    .sessionManagement().sessionCreationPolicy(STATELESS).and()
+                    .sessionManagement().sessionCreationPolicy(STATELESS).and().anonymous().disable()
                     .csrf().disable()
                     .formLogin().disable()
                     .logout().disable()
@@ -62,11 +62,7 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.GET, "/payments1")
                     .antMatchers(HttpMethod.PATCH, "/payments/**")
                     .antMatchers(HttpMethod.POST, "/telephony/callback")
-                    .antMatchers("/jobs/**")
-                    .and()
-                    .authorizeRequests()
-                    .antMatchers("/error").permitAll()
-                    .anyRequest().authenticated();
+                    .antMatchers("/jobs/**");
             }
             catch(Exception e)
             {
