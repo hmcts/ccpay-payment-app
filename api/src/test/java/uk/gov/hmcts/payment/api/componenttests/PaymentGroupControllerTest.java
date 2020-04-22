@@ -5,14 +5,24 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
+import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
+import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -26,12 +36,11 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
+import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -45,26 +54,37 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-
+import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest"})
+@ActiveProfiles({"componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
+@EnableFeignClients
+@AutoConfigureMockMvc
 public class PaymentGroupControllerTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @Autowired
-    private ServiceResolverBackdoor serviceRequestAuthorizer;
-
-    @Autowired
-    private UserResolverBackdoor userRequestAuthorizer;
-
-
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
-
     private RestActions restActions;
+
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    private JwtDecoder jwtDecoder;
+
+    @Autowired
+    ServiceAuthFilter serviceAuthFilter;
+
+    @Autowired
+    ServicePaymentFilter servicePaymentFilter;
+
+    @InjectMocks
+    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+
+    @MockBean
+    SecurityUtils securityUtils;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -75,7 +95,7 @@ public class PaymentGroupControllerTest {
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
 
-    @Autowired
+    @MockBean
     private SiteService<Site, String> siteServiceMock;
 
     @Autowired
@@ -90,12 +110,10 @@ public class PaymentGroupControllerTest {
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
-
+        this.restActions = new RestActions(mvc, objectMapper);
+        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         restActions
             .withAuthorizedService("divorce")
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
 
         List<Site> serviceReturn = Arrays.asList(Site.siteWith()
@@ -120,6 +138,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "payments")
     public void retrievePaymentsRemissionsAndFeeByGroupReferenceTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
@@ -189,6 +208,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void retrievePaymentsRemissionsAndFeesWithInvalidPaymentGroupReferenceShouldFailTest() throws Exception {
         restActions
             .get("/payment-groups/1011-10000000001")
@@ -196,6 +216,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewFeewithNoPaymentGroupTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -226,6 +247,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewFeewithNoPaymentGroupNegativeTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getInvalidFee()))
@@ -239,6 +261,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewFeetoExistingPaymentGroupTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -272,6 +295,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewFeewithNoCaseDetailsTest() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -286,6 +310,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewFeewithCcdCaseNumberOnlyTest() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -299,6 +324,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewFeewithCaseReferenceOnlyTest() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -312,6 +338,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void attachNewFeewithNoCaseDetailsTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -340,6 +367,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void attachNewFeewithCcdCaseNumberOnlyTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -367,6 +395,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void attachNewFeewithCaseReferenceOnlyTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -395,6 +424,7 @@ public class PaymentGroupControllerTest {
 
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewFeetoExistingPaymentGroupCountTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -433,6 +463,7 @@ public class PaymentGroupControllerTest {
 
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void retrievePaymentsAndFeesByPaymentGroupReferenceAfterFeeAdditionTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
@@ -487,6 +518,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewPaymenttoExistingPaymentGroupTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -555,6 +587,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -605,6 +638,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addInvalidBulkScanPayment() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -630,6 +664,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addInvalidDateBulkScanPayment() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -664,6 +699,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNoPaymentMethodBulkScanPayment() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -698,6 +734,7 @@ public class PaymentGroupControllerTest {
 
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNoDCNBulkScanPayment() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -730,6 +767,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNullRequestorBulkScanPayment() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -764,6 +802,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addvalidBulkScanPayment() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -803,6 +842,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void shouldThrowErrorWhenInvalidSiteId() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -838,6 +878,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void shouldReturnSuccessWhenExternalProviderIsExela() throws Exception{
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -878,6 +919,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addInvalidNewBulkScanPayment() throws Exception{
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -893,6 +935,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewvalidBulkScanPayment() throws Exception{
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -922,6 +965,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void addNewvalidBulkScanPaymentWithExceptionRecordAndCCDCaseNumber() throws Exception{
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -953,6 +997,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void shouldThrowErrorWhenSiteIdIsInvalid() throws Exception{
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -977,6 +1022,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void shouldThrowErrorWhenBothCCDNumberAndExceptionRecordIsEmpty() throws Exception{
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -1000,6 +1046,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void shouldReturnSuccessWhenPaymentProviderIsExela() throws Exception{
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()

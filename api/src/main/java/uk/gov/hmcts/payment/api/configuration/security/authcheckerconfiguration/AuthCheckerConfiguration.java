@@ -5,6 +5,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGeneratorFactory;
@@ -49,6 +51,7 @@ public class AuthCheckerConfiguration {
     @Bean
     public AuthTokenValidator authTokenValidator(ServiceAuthorisationApi serviceAuthorisationApi) {
         return new ServiceAuthTokenValidator(serviceAuthorisationApi);
+
     }
 
     /**
@@ -79,5 +82,11 @@ public class AuthCheckerConfiguration {
     public Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor() {
         return (any) -> Stream.of("payments", "citizen")
             .collect(Collectors.toList());
+    }
+
+    @Bean
+    @Profile({"!componenttest"})
+    public ServicePaymentFilter servicePaymentFilter(ServiceAuthorisationApi serviceAuthorisationApi) {
+        return new ServicePaymentFilter(authTokenValidator(serviceAuthorisationApi));
     }
 }

@@ -7,9 +7,15 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,14 +23,15 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
+import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
+import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -35,52 +42,64 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
-
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
+@ActiveProfiles({"componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
+@EnableFeignClients
+@AutoConfigureMockMvc
 @Transactional
 public class TelephonyControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @Autowired
-    protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @MockBean
     protected CallbackServiceImpl callbackServiceImplMock;
 
     @Autowired
     protected PaymentDbBackdoor db;
+
     @Autowired
     private TelephonyRepository telephonyRepository;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     RestActions restActions;
 
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    private JwtDecoder jwtDecoder;
+
+    @Autowired
+    ServiceAuthFilter serviceAuthFilter;
+
+    @InjectMocks
+    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+
+    @Autowired
+    ServicePaymentFilter servicePaymentFilter;
+
+    @MockBean
+    SecurityUtils securityUtils;
+
     @Autowired
     private ObjectMapper objectMapper;
-
-    protected CustomResultMatcher body() {
-        return new CustomResultMatcher(objectMapper);
-    }
 
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, null, objectMapper);
-
+        this.restActions = new RestActions(mvc, objectMapper);
+        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         restActions
             .withAuthorizedService("divorce")
             .withReturnUrl("https://www.gooooogle.com");
@@ -154,6 +173,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void retrieveTelephonyPaymentWithDeclineStatusShouldShowDeclinedInResponse() throws Exception {
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("550.00"))
@@ -163,7 +183,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .serviceType("DIVORCE")
             .currency("GBP")
             .siteId("AA00")
-            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("pci pal").build())

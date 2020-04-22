@@ -17,10 +17,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.hateoas.client.LinkDiscoverer;
 import org.springframework.http.MediaType;
+import org.springframework.plugin.core.OrderAwarePluginRegistry;
+import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import uk.gov.hmcts.payment.api.logging.Markers;
-import org.springframework.plugin.core.PluginRegistry;
-import org.springframework.plugin.core.OrderAwarePluginRegistry;
+
 import javax.servlet.ServletContextListener;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
