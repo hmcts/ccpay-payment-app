@@ -46,5 +46,6 @@ withPipeline(type, product, app) {
     enableDbMigration('ccpay') // for liquibase update
     installCharts()
     enableSlackNotifications('#cc-payments-tech')
+    disableLegacyDeployment()
     //disableLegacyDeploymentOnAAT()
 }
