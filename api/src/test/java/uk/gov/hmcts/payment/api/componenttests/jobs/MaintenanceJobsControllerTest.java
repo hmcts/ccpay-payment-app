@@ -13,8 +13,13 @@ import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,32 +28,31 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
+import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
+import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.controllers.MaintenanceJobsController;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
-import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-
+import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest"})
+@ActiveProfiles({"componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
+@EnableFeignClients
+@AutoConfigureMockMvc
 public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
 
     @Autowired
@@ -67,15 +71,7 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     public WireMockClassRule instanceRule = wireMockRule;
 
     @Autowired
-    private ServiceResolverBackdoor serviceRequestAuthorizer;
-
-    @Autowired
-    private UserResolverBackdoor userRequestAuthorizer;
-
-    @Autowired
     private PaymentDbBackdoor db;
-
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private RestActions restActions;
 
@@ -91,22 +87,39 @@ public class MaintenanceJobsControllerTest extends PaymentsDataUtil {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    private JwtDecoder jwtDecoder;
+
+    @Autowired
+    ServiceAuthFilter serviceAuthFilter;
+
+    @Autowired
+    ServicePaymentFilter servicePaymentFilter;
+
+    @InjectMocks
+    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+
+    @MockBean
+    SecurityUtils securityUtils;
+
     @Before
     public void setUp() {
 
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
-
+        this.restActions = new RestActions(mvc, objectMapper);
+        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
 
         restActions
             .withAuthorizedService("divorce")
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
     }
 
     @Test
+    @WithMockUser(authorities = "payments")
     public void testThatServiceCallbackIsInvokedWhenAStatusChangeIsDetectedOnGovPay() throws Exception {
 
         // setup

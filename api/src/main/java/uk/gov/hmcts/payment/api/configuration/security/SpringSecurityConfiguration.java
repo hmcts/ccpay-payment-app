@@ -39,20 +39,24 @@ public class SpringSecurityConfiguration {
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
-        //private AuthCheckerServiceOnlyFilter authCheckerServiceOnlyFilter;
-
         private ServiceAuthFilter serviceAuthFilter;
 
+
+        private ServicePaymentFilter servicePaymentFilter;
+
+
         @Inject
-        public ExternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter) {
+        public ExternalApiSecurityConfigurationAdapter(final ServiceAuthFilter serviceAuthFilter,final ServicePaymentFilter servicePaymentFilter) {
             super();
             this.serviceAuthFilter =  serviceAuthFilter;
+            this.servicePaymentFilter = servicePaymentFilter;
         }
 
         protected void configure(HttpSecurity http) throws Exception {
             try {
                 http
                     .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
+                    .addFilterAfter(servicePaymentFilter,ServiceAuthFilter.class)
                     .sessionManagement().sessionCreationPolicy(STATELESS).and().anonymous().disable()
                     .csrf().disable()
                     .formLogin().disable()
@@ -62,7 +66,7 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.GET, "/payments1")
                     .antMatchers(HttpMethod.PATCH, "/payments/**")
                     .antMatchers(HttpMethod.POST, "/telephony/callback")
-                    .antMatchers("/jobs/**");
+                    .antMatchers( "/jobs/**");
             }
             catch(Exception e)
             {
@@ -76,13 +80,13 @@ public class SpringSecurityConfiguration {
     @Order(2)
     public static class InternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
-        //private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
-
         private ServiceAuthFilter serviceAuthFilter;
 
         private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
         private JwtAuthenticationConverter jwtAuthenticationConverter;
+
+        private ServicePaymentFilter servicePaymentFilter;
 
 
         @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
@@ -97,9 +101,10 @@ public class SpringSecurityConfiguration {
         @Inject
         public InternalApiSecurityConfigurationAdapter(final BSJwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter, final ServiceAuthFilter serviceAuthFilter, final Function<HttpServletRequest, Optional<String>> userIdExtractor,
                                                        final Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
-                                                       final SecurityUtils securityUtils) {
+                                                       final SecurityUtils securityUtils,final ServicePaymentFilter servicePaymentFilter) {
             super();
             this.serviceAuthFilter =  serviceAuthFilter;
+            this.servicePaymentFilter = servicePaymentFilter;
             this.serviceAndUserAuthFilter = new ServiceAndUserAuthFilter(
                 userIdExtractor, authorizedRolesExtractor, securityUtils);
             jwtAuthenticationConverter = new JwtAuthenticationConverter();
@@ -118,7 +123,8 @@ public class SpringSecurityConfiguration {
                 "/info",
                 "/favicon.ico",
                 "/mock-api/**",
-                "/");
+                "/",
+                "/api/ff4j/**");
         }
 
         @Override
@@ -126,7 +132,8 @@ public class SpringSecurityConfiguration {
         protected void configure(HttpSecurity http) throws Exception {
             try {
                 http.addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
-                    .addFilterAfter(serviceAndUserAuthFilter, BearerTokenAuthenticationFilter.class)
+                    .addFilterBefore(serviceAndUserAuthFilter, BearerTokenAuthenticationFilter.class)
+                    .addFilterAfter(servicePaymentFilter,ServiceAuthFilter.class)
                     .sessionManagement().sessionCreationPolicy(STATELESS).and()
                     .csrf().disable()
                     .formLogin().disable()
