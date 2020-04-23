@@ -40,8 +40,8 @@ public class ServiceAndUserAuthFilter extends OncePerRequestFilter {
 
         Collection<String> authorizedRoles = authorizedRolesExtractor.apply(request);
         Optional<String> userIdOptional = userIdExtractor.apply(request);
-
-        if (securityUtils.isAuthenticated() && (!authorizedRoles.isEmpty() || userIdOptional.isPresent())) {
+        //&& (!authorizedRoles.isEmpty() || userIdOptional.isPresent())
+        if (securityUtils.isAuthenticated()) {
             try {
                 verifyRoleAndUserId(authorizedRoles, userIdOptional);
             } catch (UnauthorizedException ex) {
