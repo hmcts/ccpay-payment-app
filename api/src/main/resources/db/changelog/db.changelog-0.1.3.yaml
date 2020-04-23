@@ -42,3 +42,50 @@ databaseChangeLog:
                   name: fee_amount
                   type: numeric(19, 2)
             tableName: fee
+  - changeSet:
+      id: 1554989041418-5
+      author: ayan
+      changes:
+        - createIndex:
+            indexName: ix_pay_case_ref_link
+            tableName: payment
+            unique: false
+            columns:
+              - column:
+                  name: case_reference
+                  type: varchar(255)
+              - column:
+                  name: payment_link_id
+                  type: INT
+        - createIndex:
+            indexName: ix_fee_case_reference
+            tableName: fee
+            unique: false
+            columns:
+              - column:
+                  name: payment_link_id
+                  type: INT
+        - createIndex:
+            indexName: ix_remission_pay_link
+            tableName: remission
+            unique: false
+            columns:
+              - column:
+                  name: payment_link_id
+                  type: INT
+        - createIndex:
+            indexName: ix_sts_hist_pay_id
+            tableName: status_history
+            unique: false
+            columns:
+              - column:
+                  name: payment_id
+                  type: INT
+        - createIndex:
+            indexName: ix_pay_allc_pay_id
+            tableName: payment_allocation
+            unique: false
+            columns:
+              - column:
+                  name: payment_id
+                  type: INT

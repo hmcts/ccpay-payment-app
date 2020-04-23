@@ -173,7 +173,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         return paymentFeeLink;
     }
 
-
     private Payment buildPayment(String paymentReference, PaymentServiceRequest paymentServiceRequest) {
         return Payment.paymentWith().userId(userIdSupplier.get())
             .amount(paymentServiceRequest.getAmount())

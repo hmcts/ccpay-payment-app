@@ -88,7 +88,51 @@ public class CreditAccountPaymentController {
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        Payment payment = Payment.paymentWith()
+        final Payment payment = createPaymentInstanceFromRequest(creditAccountPaymentRequest);
+
+        List<PaymentFee> fees = creditAccountPaymentRequest.getFees().stream()
+            .map(f -> creditAccountDtoMapper.toFee(f))
+            .collect(Collectors.toList());
+        LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
+
+        LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
+            payment.getCcdCaseNumber(), payment.getServiceType(), payment.getPbaNumber(), payment.getAmount(), fees.size());
+        if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
+            LOG.info("Checking with Liberata for Service : {}", creditAccountPaymentRequest.getService());
+
+            AccountDto accountDetails;
+            try {
+                accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
+                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
+            } catch (HttpClientErrorException ex) {
+                LOG.error("Account information could not be found, exception: {}", ex.getMessage());
+                throw new AccountNotFoundException("Account information could not be found");
+            } catch (Exception ex) {
+                LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
+                throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
+            }
+
+            setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
+        } else {
+            LOG.info("Setting status to pending");
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+        }
+
+        checkDuplication(payment, fees);
+
+        PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
+
+        if (payment.getPaymentStatus().getName().equals(FAILED)) {
+            LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
+        }
+        LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+        return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
+
+    private Payment createPaymentInstanceFromRequest(@RequestBody @Valid CreditAccountPaymentRequest creditAccountPaymentRequest) {
+        return Payment.paymentWith()
             .amount(creditAccountPaymentRequest.getAmount())
             .description(creditAccountPaymentRequest.getDescription())
             .ccdCaseNumber(creditAccountPaymentRequest.getCcdCaseNumber())
@@ -101,70 +145,43 @@ public class CreditAccountPaymentController {
             .siteId(creditAccountPaymentRequest.getSiteId())
             .paymentChannel(PaymentChannel.paymentChannelWith().name(PAYMENT_CHANNEL_ONLINE).build())
             .build();
+    }
 
-        List<PaymentFee> fees = creditAccountPaymentRequest.getFees().stream()
-            .map(f -> creditAccountDtoMapper.toFee(f))
-            .collect(Collectors.toList());
-        LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
-
-        if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
-            LOG.info("Checking with Liberata");
-
-            AccountDto accountDetails;
-            try {
-                accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
-            } catch (HttpClientErrorException ex) {
-                LOG.error("Account information could not be found, exception: {}", ex.getMessage());
-                throw new AccountNotFoundException("Account information could not be found");
-            } catch (Exception ex) {
-                LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
-                throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
-            }
-
-            if (accountDetails.getStatus() == AccountStatus.ACTIVE && isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
-                creditAccountPaymentRequest.getAmount())) {
-                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-            } else if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
-                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
-                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
-                    .status(payment.getPaymentStatus().getName())
-                    .errorCode("CA-E0001")
-                    .message("You have insufficient funds available")
-                    .message("Payment request failed. PBA account " + accountDetails.getAccountName()
-                        + " have insufficient funds available").build()));
-                LOG.info("Payment request failed. PBA account {} has insufficient funds available." +
-                        " Requested payment was {} where available balance is {}",
-                    accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount(),
-                    accountDetails.getAvailableBalance());
-            } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
-                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
-                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
-                    .status(payment.getPaymentStatus().getName())
-                    .errorCode("CA-E0003")
-                    .message("Your account is on hold")
-                    .build()));
-            } else if (accountDetails.getStatus() == AccountStatus.DELETED) {
-                payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
-                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
-                    .status(payment.getPaymentStatus().getName())
-                    .errorCode("CA-E0004")
-                    .message("Your account is deleted")
-                    .build()));
-            }
-        } else {
-            LOG.info("Setting status to pending");
-            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
+    private void setPaymentStatus(@RequestBody @Valid CreditAccountPaymentRequest creditAccountPaymentRequest, Payment payment, AccountDto accountDetails) {
+        if (accountDetails.getStatus() == AccountStatus.ACTIVE && isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
+            creditAccountPaymentRequest.getAmount())) {
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+        } else if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .status(payment.getPaymentStatus().getName())
+                .errorCode("CA-E0001")
+                .message("You have insufficient funds available")
+                .message("Payment request failed. PBA account " + accountDetails.getAccountName()
+                    + " have insufficient funds available").build()));
+            LOG.info("Payment request failed. PBA account {} has insufficient funds available." +
+                    " Requested payment was {} where available balance is {}",
+                accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount(),
+                accountDetails.getAvailableBalance());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+        } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .status(payment.getPaymentStatus().getName())
+                .errorCode("CA-E0003")
+                .message("Your account is on hold")
+                .build()));
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+        } else if (accountDetails.getStatus() == AccountStatus.DELETED) {
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .status(payment.getPaymentStatus().getName())
+                .errorCode("CA-E0004")
+                .message("Your account is deleted")
+                .build()));
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         }
-
-        checkDuplication(payment, fees);
-
-        PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
-
-        if (payment.getPaymentStatus().getName().equals(FAILED)) {
-            return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
-        }
-
-        return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "Get credit account payment details by payment reference", notes = "Get payment details for supplied payment reference")
@@ -229,23 +246,19 @@ public class CreditAccountPaymentController {
     }
 
     private boolean isAccountStatusCheckRequired(Service service) {
-        LOG.info("Service.FINREM.getName(): {}" +
-                " service.toString(): {}" +
-                " Service.FINREM.getName().equalsIgnoreCase(service.toString()): {}" +
-                " ff4j.check(\"check-liberata-account-for-all-services\"): {}" +
-                " ff4j.check(\"credit-account-payment-liberata-check\"): {}",
-            Service.FINREM.getName(),
-            service.toString(),
-            Service.FINREM.getName().equalsIgnoreCase(service.toString()),
-            ff4j.check("check-liberata-account-for-all-services"),
-            ff4j.check("credit-account-payment-liberata-check")
+        final String serviceName = service.toString();
+        LOG.info("Service.FINREM.getName(): {}" + " service.toString(): {}" + " Service.FINREM.getName().equalsIgnoreCase(service.toString()): {}" +
+                " ff4j.check(\"check-liberata-account-for-all-services\"): {}" + " ff4j.check(\"credit-account-payment-liberata-check\"): {}",
+            Service.FINREM.getName(), serviceName, Service.FINREM.getName().equalsIgnoreCase(serviceName),
+            ff4j.check("check-liberata-account-for-all-services"), ff4j.check("credit-account-payment-liberata-check")
         );
 
         if (ff4j.check("check-liberata-account-for-all-services")) {
             return true;
         }
 
-        return ff4j.check("credit-account-payment-liberata-check") && Service.FINREM.getName().equalsIgnoreCase(service.toString());
+        final boolean svcNameChk = Service.FINREM.getName().equalsIgnoreCase(serviceName) || Service.FPL.toString().equalsIgnoreCase(serviceName);
+        return ff4j.check("credit-account-payment-liberata-check") && svcNameChk;
     }
 
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {

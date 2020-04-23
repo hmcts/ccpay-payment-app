@@ -3,7 +3,7 @@ plugins {
     id "org.sonarqube" version "2.6.2"
     id 'org.springframework.boot' version '2.1.6.RELEASE'
     id 'io.spring.dependency-management' version '1.0.8.RELEASE'
-    id 'org.owasp.dependencycheck' version '5.2.2'
+    id 'org.owasp.dependencycheck' version '5.2.4'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'findbugs'
     id 'jacoco'
@@ -23,6 +23,9 @@ allprojects {
     }
     version = rootProject.file('version.txt').text.trim() + ".${buildNumber}"
 
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
     repositories {
         mavenLocal()
         maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
@@ -39,7 +42,7 @@ allprojects {
             // remove once spring manager incorporates this changes
             dependencySet(
                     group: 'com.fasterxml.jackson.core',
-                    version: '2.9.9'
+                    version: '2.10.0'
                     //version: dependencyManagement.importedProperties['jackson.version'] solves CVE-2019-12086
             ) {
                 entry 'jackson-core'
@@ -54,8 +57,6 @@ subprojects {
     apply plugin: "jacoco"
     apply plugin: "findbugs"
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
@@ -67,8 +68,8 @@ subprojects {
     }
 
     dependencies {
-        compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.9.2'
-        compile group: 'joda-time', name: 'joda-time', version: '2.9.9'
+        compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.0'
+        compile group: 'joda-time', name: 'joda-time', version: '2.10.5'
         compile group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
         compile group:'org.apache.poi', name: 'poi-ooxml', version: '4.1.0'
         compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.0.4'
