@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +25,6 @@ import java.util.stream.Stream;
 public class SecurityUtils {
     private final AuthTokenGenerator authTokenGenerator;
     private final IdamRepository idamRepository;
-
-    private static final String AUTHORISED_ROLE_PAYMENT = "payments";
-    private static final String AUTHORISED_ROLE_CITIZEN = "citizen";
 
     @Autowired
     public SecurityUtils(final AuthTokenGenerator authTokenGenerator, IdamRepository idamRepository) {
@@ -68,7 +66,7 @@ public class SecurityUtils {
 
     /*Below methods will be refactored soon based on usages*/
 
-    public HttpHeaders authorizationHeaders() {
+/*    public HttpHeaders authorizationHeaders() {
         final HttpHeaders headers = new HttpHeaders();
         headers.add("ServiceAuthorization", authTokenGenerator.generate());
         headers.add("user-id", getUserId());
@@ -84,7 +82,7 @@ public class SecurityUtils {
         final HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, getUserBearerToken());
         return headers;
-    }
+    }*/
 
     public UserInfo getUserInfo() {
         return idamRepository.getUserInfo(getUserToken());
