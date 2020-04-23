@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.configuration.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
-import uk.gov.hmcts.reform.authorisation.exceptions.InvalidTokenException;
 import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
 
 import javax.servlet.FilterChain;
