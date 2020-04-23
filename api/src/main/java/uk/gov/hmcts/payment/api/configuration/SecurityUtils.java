@@ -79,11 +79,11 @@ public class SecurityUtils {
         return headers;
     }
 
-    public HttpHeaders userAuthorizationHeaders() {
+/*    public HttpHeaders userAuthorizationHeaders() {
         final HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, getUserBearerToken());
         return headers;
-    }
+    }*/
 
     public UserInfo getUserInfo() {
         return idamRepository.getUserInfo(getUserToken());
