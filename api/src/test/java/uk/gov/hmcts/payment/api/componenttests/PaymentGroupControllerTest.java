@@ -136,7 +136,7 @@ public class PaymentGroupControllerTest {
 
     }
 
-    @Test
+    /*@Test
     @Transactional
     @WithMockUser(authorities = "payments")
     public void retrievePaymentsRemissionsAndFeeByGroupReferenceTest() throws Exception {
@@ -178,8 +178,11 @@ public class PaymentGroupControllerTest {
         FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
         assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
-    }
+    }*/
 
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "payments")
     public void retrievePaymentsAndFeesByPaymentGroupReferenceTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
@@ -461,8 +464,8 @@ public class PaymentGroupControllerTest {
 
     }
 
-
-    @Test
+    /*@Test
+    @Transactional
     @WithMockUser(authorities = "payments")
     public void retrievePaymentsAndFeesByPaymentGroupReferenceAfterFeeAdditionTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
@@ -515,7 +518,7 @@ public class PaymentGroupControllerTest {
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
         assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
 
-    }
+    }*/
 
     @Test
     @WithMockUser(authorities = "payments")
