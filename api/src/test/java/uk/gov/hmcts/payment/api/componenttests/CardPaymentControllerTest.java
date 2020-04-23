@@ -899,7 +899,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
-            "  ]\n" +
+            "  ]\nnm" +
             "}";
     }
 }
