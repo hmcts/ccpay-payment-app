@@ -76,7 +76,7 @@ public class ServiceAndUserAuthFilterTest {
         filter.doFilterInternal(request, response, filterChain);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         Assert.assertTrue((StringUtils.containsIgnoreCase(((MockHttpServletResponse)response).getErrorMessage(),
-            "Access Denied Current user roles are : [payments-invalid-role]")));
+            "Access Denied")));
     }
 
     @Test
@@ -88,7 +88,7 @@ public class ServiceAndUserAuthFilterTest {
         filter.doFilterInternal(request, response, filterChain);
         assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
         Assert.assertTrue((StringUtils.containsIgnoreCase(((MockHttpServletResponse)response).getErrorMessage(),
-            "Access Denied Current user roles are : [null]")));
+            "Access Denied")));
     }
 
     public static UserInfo getUserInfoBasedOnUID_Roles(String UID, String roles){

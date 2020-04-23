@@ -94,7 +94,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
 
-    @Autowired
+    @MockBean
     public SiteService<Site, String> siteServiceMock;
 
     @Autowired
@@ -214,7 +214,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void searchAllPaymentsWithCcdCaseNumberAndCitizenCredentialsFails() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
@@ -225,9 +224,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         assertThat(restActions
-            .withAuthorizedUser()
             .get("/cases/ccdCaseNumber1/payments")
-            .andExpect(status().isForbidden())
+            .andExpect(status().isUnauthorized())
         .andReturn()).isNotNull();
 
     }
