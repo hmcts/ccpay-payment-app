@@ -10,8 +10,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
-import static uk.gov.hmcts.reform.auth.checker.core.service.ServiceRequestAuthorizer.AUTHORISATION;
 /**
  * Custom filter responsible for getting the serviceName
  */
@@ -28,7 +26,7 @@ public class ServicePaymentFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
-        String token = request.getHeader(AUTHORISATION);
+        String token = request.getHeader("ServiceAuthorization");
         if (token != null) {
             String bearerToken = token.startsWith("Bearer ") ? token : "Bearer " + token;
             this.serviceName = authTokenValidator.getServiceName(bearerToken);
