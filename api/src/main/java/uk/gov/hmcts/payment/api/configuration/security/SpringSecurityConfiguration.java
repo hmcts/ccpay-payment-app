@@ -16,11 +16,10 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
-import uk.gov.hmcts.payment.api.configuration.converters.BSJwtGrantedAuthoritiesConverter;
+import uk.gov.hmcts.payment.api.configuration.converters.JwtGrantedAuthoritiesConverter;
 import uk.gov.hmcts.payment.api.configuration.validator.AudienceValidator;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -99,9 +98,9 @@ public class SpringSecurityConfiguration {
         private String issuerOverride;
 
         @Inject
-        public InternalApiSecurityConfigurationAdapter(final BSJwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter, final ServiceAuthFilter serviceAuthFilter, final Function<HttpServletRequest, Optional<String>> userIdExtractor,
+        public InternalApiSecurityConfigurationAdapter(final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter, final ServiceAuthFilter serviceAuthFilter, final Function<HttpServletRequest, Optional<String>> userIdExtractor,
                                                        final Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
-                                                       final SecurityUtils securityUtils,final ServicePaymentFilter servicePaymentFilter) {
+                                                       final SecurityUtils securityUtils, final ServicePaymentFilter servicePaymentFilter) {
             super();
             this.serviceAuthFilter =  serviceAuthFilter;
             this.servicePaymentFilter = servicePaymentFilter;
