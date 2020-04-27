@@ -8,7 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
-import uk.gov.hmcts.payment.api.configuration.converters.BSJwtGrantedAuthoritiesConverter;
+import uk.gov.hmcts.payment.api.configuration.converters.JwtGrantedAuthoritiesConverter;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 
 import java.util.ArrayList;
@@ -21,13 +21,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class BSJwtGrantedAuthoritiesConverterTest {
+public class JwtGrantedAuthoritiesConverterTest {
 
     @Mock
     private IdamRepository idamRepository;
 
     @InjectMocks
-    private BSJwtGrantedAuthoritiesConverter converter;
+    private JwtGrantedAuthoritiesConverter converter;
 
     @Before
     public void setUp() {
