@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,6 +15,7 @@ import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,6 +61,11 @@ public class SecurityUtils {
 
     @SuppressWarnings("unchecked")
     public static List<GrantedAuthority> extractAuthorityFromClaims(Map<String, Object> claims) {
+        if (!Optional.ofNullable(claims).isPresent() && !Optional.ofNullable(claims.get("roles")).isPresent()){
+            throw new InsufficientAuthenticationException("No roles can be extracted from claims " +
+                "most probably due to insufficient scopes provided");
+        }
+
         return ((List<String>) claims.get("roles"))
             .stream()
             .map(SimpleGrantedAuthority::new)
@@ -78,12 +85,6 @@ public class SecurityUtils {
         }
         return headers;
     }
-
-/*    public HttpHeaders userAuthorizationHeaders() {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.AUTHORIZATION, getUserBearerToken());
-        return headers;
-    }*/
 
     public UserInfo getUserInfo() {
         return idamRepository.getUserInfo(getUserToken());

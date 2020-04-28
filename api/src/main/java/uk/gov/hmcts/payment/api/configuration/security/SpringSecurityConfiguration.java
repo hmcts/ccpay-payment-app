@@ -19,7 +19,8 @@ import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
 import uk.gov.hmcts.payment.api.configuration.converters.JwtGrantedAuthoritiesConverter;
 import uk.gov.hmcts.payment.api.configuration.validator.AudienceValidator;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -32,7 +33,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity(debug = true)
 public class SpringSecurityConfiguration {
 
-    //private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
 
     @Configuration
     @Order(1)
@@ -69,7 +70,7 @@ public class SpringSecurityConfiguration {
             }
             catch(Exception e)
             {
-               // LOG.info("Error in ExternalApiSecurityConfigurationAdapter: {}", e);
+               LOG.info("Error in ExternalApiSecurityConfigurationAdapter: {}", e);
             }
         }
 
@@ -157,7 +158,7 @@ public class SpringSecurityConfiguration {
             }
             catch(Exception e)
             {
-                //LOG.info("Error in InternalApiSecurityConfigurationAdapter: {}", e);
+                LOG.info("Error in InternalApiSecurityConfigurationAdapter: {}", e);
             }
         }
 

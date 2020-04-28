@@ -80,7 +80,7 @@ public class AuthCheckerConfiguration {
      */
     @Bean
     public Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor() {
-        return (any) -> Stream.of("payments", "citizen")
+        return (any) -> Stream.of("payments", "citizen","pui-finance-manager","caseworker-cmc-solicitor","caseworker-publiclaw-solicitor","caseworker-probate-solicitor","caseworker-financialremedy-solicitor","caseworker-divorce-solicitor")
             .collect(Collectors.toList());
     }
 
