@@ -70,7 +70,7 @@ public class SpringSecurityConfiguration {
             }
             catch(Exception e)
             {
-               LOG.info("Error in ExternalApiSecurityConfigurationAdapter: {}", e);
+               LOG.info(String.format("Error in ExternalApiSecurityConfigurationAdapter:{}"), e);
             }
         }
 
@@ -158,7 +158,7 @@ public class SpringSecurityConfiguration {
             }
             catch(Exception e)
             {
-                LOG.info("Error in InternalApiSecurityConfigurationAdapter: {}", e);
+                LOG.info(String.format("Error in InternalApiSecurityConfigurationAdapter:{}"), e);
             }
         }
 
