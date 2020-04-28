@@ -67,6 +67,17 @@ public class ServiceAndUserAuthFilterTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldReturn403ResponseWhenRolesdontMatche() throws Exception {
+        request.setRequestURI("/bulk-scan-payments/");
+        when(SecurityContextHolder.getContext().getAuthentication()).thenReturn(getJWTAuthenticationTokenBasedOnRoles("payments"));
+        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("user123","role"));
+
+        filter.doFilterInternal(request, response, filterChain);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+    }
+
     @Test
     public void shouldReturn403ResponseWhenRoleIsInvalid() throws Exception {
         request.setRequestURI("/cases/");
