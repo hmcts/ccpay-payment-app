@@ -90,16 +90,16 @@ public class RemissionControllerTest {
     private JwtDecoder jwtDecoder;
 
     @Autowired
-    ServiceAuthFilter serviceAuthFilter;
+    private ServiceAuthFilter serviceAuthFilter;
 
     @Autowired
-    ServicePaymentFilter servicePaymentFilter;
+    private ServicePaymentFilter servicePaymentFilter;
 
     @InjectMocks
-    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @MockBean
-    SecurityUtils securityUtils;
+    private SecurityUtils securityUtils;
 
     @Before
     public void setUp() {

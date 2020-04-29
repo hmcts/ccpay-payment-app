@@ -81,16 +81,16 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     private JwtDecoder jwtDecoder;
 
     @Autowired
-    ServiceAuthFilter serviceAuthFilter;
+    private ServiceAuthFilter serviceAuthFilter;
 
     @InjectMocks
-    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @Autowired
-    ServicePaymentFilter servicePaymentFilter;
+    private ServicePaymentFilter servicePaymentFilter;
 
     @MockBean
-    SecurityUtils securityUtils;
+    private SecurityUtils securityUtils;
 
     @Autowired
     private ObjectMapper objectMapper;

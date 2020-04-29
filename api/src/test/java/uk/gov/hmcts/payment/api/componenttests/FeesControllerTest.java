@@ -60,16 +60,16 @@ public class FeesControllerTest {
     private JwtDecoder jwtDecoder;
 
     @Autowired
-    ServiceAuthFilter serviceAuthFilter;
+    private ServiceAuthFilter serviceAuthFilter;
 
     @Autowired
-    ServicePaymentFilter servicePaymentFilter;
+    private ServicePaymentFilter servicePaymentFilter;
 
     @InjectMocks
-    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @MockBean
-    SecurityUtils securityUtils;
+    private SecurityUtils securityUtils;
 
     private RestActions restActions;
 
