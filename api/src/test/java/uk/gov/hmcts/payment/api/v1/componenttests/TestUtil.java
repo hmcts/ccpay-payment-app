@@ -77,13 +77,13 @@ public class TestUtil {
     private JwtDecoder jwtDecoder;
 
     @Autowired
-    ServiceAuthFilter serviceAuthFilter;
+    private ServiceAuthFilter serviceAuthFilter;
 
     @InjectMocks
-    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @MockBean
-    SecurityUtils securityUtils;
+    private SecurityUtils securityUtils;
 
     RestActions restActions;
 

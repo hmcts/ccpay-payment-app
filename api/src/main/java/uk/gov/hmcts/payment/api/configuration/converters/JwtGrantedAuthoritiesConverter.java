@@ -57,7 +57,7 @@ public class JwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection
      * @return
      */
     private List<GrantedAuthority> extractAuthorityFromClaims(List<String> roles) {
-        //
+
         if (!Optional.ofNullable(roles).isPresent()){
             throw new InsufficientAuthenticationException("No roles can be extracted from user " +
                 "most probably due to insufficient scopes provided");

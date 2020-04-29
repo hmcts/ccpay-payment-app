@@ -78,16 +78,16 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     private JwtDecoder jwtDecoder;
 
     @Autowired
-    ServiceAuthFilter serviceAuthFilter;
+    private ServiceAuthFilter serviceAuthFilter;
 
     @InjectMocks
-    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @MockBean
-    SecurityUtils securityUtils;
+    private SecurityUtils securityUtils;
 
     @Autowired
-    ServicePaymentFilter servicePaymentFilter;
+    private ServicePaymentFilter servicePaymentFilter;
 
     @Autowired
     private PaymentDbBackdoor db;

@@ -68,19 +68,19 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
     @MockBean
     private PaymentService<PaymentFeeLink, String> paymentService;
 
-    RestActions restActions;
+    private RestActions restActions;
 
     @MockBean
-    SecurityUtils securityUtils;
+    private SecurityUtils securityUtils;
 
     @Autowired
-    ServicePaymentFilter servicePaymentFilter;
+    private ServicePaymentFilter servicePaymentFilter;
 
     @Autowired
-    ServiceAuthFilter serviceAuthFilter;
+    private ServiceAuthFilter serviceAuthFilter;
 
     @InjectMocks
-    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @Before
     public void setup() {

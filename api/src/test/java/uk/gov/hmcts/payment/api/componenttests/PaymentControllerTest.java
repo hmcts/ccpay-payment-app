@@ -79,7 +79,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     protected PaymentDbBackdoor db;
 
 
-    RestActions restActions;
+    private RestActions restActions;
 
     @MockBean
     private ClientRegistrationRepository clientRegistrationRepository;
@@ -88,16 +88,16 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     private JwtDecoder jwtDecoder;
 
     @Autowired
-    ServiceAuthFilter serviceAuthFilter;
+    private ServiceAuthFilter serviceAuthFilter;
 
     @Autowired
-    ServicePaymentFilter servicePaymentFilter;
+    private ServicePaymentFilter servicePaymentFilter;
 
     @InjectMocks
-    ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @MockBean
-    SecurityUtils securityUtils;
+    private SecurityUtils securityUtils;
 
     @Autowired
     private ObjectMapper objectMapper;
