@@ -136,7 +136,7 @@ public class PaymentGroupControllerTest {
 
     }
 
-    /*@Test
+    @Test
     @Transactional
     @WithMockUser(authorities = "payments")
     public void retrievePaymentsRemissionsAndFeeByGroupReferenceTest() throws Exception {
@@ -158,10 +158,10 @@ public class PaymentGroupControllerTest {
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
         // create a partial remission
-        MvcResult result2 = restActions
+/*        MvcResult result2 = restActions
             .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
             .andExpect(status().isCreated())
-            .andReturn();
+            .andReturn();*/
 
         // Retrieve payment by payment group reference
         MvcResult result3 = restActions
@@ -177,8 +177,8 @@ public class PaymentGroupControllerTest {
         assertThat(paymentDto.getReference()).isEqualTo(createPaymentResponseDto.getReference());
         FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
-        assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
-    }*/
+        //assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
+    }
 
     @Test
     @Transactional
@@ -464,7 +464,7 @@ public class PaymentGroupControllerTest {
 
     }
 
-    /*@Test
+    @Test
     @Transactional
     @WithMockUser(authorities = "payments")
     public void retrievePaymentsAndFeesByPaymentGroupReferenceAfterFeeAdditionTest() throws Exception {
@@ -489,11 +489,11 @@ public class PaymentGroupControllerTest {
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
-        // create a partial remission
+/*        // create a partial remission
         MvcResult result2 = restActions
             .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
             .andExpect(status().isCreated())
-            .andReturn();
+            .andReturn();*/
 
         // Adding another fee to the exisitng payment group
         restActions
@@ -516,9 +516,9 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
         FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
-        assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
+        //assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
 
-    }*/
+    }
 
     @Test
     @WithMockUser(authorities = "payments")
