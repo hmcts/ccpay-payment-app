@@ -30,39 +30,32 @@ java:
     TRUSTED_S2S_SERVICE_NAMES: "cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     CARD_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
-    CARD_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
-    CARD_PAYMENTS_EMAIL_MESSAGE: "hi"
-    CARD_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    CARD_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    CARD_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Card Payments Reconciliation Report"
     BAR_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     BAR_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
-    BAR_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
-    BAR_PAYMENTS_EMAIL_MESSAGE: "hi"
-    BAR_PAYMENTS_EMAIL_SUBJECT: "Docker Env Bar Payments Reconciliation Report"
+    BAR_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    BAR_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA BAR Reconciliation Report"
     PBA_CMC_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_CMC_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
-    PBA_CMC_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
-    PBA_CMC_PAYMENTS_EMAIL_MESSAGE: "hi"
-    PBA_CMC_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_CMC_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_CMC_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA CMC Reconciliation Report"
     PBA_PROBATE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_PROBATE_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
-    PBA_PROBATE_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
-    PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE: "hi"
-    PBA_PROBATE_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_PROBATE_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_PROBATE_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Probate Reconciliation Report"
     PBA_FINREM_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_FINREM_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
-    PBA_FINREM_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
-    PBA_FINREM_PAYMENTS_EMAIL_MESSAGE: "hi"
-    PBA_FINREM_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_FINREM_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_FINREM_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Financial Remedy Reconciliation Report"
     PBA_DIVORCE_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_DIVORCE_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
-    PBA_DIVORCE_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
-    PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE: "hi"
-    PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_DIVORCE_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_DIVORCE_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA Divorce Reconciliation Report"
     PBA_FPL_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     PBA_FPL_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
-    PBA_FPL_PAYMENTS_EMAIL_TO: "krishnakn00@gmail.com"
-    PBA_FPL_PAYMENTS_EMAIL_MESSAGE: "hi"
-    PBA_FPL_PAYMENTS_EMAIL_SUBJECT: "Docker Env Card Payments Reconciliation Report"
+    PBA_FPL_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
+    PBA_FPL_PAYMENTS_EMAIL_SUBJECT: "CNP:PBA FPL Reconciliation Report"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
     SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST: "*"
     SPRING_MAIL_PORT: "25"
@@ -93,4 +86,10 @@ java:
         - liberata-keys-oauth2-username
         - liberata-keys-oauth2-password
         - AppInsightsInstrumentationKey
-
+        - card-payments-email-to
+        - bar-payments-email-to
+        - pba-cmc-payments-email-to
+        - pba-probate-payments-email-to
+        - pba-finrem-payments-email-to
+        - pba-divorce-payments-email-to
+        - pba-fpl-payments-email-to

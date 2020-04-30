@@ -16,32 +16,32 @@ spring_mail_properties_mail_smtp_starttls_enable = "true"
 spring_mail_properties_email_smtp_ssl_trust = "*"
 
 card_payments_email_from = "no-reply@reform.hmcts.net"
-card_payments_email_subject = "CNP: Card Payments Reconciliation Report"
-card_payments_email_message = "Hi <br/><br/>Please find attached today''s reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+card_payments_email_subject = "CNP:PBA Card Payments Reconciliation Report"
+card_payments_email_message = "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
 
 bar_payments_email_from = "no-reply@reform.hmcts.net"
-bar_payments_email_subject = "CNP: Bar Payments Reconciliation Report"
-bar_payments_email_message = "Hi <br/><br/>Please find attached today''s reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+bar_payments_email_subject = "CNP:PBA BAR Reconciliation Report"
+bar_payments_email_message = "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
 
 pba_cmc_payments_email_from = "no-reply@reform.hmcts.net"
-pba_cmc_payments_email_subject = "CNP: PBA Reconciliation Report for CMC"
-pba_cmc_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+pba_cmc_payments_email_subject = "CNP:PBA CMC Reconciliation Report"
+pba_cmc_payments_email_message = "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
 
 pba_probate_payments_email_from = "no-reply@reform.hmcts.net"
-pba_probate_payments_email_subject = "CNP: PBA Reconciliation Report for PROBATE"
-pba_probate_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+pba_probate_payments_email_subject = "CNP:PBA Probate Reconciliation Report"
+pba_probate_payments_email_message = "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
 
 pba_finrem_payments_email_from = "no-reply@reform.hmcts.net"
-pba_finrem_payments_email_subject = "CNP: PBA Reconciliation Report for FINREM"
-pba_finrem_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+pba_finrem_payments_email_subject = "CNP:PBA Financial Remedy Reconciliation Report"
+pba_finrem_payments_email_message = "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
 
 pba_divorce_payments_email_from = "no-reply@reform.hmcts.net"
-pba_divorce_payments_email_subject = "PBA Divorce Reconciliation Report for Divorce"
-pba_divorce_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+pba_divorce_payments_email_subject = "CNP:PBA Divorce Reconciliation Report"
+pba_divorce_payments_email_message = "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
 
 pba_fpl_payments_email_from = "no-reply@reform.hmcts.net"
-pba_fpl_payments_email_subject = "CNP:PBA Reconciliation Report for FPL"
-pba_fpl_payments_email_message = "Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>"
+pba_fpl_payments_email_subject = "CNP:PBA FPL Reconciliation Report"
+pba_fpl_payments_email_message = "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
 
 feature_payments_search = true
 
