@@ -57,6 +57,7 @@
         <cve>CVE-2019-20445</cve>
         <cve>CVE-2019-20444</cve>
         <cwe>611</cwe>
+        <cwe>79</cwe>
     </suppress>
     <suppress>
         <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see https://pivotal.io/security/cve-2018-1258</notes>
