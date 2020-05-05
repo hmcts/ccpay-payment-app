@@ -22,3 +22,10 @@ spring:
         api-POSTGRES-PASS: POSTGRES_PASSWORD
         core-case-data-api-url: core_case_data.api.url
         AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
+        card-payments-email-to: CARD_PAYMENTS_EMAIL_TO
+        bar-payments-email-to: BAR_PAYMENTS_EMAIL_TO
+        pba-cmc-payments-email-to: PBA_CMC_PAYMENTS_EMAIL_TO
+        pba-probate-payments-email-to: PBA_PROBATE_PAYMENTS_EMAIL_TO
+        pba-finrem-payments-email-to: PBA_FINREM_PAYMENTS_EMAIL_TO
+        pba-divorce-payments-email-to: PBA_DIVORCE_PAYMENTS_EMAIL_TO
+        pba-fpl-payments-email-to: PBA_FPL_PAYMENTS_EMAIL_TO
