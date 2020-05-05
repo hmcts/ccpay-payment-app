@@ -26,6 +26,4 @@ spring:
         bar-payments-email-to: BAR_PAYMENTS_EMAIL_TO
         pba-fpl-payments-email-to: PBA_FPL_PAYMENTS_EMAIL_TO
         pba-divorce-payments-email-to: PBA_DIVORCE_PAYMENTS_EMAIL_TO
-        pba-payments-email-to: PBA_FINREM_PAYMENTS_EMAIL_TO
-        pba-payments-email-to: PBA_PROBATE_PAYMENTS_EMAIL_TO
-        pba-payments-email-to: PBA_CMC_PAYMENTS_EMAIL_TO
+        pba-payments-email-to: PBA_PAYMENTS_EMAIL_TO
