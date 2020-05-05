@@ -91,6 +91,8 @@ java:
         - liberata-keys-oauth2-username
         - liberata-keys-oauth2-password
         - AppInsightsInstrumentationKey
+        - paybubble-s2s-secret
+        - paybubble-idam-client-secret
         - card-payments-email-to
         - bar-payments-email-to
         - pba-cmc-payments-email-to
