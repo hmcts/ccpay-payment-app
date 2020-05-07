@@ -18,10 +18,7 @@ import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
@@ -152,6 +149,9 @@ public class PaymentController {
 
         if (payment.isPresent()) {
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
+            if(payment.get().getPaymentChannel()!= null && payment.get().getPaymentChannel().getName().equalsIgnoreCase("bulk scan")) {
+                payment.get().getStatusHistories().get(0).setStatus(status);
+            }
             if (payment.get().getServiceCallbackUrl() != null) {
                 callbackService.callback(payment.get().getPaymentLink(), payment.get());
             }
