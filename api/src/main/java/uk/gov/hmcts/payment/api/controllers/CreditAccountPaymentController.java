@@ -13,14 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -29,6 +23,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exception.LiberataResponseNotReadableException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
@@ -45,6 +40,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @Api(tags = {"Credit Account Payment"})
@@ -60,7 +56,6 @@ public class CreditAccountPaymentController {
     private final AccountService<AccountDto, String> accountService;
     private final DuplicatePaymentValidator paymentValidator;
     private final FF4j ff4j;
-
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
@@ -100,19 +95,42 @@ public class CreditAccountPaymentController {
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
             LOG.info("Checking with Liberata for Service : {}", creditAccountPaymentRequest.getService());
 
-            AccountDto accountDetails;
+            AccountDto accountDetails = null;
             try {
-                accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
-                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
+                //accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
+                //LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
+
+                //--Test Code to reproduce HttpMessageNotReadableException - to be reverted
+                /*
+                String request = "{\"status\": \"On Hold\", \"effective_date\": \"2011-11-02T02:50:12.208Z\"}";
+                ValidatableResponse response = RestAssured.given()
+                    .header("Authorization", "krishnakn00@gmail.com")
+                    .header("ServiceAuthorization", "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1MzMyMzc3NjN9.3iwg2cCa1_G9-TAMupqsQsIVBMWg9ORGir5xZyPhDabk09Ldk0-oQgDQq735TjDQzPI8AxL1PgjtOPDKeKyxfg[akiss@reformMgmtDevBastion02")
+                    .contentType(ContentType.JSON)
+                    .body(request)
+                    .when()
+                    .post("http://localhost:8080/liberata-response-validation")
+                    .then()
+                    .log()
+                    .ifError();
+                LOG.debug(response.extract().body().asString());
+                */
+                throw new HttpMessageNotReadableException("Liberata Response not readable", new Exception());
+
+                //--Test Code to reproduce HttpMessageNotReadableException - to be reverted
+            } catch (HttpMessageNotReadableException ex) {
+                LOG.error("Liberata Response not readable, exception: {}", ex.getMessage());
+                throw new LiberataResponseNotReadableException("Liberata Response not readable : " + ex.getMessage());
             } catch (HttpClientErrorException ex) {
                 LOG.error("Account information could not be found, exception: {}", ex.getMessage());
-                throw new AccountNotFoundException("Account information could not be found");
+                throw new AccountNotFoundException("Account information could not be found" + ex.getMessage());
             } catch (Exception ex) {
                 LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
-                throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
+                throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later" + ex.getMessage());
             }
-
-            setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
+            //--Test Code to reproduce HttpMessageNotReadableException - to be reverted
+            //setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
+            //--Test Code to reproduce HttpMessageNotReadableException - to be reverted
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
@@ -245,6 +263,12 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(LiberataResponseNotReadableException.class)
+    public String return400(LiberataResponseNotReadableException ex) {
+        return ex.getMessage();
+    }
+
     private boolean isAccountStatusCheckRequired(Service service) {
         final String serviceName = service.toString();
         LOG.info("Service.FINREM.getName(): {}" + " service.toString(): {}" + " Service.FINREM.getName().equalsIgnoreCase(service.toString()): {}" +
@@ -269,6 +293,15 @@ public class CreditAccountPaymentController {
         if (ff4j.check("duplicate-payment-check")) {
             paymentValidator.checkDuplication(payment, fees);
         }
+    }
+
+    @ApiOperation(value = "Check Valid Liberata Response", notes = "Check Valid Liberata Response")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Received Valid Liberata Response")
+    })
+    @RequestMapping(value = "/liberata-response-validation", method = POST)
+    public ResponseEntity<String> validateLiberataResponse(@Valid @RequestBody AccountDto accountDto) {
+        return new ResponseEntity<String>("Received Valid Liberata Response", HttpStatus.OK);
     }
 
 }
