@@ -1140,6 +1140,83 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         verify(callbackServiceImplMock, times(0)).callback(payment.getPaymentLink(), payment);
     }
 
+
+    @Test
+    @Transactional
+    public void updatePaymentStatusForPaymentReferenceWithPaymentProviderAsExela() throws Exception {
+        String paymentReference = "RC-1519-9028-2432-0001";
+        Payment payment = populatePaymentToDbForExelaPayments("1");
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+
+        // Update payment status with valid payment reference
+        restActions
+            .patch("/payments/" + paymentReference + "/status/success")
+            .andExpect(status().isNoContent());
+
+        verify(callbackServiceImplMock, times(0)).callback(payment.getPaymentLink(), payment);
+    }
+
+    @Test
+    @Transactional
+    public void updatePaymentStatusForPaymentReferenceWithPaymentProviderAsExelaAndNoStatusHistory() throws Exception {
+        String paymentReference = "RC-1519-9028-2432-0001";
+        Payment payment = populatePaymentToDbForExelaPaymentsWithoutStatusHistory("1");
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+
+        // Update payment status with valid payment reference
+        restActions
+            .patch("/payments/" + paymentReference + "/status/success")
+            .andExpect(status().isNoContent());
+
+        verify(callbackServiceImplMock, times(0)).callback(payment.getPaymentLink(), payment);
+    }
+
+    @Test
+    @Transactional
+    public void updatePaymentStatusForPaymentReferenceWithPaymentProviderAsExelaAndNoPaymentChannel() throws Exception {
+        String paymentReference = "RC-1519-9028-2432-0001";
+        Payment payment = populatePaymentToDbForExelaPaymentsWithoutPaymentChannel("1");
+
+        // Update payment status with valid payment reference
+        restActions
+            .patch("/payments/" + paymentReference + "/status/success")
+            .andExpect(status().isNoContent());
+
+        verify(callbackServiceImplMock, times(0)).callback(payment.getPaymentLink(), payment);
+    }
+
     @Test
     @Transactional
     public void retrievePaymentByReference() throws Exception {

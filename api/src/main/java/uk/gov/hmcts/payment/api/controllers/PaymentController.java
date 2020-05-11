@@ -150,7 +150,9 @@ public class PaymentController {
         if (payment.isPresent()) {
             payment.get().setPaymentStatus(paymentStatusRepository.findByNameOrThrow(status));
             if(payment.get().getPaymentChannel()!= null && payment.get().getPaymentChannel().getName().equalsIgnoreCase("bulk scan")) {
-                payment.get().getStatusHistories().get(0).setStatus(status);
+                if(payment.get().getStatusHistories() != null && !payment.get().getStatusHistories().isEmpty()) {
+                    payment.get().getStatusHistories().get(0).setStatus(status);
+                }
             }
             if (payment.get().getServiceCallbackUrl() != null) {
                 callbackService.callback(payment.get().getPaymentLink(), payment.get());
