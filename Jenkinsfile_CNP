@@ -5,7 +5,7 @@ properties(
      pipelineTriggers([[$class: 'GitHubPushTrigger']])]
 )
 
-@Library("Infrastructure@workaroundfeespay")
+@Library("Infrastructure")
 
 def type = "java"
 
