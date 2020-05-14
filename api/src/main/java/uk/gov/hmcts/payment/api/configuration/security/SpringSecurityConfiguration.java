@@ -163,17 +163,19 @@ public class SpringSecurityConfiguration {
         }
 
         @Bean
-        @java.lang.SuppressWarnings("unchecked")
+        @SuppressWarnings("unchecked")
         JwtDecoder jwtDecoder() {
             NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder)
                 JwtDecoders.fromOidcIssuerLocation(issuerUri);
 
             OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(Arrays.asList(allowedAudiences));
-            // We are using issuerOverride instead of issuerUri as SIDAM has the wrong issuer at the moment
+
             OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-            OAuth2TokenValidator<Jwt> withIssuer = new JwtIssuerValidator(issuerOverride);
+
+            // Issuer validation is disabled as confirmed by IDAM
+
+            /* OAuth2TokenValidator<Jwt> withIssuer = new JwtIssuerValidator(issuerOverride);*/
             OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(withTimestamp,
-                withIssuer,
                 audienceValidator);
             jwtDecoder.setJwtValidator(withAudience);
 
