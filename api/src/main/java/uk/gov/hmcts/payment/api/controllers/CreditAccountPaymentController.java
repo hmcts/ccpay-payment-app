@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @Api(tags = {"Credit Account Payment"})
@@ -100,13 +99,13 @@ public class CreditAccountPaymentController {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
                 LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
             } catch (HttpMessageNotReadableException ex) {
-                LOG.error("Liberata Response not readable, exception: {}", ex.getMessage());
+                //LOG.error("Liberata Response not readable, exception: {}", ex.getMessage());
                 throw new LiberataResponseNotReadableException("Liberata Response not readable : " + ex.getMessage());
             } catch (HttpClientErrorException ex) {
-                LOG.error("Account information could not be found, exception: {}", ex.getMessage());
+                //LOG.error("Account information could not be found, exception: {}", ex.getMessage());
                 throw new AccountNotFoundException("Account information could not be found" + ex.getMessage());
             } catch (Exception ex) {
-                LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
+                //LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
                 throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later" + ex.getMessage());
             }
             setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
@@ -278,7 +277,7 @@ public class CreditAccountPaymentController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Received Valid Liberata Response")
     })
-    @RequestMapping(value = "/liberata-response-validation", method = POST)
+    @PostMapping(value = "/liberata-response-validation")
     public ResponseEntity<String> validateLiberataResponse(@Valid @RequestBody AccountDto accountDto) {
         return new ResponseEntity<String>("Received Valid Liberata Response", HttpStatus.OK);
     }
