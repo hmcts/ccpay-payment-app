@@ -95,29 +95,10 @@ public class CreditAccountPaymentController {
         if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
             LOG.info("Checking with Liberata for Service : {}", creditAccountPaymentRequest.getService());
 
-            AccountDto accountDetails = null;
+            AccountDto accountDetails;
             try {
-                //accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
-                //LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
-
-                //--Test Code to reproduce HttpMessageNotReadableException - to be reverted
-                /*
-                String request = "{\"status\": \"On Hold\", \"effective_date\": \"2011-11-02T02:50:12.208Z\"}";
-                ValidatableResponse response = RestAssured.given()
-                    .header("Authorization", "krishnakn00@gmail.com")
-                    .header("ServiceAuthorization", "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1MzMyMzc3NjN9.3iwg2cCa1_G9-TAMupqsQsIVBMWg9ORGir5xZyPhDabk09Ldk0-oQgDQq735TjDQzPI8AxL1PgjtOPDKeKyxfg[akiss@reformMgmtDevBastion02")
-                    .contentType(ContentType.JSON)
-                    .body(request)
-                    .when()
-                    .post("http://localhost:8080/liberata-response-validation")
-                    .then()
-                    .log()
-                    .ifError();
-                LOG.debug(response.extract().body().asString());
-                */
-                throw new HttpMessageNotReadableException("Liberata Response not readable", new Exception());
-
-                //--Test Code to reproduce HttpMessageNotReadableException - to be reverted
+                accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
+                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
             } catch (HttpMessageNotReadableException ex) {
                 LOG.error("Liberata Response not readable, exception: {}", ex.getMessage());
                 throw new LiberataResponseNotReadableException("Liberata Response not readable : " + ex.getMessage());
@@ -128,9 +109,7 @@ public class CreditAccountPaymentController {
                 LOG.error("Unable to retrieve account information, exception: {}", ex.getMessage());
                 throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later" + ex.getMessage());
             }
-            //--Test Code to reproduce HttpMessageNotReadableException - to be reverted
-            //setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
-            //--Test Code to reproduce HttpMessageNotReadableException - to be reverted
+            setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
