@@ -134,4 +134,8 @@
         <cve>CVE-2016-6497</cve>
         <cve>CVE-2018-10237</cve>
     </suppress>
+    
+    <suppress>
+        <cve>CVE-2020-5408</cve>
+    </suppress>
 </suppressions>
