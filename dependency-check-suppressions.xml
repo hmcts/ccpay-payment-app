@@ -133,5 +133,7 @@
         <cve>CVE-2019-3795</cve>
         <cve>CVE-2016-6497</cve>
         <cve>CVE-2018-10237</cve>
+        <cve>CVE-2020-5408</cve>
+        <cve>CVE-2020-5407</cve>
     </suppress>
 </suppressions>
