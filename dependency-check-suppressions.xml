@@ -136,4 +136,8 @@
         <cve>CVE-2020-5408</cve>
         <cve>CVE-2020-5407</cve>
     </suppress>
+    
+    <suppress>
+        <cve>CVE-2020-5408</cve>
+    </suppress>
 </suppressions>
