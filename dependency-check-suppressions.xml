@@ -61,7 +61,9 @@
         <cwe>476</cwe>
     </suppress>
     <suppress>
-        <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see https://pivotal.io/security/cve-2018-1258</notes>
+        <notes>CVE-2018-1258: we do not use Spring Method Security, so this does not affect us. see
+            https://pivotal.io/security/cve-2018-1258
+        </notes>
         <cve>CVE-2018-1258</cve>
     </suppress>
     <suppress>
@@ -135,43 +137,7 @@
         <cve>CVE-2018-10237</cve>
         <cve>CVE-2020-5408</cve>
         <cve>CVE-2020-5407</cve>
-    </suppress>
-    <suppress>
-        <cve>CVE-2007-2138</cve>
-        <cve>CVE-2010-0733</cve>
-        <cve>CVE-2014-0060</cve>
-        <cve>CVE-2014-0061</cve>
-        <cve>CVE-2014-0062</cve>
-        <cve>CVE-2014-0063</cve>
-        <cve>CVE-2014-0064</cve>
-        <cve>CVE-2014-0065</cve>
-        <cve>CVE-2014-0066</cve>
-        <cve>CVE-2014-0067</cve>
-        <cve>CVE-2014-8161</cve>
-        <cve>CVE-2015-0241</cve>
-        <cve>CVE-2015-0242</cve>
-        <cve>CVE-2015-0243</cve>
-        <cve>CVE-2015-0244</cve>
-        <cve>CVE-2015-3165</cve>
-        <cve>CVE-2015-3166</cve>
-        <cve>CVE-2015-3167</cve>
-        <cve>CVE-2015-5288</cve>
-        <cve>CVE-2015-5289</cve>
-        <cve>CVE-2016-0766</cve>
-        <cve>CVE-2016-0768</cve>
-        <cve>CVE-2016-0773</cve>
-        <cve>CVE-2016-5423</cve>
-        <cve>CVE-2016-5424</cve>
-        <cve>CVE-2016-7048</cve>
-        <cve>CVE-2017-14798</cve>
-        <cve>CVE-2017-7484</cve>
-        <cve>CVE-2018-1115</cve>
-        <cve>CVE-2019-10210</cve>
-        <cve>CVE-2019-10211</cve>
-        <cve>CVE-2019-3795</cve>
-        <cve>CVE-2016-6497</cve>
-        <cve>CVE-2018-10237</cve>
         <cve>CVE-2020-5408</cve>
-        <cve>CVE-2020-5407</cve>
+        <cve>CVE-2020-9484</cve>
     </suppress>
 </suppressions>
