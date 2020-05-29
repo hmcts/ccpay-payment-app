@@ -1,0 +1,125 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1554989041418-6
+      author: ayan
+      changes:
+        - createTable:
+            tableName: fee_pay_apportion
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: payment_id
+                  type: INT
+              - column:
+                  name: fee_id
+                  type: INT
+              - column:
+                  name: fee_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: payment_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: apportion_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: allocated_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: curr_apportion_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: ccd_case_number
+                  type: varchar(255)
+              - column:
+                  name: is_fully_apportioned
+                  type: varchar(10)
+              - column:
+                  name: call_short_fall_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: call_surplus_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: created_by
+                  type: varchar(255)
+              - column:
+                  name: date_created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+  - changeSet:
+      id: 1554989041418-7
+      author: ayan
+      changes:
+        - createTable:
+            tableName: fee_pay_staged
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ccd_case_no
+                  type: varchar(255)
+              - column:
+                  name: group_reference
+                  type: varchar(255)
+              - column:
+                  name: fee_id
+                  type: INT
+              - column:
+                  name: fee_code
+                  type: varchar(255)
+              - column:
+                  name: fee_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: volume
+                  type: INT
+              - column:
+                  name: calculated_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: hwf_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: net_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: fee_created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: payment_id
+                  type: INT
+              - column:
+                  name: payment_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: payment_ref
+                  type: varchar(255)
+              - column:
+                  name: payment_status
+                  type: varchar(255)
+              - column:
+                  name: payment_created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: payment_channel
+                  type: varchar(255)
+              - column:
+                  name: payment_method
+                  type: varchar(255)
+              - column:
+                  name: payment_provider
+                  type: varchar(255)
+              - column:
+                  name: service_type
+                  type: varchar(255)
