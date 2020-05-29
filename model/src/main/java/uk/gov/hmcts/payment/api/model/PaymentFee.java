@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -51,4 +52,22 @@ public class PaymentFee {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "fee_id", referencedColumnName = "id")
     private List<Remission> remissions;
+
+    //@CreationTimestamp
+    //@Column(name = "date_created")
+    @Transient
+    private Date dateCreated;
+
+    @Transient
+    @Builder.Default
+    private Boolean isFullyApportioned = false;
+
+    @Transient
+    private BigDecimal currApportionAmount;
+
+    @Transient
+    private BigDecimal callShortFallAmount;
+
+    @Transient
+    private BigDecimal callSurplusAmount;
 }
