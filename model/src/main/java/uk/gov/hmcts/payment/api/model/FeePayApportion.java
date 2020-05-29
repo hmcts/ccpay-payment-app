@@ -1,0 +1,64 @@
+package uk.gov.hmcts.payment.api.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.util.Date;
+
+@Entity
+@Data
+@Builder(builderMethodName = "feePayApportionWith")
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "fee_pay_apportion")
+public class FeePayApportion {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id")
+    private Payment payment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fee_id")
+    private PaymentFee fee;
+
+    @Column(name = "fee_amount")
+    private BigDecimal feeAmount;
+
+    @Column(name = "payment_amount")
+    private BigDecimal paymentAmount;
+
+    @Column(name = "apportion_amount")
+    private BigDecimal apportionAmount;
+
+    @Column(name = "allocated_amount")
+    private BigDecimal allocatedAmount;
+
+    @Column(name = "is_fully_apportioned")
+    private String isFullyApportioned;
+
+    @Column(name = "curr_apportion_amount")
+    private BigDecimal currApportionAmount;
+
+    @Column(name = "call_short_fall_amount")
+    private BigDecimal callShortFallAmount;
+
+    @Column(name = "call_surplus_amount")
+    private BigDecimal callSurplusAmount;
+
+    @Column(name = "ccd_case_number")
+    private String ccdCaseNumber;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    //@CreationTimestamp
+    @Column(name = "date_created", nullable = false)
+    private Date dateCreated;
+}
