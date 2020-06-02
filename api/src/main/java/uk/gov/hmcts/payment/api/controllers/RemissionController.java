@@ -132,7 +132,7 @@ public class RemissionController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler({InvalidPaymentGroupReferenceException.class, PaymentFeeNotFoundException.class})
     public String return404onInvalidPaymentGroupReference(PaymentException ex) {
-        LOG.error("Error while creating remission: {}", ex);
+        //LOG.error("Error while creating remission: {}", ex);
         return ex.getMessage();
     }
 }
