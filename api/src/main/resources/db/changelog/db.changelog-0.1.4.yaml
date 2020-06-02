@@ -123,3 +123,17 @@ databaseChangeLog:
               - column:
                   name: service_type
                   type: varchar(255)
+  - changeSet:
+      id: 1554989041418-8
+      author: ayan
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE fee ADD COLUMN apportion_amount numeric(19, 2);
+              ALTER TABLE fee ADD COLUMN allocated_amount numeric(19, 2);
+              ALTER TABLE fee ADD COLUMN is_fully_apportioned varchar(10);
+              ALTER TABLE fee ADD COLUMN date_apportioned TIMESTAMP WITHOUT TIME ZONE;
+              ALTER TABLE fee ADD COLUMN date_created TIMESTAMP WITHOUT TIME ZONE;
+              ALTER TABLE fee ADD COLUMN date_updated TIMESTAMP WITHOUT TIME ZONE;
