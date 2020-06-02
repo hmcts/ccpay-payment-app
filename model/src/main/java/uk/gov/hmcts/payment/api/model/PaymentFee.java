@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -53,14 +54,26 @@ public class PaymentFee {
     @JoinColumn(name = "fee_id", referencedColumnName = "id")
     private List<Remission> remissions;
 
-    //@CreationTimestamp
-    //@Column(name = "date_created")
-    @Transient
+    @Column(name = "apportion_amount")
+    private BigDecimal apportionAmount;
+
+    @Column(name = "allocated_amount")
+    private BigDecimal allocatedAmount;
+
+    @Column(name = "is_fully_apportioned")
+    private String isFullyApportioned;
+
+    @CreationTimestamp
+    @Column(name = "date_apportioned")
+    private Date dateApportioned;
+
+    @CreationTimestamp
+    @Column(name = "date_created")
     private Date dateCreated;
 
-    @Transient
-    @Builder.Default
-    private Boolean isFullyApportioned = false;
+    @CreationTimestamp
+    @Column(name = "date_updated")
+    private Date dateUpdated;
 
     @Transient
     private BigDecimal currApportionAmount;

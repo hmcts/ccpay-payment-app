@@ -11,7 +11,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 
-import java.util.LinkedHashSet;
+import java.util.List;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @AllArgsConstructor
@@ -22,11 +22,11 @@ public class FeePayApportionCCDCase {
 
     private String ccdCaseNo;
 
-    private LinkedHashSet<PaymentFeeLink> feePayGroups;
+    private List<PaymentFeeLink> feePayGroups;
 
-    private LinkedHashSet<PaymentFee> fees;
+    private List<PaymentFee> fees;
 
-    private LinkedHashSet<Remission> remissions;
+    private List<Remission> remissions;
 
-    private LinkedHashSet<Payment> payments;
+    private List<Payment> payments;
 }
