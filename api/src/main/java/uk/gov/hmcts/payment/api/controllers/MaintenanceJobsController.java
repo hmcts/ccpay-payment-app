@@ -21,7 +21,10 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -117,17 +120,17 @@ public class MaintenanceJobsController {
     @Transactional
     public void feePayAutoApportionLocal() throws CheckDigitException {
 
-        //SingleFeeMultiplePay_ExactPayment();
-        //SingleFeeMultiplePay_SurplusPayment();
-        //SingleFeeMultiplePay_ShortfallPayment();
-        //MultipleFeeMultiplePay_ExactPayment();
-        //MultipleFeeMultiplePay_SurplusPayment();
-        //MultipleFeeMultiplePay_ShortfallPayment();
+        SingleFeeMultiplePay_ExactPayment();
+        SingleFeeMultiplePay_SurplusPayment();
+        SingleFeeMultiplePay_ShortfallPayment();
+        MultipleFeeMultiplePay_ExactPayment();
+        MultipleFeeMultiplePay_SurplusPayment();
+        MultipleFeeMultiplePay_ShortfallPayment();
         MultipleFeeMultiplePay_UseCase5();
     }
 
-    public void processFeePayApportion(List<FeePayApportionCCDCase> feePayApportionCCDCases) {
-        feePayApportionCCDCases.stream().forEach(feePayApportionCCDCase -> {
+    public List<FeePayApportionCCDCase> processFeePayApportion(List<FeePayApportionCCDCase> feePayApportionCCDCases) {
+        for(FeePayApportionCCDCase feePayApportionCCDCase : feePayApportionCCDCases) {
             System.out.println("Apportion Case ----------> " + feePayApportionCCDCase.getCcdCaseNo());
             System.out.println("FeePayGroups ----------> " + feePayApportionCCDCase.getFeePayGroups().size());
             System.out.println("Fees ----------> " + feePayApportionCCDCase.getFees().size());
@@ -136,27 +139,34 @@ public class MaintenanceJobsController {
             //Sorting Fees for a Case in Date Created Ascending order
             feePayApportionCCDCase.setFees(feePayApportionCCDCase.getFees().stream()
                 .sorted(Comparator.comparing(PaymentFee::getDateCreated))
-                .collect(Collectors.toCollection(LinkedHashSet::new)));
+                .collect(Collectors.toList()));
 
             //Sorting Payments for a Case in Date Created Ascending order
             feePayApportionCCDCase.setPayments(feePayApportionCCDCase.getPayments().stream()
                 .sorted(Comparator.comparing(Payment::getDateCreated))
-                .collect(Collectors.toCollection(LinkedHashSet::new)));
+                .collect(Collectors.toList()));
 
             if(feePayApportionCCDCase.getCcdCaseNo().length() == 16) {
                 System.out.println("Apportion Started -------------------------------->");
                 feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
                 System.out.println("Apportion Completed -------------------------------->");
             }
-        });
+        }
+        return feePayApportionCCDCases;
     }
 
-    /*public void SingleFeeMultiplePay_ExactPayment() throws CheckDigitException {
+    public void SingleFeeMultiplePay_ExactPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233334444";
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
+
+        List<Date> feeCreatedDates = new ArrayList<>();
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.09.2020"));
+        feeCreatedDates.add(parseDate("01.10.2020"));
 
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
@@ -166,11 +176,17 @@ public class MaintenanceJobsController {
         paymentAmounts.add(new BigDecimal(20));
         paymentAmounts.add(new BigDecimal(30));
 
+        List<Date> paymentCreatedDates = new ArrayList<>();
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.09.2020"));
+        //paymentCreatedDates.add(parseDate("01.10.2020"));
+
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
             .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, 1))
-            .payments(getPayments(ccdCase, paymentAmounts, 3))
+            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 1))
+            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
         List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
@@ -188,6 +204,12 @@ public class MaintenanceJobsController {
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
 
+        List<Date> feeCreatedDates = new ArrayList<>();
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.09.2020"));
+        feeCreatedDates.add(parseDate("01.10.2020"));
+
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
 
@@ -196,11 +218,17 @@ public class MaintenanceJobsController {
         paymentAmounts.add(new BigDecimal(20));
         paymentAmounts.add(new BigDecimal(30));
 
+        List<Date> paymentCreatedDates = new ArrayList<>();
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.09.2020"));
+        //paymentCreatedDates.add(parseDate("01.10.2020"));
+
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
             .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, 1))
-            .payments(getPayments(ccdCase, paymentAmounts, 3))
+            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 1))
+            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
         List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
@@ -218,6 +246,12 @@ public class MaintenanceJobsController {
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
 
+        List<Date> feeCreatedDates = new ArrayList<>();
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.09.2020"));
+        feeCreatedDates.add(parseDate("01.10.2020"));
+
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
 
@@ -226,11 +260,17 @@ public class MaintenanceJobsController {
         paymentAmounts.add(new BigDecimal(10));
         paymentAmounts.add(new BigDecimal(5));
 
+        List<Date> paymentCreatedDates = new ArrayList<>();
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.09.2020"));
+        //paymentCreatedDates.add(parseDate("01.10.2020"));
+
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
             .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, 1))
-            .payments(getPayments(ccdCase, paymentAmounts, 3))
+            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 1))
+            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
         List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
@@ -249,6 +289,12 @@ public class MaintenanceJobsController {
         feeAmounts.add(new BigDecimal(100));
         feeAmounts.add(new BigDecimal(40));
 
+        List<Date> feeCreatedDates = new ArrayList<>();
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.09.2020"));
+        feeCreatedDates.add(parseDate("01.10.2020"));
+
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
         remissionAmounts.add(new BigDecimal(0));
@@ -258,11 +304,17 @@ public class MaintenanceJobsController {
         paymentAmounts.add(new BigDecimal(50));
         paymentAmounts.add(new BigDecimal(40));
 
+        List<Date> paymentCreatedDates = new ArrayList<>();
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.09.2020"));
+        //paymentCreatedDates.add(parseDate("01.10.2020"));
+
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
             .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, 2))
-            .payments(getPayments(ccdCase, paymentAmounts, 3))
+            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 2))
+            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
         List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
@@ -282,6 +334,12 @@ public class MaintenanceJobsController {
         feeAmounts.add(new BigDecimal(25));
         feeAmounts.add(new BigDecimal(25));
 
+        List<Date> feeCreatedDates = new ArrayList<>();
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.09.2020"));
+        feeCreatedDates.add(parseDate("01.10.2020"));
+
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
         remissionAmounts.add(new BigDecimal(0));
@@ -291,11 +349,17 @@ public class MaintenanceJobsController {
         paymentAmounts.add(new BigDecimal(100));
         paymentAmounts.add(new BigDecimal(80));
 
+        List<Date> paymentCreatedDates = new ArrayList<>();
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        //paymentCreatedDates.add(parseDate("01.09.2020"));
+        //paymentCreatedDates.add(parseDate("01.10.2020"));
+
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
             .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, 3))
-            .payments(getPayments(ccdCase, paymentAmounts, 2))
+            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 3))
+            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 2))
             .build();
 
         List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
@@ -315,6 +379,12 @@ public class MaintenanceJobsController {
         feeAmounts.add(new BigDecimal(50));
         feeAmounts.add(new BigDecimal(10));
 
+        List<Date> feeCreatedDates = new ArrayList<>();
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.09.2020"));
+        feeCreatedDates.add(parseDate("01.10.2020"));
+
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
         remissionAmounts.add(new BigDecimal(0));
@@ -325,11 +395,17 @@ public class MaintenanceJobsController {
         paymentAmounts.add(new BigDecimal(50));
         paymentAmounts.add(new BigDecimal(10));
 
+        List<Date> paymentCreatedDates = new ArrayList<>();
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.09.2020"));
+        //paymentCreatedDates.add(parseDate("01.10.2020"));
+
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
             .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, 3))
-            .payments(getPayments(ccdCase, paymentAmounts, 3))
+            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 3))
+            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates,3))
             .build();
 
         List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
@@ -338,21 +414,21 @@ public class MaintenanceJobsController {
         this.processFeePayApportion(feePayApportionCCDCases);
 
         assertEquals(1, 1);
-    }*/
+    }
 
     public void MultipleFeeMultiplePay_UseCase5() throws CheckDigitException {
 
         String ccdCase = "1111222244441111";
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
-        feeAmounts.add(new BigDecimal(50));
-        feeAmounts.add(new BigDecimal(60));
-        feeAmounts.add(new BigDecimal(70));
-        feeAmounts.add(new BigDecimal(80));
+        feeAmounts.add(new BigDecimal(500));
+        //feeAmounts.add(new BigDecimal(60));
+        //feeAmounts.add(new BigDecimal(70));
+        //feeAmounts.add(new BigDecimal(80));
 
         List<Date> feeCreatedDates = new ArrayList<>();
-        feeCreatedDates.add(parseDate("01.04.2020"));
-        feeCreatedDates.add(parseDate("01.05.2020"));
+        feeCreatedDates.add(parseDate("01.08.2020"));
+        feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
         feeCreatedDates.add(parseDate("01.10.2020"));
 
@@ -363,22 +439,22 @@ public class MaintenanceJobsController {
         remissionAmounts.add(new BigDecimal(0));
 
         List<BigDecimal> paymentAmounts = new ArrayList<>();
-        paymentAmounts.add(new BigDecimal(100));
-        paymentAmounts.add(new BigDecimal(20));
+        paymentAmounts.add(new BigDecimal(200));
+        paymentAmounts.add(new BigDecimal(500));
         //paymentAmounts.add(new BigDecimal(30));
-        paymentAmounts.add(new BigDecimal(50));
+        //paymentAmounts.add(new BigDecimal(500));
 
         List<Date> paymentCreatedDates = new ArrayList<>();
-        paymentCreatedDates.add(parseDate("01.04.2020"));
-        paymentCreatedDates.add(parseDate("01.05.2020"));
+        paymentCreatedDates.add(parseDate("01.08.2020"));
+        paymentCreatedDates.add(parseDate("01.08.2020"));
         //paymentCreatedDates.add(parseDate("01.09.2020"));
-        paymentCreatedDates.add(parseDate("01.10.2020"));
+        //paymentCreatedDates.add(parseDate("01.10.2020"));
 
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
             .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 4))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
+            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 1))
+            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 2))
             .build();
 
         List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
@@ -389,8 +465,8 @@ public class MaintenanceJobsController {
         assertEquals(1, 1);
     }
 
-    private LinkedHashSet<PaymentFeeLink> getPaymentFeeLinks(int count) throws CheckDigitException {
-        LinkedHashSet<PaymentFeeLink> paymentFeeLinks = new LinkedHashSet<>();
+    private List<PaymentFeeLink> getPaymentFeeLinks(int count) throws CheckDigitException {
+        List<PaymentFeeLink> paymentFeeLinks = new ArrayList<>();
 
         for(int i = 0; i < count; i++) {
             paymentFeeLinks.add(PaymentFeeLink.paymentFeeLinkWith()
@@ -401,8 +477,8 @@ public class MaintenanceJobsController {
         return paymentFeeLinks;
     }
 
-    private LinkedHashSet<Payment> getPayments(String ccdCase, List<BigDecimal> amounts, List<Date> paymentCreatedDates, int count) throws CheckDigitException {
-        LinkedHashSet<Payment> payments = new LinkedHashSet<>();
+    private List<Payment> getPayments(String ccdCase, List<BigDecimal> amounts, List<Date> paymentCreatedDates, int count) throws CheckDigitException {
+        List<Payment> payments = new ArrayList<>();
 
         for(int i = 0; i < count; i++) {
             payments.add(Payment.paymentWith()
@@ -421,8 +497,8 @@ public class MaintenanceJobsController {
         return payments;
     }
 
-    private LinkedHashSet<PaymentFee> getFees(String ccdCase, List<BigDecimal> amounts, List<BigDecimal> remissionAmounts, List<Date> feeCreatedDates, int count) throws CheckDigitException {
-        LinkedHashSet<PaymentFee> fees = new LinkedHashSet<>();
+    private List<PaymentFee> getFees(String ccdCase, List<BigDecimal> amounts, List<BigDecimal> remissionAmounts, List<Date> feeCreatedDates, int count) throws CheckDigitException {
+        List<PaymentFee> fees = new ArrayList<>();
 
         for(int i = 0; i < count; i++) {
             PaymentFee fee = PaymentFee.feeWith()
@@ -436,12 +512,6 @@ public class MaintenanceJobsController {
                 .dateCreated(feeCreatedDates.get(i))
                 .build();
 
-            if(i == 2) {
-                fee.setId(949);
-                fee.setIsFullyApportioned(false);
-                fee.setCurrApportionAmount(new BigDecimal(30.00));
-                fee.setCallShortFallAmount(new BigDecimal(-40.00));
-            }
             fees.add(fee);
         }
         return fees;

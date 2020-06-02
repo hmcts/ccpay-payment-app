@@ -30,6 +30,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private final FeePayApportionRepository feePayApportionRepository;
 
+    private final PaymentFeeRepository paymentFeeRepository;
+
     private final String APPORTION_GO_LIVE_DATE = "01.08.2020";
 
     private Boolean isSurplus = false;
@@ -38,11 +40,13 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     public FeePayApportionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                       PaymentStatusRepository paymentStatusRepository,
                                       FeePayStagedRepository feePayStagedRepository,
-                                      FeePayApportionRepository feePayApportionRepository) {
+                                      FeePayApportionRepository feePayApportionRepository,
+                                      PaymentFeeRepository paymentFeeRepository) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentStatusRepository = paymentStatusRepository;
         this.feePayStagedRepository = feePayStagedRepository;
         this.feePayApportionRepository = feePayApportionRepository;
+        this.paymentFeeRepository = paymentFeeRepository;
     }
 
     @Override
@@ -66,10 +70,10 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
         feePayApportionCCDCases.stream().forEach(feePayApportionCCDCase -> {
 
-            feePayApportionCCDCase.setFeePayGroups(new LinkedHashSet<>());
-            feePayApportionCCDCase.setFees(new LinkedHashSet<>());
-            feePayApportionCCDCase.setRemissions(new LinkedHashSet<>());
-            feePayApportionCCDCase.setPayments(new LinkedHashSet<>());
+            feePayApportionCCDCase.setFeePayGroups(new ArrayList<>());
+            feePayApportionCCDCase.setFees(new ArrayList<>());
+            feePayApportionCCDCase.setRemissions(new ArrayList<>());
+            feePayApportionCCDCase.setPayments(new ArrayList<>());
 
             List<FeePayStaged> feePayStagedByCase = allFeePayStagedData.stream()
                 .filter(feePayStaged -> feePayStaged.getCcdCaseNo().equalsIgnoreCase(feePayApportionCCDCase.getCcdCaseNo()))
@@ -106,7 +110,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             //Sorting Fees for a Case in Date Created Ascending order
             feePayApportionCCDCase.setFees(feePayApportionCCDCase.getFees().stream()
                 .sorted(Comparator.comparing(PaymentFee::getDateCreated))
-                .collect(Collectors.toCollection(LinkedHashSet::new)));
+                .collect(Collectors.toList()));
 
             feePayStagedByCase.stream()
                 .filter(distinctByKey(FeePayStaged::getPaymentId))
@@ -129,7 +133,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             //Sorting Payments for a Case in Date Created Ascending order
             feePayApportionCCDCase.setPayments(feePayApportionCCDCase.getPayments().stream()
                 .sorted(Comparator.comparing(Payment::getDateCreated))
-                .collect(Collectors.toCollection(LinkedHashSet::new)));
+                .collect(Collectors.toList()));
         });
         return feePayApportionCCDCases;
     }
@@ -161,7 +165,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     @Override
     @Transactional
-    public void processFeePayApportion(FeePayApportionCCDCase feePayApportionCCDCase) {
+    public FeePayApportionCCDCase processFeePayApportion(FeePayApportionCCDCase feePayApportionCCDCase) {
 
         BigDecimal callShortfallAmount = new BigDecimal(0);
         BigDecimal callSurplusAmount = new BigDecimal(0);
@@ -169,11 +173,14 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
         List<FeePayApportion> feePayApportions = new ArrayList<>();
 
-        for(Payment payment : getPaymentsToBeApportioned(feePayApportionCCDCase.getPayments())){
+        for(Payment payment : getPaymentsToBeApportioned(feePayApportionCCDCase.getPayments())) {
             remainingPaymentAmount = payment.getAmount();
 
-            for(PaymentFee fee : getFeesToBeApportioned(feePayApportionCCDCase.getFees())){
-                if(! fee.getIsFullyApportioned()){
+             for(PaymentFee fee : getFeesToBeApportioned(feePayApportionCCDCase.getFees())) {
+                if(fee.getIsFullyApportioned() == null){
+                    fee.setIsFullyApportioned("N");
+                }
+                if(fee.getIsFullyApportioned().equalsIgnoreCase("N")){
                     BigDecimal calculatedFeeAmount = getFeeCalculatedPendingAmount(fee);
                     feePayApportions.add(applyFeePayApportion(fee, payment, calculatedFeeAmount, remainingPaymentAmount));
                     remainingPaymentAmount = remainingPaymentAmount.subtract(calculatedFeeAmount);
@@ -202,34 +209,46 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             findShortfallFee(feePayApportions, callShortfallAmount);
         }
         if(isSurplus) {
-            findSurplusFee(feePayApportions, callSurplusAmount);
+            findSurplusFee(feePayApportions, callSurplusAmount, feePayApportionCCDCase.getFees());
         }
         feePayApportions.stream().forEach(feePayApportion -> {
             feePayApportionRepository.save(feePayApportion);
         });
+        feePayApportionCCDCase.getFees().stream()
+            .filter(fee -> fee.getIsFullyApportioned() != null)
+            .forEach(fee -> {
+                //paymentFeeRepository.save(paymentFeeRepository.findById(fee.getId()).get());
+                paymentFeeRepository.save(fee);
+            });
+        return feePayApportionCCDCase;
     }
 
-    private LinkedHashSet<Payment> getPaymentsToBeApportioned(LinkedHashSet<Payment> payments) {
+    private List<Payment> getPaymentsToBeApportioned(List<Payment> payments) {
         return payments.stream()
             .filter(payment -> payment.getDateCreated().after(parseDate(APPORTION_GO_LIVE_DATE)) ||
                                     payment.getDateCreated().equals(parseDate(APPORTION_GO_LIVE_DATE)))
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+            .collect(Collectors.toList());
     }
 
-    private LinkedHashSet<PaymentFee> getFeesToBeApportioned(LinkedHashSet<PaymentFee> fees) {
+    private List<PaymentFee> getFeesToBeApportioned(List<PaymentFee> fees) {
         return fees.stream()
             .filter(fee -> fee.getDateCreated().after(parseDate(APPORTION_GO_LIVE_DATE)) ||
                 fee.getDateCreated().equals(parseDate(APPORTION_GO_LIVE_DATE)))
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+            .collect(Collectors.toList());
     }
 
-    private void findSurplusFee(List<FeePayApportion> feePayApportions, BigDecimal callSurplusAmount) {
+    private void findSurplusFee(List<FeePayApportion> feePayApportions, BigDecimal callSurplusAmount, List<PaymentFee> fees) {
         FeePayApportion lastFeePayApportion = (FeePayApportion) feePayApportions.toArray()[feePayApportions.size() - 1];
 
         if(lastFeePayApportion.getCurrApportionAmount() != null && lastFeePayApportion.getCurrApportionAmount().doubleValue() != 0
             && lastFeePayApportion.getCurrApportionAmount().doubleValue() == lastFeePayApportion.getFeeAmount().doubleValue() ) {
             lastFeePayApportion.setCallSurplusAmount(callSurplusAmount);
-            lastFeePayApportion.setAllocatedAmount(lastFeePayApportion.getApportionAmount().add(callSurplusAmount));
+            lastFeePayApportion.setAllocatedAmount(lastFeePayApportion.getAllocatedAmount().add(callSurplusAmount));
+            for(PaymentFee fee : fees){
+                if(fee.getId().intValue() == lastFeePayApportion.getFee().getId().intValue()){
+                    fee.setAllocatedAmount(lastFeePayApportion.getAllocatedAmount());
+                }
+            }
         }
 
     }
@@ -254,7 +273,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
             if(fee.getCurrApportionAmount().doubleValue() == fee.getNetAmount().doubleValue()){
                 // Mark Fee as Fully Apportioned
-                fee.setIsFullyApportioned(true);
+                fee.setIsFullyApportioned("Y");
                 resetShortFallAmount(fee);
             }
 
@@ -265,7 +284,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 .payment(payment)
                 .feeAmount(fee.getNetAmount())
                 .paymentAmount(payment.getAmount())
-                .isFullyApportioned(fee.getIsFullyApportioned() ? "Y" : "N")
+                .isFullyApportioned(fee.getIsFullyApportioned())
                 .currApportionAmount(fee.getCurrApportionAmount())
                 .ccdCaseNumber(payment.getCcdCaseNumber())
                 .createdBy("SYSTEM")
@@ -278,7 +297,12 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 feePayApportion.setApportionAmount(remainingPaymentAmount);
             }
 
-            feePayApportion.setAllocatedAmount(feePayApportion.getApportionAmount());
+            feePayApportion.setAllocatedAmount(fee.getCurrApportionAmount());
+
+            // Update FEE according to apportion allocation
+
+            fee.setAllocatedAmount(feePayApportion.getAllocatedAmount());
+            fee.setDateApportioned(feePayApportion.getDateCreated());
 
             //if (feePayApportion.getApportionAmount().doubleValue() > 0) {
                 System.out.println("Fee[" + fee.getId() + "] Amount ---> " + fee.getNetAmount() + " Payment[" + payment.getId() + "] Amount ---> " + payment.getAmount() + " Apportion Amount ---> " + feePayApportion.getApportionAmount());

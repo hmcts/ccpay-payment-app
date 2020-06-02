@@ -17,6 +17,6 @@ public interface FeePayApportionService<T, ID> {
 
     T findPaymentsByFeePayGroup(PaymentFeeLink feePayGroup);
 
-    void processFeePayApportion(FeePayApportionCCDCase feePayApportionCCDCase);
+    FeePayApportionCCDCase processFeePayApportion(FeePayApportionCCDCase feePayApportionCCDCase);
 
 }
