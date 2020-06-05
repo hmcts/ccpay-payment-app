@@ -19,8 +19,7 @@ import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
 import uk.gov.hmcts.payment.api.configuration.converters.JwtGrantedAuthoritiesConverter;
 import uk.gov.hmcts.payment.api.configuration.validator.AudienceValidator;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -32,8 +31,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @EnableWebSecurity(debug = true)
 public class SpringSecurityConfiguration {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SpringSecurityConfiguration.class);
 
     @Configuration
     @Order(1)
@@ -53,7 +50,6 @@ public class SpringSecurityConfiguration {
         }
 
         protected void configure(HttpSecurity http) throws Exception {
-            //try {
                 http
                     .addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
                     .addFilterAfter(servicePaymentFilter,ServiceAuthFilter.class)
@@ -67,11 +63,6 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.PATCH, "/payments/**")
                     .antMatchers(HttpMethod.POST, "/telephony/callback")
                     .antMatchers( "/jobs/**");
-/*            }
-            catch(Exception e)
-            {
-               LOG.info(String.format("Error in ExternalApiSecurityConfigurationAdapter:{}"), e);
-            }*/
         }
 
     }
@@ -130,7 +121,6 @@ public class SpringSecurityConfiguration {
         @Override
         @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED", justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         protected void configure(HttpSecurity http) throws Exception {
-            //try {
                 http.addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
                     .addFilterAfter(serviceAndUserAuthFilter, BearerTokenAuthenticationFilter.class)
                     .addFilterAfter(servicePaymentFilter,ServiceAuthFilter.class)
@@ -155,11 +145,6 @@ public class SpringSecurityConfiguration {
                     .and()
                     .and()
                     .oauth2Client();
-/*            }
-            catch(Exception e)
-            {
-                LOG.info(String.format("Error in InternalApiSecurityConfigurationAdapter:{}"), e);
-            }*/
         }
 
         @Bean
@@ -172,9 +157,6 @@ public class SpringSecurityConfiguration {
 
             OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
 
-            // Issuer validation is disabled as confirmed by IDAM
-
-            /* OAuth2TokenValidator<Jwt> withIssuer = new JwtIssuerValidator(issuerOverride);*/
             OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(withTimestamp,
                 audienceValidator);
             jwtDecoder.setJwtValidator(withAudience);
