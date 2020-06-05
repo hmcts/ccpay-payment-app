@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -61,10 +62,10 @@ public class SecurityUtils {
 
     @SuppressWarnings("unchecked")
     public static List<GrantedAuthority> extractAuthorityFromClaims(Map<String, Object> claims) {
-/*        if (!Optional.ofNullable(claims).isPresent() && !Optional.ofNullable(claims.get("roles")).isPresent()){
+       if (!Optional.ofNullable(claims).isPresent() && !Optional.ofNullable(claims.get("roles")).isPresent()){
             throw new InsufficientAuthenticationException("No roles can be extracted from claims " +
                 "most probably due to insufficient scopes provided");
-        }*/
+        }
 
         return ((List<String>) claims.get("roles"))
             .stream()
