@@ -70,7 +70,7 @@ public class PaymentApiApplication {
                 .expireAfterWrite(48, TimeUnit.HOURS)
                 .build()),
         new CaffeineCache("userInfoCache", Caffeine.newBuilder()
-            .expireAfterWrite(48, TimeUnit.HOURS)
+            .expireAfterWrite(8, TimeUnit.HOURS)
             .build())
         ));
         return cacheManager;
