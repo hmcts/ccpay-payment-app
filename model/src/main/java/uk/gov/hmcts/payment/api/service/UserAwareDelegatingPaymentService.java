@@ -58,6 +58,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final ServiceIdSupplier serviceIdSupplier;
     private final AuditRepository auditRepository;
     private final CallbackService callbackService;
+    private final FeePayApportionRepository feePayApportionRepository;
+    private final PaymentFeeRepository paymentFeeRepository;
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -77,7 +79,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                                              GovPayAuthUtil govPayAuthUtil,
                                              ServiceIdSupplier serviceIdSupplier,
                                              AuditRepository auditRepository,
-                                             CallbackService callbackService) {
+                                             CallbackService callbackService,
+                                             FeePayApportionRepository feePayApportionRepository,
+                                             PaymentFeeRepository paymentFeeRepository) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegateGovPay = delegateGovPay;
@@ -92,6 +96,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         this.serviceIdSupplier = serviceIdSupplier;
         this.auditRepository = auditRepository;
         this.callbackService = callbackService;
+        this.feePayApportionRepository = feePayApportionRepository;
+        this.paymentFeeRepository = paymentFeeRepository;
     }
 
     @Override
@@ -225,6 +231,13 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     .message(govPayPayment.getState().getMessage())
                     .build()));
 
+                // Rollback Fees already Apportioned for Payments in failed/cancelled/error status
+                if(Lists.newArrayList("failed", "cancelled", "error").contains(govPayPayment.getState().getStatus().toLowerCase())){
+                    LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - Started");
+                    rollbackApportionedFees(payment);
+                    LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - End");
+                }
+
                 if (shouldCallBack && payment.getServiceCallbackUrl() != null) {
                     callbackService.callback(paymentFeeLink, payment);
                 }
@@ -234,6 +247,20 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         }
 
         return paymentFeeLink;
+    }
+
+    private void rollbackApportionedFees(Payment payment) {
+        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
+            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+                .forEach(feePayApportion -> {
+                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
+                    fee.setIsFullyApportioned("N");
+                    fee.setApportionAmount(fee.getApportionAmount().subtract(payment.getAmount()));
+                    fee.setAllocatedAmount(fee.getAllocatedAmount().subtract(payment.getAmount()));
+                    paymentFeeRepository.save(fee);
+                    LOG.info("Rollback FeeId " + fee.getId() + " as PaymentId " + payment.getId() + " Status Changed to " + payment.getPaymentStatus().getName());
+                });
+        }
     }
 
     @Override

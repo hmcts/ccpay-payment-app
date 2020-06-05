@@ -20,13 +20,11 @@ public class FeePayApportion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_id")
-    private Payment payment;
+    @Column(name = "payment_id")
+    private Integer paymentId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fee_id")
-    private PaymentFee fee;
+    @Column(name = "fee_id")
+    private Integer feeId;
 
     @Column(name = "fee_amount")
     private BigDecimal feeAmount;

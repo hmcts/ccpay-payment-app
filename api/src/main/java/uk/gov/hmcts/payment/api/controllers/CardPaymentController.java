@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFound
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -49,18 +50,21 @@ public class CardPaymentController {
     private final CardDetailsService<CardDetails, String> cardDetailsService;
     private final PciPalPaymentService pciPalPaymentService;
     private final FF4j ff4j;
+    private final FeePayApportionService feePayApportionService;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
-                                 FF4j ff4j) {
+                                 FF4j ff4j,
+                                 FeePayApportionService feePayApportionService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
         this.pciPalPaymentService = pciPalPaymentService;
         this.ff4j = ff4j;
+        this.feePayApportionService = feePayApportionService;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -125,6 +129,8 @@ public class CardPaymentController {
             String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
         }
+        // trigger Apportion
+        feePayApportionService.processApportion(paymentLink.getPayments().get(0));
 
         return new ResponseEntity<>(paymentDto, CREATED);
     }

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private final PaymentFeeRepository paymentFeeRepository;
 
-    private final String APPORTION_GO_LIVE_DATE = "01.08.2020";
+    private final String APPORTION_GO_LIVE_DATE = "01.06.2020";
 
     private Boolean isSurplus = false;
     private Boolean isShortfall = false;
@@ -171,56 +172,67 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
         BigDecimal callSurplusAmount = new BigDecimal(0);
         BigDecimal remainingPaymentAmount = new BigDecimal(0);
 
-        List<FeePayApportion> feePayApportions = new ArrayList<>();
+        if( !getPaymentsToBeApportioned(feePayApportionCCDCase.getPayments()).isEmpty() &&
+                !getFeesToBeApportioned(feePayApportionCCDCase.getFees()).isEmpty()) {
+            List<FeePayApportion> feePayApportions = new ArrayList<>();
 
-        for(Payment payment : getPaymentsToBeApportioned(feePayApportionCCDCase.getPayments())) {
-            remainingPaymentAmount = payment.getAmount();
+            for(Payment payment : getPaymentsToBeApportioned(feePayApportionCCDCase.getPayments())) {
+                remainingPaymentAmount = payment.getAmount();
 
-             for(PaymentFee fee : getFeesToBeApportioned(feePayApportionCCDCase.getFees())) {
-                if(fee.getIsFullyApportioned() == null){
-                    fee.setIsFullyApportioned("N");
-                }
-                if(fee.getIsFullyApportioned().equalsIgnoreCase("N")){
-                    BigDecimal calculatedFeeAmount = getFeeCalculatedPendingAmount(fee);
-                    feePayApportions.add(applyFeePayApportion(fee, payment, calculatedFeeAmount, remainingPaymentAmount));
-                    remainingPaymentAmount = remainingPaymentAmount.subtract(calculatedFeeAmount);
-                    //payment.setAmount(remainingPaymentAmount);
-                    if(remainingPaymentAmount.doubleValue() > 0) {
-                        continue;
-                    } else {
-                        break;
+                for(PaymentFee fee : getFeesToBeApportioned(feePayApportionCCDCase.getFees())) {
+                    if(fee.getIsFullyApportioned().equalsIgnoreCase("N")){
+                        fee.setCurrApportionAmount(fee.getAllocatedAmount() != null ? fee.getAllocatedAmount() : new BigDecimal(0));
+                        BigDecimal calculatedFeeAmount = getFeeCalculatedPendingAmount(fee);
+                        feePayApportions.add(applyFeePayApportion(fee, payment, calculatedFeeAmount, remainingPaymentAmount));
+                        remainingPaymentAmount = remainingPaymentAmount.subtract(calculatedFeeAmount);
+                        //payment.setAmount(remainingPaymentAmount);
+                        if(remainingPaymentAmount.doubleValue() > 0) {
+                            continue;
+                        } else {
+                            break;
+                        }
                     }
                 }
+                // End Fee Loop
+                if(remainingPaymentAmount.doubleValue() > 0) {
+                    callSurplusAmount = remainingPaymentAmount;
+                    isSurplus = true;
+                } else if(remainingPaymentAmount.doubleValue() < 0){
+                    callShortfallAmount = remainingPaymentAmount;
+                    isShortfall = true;
+                } else {
+                    isSurplus = false;
+                    isShortfall = false;
+                }
             }
-            // End Fee Loop
-            if(remainingPaymentAmount.doubleValue() > 0) {
-                callSurplusAmount = remainingPaymentAmount;
-                isSurplus = true;
-            } else if(remainingPaymentAmount.doubleValue() < 0){
-                callShortfallAmount = remainingPaymentAmount;
-                isShortfall = true;
-            } else {
-                isSurplus = false;
-                isShortfall = false;
+            // End Payment Loop
+            if(isShortfall) {
+                findShortfallFee(feePayApportions, callShortfallAmount);
             }
-        }
-        // End Payment Loop
-        if(isShortfall) {
-            findShortfallFee(feePayApportions, callShortfallAmount);
-        }
-        if(isSurplus) {
-            findSurplusFee(feePayApportions, callSurplusAmount, feePayApportionCCDCase.getFees());
-        }
-        feePayApportions.stream().forEach(feePayApportion -> {
-            feePayApportionRepository.save(feePayApportion);
-        });
-        feePayApportionCCDCase.getFees().stream()
-            .filter(fee -> fee.getIsFullyApportioned() != null)
-            .forEach(fee -> {
-                //paymentFeeRepository.save(paymentFeeRepository.findById(fee.getId()).get());
-                paymentFeeRepository.save(fee);
+            if(isSurplus) {
+                findSurplusFee(feePayApportions, callSurplusAmount, feePayApportionCCDCase.getFees());
+            }
+            feePayApportions.stream().forEach(feePayApportion -> {
+                feePayApportionRepository.save(feePayApportion);
             });
+            feePayApportionCCDCase.getFees().stream()
+                .filter(fee -> fee.getIsFullyApportioned() != null)
+                .forEach(fee -> {
+                    //paymentFeeRepository.save(paymentFeeRepository.findById(fee.getId()).get());
+                    paymentFeeRepository.save(fee);
+                });
+        }
         return feePayApportionCCDCase;
+    }
+
+    @Override
+    @Transactional
+    public void processApportion(Payment payment) {
+        this.processFeePayApportion(FeePayApportionCCDCase.feePayApportionCCDCaseWith()
+            .ccdCaseNo(payment.getCcdCaseNumber())
+            .fees(paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).get())
+            .payments(Lists.newArrayList(payment))
+            .build());
     }
 
     private List<Payment> getPaymentsToBeApportioned(List<Payment> payments) {
@@ -231,6 +243,15 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     private List<PaymentFee> getFeesToBeApportioned(List<PaymentFee> fees) {
+        for(PaymentFee fee : fees) {
+            if(fee.getIsFullyApportioned() == null){
+                fee.setIsFullyApportioned("N");
+            }
+        }
+        /*// Excluding already apportioned fees
+        fees = fees.stream()
+            .filter(fee -> ! fee.getIsFullyApportioned().equalsIgnoreCase("Y"))
+            .collect(Collectors.toList());*/
         return fees.stream()
             .filter(fee -> fee.getDateCreated().after(parseDate(APPORTION_GO_LIVE_DATE)) ||
                 fee.getDateCreated().equals(parseDate(APPORTION_GO_LIVE_DATE)))
@@ -238,19 +259,29 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     private void findSurplusFee(List<FeePayApportion> feePayApportions, BigDecimal callSurplusAmount, List<PaymentFee> fees) {
-        FeePayApportion lastFeePayApportion = (FeePayApportion) feePayApportions.toArray()[feePayApportions.size() - 1];
+        if(feePayApportions.size() == 0) {
+            fees = fees.stream()
+                .filter(fee -> fee.getIsFullyApportioned() != null)
+                .sorted(Comparator.comparing(PaymentFee::getDateCreated))
+                .collect(Collectors.toList());
+            if(fees.size() > 0) {
+                PaymentFee lastApportionedFee = (PaymentFee) fees.toArray()[fees.size() - 1];
+                lastApportionedFee.setAllocatedAmount(lastApportionedFee.getAllocatedAmount().add(callSurplusAmount));
+            }
+        } else {
+            FeePayApportion lastFeePayApportion = (FeePayApportion) feePayApportions.toArray()[feePayApportions.size() - 1];
 
-        if(lastFeePayApportion.getCurrApportionAmount() != null && lastFeePayApportion.getCurrApportionAmount().doubleValue() != 0
-            && lastFeePayApportion.getCurrApportionAmount().doubleValue() == lastFeePayApportion.getFeeAmount().doubleValue() ) {
-            lastFeePayApportion.setCallSurplusAmount(callSurplusAmount);
-            lastFeePayApportion.setAllocatedAmount(lastFeePayApportion.getAllocatedAmount().add(callSurplusAmount));
-            for(PaymentFee fee : fees){
-                if(fee.getId().intValue() == lastFeePayApportion.getFee().getId().intValue()){
-                    fee.setAllocatedAmount(lastFeePayApportion.getAllocatedAmount());
+            if(lastFeePayApportion.getCurrApportionAmount() != null && lastFeePayApportion.getCurrApportionAmount().doubleValue() != 0
+                && lastFeePayApportion.getCurrApportionAmount().doubleValue() == lastFeePayApportion.getFeeAmount().doubleValue() ) {
+                lastFeePayApportion.setCallSurplusAmount(callSurplusAmount);
+                lastFeePayApportion.setAllocatedAmount(lastFeePayApportion.getAllocatedAmount().add(callSurplusAmount));
+                for(PaymentFee fee : fees){
+                    if(fee.getId().intValue() == lastFeePayApportion.getFeeId().intValue()){
+                        fee.setAllocatedAmount(lastFeePayApportion.getAllocatedAmount());
+                    }
                 }
             }
         }
-
     }
 
     private void findShortfallFee(List<FeePayApportion> feePayApportions, BigDecimal callShortfallAmount) {
@@ -280,8 +311,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             // Create a new Record in FeePayApportion Table
 
             FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
-                .fee(fee)
-                .payment(payment)
+                .feeId(fee.getId())
+                .paymentId(payment.getId())
                 .feeAmount(fee.getNetAmount())
                 .paymentAmount(payment.getAmount())
                 .isFullyApportioned(fee.getIsFullyApportioned())
@@ -301,6 +332,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
             // Update FEE according to apportion allocation
 
+            fee.setApportionAmount(feePayApportion.getApportionAmount());
             fee.setAllocatedAmount(feePayApportion.getAllocatedAmount());
             fee.setDateApportioned(feePayApportion.getDateCreated());
 
