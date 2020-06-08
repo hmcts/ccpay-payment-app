@@ -1,12 +1,15 @@
 package uk.gov.hmcts.payment.api.contract.util;
 
+
+
 public enum Service {
     CMC("Civil Money Claims"),
     DIVORCE("Divorce"),
     PROBATE("Probate"),
     FINREM("Finrem"),
     DIGITAL_BAR("Digital Bar"),
-    FPL("Family Public Law");
+    FPL("Family Public Law"),
+    IAC("Immigration and Asylum");
 
     private String name;
 
@@ -18,3 +21,5 @@ public enum Service {
         return this.name;
     }
 }
+
+
