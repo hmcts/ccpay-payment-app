@@ -20,7 +20,7 @@ java:
     OIDC_CLIENT_ID: "paybubble"
     OIDC_ISSUER: "https://forgerock-am.service.core-compute-idam-{{ .Values.global.environment }}.internal:8443/openam/oauth2/hmcts"
     OIDC_S2S_MICROSERVICE_NAME: ccpay_bubble
-    OIDC_AUDIENCE_LIST: paybubble,cmc_citizen,probate,divorce,xuiwebapp,xuimowebapp,xuiaowebapp,fees_admin_frontend,finrem,bar_frontend,fpl_case_service,ccd_gateway
+    OIDC_AUDIENCE_LIST: paybubble,cmc_citizen,probate,divorce,xuiwebapp,xuimowebapp,xuiaowebapp,fees_admin_frontend,finrem,bar_frontend,fpl_case_service,ccd_gateway,iac
 
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     AUTH_IDAM_CLIENT_BASEURL: https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net
@@ -34,7 +34,7 @@ java:
     GOV_PAY_OPERATIONAL_SERVICES: "ccd_gw,api_gw"
     PCI_PAL_CALLBACK_URL: https://core-api-mgmt-{{ .Values.global.environment }}.azure-api.net/telephony-api/telephony/callback
 
-    TRUSTED_S2S_SERVICE_NAMES: "cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service"
+    TRUSTED_S2S_SERVICE_NAMES: "cmc,cmc_claim_store,probate_frontend,divorce_frontend,ccd_gw,bar_api,api_gw,finrem_payment_service,ccpay_bubble,jui_webapp,xui_webapp,fpl_case_service,iac"
     CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED: "true"
     CARD_PAYMENTS_EMAIL_FROM: "no-reply@reform.hmcts.net"
     CARD_PAYMENTS_EMAIL_MESSAGE: "Hi, <br/><br/>Please find attached Payment by Account reconciliation report. <br/><br/>Regards, <br/>Fees & Payments Team <br/><br/>"
