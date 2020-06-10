@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
@@ -48,6 +49,9 @@ public class PaymentController {
     private final PaymentValidator validator;
     private final FF4j ff4j;
     private final DateTimeFormatter formatter;
+
+    @Autowired
+    private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -169,6 +173,8 @@ public class PaymentController {
     })
     @GetMapping(value = "/payments/{reference}")
     public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
+
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         return Optional.ofNullable(paymentFeeLink)
             .map(paymentDtoMapper::toReconciliationResponseDtos)
