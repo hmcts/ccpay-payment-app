@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -60,18 +61,21 @@ public class CreditAccountPaymentController {
     private final AccountService<AccountDto, String> accountService;
     private final DuplicatePaymentValidator paymentValidator;
     private final FF4j ff4j;
+    private final FeePayApportionService feePayApportionService;
 
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
-                                          DuplicatePaymentValidator paymentValidator, FF4j ff4j) {
+                                          DuplicatePaymentValidator paymentValidator, FF4j ff4j,
+                                          FeePayApportionService feePayApportionService) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
         this.paymentValidator = paymentValidator;
         this.ff4j = ff4j;
+        this.feePayApportionService = feePayApportionService;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -127,6 +131,10 @@ public class CreditAccountPaymentController {
             LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
         }
+
+        // trigger Apportion
+        feePayApportionService.processApportion(paymentFeeLink.getPayments().get(0));
+
         LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
