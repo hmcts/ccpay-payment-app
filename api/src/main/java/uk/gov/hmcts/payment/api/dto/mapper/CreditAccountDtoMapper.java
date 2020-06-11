@@ -189,9 +189,12 @@ public class CreditAccountDtoMapper {
 
     public PaymentFee toFee(FeeDto feeDto) {
         return PaymentFee.feeWith()
-            .calculatedAmount(feeDto.getCalculatedAmount()).code(feeDto.getCode())
+            .calculatedAmount(feeDto.getCalculatedAmount())
+            .code(feeDto.getCode())
             .version(feeDto.getVersion())
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
+            .ccdCaseNumber(feeDto.getCcdCaseNumber())
+            .feeAmount(feeDto.getFeeAmount())
             .build();
     }
 
