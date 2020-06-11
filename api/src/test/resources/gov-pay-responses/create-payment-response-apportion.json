@@ -1,0 +1,49 @@
+{
+  "amount": 12000,
+  "state": {
+    "status": "Created",
+    "finished": false
+  },
+  "description": "New passport application",
+  "reference": "RC-1518-9479-8066-6095",
+  "payment_id": "ak8gtvb438drmp59cs7ijppr3i",
+  "payment_provider": "sandbox",
+  "return_url": "https://service-name.gov.uk/transactions/12345",
+  "created_date": "2018-02-08T15:05:41.117Z",
+  "refund_summary": {
+    "status": "pending",
+    "amount_available": 12000,
+    "amount_submitted": 0
+  },
+  "settlement_summary": {},
+  "_links": {
+    "self": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ak8gtvb438drmp59cs7ijppr3i",
+      "method": "GET"
+    },
+    "next_url": {
+      "href": "https://www.payments.service.gov.uk/secure/06cf72f2-bf31-40cc-8f76-403da1828368",
+      "method": "GET"
+    },
+    "next_url_post": {
+      "type": "application/x-www-form-urlencoded",
+      "params": {
+        "chargeTokenId": "06cf72f2-bf31-40cc-8f76-403da1828368"
+      },
+      "href": "https://www.payments.service.gov.uk/secure",
+      "method": "POST"
+    },
+    "events": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ak8gtvb438drmp59cs7ijppr3i/events",
+      "method": "GET"
+    },
+    "refunds": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ak8gtvb438drmp59cs7ijppr3i/refunds",
+      "method": "GET"
+    },
+    "cancel": {
+      "href": "https://publicapi.payments.service.gov.uk/v1/payments/ak8gtvb438drmp59cs7ijppr3i/cancel",
+      "method": "POST"
+    }
+  }
+}

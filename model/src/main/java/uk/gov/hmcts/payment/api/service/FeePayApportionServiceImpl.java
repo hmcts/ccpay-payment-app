@@ -181,7 +181,9 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
                 for(PaymentFee fee : getFeesToBeApportioned(feePayApportionCCDCase.getFees())) {
                     if(fee.getIsFullyApportioned().equalsIgnoreCase("N")){
+
                         fee.setCurrApportionAmount(fee.getAllocatedAmount() != null ? fee.getAllocatedAmount() : new BigDecimal(0));
+                        fee.setNetAmount(fee.getNetAmount() != null ? fee.getNetAmount() : getFeeCalculatedNetAmount(fee, feePayApportionCCDCase.getRemissions()));
                         BigDecimal calculatedFeeAmount = getFeeCalculatedPendingAmount(fee);
                         feePayApportions.add(applyFeePayApportion(fee, payment, calculatedFeeAmount, remainingPaymentAmount));
                         remainingPaymentAmount = remainingPaymentAmount.subtract(calculatedFeeAmount);
@@ -223,6 +225,21 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 });
         }
         return feePayApportionCCDCase;
+    }
+
+    private BigDecimal getFeeCalculatedNetAmount(PaymentFee fee, List<Remission> remissions) {
+        fee.setCalculatedAmount(fee.getCalculatedAmount() != null ? fee.getCalculatedAmount() : getFeeCalculatedAmount(fee));
+        if(! CollectionUtils.isEmpty(remissions)) {
+            remissions.stream()
+                .filter(remission -> remission.getFee().getId().equals(fee.getId()))
+                .forEach(remission -> fee.setCalculatedAmount(fee.getCalculatedAmount().subtract(remission.getHwfAmount())));
+        }
+        return fee.getCalculatedAmount();
+    }
+
+    private BigDecimal getFeeCalculatedAmount(PaymentFee fee) {
+        fee.setVolume(fee.getVolume() > 0 ? fee.getVolume() : 1);
+        return fee.getFeeAmount() != null ? fee.getFeeAmount().multiply(new BigDecimal(fee.getVolume())) : new BigDecimal(0);
     }
 
     @Override
@@ -332,7 +349,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
             // Update FEE according to apportion allocation
 
-            fee.setApportionAmount(feePayApportion.getApportionAmount());
+            fee.setApportionAmount(feePayApportion.getCurrApportionAmount());
             fee.setAllocatedAmount(feePayApportion.getAllocatedAmount());
             fee.setDateApportioned(feePayApportion.getDateCreated());
 
