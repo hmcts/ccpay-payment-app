@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
@@ -60,6 +61,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final CallbackService callbackService;
     private final FeePayApportionRepository feePayApportionRepository;
     private final PaymentFeeRepository paymentFeeRepository;
+    private final LaunchDarklyFeatureToggler featureToggler;
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -81,7 +83,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                                              AuditRepository auditRepository,
                                              CallbackService callbackService,
                                              FeePayApportionRepository feePayApportionRepository,
-                                             PaymentFeeRepository paymentFeeRepository) {
+                                             PaymentFeeRepository paymentFeeRepository,LaunchDarklyFeatureToggler featureToggler) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegateGovPay = delegateGovPay;
@@ -98,6 +100,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         this.callbackService = callbackService;
         this.feePayApportionRepository = feePayApportionRepository;
         this.paymentFeeRepository = paymentFeeRepository;
+        this.featureToggler = featureToggler;
     }
 
     @Override
@@ -231,11 +234,15 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     .message(govPayPayment.getState().getMessage())
                     .build()));
 
-                // Rollback Fees already Apportioned for Payments in failed/cancelled/error status
-                if(Lists.newArrayList("failed", "cancelled", "error").contains(govPayPayment.getState().getStatus().toLowerCase())){
-                    LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - Started");
-                    rollbackApportionedFees(payment);
-                    LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - End");
+                // Rollback Fees already Apportioned for Payments in failed/cancelled/error status based on launch darkly feature flag
+                boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+                LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
+                if(apportionFeature) {
+                    if (Lists.newArrayList("failed", "cancelled", "error").contains(govPayPayment.getState().getStatus().toLowerCase())) {
+                        LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - Started");
+                        rollbackApportionedFees(payment);
+                        LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - End");
+                    }
                 }
 
                 if (shouldCallBack && payment.getServiceCallbackUrl() != null) {
