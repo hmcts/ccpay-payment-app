@@ -30,8 +30,10 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -793,6 +795,147 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isInternalServerError())
             .andReturn();
+    }
+
+    @Test
+    public void createCardPaymentWithMultipleFee_ExactPayment() throws Exception {
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(20))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber("9999888877776666")
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(20), savedfees.get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAllocatedAmount());
+        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
+        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
+        assertEquals("Y", savedfees.get(2).getIsFullyApportioned());
+    }
+
+    @Test
+    public void createCardPaymentWithMultipleFee_ShortfallPayment() throws Exception {
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(30))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber("9999888877776666")
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(30), savedfees.get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
+        assertEquals(new BigDecimal(50), savedfees.get(2).getAllocatedAmount());
+        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
+        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(2).getIsFullyApportioned());
+    }
+
+    @Test
+    public void createCardPaymentWithMultipleFee_SurplusPayment() throws Exception {
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(10))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber("9999888877776666")
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(10), savedfees.get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
+        assertEquals(new BigDecimal(70), savedfees.get(2).getAllocatedAmount());
+        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
+        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
+        assertEquals("Y", savedfees.get(2).getIsFullyApportioned());
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {

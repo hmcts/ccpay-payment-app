@@ -94,7 +94,7 @@ public class MaintenanceJobsController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Auto Apportionment of Existing Fees & Payments Done")
     })
-    @PatchMapping(value = "/jobs/fee-pay-auto-apportion")
+    @PatchMapping(value = "/jobs/fee-pay-auto-apportion-historical")
     @Transactional
     public void feePayAutoApportion() {
 
