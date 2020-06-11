@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -62,6 +63,7 @@ public class CreditAccountPaymentController {
     private final DuplicatePaymentValidator paymentValidator;
     private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
+    private final LaunchDarklyFeatureToggler featureToggler;
 
 
     @Autowired
@@ -69,13 +71,14 @@ public class CreditAccountPaymentController {
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
                                           DuplicatePaymentValidator paymentValidator, FF4j ff4j,
-                                          FeePayApportionService feePayApportionService) {
+                                          FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
         this.paymentValidator = paymentValidator;
         this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
+        this.featureToggler = featureToggler;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -132,8 +135,12 @@ public class CreditAccountPaymentController {
             return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
         }
 
-        // trigger Apportion
-        feePayApportionService.processApportion(paymentFeeLink.getPayments().get(0));
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            feePayApportionService.processApportion(paymentFeeLink.getPayments().get(0));
+        }
 
         LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
