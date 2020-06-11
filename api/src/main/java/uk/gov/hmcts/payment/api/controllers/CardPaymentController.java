@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
@@ -51,6 +52,7 @@ public class CardPaymentController {
     private final PciPalPaymentService pciPalPaymentService;
     private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
+    private final LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
@@ -58,13 +60,14 @@ public class CardPaymentController {
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
                                  FF4j ff4j,
-                                 FeePayApportionService feePayApportionService) {
+                                 FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
         this.pciPalPaymentService = pciPalPaymentService;
         this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
+        this.featureToggler = featureToggler;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -129,9 +132,12 @@ public class CardPaymentController {
             String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
         }
-        // trigger Apportion
-        feePayApportionService.processApportion(paymentLink.getPayments().get(0));
-
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            feePayApportionService.processApportion(paymentLink.getPayments().get(0));
+        }
         return new ResponseEntity<>(paymentDto, CREATED);
     }
 

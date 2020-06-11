@@ -97,7 +97,6 @@ dependencies {
     compile group: 'com.netflix.feign', name: 'feign-jackson', version: '8.18.0'
     compile group: 'uk.gov.hmcts.reform', name: 'health-spring-boot-starter', version: '0.0.5'
     compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version:'0.0.4'
-    compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.0.0'
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
         exclude(module: 'commons-logging')
