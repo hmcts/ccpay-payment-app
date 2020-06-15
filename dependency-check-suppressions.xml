@@ -65,10 +65,7 @@
         <cve>CVE-2020-1938</cve>
         <cve>CVE-2020-1935</cve>
     </suppress>
-    <suppress>
-        <notes><![CDATA[jackson:2.9.9.jar]]></notes>
-        <cve>CVE-2020-8840</cve>
-    </suppress>
+
     <suppress>
         <notes>tomcat-embed-websocket @9.0.21</notes>
         <cve>CVE-2020-1938</cve>
@@ -116,7 +113,7 @@
         <cve>CVE-2018-1115</cve>
         <cve>CVE-2019-10210</cve>
         <cve>CVE-2019-10211</cve>
-        <cve>CVE-2019-3795</cve>
+
         <cve>CVE-2016-6497</cve>
         <cve>CVE-2018-10237</cve>
         <cve>CVE-2020-5408</cve>
@@ -157,5 +154,13 @@
         </notes>
         <cve>CVE-2019-15052</cve>
     </suppress-->
+
+    <!--suppress>
+        <notes><![CDATA[jackson:2.9.9.jar]]></notes>
+        <cve>CVE-2020-8840</cve>
+    </suppress-->
+
+
+    <!--cve>CVE-2019-3795</cve-->
 
 </suppressions>
