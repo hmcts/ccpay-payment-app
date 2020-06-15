@@ -16,21 +16,7 @@
         <gav regex="true">^javax\.servlet:jstl:.*$</gav>
         <cve>CVE-2015-0254</cve>
     </suppress>
-    <!--suppress>
-        <notes><![CDATA[
-   file name: dom4j-1.6.1.jar
-   ]]></notes>
-        <gav regex="true">^dom4j:dom4j:.*$</gav>
-        <cve>CVE-2018-1000632</cve>
-    </suppress-->
 
-    <!--suppress>
-        <notes><![CDATA[
-   file name: AppleJavaExtensions-1.4.jar  we are onl latest version. fixes not available yet.
-   ]]></notes>
-        <gav regex="true">^com\.apple:AppleJavaExtensions:.*$</gav>
-        <cve>CVE-2010-0538</cve>
-    </suppress-->
     <suppress>
         <cve>CVE-2019-11358</cve>
         <cve>CVE-2015-9251</cve>
@@ -67,16 +53,13 @@
         </notes>
         <cve>CVE-2018-1258</cve>
     </suppress>
-    <suppress>
-        <notes>We are bound by the gradle version in the CNP environments. Currently all gradle versions upto 5.6 are
-            impacted. As this is a third party related issue,
-            we are awaiting a fix from Gradle dev team. As soon as the fix is available from the gradle, we will provide
-            the impact analysis and
-            the feasibility of upgrading to a higher version of gradle.
-        </notes>
-        <cve>CVE-2019-15052</cve>
+
+     <suppress>
+        <notes>commons-beanutils-1.9.2.jar -- need to look</notes>
         <cve>CVE-2019-10086</cve>
     </suppress>
+
+
     <suppress>
         <notes>tomcat-embed-websocket @9.0.21</notes>
         <cve>CVE-2020-1938</cve>
@@ -147,5 +130,32 @@
     <suppress>
         <cve>CVE-2020-9484</cve>
     </suppress>
+
+
+    <!--suppress>
+        <notes><![CDATA[
+   file name: dom4j-1.6.1.jar
+   ]]></notes>
+        <gav regex="true">^dom4j:dom4j:.*$</gav>
+        <cve>CVE-2018-1000632</cve>
+    </suppress-->
+
+    <!--suppress>
+        <notes><![CDATA[
+   file name: AppleJavaExtensions-1.4.jar  we are onl latest version. fixes not available yet.
+   ]]></notes>
+        <gav regex="true">^com\.apple:AppleJavaExtensions:.*$</gav>
+        <cve>CVE-2010-0538</cve>
+    </suppress-->
+
+    <!--suppress>
+        <notes>We are bound by the gradle version in the CNP environments. Currently all gradle versions upto 5.6 are
+            impacted. As this is a third party related issue,
+            we are awaiting a fix from Gradle dev team. As soon as the fix is available from the gradle, we will provide
+            the impact analysis and
+            the feasibility of upgrading to a higher version of gradle.
+        </notes>
+        <cve>CVE-2019-15052</cve>
+    </suppress-->
 
 </suppressions>
