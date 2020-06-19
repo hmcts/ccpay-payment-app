@@ -12,10 +12,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -131,8 +128,9 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     @Override
     @Transactional
     public void processApportion(Payment payment) {
-        if(paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).isPresent()){
-            List<PaymentFee> sortedFees = paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).get()
+        Optional<List<PaymentFee>> savedFees = paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber());
+        if(savedFees.isPresent()){
+            List<PaymentFee> sortedFees = savedFees.get()
                 .stream()
                 .sorted(Comparator.comparing(PaymentFee::getDateCreated))
                 .collect(Collectors.toList());
@@ -198,7 +196,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
         }
     }
 
-    @Transactional
     private FeePayApportion applyFeePayApportion (PaymentFee fee, Payment payment, BigDecimal calculatedFeeAmount, BigDecimal remainingPaymentAmount) {
         if(fee.getCurrApportionAmount().doubleValue() != fee.getNetAmount().doubleValue()) {
             if (remainingPaymentAmount.doubleValue() > calculatedFeeAmount.doubleValue()) {
