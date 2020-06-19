@@ -245,11 +245,17 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     @Override
     @Transactional
     public void processApportion(Payment payment) {
-        this.processFeePayApportion(FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-            .ccdCaseNo(payment.getCcdCaseNumber())
-            .fees(paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).get())
-            .payments(Lists.newArrayList(payment))
-            .build());
+        if(paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).isPresent()){
+            List<PaymentFee> sortedFees = paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).get()
+                .stream()
+                .sorted(Comparator.comparing(PaymentFee::getDateCreated))
+                .collect(Collectors.toList());
+            this.processFeePayApportion(FeePayApportionCCDCase.feePayApportionCCDCaseWith()
+                .ccdCaseNo(payment.getCcdCaseNumber())
+                .fees(sortedFees)
+                .payments(Lists.newArrayList(payment))
+                .build());
+        }
     }
 
     private List<Payment> getPaymentsToBeApportioned(List<Payment> payments) {
@@ -377,4 +383,10 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             return null;
         }
     }
+
+    public static void main(String[] args) {
+        System.out.println("Util Date ---> " + new Date());
+        System.out.println("Sql Date---->" + new java.sql.Timestamp(new Date().getTime()));
+    }
+
 }
