@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class FeePayApportionControllerTest {
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
 
-        List<Date> feeCreatedDates = new ArrayList<>();
+        List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
@@ -86,7 +87,7 @@ public class FeePayApportionControllerTest {
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
 
-        List<Date> feeCreatedDates = new ArrayList<>();
+        List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
@@ -129,7 +130,7 @@ public class FeePayApportionControllerTest {
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
 
-        List<Date> feeCreatedDates = new ArrayList<>();
+        List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
@@ -173,7 +174,7 @@ public class FeePayApportionControllerTest {
         feeAmounts.add(new BigDecimal(100));
         feeAmounts.add(new BigDecimal(40));
 
-        List<Date> feeCreatedDates = new ArrayList<>();
+        List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
@@ -219,7 +220,7 @@ public class FeePayApportionControllerTest {
         feeAmounts.add(new BigDecimal(25));
         feeAmounts.add(new BigDecimal(25));
 
-        List<Date> feeCreatedDates = new ArrayList<>();
+        List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
@@ -265,7 +266,7 @@ public class FeePayApportionControllerTest {
         feeAmounts.add(new BigDecimal(50));
         feeAmounts.add(new BigDecimal(10));
 
-        List<Date> feeCreatedDates = new ArrayList<>();
+        List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
@@ -313,7 +314,7 @@ public class FeePayApportionControllerTest {
         //feeAmounts.add(new BigDecimal(70));
         //feeAmounts.add(new BigDecimal(80));
 
-        List<Date> feeCreatedDates = new ArrayList<>();
+        List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
@@ -384,7 +385,7 @@ public class FeePayApportionControllerTest {
         return payments;
     }
 
-    private List<PaymentFee> getFees(String ccdCase, List<BigDecimal> amounts, List<BigDecimal> remissionAmounts, List<Date> feeCreatedDates, int count) throws CheckDigitException {
+    private List<PaymentFee> getFees(String ccdCase, List<BigDecimal> amounts, List<BigDecimal> remissionAmounts, List<Timestamp> feeCreatedDates, int count) throws CheckDigitException {
         List<PaymentFee> fees = new ArrayList<>();
 
         for(int i = 0; i < count; i++) {
@@ -404,9 +405,9 @@ public class FeePayApportionControllerTest {
         return fees;
     }
 
-    private Date parseDate(String date) {
+    private Timestamp parseDate(String date) {
         try {
-            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
+            return new Timestamp(new SimpleDateFormat("dd.MM.yyyy").parse(date).getTime());
         } catch (ParseException e) {
             return null;
         }

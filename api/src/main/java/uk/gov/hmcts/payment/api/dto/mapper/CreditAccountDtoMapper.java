@@ -195,6 +195,7 @@ public class CreditAccountDtoMapper {
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .ccdCaseNumber(feeDto.getCcdCaseNumber())
             .feeAmount(feeDto.getFeeAmount())
+            .netAmount(feeDto.getNetAmount())
             .build();
     }
 

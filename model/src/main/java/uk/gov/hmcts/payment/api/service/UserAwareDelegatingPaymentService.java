@@ -262,8 +262,20 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 .forEach(feePayApportion -> {
                     PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
                     fee.setIsFullyApportioned("N");
-                    fee.setApportionAmount(fee.getApportionAmount().subtract(payment.getAmount()));
-                    fee.setAllocatedAmount(fee.getAllocatedAmount().subtract(payment.getAmount()));
+                    fee.setApportionAmount(fee.getApportionAmount().subtract(feePayApportion.getApportionAmount()));
+                    // If Fee was surplus due to Payment received, the whole allocated amount to be reverted else only last Apportioned Amount to be reverted
+                    if(feePayApportion.getCallSurplusAmount() != null) {
+                        feePayApportion.setCallSurplusAmount(feePayApportion.getCallSurplusAmount());
+                    }else {
+                        feePayApportion.setCallSurplusAmount(new BigDecimal(0));
+                    }
+                    if(feePayApportion.getCallSurplusAmount().compareTo(new BigDecimal(0)) > 0) {
+                        fee.setAllocatedAmount(fee.getAllocatedAmount()
+                            .subtract(feePayApportion.getApportionAmount()
+                                .add(feePayApportion.getCallSurplusAmount())));
+                    }else {
+                        fee.setAllocatedAmount(fee.getAllocatedAmount().subtract(feePayApportion.getApportionAmount()));
+                    }
                     paymentFeeRepository.save(fee);
                     LOG.info("Rollback FeeId " + fee.getId() + " as PaymentId " + payment.getId() + " Status Changed to " + payment.getPaymentStatus().getName());
                 });
