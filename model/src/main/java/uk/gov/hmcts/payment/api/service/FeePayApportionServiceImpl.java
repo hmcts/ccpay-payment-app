@@ -12,10 +12,10 @@ import uk.gov.hmcts.payment.api.model.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,120 +48,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
         this.feePayStagedRepository = feePayStagedRepository;
         this.feePayApportionRepository = feePayApportionRepository;
         this.paymentFeeRepository = paymentFeeRepository;
-    }
-
-    @Override
-    @Transactional
-    public List<FeePayApportionCCDCase> findAllHistoricalCases() {
-
-        List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
-
-        List<FeePayStaged> allFeePayStagedData = (List<FeePayStaged>) feePayStagedRepository.findAll();
-
-        if(CollectionUtils.isEmpty(allFeePayStagedData)) {
-            LOG.info("No Staged Data Found for FeePay Apportion!!!");
-        } else {
-            allFeePayStagedData.stream()
-                .filter(distinctByKey(FeePayStaged::getCcdCaseNo))
-                .collect(Collectors.toList())
-                .forEach(feePayStaged -> {
-                    feePayApportionCCDCases.add(FeePayApportionCCDCase.feePayApportionCCDCaseWith().ccdCaseNo(feePayStaged.getCcdCaseNo()).build());
-                });
-        }
-
-        feePayApportionCCDCases.stream().forEach(feePayApportionCCDCase -> {
-
-            feePayApportionCCDCase.setFeePayGroups(new ArrayList<>());
-            feePayApportionCCDCase.setFees(new ArrayList<>());
-            feePayApportionCCDCase.setRemissions(new ArrayList<>());
-            feePayApportionCCDCase.setPayments(new ArrayList<>());
-
-            List<FeePayStaged> feePayStagedByCase = allFeePayStagedData.stream()
-                .filter(feePayStaged -> feePayStaged.getCcdCaseNo().equalsIgnoreCase(feePayApportionCCDCase.getCcdCaseNo()))
-                .collect(Collectors.toList());
-
-            feePayStagedByCase.stream()
-                .filter(distinctByKey(FeePayStaged::getGroupReference))
-                .collect(Collectors.toList())
-                .forEach(feePayStaged -> {
-                    feePayApportionCCDCase.getFeePayGroups().add(PaymentFeeLink.paymentFeeLinkWith().paymentReference(feePayStaged.getGroupReference()).build());
-                });
-
-            feePayStagedByCase.stream()
-                .filter(distinctByKey(FeePayStaged::getFeeId))
-                .collect(Collectors.toList())
-                .forEach(feePayStaged -> {
-                    feePayApportionCCDCase.getFees().add(PaymentFee.feeWith()
-                        .id(feePayStaged.getFeeId())
-                        .code(feePayStaged.getFeeCode())
-                        .feeAmount(feePayStaged.getFeeAmount())
-                        .volume(feePayStaged.getVolume())
-                        .calculatedAmount(feePayStaged.getCalculatedAmount())
-                        .netAmount(feePayStaged.getNetAmount() != null ? feePayStaged.getNetAmount() : feePayStaged.getCalculatedAmount())
-                        .currApportionAmount(new BigDecimal(0))
-                        .dateCreated(feePayStaged.getFeeCreatedDate())
-                        .build());
-                    /*if(feePayStaged.getHwfAmount() != null && feePayStaged.getHwfAmount().doubleValue() > 0) {
-                        feePayApportionCCDCase.getRemissions().add(Remission.remissionWith()
-                            .hwfAmount(feePayStaged.getHwfAmount())
-                            .build());
-                    }*/
-                });
-
-            //Sorting Fees for a Case in Date Created Ascending order
-            feePayApportionCCDCase.setFees(feePayApportionCCDCase.getFees().stream()
-                .sorted(Comparator.comparing(PaymentFee::getDateCreated))
-                .collect(Collectors.toList()));
-
-            feePayStagedByCase.stream()
-                .filter(distinctByKey(FeePayStaged::getPaymentId))
-                .collect(Collectors.toList())
-                .forEach(feePayStaged -> {
-                    feePayApportionCCDCase.getPayments().add(Payment.paymentWith()
-                        .id(feePayStaged.getPaymentId())
-                        .amount(feePayStaged.getPaymentAmount())
-                        .reference(feePayStaged.getPaymentRef())
-                        .paymentStatus(PaymentStatus.paymentStatusWith().name(feePayStaged.getPaymentStatus()).build())
-                        .dateCreated(feePayStaged.getPaymentCreatedDate())
-                        .paymentChannel(PaymentChannel.paymentChannelWith().name(feePayStaged.getPaymentChannel()).build())
-                        .paymentMethod(PaymentMethod.paymentMethodWith().name(feePayStaged.getPaymentMethod()).build())
-                        .paymentProvider(PaymentProvider.paymentProviderWith().name(feePayStaged.getPaymentProvider()).build())
-                        .serviceType(feePayStaged.getServiceType())
-                        .ccdCaseNumber(feePayStaged.getCcdCaseNo())
-                        .build());
-                });
-
-            //Sorting Payments for a Case in Date Created Ascending order
-            feePayApportionCCDCase.setPayments(feePayApportionCCDCase.getPayments().stream()
-                .sorted(Comparator.comparing(Payment::getDateCreated))
-                .collect(Collectors.toList()));
-        });
-        return feePayApportionCCDCases;
-    }
-
-    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-        Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return t -> seen.add(keyExtractor.apply(t));
-    }
-
-    @Override
-    public FeePayApportion findFeePayGroupsByCase(String ccdCase) {
-        return null;
-    }
-
-    @Override
-    public FeePayApportion findFeesByFeePayGroup(PaymentFeeLink feePayGroup) {
-        return null;
-    }
-
-    @Override
-    public FeePayApportion findRemissionsByFeePayGroup(PaymentFeeLink feePayGroup) {
-        return null;
-    }
-
-    @Override
-    public FeePayApportion findPaymentsByFeePayGroup(PaymentFeeLink feePayGroup) {
-        return null;
     }
 
     @Override
@@ -271,10 +157,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 fee.setIsFullyApportioned("N");
             }
         }
-        /*// Excluding already apportioned fees
-        fees = fees.stream()
-            .filter(fee -> ! fee.getIsFullyApportioned().equalsIgnoreCase("Y"))
-            .collect(Collectors.toList());*/
         return fees.stream()
             .filter(fee -> fee.getDateCreated().after(parseDate(APPORTION_GO_LIVE_DATE)) ||
                 fee.getDateCreated().equals(parseDate(APPORTION_GO_LIVE_DATE)))
@@ -359,10 +241,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             fee.setAllocatedAmount(feePayApportion.getAllocatedAmount());
             fee.setDateApportioned(feePayApportion.getDateCreated());
 
-            //if (feePayApportion.getApportionAmount().doubleValue() > 0) {
-                System.out.println("Fee[" + fee.getId() + "] Amount ---> " + fee.getNetAmount() + " Payment[" + payment.getId() + "] Amount ---> " + payment.getAmount() + " Apportion Amount ---> " + feePayApportion.getApportionAmount());
-                //feePayApportionRepository.save(feePayApportion);
-            //}
             return feePayApportion;
         }
         return null;
@@ -383,10 +261,4 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             return null;
         }
     }
-
-    public static void main(String[] args) {
-        System.out.println("Util Date ---> " + new Date());
-        System.out.println("Sql Date---->" + new java.sql.Timestamp(new Date().getTime()));
-    }
-
 }
