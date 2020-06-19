@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.componenttests.jobs;
+package uk.gov.hmcts.payment.api.componenttests;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
@@ -9,9 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.payment.api.controllers.MaintenanceJobsController;
 import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 
 import java.math.BigDecimal;
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertEquals;
 public class FeePayApportionControllerTest {
 
     @Autowired
-    private MaintenanceJobsController maintenanceJobsController;
+    private FeePayApportionService feePayApportionService;
 
     @Autowired
     private ReferenceUtil referenceUtil;
@@ -71,12 +71,9 @@ public class FeePayApportionControllerTest {
             .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
-        List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
-        feePayApportionCCDCases.add(feePayApportionCCDCase);
+        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        maintenanceJobsController.processFeePayApportion(feePayApportionCCDCases);
-
-        assertEquals(new BigDecimal(100), feePayApportionCCDCases.get(0).getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
     }
 
     @Test
@@ -114,12 +111,9 @@ public class FeePayApportionControllerTest {
             .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
-        List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
-        feePayApportionCCDCases.add(feePayApportionCCDCase);
+        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        maintenanceJobsController.processFeePayApportion(feePayApportionCCDCases);
-
-        assertEquals(new BigDecimal(130), feePayApportionCCDCases.get(0).getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(130), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
     }
 
     @Test
@@ -157,12 +151,9 @@ public class FeePayApportionControllerTest {
             .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
-        List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
-        feePayApportionCCDCases.add(feePayApportionCCDCase);
+        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        maintenanceJobsController.processFeePayApportion(feePayApportionCCDCases);
-
-        assertEquals(new BigDecimal(95), feePayApportionCCDCases.get(0).getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(95), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
     }
 
     @Test
@@ -177,8 +168,6 @@ public class FeePayApportionControllerTest {
         List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.09.2020"));
-        feeCreatedDates.add(parseDate("01.10.2020"));
 
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
@@ -193,7 +182,6 @@ public class FeePayApportionControllerTest {
         paymentCreatedDates.add(parseDate("01.08.2020"));
         paymentCreatedDates.add(parseDate("01.08.2020"));
         paymentCreatedDates.add(parseDate("01.09.2020"));
-        //paymentCreatedDates.add(parseDate("01.10.2020"));
 
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
@@ -202,12 +190,10 @@ public class FeePayApportionControllerTest {
             .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
             .build();
 
-        List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
-        feePayApportionCCDCases.add(feePayApportionCCDCase);
+        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        maintenanceJobsController.processFeePayApportion(feePayApportionCCDCases);
-
-        assertEquals(1, 1);
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(40), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
     }
 
     @Test
@@ -224,7 +210,6 @@ public class FeePayApportionControllerTest {
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
-        feeCreatedDates.add(parseDate("01.10.2020"));
 
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
@@ -238,8 +223,6 @@ public class FeePayApportionControllerTest {
         List<Date> paymentCreatedDates = new ArrayList<>();
         paymentCreatedDates.add(parseDate("01.08.2020"));
         paymentCreatedDates.add(parseDate("01.08.2020"));
-        //paymentCreatedDates.add(parseDate("01.09.2020"));
-        //paymentCreatedDates.add(parseDate("01.10.2020"));
 
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
@@ -248,12 +231,11 @@ public class FeePayApportionControllerTest {
             .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 2))
             .build();
 
-        List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
-        feePayApportionCCDCases.add(feePayApportionCCDCase);
+        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        maintenanceJobsController.processFeePayApportion(feePayApportionCCDCases);
-
-        assertEquals(1, 1);
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(25), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
+        assertEquals(new BigDecimal(55), feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
     }
 
     @Test
@@ -270,7 +252,6 @@ public class FeePayApportionControllerTest {
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.08.2020"));
         feeCreatedDates.add(parseDate("01.09.2020"));
-        feeCreatedDates.add(parseDate("01.10.2020"));
 
         List<BigDecimal> remissionAmounts = new ArrayList<>();
         remissionAmounts.add(new BigDecimal(0));
@@ -286,7 +267,6 @@ public class FeePayApportionControllerTest {
         paymentCreatedDates.add(parseDate("01.08.2020"));
         paymentCreatedDates.add(parseDate("01.08.2020"));
         paymentCreatedDates.add(parseDate("01.09.2020"));
-        //paymentCreatedDates.add(parseDate("01.10.2020"));
 
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
@@ -295,12 +275,11 @@ public class FeePayApportionControllerTest {
             .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates,3))
             .build();
 
-        List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
-        feePayApportionCCDCases.add(feePayApportionCCDCase);
+        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        maintenanceJobsController.processFeePayApportion(feePayApportionCCDCases);
-
-        assertEquals(1, 1);
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(40), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
+        assertEquals(null, feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
     }
 
     @Test
@@ -310,33 +289,20 @@ public class FeePayApportionControllerTest {
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(500));
-        //feeAmounts.add(new BigDecimal(60));
-        //feeAmounts.add(new BigDecimal(70));
-        //feeAmounts.add(new BigDecimal(80));
 
         List<Timestamp> feeCreatedDates = new ArrayList<>();
         feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.09.2020"));
-        feeCreatedDates.add(parseDate("01.10.2020"));
 
         List<BigDecimal> remissionAmounts = new ArrayList<>();
-        remissionAmounts.add(new BigDecimal(0));
-        remissionAmounts.add(new BigDecimal(0));
-        remissionAmounts.add(new BigDecimal(0));
         remissionAmounts.add(new BigDecimal(0));
 
         List<BigDecimal> paymentAmounts = new ArrayList<>();
         paymentAmounts.add(new BigDecimal(200));
         paymentAmounts.add(new BigDecimal(500));
-        //paymentAmounts.add(new BigDecimal(30));
-        //paymentAmounts.add(new BigDecimal(500));
 
         List<Date> paymentCreatedDates = new ArrayList<>();
         paymentCreatedDates.add(parseDate("01.08.2020"));
         paymentCreatedDates.add(parseDate("01.08.2020"));
-        //paymentCreatedDates.add(parseDate("01.09.2020"));
-        //paymentCreatedDates.add(parseDate("01.10.2020"));
 
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo(ccdCase)
@@ -345,12 +311,9 @@ public class FeePayApportionControllerTest {
             .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 2))
             .build();
 
-        List<FeePayApportionCCDCase> feePayApportionCCDCases = new ArrayList<>();
-        feePayApportionCCDCases.add(feePayApportionCCDCase);
+        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        maintenanceJobsController.processFeePayApportion(feePayApportionCCDCases);
-
-        assertEquals(1, 1);
+        assertEquals(new BigDecimal(700), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
     }
 
     private List<PaymentFeeLink> getPaymentFeeLinks(int count) throws CheckDigitException {
