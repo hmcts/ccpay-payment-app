@@ -3,6 +3,8 @@ package uk.gov.hmcts.payment.api.model;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentEntityListener;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -10,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
+@EntityListeners(PaymentEntityListener.class)
 @Data
 @Builder(builderMethodName = "paymentWith")
 @AllArgsConstructor
@@ -19,7 +22,7 @@ import java.util.List;
     @Index(name = "ix_pay_ccd_case_number", columnList = "ccd_case_number"),
     @Index(name = "ix_pay_payment_status_provider", columnList = "payment_status, payment_provider")
 })
-public class Payment {
+public class Payment extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
