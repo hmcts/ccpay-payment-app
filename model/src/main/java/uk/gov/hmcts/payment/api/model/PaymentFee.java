@@ -5,19 +5,24 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentFeeEntityListener;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
 @Entity
+@EntityListeners(PaymentFeeEntityListener.class)
 @Data
 @Builder(builderMethodName = "feeWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "fee")
-public class PaymentFee {
+public class PaymentFee extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -63,17 +68,16 @@ public class PaymentFee {
     @Column(name = "is_fully_apportioned")
     private String isFullyApportioned;
 
-    @CreationTimestamp
     @Column(name = "date_apportioned")
     private Date dateApportioned;
 
     @CreationTimestamp
     @Column(name = "date_created")
-    private Date dateCreated;
+    private Timestamp dateCreated;
 
-    @CreationTimestamp
+    @UpdateTimestamp
     @Column(name = "date_updated")
-    private Date dateUpdated;
+    private Timestamp dateUpdated;
 
     @Transient
     private BigDecimal currApportionAmount;

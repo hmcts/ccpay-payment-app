@@ -4,18 +4,21 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.FeePayApportionEntityListener;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
+@EntityListeners(FeePayApportionEntityListener.class)
 @Data
 @Builder(builderMethodName = "feePayApportionWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "fee_pay_apportion")
-public class FeePayApportion {
+public class FeePayApportion extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
