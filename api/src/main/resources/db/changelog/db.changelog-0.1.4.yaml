@@ -95,7 +95,7 @@ databaseChangeLog:
                   type: numeric(19, 2)
               - column:
                   name: fee_created_date
-                  type: TIMESTAMP WITHOUT TIME ZONE
+                  type: TIMESTAMP(3) WITHOUT TIME ZONE
               - column:
                   name: payment_id
                   type: INT
@@ -135,5 +135,61 @@ databaseChangeLog:
               ALTER TABLE fee ADD COLUMN allocated_amount numeric(19, 2);
               ALTER TABLE fee ADD COLUMN is_fully_apportioned varchar(10);
               ALTER TABLE fee ADD COLUMN date_apportioned TIMESTAMP WITHOUT TIME ZONE;
-              ALTER TABLE fee ADD COLUMN date_created TIMESTAMP WITHOUT TIME ZONE;
-              ALTER TABLE fee ADD COLUMN date_updated TIMESTAMP WITHOUT TIME ZONE;
+              ALTER TABLE fee ADD COLUMN date_created TIMESTAMP(3) WITHOUT TIME ZONE;
+              ALTER TABLE fee ADD COLUMN date_updated TIMESTAMP(3) WITHOUT TIME ZONE;
+
+  - changeSet:
+      id: 1554989041418-9
+      author: ayan
+      changes:
+        - createTable:
+            tableName: audit_events_type
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO audit_events_type (name, description)
+                VALUES
+                  ('payment_created', 'Valid payment received and recorded successfully'),
+                  ('payment_updated', 'Payment updated successfully'),
+                  ('fee_created', 'Valid fee received and recorded successfully'),
+                  ('remission_applied', 'Valid remission received and applied to fee successfully'),
+                  ('payment_apportioned', 'Valid payment received and fee apportioned successfully');
+  - changeSet:
+      id: 1554989041418-10
+      author: ayan
+      changes:
+        - createTable:
+            tableName: payment_audit_history
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: audit_type
+                  type: varchar(255)
+              - column:
+                  name: audit_payload
+                  type: varchar(255)
+              - column:
+                  name: audit_description
+                  type: varchar(255)
+              - column:
+                  name: date_created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: date_updated
+                  type: TIMESTAMP WITHOUT TIME ZONE

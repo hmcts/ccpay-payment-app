@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Date;
 
 @Entity
@@ -51,7 +52,7 @@ public class FeePayStaged {
 
     @CreationTimestamp
     @Column(name = "fee_created_date", nullable = false)
-    private Date feeCreatedDate;
+    private Timestamp feeCreatedDate;
 
     @Column(name = "payment_id")
     private Integer paymentId;
