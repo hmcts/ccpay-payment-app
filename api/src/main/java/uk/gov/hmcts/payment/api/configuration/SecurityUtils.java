@@ -81,9 +81,9 @@ public class SecurityUtils {
         headers.add("user-id", getUserId());
         headers.add("user-roles", getUserRolesHeader());
 
-/*        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+       if (SecurityContextHolder.getContext().getAuthentication() != null) {
             headers.add(HttpHeaders.AUTHORIZATION, getUserBearerToken());
-        }*/
+        }
         return headers;
     }
 

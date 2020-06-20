@@ -49,9 +49,6 @@ public class SecurityUtilsTest {
 
     @Before
     public void setUp() {
-        //MockitoAnnotations.initMocks(this);
-
-        //final GrantedAuthority[] authorities = new GrantedAuthority[] { newAuthority("role1"), newAuthority("role2")};
 
         when(serviceTokenGenerator.generate()).thenReturn(SERVICE_JWT);
 

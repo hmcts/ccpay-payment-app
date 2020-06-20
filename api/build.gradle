@@ -77,7 +77,7 @@ dependencies {
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
   compile group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.7.0'
 
-    // Start of OpenId Connect. Few versions has been explicitly added as 5.2.2 due to lower spring boot version in payment-app.
+    // Start of OpenId Connect.
 
     compile group: 'io.jsonwebtoken', name: 'jjwt', version:'0.9.1'
     compile group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.1'
