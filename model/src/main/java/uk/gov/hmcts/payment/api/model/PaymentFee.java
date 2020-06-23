@@ -1,9 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
@@ -18,6 +15,7 @@ import java.util.List;
 @Entity
 @EntityListeners(PaymentFeeEntityListener.class)
 @Data
+@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "feeWith")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -42,6 +40,7 @@ public class PaymentFee extends Auditable<String> {
     @Column(name = "fee_amount")
     private BigDecimal feeAmount;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentLink;
@@ -55,6 +54,7 @@ public class PaymentFee extends Auditable<String> {
     @Column(name = "net_amount")
     private BigDecimal netAmount;
 
+    @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "fee_id", referencedColumnName = "id")
     private List<Remission> remissions;

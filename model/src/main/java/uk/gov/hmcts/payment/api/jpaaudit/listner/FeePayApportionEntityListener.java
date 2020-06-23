@@ -5,7 +5,7 @@ import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistory;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PrePersist;
+import javax.persistence.PostPersist;
 import javax.transaction.Transactional;
 
 import static javax.transaction.Transactional.TxType.MANDATORY;
@@ -14,15 +14,17 @@ import static uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType.PAYMENT_AP
 
 public class FeePayApportionEntityListener {
 
-    @PrePersist
-    public void prePersist(FeePayApportion target) { perform(target, INSERTED, PAYMENT_APPORTIONED); }
+    @PostPersist
+    public void postPersist(FeePayApportion target) { perform(target, INSERTED, PAYMENT_APPORTIONED); }
 
     @Transactional(MANDATORY)
     private void perform(FeePayApportion target, Action action, AuditEventsType auditEventsType) {
         EntityManager entityManager = BeanUtil.getBean(EntityManager.class);
         entityManager.persist(PaymentAuditHistory.paymentAuditHistoryWith()
+            .ccdCaseNo(target.getCcdCaseNumber())
             .auditType(auditEventsType.getName())
-            .auditPayload(target.getFeeId() + " | " + target.getPaymentId() + " | " + target.getApportionAmount() + " | " + target.getAllocatedAmount())
+            //.auditPayload(target.getFeeId() + " | " + target.getPaymentId() + " | " + target.getApportionAmount() + " | " + target.getAllocatedAmount())
+            .auditPayload(target.toString())
             .auditDescription(auditEventsType.getDescription())
             .build());
     }

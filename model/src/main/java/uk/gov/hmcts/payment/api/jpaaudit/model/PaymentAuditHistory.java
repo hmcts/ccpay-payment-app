@@ -25,6 +25,9 @@ public class PaymentAuditHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "ccd_case_no")
+    private String ccdCaseNo;
+
     @Column(name = "audit_type")
     private String auditType;
 
