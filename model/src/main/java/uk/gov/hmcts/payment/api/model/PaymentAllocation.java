@@ -3,18 +3,22 @@ package uk.gov.hmcts.payment.api.model;
 
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentAllocationEntityListener;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
+@EntityListeners(PaymentAllocationEntityListener.class)
 @Data
+@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "paymentAllocationWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "payment_allocation")
-public class PaymentAllocation {
+public class PaymentAllocation extends Auditable<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -5,8 +5,8 @@ import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistory;
 import uk.gov.hmcts.payment.api.model.Payment;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
+import javax.persistence.PostPersist;
+import javax.persistence.PostUpdate;
 import javax.transaction.Transactional;
 
 import static javax.transaction.Transactional.TxType.MANDATORY;
@@ -17,13 +17,13 @@ import static uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType.PAYMENT_UP
 
 public class PaymentEntityListener {
 
-    @PrePersist
-    public void prePersist(Payment target) {
+    @PostPersist
+    public void postPersist(Payment target) {
         perform(target, INSERTED, PAYMENT_CREATED);
     }
 
-    @PreUpdate
-    public void preUpdate(Payment target) {
+    @PostUpdate
+    public void postUpdate(Payment target) {
         perform(target, UPDATED, PAYMENT_UPDATED);
     }
 
@@ -31,8 +31,10 @@ public class PaymentEntityListener {
     private void perform(Payment target, Action action, AuditEventsType auditEventsType) {
         EntityManager entityManager = BeanUtil.getBean(EntityManager.class);
         entityManager.persist(PaymentAuditHistory.paymentAuditHistoryWith()
+            .ccdCaseNo(target.getCcdCaseNumber())
             .auditType(auditEventsType.getName())
-            .auditPayload(target.getReference() + " | " + target.getAmount() + " | " + target.getPaymentStatus() + " | " + target.getDateCreated())
+            //.auditPayload(target.getReference() + " | " + target.getAmount() + " | " + target.getPaymentStatus() + " | " + target.getDateCreated())
+            .auditPayload(target.toString())
             .auditDescription(auditEventsType.getDescription())
             .build());
     }
