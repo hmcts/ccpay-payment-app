@@ -14,6 +14,7 @@ import java.util.List;
 @Entity
 @EntityListeners(PaymentEntityListener.class)
 @Data
+@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "paymentWith")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -125,6 +126,7 @@ public class Payment extends Auditable<String> {
     @ToString.Exclude
     private List<StatusHistory> statusHistories;
 
+    @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
     private List<PaymentAllocation> paymentAllocation;

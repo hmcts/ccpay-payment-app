@@ -2,40 +2,37 @@ package uk.gov.hmcts.payment.api.jpaaudit.listner;
 
 import uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType;
 import uk.gov.hmcts.payment.api.jpaaudit.model.PaymentAuditHistory;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PostPersist;
-import javax.persistence.PostRemove;
 import javax.persistence.PostUpdate;
 import javax.transaction.Transactional;
 
 import static javax.transaction.Transactional.TxType.MANDATORY;
-import static uk.gov.hmcts.payment.api.jpaaudit.listner.Action.*;
+import static uk.gov.hmcts.payment.api.jpaaudit.listner.Action.INSERTED;
+import static uk.gov.hmcts.payment.api.jpaaudit.listner.Action.UPDATED;
 import static uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType.*;
 
-public class PaymentFeeEntityListener {
+public class PaymentAllocationEntityListener {
 
     @PostPersist
-    public void postPersist(PaymentFee target) { perform(target, INSERTED, FEE_CREATED); }
-
-    @PostUpdate
-    public void postUpdate(PaymentFee target) {
-        perform(target, UPDATED, FEE_UPDATED);
+    public void postPersist(PaymentAllocation target) {
+        perform(target, INSERTED, PAYMENT_ALLOCATION_CREATED);
     }
 
-    @PostRemove
-    public void postRemove(PaymentFee target) {
-        perform(target, DELETED, FEE_REMOVED);
+    @PostUpdate
+    public void postUpdate(PaymentAllocation target) {
+        perform(target, UPDATED, PAYMENT_ALLOCATION_UPDATED);
     }
 
     @Transactional(MANDATORY)
-    private void perform(PaymentFee target, Action action, AuditEventsType auditEventsType) {
+    private void perform(PaymentAllocation target, Action action, AuditEventsType auditEventsType) {
         EntityManager entityManager = BeanUtil.getBean(EntityManager.class);
         entityManager.persist(PaymentAuditHistory.paymentAuditHistoryWith()
-            .ccdCaseNo(target.getCcdCaseNumber())
+            .ccdCaseNo(target.getPayment().getCcdCaseNumber())
             .auditType(auditEventsType.getName())
-            //.auditPayload(target.getCode() + " | " + target.getCalculatedAmount() + " | " + target.getAllocatedAmount() + " | " + target.getDateCreated())
+            //.auditPayload(target.getReference() + " | " + target.getAmount() + " | " + target.getPaymentStatus() + " | " + target.getDateCreated())
             .auditPayload(target.toString())
             .auditDescription(auditEventsType.getDescription())
             .build());
