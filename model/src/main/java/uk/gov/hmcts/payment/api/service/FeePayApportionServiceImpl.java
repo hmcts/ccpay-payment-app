@@ -126,7 +126,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public void processApportion(Payment payment) {
         Optional<List<PaymentFee>> savedFees = paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber());
         if(savedFees.isPresent()){
