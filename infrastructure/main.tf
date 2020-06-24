@@ -3,16 +3,10 @@ provider "azurerm" {
 }
 
 locals {
-  aseName = "core-compute-${var.env}"
 
-  local_env = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
-  local_ase = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "core-compute-aat" : "core-compute-saat" : local.aseName}"
+  vaultName = "${var.core_product}-${var.env}"
 
-  previewVaultName = "${var.core_product}-aat"
-  nonPreviewVaultName = "${var.core_product}-${var.env}"
-  vaultName = "${(var.env == "preview" || var.env == "spreview") ? local.previewVaultName : local.nonPreviewVaultName}"
-
-  s2sUrl = "http://rpe-service-auth-provider-${local.local_env}.service.${local.local_ase}.internal"
+  s2sUrl = "http://rpe-service-auth-provider-${var.env}.service.core-compute-${var.env}.internal"
 
   #region API gateway
   thumbprints_in_quotes = "${formatlist("&quot;%s&quot;", var.telephony_api_gateway_certificate_thumbprints)}"
@@ -24,7 +18,7 @@ locals {
 
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
-  resource_group_name = "${var.core_product}-${local.local_env}"
+  resource_group_name = "${var.core_product}-${var.env}"
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_cmc" {
@@ -38,6 +32,7 @@ resource "azurerm_key_vault_secret" "gov-pay-keys-cmc-claim-store" {
   value = "${data.azurerm_key_vault_secret.gov_pay_keys_cmc.value}"
   key_vault_id = "${data.azurerm_key_vault.payment_key_vault.id}"
 }
+
 
 module "payment-database" {
   source = "git@github.com:hmcts/cnp-module-postgres?ref=master"
