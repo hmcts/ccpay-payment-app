@@ -56,6 +56,9 @@ public class PaymentDtoTest {
     private String documentControlNumber;
     private Date bankedDate;
     private String payerName;
+    private BigDecimal apportionAmount;
+    private BigDecimal allocatedAmount;
+    private String isFullyApportioned;
 
     public PaymentDtoTest() {
         feeWithVolumeCode = "X0001";
@@ -71,13 +74,15 @@ public class PaymentDtoTest {
         jurisdiction2 = "probate service";
         feeDescription = "Fee Description";
         caseReference = "12345";
-
+        apportionAmount = new BigDecimal(1);
+        allocatedAmount = new BigDecimal(1);
+        isFullyApportioned = "Y";
 
         feeWithVolumeDto = new FeeDto(1, feeWithVolumeCode, feeVersion, volume, calculatedAmountForFeeWithVolume,
-            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference);
+            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,isFullyApportioned,null,null,null);
 
         feeNoVolumeDto = new FeeDto(1, feeNoVolumeCode, feeVersion, volume, calculatedAmountForFeeNoVolume,
-            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference);
+            feeAmount, memoLine, naturalAccountCode, null, null, null, jurisdiction1, jurisdiction2, feeDescription,caseReference,apportionAmount,allocatedAmount,isFullyApportioned,null,null,null);
     }
 
     @Before
