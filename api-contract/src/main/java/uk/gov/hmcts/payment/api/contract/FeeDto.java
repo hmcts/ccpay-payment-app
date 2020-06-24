@@ -13,6 +13,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
+import java.util.Date;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -59,5 +60,17 @@ public class FeeDto {
     private String description;
 
     private String caseReference;
+
+    private BigDecimal apportionAmount;
+
+    private BigDecimal allocatedAmount;
+
+    private String isFullyApportioned;
+
+    private Date dateApportioned;
+
+    private Date dateCreated;
+
+    private Date dateUpdated;
 
 }

@@ -161,6 +161,7 @@ public class PaymentGroupControllerTest {
         assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
     }
 
+    @Test
     public void retrievePaymentsAndFeesByPaymentGroupReferenceTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
@@ -186,6 +187,36 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
         assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee());
+    }
+
+    @Test
+    public void retrievePaymentsAndFeesByPaymentGroupReferenceWithApportionmentDetails() throws Exception {
+        CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
+
+        MvcResult result1 = restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+
+        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        // Retrieve payment by payment group reference
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
+        FeeDto feeDto = paymentGroupDto.getFees().get(0);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(feeDto).isNotNull();
+        assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
+        assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFeeWithApportionDetails());
     }
 
     @Test
@@ -1059,6 +1090,17 @@ public class PaymentGroupControllerTest {
             .calculatedAmount(new BigDecimal("250.00"))
             .version("1")
             .code("FEE0123")
+            .build();
+    }
+
+    private FeeDto getFeeWithApportionDetails() {
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("250.00"))
+            .version("1")
+            .code("FEE0123")
+            .isFullyApportioned("Y")
+            .apportionAmount(new BigDecimal("250.00"))
+            .allocatedAmount(new BigDecimal("250.00"))
             .build();
     }
 

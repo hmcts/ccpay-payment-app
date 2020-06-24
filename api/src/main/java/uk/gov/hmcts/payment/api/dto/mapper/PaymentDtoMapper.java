@@ -162,7 +162,7 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toReconciliationResponseDtos(PaymentFeeLink paymentFeeLink) {
+    public PaymentDto toGetPaymentResponseDtos(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
@@ -190,7 +190,7 @@ public class PaymentDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .externalReference(payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline())
-            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .fees(toGetPaymentFeeDtos(paymentFeeLink.getFees()))
             .build();
         return enrichWithFeeData(paymentDto);
     }
@@ -290,6 +290,10 @@ public class PaymentDtoMapper {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
+    private List<FeeDto> toGetPaymentFeeDtos(List<PaymentFee> fees) {
+        return fees.stream().map(this::toGetPaymentsFeeDto).collect(Collectors.toList());
+    }
+
 
     private List<FeeDto> toFeeDtosWithCaseRererence(List<PaymentFee> fees, String caseReference) {
 
@@ -331,6 +335,28 @@ public class PaymentDtoMapper {
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .reference(fee.getReference())
+            .build();
+    }
+
+    private FeeDto toGetPaymentsFeeDto(PaymentFee fee) {
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
+
+        return FeeDto.feeDtoWith()
+            .id(fee.getId())
+            .calculatedAmount(calculatedAmount)
+            .code(fee.getCode())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
+            .version(fee.getVersion())
+            .volume(fee.getVolume())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .reference(fee.getReference())
+            .allocatedAmount(fee.getAllocatedAmount())
+            .dateCreated(fee.getDateCreated())
+            .dateUpdated(fee.getDateUpdated())
+            .dateApportioned(fee.getDateApportioned())
+            .apportionAmount(fee.getApportionAmount())
+            .isFullyApportioned(fee.getIsFullyApportioned())
             .build();
     }
 
