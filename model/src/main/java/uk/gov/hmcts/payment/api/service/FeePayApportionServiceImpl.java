@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
 import uk.gov.hmcts.payment.api.model.*;
@@ -48,7 +47,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     @Override
-    @Transactional
+    //@Transactional
     public FeePayApportionCCDCase processFeePayApportion(FeePayApportionCCDCase feePayApportionCCDCase) {
 
         BigDecimal callShortfallAmount = new BigDecimal(0);
