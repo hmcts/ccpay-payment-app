@@ -174,10 +174,9 @@ public class PaymentController {
     @GetMapping(value = "/payments/{reference}")
     public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
 
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         return Optional.ofNullable(paymentFeeLink)
-            .map(paymentDtoMapper::toReconciliationResponseDtos)
+            .map(paymentDtoMapper::toGetPaymentResponseDtos)
             .orElseThrow(PaymentNotFoundException::new);
     }
 

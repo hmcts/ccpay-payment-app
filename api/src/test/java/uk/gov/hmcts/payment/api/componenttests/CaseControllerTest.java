@@ -290,6 +290,46 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    @Transactional
+    public void getAllPaymentGroupsHavingFeesAndPaymentsWithCcdCaseNumberShouldReturnRequiredFieldsWithApportionmentDetails() throws Exception {
+
+        populateCardPaymentToDbWithApportionmentDetails("1");
+
+        FeeDto feeRequest = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeRequest))
+            .build();
+
+        restActions
+            .post("/payment-groups", paymentGroupDto)
+            .andReturn();
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupDto paymentGroupDto1 = paymentGroups.getPaymentGroups().get(0);
+        FeeDto feeDto = paymentGroupDto1.getFees().get(0);
+
+        assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
+        assertThat(feeDto.getIsFullyApportioned()).isEqualTo("Y");
+        assertThat(feeDto.getApportionAmount()).isEqualTo(new BigDecimal("99.99"));
+        assertThat(feeDto.getAllocatedAmount()).isEqualTo(new BigDecimal("99.99"));
+
+    }
 
     @Test
     @Transactional

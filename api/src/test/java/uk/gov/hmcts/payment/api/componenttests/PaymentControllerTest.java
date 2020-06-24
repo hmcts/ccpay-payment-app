@@ -7,6 +7,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
@@ -1156,6 +1158,31 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(paymentDto.getMethod()).isEqualTo(payment.getPaymentMethod().getName());
         assertThat(paymentDto.getAmount()).isEqualTo(payment.getAmount());
         assertThat(paymentDto.getCcdCaseNumber()).isEqualTo(payment.getCcdCaseNumber());
+
+    }
+
+    @Test
+    @Transactional
+    public void retrievePaymentByReferenceWithApportionmentDetails() throws Exception {
+        Payment payment = populateCardPaymentToDbWithApportionmentDetails("1");
+
+        MvcResult result = restActions
+            .get("/payments/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentDto.class);
+        List<FeeDto> feeDtoList = paymentDto.getFees();
+        FeeDto feeDto = feeDtoList.get(0);
+        assertThat(paymentDto.getFees().size()).isEqualTo(1);
+        assertNotNull(paymentDto);
+        assertThat(paymentDto.getPaymentReference()).isEqualTo(payment.getReference());
+        assertThat(paymentDto.getMethod()).isEqualTo(payment.getPaymentMethod().getName());
+        assertThat(paymentDto.getAmount()).isEqualTo(payment.getAmount());
+        assertThat(paymentDto.getCcdCaseNumber()).isEqualTo(payment.getCcdCaseNumber());
+        assertThat(feeDto.getAllocatedAmount()).isEqualTo(new BigDecimal("99.99"));
+        assertThat(feeDto.getApportionAmount()).isEqualTo(new BigDecimal("99.99"));
+        assertThat(feeDto.getIsFullyApportioned()).isEqualTo("Y");
 
     }
 
