@@ -57,6 +57,5 @@ variable telephony_api_gateway_certificate_thumbprints {
 }
 
 variable sku_name {
-  type = "string"
   default = "GP_Gen5_2"
 }
