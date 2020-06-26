@@ -12,10 +12,13 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
@@ -40,6 +43,8 @@ import java.util.stream.Collectors;
 @SwaggerDefinition(tags = {@Tag(name = "PaymentGroupController", description = "Payment group REST API")})
 public class PaymentGroupController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
+
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
 
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
@@ -60,6 +65,8 @@ public class PaymentGroupController {
 
     private final FeePayApportionService feePayApportionService;
 
+    private final LaunchDarklyFeatureToggler featureToggler;
+
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
@@ -69,7 +76,8 @@ public class PaymentGroupController {
                                   ReferenceDataService<SiteDTO> referenceDataService,
                                   PaymentProviderRepository paymentProviderRespository,
                                   PaymentFeeRepository paymentFeeRepository,
-                                  FeePayApportionService feePayApportionService){
+                                  FeePayApportionService feePayApportionService,
+                                  LaunchDarklyFeatureToggler featureToggler){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -80,6 +88,7 @@ public class PaymentGroupController {
         this.paymentProviderRepository = paymentProviderRespository;
         this.paymentFeeRepository = paymentFeeRepository;
         this.feePayApportionService = feePayApportionService;
+        this.featureToggler = featureToggler;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -196,7 +205,12 @@ public class PaymentGroupController {
             //paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
         }
 
-        feePayApportionService.processApportion(payment);
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            feePayApportionService.processApportion(payment);
+        }
 
         return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
     }
@@ -244,6 +258,13 @@ public class PaymentGroupController {
         PaymentFeeLink paymentFeeLink = paymentGroupService.addNewPaymenttoExistingPaymentGroup(payment, paymentGroupReference);
 
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
+
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            feePayApportionService.processApportion(newPayment);
+        }
 
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
