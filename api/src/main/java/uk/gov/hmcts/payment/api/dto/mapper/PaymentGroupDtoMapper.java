@@ -30,6 +30,8 @@ public class PaymentGroupDtoMapper {
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .dateCreated(paymentFeeLink.getDateCreated())
+            .dateUpdated(paymentFeeLink.getDateUpdated())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)

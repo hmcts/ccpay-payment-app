@@ -11,6 +11,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -24,6 +25,10 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class PaymentGroupDto {
 
     private String paymentGroupReference;
+
+    private Date dateCreated;
+
+    private Date dateUpdated;
 
     private List<PaymentDto> payments;
 
