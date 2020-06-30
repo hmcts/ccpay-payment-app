@@ -1,2 +1,2 @@
-sku_name = "GP_Gen5_2"
-sku_capacity = "2"
+sku_name = "GP_Gen5_4"
+sku_capacity = "4"
