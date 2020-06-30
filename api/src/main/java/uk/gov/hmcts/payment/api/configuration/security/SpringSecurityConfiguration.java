@@ -32,6 +32,8 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity(debug = true)
 public class SpringSecurityConfiguration {
 
+    private static final String PAYMENTS_ROLE = "payments";
+
     @Configuration
     @Order(1)
     public static class ExternalApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
@@ -129,11 +131,11 @@ public class SpringSecurityConfiguration {
                 .formLogin().disable()
                 .logout().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority("payments")
-                .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority("payments")
-                .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority("payments", "citizen")
-                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority("payments", "pui-finance-manager", "caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
-                .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority("payments", "citizen")
+                .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority(PAYMENTS_ROLE)
+                .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority(PAYMENTS_ROLE)
+                .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, "citizen")
+                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE, "pui-finance-manager", "caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
+                .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, "citizen")
                 .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
                 .antMatchers("/error").permitAll()
