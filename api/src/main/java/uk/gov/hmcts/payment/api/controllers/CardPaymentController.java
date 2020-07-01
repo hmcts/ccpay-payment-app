@@ -79,6 +79,8 @@ public class CardPaymentController {
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
 
+        LOG.info("ITHC Security Fixes are deployed!!!");
+
         if(! new URI(returnURL).getHost().matches(".*([\\-\\.]hmcts.net|[\\-\\.]gov.uk)")) {
             return new ResponseEntity("returnUrl: Must be an external domain of hmcts.net or gov.uk", BAD_REQUEST);
         }
