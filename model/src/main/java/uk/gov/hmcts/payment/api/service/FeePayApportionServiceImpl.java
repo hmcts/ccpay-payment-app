@@ -50,9 +50,9 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     //@Transactional
     public FeePayApportionCCDCase processFeePayApportion(FeePayApportionCCDCase feePayApportionCCDCase) {
 
-        BigDecimal callShortfallAmount = new BigDecimal(0.0);
-        BigDecimal callSurplusAmount = new BigDecimal(0.0);
-        BigDecimal remainingPaymentAmount = new BigDecimal(0);
+        BigDecimal callShortfallAmount = BigDecimal.valueOf(0.0);
+        BigDecimal callSurplusAmount = BigDecimal.valueOf(0.0);
+        BigDecimal remainingPaymentAmount = BigDecimal.valueOf(0.0);
 
         if( !getPaymentsToBeApportioned(feePayApportionCCDCase.getPayments()).isEmpty() &&
                 !getFeesToBeApportioned(feePayApportionCCDCase.getFees()).isEmpty()) {
@@ -64,7 +64,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 for(PaymentFee fee : getFeesToBeApportioned(feePayApportionCCDCase.getFees())) {
                     if(fee.getIsFullyApportioned().equalsIgnoreCase("N")){
 
-                        fee.setCurrApportionAmount(fee.getAllocatedAmount() != null ? fee.getAllocatedAmount() : new BigDecimal(0.0));
+                        fee.setCurrApportionAmount(fee.getAllocatedAmount() != null ? fee.getAllocatedAmount() : BigDecimal.valueOf(0.0));
                         fee.setNetAmount(fee.getNetAmount() != null ? fee.getNetAmount() : getFeeCalculatedNetAmount(fee, feePayApportionCCDCase.getRemissions()));
                         BigDecimal calculatedFeeAmount = getFeeCalculatedPendingAmount(fee);
                         FeePayApportion feePayApportion = applyFeePayApportion(fee, payment, calculatedFeeAmount, remainingPaymentAmount);
