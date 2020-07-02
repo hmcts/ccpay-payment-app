@@ -50,8 +50,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     //@Transactional
     public FeePayApportionCCDCase processFeePayApportion(FeePayApportionCCDCase feePayApportionCCDCase) {
 
-        BigDecimal callShortfallAmount = new BigDecimal(0);
-        BigDecimal callSurplusAmount = new BigDecimal(0);
+        BigDecimal callShortfallAmount = new BigDecimal(0.0);
+        BigDecimal callSurplusAmount = new BigDecimal(0.0);
         BigDecimal remainingPaymentAmount = new BigDecimal(0);
 
         if( !getPaymentsToBeApportioned(feePayApportionCCDCase.getPayments()).isEmpty() &&
@@ -64,10 +64,13 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 for(PaymentFee fee : getFeesToBeApportioned(feePayApportionCCDCase.getFees())) {
                     if(fee.getIsFullyApportioned().equalsIgnoreCase("N")){
 
-                        fee.setCurrApportionAmount(fee.getAllocatedAmount() != null ? fee.getAllocatedAmount() : new BigDecimal(0));
+                        fee.setCurrApportionAmount(fee.getAllocatedAmount() != null ? fee.getAllocatedAmount() : new BigDecimal(0.0));
                         fee.setNetAmount(fee.getNetAmount() != null ? fee.getNetAmount() : getFeeCalculatedNetAmount(fee, feePayApportionCCDCase.getRemissions()));
                         BigDecimal calculatedFeeAmount = getFeeCalculatedPendingAmount(fee);
-                        feePayApportions.add(applyFeePayApportion(fee, payment, calculatedFeeAmount, remainingPaymentAmount));
+                        FeePayApportion feePayApportion = applyFeePayApportion(fee, payment, calculatedFeeAmount, remainingPaymentAmount);
+                        if(feePayApportion != null){
+                            feePayApportions.add(feePayApportion);
+                        }
                         remainingPaymentAmount = remainingPaymentAmount.subtract(calculatedFeeAmount);
                         //payment.setAmount(remainingPaymentAmount);
                         if(remainingPaymentAmount.doubleValue() > 0) {
@@ -90,21 +93,23 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 }
             }
             // End Payment Loop
-            if(isShortfall) {
-                findShortfallFee(feePayApportions, callShortfallAmount);
-            }
-            if(isSurplus) {
-                findSurplusFee(feePayApportions, callSurplusAmount, feePayApportionCCDCase.getFees());
-            }
-            feePayApportions.stream().forEach(feePayApportion -> {
-                feePayApportionRepository.save(feePayApportion);
-            });
-            feePayApportionCCDCase.getFees().stream()
-                .filter(fee -> fee.getIsFullyApportioned() != null)
-                .forEach(fee -> {
-                    //paymentFeeRepository.save(paymentFeeRepository.findById(fee.getId()).get());
-                    paymentFeeRepository.save(fee);
+            if(feePayApportions != null && !feePayApportions.isEmpty()) {
+                if(isShortfall) {
+                    findShortfallFee(feePayApportions, callShortfallAmount);
+                }
+                if(isSurplus) {
+                    findSurplusFee(feePayApportions, callSurplusAmount, feePayApportionCCDCase.getFees());
+                }
+                feePayApportions.stream().forEach(feePayApportion -> {
+                    feePayApportionRepository.save(feePayApportion);
                 });
+                feePayApportionCCDCase.getFees().stream()
+                    .filter(fee -> fee.getIsFullyApportioned() != null)
+                    .forEach(fee -> {
+                        //paymentFeeRepository.save(paymentFeeRepository.findById(fee.getId()).get());
+                        paymentFeeRepository.save(fee);
+                    });
+            }
         }
         return feePayApportionCCDCase;
     }
@@ -196,7 +201,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     private FeePayApportion applyFeePayApportion (PaymentFee fee, Payment payment, BigDecimal calculatedFeeAmount, BigDecimal remainingPaymentAmount) {
-        if(fee.getCurrApportionAmount().doubleValue() != fee.getNetAmount().doubleValue()) {
+        if(fee.getCurrApportionAmount().doubleValue() != fee.getNetAmount().doubleValue() &&
+                            fee.getNetAmount().doubleValue() > 0) {
             if (remainingPaymentAmount.doubleValue() > calculatedFeeAmount.doubleValue()) {
                 fee.setCurrApportionAmount(fee.getCurrApportionAmount().add(calculatedFeeAmount));
             } else {
