@@ -247,20 +247,32 @@ public class CreditAccountPaymentController {
 
     private boolean isAccountStatusCheckRequired(Service service) {
         final String serviceName = service.toString();
+        boolean svcNameChk;
         LOG.info("Service.FINREM.getName(): {}" + " service.toString(): {}" + " Service.FINREM.getName().equalsIgnoreCase(service.toString()): {}" +
-                " ff4j.check(\"check-liberata-account-for-all-services\"): {}" + " ff4j.check(\"credit-account-payment-liberata-check\"): {}",
-            Service.FINREM.getName(), serviceName, Service.FINREM.getName().equalsIgnoreCase(serviceName),
-            ff4j.check("check-liberata-account-for-all-services"), ff4j.check("credit-account-payment-liberata-check")
+                " ff4j.check(\"check-liberata-account-for-all-services\"): {}" +
+                " ff4j.check(\"credit-account-payment-liberata-check\"): {}" +
+                " ff4j.check(\"iac-pba-service-onboard-check\"): {}" +
+                Service.FINREM.getName(), serviceName, Service.FINREM.getName().equalsIgnoreCase(serviceName),
+                ff4j.check("check-liberata-account-for-all-services"),
+                ff4j.check("credit-account-payment-liberata-check"),
+                ff4j.check("iac-pba-service-onboard-check")
         );
 
         if (ff4j.check("check-liberata-account-for-all-services")) {
             return true;
         }
 
-        final boolean svcNameChk = Service.FINREM.getName().equalsIgnoreCase(serviceName) || Service.FPL.toString().equalsIgnoreCase(serviceName) || Service.IAC.toString().equalsIgnoreCase(serviceName);
-        return ff4j.check("credit-account-payment-liberata-check") && svcNameChk;
+        if(ff4j.check("iac-pba-service-onboard-check")){
+            LOG.info("IAC PBA Service on boarding is Active");
+            svcNameChk = Service.FINREM.getName().equalsIgnoreCase(serviceName) || Service.FPL.toString().equalsIgnoreCase(serviceName) || Service.IAC.toString().equalsIgnoreCase(serviceName);
+        }
+        else{
+            LOG.info("IAC PBA Service on boarding is Not Active");
+            svcNameChk = Service.FINREM.getName().equalsIgnoreCase(serviceName) || Service.FPL.toString().equalsIgnoreCase(serviceName);
+        }
 
-    }
+        return ff4j.check("credit-account-payment-liberata-check")  && svcNameChk;
+   }
 
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
         return availableBalance.compareTo(paymentAmount) >= 0;

@@ -36,6 +36,9 @@ public class FF4jConfiguration {
     @Value("${feature.bulk.scan.payments.check}")
     private boolean isBulkScanPaymentsEnabled = true;
 
+    @Value("${feature.iac.pba.service.onboarding.check}")
+    private boolean isIacPBAServiceEnabled = false;
+
     @Value("${feature.bulk.scan.payments.check.pay.bubble}")
     private boolean isBulkScanPayBubbleEnabled = true;
 
@@ -82,6 +85,12 @@ public class FF4jConfiguration {
             isBulkScanPaymentsEnabled,
             "enable bulkScan payments");
 
+
+        Feature iacPBAServiceEnablingFeature = new Feature(
+            "iac-pba-service-onboard-check",
+            isIacPBAServiceEnabled,
+            "enable iac pba service");
+
         Feature bulkScanPayBubbleFeature = new Feature(
             "bulk-scan-enabling-fe",
             isBulkScanPayBubbleEnabled,
@@ -102,7 +111,8 @@ public class FF4jConfiguration {
             .createFeature(caseRefValidationFeature)
             .createFeature(bulkScanEnablingFeature)
             .createFeature(bulkScanPayBubbleFeature)
-            .createFeature(paymentCancelFeature);
+            .createFeature(paymentCancelFeature)
+            .createFeature(iacPBAServiceEnablingFeature);
     }
 
     @Bean
