@@ -147,4 +147,8 @@
         <cve>CVE-2020-9484</cve>
     </suppress>
 
+    <suppress>
+        <cve>CVE-2020-11996</cve>
+    </suppress>
+
 </suppressions>
