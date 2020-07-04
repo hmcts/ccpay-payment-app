@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
@@ -29,7 +30,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private final PaymentFeeRepository paymentFeeRepository;
 
-    private final String APPORTION_GO_LIVE_DATE = "01.06.2020";
+    @Value("${apportion.live.date}")
+    private String apportionLiveDate;
 
     private final String APPORTION_TYPE_AUTO = "AUTO";
 
@@ -153,8 +155,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private List<Payment> getPaymentsToBeApportioned(List<Payment> payments) {
         return payments.stream()
-            .filter(payment -> payment.getDateCreated().after(parseDate(APPORTION_GO_LIVE_DATE)) ||
-                                    payment.getDateCreated().equals(parseDate(APPORTION_GO_LIVE_DATE)))
+            .filter(payment -> payment.getDateCreated().after(parseDate(apportionLiveDate)) ||
+                                    payment.getDateCreated().equals(parseDate(apportionLiveDate)))
             .collect(Collectors.toList());
     }
 
@@ -165,8 +167,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             }
         }
         return fees.stream()
-            .filter(fee -> fee.getDateCreated().after(parseDate(APPORTION_GO_LIVE_DATE)) ||
-                fee.getDateCreated().equals(parseDate(APPORTION_GO_LIVE_DATE)))
+            .filter(fee -> fee.getDateCreated().after(parseDate(apportionLiveDate)) ||
+                fee.getDateCreated().equals(parseDate(apportionLiveDate)))
             .collect(Collectors.toList());
     }
 
