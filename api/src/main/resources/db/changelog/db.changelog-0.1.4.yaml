@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 1554989041418-6
+      id: 1554989041418-13
       author: ayan
       changes:
         - createTable:
@@ -39,6 +39,9 @@ databaseChangeLog:
                   type: varchar(255)
               - column:
                   name: is_fully_apportioned
+                  type: varchar(10)
+              - column:
+                  name: apportion_type
                   type: varchar(10)
               - column:
                   name: call_short_fall_amount
