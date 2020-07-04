@@ -41,6 +41,9 @@ public class FeePayApportion extends Auditable<String> {
     @Column(name = "allocated_amount")
     private BigDecimal allocatedAmount;
 
+    @Column(name = "apportion_type")
+    private String apportionType;
+
     @Column(name = "is_fully_apportioned")
     private String isFullyApportioned;
 

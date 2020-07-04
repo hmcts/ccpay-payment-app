@@ -31,6 +31,11 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private final String APPORTION_GO_LIVE_DATE = "01.06.2020";
 
+    private final String APPORTION_TYPE_AUTO = "AUTO";
+
+    private final String APPORTION_TYPE_MANUAL = "MANUAL";
+
+
     private Boolean isSurplus = false;
     private Boolean isShortfall = false;
 
@@ -227,6 +232,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 .ccdCaseNumber(payment.getCcdCaseNumber())
                 .createdBy("SYSTEM")
                 .dateCreated(payment.getDateCreated())
+                .apportionType(APPORTION_TYPE_AUTO)
                 .build();
 
             if (remainingPaymentAmount.doubleValue() > calculatedFeeAmount.doubleValue()) {
