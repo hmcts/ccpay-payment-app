@@ -109,9 +109,9 @@ public class CreditAccountPaymentController {
             .collect(Collectors.toList());
 
         fees.stream().forEach(fee -> {
-            fee.setCcdCaseNumber((fee.getCcdCaseNumber() != null || !fee.getCcdCaseNumber().isEmpty())
-                ? fee.getCcdCaseNumber()
-                : creditAccountPaymentRequest.getCcdCaseNumber());
+            fee.setCcdCaseNumber((fee.getCcdCaseNumber() == null || fee.getCcdCaseNumber().isEmpty())
+                ? creditAccountPaymentRequest.getCcdCaseNumber()
+                : fee.getCcdCaseNumber());
         });
 
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
