@@ -5,6 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.Reference;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
@@ -46,6 +47,11 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
 
     @Override
     public List<Payment> getPayments(Date atStartOfDay, Date atEndOfDay) {
+        return null;
+    }
+
+    @Override
+    public List<FeePayApportion> findByPaymentId(Integer paymentId) {
         return null;
     }
 
