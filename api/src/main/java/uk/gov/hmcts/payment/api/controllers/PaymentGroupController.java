@@ -67,6 +67,8 @@ public class PaymentGroupController {
 
     private final LaunchDarklyFeatureToggler featureToggler;
 
+    private final FeePayApportionRepository feePayApportionRepository;
+
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
@@ -77,7 +79,8 @@ public class PaymentGroupController {
                                   PaymentProviderRepository paymentProviderRespository,
                                   PaymentFeeRepository paymentFeeRepository,
                                   FeePayApportionService feePayApportionService,
-                                  LaunchDarklyFeatureToggler featureToggler){
+                                  LaunchDarklyFeatureToggler featureToggler,
+                                  FeePayApportionRepository feePayApportionRepository){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -89,6 +92,7 @@ public class PaymentGroupController {
         this.paymentFeeRepository = paymentFeeRepository;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
+        this.feePayApportionRepository = feePayApportionRepository;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -264,6 +268,12 @@ public class PaymentGroupController {
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if(apportionFeature) {
             feePayApportionService.processApportion(newPayment);
+
+            // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
+            if(newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
+                LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
+                updateFeeAmountDue(payment);
+            }
         }
 
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
@@ -320,6 +330,18 @@ public class PaymentGroupController {
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
         return paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference)).findAny()
             .orElseThrow(() -> new PaymentNotFoundException("Payment with reference " + paymentReference + " does not exists."));
+    }
+
+    private void updateFeeAmountDue(Payment payment) {
+        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
+            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+                .forEach(feePayApportion -> {
+                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
+                    fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()));
+                    paymentFeeRepository.save(fee);
+                    LOG.info("Updated FeeId " + fee.getId() + " as PaymentId " + payment.getId() + " Status Changed to " + payment.getPaymentStatus().getName());
+                });
+        }
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
