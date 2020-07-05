@@ -19,10 +19,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Service
@@ -138,8 +135,9 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     private void updateFeeAmountDue(Payment payment) {
-        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
-            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+        Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
+        if(apportions.isPresent()) {
+            apportions.get().stream()
                 .forEach(feePayApportion -> {
                     PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
                     fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()));
@@ -150,8 +148,9 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     private void rollbackApportionedFees(Payment payment) {
-        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
-            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+        Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
+        if(apportions.isPresent()) {
+            apportions.get().stream()
                 .forEach(feePayApportion -> {
                     PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
                     fee.setIsFullyApportioned("N");
