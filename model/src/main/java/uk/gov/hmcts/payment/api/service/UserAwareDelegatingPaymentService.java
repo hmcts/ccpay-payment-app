@@ -262,8 +262,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private void updateFeeAmountDue(Payment payment) {
-        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
-            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+        Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
+        if(apportions.isPresent()) {
+            apportions.get().stream()
                 .forEach(feePayApportion -> {
                     PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
                     fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()));
@@ -274,8 +275,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     private void rollbackApportionedFees(Payment payment) {
-        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
-            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+        Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
+        if(apportions.isPresent()) {
+            apportions.get().stream()
                 .forEach(feePayApportion -> {
                     PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
                     fee.setIsFullyApportioned("N");

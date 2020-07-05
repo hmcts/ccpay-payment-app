@@ -14,14 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
@@ -45,6 +38,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -168,8 +162,9 @@ public class CreditAccountPaymentController {
     }
 
     private void updateFeeAmountDue(Payment payment) {
-        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
-            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+        Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
+        if(apportions.isPresent()) {
+            apportions.get().stream()
                 .forEach(feePayApportion -> {
                     PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
                     fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()));
