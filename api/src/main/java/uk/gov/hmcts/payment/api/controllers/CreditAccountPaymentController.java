@@ -107,6 +107,13 @@ public class CreditAccountPaymentController {
         List<PaymentFee> fees = creditAccountPaymentRequest.getFees().stream()
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());
+
+        fees.stream().forEach(fee -> {
+            fee.setCcdCaseNumber((fee.getCcdCaseNumber() != null || !fee.getCcdCaseNumber().isEmpty())
+                ? fee.getCcdCaseNumber()
+                : creditAccountPaymentRequest.getCcdCaseNumber());
+        });
+
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
