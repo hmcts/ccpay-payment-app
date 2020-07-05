@@ -234,7 +234,8 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     .message(govPayPayment.getState().getMessage())
                     .build()));
 
-                // Rollback Fees already Apportioned for Payments in failed/cancelled/error status based on launch darkly feature flag
+                //1. Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS
+                //2. Rollback Fees already Apportioned for Payments in failed/cancelled/error status based on launch darkly feature flag
                 boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
                 LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
                 if(apportionFeature) {
@@ -242,6 +243,10 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                         LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - Started");
                         rollbackApportionedFees(payment);
                         LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - End");
+                    }
+                    if(govPayPayment.getState().getStatus().toLowerCase().equalsIgnoreCase("success")) {
+                        LOG.info("Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS!!!");
+                        updateFeeAmountDue(payment);
                     }
                 }
 
@@ -256,6 +261,18 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         return paymentFeeLink;
     }
 
+    private void updateFeeAmountDue(Payment payment) {
+        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
+            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+                .forEach(feePayApportion -> {
+                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
+                    fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()));
+                    paymentFeeRepository.save(fee);
+                    LOG.info("Updated FeeId " + fee.getId() + " as PaymentId " + payment.getId() + " Status Changed to " + payment.getPaymentStatus().getName());
+                });
+        }
+    }
+
     private void rollbackApportionedFees(Payment payment) {
         if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
             feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
@@ -267,9 +284,9 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     if(feePayApportion.getCallSurplusAmount() != null) {
                         feePayApportion.setCallSurplusAmount(feePayApportion.getCallSurplusAmount());
                     }else {
-                        feePayApportion.setCallSurplusAmount(new BigDecimal(0));
+                        feePayApportion.setCallSurplusAmount(BigDecimal.valueOf(0));
                     }
-                    if(feePayApportion.getCallSurplusAmount().compareTo(new BigDecimal(0)) > 0) {
+                    if(feePayApportion.getCallSurplusAmount().compareTo(BigDecimal.valueOf(0)) > 0) {
                         fee.setAllocatedAmount(fee.getAllocatedAmount()
                             .subtract(feePayApportion.getApportionAmount()
                                 .add(feePayApportion.getCallSurplusAmount())));
