@@ -130,6 +130,12 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         return delegatingPaymentService.search(searchCriteria);
     }
 
+    @Override
+    public List<FeePayApportion> findByPaymentId(Integer paymentId)
+    {
+        return feePayApportionRepository.findByPaymentId(paymentId).orElse(Collections.EMPTY_LIST);
+    }
+
     private Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
     }
@@ -173,4 +179,5 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
                 });
         }
     }
+
 }

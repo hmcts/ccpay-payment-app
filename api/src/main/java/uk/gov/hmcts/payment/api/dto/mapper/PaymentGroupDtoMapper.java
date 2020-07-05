@@ -126,6 +126,7 @@ public class PaymentGroupDtoMapper {
             .dateApportioned(fee.getDateApportioned())
             .apportionAmount(fee.getApportionAmount())
             .isFullyApportioned(fee.getIsFullyApportioned())
+            .amountDue(fee.getAmountDue())
             .build();
     }
 
