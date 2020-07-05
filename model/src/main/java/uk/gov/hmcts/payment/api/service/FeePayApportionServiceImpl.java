@@ -247,6 +247,9 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
             fee.setApportionAmount(feePayApportion.getCurrApportionAmount());
             fee.setAllocatedAmount(feePayApportion.getAllocatedAmount());
+            if(fee.getAmountDue() == null || fee.getAmountDue().compareTo(BigDecimal.valueOf(0)) == 0) {
+                fee.setAmountDue(fee.getNetAmount());
+            }
             fee.setDateApportioned(feePayApportion.getDateCreated());
 
             return feePayApportion;

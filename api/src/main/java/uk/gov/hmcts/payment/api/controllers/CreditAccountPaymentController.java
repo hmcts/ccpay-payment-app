@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
+import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -64,6 +65,8 @@ public class CreditAccountPaymentController {
     private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
+    private final FeePayApportionRepository feePayApportionRepository;
+    private final PaymentFeeRepository paymentFeeRepository;
 
 
     @Autowired
@@ -71,7 +74,9 @@ public class CreditAccountPaymentController {
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
                                           DuplicatePaymentValidator paymentValidator, FF4j ff4j,
-                                          FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler) {
+                                          FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
+                                          FeePayApportionRepository feePayApportionRepository,
+                                          PaymentFeeRepository paymentFeeRepository) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -79,6 +84,8 @@ public class CreditAccountPaymentController {
         this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
+        this.feePayApportionRepository = feePayApportionRepository;
+        this.paymentFeeRepository = paymentFeeRepository;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -139,11 +146,30 @@ public class CreditAccountPaymentController {
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
         if(apportionFeature) {
-            feePayApportionService.processApportion(paymentFeeLink.getPayments().get(0));
+            Payment pbaPayment = paymentFeeLink.getPayments().get(0);
+            feePayApportionService.processApportion(pbaPayment);
+
+            // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
+            if(Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
+                LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as {}" + pbaPayment.getPaymentStatus().getName());
+                updateFeeAmountDue(payment);
+            }
         }
 
         LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
+    }
+
+    private void updateFeeAmountDue(Payment payment) {
+        if(feePayApportionRepository.findByPaymentId(payment.getId()).isPresent()) {
+            feePayApportionRepository.findByPaymentId(payment.getId()).get().stream()
+                .forEach(feePayApportion -> {
+                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
+                    fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()));
+                    paymentFeeRepository.save(fee);
+                    LOG.info("Updated FeeId " + fee.getId() + " as PaymentId " + payment.getId() + " Status Changed to " + payment.getPaymentStatus().getName());
+                });
+        }
     }
 
     private Payment createPaymentInstanceFromRequest(@RequestBody @Valid CreditAccountPaymentRequest creditAccountPaymentRequest) {

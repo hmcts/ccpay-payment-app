@@ -65,6 +65,9 @@ public class PaymentFee extends Auditable<String> {
     @Column(name = "allocated_amount")
     private BigDecimal allocatedAmount;
 
+    @Column(name = "amount_due")
+    private BigDecimal amountDue;
+
     @Column(name = "is_fully_apportioned")
     private String isFullyApportioned;
 
