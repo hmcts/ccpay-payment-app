@@ -73,4 +73,14 @@ public class FeeDto {
 
     private Date dateUpdated;
 
+    private BigDecimal amountDue;
+
+    // The below 3 fields added as part of apportionment changes for Liberata
+
+    private String paymentGroupReference;
+
+    private BigDecimal apportionedPayment;
+
+    private Date dateReceiptProcessed;
+
 }
