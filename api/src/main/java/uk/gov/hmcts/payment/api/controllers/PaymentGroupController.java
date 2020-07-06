@@ -206,8 +206,8 @@ public class PaymentGroupController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            //String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
-            //paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
+            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
+            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
         }
 
         // trigger Apportion based on the launch darkly feature flag
