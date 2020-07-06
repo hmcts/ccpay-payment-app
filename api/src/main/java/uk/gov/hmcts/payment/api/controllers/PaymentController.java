@@ -19,7 +19,10 @@ import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
@@ -28,7 +31,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -192,7 +194,7 @@ public class PaymentController {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
             //Draft version by Aravind. Please ignore.
-            final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(p.getId());
+            /*final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(p.getId());
             for (final FeePayApportion feePayApportion: feePayApportionList) {
                 for(PaymentFee paymentFee : fees) {
                     if (feePayApportion.getFeeId().equals(paymentFee.getId())) {
@@ -201,7 +203,7 @@ public class PaymentController {
                         paymentFee.setDateApportioned(feePayApportion.getDateCreated());
                     }
                 }
-                }
+                }*/
             //End of Draft version
             final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(p, paymentReference, fees,ff4j);
             paymentDtos.add(paymentDto);
