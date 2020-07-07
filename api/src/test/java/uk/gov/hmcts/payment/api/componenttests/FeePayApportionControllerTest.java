@@ -35,6 +35,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -242,7 +243,7 @@ public class FeePayApportionControllerTest{
 
     @Test
     @Transactional
-    public void throwErrorWhenPaymentIsNotPresent() throws Exception {
+    public void retrunEmptyListWhenPaymentIsNotPresent() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         List<FeePayApportion> feePayApportionList = new ArrayList<>();
         FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
@@ -314,9 +315,9 @@ public class FeePayApportionControllerTest{
         return payment;
     }
 
-    private Timestamp parseDate(String date) {
+    private Date parseDate(String date) {
         try {
-            return new Timestamp(new SimpleDateFormat("dd.MM.yyyy").parse(date).getTime());
+            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
         } catch (ParseException e) {
             return null;
         }
