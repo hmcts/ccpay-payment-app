@@ -47,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
+import static org.mockito.ArgumentMatchers.anyString;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
@@ -231,6 +232,33 @@ public class FeePayApportionControllerTest{
         when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
         MvcResult result = restActions
             .get("/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
+    }
+
+    @Test
+    @Transactional
+    public void throwErrorWhenPaymentIsNotPresent() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
+            .build();
+        feePayApportionList.add(feePayApportion);
+        when(paymentService.retrieve(anyString())).thenReturn(payment.getPaymentLink());
+        when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
+        MvcResult result = restActions
+            .get("/fee-pay-apportion/" + "123")
             .andExpect(status().isOk())
             .andReturn();
 
