@@ -146,7 +146,13 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
             apportions.get().stream()
                 .forEach(feePayApportion -> {
                     PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-                    fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()));
+                    if(feePayApportion.getCallSurplusAmount() != null) {
+                        feePayApportion.setCallSurplusAmount(feePayApportion.getCallSurplusAmount());
+                    }else {
+                        feePayApportion.setCallSurplusAmount(BigDecimal.valueOf(0));
+                    }
+                    fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()
+                        .add(feePayApportion.getCallSurplusAmount())));
                     paymentFeeRepository.save(fee);
                     LOG.info("Updated FeeId " + fee.getId() + " as PaymentId " + payment.getId() + " Status Changed to " + payment.getPaymentStatus().getName());
                 });
