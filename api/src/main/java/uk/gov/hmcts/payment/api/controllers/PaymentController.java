@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +20,7 @@ import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
@@ -31,6 +29,9 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,9 @@ public class PaymentController {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @Value("${apportion.live.date}")
+    private String apportionLiveDate;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -189,23 +193,30 @@ public class PaymentController {
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
-        for (final Payment p: payments) {
+        LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
+        for (final Payment payment: payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
             //Draft version by Aravind. Please ignore.
-            /*final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(p.getId());
-            for (final FeePayApportion feePayApportion: feePayApportionList) {
-                for(PaymentFee paymentFee : fees) {
-                    if (feePayApportion.getFeeId().equals(paymentFee.getId())) {
-                        BigDecimal allocatedAmount = feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount() != null ? feePayApportion.getCallSurplusAmount() : new BigDecimal(0));
-                        paymentFee.setAllocatedAmount(allocatedAmount);
-                        paymentFee.setDateApportioned(feePayApportion.getDateCreated());
-                    }
-                }
-                }*/
+            if(payment.getDateCreated().after(parseDate(apportionLiveDate)) && apportionFeature)
+            {
+                final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
+                feePayApportionList.stream()
+                    .forEach(feePayApportion -> {
+                        fees.stream()
+                            .forEach(paymentFee -> {
+                                if (feePayApportion.getFeeId().equals(paymentFee.getId())) {
+                                    BigDecimal allocatedAmount = feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount() != null ? feePayApportion.getCallSurplusAmount() : BigDecimal.valueOf(0));
+                                    paymentFee.setAllocatedAmount(allocatedAmount);
+                                    paymentFee.setDateApportioned(feePayApportion.getDateCreated());
+                                }
+                            });
+                    });
+            }
             //End of Draft version
-            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(p, paymentReference, fees,ff4j);
+            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j);
             paymentDtos.add(paymentDto);
         }
     }
@@ -237,5 +248,13 @@ public class PaymentController {
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
         return ex.getMessage();
+    }
+
+    private Date parseDate(String date) {
+        try {
+            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
+        } catch (ParseException e) {
+            return null;
+        }
     }
 }
