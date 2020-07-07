@@ -54,13 +54,13 @@ public class FeePayApportionController {
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
         List<PaymentFee> feeList = paymentFeeLink.getFees();
-        if(payment.get().getDateCreated().after(parseDate(apportionLiveDate)) ||
-                payment.get().getDateCreated().equals(parseDate(apportionLiveDate)))
+        if ((payment.isPresent() && (payment.get().getDateCreated().after(parseDate(apportionLiveDate)) ||
+            payment.get().getDateCreated().equals(parseDate(apportionLiveDate)))))
         {
-            List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
-            feePayApportionList.stream()
-                .forEach(feePayApportion -> {
-                    feeList.stream()
+                List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
+                feePayApportionList.stream()
+                    .forEach(feePayApportion -> {
+                        feeList.stream()
                             .forEach(paymentFee -> {
                                 if (feePayApportion.getFeeId().equals(paymentFee.getId())) {
                                     PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
@@ -68,8 +68,9 @@ public class FeePayApportionController {
                                 }
                             });
                     });
-            paymentFeeLink.setFees(feeList);
-        }
+                paymentFeeLink.setFees(feeList);
+
+    }
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
     }
 
