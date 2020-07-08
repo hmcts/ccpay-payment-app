@@ -312,10 +312,16 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
         List<Payment> payments = savedPaymentGroup.getPayments();
+
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getReference(), paymentReference);
         assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
 
+        List<PaymentFee> fees = savedPaymentGroup.getFees();
+
+        assertEquals(BigDecimal.valueOf(101.99), fees.get(0).getAllocatedAmount());
+        assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAmountDue()));
+        assertEquals("Y", fees.get(0).getIsFullyApportioned());
     }
 
     @Test
@@ -370,6 +376,12 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getReference(), paymentReference);
         assertThat("failed".equalsIgnoreCase(payments.get(0).getStatus()));
+
+        List<PaymentFee> fees = savedPaymentGroup.getFees();
+
+        assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAllocatedAmount()));
+        assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
+        assertEquals("N", fees.get(0).getIsFullyApportioned());
 
     }
 
