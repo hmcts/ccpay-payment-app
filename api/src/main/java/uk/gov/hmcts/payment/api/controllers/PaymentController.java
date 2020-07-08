@@ -200,7 +200,7 @@ public class PaymentController {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
             //Apportion logic added for pulling allocation amount
-            if ((apportionFeature && (payment.getDateCreated().after(parseDate(apportionLiveDate)) ||
+/*            if ((apportionFeature && (payment.getDateCreated().after(parseDate(apportionLiveDate)) ||
                 payment.getDateCreated().equals(parseDate(apportionLiveDate)))))
             {
                 final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
@@ -215,7 +215,7 @@ public class PaymentController {
                                 }
                             });
                     });
-            }
+            }*/
             //End of Apportion logic
             final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j);
             paymentDtos.add(paymentDto);
