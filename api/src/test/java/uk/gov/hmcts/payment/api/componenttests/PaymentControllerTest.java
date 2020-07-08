@@ -36,6 +36,9 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -1199,6 +1202,166 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
+    public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledONForCardPayments() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        PaymentFeeLink paymentFeeLink= payment.getPaymentLink();
+        List<PaymentFeeLink> paymentFeeLinkList = new ArrayList<>();
+        paymentFeeLinkList.add(paymentFeeLink);
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
+            .build();
+        feePayApportionList.add(feePayApportion);
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledOFFForCardPayments() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        PaymentFeeLink paymentFeeLink= payment.getPaymentLink();
+        List<PaymentFeeLink> paymentFeeLinkList = new ArrayList<>();
+        paymentFeeLinkList.add(paymentFeeLink);
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
+            .build();
+        feePayApportionList.add(feePayApportion);
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsBeforeApportionDate() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
+            .build();
+        feePayApportionList.add(feePayApportion);
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        payment.setDateCreated(parseDate("01.05.2020"));
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsEqualToApportionDate() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
+            .build();
+        feePayApportionList.add(feePayApportion);
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        payment.setDateCreated(parseDate("01.06.2020"));
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
     public void shouldCheckExelaPaymentsWhenBulkScanIsToggledOff() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         populatePaymentToDbForExelaPayments(paymentReference);
@@ -1311,5 +1474,13 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isNotFound())
             .andReturn();
 
+    }
+
+    private Timestamp parseDate(String date) {
+        try {
+            return new Timestamp(new SimpleDateFormat("dd.MM.yyyy").parse(date).getTime());
+        } catch (ParseException e) {
+            return null;
+        }
     }
 }

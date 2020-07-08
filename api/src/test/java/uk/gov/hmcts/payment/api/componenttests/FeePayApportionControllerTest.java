@@ -1,376 +1,323 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
+import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.controllers.FeePayApportionController;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
+import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
+import static org.mockito.ArgumentMatchers.anyString;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"local", "componenttest"})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
+@SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class FeePayApportionControllerTest {
+public class FeePayApportionControllerTest{
 
     @Autowired
-    private FeePayApportionService feePayApportionService;
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
 
     @Autowired
-    private ReferenceUtil referenceUtil;
+    private WebApplicationContext webApplicationContext;
 
-    @Test
-    public void SingleFeeMultiplePay_ExactPayment() throws CheckDigitException {
+    @Autowired
+    protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
-        String ccdCase = "1111222233334444";
+    @Autowired
+    protected UserResolverBackdoor userRequestAuthorizer;
 
-        List<BigDecimal> feeAmounts = new ArrayList<>();
-        feeAmounts.add(new BigDecimal(100));
+    @InjectMocks
+    private FeePayApportionController feePayApportionController;
 
-        List<Timestamp> feeCreatedDates = new ArrayList<>();
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.09.2020"));
-        feeCreatedDates.add(parseDate("01.10.2020"));
+    @Autowired
+    protected PaymentDbBackdoor db;
 
-        List<BigDecimal> remissionAmounts = new ArrayList<>();
-        remissionAmounts.add(new BigDecimal(0));
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
-        List<BigDecimal> paymentAmounts = new ArrayList<>();
-        paymentAmounts.add(new BigDecimal(50));
-        paymentAmounts.add(new BigDecimal(20));
-        paymentAmounts.add(new BigDecimal(30));
+    RestActions restActions;
 
-        List<Date> paymentCreatedDates = new ArrayList<>();
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.09.2020"));
-        //paymentCreatedDates.add(parseDate("01.10.2020"));
+    @Autowired
+    private ObjectMapper objectMapper;
 
-        FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-            .ccdCaseNo(ccdCase)
-            .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 1))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
-            .build();
+    @MockBean
+    private PaymentService<PaymentFeeLink, String> paymentService;
 
-        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
-        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+
+    protected CustomResultMatcher body() {
+        return new CustomResultMatcher(objectMapper);
+    }
+
+    @Before
+    public void setup() {
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.gooooogle.com");
     }
 
     @Test
-    public void SingleFeeMultiplePay_SurplusPayment() throws CheckDigitException {
-
-        String ccdCase = "1111222233335555";
-
-        List<BigDecimal> feeAmounts = new ArrayList<>();
-        feeAmounts.add(new BigDecimal(100));
-
-        List<Timestamp> feeCreatedDates = new ArrayList<>();
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.09.2020"));
-        feeCreatedDates.add(parseDate("01.10.2020"));
-
-        List<BigDecimal> remissionAmounts = new ArrayList<>();
-        remissionAmounts.add(new BigDecimal(0));
-
-        List<BigDecimal> paymentAmounts = new ArrayList<>();
-        paymentAmounts.add(new BigDecimal(80));
-        paymentAmounts.add(new BigDecimal(20));
-        paymentAmounts.add(new BigDecimal(30));
-
-        List<Date> paymentCreatedDates = new ArrayList<>();
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.09.2020"));
-        //paymentCreatedDates.add(parseDate("01.10.2020"));
-
-        FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-            .ccdCaseNo(ccdCase)
-            .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 1))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
+    @Transactional
+    public void retrieveApportionDetailsWithReferenceWhenDateCreatedIsAfterApportionDate() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
             .build();
+        feePayApportionList.add(feePayApportion);
+        when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
+        when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
+        MvcResult result = restActions
+            .get("/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
 
-        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
-
-        assertEquals(new BigDecimal(130), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
     }
 
     @Test
-    public void SingleFeeMultiplePay_ShortfallPayment() throws CheckDigitException {
-
-        String ccdCase = "1111222233336666";
-
-        List<BigDecimal> feeAmounts = new ArrayList<>();
-        feeAmounts.add(new BigDecimal(100));
-
-        List<Timestamp> feeCreatedDates = new ArrayList<>();
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.09.2020"));
-        feeCreatedDates.add(parseDate("01.10.2020"));
-
-        List<BigDecimal> remissionAmounts = new ArrayList<>();
-        remissionAmounts.add(new BigDecimal(0));
-
-        List<BigDecimal> paymentAmounts = new ArrayList<>();
-        paymentAmounts.add(new BigDecimal(80));
-        paymentAmounts.add(new BigDecimal(10));
-        paymentAmounts.add(new BigDecimal(5));
-
-        List<Date> paymentCreatedDates = new ArrayList<>();
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.09.2020"));
-        //paymentCreatedDates.add(parseDate("01.10.2020"));
-
-        FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-            .ccdCaseNo(ccdCase)
-            .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 1))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
+    @Transactional
+    public void retrieveApportionDetailsWithReferenceWhenDateCreatedIsEqualToApportionDate() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
             .build();
+        feePayApportionList.add(feePayApportion);
+        when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
+        when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
+        payment.setDateCreated(parseDate("01.06.2020"));
+        MvcResult result = restActions
+            .get("/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
 
-        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
-
-        assertEquals(new BigDecimal(95), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
     }
 
     @Test
-    public void MultipleFeeMultiplePay_ExactPayment() throws CheckDigitException {
-
-        String ccdCase = "1111222233337777";
-
-        List<BigDecimal> feeAmounts = new ArrayList<>();
-        feeAmounts.add(new BigDecimal(100));
-        feeAmounts.add(new BigDecimal(40));
-
-        List<Timestamp> feeCreatedDates = new ArrayList<>();
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.08.2020"));
-
-        List<BigDecimal> remissionAmounts = new ArrayList<>();
-        remissionAmounts.add(new BigDecimal(0));
-        remissionAmounts.add(new BigDecimal(0));
-
-        List<BigDecimal> paymentAmounts = new ArrayList<>();
-        paymentAmounts.add(new BigDecimal(50));
-        paymentAmounts.add(new BigDecimal(50));
-        paymentAmounts.add(new BigDecimal(40));
-
-        List<Date> paymentCreatedDates = new ArrayList<>();
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.09.2020"));
-
-        FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-            .ccdCaseNo(ccdCase)
-            .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 2))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 3))
+    @Transactional
+    public void retrieveApportionDetailsWithReferenceWhenDateCreatedIsBeforeApportionDate() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
             .build();
+        feePayApportionList.add(feePayApportion);
+        when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
+        when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
+        payment.setDateCreated(parseDate("01.05.2020"));
+        MvcResult result = restActions
+            .get("/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
 
-        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
-
-        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
     }
 
     @Test
-    public void MultipleFeeMultiplePay_SurplusPayment() throws CheckDigitException {
-
-        String ccdCase = "1111222233338888";
-
-        List<BigDecimal> feeAmounts = new ArrayList<>();
-        feeAmounts.add(new BigDecimal(100));
-        feeAmounts.add(new BigDecimal(25));
-        feeAmounts.add(new BigDecimal(25));
-
-        List<Timestamp> feeCreatedDates = new ArrayList<>();
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.09.2020"));
-
-        List<BigDecimal> remissionAmounts = new ArrayList<>();
-        remissionAmounts.add(new BigDecimal(0));
-        remissionAmounts.add(new BigDecimal(0));
-        remissionAmounts.add(new BigDecimal(0));
-
-        List<BigDecimal> paymentAmounts = new ArrayList<>();
-        paymentAmounts.add(new BigDecimal(100));
-        paymentAmounts.add(new BigDecimal(80));
-
-        List<Date> paymentCreatedDates = new ArrayList<>();
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-
-        FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-            .ccdCaseNo(ccdCase)
-            .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 3))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 2))
+    @Transactional
+    public void retrieveApportionDetailsWithReferenceWhenFeeIdIsDifferent() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(4)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
             .build();
+        feePayApportionList.add(feePayApportion);
+        when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
+        when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
+        MvcResult result = restActions
+            .get("/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
 
-        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
-
-        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(25), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(55), feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
     }
 
     @Test
-    public void MultipleFeeMultiplePay_ShortfallPayment() throws CheckDigitException {
-
-        String ccdCase = "1111222233339999";
-
-        List<BigDecimal> feeAmounts = new ArrayList<>();
-        feeAmounts.add(new BigDecimal(100));
-        feeAmounts.add(new BigDecimal(50));
-        feeAmounts.add(new BigDecimal(10));
-
-        List<Timestamp> feeCreatedDates = new ArrayList<>();
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.08.2020"));
-        feeCreatedDates.add(parseDate("01.09.2020"));
-
-        List<BigDecimal> remissionAmounts = new ArrayList<>();
-        remissionAmounts.add(new BigDecimal(0));
-        remissionAmounts.add(new BigDecimal(0));
-        remissionAmounts.add(new BigDecimal(0));
-
-        List<BigDecimal> paymentAmounts = new ArrayList<>();
-        paymentAmounts.add(new BigDecimal(80));
-        paymentAmounts.add(new BigDecimal(50));
-        paymentAmounts.add(new BigDecimal(10));
-
-        List<Date> paymentCreatedDates = new ArrayList<>();
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.09.2020"));
-
-        FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-            .ccdCaseNo(ccdCase)
-            .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 3))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates,3))
+    @Transactional
+    public void retrieveApportionDetailsWithReferenceWhenFeeIdIsSame() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
             .build();
+        feePayApportionList.add(feePayApportion);
+        when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
+        when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
+        MvcResult result = restActions
+            .get("/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
 
-        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
-
-        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
-        assertEquals(null, feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
     }
 
     @Test
-    public void MultipleFeeMultiplePay_UseCase5() throws CheckDigitException {
+    @Transactional
+    public void retrunEmptyListWhenPaymentIsNotPresent() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
+            .build();
+        feePayApportionList.add(feePayApportion);
+        when(paymentService.retrieve(anyString())).thenReturn(payment.getPaymentLink());
+        when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
+        MvcResult result = restActions
+            .get("/fee-pay-apportion/" + "123")
+            .andExpect(status().isOk())
+            .andReturn();
 
-        String ccdCase = "1111222244441111";
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
+    }
 
-        List<BigDecimal> feeAmounts = new ArrayList<>();
-        feeAmounts.add(new BigDecimal(500));
+    @Test
+    @Transactional
+    public void retrievePaymentByReference_shouldThrow404_whenReferenceIsUnknown() throws Exception {
+        populateCardPaymentToDb("1");
 
-        List<Timestamp> feeCreatedDates = new ArrayList<>();
-        feeCreatedDates.add(parseDate("01.08.2020"));
+        restActions
+            .get("/payments/" + "some_random")
+            .andExpect(status().isNotFound())
+            .andReturn();
 
-        List<BigDecimal> remissionAmounts = new ArrayList<>();
-        remissionAmounts.add(new BigDecimal(0));
+    }
 
-        List<BigDecimal> paymentAmounts = new ArrayList<>();
-        paymentAmounts.add(new BigDecimal(200));
-        paymentAmounts.add(new BigDecimal(500));
+    @Test
+    public void getting404PaymentNotFoundException() throws Exception {
+        String errorMessage = "errorMessage";
+        PaymentNotFoundException ex = new PaymentNotFoundException(errorMessage);
+        assertEquals(errorMessage, feePayApportionController.notFound(ex));
+    }
 
-        List<Date> paymentCreatedDates = new ArrayList<>();
-        paymentCreatedDates.add(parseDate("01.08.2020"));
-        paymentCreatedDates.add(parseDate("01.08.2020"));
+    private Payment populateCardPaymentToDb(String number) {
 
-        FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-            .ccdCaseNo(ccdCase)
-            .feePayGroups(getPaymentFeeLinks(1))
-            .fees(getFees(ccdCase, feeAmounts, remissionAmounts, feeCreatedDates, 1))
-            .payments(getPayments(ccdCase, paymentAmounts, paymentCreatedDates, 2))
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
             .build();
 
-        feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
-        assertEquals(new BigDecimal(700), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
     }
 
-    private List<PaymentFeeLink> getPaymentFeeLinks(int count) throws CheckDigitException {
-        List<PaymentFeeLink> paymentFeeLinks = new ArrayList<>();
-
-        for(int i = 0; i < count; i++) {
-            paymentFeeLinks.add(PaymentFeeLink.paymentFeeLinkWith()
-                .id(RandomUtils.nextInt())
-                .paymentReference(referenceUtil.getNext("GR"))
-                .build());
-        }
-        return paymentFeeLinks;
-    }
-
-    private List<Payment> getPayments(String ccdCase, List<BigDecimal> amounts, List<Date> paymentCreatedDates, int count) throws CheckDigitException {
-        List<Payment> payments = new ArrayList<>();
-
-        for(int i = 0; i < count; i++) {
-            payments.add(Payment.paymentWith()
-                .id(RandomUtils.nextInt(100, 999))
-                .amount(amounts.get(i))
-                .reference(referenceUtil.getNext("RC"))
-                .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
-                .dateCreated(paymentCreatedDates.get(i))
-                .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-                .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-                .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
-                .serviceType("PROBATE")
-                .ccdCaseNumber(ccdCase)
-                .build());
-        }
-        return payments;
-    }
-
-    private List<PaymentFee> getFees(String ccdCase, List<BigDecimal> amounts, List<BigDecimal> remissionAmounts, List<Timestamp> feeCreatedDates, int count) throws CheckDigitException {
-        List<PaymentFee> fees = new ArrayList<>();
-
-        for(int i = 0; i < count; i++) {
-            PaymentFee fee = PaymentFee.feeWith()
-                .id(RandomUtils.nextInt(100, 999))
-                .code("FEE00" + i)
-                .feeAmount(amounts.get(i))
-                .volume(1)
-                .calculatedAmount(amounts.get(i).multiply(new BigDecimal(1)))
-                .netAmount(amounts.get(i).multiply(new BigDecimal(1)).subtract(remissionAmounts.get(i)))
-                .currApportionAmount(new BigDecimal(0))
-                .dateCreated(feeCreatedDates.get(i))
-                .build();
-
-            fees.add(fee);
-        }
-        return fees;
-    }
-
-    private Timestamp parseDate(String date) {
+    private Date parseDate(String date) {
         try {
-            return new Timestamp(new SimpleDateFormat("dd.MM.yyyy").parse(date).getTime());
+            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
         } catch (ParseException e) {
             return null;
         }
