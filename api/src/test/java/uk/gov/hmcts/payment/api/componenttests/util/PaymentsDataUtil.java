@@ -439,6 +439,47 @@ public class PaymentsDataUtil {
         });
     }
 
+    public FeePayApportion populateApportionDetails() {
+
+        FeePayApportion feePayApportion = db.createApportionDetails(FeePayApportion.feePayApportionWith()
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .paymentId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y"));
+        return feePayApportion;
+    }
+
+    public FeePayApportion populateApportionDetailsWithCallSurplusAmount() {
+
+        FeePayApportion feePayApportion = db.createApportionDetails(FeePayApportion.feePayApportionWith()
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .paymentId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .callSurplusAmount(BigDecimal.valueOf(100))
+            .callSurplusAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y"));
+        return feePayApportion;
+    }
+
+    public FeePayApportion populateApportionDetailsWithDifferentFeeId() {
+
+        FeePayApportion feePayApportion = db.createApportionDetails(FeePayApportion.feePayApportionWith()
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(2)
+            .paymentId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y"));
+        return feePayApportion;
+    }
+
     protected void assertPbaPaymentsForLibereta(List<PaymentDto> payments) {
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
