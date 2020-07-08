@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.FeePayApportionController;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -54,7 +55,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class FeePayApportionControllerTest{
+public class FeePayApportionControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
@@ -108,6 +109,34 @@ public class FeePayApportionControllerTest{
     @Transactional
     public void retrieveApportionDetailsWithReferenceWhenDateCreatedIsAfterApportionDate() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
+        List<FeePayApportion> feePayApportionList = new ArrayList<>();
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .id(1)
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(1)
+            .feeAmount(BigDecimal.valueOf(100))
+            .isFullyApportioned("Y")
+            .build();
+        feePayApportionList.add(feePayApportion);
+        when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
+        when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
+        MvcResult result = restActions
+            .get("/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
+    }
+
+    @Test
+    @Transactional
+    public void retrieveApportionDetailsWithReferenceWhenDateCreatedIsAfterApportionDateWithoutFees() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        Payment payment =populateTelephonyPaymentToDbWithoutFees(paymentReference,false);
         List<FeePayApportion> feePayApportionList = new ArrayList<>();
         FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
             .id(1)
@@ -287,33 +316,6 @@ public class FeePayApportionControllerTest{
         assertEquals(errorMessage, feePayApportionController.notFound(ex));
     }
 
-    private Payment populateCardPaymentToDb(String number) {
-
-        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
-        Payment payment = Payment.paymentWith()
-            .amount(new BigDecimal("99.99"))
-            .caseReference("Reference" + number)
-            .ccdCaseNumber("ccdCaseNumber" + number)
-            .description("Test payments statuses for " + number)
-            .serviceType("PROBATE")
-            .currency("GBP")
-            .siteId("AA0" + number)
-            .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
-            .reference("RC-1519-9028-2432-000" + number)
-            .statusHistories(Arrays.asList(statusHistory))
-            .build();
-
-        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
-
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
-        payment.setPaymentLink(paymentFeeLink);
-        return payment;
-    }
 
     private Date parseDate(String date) {
         try {

@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -410,6 +411,36 @@ public class PaymentsDataUtil {
 
         return payment;
     }
+
+    public Payment populateTelephonyPaymentToDbWithoutFees(String reference, boolean withServiceCallbackURL) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("101.99"))
+            .ccdCaseNumber("ccdCaseNumber" + reference)
+            .description("description" + reference)
+            .serviceType("Divorce")
+            .currency("GBP")
+            .siteId("AA00" + reference)
+            .userId(USER_ID)
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("pci pal").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference(reference)
+            .build();
+
+        if(withServiceCallbackURL) {
+            payment.setServiceCallbackUrl("www.gooooooogle.com");
+        }
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference(reference).payments(Arrays.asList(payment)).fees((Collections.EMPTY_LIST)));
+        payment.setPaymentLink(paymentFeeLink);
+
+
+
+        return payment;
+    }
+
 
     public void populateCardPaymentToDbWith(Payment payment, String number) {
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
