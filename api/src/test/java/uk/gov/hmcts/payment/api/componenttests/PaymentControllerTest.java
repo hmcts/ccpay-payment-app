@@ -152,6 +152,90 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
+    public void updateCaseReference_forGivenPaymentReferenceWithoutCaseNumber() throws Exception {
+        //Create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("caseReference")
+            //.ccdCaseNumber("ccdCaseNumber")
+            .description("Description1")
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference("RC-1519-9028-1909-3890")
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result1 = restActions.
+            get(format("/credit-account-payments/RC-1519-9028-1909-3890"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertEquals(paymentDto.getCaseReference(), "caseReference");
+        //assertEquals(paymentDto.getCcdCaseNumber(), "ccdCaseNumber");
+
+        /* -- update payment -- */
+        UpdatePaymentRequest updatePaymentRequest = objectMapper.readValue(updatePaymentRequestJson().getBytes(), UpdatePaymentRequest.class);
+        updatePaymentRequest.setCcdCaseNumber(null);
+        MvcResult result2 = restActions.
+            patch(format("/payments/" + paymentDto.getReference()), updatePaymentRequest)
+            .andExpect(status().isNoContent())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void updateCaseReference_forGivenPaymentReferenceWithoutCaseReference() throws Exception {
+        //Create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            //.caseReference("caseReference")
+            .ccdCaseNumber("ccdCaseNumber")
+            .description("Description1")
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference("RC-1519-9028-1909-3890")
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186168000").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        MvcResult result1 = restActions.
+            get(format("/credit-account-payments/RC-1519-9028-1909-3890"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        //assertEquals(paymentDto.getCaseReference(), "caseReference");
+        assertEquals(paymentDto.getCcdCaseNumber(), "ccdCaseNumber");
+
+        /* -- update payment -- */
+        UpdatePaymentRequest updatePaymentRequest = objectMapper.readValue(updatePaymentRequestJson().getBytes(), UpdatePaymentRequest.class);
+        updatePaymentRequest.setCaseReference(null);
+        MvcResult result2 = restActions.
+            patch(format("/payments/" + paymentDto.getReference()), updatePaymentRequest)
+            .andExpect(status().isNoContent())
+            .andReturn();
+    }
+
+    @Test
     public void getPaymentsBasedOnPaymentReference() throws Exception {
         //Create a payment in remissionDbBackdoor
 
