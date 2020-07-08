@@ -27,6 +27,7 @@ import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.validators.DateFormatter;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.math.BigDecimal;
@@ -50,6 +51,7 @@ public class PaymentController {
     private final PaymentValidator validator;
     private final FF4j ff4j;
     private final DateTimeFormatter formatter;
+    private final DateFormatter dateFormatter;
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
@@ -61,7 +63,7 @@ public class PaymentController {
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
-                             DateUtil dateUtil) {
+                             DateUtil dateUtil,DateFormatter dateFormatter) {
         this.paymentService = paymentService;
         this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
@@ -69,6 +71,7 @@ public class PaymentController {
         this.validator = paymentValidator;
         this.ff4j = ff4j;
         this.formatter = dateUtil.getIsoDateTimeFormatter();
+        this.dateFormatter = dateFormatter;
     }
 
     @ApiOperation(value = "Update case reference by payment reference", notes = "Update case reference by payment reference")
@@ -200,8 +203,8 @@ public class PaymentController {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             final List<PaymentFee> fees = paymentFeeLink.getFees();
             //Apportion logic added for pulling allocation amount
-            if ((apportionFeature && (payment.getDateCreated().after(parseDate(apportionLiveDate)) ||
-                payment.getDateCreated().equals(parseDate(apportionLiveDate)))))
+            if ((apportionFeature && (payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
+                payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate)))))
             {
                 final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
                 feePayApportionList.stream()
@@ -249,13 +252,5 @@ public class PaymentController {
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
         return ex.getMessage();
-    }
-
-    private Date parseDate(String date) {
-        try {
-            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
-        } catch (ParseException e) {
-            return null;
-        }
     }
 }

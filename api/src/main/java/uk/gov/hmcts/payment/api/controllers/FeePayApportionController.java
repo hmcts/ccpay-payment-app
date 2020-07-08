@@ -11,10 +11,8 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.validators.DateFormatter;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,15 +27,18 @@ public class FeePayApportionController {
 
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
 
+    private final DateFormatter dateFormatter;
+
 
     @Value("${apportion.live.date}")
     private String apportionLiveDate;
 
     @Autowired
-    public FeePayApportionController(PaymentService<PaymentFeeLink, String> paymentService,PaymentFeeRepository paymentFeeRepository,PaymentGroupDtoMapper paymentGroupDtoMapper) {
+    public FeePayApportionController(PaymentService<PaymentFeeLink, String> paymentService,PaymentFeeRepository paymentFeeRepository,PaymentGroupDtoMapper paymentGroupDtoMapper,DateFormatter dateFormatter) {
         this.paymentService = paymentService;
         this.paymentFeeRepository = paymentFeeRepository;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
+        this.dateFormatter = dateFormatter;
     }
 
     @ApiOperation(value = "Get apportion details by payment reference", notes = "Get apportion details for supplied payment reference")
@@ -54,8 +55,8 @@ public class FeePayApportionController {
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
         List<PaymentFee> feeList = paymentFeeLink.getFees();
-        if ((payment.isPresent() && (payment.get().getDateCreated().after(parseDate(apportionLiveDate)) ||
-            payment.get().getDateCreated().equals(parseDate(apportionLiveDate)))))
+        if ((payment.isPresent() && (payment.get().getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
+            payment.get().getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate)))))
         {
                 List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
                 feePayApportionList.stream()
@@ -78,13 +79,5 @@ public class FeePayApportionController {
     @ExceptionHandler(PaymentNotFoundException.class)
     public String notFound(PaymentNotFoundException ex) {
         return ex.getMessage();
-    }
-
-    private Date parseDate(String date) {
-        try {
-            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
-        } catch (ParseException e) {
-            return null;
-        }
     }
 }
