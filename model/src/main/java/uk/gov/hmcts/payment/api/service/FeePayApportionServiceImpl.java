@@ -223,7 +223,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             }
 
             // Create a new Record in FeePayApportion Table
-
             FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
                 .feeId(fee.getId())
                 .paymentId(payment.getId())
