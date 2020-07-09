@@ -150,10 +150,10 @@ public class CreditAccountPaymentController {
             Payment pbaPayment = paymentFeeLink.getPayments().get(0);
             feePayApportionService.processApportion(pbaPayment);
 
-            // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
+            // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
             if(Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
                 LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as {}" + pbaPayment.getPaymentStatus().getName());
-                updateFeeAmountDue(payment);
+                updateFeeAmountDue(pbaPayment);
             }
         }
 
