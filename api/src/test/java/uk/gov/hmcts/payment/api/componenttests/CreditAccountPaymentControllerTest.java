@@ -655,7 +655,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void givenLiberataCheckOnAndCheckLiberataAccountForAllSericesOffThenOnlyIACTriggersLiberataCheck() throws Exception {
         setCreditAccountPaymentLiberataCheckFeature(true);
         setCheckLiberataAccountForAllServices(false);
-        setCreditAccountPaymentIACPBAOnboardFeature(true);
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIACJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
@@ -842,19 +841,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
     }
 
-
-    private void setCreditAccountPaymentIACPBAOnboardFeature(boolean enabled) throws Exception {
-        String url = "/api/ff4j/store/features/iac-pba-service-onboard-check/";
-        if (enabled) {
-            url += "enable";
-        } else {
-            url += "disable";
-        }
-
-        restActions
-            .post(url)
-            .andExpect(status().isAccepted());
-    }
 
     private void setCheckLiberataAccountForAllServices(boolean enabled) throws Exception {
         String url = "/api/ff4j/store/features/check-liberata-account-for-all-services/";
