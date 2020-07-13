@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -141,8 +142,13 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     public void processApportion(Payment payment) {
         Optional<List<PaymentFee>> savedFees = paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber());
         if(savedFees.isPresent()){
+            savedFees.get().stream()
+                .forEach(fee -> {
+                    fee.setDateCreated(fee.getDateCreated() == null ? getPaymentGroupDateCreated(fee) : fee.getDateCreated());
+                });
             List<PaymentFee> sortedFees = savedFees.get()
                 .stream()
+                .filter(fee -> fee.getDateCreated() != null)
                 .sorted(Comparator.comparing(PaymentFee::getDateCreated))
                 .collect(Collectors.toList());
             this.processFeePayApportion(FeePayApportionCCDCase.feePayApportionCCDCaseWith()
@@ -151,6 +157,19 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 .payments(Lists.newArrayList(payment))
                 .build());
         }
+    }
+
+    private Timestamp getPaymentGroupDateCreated(PaymentFee fee) {
+        Timestamp feeCreated = null;
+        if(fee.getPaymentLink() != null && fee.getPaymentLink().getDateCreated() != null) {
+            feeCreated = new Timestamp(fee.getPaymentLink().getDateCreated().getTime());
+        } else {
+            Optional<PaymentFeeLink> paymentFeeLink = paymentFeeLinkRepository.findById(fee.getPaymentLink().getId());
+            if(paymentFeeLink.isPresent()){
+                feeCreated = new Timestamp(paymentFeeLink.get().getDateCreated().getTime());
+            }
+        }
+        return feeCreated;
     }
 
     private List<Payment> getPaymentsToBeApportioned(List<Payment> payments) {
