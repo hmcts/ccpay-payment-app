@@ -272,14 +272,4 @@ public class CreditAccountPaymentController {
             paymentValidator.checkDuplication(payment, fees);
         }
     }
-
-    @ApiOperation(value = "Check Valid Liberata Response", notes = "Check Valid Liberata Response")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Received Valid Liberata Response")
-    })
-    @PostMapping(value = "/liberata-response-validation")
-    public ResponseEntity<String> validateLiberataResponse(@Valid @RequestBody AccountDto accountDto) {
-        return new ResponseEntity<String>("Received Valid Liberata Response", HttpStatus.OK);
-    }
-
 }
