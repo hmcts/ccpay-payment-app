@@ -20,6 +20,6 @@ java:
 
     #Below key required for preview pipeline
     GOV_PAY_AUTH_KEY_CMC: 8ln764q6jrbgqvvvv40uggsea3h1p602v79gdrt7ni66mrmpk416ulohvd
-
+    LAUNCH_DARKLY_SDK_KEY: sdk-89d2efe7-8f5a-4745-aa0a-2c4d6912b736
   postgresql:
     enabled: true
