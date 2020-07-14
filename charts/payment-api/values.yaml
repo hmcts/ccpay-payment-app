@@ -102,3 +102,4 @@ java:
         - pba-finrem-payments-email-to
         - pba-divorce-payments-email-to
         - pba-fpl-payments-email-to
+        - launch-darkly-sdk-key
