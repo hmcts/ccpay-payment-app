@@ -79,4 +79,16 @@ public class CreditAccountPaymentRequest {
         }
     }
 
+
+    @AssertFalse(message = "Invalid Site ID (URN) provided for IAC. Accepted values are BFA1")
+    private boolean isValidSiteIdIAC() {
+        String[] validSiteIds = {"BFA1"};
+        if(null != service && service.getName().equalsIgnoreCase(Service.IAC.getName())) {
+            return siteId != null && !Arrays.asList(validSiteIds).stream().anyMatch(vm -> vm.equalsIgnoreCase(
+                siteId));
+        } else {
+            return false;
+        }
+    }
+
 }
