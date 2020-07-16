@@ -10,6 +10,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -21,6 +22,8 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -173,6 +176,73 @@ public class CMCCardPaymentFunctionalTest {
         assertNotNull(govPayPayment);
         assertEquals(govPayPayment.getReference(), paymentDto.getReference());
         assertEquals(govPayPayment.getPaymentId(), paymentDto.getExternalReference());
+    }
+
+    @Test
+    public void retrieveCMCCardPaymentTestShouldReturnAutoApportionedFees() {
+        final String[] reference = new String[1];
+        // create card payment
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(20))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber("9999888877776666")
+            .service(Service.CMC)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.google.com")
+            .when().createCardPayment(cardPaymentRequest)
+            .then().created(savedPayment -> {
+            reference[0] = savedPayment.getReference();
+
+            assertNotNull(savedPayment.getReference());
+            assertEquals("payment status is properly set", "Initiated", savedPayment.getStatus());
+        });
+
+
+        // retrieve card payment
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getCardPayment(reference[0])
+            .then().get();
+
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getAmount(), new BigDecimal("120"));
+        assertEquals(paymentDto.getReference(), reference[0]);
+        assertEquals(paymentDto.getExternalProvider(), "gov pay");
+        assertEquals(paymentDto.getServiceName(), "Civil Money Claims");
+        assertEquals(paymentDto.getStatus(), "Initiated");
+
+        // TEST retrieve payments, remissions and fees by payment-group-reference
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getPaymentGroups(paymentDto.getCcdCaseNumber())
+            .then().getPaymentGroups((paymentGroupsResponse -> {
+            //Assertions.assertThat(paymentGroupsResponse.getPaymentGroups().size()).isEqualTo(1);
+            paymentGroupsResponse.getPaymentGroups().stream()
+                .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference().equalsIgnoreCase(paymentDto.getReference()))
+                .forEach(paymentGroupDto -> {
+                    assertEquals(BigDecimal.valueOf(20).intValue(), paymentGroupDto.getFees().get(0).getAllocatedAmount().intValue());
+                    assertEquals(BigDecimal.valueOf(40).intValue(), paymentGroupDto.getFees().get(1).getAllocatedAmount().intValue());
+                    assertEquals(BigDecimal.valueOf(60).intValue(),  paymentGroupDto.getFees().get(2).getAllocatedAmount().intValue());
+                    assertEquals("Y", paymentGroupDto.getFees().get(0).getIsFullyApportioned());
+                    assertEquals("Y", paymentGroupDto.getFees().get(1).getIsFullyApportioned());
+                    assertEquals("Y", paymentGroupDto.getFees().get(2).getIsFullyApportioned());
+                });
+        }));
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
