@@ -123,7 +123,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
         when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
         MvcResult result = restActions
-            .get("/fee-pay-apportion/" + payment.getReference())
+            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -151,7 +151,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
         when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
         MvcResult result = restActions
-            .get("/fee-pay-apportion/" + payment.getReference())
+            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -179,7 +179,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
         payment.setDateCreated(parseDate("01.06.2020"));
         MvcResult result = restActions
-            .get("/fee-pay-apportion/" + payment.getReference())
+            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -207,7 +207,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
         payment.setDateCreated(parseDate("01.05.2020"));
         MvcResult result = restActions
-            .get("/fee-pay-apportion/" + payment.getReference())
+            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -234,7 +234,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
         when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
         MvcResult result = restActions
-            .get("/fee-pay-apportion/" + payment.getReference())
+            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -261,7 +261,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
         when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
         MvcResult result = restActions
-            .get("/fee-pay-apportion/" + payment.getReference())
+            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -288,7 +288,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         when(paymentService.retrieve(anyString())).thenReturn(payment.getPaymentLink());
         when(paymentService.findByPaymentId(payment.getId())).thenReturn(feePayApportionList);
         MvcResult result = restActions
-            .get("/fee-pay-apportion/" + "123")
+            .get("/payment-groups/fee-pay-apportion/" + "123")
             .andExpect(status().isOk())
             .andReturn();
 

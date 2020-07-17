@@ -47,7 +47,7 @@ public class FeePayApportionController {
         @ApiResponse(code = 403, message = "Payment info forbidden"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @GetMapping(value = "/fee-pay-apportion/{paymentreference}")
+    @GetMapping(value = "/payment-groups/fee-pay-apportion/{paymentreference}")
     public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference) {
 
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
