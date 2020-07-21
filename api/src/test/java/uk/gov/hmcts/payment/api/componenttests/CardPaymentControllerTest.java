@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -800,6 +802,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCardPaymentWithMultipleFee_ExactPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
                 .withStatus(201)
@@ -807,18 +811,18 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(20))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
             .siteId("AA08")
@@ -847,6 +851,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCardPaymentWithMultipleFee_ShortfallPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
                 .withStatus(201)
@@ -854,18 +860,18 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(30))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
             .siteId("AA08")
@@ -894,6 +900,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCardPaymentWithMultipleFee_SurplusPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
                 .withStatus(201)
@@ -901,18 +909,18 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(10))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
             .siteId("AA08")

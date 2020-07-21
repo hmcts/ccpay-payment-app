@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.math.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -1064,12 +1065,14 @@ public class PaymentGroupControllerTest {
     @Test
     public void createBulkScanPaymentWithMultipleFee_ExactPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(20))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -1089,7 +1092,7 @@ public class PaymentGroupControllerTest {
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
             .bankedDate(DateTime.now().toString())
@@ -1119,12 +1122,14 @@ public class PaymentGroupControllerTest {
     @Test
     public void createBulkScanPaymentWithMultipleFee_ShortfallPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(30))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -1144,7 +1149,7 @@ public class PaymentGroupControllerTest {
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
             .bankedDate(DateTime.now().toString())
@@ -1174,12 +1179,14 @@ public class PaymentGroupControllerTest {
     @Test
     public void createBulkScanPaymentWithMultipleFee_SurplusPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(20))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -1199,7 +1206,7 @@ public class PaymentGroupControllerTest {
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
             .bankedDate(DateTime.now().toString())

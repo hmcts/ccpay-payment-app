@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -750,21 +751,23 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentWithMultipleFee_ExactPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         setCreditAccountPaymentLiberataCheckFeature(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(20))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
             .siteId("AA08")
@@ -798,21 +801,22 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentWithMultipleFee_ShortfallPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
         setCreditAccountPaymentLiberataCheckFeature(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(30))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
             .siteId("AA08")
@@ -846,21 +850,23 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentWithMultipleFee_SurplusPayment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         setCreditAccountPaymentLiberataCheckFeature(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(10))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
             .siteId("AA08")
@@ -894,21 +900,22 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentWithMultipleFee_AmountDue() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
         setCreditAccountPaymentLiberataCheckFeature(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(20))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999888877776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal("100"))
             .description("description")
             .caseReference("telRefNumber")
-            .ccdCaseNumber("9999888877776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.FPL)
             .currency(CurrencyCode.GBP)
             .siteId("ABA3")
