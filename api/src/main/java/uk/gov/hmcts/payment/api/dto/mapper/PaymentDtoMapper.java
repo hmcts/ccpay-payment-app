@@ -5,6 +5,7 @@ import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
+import uk.gov.hmcts.payment.api.validators.DateFormatter;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -34,6 +36,12 @@ public class PaymentDtoMapper {
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @Autowired
+    private DateFormatter dateFormatter;
+
+    @Value("${apportion.live.date}")
+    private String apportionLiveDate;
 
 
 
@@ -230,11 +238,16 @@ public class PaymentDtoMapper {
     public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j) {
         boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionCheck = apportionFeature && ((payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate))) ||
+            (payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate))));
         LOG.info("bulkScanCheck value in PaymentDtoMapper: {}",bulkScanCheck);
         LOG.info("isBulkScanPayment value in PaymentDtoMapper: {}",isBulkScanPayment);
+        LOG.info("apportionFeature value in PaymentDtoMapper: {}",apportionFeature);
+        LOG.info("apportionCheck value in PaymentDtoMapper: {}",apportionCheck);
             PaymentDto paymentDto = PaymentDto.payment2DtoWith()
                 .paymentReference(payment.getReference())
-                //.paymentGroupReference(paymentReference)
+                .paymentGroupReference(apportionCheck ? null : paymentReference)
                 .serviceName(payment.getServiceType())
                 .siteId(payment.getSiteId())
                 .amount(payment.getAmount())
@@ -255,7 +268,7 @@ public class PaymentDtoMapper {
                 .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
                 .externalReference(isBulkScanPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
                 .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
-                .fees(isBulkScanPayment ? toFeeLiberataDtosWithCaseRererence(fees,payment.getCaseReference()) : toFeeLiberataDtos(fees))
+                .fees(isBulkScanPayment ? toFeeLiberataDtosWithCaseReference(fees,payment.getCaseReference(),apportionCheck) : toFeeLiberataDtos(fees,apportionCheck))
                 .build();
 
         if (bulkScanCheck && isBulkScanPayment) {
@@ -293,8 +306,8 @@ public class PaymentDtoMapper {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
-    private List<FeeDto> toFeeLiberataDtos(List<PaymentFee> fees) {
-        return fees.stream().map(this::toFeeLiberataDto).collect(Collectors.toList());
+    private List<FeeDto> toFeeLiberataDtos(List<PaymentFee> fees,boolean apportionCheck) {
+        return fees.stream().map(fee -> toFeeLiberataDto(fee,apportionCheck)).collect(Collectors.toList());
     }
 
     private List<FeeDto> toGetPaymentFeeDtos(List<PaymentFee> fees) {
@@ -302,15 +315,8 @@ public class PaymentDtoMapper {
     }
 
 
-    private List<FeeDto> toFeeLiberataDtosWithCaseRererence(List<PaymentFee> fees, String caseReference) {
-
-        List<FeeDto> feeDtoList = new ArrayList<>();
-        for(PaymentFee paymentFee : fees)
-        {
-            FeeDto feeDto = toFeeLiberataDtoWithCaseReference(paymentFee,caseReference);
-            feeDtoList.add(feeDto);
-        }
-        return feeDtoList;
+    private List<FeeDto> toFeeLiberataDtosWithCaseReference(List<PaymentFee> fees, String caseReference,boolean apportionCheck) {
+        return fees.stream().map(fee -> toFeeLiberataDtoWithCaseReference(fee,caseReference,apportionCheck)).collect(Collectors.toList());
     }
 
     public List<PaymentFee> toFees(List<FeeDto> feeDtos) {
@@ -345,10 +351,9 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    private FeeDto toFeeLiberataDto(PaymentFee fee) {
+    private FeeDto toFeeLiberataDto(PaymentFee fee,boolean apportionCheck) {
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         return FeeDto.feeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
@@ -358,9 +363,9 @@ public class PaymentDtoMapper {
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .reference(fee.getReference())
-            .apportionedPayment(apportionFeature ? fee.getAllocatedAmount(): null)
-            .dateReceiptProcessed(apportionFeature ? fee.getDateApportioned(): null)
-            .paymentGroupReference(apportionFeature && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference(): null)
+            .apportionedPayment(apportionCheck ? fee.getAllocatedAmount(): null)
+            .dateReceiptProcessed(apportionCheck ? fee.getDateApportioned(): null)
+            .paymentGroupReference(apportionCheck && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference(): null)
             .build();
     }
 
@@ -386,10 +391,9 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    private FeeDto toFeeLiberataDtoWithCaseReference(PaymentFee fee, String caseReference) {
+    private FeeDto toFeeLiberataDtoWithCaseReference(PaymentFee fee, String caseReference,boolean apportionCheck) {
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
 
         return FeeDto.feeDtoWith()
             .id(fee.getId())
@@ -401,9 +405,9 @@ public class PaymentDtoMapper {
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .caseReference(caseReference)
             .reference(fee.getReference())
-            .apportionedPayment(apportionFeature ? fee.getAllocatedAmount(): null)
-            .dateReceiptProcessed(apportionFeature ? fee.getDateApportioned(): null)
-            .paymentGroupReference(apportionFeature && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference(): null)
+            .apportionedPayment(apportionCheck ? fee.getAllocatedAmount(): null)
+            .dateReceiptProcessed(apportionCheck ? fee.getDateApportioned(): null)
+            .paymentGroupReference(apportionCheck && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference(): null)
             .build();
     }
 
