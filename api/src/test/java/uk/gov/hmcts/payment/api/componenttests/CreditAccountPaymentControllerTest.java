@@ -50,6 +50,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
@@ -647,6 +650,37 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void givenLiberataCheckOnAndCheckLiberataAccountForAllSericesOffThenOnlyIACTriggersLiberataCheck() throws Exception {
+        setCreditAccountPaymentLiberataCheckFeature(true);
+        setCheckLiberataAccountForAllServices(false);
+
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIACJson().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        MvcResult result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
+
+        request = objectMapper.readValue(creditAccountPaymentRequestJsonWithProbateJson().getBytes(), CreditAccountPaymentRequest.class);
+        result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
+    }
+
+
+    @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
         setCreditAccountPaymentLiberataCheckFeature(false);
         setCheckLiberataAccountForAllServices(true);
@@ -721,6 +755,36 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void givenLiberataCheckOffAndCheckLiberataAccountForAllServicesOnThenAllServicesTriggerLiberataCheck_IAC() throws Exception {
+        setCreditAccountPaymentLiberataCheckFeature(false);
+        setCheckLiberataAccountForAllServices(true);
+
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIAC_Json().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        MvcResult result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
+
+        request = objectMapper.readValue(creditAccountPaymentRequestJsonWithProbateJson().getBytes(), CreditAccountPaymentRequest.class);
+        result = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        verify(accountService, times(2)).retrieve(request.getAccountNumber());
+    }
+
+    @Test
     public void createCreditAccountPaymentTest_FPLService() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
@@ -737,6 +801,20 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCreditAccountPaymentTest_FPLService_InvalidSiteId() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJsonInvalidSiteId().getBytes(), CreditAccountPaymentRequest.class);
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+        setCreditAccountPaymentLiberataCheckFeature(true);
+
+        restActions
+            .post(format("/credit-account-payments"), request)
+            .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void createCreditAccountPaymentTest_IACService_InvalidSiteId() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIACLJsonInvalidSiteId().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
@@ -1166,6 +1244,28 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "}";
     }
 
+    private String creditAccountPaymentRequestJsonWithIACLJsonInvalidSiteId() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"IAC\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"BFA0\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
     private String creditAccountPaymentRequestJsonWithFPLAJson() {
         return "{\n" +
             "  \"amount\": 101.89,\n" +
@@ -1175,6 +1275,51 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "  \"service\": \"FPL\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"site_id\": \"ABA3\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+
+    private String creditAccountPaymentRequestJsonWithIAC_Json() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"IAC\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"BFA1\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String creditAccountPaymentRequestJsonWithIACJson() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"IAC\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"site_id\": \"BFA1\",\n" +
             "  \"customer_reference\": \"CUST101\",\n" +
             "  \"organisation_name\": \"ORG101\",\n" +
             "  \"account_number\": \"AC101010\",\n" +
