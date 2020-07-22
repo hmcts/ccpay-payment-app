@@ -31,8 +31,6 @@ import uk.gov.hmcts.payment.api.validators.DateFormatter;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,6 +50,7 @@ public class PaymentController {
     private final FF4j ff4j;
     private final DateTimeFormatter formatter;
     private final DateFormatter dateFormatter;
+    private final PaymentFeeRepository paymentFeeRepository;
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
@@ -63,7 +62,7 @@ public class PaymentController {
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
-                             DateUtil dateUtil,DateFormatter dateFormatter) {
+                             DateUtil dateUtil,DateFormatter dateFormatter,PaymentFeeRepository paymentFeeRepository) {
         this.paymentService = paymentService;
         this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
@@ -72,6 +71,7 @@ public class PaymentController {
         this.ff4j = ff4j;
         this.formatter = dateUtil.getIsoDateTimeFormatter();
         this.dateFormatter = dateFormatter;
+        this.paymentFeeRepository = paymentFeeRepository;
     }
 
     @ApiOperation(value = "Update case reference by payment reference", notes = "Update case reference by payment reference")
@@ -201,23 +201,21 @@ public class PaymentController {
         LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
         for (final Payment payment: payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
-            final List<PaymentFee> fees = paymentFeeLink.getFees();
+            List<PaymentFee> fees = paymentFeeLink.getFees();
+
             //Apportion logic added for pulling allocation amount
             if ((apportionFeature && (payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
-                payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate)))))
-            {
+                payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate))))) {
                 final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
-                feePayApportionList.stream()
-                    .forEach(feePayApportion -> {
-                        fees.stream()
-                            .forEach(paymentFee -> {
-                                if (feePayApportion.getFeeId().equals(paymentFee.getId())) {
-                                    BigDecimal allocatedAmount = feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount() != null ? feePayApportion.getCallSurplusAmount() : BigDecimal.valueOf(0));
-                                    paymentFee.setAllocatedAmount(allocatedAmount);
-                                    paymentFee.setDateApportioned(feePayApportion.getDateCreated());
-                                }
-                            });
-                    });
+                fees = new ArrayList<>();
+                for (FeePayApportion feePayApportion : feePayApportionList)
+                {
+                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
+                    BigDecimal allocatedAmount = feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount() != null ? feePayApportion.getCallSurplusAmount() : BigDecimal.valueOf(0));
+                    fee.setAllocatedAmount(allocatedAmount);
+                    fee.setDateApportioned(feePayApportion.getDateCreated());
+                    fees.add(fee);
+            }
             }
             //End of Apportion logic
             final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j);
