@@ -208,19 +208,27 @@ public class PaymentController {
                 payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate))))) {
                 final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
                 fees = new ArrayList<>();
-                for (FeePayApportion feePayApportion : feePayApportionList)
-                {
-                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-                    BigDecimal allocatedAmount = feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount() != null ? feePayApportion.getCallSurplusAmount() : BigDecimal.valueOf(0));
-                    fee.setAllocatedAmount(allocatedAmount);
-                    fee.setDateApportioned(feePayApportion.getDateCreated());
-                    fees.add(fee);
-            }
+                getApportionedDetails(fees, feePayApportionList);
             }
             //End of Apportion logic
             final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j);
             paymentDtos.add(paymentDto);
         }
+    }
+
+    private void getApportionedDetails(List<PaymentFee> fees, List<FeePayApportion> feePayApportionList) {
+        for (FeePayApportion feePayApportion : feePayApportionList)
+        {
+            Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
+            if(apportionedFee.isPresent())
+            {
+                PaymentFee fee = apportionedFee.get();
+                BigDecimal allocatedAmount = feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount() != null ? feePayApportion.getCallSurplusAmount() : BigDecimal.valueOf(0));
+                fee.setAllocatedAmount(allocatedAmount);
+                fee.setDateApportioned(feePayApportion.getDateCreated());
+                fees.add(fee);
+            }
+    }
     }
 
     private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(PaymentFeeLink paymentFeeLink) {
