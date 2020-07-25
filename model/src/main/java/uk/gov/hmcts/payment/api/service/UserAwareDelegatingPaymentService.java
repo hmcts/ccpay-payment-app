@@ -238,7 +238,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 //2. Rollback Fees already Apportioned for Payments in failed/cancelled/error status based on launch darkly feature flag
                 boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
                 LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
-                if(apportionFeature) {
+                if(shouldCallBack && apportionFeature) {
                     if (Lists.newArrayList("failed", "cancelled", "error").contains(govPayPayment.getState().getStatus().toLowerCase())) {
                         LOG.info("Rollback Fees already Apportioned for Payments in failed/cancelled/error status - Started");
                         rollbackApportionedFees(payment);
