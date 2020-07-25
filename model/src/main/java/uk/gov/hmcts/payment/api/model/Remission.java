@@ -36,15 +36,19 @@ public class Remission extends Auditable<String> {
     @Column(name = "hwf_amount")
     private BigDecimal hwfAmount;
 
+    @ToString.Exclude
     @Column(name = "beneficiary_name")
     private String beneficiaryName;
 
+    @ToString.Exclude
     @Column(name = "ccd_case_number")
     private String ccdCaseNumber;
 
+    @ToString.Exclude
     @Column(name = "case_reference")
     private String caseReference;
 
+    @ToString.Exclude
     @Column(name = "site_id")
     private String siteId;
 

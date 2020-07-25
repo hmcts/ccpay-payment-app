@@ -204,8 +204,10 @@ public class PaymentController {
             List<PaymentFee> fees = paymentFeeLink.getFees();
 
             //Apportion logic added for pulling allocation amount
-            if ((apportionFeature && (payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
-                payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate))))) {
+            if (payment.getPaymentChannel() != null && payment.getPaymentChannel().getName() != null
+                && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName())
+                && (apportionFeature && (payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate))
+                    || payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate))))) {
                 final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
                 fees = new ArrayList<>();
                 getApportionedDetails(fees, feePayApportionList);
