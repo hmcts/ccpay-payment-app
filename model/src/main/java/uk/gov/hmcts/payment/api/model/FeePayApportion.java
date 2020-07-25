@@ -1,9 +1,7 @@
 package uk.gov.hmcts.payment.api.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.FeePayApportionEntityListener;
 
@@ -44,9 +42,11 @@ public class FeePayApportion extends Auditable<String> {
     @Column(name = "apportion_type")
     private String apportionType;
 
+    @ToString.Exclude
     @Column(name = "is_fully_apportioned")
     private String isFullyApportioned;
 
+    @ToString.Exclude
     @Column(name = "curr_apportion_amount")
     private BigDecimal currApportionAmount;
 
@@ -56,13 +56,15 @@ public class FeePayApportion extends Auditable<String> {
     @Column(name = "call_surplus_amount")
     private BigDecimal callSurplusAmount;
 
+    @ToString.Exclude
     @Column(name = "ccd_case_number")
     private String ccdCaseNumber;
 
+    @ToString.Exclude
     @Column(name = "created_by")
     private String createdBy;
 
-    //@CreationTimestamp
+    @CreationTimestamp
     @Column(name = "date_created", nullable = false)
     private Date dateCreated;
 }

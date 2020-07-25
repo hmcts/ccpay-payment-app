@@ -45,9 +45,11 @@ public class PaymentFee extends Auditable<String> {
     @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
     private PaymentFeeLink paymentLink;
 
+    @ToString.Exclude
     @Column(name = "ccd_case_number")
     private String ccdCaseNumber;
 
+    @ToString.Exclude
     @Column(name = "reference")
     private String reference;
 
@@ -82,12 +84,15 @@ public class PaymentFee extends Auditable<String> {
     @Column(name = "date_updated")
     private Timestamp dateUpdated;
 
+    @ToString.Exclude
     @Transient
     private BigDecimal currApportionAmount;
 
+    @ToString.Exclude
     @Transient
     private BigDecimal callShortFallAmount;
 
+    @ToString.Exclude
     @Transient
     private BigDecimal callSurplusAmount;
 }
