@@ -232,7 +232,14 @@ public class CMCCardPaymentFunctionalTest {
         assertEquals(paymentDto.getServiceName(), "Civil Money Claims");
         assertEquals(paymentDto.getStatus(), "Initiated");
 
-        // TEST retrieve payments, remissions and fees by payment-group-reference
+        assertEquals(BigDecimal.valueOf(20).intValue(), paymentDto.getFees().get(0).getAllocatedAmount().intValue());
+        assertEquals(BigDecimal.valueOf(40).intValue(), paymentDto.getFees().get(1).getAllocatedAmount().intValue());
+        assertEquals(BigDecimal.valueOf(60).intValue(), paymentDto.getFees().get(2).getAllocatedAmount().intValue());
+        assertEquals("Y", paymentDto.getFees().get(0).getIsFullyApportioned());
+        assertEquals("Y", paymentDto.getFees().get(1).getIsFullyApportioned());
+        assertEquals("Y", paymentDto.getFees().get(2).getIsFullyApportioned());
+
+        /*// TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(paymentDto.getCcdCaseNumber())
@@ -248,7 +255,7 @@ public class CMCCardPaymentFunctionalTest {
                     assertEquals("Y", paymentGroupDto.getFees().get(1).getIsFullyApportioned());
                     assertEquals("Y", paymentGroupDto.getFees().get(2).getIsFullyApportioned());
                 });
-        }));
+        }));*/
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
