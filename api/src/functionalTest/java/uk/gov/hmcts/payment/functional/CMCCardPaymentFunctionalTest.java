@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -184,20 +185,22 @@ public class CMCCardPaymentFunctionalTest {
     @Test
     public void retrieveCMCCardPaymentTestShouldReturnAutoApportionedFees() {
         final String[] reference = new String[1];
+
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999881577776666").feeAmount(new BigDecimal(20))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999881577776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999881577776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
-            .ccdCaseNumber("9999881577776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.CMC)
             .currency(CurrencyCode.GBP)
             .siteId("AA08")

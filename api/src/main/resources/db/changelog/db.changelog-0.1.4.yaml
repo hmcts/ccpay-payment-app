@@ -129,3 +129,15 @@ databaseChangeLog:
               - column:
                   name: date_updated
                   type: TIMESTAMP WITHOUT TIME ZONE
+  - changeSet:
+      id: 1554989041418-14
+      author: ayan
+      changes:
+        - createIndex:
+            indexName: ix_fee_date_created
+            tableName: fee
+            unique: false
+            columns:
+              - column:
+                  name: date_created
+                  type: TIMESTAMP(3) WITHOUT TIME ZONE
