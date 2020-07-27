@@ -93,13 +93,15 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePBAPaymentByCMCTestShouldReturnAutoApportionedFees() {
         final String[] reference = new String[1];
+
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999881677776666").feeAmount(new BigDecimal(20))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999881677776666").feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("9999881677776666").feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         // create a PBA payment
@@ -109,7 +111,7 @@ public class PBAPaymentFunctionalTest {
             .amount(new BigDecimal("120"))
             .description("New passport application")
             .caseReference("aCaseReference")
-            .ccdCaseNumber("9999881677776666")
+            .ccdCaseNumber(ccdCaseNumber)
             .service(Service.CMC)
             .currency(CurrencyCode.GBP)
             .siteId("AA101")
