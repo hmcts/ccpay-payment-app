@@ -134,7 +134,15 @@ public class PBAPaymentFunctionalTest {
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
         assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
 
-        // TEST retrieve payments, remissions and fees by payment-group-reference
+        assertEquals(BigDecimal.valueOf(20).intValue(), paymentsResponse.getPayments().get(0).getFees().get(0).getAllocatedAmount().intValue());
+        assertEquals(BigDecimal.valueOf(40).intValue(), paymentsResponse.getPayments().get(0).getFees().get(1).getAllocatedAmount().intValue());
+        assertEquals(BigDecimal.valueOf(60).intValue(), paymentsResponse.getPayments().get(0).getFees().get(2).getAllocatedAmount().intValue());
+        assertEquals("Y", paymentsResponse.getPayments().get(0).getFees().get(0).getIsFullyApportioned());
+        assertEquals("Y", paymentsResponse.getPayments().get(0).getFees().get(1).getIsFullyApportioned());
+        assertEquals("Y", paymentsResponse.getPayments().get(0).getFees().get(2).getIsFullyApportioned());
+
+
+        /*// TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(paymentsResponse.getPayments().get(0).getCcdCaseNumber())
@@ -151,7 +159,7 @@ public class PBAPaymentFunctionalTest {
                     assertEquals("Y", paymentGroupDto.getFees().get(1).getIsFullyApportioned());
                     assertEquals("Y", paymentGroupDto.getFees().get(2).getIsFullyApportioned());
                 });
-        }));
+        }));*/
     }
 
     //@Test
