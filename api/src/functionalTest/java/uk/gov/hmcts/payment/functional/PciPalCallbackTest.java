@@ -168,7 +168,25 @@ public class PciPalCallbackTest {
             .when().telephonyCallback(callbackDto)
             .then().noContent();
 
-        // TEST retrieve payments, remissions and fees by payment-group-reference
+        // retrieve payment
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getCardPayment(paymentReference.get())
+            .then().get();
+
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getReference(), paymentReference);
+        assertEquals(paymentDto.getExternalProvider(), "pci pal");
+        assertEquals(paymentDto.getStatus(), "Success");
+
+        assertEquals(BigDecimal.valueOf(20).intValue(), paymentDto.getFees().get(0).getAllocatedAmount().intValue());
+        assertEquals(BigDecimal.valueOf(40).intValue(), paymentDto.getFees().get(1).getAllocatedAmount().intValue());
+        assertEquals(BigDecimal.valueOf(60).intValue(), paymentDto.getFees().get(2).getAllocatedAmount().intValue());
+        assertEquals("Y", paymentDto.getFees().get(0).getIsFullyApportioned());
+        assertEquals("Y", paymentDto.getFees().get(1).getIsFullyApportioned());
+        assertEquals("Y", paymentDto.getFees().get(2).getIsFullyApportioned());
+
+        /*// TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(ccdCaseNumber)
@@ -185,7 +203,7 @@ public class PciPalCallbackTest {
                     assertEquals("Y", paymentGroupDto.getFees().get(1).getIsFullyApportioned());
                     assertEquals("Y", paymentGroupDto.getFees().get(2).getIsFullyApportioned());
                 });
-        }));
+        }));*/
     }
 
     @Test
@@ -252,7 +270,25 @@ public class PciPalCallbackTest {
             .when().telephonyCallback(callbackDto)
             .then().noContent();
 
-        // TEST retrieve payments, remissions and fees by payment-group-reference
+        // retrieve payment
+        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getCardPayment(paymentReference.get())
+            .then().get();
+
+        assertNotNull(paymentDto);
+        assertEquals(paymentDto.getReference(), paymentReference);
+        assertEquals(paymentDto.getExternalProvider(), "pci pal");
+        assertEquals(paymentDto.getStatus(), "Success");
+
+        assertEquals(BigDecimal.valueOf(0).intValue(), paymentDto.getFees().get(0).getAllocatedAmount().intValue());
+        assertEquals(BigDecimal.valueOf(0).intValue(), paymentDto.getFees().get(1).getAllocatedAmount().intValue());
+        assertEquals(BigDecimal.valueOf(0).intValue(), paymentDto.getFees().get(2).getAllocatedAmount().intValue());
+        assertEquals("N", paymentDto.getFees().get(0).getIsFullyApportioned());
+        assertEquals("N", paymentDto.getFees().get(1).getIsFullyApportioned());
+        assertEquals("N", paymentDto.getFees().get(2).getIsFullyApportioned());
+
+        /*// TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(ccdCaseNumber)
@@ -269,7 +305,7 @@ public class PciPalCallbackTest {
                     assertEquals("N", paymentGroupDto.getFees().get(1).getIsFullyApportioned());
                     assertEquals("N", paymentGroupDto.getFees().get(2).getIsFullyApportioned());
                 });
-        }));
+        }));*/
     }
 
     @Test

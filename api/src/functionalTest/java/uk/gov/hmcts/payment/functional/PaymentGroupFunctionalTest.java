@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -236,7 +235,7 @@ public class PaymentGroupFunctionalTest {
             .fees(fees)
             .build();
 
-        AtomicReference<String> paymentReference = new AtomicReference<>();
+        //AtomicReference<String> paymentReference = new AtomicReference<>();
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -254,12 +253,17 @@ public class PaymentGroupFunctionalTest {
                 assertThat(paymentDto.getReference()).isNotNull();
                 assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
                 assertThat(paymentDto.getPaymentGroupReference()).isEqualTo(paymentGroupFeeDto.getPaymentGroupReference());
-                paymentReference.set(paymentDto.getReference());
+                //paymentReference.set(paymentDto.getReference());
+                assertEquals(BigDecimal.valueOf(20).intValue(), paymentDto.getFees().get(0).getAllocatedAmount().intValue());
+                assertEquals(BigDecimal.valueOf(40).intValue(), paymentDto.getFees().get(1).getAllocatedAmount().intValue());
+                assertEquals(BigDecimal.valueOf(60).intValue(), paymentDto.getFees().get(2).getAllocatedAmount().intValue());
+                assertEquals("Y", paymentDto.getFees().get(0).getIsFullyApportioned());
+                assertEquals("Y", paymentDto.getFees().get(1).getIsFullyApportioned());
+                assertEquals("Y", paymentDto.getFees().get(2).getIsFullyApportioned());
             });
-
         });
 
-        // TEST retrieve payments, remissions and fees by payment-group-reference
+        /*// TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(ccdCaseNumber)
@@ -276,7 +280,7 @@ public class PaymentGroupFunctionalTest {
                     assertEquals("Y", paymentGroupDto.getFees().get(1).getIsFullyApportioned());
                     assertEquals("Y", paymentGroupDto.getFees().get(2).getIsFullyApportioned());
                 });
-        }));
+        }));*/
     }
 
     @Test
