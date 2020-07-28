@@ -182,9 +182,12 @@ public class PaymentController {
     public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
 
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
-        return Optional.ofNullable(paymentFeeLink)
-            .map(paymentDtoMapper::toGetPaymentResponseDtos)
-            .orElseThrow(PaymentNotFoundException::new);
+        Optional<Payment> payment = paymentFeeLink.getPayments().stream()
+            .filter(p -> p.getReference().equals(paymentReference)).findAny();
+        if(payment.isPresent()) {
+            return paymentDtoMapper.toGetPaymentResponseDtos(payment.get());
+        }
+        return null;
     }
 
     private Optional<Payment> getPaymentByReference(String reference) {
@@ -197,16 +200,16 @@ public class PaymentController {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+
         LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
         LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
         for (final Payment payment: payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
-            List<PaymentFee> fees = paymentFeeLink.getFees();
-
             //Apportion logic added for pulling allocation amount
-            if (payment.getPaymentChannel() != null && payment.getPaymentChannel().getName() != null
-                && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName())
-                && (apportionFeature && (payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate))
+            boolean apportionCheck = payment.getPaymentChannel() != null
+                && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName());
+            List<PaymentFee> fees = paymentFeeLink.getFees();
+            if ((apportionCheck && apportionFeature && (payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate))
                     || payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate))))) {
                 final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
                 fees = new ArrayList<>();
