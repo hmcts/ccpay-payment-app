@@ -114,9 +114,9 @@ public class PciPalCallbackTest {
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -179,14 +179,7 @@ public class PciPalCallbackTest {
         assertEquals(paymentDto.getExternalProvider(), "pci pal");
         assertEquals(paymentDto.getStatus(), "Success");
 
-        assertEquals(BigDecimal.valueOf(20).intValue(), paymentDto.getFees().get(0).getAllocatedAmount().intValue());
-        assertEquals(BigDecimal.valueOf(40).intValue(), paymentDto.getFees().get(1).getAllocatedAmount().intValue());
-        assertEquals(BigDecimal.valueOf(60).intValue(), paymentDto.getFees().get(2).getAllocatedAmount().intValue());
-        assertEquals("Y", paymentDto.getFees().get(0).getIsFullyApportioned());
-        assertEquals("Y", paymentDto.getFees().get(1).getIsFullyApportioned());
-        assertEquals("Y", paymentDto.getFees().get(2).getIsFullyApportioned());
-
-        /*// TEST retrieve payments, remissions and fees by payment-group-reference
+        // TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(ccdCaseNumber)
@@ -196,14 +189,26 @@ public class PciPalCallbackTest {
                 .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
                     .equalsIgnoreCase(paymentReference.get()))
                 .forEach(paymentGroupDto -> {
-                    assertEquals(BigDecimal.valueOf(20).intValue(), paymentGroupDto.getFees().get(0).getAllocatedAmount().intValue());
-                    assertEquals(BigDecimal.valueOf(40).intValue(), paymentGroupDto.getFees().get(1).getAllocatedAmount().intValue());
-                    assertEquals(BigDecimal.valueOf(60).intValue(),  paymentGroupDto.getFees().get(2).getAllocatedAmount().intValue());
-                    assertEquals("Y", paymentGroupDto.getFees().get(0).getIsFullyApportioned());
-                    assertEquals("Y", paymentGroupDto.getFees().get(1).getIsFullyApportioned());
-                    assertEquals("Y", paymentGroupDto.getFees().get(2).getIsFullyApportioned());
+                    paymentGroupDto.getFees().stream()
+                        .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                        .forEach(fee -> {
+                            assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAllocatedAmount().intValue());
+                            assertEquals("Y", fee.getIsFullyApportioned());
+                        });
+                    paymentGroupDto.getFees().stream()
+                        .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                        .forEach(fee -> {
+                            assertEquals(BigDecimal.valueOf(40).intValue(), fee.getAllocatedAmount().intValue());
+                            assertEquals("Y", fee.getIsFullyApportioned());
+                        });
+                    paymentGroupDto.getFees().stream()
+                        .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                        .forEach(fee -> {
+                            assertEquals(BigDecimal.valueOf(60).intValue(), fee.getAllocatedAmount().intValue());
+                            assertEquals("Y", fee.getIsFullyApportioned());
+                        });
                 });
-        }));*/
+        }));
     }
 
     @Test
@@ -216,9 +221,9 @@ public class PciPalCallbackTest {
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -270,25 +275,7 @@ public class PciPalCallbackTest {
             .when().telephonyCallback(callbackDto)
             .then().noContent();
 
-        // retrieve payment
-        PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().getCardPayment(paymentReference.get())
-            .then().get();
-
-        assertNotNull(paymentDto);
-        assertEquals(paymentDto.getReference(), paymentReference);
-        assertEquals(paymentDto.getExternalProvider(), "pci pal");
-        assertEquals(paymentDto.getStatus(), "Success");
-
-        assertEquals(BigDecimal.valueOf(0).intValue(), paymentDto.getFees().get(0).getAllocatedAmount().intValue());
-        assertEquals(BigDecimal.valueOf(0).intValue(), paymentDto.getFees().get(1).getAllocatedAmount().intValue());
-        assertEquals(BigDecimal.valueOf(0).intValue(), paymentDto.getFees().get(2).getAllocatedAmount().intValue());
-        assertEquals("N", paymentDto.getFees().get(0).getIsFullyApportioned());
-        assertEquals("N", paymentDto.getFees().get(1).getIsFullyApportioned());
-        assertEquals("N", paymentDto.getFees().get(2).getIsFullyApportioned());
-
-        /*// TEST retrieve payments, remissions and fees by payment-group-reference
+        // TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT)
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(ccdCaseNumber)
@@ -298,14 +285,26 @@ public class PciPalCallbackTest {
                 .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
                     .equalsIgnoreCase(paymentReference.get()))
                 .forEach(paymentGroupDto -> {
-                    assertEquals(BigDecimal.valueOf(0).intValue(), paymentGroupDto.getFees().get(0).getAllocatedAmount().intValue());
-                    assertEquals(BigDecimal.valueOf(0).intValue(), paymentGroupDto.getFees().get(1).getAllocatedAmount().intValue());
-                    assertEquals(BigDecimal.valueOf(0).intValue(),  paymentGroupDto.getFees().get(2).getAllocatedAmount().intValue());
-                    assertEquals("N", paymentGroupDto.getFees().get(0).getIsFullyApportioned());
-                    assertEquals("N", paymentGroupDto.getFees().get(1).getIsFullyApportioned());
-                    assertEquals("N", paymentGroupDto.getFees().get(2).getIsFullyApportioned());
+                    paymentGroupDto.getFees().stream()
+                        .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                        .forEach(fee -> {
+                            assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAllocatedAmount().intValue());
+                            assertEquals("N", fee.getIsFullyApportioned());
+                        });
+                    paymentGroupDto.getFees().stream()
+                        .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                        .forEach(fee -> {
+                            assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAllocatedAmount().intValue());
+                            assertEquals("N", fee.getIsFullyApportioned());
+                        });
+                    paymentGroupDto.getFees().stream()
+                        .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                        .forEach(fee -> {
+                            assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAllocatedAmount().intValue());
+                            assertEquals("N", fee.getIsFullyApportioned());
+                        });
                 });
-        }));*/
+        }));
     }
 
     @Test
