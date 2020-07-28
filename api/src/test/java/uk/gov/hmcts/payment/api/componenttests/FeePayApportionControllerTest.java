@@ -298,18 +298,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
-    public void retrievePaymentByReference_shouldThrow404_whenReferenceIsUnknown() throws Exception {
-        populateCardPaymentToDb("1");
-
-        restActions
-            .get("/payments/" + "some_random")
-            .andExpect(status().isNotFound())
-            .andReturn();
-
-    }
-
-    @Test
     public void getting404PaymentNotFoundException() throws Exception {
         String errorMessage = "errorMessage";
         PaymentNotFoundException ex = new PaymentNotFoundException(errorMessage);
