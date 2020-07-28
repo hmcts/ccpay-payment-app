@@ -175,7 +175,7 @@ public class PciPalCallbackTest {
             .then().get();
 
         assertNotNull(paymentDto);
-        assertEquals(paymentDto.getReference(), paymentReference);
+        assertEquals(paymentDto.getReference(), paymentReference.get());
         assertEquals(paymentDto.getExternalProvider(), "pci pal");
         assertEquals(paymentDto.getStatus(), "Success");
 
