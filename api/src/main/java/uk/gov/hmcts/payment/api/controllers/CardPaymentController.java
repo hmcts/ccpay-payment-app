@@ -22,6 +22,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
@@ -31,6 +32,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
@@ -171,7 +173,13 @@ public class CardPaymentController {
     })
     @GetMapping(value = "/card-payments/{reference}/statuses")
     public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
-        return paymentDtoMapper.toRetrievePaymentStatusesDto(delegatingPaymentService.retrieve(paymentReference));
+        PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieve(paymentReference);
+        Optional<Payment> payment = paymentFeeLink.getPayments().stream()
+            .filter(p -> p.getReference().equals(paymentReference)).findAny();
+        if(payment.isPresent()) {
+            return paymentDtoMapper.toPaymentStatusesDto(payment.get());
+        }
+       return null;
     }
 
     @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")
@@ -219,4 +227,5 @@ public class CardPaymentController {
     public String return403(AccessDeniedException ex) {
         return ex.getMessage();
     }
+
 }
