@@ -65,6 +65,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             params.add(new BasicNameValuePair("callbackURL", callbackUrl));
             params.add(new BasicNameValuePair("customData2", pciPalPaymentRequest.getCustomData2()));
 
+
             URIBuilder uriBuilder = new URIBuilder(url);
             uriBuilder.addParameters(params);
             HttpGet request = new HttpGet(uriBuilder.build());
