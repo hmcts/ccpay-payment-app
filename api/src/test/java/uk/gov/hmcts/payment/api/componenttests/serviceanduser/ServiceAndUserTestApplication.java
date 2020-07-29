@@ -5,6 +5,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.client.LinkDiscoverer;
+import org.springframework.http.MediaType;
+import org.springframework.plugin.core.OrderAwarePluginRegistry;
+import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -58,6 +62,12 @@ public class ServiceAndUserTestApplication {
         @Bean
         public Function<HttpServletRequest, Collection<String>> authorizedServicesExtractor() {
             return (any) -> Collections.singletonList("divorce");
+        }
+
+        @Bean
+        public PluginRegistry<LinkDiscoverer, MediaType> discoverers(
+            OrderAwarePluginRegistry<LinkDiscoverer, MediaType> relProviderPluginRegistry) {
+            return relProviderPluginRegistry;
         }
 
         @Bean

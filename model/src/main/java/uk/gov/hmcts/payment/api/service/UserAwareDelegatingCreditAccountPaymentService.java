@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -136,7 +135,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     }
 
     private static Specification findCreditAccountPaymentsByBetweenDates(Date fromDate, Date toDate) {
-        return Specifications
+        return Specification
             .where(isEquals(PaymentMethod.paymentMethodWith().name(PAYMENT_METHOD).build()))
             .and(isBetween(fromDate, toDate));
     }

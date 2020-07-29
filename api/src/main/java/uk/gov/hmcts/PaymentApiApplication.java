@@ -10,11 +10,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.hateoas.client.LinkDiscoverer;
+import org.springframework.http.MediaType;
+import org.springframework.plugin.core.OrderAwarePluginRegistry;
+import org.springframework.plugin.core.PluginRegistry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import uk.gov.hmcts.payment.api.logging.Markers;
 
@@ -50,6 +54,12 @@ public class PaymentApiApplication {
     }
 
     @Bean
+    public PluginRegistry<LinkDiscoverer, MediaType> discoverers(
+        OrderAwarePluginRegistry<LinkDiscoverer, MediaType> relProviderPluginRegistry) {
+        return relProviderPluginRegistry;
+    }
+
+    @Bean
     public CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
         cacheManager.setCaches(Arrays.asList(
@@ -58,7 +68,10 @@ public class PaymentApiApplication {
                     .build()),
             new CaffeineCache("sites", Caffeine.newBuilder()
                 .expireAfterWrite(48, TimeUnit.HOURS)
-                .build())
+                .build()),
+        new CaffeineCache("userInfoCache", Caffeine.newBuilder()
+            .expireAfterWrite(8, TimeUnit.HOURS)
+            .build())
         ));
         return cacheManager;
     }
