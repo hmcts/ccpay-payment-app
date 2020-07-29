@@ -327,6 +327,32 @@ public class PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
     }
 
+    public Payment populateBarCashPaymentToDbForApportionment(String number) throws Exception {
+        //create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("123.19"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Description" + number)
+            .serviceType("Digital Bar")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .giroSlipNo("Grio" + number)
+            .reportedDateOffline(DateTime.now().toDate())
+            .userId(USER_ID)
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("middle office provider").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("digital bar").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("cash").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("pending").build())
+            .reference("RC-1519-9028-1909-111" + number)
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("123.19")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000011" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
 
     public void populateBarChequePaymentToDb(String number) throws Exception {
         //create a payment in remissionDbBackdoor

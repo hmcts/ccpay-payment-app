@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.model.*;
@@ -21,10 +24,7 @@ import uk.gov.hmcts.payment.api.validators.DateFormatter;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -173,11 +173,20 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toGetPaymentResponseDtos(PaymentFeeLink paymentFeeLink) {
-        Payment payment = paymentFeeLink.getPayments().get(0);
+    public PaymentDto toPaymentStatusesDto(Payment payment) {
+        return PaymentDto.payment2DtoWith()
+            .reference(payment.getReference())
+            .amount(payment.getAmount())
+            .paymentGroupReference(payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null)
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .statusHistories(toStatusHistoryDtos(payment.getStatusHistories()))
+            .build();
+    }
+
+    public PaymentDto toGetPaymentResponseDtos(Payment payment) {
         PaymentDto paymentDto = PaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
-            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .paymentGroupReference(payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null)
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
             .amount(payment.getAmount())
@@ -201,7 +210,7 @@ public class PaymentDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .externalReference(payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline())
-            .fees(toGetPaymentFeeDtos(paymentFeeLink.getFees()))
+            .fees(toGetPaymentFeeDtos(payment.getPaymentLink() != null ? payment.getPaymentLink().getFees() : new ArrayList<>()))
             .build();
         return enrichWithFeeData(paymentDto);
     }
@@ -256,7 +265,7 @@ public class PaymentDtoMapper {
                 .accountNumber(payment.getPbaNumber())
                 .organisationName(payment.getOrganisationName())
                 .customerReference(payment.getCustomerReference())
-                .channel(payment.getPaymentChannel().getName())
+                .channel(payment.getPaymentChannel()!= null ? payment.getPaymentChannel().getName(): null)
                 .currency(CurrencyCode.valueOf(payment.getCurrency()))
                 .status(bulkScanCheck ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
                 //.statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
