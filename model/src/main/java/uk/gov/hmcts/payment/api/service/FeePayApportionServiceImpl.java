@@ -24,8 +24,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private final PaymentStatusRepository paymentStatusRepository;
 
-    private final FeePayStagedRepository feePayStagedRepository;
-
     private final FeePayApportionRepository feePayApportionRepository;
 
     private final PaymentFeeRepository paymentFeeRepository;
@@ -43,12 +41,10 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     public FeePayApportionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                       PaymentStatusRepository paymentStatusRepository,
-                                      FeePayStagedRepository feePayStagedRepository,
                                       FeePayApportionRepository feePayApportionRepository,
                                       PaymentFeeRepository paymentFeeRepository) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentStatusRepository = paymentStatusRepository;
-        this.feePayStagedRepository = feePayStagedRepository;
         this.feePayApportionRepository = feePayApportionRepository;
         this.paymentFeeRepository = paymentFeeRepository;
     }
