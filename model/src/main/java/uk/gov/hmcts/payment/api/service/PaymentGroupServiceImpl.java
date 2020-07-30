@@ -55,7 +55,6 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
     }
 
     @Override
-    @Transactional
     public PaymentFeeLink addNewPaymenttoExistingPaymentGroup(Payment payment, String PaymentGroupReference) {
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(PaymentGroupReference)

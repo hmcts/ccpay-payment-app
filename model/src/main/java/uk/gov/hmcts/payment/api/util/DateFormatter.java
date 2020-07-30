@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.validators;
+package uk.gov.hmcts.payment.api.util;
 
 import org.springframework.stereotype.Component;
 

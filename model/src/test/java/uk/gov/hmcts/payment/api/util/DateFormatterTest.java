@@ -1,12 +1,11 @@
-package uk.gov.hmcts.payment.api.validators;
+package uk.gov.hmcts.payment.api.util;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.InjectMocks;
+import uk.gov.hmcts.payment.api.util.DateFormatter;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.Optional;
 
 public class DateFormatterTest {
 
