@@ -148,9 +148,9 @@ springBoot {
 }
 
 dependencyCheck {
-    //failBuildOnCVSS = 0
+    failBuildOnCVSS = 0
     suppressionFile = 'dependency-check-suppressions.xml'
-    //format='ALL'
+    format='ALL'
 }
 
 def sonarExclusions = [
