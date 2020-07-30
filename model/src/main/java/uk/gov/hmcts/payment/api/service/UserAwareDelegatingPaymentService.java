@@ -104,7 +104,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
-    @Transactional
     public PaymentFeeLink create(PaymentServiceRequest paymentServiceRequest)
         throws CheckDigitException {
         String paymentReference = referenceUtil.getNext("RC");
@@ -147,7 +146,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
-    @Transactional
     public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest)
         throws CheckDigitException, MethodNotSupportedException {
 

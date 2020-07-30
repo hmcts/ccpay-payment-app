@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
@@ -172,6 +173,7 @@ public class PaymentGroupController {
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments")
     @ResponseBody
+    @Transactional
     public ResponseEntity<PaymentDto> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
@@ -229,6 +231,7 @@ public class PaymentGroupController {
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments")
     @ResponseBody
+    @Transactional
     public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                 @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
 

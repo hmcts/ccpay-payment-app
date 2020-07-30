@@ -8,12 +8,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.util.DateFormatter;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @Service
 public class FeePayApportionServiceImpl implements FeePayApportionService {
@@ -27,6 +30,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     private final FeePayApportionRepository feePayApportionRepository;
 
     private final PaymentFeeRepository paymentFeeRepository;
+
+    private final DateFormatter dateFormatter;
 
     @Value("${apportion.live.date}")
     private String apportionLiveDate;
@@ -42,11 +47,12 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     public FeePayApportionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                       PaymentStatusRepository paymentStatusRepository,
                                       FeePayApportionRepository feePayApportionRepository,
-                                      PaymentFeeRepository paymentFeeRepository) {
+                                      PaymentFeeRepository paymentFeeRepository,DateFormatter dateFormatter) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentStatusRepository = paymentStatusRepository;
         this.feePayApportionRepository = feePayApportionRepository;
         this.paymentFeeRepository = paymentFeeRepository;
+        this.dateFormatter = dateFormatter;
     }
 
     @Override
@@ -153,8 +159,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private List<Payment> getPaymentsToBeApportioned(List<Payment> payments) {
         return payments.stream()
-            .filter(payment -> payment.getDateCreated().after(parseDate(apportionLiveDate)) ||
-                                    payment.getDateCreated().equals(parseDate(apportionLiveDate)))
+            .filter(payment -> payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
+                                    payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate)))
             .collect(Collectors.toList());
     }
 
@@ -165,8 +171,8 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             }
         }
         return fees.stream()
-            .filter(fee -> fee.getDateCreated().after(parseDate(apportionLiveDate)) ||
-                fee.getDateCreated().equals(parseDate(apportionLiveDate)))
+            .filter(fee -> fee.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
+                fee.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate)))
             .collect(Collectors.toList());
     }
 
@@ -262,13 +268,5 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private BigDecimal getFeeCalculatedPendingAmount(PaymentFee fee) {
         return fee.getNetAmount().subtract(fee.getCurrApportionAmount());
-    }
-
-    private Date parseDate(String date) {
-        try {
-            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
-        } catch (ParseException e) {
-            return null;
-        }
     }
 }
