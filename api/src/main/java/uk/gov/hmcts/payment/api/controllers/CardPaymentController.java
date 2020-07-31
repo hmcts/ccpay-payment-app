@@ -82,7 +82,7 @@ public class CardPaymentController {
         LOG.info("ITHC Security Fixes are deployed!!!");
 
         if(! new URI(returnURL).getHost().matches(".*([\\-\\.]hmcts.net|[\\-\\.]gov.uk)")) {
-            return new ResponseEntity("returnUrl: Must be an external domain of hmcts.net or gov.uk", BAD_REQUEST);
+            return new ResponseEntity("returnUrl: Must be an internal domain of hmcts.net or gov.uk", BAD_REQUEST);
         }
 
         String paymentGroupReference = PaymentReference.getInstance().getNext();
