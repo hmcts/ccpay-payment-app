@@ -8,22 +8,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
-@ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
+@ActiveProfiles({"local", "componenttest"})
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = MOCK)
-@Transactional
 public class LaunchDarklyFeatureTogglerTest {
 
     @Mock
     private LDClientInterface ldClient;
-
 
     @Autowired
     private LaunchDarklyFeatureToggler launchDarklyFeatureToggler;
