@@ -10,13 +10,13 @@ import org.springframework.http.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -46,7 +46,7 @@ public class CMCCardPaymentFunctionalTest {
     @Autowired
     private S2sTokenService s2sTokenService;
     @Autowired
-    private LaunchDarklyFeatureToggler featureToggler;
+    private LaunchDarklyFeature featureToggler;
 
     private RestTemplate restTemplate;
 
