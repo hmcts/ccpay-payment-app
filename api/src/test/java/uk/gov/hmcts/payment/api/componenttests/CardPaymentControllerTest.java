@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -40,6 +42,7 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -78,6 +81,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -804,6 +810,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
                 .withStatus(201)
@@ -843,15 +851,17 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(new BigDecimal(20), savedfees.get(0).getAllocatedAmount());
         assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
         assertEquals(new BigDecimal(60), savedfees.get(2).getAllocatedAmount());
-        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(2).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(0).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(1).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(2).getIsFullyApportioned());
     }
 
     @Test
     public void createCardPaymentWithMultipleFee_ShortfallPayment() throws Exception {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
@@ -892,8 +902,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(new BigDecimal(30), savedfees.get(0).getAllocatedAmount());
         assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
         assertEquals(new BigDecimal(50), savedfees.get(2).getAllocatedAmount());
-        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(0).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(1).getIsFullyApportioned());
         assertEquals("N", savedfees.get(2).getIsFullyApportioned());
     }
 
@@ -901,6 +911,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     public void createCardPaymentWithMultipleFee_SurplusPayment() throws Exception {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
@@ -941,9 +953,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(new BigDecimal(10), savedfees.get(0).getAllocatedAmount());
         assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
         assertEquals(new BigDecimal(70), savedfees.get(2).getAllocatedAmount());
-        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(2).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(0).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(1).getIsFullyApportioned());
+        assertEquals("N", savedfees.get(2).getIsFullyApportioned());
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {

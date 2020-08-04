@@ -8,12 +8,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -82,6 +84,9 @@ public class PaymentGroupControllerTest {
 
     @Autowired
     private PaymentDbBackdoor db;
+
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
     private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
@@ -1067,6 +1072,8 @@ public class PaymentGroupControllerTest {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
@@ -1124,6 +1131,8 @@ public class PaymentGroupControllerTest {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
@@ -1180,6 +1189,8 @@ public class PaymentGroupControllerTest {
     public void createBulkScanPaymentWithMultipleFee_SurplusPayment() throws Exception {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
