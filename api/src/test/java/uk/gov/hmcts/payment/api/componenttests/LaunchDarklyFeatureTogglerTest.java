@@ -27,16 +27,14 @@ public class LaunchDarklyFeatureTogglerTest {
 
     @Test
     public void should_return_default_value_when_key_does_not_exist() {
-        String notExistingKey = "not-existing-key";
-
-        assertTrue(launchDarklyFeatureToggler.getBooleanValue(notExistingKey, true));
+        String sampleKey = "sample-key";
+        assertTrue(launchDarklyFeatureToggler.getBooleanValue(sampleKey, true));
     }
 
     @Test
     public void should_return_value_when_key_exists() {
-        String existingKey = "existing-key";
-
-        assertFalse(launchDarklyFeatureToggler.getBooleanValue(existingKey, false));
+        String sampleKey = "sample-key";
+        assertFalse(launchDarklyFeatureToggler.getBooleanValue(sampleKey, false));
     }
 
 }
