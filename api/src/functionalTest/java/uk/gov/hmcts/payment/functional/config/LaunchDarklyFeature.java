@@ -8,16 +8,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LaunchDarklyFeatureToggler implements FeatureToggler {
+public class LaunchDarklyFeature implements FeatureToggler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LaunchDarklyFeatureToggler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LaunchDarklyFeature.class);
 
     @Value("${launch.darkly.user.name}")
     private String userName;
 
     private LDClientInterface ldClient;
 
-    public LaunchDarklyFeatureToggler(LDClientInterface ldClient) {
+    public LaunchDarklyFeature(LDClientInterface ldClient) {
         this.ldClient = ldClient;
     }
 
