@@ -6,9 +6,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -23,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -36,10 +39,15 @@ public class FeePayApportionMockControllerTest {
     @Autowired
     private ReferenceUtil referenceUtil;
 
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
+
     @Test
     public void SingleFeeMultiplePay_ExactPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233334444";
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
@@ -56,7 +64,7 @@ public class FeePayApportionMockControllerTest {
         List<BigDecimal> paymentAmounts = new ArrayList<>();
         paymentAmounts.add(new BigDecimal(50));
         paymentAmounts.add(new BigDecimal(20));
-        paymentAmounts.add(new BigDecimal(30));
+        paymentAmounts.add(new BigDecimal(100));
 
         List<Date> paymentCreatedDates = new ArrayList<>();
         paymentCreatedDates.add(parseDate("01.08.2020"));
@@ -81,6 +89,8 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233335555";
 
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
 
@@ -96,7 +106,7 @@ public class FeePayApportionMockControllerTest {
         List<BigDecimal> paymentAmounts = new ArrayList<>();
         paymentAmounts.add(new BigDecimal(80));
         paymentAmounts.add(new BigDecimal(20));
-        paymentAmounts.add(new BigDecimal(30));
+        paymentAmounts.add(new BigDecimal(130));
 
         List<Date> paymentCreatedDates = new ArrayList<>();
         paymentCreatedDates.add(parseDate("01.08.2020"));
@@ -121,6 +131,8 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233336666";
 
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
 
@@ -136,7 +148,7 @@ public class FeePayApportionMockControllerTest {
         List<BigDecimal> paymentAmounts = new ArrayList<>();
         paymentAmounts.add(new BigDecimal(80));
         paymentAmounts.add(new BigDecimal(10));
-        paymentAmounts.add(new BigDecimal(5));
+        paymentAmounts.add(new BigDecimal(95));
 
         List<Date> paymentCreatedDates = new ArrayList<>();
         paymentCreatedDates.add(parseDate("01.08.2020"));
@@ -161,6 +173,8 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233337777";
 
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
         feeAmounts.add(new BigDecimal(40));
@@ -176,7 +190,7 @@ public class FeePayApportionMockControllerTest {
         List<BigDecimal> paymentAmounts = new ArrayList<>();
         paymentAmounts.add(new BigDecimal(50));
         paymentAmounts.add(new BigDecimal(50));
-        paymentAmounts.add(new BigDecimal(40));
+        paymentAmounts.add(new BigDecimal(140));
 
         List<Date> paymentCreatedDates = new ArrayList<>();
         paymentCreatedDates.add(parseDate("01.08.2020"));
@@ -201,6 +215,8 @@ public class FeePayApportionMockControllerTest {
 
         String ccdCase = "1111222233338888";
 
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
         feeAmounts.add(new BigDecimal(25));
@@ -218,7 +234,7 @@ public class FeePayApportionMockControllerTest {
 
         List<BigDecimal> paymentAmounts = new ArrayList<>();
         paymentAmounts.add(new BigDecimal(100));
-        paymentAmounts.add(new BigDecimal(80));
+        paymentAmounts.add(new BigDecimal(200));
 
         List<Date> paymentCreatedDates = new ArrayList<>();
         paymentCreatedDates.add(parseDate("01.08.2020"));
@@ -235,13 +251,15 @@ public class FeePayApportionMockControllerTest {
 
         assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
         assertEquals(new BigDecimal(25), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(55), feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
+        assertEquals(new BigDecimal(75), feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
     }
 
     @Test
     public void MultipleFeeMultiplePay_ShortfallPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233339999";
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(100));
@@ -277,8 +295,8 @@ public class FeePayApportionMockControllerTest {
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
+        assertEquals(new BigDecimal(10), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        assertEquals(null, feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
         assertEquals(null, feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
     }
 
@@ -286,6 +304,8 @@ public class FeePayApportionMockControllerTest {
     public void MultipleFeeMultiplePay_UseCase5() throws CheckDigitException {
 
         String ccdCase = "1111222244441111";
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         List<BigDecimal> feeAmounts = new ArrayList<>();
         feeAmounts.add(new BigDecimal(500));
@@ -312,8 +332,8 @@ public class FeePayApportionMockControllerTest {
             .build();
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
-
-        assertEquals(new BigDecimal(700), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        //Based on Amount Due
+        assertEquals(new BigDecimal(500), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
     }
 
     private List<PaymentFeeLink> getPaymentFeeLinks(int count) throws CheckDigitException {

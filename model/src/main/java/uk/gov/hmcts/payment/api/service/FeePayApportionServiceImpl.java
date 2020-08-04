@@ -73,8 +73,10 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 for(PaymentFee fee : getFeesToBeApportioned(feePayApportionCCDCase.getFees())) {
                     if(fee.getIsFullyApportioned().equalsIgnoreCase("N")){
 
-                        fee.setCurrApportionAmount(fee.getAllocatedAmount() != null ? fee.getAllocatedAmount() : BigDecimal.valueOf(0));
+                        //fee.setCurrApportionAmount(fee.getAllocatedAmount() != null ? fee.getAllocatedAmount() : BigDecimal.valueOf(0));
                         fee.setNetAmount(fee.getNetAmount() != null ? fee.getNetAmount() : getFeeCalculatedNetAmount(fee, feePayApportionCCDCase.getRemissions()));
+                        fee.setCurrApportionAmount(getFeeCurrentApportionedAmount(fee));
+
                         BigDecimal calculatedFeeAmount = getFeeCalculatedPendingAmount(fee);
                         FeePayApportion feePayApportion = applyFeePayApportion(fee, payment, calculatedFeeAmount, remainingPaymentAmount);
                         if(feePayApportion != null){
@@ -121,6 +123,10 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             }
         }
         return feePayApportionCCDCase;
+    }
+
+    private BigDecimal getFeeCurrentApportionedAmount(PaymentFee fee) {
+        return fee.getAmountDue() == null ? BigDecimal.valueOf(0) : fee.getNetAmount().subtract(fee.getAmountDue());
     }
 
     private BigDecimal getFeeCalculatedNetAmount(PaymentFee fee, List<Remission> remissions) {
@@ -222,7 +228,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
             if(fee.getCurrApportionAmount().doubleValue() == fee.getNetAmount().doubleValue()){
                 // Mark Fee as Fully Apportioned
-                fee.setIsFullyApportioned("Y");
+                //fee.setIsFullyApportioned("Y");
                 resetShortFallAmount(fee);
             }
 
