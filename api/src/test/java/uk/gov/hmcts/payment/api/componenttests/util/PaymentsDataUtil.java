@@ -133,7 +133,6 @@ public class PaymentsDataUtil {
             .code("FEE000" + number)
             .volume(1)
             .allocatedAmount(new BigDecimal("99.99"))
-            .isFullyApportioned("Y")
             .apportionAmount(new BigDecimal("99.99")).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
@@ -500,12 +499,10 @@ public class PaymentsDataUtil {
 
         FeePayApportion feePayApportion = db.createApportionDetails(FeePayApportion.feePayApportionWith()
             .apportionAmount(BigDecimal.valueOf(100))
-            .apportionAmount(BigDecimal.valueOf(100))
             .apportionType("AUTO")
             .feeId(1)
             .paymentId(1)
-            .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y"));
+            .feeAmount(BigDecimal.valueOf(100)));
         return feePayApportion;
     }
 
@@ -513,14 +510,12 @@ public class PaymentsDataUtil {
 
         FeePayApportion feePayApportion = db.createApportionDetails(FeePayApportion.feePayApportionWith()
             .apportionAmount(BigDecimal.valueOf(100))
-            .apportionAmount(BigDecimal.valueOf(100))
             .apportionType("AUTO")
             .feeId(1)
             .paymentId(1)
             .feeAmount(BigDecimal.valueOf(100))
             .callSurplusAmount(BigDecimal.valueOf(100))
-            .callSurplusAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y"));
+            .callSurplusAmount(BigDecimal.valueOf(100)));
         return feePayApportion;
     }
 
@@ -528,12 +523,10 @@ public class PaymentsDataUtil {
 
         FeePayApportion feePayApportion = db.createApportionDetails(FeePayApportion.feePayApportionWith()
             .apportionAmount(BigDecimal.valueOf(100))
-            .apportionAmount(BigDecimal.valueOf(100))
             .apportionType("AUTO")
             .feeId(2)
             .paymentId(1)
-            .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y"));
+            .feeAmount(BigDecimal.valueOf(100)));
         return feePayApportion;
     }
 

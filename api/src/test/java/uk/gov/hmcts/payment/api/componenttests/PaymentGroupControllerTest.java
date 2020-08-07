@@ -1118,12 +1118,9 @@ public class PaymentGroupControllerTest {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(new BigDecimal(20), savedfees.get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(60), savedfees.get(2).getAllocatedAmount());
-        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(2).getIsFullyApportioned());
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(2).getAmountDue());
     }
 
     @Test
@@ -1177,12 +1174,9 @@ public class PaymentGroupControllerTest {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(new BigDecimal(30), savedfees.get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(50), savedfees.get(2).getAllocatedAmount());
-        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
-        assertEquals("N", savedfees.get(2).getIsFullyApportioned());
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(10), savedfees.get(2).getAmountDue());
     }
 
     @Test
@@ -1193,7 +1187,7 @@ public class PaymentGroupControllerTest {
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
@@ -1236,12 +1230,9 @@ public class PaymentGroupControllerTest {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(new BigDecimal(10), savedfees.get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(70), savedfees.get(2).getAllocatedAmount());
-        assertEquals("Y", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(1).getIsFullyApportioned());
-        assertEquals("Y", savedfees.get(2).getIsFullyApportioned());
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(-10), savedfees.get(2).getAmountDue());
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
@@ -1282,7 +1273,6 @@ public class PaymentGroupControllerTest {
             .calculatedAmount(new BigDecimal("250.00"))
             .version("1")
             .code("FEE0123")
-            .isFullyApportioned("Y")
             .apportionAmount(new BigDecimal("250.00"))
             .allocatedAmount(new BigDecimal("250.00"))
             .build();
