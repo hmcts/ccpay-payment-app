@@ -103,7 +103,7 @@ public class PaymentRecordController {
             .build();
 
         List<PaymentFee> fees = paymentRecordRequest.getFees().stream()
-            .map(f -> paymentDtoMapper.toFee(f))
+            .map(f -> paymentDtoMapper.buildBarFeeDetails(f))
             .collect(Collectors.toList());
 
         LOG.debug("Record payment for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
