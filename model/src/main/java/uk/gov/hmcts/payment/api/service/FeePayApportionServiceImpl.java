@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.service;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
@@ -32,9 +31,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     private final PaymentFeeRepository paymentFeeRepository;
 
     private final DateFormatter dateFormatter;
-
-    @Value("${apportion.live.date}")
-    private String apportionLiveDate;
 
     private final String APPORTION_TYPE_AUTO = "AUTO";
 
@@ -210,17 +206,14 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
     private List<Payment> getPaymentsToBeApportioned(List<Payment> payments) {
         return payments.stream()
-            .filter(payment -> (payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
-                payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate)))
-                && payment.getAmount() != null
+            .filter(payment -> payment.getAmount() != null
                 && payment.getAmount().compareTo(BigDecimal.valueOf(0)) > 0)
             .collect(Collectors.toList());
     }
 
     private List<PaymentFee> getFeesToBeApportioned(List<PaymentFee> fees) {
         return fees.stream()
-            .filter(fee -> (fee.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
-                fee.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate)))
+            .filter(fee -> (fee.getDateCreated() != null)
                 && fee.getNetAmount() != null
                 && fee.getNetAmount().compareTo(BigDecimal.valueOf(0)) > 0)
             .collect(Collectors.toList());
