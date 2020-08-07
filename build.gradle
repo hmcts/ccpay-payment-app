@@ -1,9 +1,9 @@
 plugins {
     id 'application'
-    id "org.sonarqube" version "2.6.2"
+    id "org.sonarqube" version "3.0"
     id 'org.springframework.boot' version '2.1.6.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
-    id 'org.owasp.dependencycheck' version '5.2.4'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'org.owasp.dependencycheck' version '5.3.0'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     //id 'findbugs'
     id 'jacoco'
@@ -11,6 +11,13 @@ plugins {
 
 def springBootVersion = '2.1.6.RELEASE'
 def springCloudVersion = 'Finchley.SR2'
+
+
+def versions = [
+        lombok: '1.18.12',
+        javaVersion: '11',
+        jacocoVersion: '0.8.4'
+]
 
 allprojects {
     apply plugin: 'maven'
@@ -23,8 +30,8 @@ allprojects {
     }
     version = rootProject.file('version.txt').text.trim() + ".${buildNumber}"
 
-    sourceCompatibility = 11
-    targetCompatibility = 11
+    sourceCompatibility = versions.javaVersion
+    targetCompatibility = versions.javaVersion
 
     repositories {
         mavenLocal()
@@ -88,19 +95,15 @@ subprojects {
             }
         }
 
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
 
-        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
+
+        /*compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
-        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
-        /*functionalTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
-        functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
-        smokeTestCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
-        smokeTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'*/
-
-
-
-
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'*/
     }
 
     test {
