@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,9 +40,6 @@ public class PaymentDtoMapper {
 
     @Autowired
     private DateFormatter dateFormatter;
-
-    @Value("${apportion.live.date}")
-    private String apportionLiveDate;
 
 
 
@@ -244,12 +242,11 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j) {
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
         boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-        boolean apportionCheck = apportionFeature && ((payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate))) ||
-            (payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate))));
+        boolean apportionCheck = apportionFeature && isPaymentAfterApportionment;
         LOG.info("bulkScanCheck value in PaymentDtoMapper: {}",bulkScanCheck);
         LOG.info("isBulkScanPayment value in PaymentDtoMapper: {}",isBulkScanPayment);
         LOG.info("apportionFeature value in PaymentDtoMapper: {}",apportionFeature);
@@ -268,7 +265,6 @@ public class PaymentDtoMapper {
                 .channel(payment.getPaymentChannel()!= null ? payment.getPaymentChannel().getName(): null)
                 .currency(CurrencyCode.valueOf(payment.getCurrency()))
                 .status(bulkScanCheck ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
-                //.statusHistories(payment.getStatusHistories() != null ? toStatusHistoryDtos(payment.getStatusHistories()) : null)
                 .dateCreated(payment.getDateCreated())
                 .dateUpdated(payment.getDateUpdated())
                 .method(payment.getPaymentMethod().getName())
@@ -333,6 +329,21 @@ public class PaymentDtoMapper {
     }
 
     public PaymentFee toFee(FeeDto feeDto) {
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        return PaymentFee.feeWith()
+            .calculatedAmount(feeDto.getCalculatedAmount())
+            .code(feeDto.getCode())
+            .netAmount(feeDto.getNetAmount())
+            .version(feeDto.getVersion())
+            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
+            .ccdCaseNumber(feeDto.getCcdCaseNumber())
+            .reference(feeDto.getReference())
+            .dateCreated(apportionFeature ? timestamp: null)
+            .build();
+    }
+
+    public PaymentFee buildBarFeeDetails(FeeDto feeDto) {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())

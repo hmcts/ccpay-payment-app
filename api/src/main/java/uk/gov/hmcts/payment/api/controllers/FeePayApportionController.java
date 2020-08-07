@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -27,18 +28,15 @@ public class FeePayApportionController {
 
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
 
-    private final DateFormatter dateFormatter;
-
-
-    @Value("${apportion.live.date}")
-    private String apportionLiveDate;
+    @Autowired
+    private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    public FeePayApportionController(PaymentService<PaymentFeeLink, String> paymentService,PaymentFeeRepository paymentFeeRepository,PaymentGroupDtoMapper paymentGroupDtoMapper,DateFormatter dateFormatter) {
+    public FeePayApportionController(PaymentService<PaymentFeeLink, String> paymentService,PaymentFeeRepository paymentFeeRepository,PaymentGroupDtoMapper paymentGroupDtoMapper,LaunchDarklyFeatureToggler featureToggler) {
         this.paymentService = paymentService;
         this.paymentFeeRepository = paymentFeeRepository;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
-        this.dateFormatter = dateFormatter;
+        this.featureToggler = featureToggler;
     }
 
     @ApiOperation(value = "Get apportion details by payment reference", notes = "Get apportion details for supplied payment reference")
@@ -51,14 +49,14 @@ public class FeePayApportionController {
     public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference) {
 
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
-
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
         List<PaymentFee> feeList = paymentFeeLink.getFees();
-        if ((payment.isPresent() && (payment.get().getDateCreated().after(dateFormatter.parseDate(apportionLiveDate)) ||
-            payment.get().getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate)))))
+        if (payment.isPresent() && apportionFeature)
         {
-                List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
+            List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
+            if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
                 feePayApportionList.stream()
                     .forEach(feePayApportion -> {
                         feeList.stream()
@@ -70,6 +68,7 @@ public class FeePayApportionController {
                             });
                     });
                 paymentFeeLink.setFees(feeList);
+            }
 
     }
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
