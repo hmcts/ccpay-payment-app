@@ -343,17 +343,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentFee buildBarFeeDetails(FeeDto feeDto) {
-        return PaymentFee.feeWith()
-            .calculatedAmount(feeDto.getCalculatedAmount())
-            .code(feeDto.getCode())
-            .netAmount(feeDto.getNetAmount())
-            .version(feeDto.getVersion())
-            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
-            .ccdCaseNumber(feeDto.getCcdCaseNumber())
-            .reference(feeDto.getReference())
-            .build();
-    }
 
     private FeeDto toFeeDto(PaymentFee fee) {
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
