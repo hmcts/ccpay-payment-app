@@ -949,6 +949,52 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
     }
 
+    @Test
+    public void createCardPaymentWithMultipleFee_SurplusPayment_When_Apportion_Flag_Is_On() throws Exception {
+
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .withReturnUrl("https://www.google.com")
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }

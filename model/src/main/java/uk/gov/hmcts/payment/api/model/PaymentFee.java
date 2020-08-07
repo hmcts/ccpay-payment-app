@@ -75,7 +75,6 @@ public class PaymentFee extends Auditable<String> {
     @Column(name = "date_apportioned")
     private Date dateApportioned;
 
-    @CreationTimestamp
     @Column(name = "date_created")
     private Timestamp dateCreated;
 

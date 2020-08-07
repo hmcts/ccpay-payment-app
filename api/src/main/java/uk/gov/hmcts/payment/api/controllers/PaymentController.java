@@ -49,20 +49,16 @@ public class PaymentController {
     private final PaymentValidator validator;
     private final FF4j ff4j;
     private final DateTimeFormatter formatter;
-    private final DateFormatter dateFormatter;
     private final PaymentFeeRepository paymentFeeRepository;
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
-    @Value("${apportion.live.date}")
-    private String apportionLiveDate;
-
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
-                             DateUtil dateUtil,DateFormatter dateFormatter,PaymentFeeRepository paymentFeeRepository) {
+                             DateUtil dateUtil,PaymentFeeRepository paymentFeeRepository) {
         this.paymentService = paymentService;
         this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
@@ -70,7 +66,6 @@ public class PaymentController {
         this.validator = paymentValidator;
         this.ff4j = ff4j;
         this.formatter = dateUtil.getIsoDateTimeFormatter();
-        this.dateFormatter = dateFormatter;
         this.paymentFeeRepository = paymentFeeRepository;
     }
 
@@ -209,14 +204,17 @@ public class PaymentController {
             boolean apportionCheck = payment.getPaymentChannel() != null
                 && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName());
             List<PaymentFee> fees = paymentFeeLink.getFees();
-            if ((apportionCheck && apportionFeature && (payment.getDateCreated().after(dateFormatter.parseDate(apportionLiveDate))
-                    || payment.getDateCreated().equals(dateFormatter.parseDate(apportionLiveDate))))) {
+            boolean isPaymentAfterApportionment = false;
+            if (apportionCheck && apportionFeature) {
                 final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
-                fees = new ArrayList<>();
-                getApportionedDetails(fees, feePayApportionList);
+                if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
+                    fees = new ArrayList<>();
+                    getApportionedDetails(fees, feePayApportionList);
+                    isPaymentAfterApportionment = true;
+                }
             }
             //End of Apportion logic
-            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j);
+            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
             paymentDtos.add(paymentDto);
         }
     }
