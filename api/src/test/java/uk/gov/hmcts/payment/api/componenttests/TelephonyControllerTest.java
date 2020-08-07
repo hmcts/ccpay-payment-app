@@ -327,9 +327,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> fees = savedPaymentGroup.getFees();
 
-        assertEquals(BigDecimal.valueOf(101.99), fees.get(0).getAllocatedAmount());
         assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAmountDue()));
-        assertEquals("Y", fees.get(0).getIsFullyApportioned());
     }
 
     @Test
@@ -391,9 +389,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> fees = savedPaymentGroup.getFees();
 
-        assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAllocatedAmount()));
-        //assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
-        assertEquals("N", fees.get(0).getIsFullyApportioned());
+        assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
 
     }
 

@@ -848,12 +848,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(new BigDecimal(20), savedfees.get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(60), savedfees.get(2).getAllocatedAmount());
-        assertEquals("N", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("N", savedfees.get(1).getIsFullyApportioned());
-        assertEquals("N", savedfees.get(2).getIsFullyApportioned());
+        assertEquals(new BigDecimal(20), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
     }
 
     @Test
@@ -899,12 +896,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(new BigDecimal(30), savedfees.get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(50), savedfees.get(2).getAllocatedAmount());
-        assertEquals("N", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("N", savedfees.get(1).getIsFullyApportioned());
-        assertEquals("N", savedfees.get(2).getIsFullyApportioned());
+        assertEquals(new BigDecimal(30), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
     }
 
     @Test
@@ -950,12 +944,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(new BigDecimal(10), savedfees.get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), savedfees.get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(70), savedfees.get(2).getAllocatedAmount());
-        assertEquals("N", savedfees.get(0).getIsFullyApportioned());
-        assertEquals("N", savedfees.get(1).getIsFullyApportioned());
-        assertEquals("N", savedfees.get(2).getIsFullyApportioned());
+        assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
     }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {

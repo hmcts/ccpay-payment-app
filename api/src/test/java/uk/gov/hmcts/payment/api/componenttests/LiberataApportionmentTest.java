@@ -312,7 +312,6 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -351,7 +350,6 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);

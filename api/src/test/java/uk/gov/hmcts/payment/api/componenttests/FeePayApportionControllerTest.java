@@ -1,8 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,9 +19,10 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.FeePayApportionController;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -31,25 +30,21 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
-import static org.mockito.ArgumentMatchers.anyString;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
@@ -117,7 +112,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
@@ -145,7 +139,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
@@ -172,7 +165,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
@@ -200,7 +192,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
@@ -228,7 +219,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(4)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
@@ -255,7 +245,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         when(paymentService.retrieve(payment.getReference())).thenReturn(payment.getPaymentLink());
@@ -282,7 +271,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         when(paymentService.retrieve(anyString())).thenReturn(payment.getPaymentLink());

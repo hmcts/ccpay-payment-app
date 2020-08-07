@@ -121,11 +121,10 @@ public class PaymentGroupDtoMapper {
             .naturalAccountCode(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getNaturalAccountCode() : null)
             .description( optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getDescription() : null)
             .allocatedAmount(fee.getAllocatedAmount())
+            .apportionAmount(fee.getApportionAmount())
             .dateCreated(fee.getDateCreated())
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
-            .apportionAmount(fee.getApportionAmount())
-            .isFullyApportioned(fee.getIsFullyApportioned())
             .amountDue(fee.getAmountDue())
             .build();
     }

@@ -198,20 +198,17 @@ public class PciPalCallbackTest {
                         paymentGroupDto.getFees().stream()
                             .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
                             .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAllocatedAmount().intValue());
-                                assertEquals("Y", fee.getIsFullyApportioned());
+                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
                             });
                         paymentGroupDto.getFees().stream()
                             .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
                             .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(40).intValue(), fee.getAllocatedAmount().intValue());
-                                assertEquals("Y", fee.getIsFullyApportioned());
+                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
                             });
                         paymentGroupDto.getFees().stream()
                             .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
                             .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(60).intValue(), fee.getAllocatedAmount().intValue());
-                                assertEquals("Y", fee.getIsFullyApportioned());
+                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
                             });
                     }
                 });
@@ -298,20 +295,17 @@ public class PciPalCallbackTest {
                         paymentGroupDto.getFees().stream()
                             .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
                             .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAllocatedAmount().intValue());
-                                assertEquals("N", fee.getIsFullyApportioned());
+                                assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
                             });
                         paymentGroupDto.getFees().stream()
                             .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
                             .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAllocatedAmount().intValue());
-                                assertEquals("N", fee.getIsFullyApportioned());
+                                assertEquals(BigDecimal.valueOf(40).intValue(), fee.getAmountDue().intValue());
                             });
                         paymentGroupDto.getFees().stream()
                             .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
                             .forEach(fee -> {
-                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAllocatedAmount().intValue());
-                                assertEquals("N", fee.getIsFullyApportioned());
+                                assertEquals(BigDecimal.valueOf(60).intValue(), fee.getAmountDue().intValue());
                             });
                     }
                 });

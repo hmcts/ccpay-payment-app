@@ -1,12 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
@@ -22,10 +17,12 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
@@ -36,9 +33,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -277,7 +272,7 @@ public class PaymentGroupController {
             // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
             if(newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
                 LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
-                updateFeeAmountDue(payment);
+                feePayApportionService.updateFeeAmountDue(payment);
             }
         }
 
@@ -335,28 +330,6 @@ public class PaymentGroupController {
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
         return paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference)).findAny()
             .orElseThrow(() -> new PaymentNotFoundException("Payment with reference " + paymentReference + " does not exists."));
-    }
-
-    private void updateFeeAmountDue(Payment payment) {
-        Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
-        if(apportions.isPresent()) {
-            apportions.get().stream()
-                .forEach(feePayApportion -> {
-                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-                    if(feePayApportion.getCallSurplusAmount() != null) {
-                        feePayApportion.setCallSurplusAmount(feePayApportion.getCallSurplusAmount());
-                    }else {
-                        feePayApportion.setCallSurplusAmount(BigDecimal.valueOf(0));
-                    }
-                    fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()
-                        .add(feePayApportion.getCallSurplusAmount())));
-                    if(fee.getAmountDue().intValue() <= 0){
-                        fee.setIsFullyApportioned("Y");
-                    }
-                    paymentFeeRepository.save(fee);
-                    LOG.info("Updated FeeId " + fee.getId() + " as PaymentId " + payment.getId() + " Status Changed to " + payment.getPaymentStatus().getName());
-                });
-        }
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

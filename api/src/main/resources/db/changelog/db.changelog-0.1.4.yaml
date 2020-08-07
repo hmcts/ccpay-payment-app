@@ -29,23 +29,11 @@ databaseChangeLog:
                   name: apportion_amount
                   type: numeric(19, 2)
               - column:
-                  name: allocated_amount
-                  type: numeric(19, 2)
-              - column:
-                  name: curr_apportion_amount
-                  type: numeric(19, 2)
-              - column:
                   name: ccd_case_number
                   type: varchar(255)
               - column:
-                  name: is_fully_apportioned
-                  type: varchar(10)
-              - column:
                   name: apportion_type
                   type: varchar(10)
-              - column:
-                  name: call_short_fall_amount
-                  type: numeric(19, 2)
               - column:
                   name: call_surplus_amount
                   type: numeric(19, 2)
@@ -55,6 +43,9 @@ databaseChangeLog:
               - column:
                   name: date_created
                   type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: date_updated
+                  type: TIMESTAMP WITHOUT TIME ZONE
   - changeSet:
       id: 1554989041418-11
       author: ayan
@@ -63,10 +54,7 @@ databaseChangeLog:
         - sql:
             splitStatements:
             sql: >
-              ALTER TABLE fee ADD COLUMN apportion_amount numeric(19, 2);
-              ALTER TABLE fee ADD COLUMN allocated_amount numeric(19, 2);
               ALTER TABLE fee ADD COLUMN amount_due numeric(19, 2);
-              ALTER TABLE fee ADD COLUMN is_fully_apportioned varchar(10);
               ALTER TABLE fee ADD COLUMN date_apportioned TIMESTAMP WITHOUT TIME ZONE;
               ALTER TABLE fee ADD COLUMN date_created TIMESTAMP(3) WITHOUT TIME ZONE;
               ALTER TABLE fee ADD COLUMN date_updated TIMESTAMP(3) WITHOUT TIME ZONE;

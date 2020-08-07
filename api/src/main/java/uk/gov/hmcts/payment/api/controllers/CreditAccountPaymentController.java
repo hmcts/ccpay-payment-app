@@ -39,7 +39,6 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -155,34 +154,12 @@ public class CreditAccountPaymentController {
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
             if(Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
                 LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as {}" + pbaPayment.getPaymentStatus().getName());
-                updateFeeAmountDue(pbaPayment);
+                feePayApportionService.updateFeeAmountDue(pbaPayment);
             }
         }
 
         LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
-    }
-
-    private void updateFeeAmountDue(Payment payment) {
-        Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
-        if(apportions.isPresent()) {
-            apportions.get().stream()
-                .forEach(feePayApportion -> {
-                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-                    if(feePayApportion.getCallSurplusAmount() != null) {
-                        feePayApportion.setCallSurplusAmount(feePayApportion.getCallSurplusAmount());
-                    }else {
-                        feePayApportion.setCallSurplusAmount(BigDecimal.valueOf(0));
-                    }
-                    fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()
-                        .add(feePayApportion.getCallSurplusAmount())));
-                    if(fee.getAmountDue().intValue() <= 0){
-                        fee.setIsFullyApportioned("Y");
-                    }
-                    paymentFeeRepository.save(fee);
-                    LOG.info("Updated FeeId " + fee.getId() + " as PaymentId " + payment.getId() + " Status Changed to " + payment.getPaymentStatus().getName());
-                });
-        }
     }
 
     private Payment createPaymentInstanceFromRequest(@RequestBody @Valid CreditAccountPaymentRequest creditAccountPaymentRequest) {
