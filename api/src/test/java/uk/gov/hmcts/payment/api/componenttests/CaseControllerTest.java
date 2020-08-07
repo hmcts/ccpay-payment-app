@@ -325,7 +325,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
         FeeDto feeDto = paymentGroupDto1.getFees().get(0);
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
-        assertThat(feeDto.getIsFullyApportioned()).isEqualTo("Y");
         assertThat(feeDto.getApportionAmount()).isEqualTo(new BigDecimal("99.99"));
         assertThat(feeDto.getAllocatedAmount()).isEqualTo(new BigDecimal("99.99"));
 

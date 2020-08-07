@@ -1378,7 +1378,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -1417,7 +1416,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .apportionType("AUTO")
             .feeId(1)
             .feeAmount(BigDecimal.valueOf(100))
-            .isFullyApportioned("Y")
             .build();
         feePayApportionList.add(feePayApportion);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -1627,7 +1625,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(paymentDto.getCcdCaseNumber()).isEqualTo(payment.getCcdCaseNumber());
         assertThat(feeDto.getAllocatedAmount()).isEqualTo(new BigDecimal("99.99"));
         assertThat(feeDto.getApportionAmount()).isEqualTo(new BigDecimal("99.99"));
-        assertThat(feeDto.getIsFullyApportioned()).isEqualTo("Y");
 
     }
 

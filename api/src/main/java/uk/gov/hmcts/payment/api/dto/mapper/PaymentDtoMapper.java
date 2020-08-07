@@ -392,11 +392,10 @@ public class PaymentDtoMapper {
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .reference(fee.getReference())
             .allocatedAmount(fee.getAllocatedAmount())
+            .apportionAmount(fee.getApportionAmount())
             .dateCreated(fee.getDateCreated())
             .dateUpdated(fee.getDateUpdated())
             .dateApportioned(fee.getDateApportioned())
-            .apportionAmount(fee.getApportionAmount())
-            .isFullyApportioned(fee.getIsFullyApportioned())
             .build();
     }
 

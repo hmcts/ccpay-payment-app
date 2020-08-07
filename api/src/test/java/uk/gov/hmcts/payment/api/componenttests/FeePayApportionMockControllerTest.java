@@ -81,7 +81,7 @@ public class FeePayApportionMockControllerTest {
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAmountDue());
     }
 
     @Test
@@ -123,7 +123,7 @@ public class FeePayApportionMockControllerTest {
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        assertEquals(new BigDecimal(130), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAmountDue());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class FeePayApportionMockControllerTest {
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        assertEquals(new BigDecimal(95), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAmountDue());
     }
 
     @Test
@@ -206,8 +206,8 @@ public class FeePayApportionMockControllerTest {
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(40), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), feePayApportionCCDCase.getFees().get(1).getAmountDue());
     }
 
     @Test
@@ -249,9 +249,9 @@ public class FeePayApportionMockControllerTest {
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
-        assertEquals(new BigDecimal(25), feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
-        assertEquals(new BigDecimal(75), feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
+        assertEquals(new BigDecimal(100), feePayApportionCCDCase.getFees().get(0).getAmountDue());
+        assertEquals(new BigDecimal(25), feePayApportionCCDCase.getFees().get(1).getAmountDue());
+        assertEquals(new BigDecimal(25), feePayApportionCCDCase.getFees().get(2).getAmountDue());
     }
 
     @Test
@@ -295,9 +295,9 @@ public class FeePayApportionMockControllerTest {
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
 
-        assertEquals(new BigDecimal(10), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
-        assertEquals(null, feePayApportionCCDCase.getFees().get(1).getAllocatedAmount());
-        assertEquals(null, feePayApportionCCDCase.getFees().get(2).getAllocatedAmount());
+        assertEquals(BigDecimal.valueOf(100), feePayApportionCCDCase.getFees().get(0).getAmountDue());
+        assertEquals(BigDecimal.valueOf(50), feePayApportionCCDCase.getFees().get(1).getAmountDue());
+        assertEquals(BigDecimal.valueOf(10), feePayApportionCCDCase.getFees().get(2).getAmountDue());
     }
 
     @Test
@@ -333,7 +333,7 @@ public class FeePayApportionMockControllerTest {
 
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
         //Based on Amount Due
-        assertEquals(new BigDecimal(500), feePayApportionCCDCase.getFees().get(0).getAllocatedAmount());
+        assertEquals(new BigDecimal(500), feePayApportionCCDCase.getFees().get(0).getAmountDue());
     }
 
     private List<PaymentFeeLink> getPaymentFeeLinks(int count) throws CheckDigitException {
@@ -379,7 +379,7 @@ public class FeePayApportionMockControllerTest {
                 .volume(1)
                 .calculatedAmount(amounts.get(i).multiply(new BigDecimal(1)))
                 .netAmount(amounts.get(i).multiply(new BigDecimal(1)).subtract(remissionAmounts.get(i)))
-                .currApportionAmount(new BigDecimal(0))
+                .amountDue(amounts.get(i).multiply(new BigDecimal(1)).subtract(remissionAmounts.get(i)))
                 .dateCreated(feeCreatedDates.get(i))
                 .build();
 
