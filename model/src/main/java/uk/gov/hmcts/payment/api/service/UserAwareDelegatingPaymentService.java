@@ -239,7 +239,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                 //1. Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS
                 boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
                 LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
-                if(shouldCallBack && apportionFeature) {
+                if(apportionFeature) {
                     if(govPayPayment.getState().getStatus().toLowerCase().equalsIgnoreCase("success")) {
                         LOG.info("Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS!!!");
                         feePayApportionService.updateFeeAmountDue(payment);
