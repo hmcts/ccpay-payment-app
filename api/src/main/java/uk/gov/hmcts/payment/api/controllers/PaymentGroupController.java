@@ -13,18 +13,35 @@ import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentAllocation;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
@@ -33,17 +50,14 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -67,6 +81,8 @@ public class PaymentGroupController {
 
     private final PaymentProviderRepository paymentProviderRepository;
 
+    @Value("${bulk.scanning.payments.processed.url}")
+    private String bulk_scan_payments_processed_url;
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
@@ -210,6 +226,7 @@ public class PaymentGroupController {
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments")
     @ResponseBody
+    @Transactional
     public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                 @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
 
@@ -248,6 +265,97 @@ public class PaymentGroupController {
 
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
+
+
+    @ApiOperation(value = "Record a Bulk Scan Payment", notes = "Record a Bulk Scan Payment")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Bulk Scan Payment created"),
+        @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+    })
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments-strategic")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<PaymentDto> recordBulkScanPaymentStrategic(@PathVariable("payment-group-reference") String paymentGroupReference,
+                                                            @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic,
+                                                                     @RequestHeader MultiValueMap<String, String> headers) throws CheckDigitException {
+        //Bulk scan payments call
+        List<SiteDTO> sites = referenceDataService.getSiteIDs();
+
+        if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequestStrategic.getSiteId()))) {
+            throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequestStrategic.getSiteId());
+        }
+
+        PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
+            paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
+            : null;
+
+        Payment payment = Payment.paymentWith()
+            .reference(referenceUtil.getNext("RC"))
+            .amount(bulkScanPaymentRequestStrategic.getAmount())
+            .caseReference(bulkScanPaymentRequestStrategic.getExceptionRecord())
+            .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
+            .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
+            .paymentProvider(paymentProvider)
+            .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
+            .paymentMethod(PaymentMethod.
+                paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType())
+                .description("Cheque")
+                .build())
+            .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
+            .siteId(bulkScanPaymentRequestStrategic.getSiteId())
+            .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
+            .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+            .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())
+            .documentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber())
+            .payerName(bulkScanPaymentRequestStrategic.getPayerName())
+            .bankedDate(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+            .build();
+
+        PaymentFeeLink paymentFeeLink = paymentGroupService.addNewPaymenttoExistingPaymentGroup(payment, paymentGroupReference);
+
+        Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
+
+        //Payment Allocation endpoint call
+        PaymentAllocationDto paymentAllocationDto = bulkScanPaymentRequestStrategic.getPaymentAllocationDTO();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith()
+            .paymentReference(newPayment.getReference())
+            .paymentGroupReference(paymentGroupReference)
+            .paymentAllocationStatus(paymentAllocationDto.getPaymentAllocationStatus())
+            .reason(paymentAllocationDto.getReason())
+            .explanation(paymentAllocationDto.getExplanation())
+            .userName(paymentAllocationDto.getUserName())
+            .receivingOffice(paymentAllocationDto.getReceivingOffice())
+            .unidentifiedReason(paymentAllocationDto.getUnidentifiedReason())
+            .build();
+        List<PaymentAllocation> paymentAllocationList = new ArrayList<>();
+        paymentAllocationList.add(paymentAllocation);
+        newPayment.setPaymentAllocation(paymentAllocationList);
+
+        //Mark bulk scan payment as processed
+        try {
+            markBulkScanPaymentProcessed(headers, newPayment.getDocumentControlNumber() , "PROCESSED"); // default status PROCESSED
+        } catch (HttpClientErrorException httpClientErrorException) {
+            throw new PaymentException("Bulk scan payment can't be marked as processed for DCN " + newPayment.getDocumentControlNumber() +
+                " Due to response status code as  = " + httpClientErrorException.getMessage());
+        } catch (Exception exception) {
+            throw new PaymentException("Error occurred while processing bulk scan payments with DCN " + newPayment.getDocumentControlNumber() +
+               "Exception message  = " + exception.getMessage());
+        }
+        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+    }
+
+    public void markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws Exception{
+        HttpHeaders headers = new HttpHeaders(headersMap);
+        final HttpEntity<String> entity = new HttpEntity<>(headers);
+        Map<String, String> params = new HashMap<>();
+        params.put("dcn", dcn);
+        params.put("status", status);
+
+        RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+        restTemplate.exchange(bulk_scan_payments_processed_url, HttpMethod.PATCH, entity, String.class, params);
+    }
+
 
     @ApiOperation(value = "Record a Bulk Scan Payment with Payment Group", notes = "Record a Bulk Scan Payment with Payment Group")
     @ApiResponses(value = {
