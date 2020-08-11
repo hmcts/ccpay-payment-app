@@ -98,6 +98,11 @@ subprojects {
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     }
 
+    jacoco {
+        toolVersion = versions.jacocoVersion
+        reportsDir = file("${project.rootDir}/build/jacoco")
+    }
+
     test {
         finalizedBy jacocoTestReport
         jacoco {
