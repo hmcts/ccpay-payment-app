@@ -120,6 +120,11 @@ dependencies {
     // functional
     functionalTestCompile sourceSets.test.runtimeClasspath
 
+
+    functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
+    smokeTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
+
+
     compile group: 'com.github.mifmif', name: 'generex', version: '1.0.2'
 
     compile group: 'org.pitest', name: 'pitest', version: '1.3.2'

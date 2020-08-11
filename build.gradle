@@ -5,7 +5,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.8.RELEASE'
     id 'org.owasp.dependencycheck' version '5.2.4'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
-    id 'findbugs'
+//    id 'findbugs'
     id 'jacoco'
 }
 
@@ -55,7 +55,7 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: "jacoco"
-    apply plugin: "findbugs"
+   // apply plugin: "findbugs"
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
@@ -78,6 +78,10 @@ subprojects {
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
         compileOnly group: 'net.sourceforge.findbugs', name: 'annotations', version: '1.3.2'
         compile group: 'com.github.tomakehurst', name: 'wiremock', version: '2.23.2'
+
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
+
         compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.6.4') {
             sourceSets {
                 main {
@@ -93,7 +97,7 @@ subprojects {
     test {
         finalizedBy jacocoTestReport
         jacoco {
-            append = true
+           // append = true
             destinationFile = file("${project.rootDir}/build/jacoco/test.exec")
         }
     }
@@ -106,14 +110,14 @@ subprojects {
         }
     }
 
-    findbugs {
+    /*findbugs {
         ignoreFailures = false
         reportsDir = file("$project.buildDir/reports/findbugs")
         effort = "max"
         reportLevel = "high"
         includeFilter = file("$rootProject.projectDir/findbugs-security-include.xml")
         excludeFilter = file("$rootProject.projectDir/findbugs-security-exclude.xml")
-    }
+    }*/
 }
 
 dependencies {
