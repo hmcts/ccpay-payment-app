@@ -13,13 +13,13 @@ import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
@@ -35,22 +35,13 @@ import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentAllocation;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
 import javax.validation.Valid;
@@ -81,6 +72,12 @@ public class PaymentGroupController {
 
     private final PaymentProviderRepository paymentProviderRepository;
 
+    private final Payment2Repository payment2Repository;
+
+    @Autowired()
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
+
     @Value("${bulk.scanning.payments.processed.url}")
     private String bulk_scan_payments_processed_url;
 
@@ -90,7 +87,7 @@ public class PaymentGroupController {
                                   PaymentDtoMapper paymentDtoMapper, PciPalPaymentService pciPalPaymentService,
                                   ReferenceUtil referenceUtil,
                                   ReferenceDataService<SiteDTO> referenceDataService,
-                                  PaymentProviderRepository paymentProviderRespository){
+                                  PaymentProviderRepository paymentProviderRespository, Payment2Repository payment2Repository){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -99,6 +96,7 @@ public class PaymentGroupController {
         this.referenceUtil = referenceUtil;
         this.referenceDataService = referenceDataService;
         this.paymentProviderRepository = paymentProviderRespository;
+        this.payment2Repository = payment2Repository;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -279,6 +277,14 @@ public class PaymentGroupController {
     public ResponseEntity<PaymentDto> recordBulkScanPaymentStrategic(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                             @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic,
                                                                      @RequestHeader MultiValueMap<String, String> headers) throws CheckDigitException {
+        // Check Any Duplicate payments for current DCN
+        if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
+            List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
+            if (existingPaymentForDCNList != null && existingPaymentForDCNList.size() > 0) {
+                throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+            }
+        }
+
         //Bulk scan payments call
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
@@ -340,20 +346,20 @@ public class PaymentGroupController {
                 " Due to response status code as  = " + httpClientErrorException.getMessage());
         } catch (Exception exception) {
             throw new PaymentException("Error occurred while processing bulk scan payments with DCN " + newPayment.getDocumentControlNumber() +
-               "Exception message  = " + exception.getMessage());
+               " Exception message  = " + exception.getMessage());
         }
-        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
-    public void markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws Exception{
+    public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws Exception{
         HttpHeaders headers = new HttpHeaders(headersMap);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         Map<String, String> params = new HashMap<>();
         params.put("dcn", dcn);
         params.put("status", status);
 
-        RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-        restTemplate.exchange(bulk_scan_payments_processed_url, HttpMethod.PATCH, entity, String.class, params);
+
+        return restTemplatePaymentGroup.exchange(bulk_scan_payments_processed_url + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }
 
 
@@ -437,6 +443,12 @@ public class PaymentGroupController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(DuplicatePaymentException.class)
+    public String return400DuplicatePaymentException(DuplicatePaymentException ex) {
         return ex.getMessage();
     }
 }
