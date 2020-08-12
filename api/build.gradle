@@ -121,7 +121,8 @@ dependencies {
     functionalTestCompile sourceSets.test.runtimeClasspath
 
     compile group: 'com.github.mifmif', name: 'generex', version: '1.0.2'
-
+    functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
+    smokeTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
     compile group: 'org.pitest', name: 'pitest', version: '1.3.2'
     compile 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
     compile 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
