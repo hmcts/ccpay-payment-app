@@ -184,6 +184,7 @@ sonarqube {
         property "sonar.coverage.exclusions", sonarExclusions.join(", ")
     }
 }
+project.tasks['sonarqube'].dependsOn jacocoTestReport
 
 task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
     buildFile = './api/build.gradle'

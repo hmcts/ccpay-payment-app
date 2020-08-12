@@ -22,6 +22,15 @@ sourceSets {
             srcDir file('src/functionalTest/java')
         }
     }
+
+    test {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+            srcDir file('src/test/java')
+        }
+    }
+
 }
 
 apply plugin: 'idea'
