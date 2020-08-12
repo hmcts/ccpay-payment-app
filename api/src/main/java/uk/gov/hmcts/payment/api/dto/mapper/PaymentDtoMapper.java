@@ -76,6 +76,26 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toBulkScanPaymentStrategicDto(Payment payment, String paymentGroupReference) {
+        PaymentAllocation paymentAllocation = (payment.getPaymentAllocation() != null && payment.getPaymentAllocation().size() > 0) ?
+            payment.getPaymentAllocation().get(0) : null;
+        List<PaymentAllocationDto> paymentAllocationDtoList =  new ArrayList<>();
+        paymentAllocationDtoList.add(toPaymentAllocationDto(paymentAllocation));
+
+        return PaymentDto.payment2DtoWith()
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
+            .reference(payment.getReference())
+            .paymentGroupReference(paymentGroupReference)
+            .paymentAllocation(paymentAllocationDtoList)
+            .dateCreated(payment.getDateCreated())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .caseReference(payment.getCaseReference())
+            .build();
+    }
+
+
+
+
 
     public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
@@ -399,6 +419,9 @@ public class PaymentDtoMapper {
             .dateCreated(paymentAllocation.getDateCreated())
             .reason(paymentAllocation.getReason())
             .explanation(paymentAllocation.getExplanation())
+            .userId(paymentAllocation.getUserId())
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus() !=null ? paymentAllocation.getPaymentAllocationStatus().getName().toLowerCase():null)
+            .allocationReason(paymentAllocation.getUnidentifiedReason())
             .userName(paymentAllocation.getUserName())
             .receivingOffice(paymentAllocation.getReceivingOffice())
             .unidentifiedReason(paymentAllocation.getUnidentifiedReason())
