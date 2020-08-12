@@ -26,6 +26,9 @@ allprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
+    jacoco {
+        toolVersion = "0.8.4"
+    }
     repositories {
         mavenLocal()
         maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
@@ -65,6 +68,10 @@ subprojects {
         testLogging {
             exceptionFormat = 'full'
         }
+    }
+
+    jacoco {
+        toolVersion = "0.8.4"
     }
 
     dependencies {
