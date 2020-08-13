@@ -138,11 +138,6 @@ public class PaymentGroupControllerTest {
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
-        // create a partial remission
-/*        MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
-            .andExpect(status().isCreated())
-            .andReturn();*/
 
         // Retrieve payment by payment group reference
         MvcResult result3 = restActions
@@ -158,7 +153,6 @@ public class PaymentGroupControllerTest {
         assertThat(paymentDto.getReference()).isEqualTo(createPaymentResponseDto.getReference());
         FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
-        //assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
     }
 
     public void retrievePaymentsAndFeesByPaymentGroupReferenceTest() throws Exception {
@@ -455,12 +449,6 @@ public class PaymentGroupControllerTest {
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
-       /* // create a partial remission
-        MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
-            .andExpect(status().isCreated())
-            .andReturn();*/
-
         // Adding another fee to the exisitng payment group
         restActions
             .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(),request)
@@ -482,7 +470,6 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
         FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
-        /*assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));*/
 
     }
 

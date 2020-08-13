@@ -414,12 +414,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
-      /*  // create a partial remission
-        MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
-            .andExpect(status().isCreated())
-            .andReturn();*/
-
         // Adding another fee to the exisitng payment group
         restActions
             .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), paymentGroupDto)
@@ -511,12 +505,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
-      /*  // create a partial remission
-        MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
-            .andExpect(status().isCreated())
-            .andReturn();*/
-
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
@@ -525,15 +513,9 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
-
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
         assertThat(paymentGroups.getPaymentGroups().get(0)
         .getFees().get(0).getDescription()).isEqualTo("Application for a charging order");
-       /* System.out.println(paymentGroups.getPaymentGroups().get(0)
-            .getRemissions().get(0).getDateCreated());*/
-        System.out.println(new Date());
-       /* assertThat(paymentGroups.getPaymentGroups().get(0)
-            .getRemissions().get(0).getDateCreated().getDate()).isEqualTo(new Date().getDate());*/
     }
 
     @Test

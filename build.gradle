@@ -39,12 +39,9 @@ allprojects {
             mavenBom 'org.apache.logging.log4j:log4j-bom:2.13.3'
         }
         dependencies {
-            // solves CVE-2019-12086
-            // remove once spring manager incorporates this changes
             dependencySet(
                     group: 'com.fasterxml.jackson.core',
                     version: '2.10.0'
-                    //version: dependencyManagement.importedProperties['jackson.version'] solves CVE-2019-12086
             ) {
                 entry 'jackson-core'
                 entry 'jackson-databind'
@@ -73,7 +70,6 @@ subprojects {
         compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
         compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.3'
         compile group:'org.dom4j',name:'dom4j',version: '2.1.3'
-
         compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.0'
         compile group: 'joda-time', name: 'joda-time', version: '2.10.5'
         compile group: 'org.jboss.aerogear', name: 'aerogear-otp-java', version:'1.0.0'
@@ -81,11 +77,8 @@ subprojects {
         compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.0.4'
         testCompile group: 'junit', name: 'junit', version: '4.12'
         testCompile group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
-
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         annotationProcessor 'org.projectlombok:lombok:1.18.12'
-
-
         compileOnly group: 'net.sourceforge.findbugs', name: 'annotations', version: '1.3.2'
         compile group: 'com.github.tomakehurst', name: 'wiremock', version: '2.23.2'
         compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.6.4') {
@@ -126,92 +119,92 @@ subprojects {
     }
 }
 
-dependencies {
-    compile project(':payment-api')
-}
-
-mainClassName = 'uk.gov.hmcts.PaymentApiApplication'
-
-jar {
-    enabled = true
-}
-
-bootJar {
-    archiveName 'payment-app.jar'
-    manifest {
-        attributes 'Implementation-Title': project.name, 'Implementation-Version': project.version
+    dependencies {
+        compile project(':payment-api')
     }
-}
 
-springBoot {
-    buildInfo()
-}
+    mainClassName = 'uk.gov.hmcts.PaymentApiApplication'
 
-dependencyCheck {
-    failBuildOnCVSS = 0
-    suppressionFile = 'dependency-check-suppressions.xml'
-    format='ALL'
-}
-
-def sonarExclusions = [
-        '**/v1/**',
-        '**/OtpBootstrap.java',
-        '**/api/model/**',
-        '**/referencedata/model/**',
-        '**/api/dto/*.java',
-        '**/referencedata/dto/*.java',
-        '**/api/service/*Service.java',
-        '**/referencedata/service/*Service.java',
-        '**/api/service/MockAccountServiceImpl.java',
-        '**/api/service/MockCcdDataStoreClientServiceImpl.java',
-        '**/api/controllers/mock/MockCallbackControllerForTesting.java',
-        '**/api/contract/**',
-        '**/api/dto/mapper/**',
-        '**/api/reports/config/**',
-        '**/api/external/client/dto/**',
-        '**/api/external/client/exceptions/**'
-]
-
-sonarqube {
-    properties {
-        property "sonar.host.url", "https://sonar.reform.hmcts.net/"
-        property "sonar.dynamicAnalysis", "reuseReports"
-        property "sonar.java.coveragePlugin", "jacoco"
-        property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/test.exec"
-        property "sonar.dependencyCheck.reportPath", "${project.buildDir}/reports/dependency-check-report.xml"
-        property "sonar.exclusions", sonarExclusions.join(", ")
-        property "sonar.test.exclusions", sonarExclusions.join(", ")
-        property "sonar.coverage.exclusions", sonarExclusions.join(", ")
+    jar {
+        enabled = true
     }
-}
 
-task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
-    tasks = ['smokeTest']
-}
-
-task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
-    buildFile = './api/build.gradle'
-    tasks = ['functionalTest']
-}
-
-task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
-    //forward projectProperties
-    startParameter.projectProperties = project.gradle.startParameter.projectProperties
-    buildFile = './api/build.gradle'
-    tasks = ['migratePostgresDatabase']
-}
-
-task printVersion {
-    description 'Prints the version of this project'
-    doLast {
-        print project.version
+    bootJar {
+        archiveName 'payment-app.jar'
+        manifest {
+            attributes 'Implementation-Title': project.name, 'Implementation-Version': project.version
+        }
     }
-}
 
-run {
-    def debug = System.getProperty("debug")
-    if (debug == 'true') {
-        jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
+    springBoot {
+        buildInfo()
     }
+
+    dependencyCheck {
+        failBuildOnCVSS = 0
+        suppressionFile = 'dependency-check-suppressions.xml'
+        format='ALL'
+    }
+
+    def sonarExclusions = [
+            '**/v1/**',
+            '**/OtpBootstrap.java',
+            '**/api/model/**',
+            '**/referencedata/model/**',
+            '**/api/dto/*.java',
+            '**/referencedata/dto/*.java',
+            '**/api/service/*Service.java',
+            '**/referencedata/service/*Service.java',
+            '**/api/service/MockAccountServiceImpl.java',
+            '**/api/service/MockCcdDataStoreClientServiceImpl.java',
+            '**/api/controllers/mock/MockCallbackControllerForTesting.java',
+            '**/api/contract/**',
+            '**/api/dto/mapper/**',
+            '**/api/reports/config/**',
+            '**/api/external/client/dto/**',
+            '**/api/external/client/exceptions/**'
+    ]
+
+    sonarqube {
+        properties {
+            property "sonar.host.url", "https://sonar.reform.hmcts.net/"
+            property "sonar.dynamicAnalysis", "reuseReports"
+            property "sonar.java.coveragePlugin", "jacoco"
+            property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/test.exec"
+            property "sonar.dependencyCheck.reportPath", "${project.buildDir}/reports/dependency-check-report.xml"
+            property "sonar.exclusions", sonarExclusions.join(", ")
+            property "sonar.test.exclusions", sonarExclusions.join(", ")
+            property "sonar.coverage.exclusions", sonarExclusions.join(", ")
+        }
+    }
+
+    task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
+        buildFile = './api/build.gradle'
+        tasks = ['smokeTest']
+    }
+
+    task functional(type: GradleBuild, description: 'Runs Functional tests', group: 'Verification') {
+        buildFile = './api/build.gradle'
+        tasks = ['functionalTest']
+    }
+
+    task migratePostgresDatabase(type: GradleBuild, description: 'Migrates Postgres Database', group: 'liquibase') {
+        //forward projectProperties
+        startParameter.projectProperties = project.gradle.startParameter.projectProperties
+        buildFile = './api/build.gradle'
+        tasks = ['migratePostgresDatabase']
+    }
+
+    task printVersion {
+        description 'Prints the version of this project'
+        doLast {
+            print project.version
+        }
+    }
+
+    run {
+        def debug = System.getProperty("debug")
+        if (debug == 'true') {
+            jvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
+        }
 }
