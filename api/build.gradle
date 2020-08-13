@@ -125,9 +125,6 @@ dependencies {
 
 
     compile group: 'com.github.mifmif', name: 'generex', version: '1.0.2'
-/*    compileOnly 'org.projectlombok:lombok:1.18.10'
-    functionalTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
-    smokeTestAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'*/
 
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.4'

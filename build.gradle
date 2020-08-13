@@ -55,8 +55,8 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'jacoco'
-    apply plugin: 'findbugs'
+    apply plugin: "jacoco"
+    apply plugin: "findbugs"
 
 
     tasks.withType(JavaCompile) {
@@ -118,8 +118,7 @@ subprojects {
         executionData(test)
         reports {
             html.enabled = true
-            xml.enabled = false
-            csv.enabled = false
+            xml.enabled = true
             html.destination = file("${project.buildDir}/build/jacoco/jacocoTestReport.html")
         }
     }
