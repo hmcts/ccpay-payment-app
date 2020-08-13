@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
@@ -79,7 +80,7 @@ public class PaymentGroupController {
     private RestTemplate restTemplatePaymentGroup;
 
     @Value("${bulk.scanning.payments.processed.url}")
-    private String bulk_scan_payments_processed_url;
+    private String bulkScanPaymentsProcessedUrl;
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
@@ -276,11 +277,11 @@ public class PaymentGroupController {
     @Transactional
     public ResponseEntity<PaymentDto> recordBulkScanPaymentStrategic(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                             @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic,
-                                                                     @RequestHeader MultiValueMap<String, String> headers) throws CheckDigitException {
+                                                                     @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
         // Check Any Duplicate payments for current DCN
         if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
             List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
-            if (existingPaymentForDCNList != null && existingPaymentForDCNList.size() > 0) {
+            if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
                 throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
             }
         }
@@ -351,7 +352,7 @@ public class PaymentGroupController {
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
-    public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws Exception{
+    public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws RestClientException {
         HttpHeaders headers = new HttpHeaders(headersMap);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         Map<String, String> params = new HashMap<>();
@@ -359,7 +360,7 @@ public class PaymentGroupController {
         params.put("status", status);
 
 
-        return restTemplatePaymentGroup.exchange(bulk_scan_payments_processed_url + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
+        return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }
 
 

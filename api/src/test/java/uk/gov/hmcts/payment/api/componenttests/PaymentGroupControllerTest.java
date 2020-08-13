@@ -845,7 +845,7 @@ public class PaymentGroupControllerTest {
         PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
+        assertEquals("1231-1231-3453-4333", paymentsResponse.getCcdCaseNumber());
         assertNotNull(paymentsResponse.getPaymentAllocation());
         assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Allocated"));
 
@@ -876,7 +876,7 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
-        assertTrue(paymentsResponse.getPaymentGroupReference().equals(paymentGroupDto.getPaymentGroupReference()));
+        assertEquals(paymentGroupDto.getPaymentGroupReference(), paymentsResponse.getPaymentGroupReference());
         assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Transferred"));
     }
 
