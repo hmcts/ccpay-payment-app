@@ -109,6 +109,7 @@ subprojects {
     }
 
     jacocoTestReport {
+        dependsOn test
         executionData(test)
         reports {
             xml.enabled true
@@ -168,13 +169,14 @@ sonarqube {
         property "sonar.host.url", "https://sonar.reform.hmcts.net/"
         property "sonar.dynamicAnalysis", "reuseReports"
         property "sonar.java.coveragePlugin", "jacoco"
-        property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/test.exec"
+        property "sonar.coverage.jacoco.htmlReportPaths", "${project.buildDir}/build/jacoco/jacocoTestReport.html"
         property "sonar.dependencyCheck.reportPath", "${project.buildDir}/reports/dependency-check-report.xml"
         property "sonar.exclusions", sonarExclusions.join(", ")
         property "sonar.test.exclusions", sonarExclusions.join(", ")
         property "sonar.coverage.exclusions", sonarExclusions.join(", ")
     }
 }
+project.tasks['sonarqube'].dependsOn test, jacocoTestReport
 
 task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
     buildFile = './api/build.gradle'
