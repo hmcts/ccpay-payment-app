@@ -23,7 +23,6 @@ sourceSets {
             srcDir file('src/functionalTest/java')
         }
     }
-
 }
 
 apply plugin: 'idea'
@@ -121,8 +120,6 @@ dependencies {
 
     // functional
     functionalTestCompile sourceSets.test.runtimeClasspath
-
-
 
     compile group: 'com.github.mifmif', name: 'generex', version: '1.0.2'
 

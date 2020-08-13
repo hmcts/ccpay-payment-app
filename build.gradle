@@ -101,16 +101,15 @@ subprojects {
 
     test {
         finalizedBy jacocoTestReport
-        /*jacoco {
+        jacoco {
             append = true
             destinationFile = file("${project.rootDir}/build/jacoco/test.exec")
-        }*/
+        }
 
     }
 
     jacoco {
         toolVersion = "0.8.5"
-        //reportsDir = file("${project.rootDir}/build/jacoco/test.exec")
     }
 
     jacocoTestReport {
