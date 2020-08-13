@@ -105,12 +105,12 @@ subprojects {
 
     jacoco {
         toolVersion = "0.8.5"
-        reportsDir = file("${project.rootDir}/build/jacoco/test.exec")
+        //reportsDir = file("${project.rootDir}/build/jacoco/test.exec")
     }
 
     jacocoTestReport {
         dependsOn test
-        //executionData(test)
+        executionData(test)
         reports {
             xml.enabled = true
             csv.enabled = false
