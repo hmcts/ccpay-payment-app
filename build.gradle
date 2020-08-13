@@ -103,18 +103,19 @@ subprojects {
 
     test {
         finalizedBy jacocoTestReport
-        jacoco {
-            //append = true
+        /*jacoco {
+            append = true
             destinationFile = file("${project.rootDir}/build/jacoco/test.exec")
-        }
+        }*/
     }
 
     jacocoTestReport {
         dependsOn test
         executionData(test)
         reports {
-            xml.enabled true
-            html.enabled true
+            html.enabled = true
+            xml.enabled = true
+            html.destination = file("${project.buildDir}/build/jacoco/jacocoTestReport.html")
         }
     }
 }
