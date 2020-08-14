@@ -73,6 +73,32 @@ subprojects {
         }
     }
 
+
+    test {
+        finalizedBy jacocoTestReport
+        jacoco {
+            destinationFile = file("${project.rootDir}/build/jacoco/test.exec")
+        }
+
+    }
+
+    jacoco {
+        toolVersion = versions.jacocoVersion
+    }
+
+    jacocoTestReport {
+        dependsOn test
+        executionData(test)
+        reports {
+            html.enabled = true
+            xml.enabled = true
+            html.destination = file("${project.buildDir}/build/jacoco/jacocoTestReport.html")
+        }
+    }
+
+
+
+
     dependencies {
         compile ('com.sun.xml.bind:jaxb-osgi:2.3.1')
         compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.0'
@@ -99,7 +125,7 @@ subprojects {
 
     }
 
-    test {
+    /*test {
         finalizedBy jacocoTestReport
         jacoco {
             destinationFile = file("${project.rootDir}/build/jacoco/test.exec")
@@ -119,7 +145,7 @@ subprojects {
             xml.enabled = true
             html.destination = file("${project.buildDir}/build/jacoco/jacocoTestReport.html")
         }
-    }
+    }*/
 }
 
 dependencies {
