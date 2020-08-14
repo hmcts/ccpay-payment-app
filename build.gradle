@@ -118,7 +118,7 @@ subprojects {
     }
 
     jacoco {
-        toolVersion = versions.javaVersion
+        toolVersion = versions.jacocoVersion
     }
 
     jacocoTestReport {
