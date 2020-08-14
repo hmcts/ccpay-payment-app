@@ -166,3 +166,5 @@ pitest {
     historyOutputLocation = ['build/reports/pitest/fastermutationtestingoutput']
     mutationThreshold = 90
 }
+
+
