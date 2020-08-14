@@ -58,7 +58,6 @@ subprojects {
     apply plugin: "jacoco"
     apply plugin: "findbugs"
 
-
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
@@ -183,7 +182,7 @@ sonarqube {
         property "sonar.host.url", "https://sonar.reform.hmcts.net/"
         property "sonar.dynamicAnalysis", "reuseReports"
         property "sonar.java.coveragePlugin", "jacoco"
-        property "sonar.coverage.jacoco.htmlReportPaths", "${project.buildDir}/build/jacoco/jacocoTestReport.html"
+        property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/test.exec"
         property "sonar.dependencyCheck.reportPath", "${project.buildDir}/reports/dependency-check-report.xml"
         property "sonar.exclusions", sonarExclusions.join(", ")
         property "sonar.test.exclusions", sonarExclusions.join(", ")
