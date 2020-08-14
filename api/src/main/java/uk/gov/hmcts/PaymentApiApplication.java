@@ -59,20 +59,4 @@ public class PaymentApiApplication {
         return relProviderPluginRegistry;
     }
 
-    @Bean
-    public CacheManager cacheManager() {
-        SimpleCacheManager cacheManager = new SimpleCacheManager();
-        cacheManager.setCaches(Arrays.asList(
-            new CaffeineCache("feesDtoMap", Caffeine.newBuilder()
-                .expireAfterWrite(1440, TimeUnit.MINUTES)
-                    .build()),
-            new CaffeineCache("sites", Caffeine.newBuilder()
-                .expireAfterWrite(48, TimeUnit.HOURS)
-                .build()),
-        new CaffeineCache("userInfoCache", Caffeine.newBuilder()
-            .expireAfterWrite(8, TimeUnit.HOURS)
-            .build())
-        ));
-        return cacheManager;
-    }
 }
