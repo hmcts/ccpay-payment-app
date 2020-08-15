@@ -14,6 +14,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
@@ -295,6 +296,58 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+    }
+
+
+    @ApiOperation(value = "Create card payment in Payment Group", notes = "Create card payment in Payment Group")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Payment created"),
+        @ApiResponse(code = 400, message = "Payment creation failed"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+    })
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments-antenna", produces = MediaType.TEXT_HTML_VALUE)
+    @ResponseBody
+    public String createCardPaymentForPCIPALAntenna(
+        @RequestHeader(value = "return-url") String returnURL,
+        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
+        @PathVariable("payment-group-reference") String paymentGroupReference,
+        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
+
+        if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
+            request.setChannel("online");
+            request.setProvider("gov pay");
+        }
+
+        PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
+            .description(request.getDescription())
+            .paymentGroupReference(paymentGroupReference)
+            .paymentReference(referenceUtil.getNext("RC"))
+            .returnUrl(returnURL)
+            .ccdCaseNumber(request.getCcdCaseNumber())
+            .caseReference(request.getCaseReference())
+            .currency(request.getCurrency().getCode())
+            .siteId(request.getSiteId())
+            .serviceType(request.getService().getName())
+            .amount(request.getAmount())
+            .serviceCallbackUrl(serviceCallbackUrl)
+            .channel(request.getChannel())
+            .provider(request.getProvider())
+            .build();
+
+        PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
+        Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
+        PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
+
+        if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
+            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
+                .orderReference(paymentDto.getReference()).build();
+            pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
+            String link = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, request.getService().name());
+            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
+        }
+
+        //return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
+        return "html";
     }
 
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
