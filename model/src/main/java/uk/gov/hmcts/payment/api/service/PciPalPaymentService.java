@@ -1,9 +1,15 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +44,16 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     private final String callbackUrl;
     private final String url;
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
-                                @Value("${pci-pal.callback-url}") String callbackUrl) {
+                                @Value("${pci-pal.callback-url}") String callbackUrl,HttpClient httpClient,ObjectMapper objectMapper) {
         this.url = url;
         this.callbackUrl = callbackUrl;
+        this.httpClient= httpClient;
+        this.objectMapper= objectMapper;
     }
 
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
@@ -71,6 +81,25 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             HttpGet request = new HttpGet(uriBuilder.build());
 
             return request.getURI().toString();
+        });
+    }
+
+    public String getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
+        LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
+        return withIOExceptionHandling(() -> {
+            List<NameValuePair> params = new ArrayList<NameValuePair>();
+            params.add(new BasicNameValuePair("grant_type", "client_credentials"));
+            params.add(new BasicNameValuePair("tenantname", "PCI Pal Test Integration"));
+            params.add(new BasicNameValuePair("username", "HMCTS_user"));
+            params.add(new BasicNameValuePair("client_id", "HMCTStest"));
+            params.add(new BasicNameValuePair("client_secret", "469Q4RblXA5atSI1U8pFW3AQZqvYjwD9B7XUp47c"));
+
+            HttpPost httpPost = new HttpPost("https://pcipalstaging.cloud/api/v1/token");
+            httpPost.setEntity(new UrlEncodedFormEntity(params));
+            HttpResponse response = httpClient.execute(httpPost);
+            String responseBody = EntityUtils.toString(response.getEntity());
+            System.out.println(responseBody);
+            return httpPost.getURI().toString();
         });
     }
 
