@@ -147,7 +147,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
 
             List<NameValuePair> params1 = new ArrayList<NameValuePair>();
-            params1.add(new BasicNameValuePair("X-BEARER-TOKEN", authorizationHeaderString(pcipalAntennaResponse.getAccessToken())));
+            params1.add(new BasicNameValuePair("X-BEARER-TOKEN", pcipalAntennaResponse.getAccessToken()));
             params1.add(new BasicNameValuePair("X-REFRESH-TOKEN", pcipalAntennaResponse.getRefreshToken()));
             httpPost3.setEntity(new UrlEncodedFormEntity(params1));
             HttpResponse response3 = httpClient.execute(httpPost3);
