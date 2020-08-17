@@ -313,6 +313,7 @@ public class PaymentGroupController {
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
 
+        String link = null;
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
@@ -342,12 +343,12 @@ public class PaymentGroupController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            String link = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, request.getService().name());
+            link = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, request.getService().name());
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
         }
 
         //return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
-        return "html";
+        return link;
     }
 
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
