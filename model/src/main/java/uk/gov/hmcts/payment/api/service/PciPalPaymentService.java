@@ -141,7 +141,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             String uri = "https://euwest1.pcipalstaging.cloud/session/319/view/";
             String finalUri = uri + pcipalAntennaResponse2.getId();
             HttpPost httpPost3 = new HttpPost(finalUri);
-            httpPost3.addHeader(CONTENT_TYPE, APPLICATION_FORM_URLENCODED.toString());
+            httpPost3.addHeader(CONTENT_TYPE, "application/x-www-form-urlencoded");
            // httpPost3.addHeader("X-BEARER-TOKEN",authorizationHeaderString(pcipalAntennaResponse.getAccessToken()));
             //httpPost3.addHeader("X-REFRESH-TOKEN",pcipalAntennaResponse.getRefreshToken());
 
@@ -153,7 +153,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             HttpResponse response3 = httpClient.execute(httpPost3);
             String responseBody = EntityUtils.toString(response3.getEntity());
             System.out.println(responseBody);
-            return httpPost1.getURI().toString();
+            return responseBody;
         });
     }
 
