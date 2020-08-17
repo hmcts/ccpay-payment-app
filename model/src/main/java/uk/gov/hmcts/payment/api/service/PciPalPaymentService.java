@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
+import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -8,6 +11,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -20,13 +25,17 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
-import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.external.client.dto.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
 
 
 @Service
@@ -94,13 +103,66 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             params.add(new BasicNameValuePair("client_id", "HMCTStest"));
             params.add(new BasicNameValuePair("client_secret", "469Q4RblXA5atSI1U8pFW3AQZqvYjwD9B7XUp47c"));
 
-            HttpPost httpPost = new HttpPost("https://pcipalstaging.cloud/api/v1/token");
-            httpPost.setEntity(new UrlEncodedFormEntity(params));
-            HttpResponse response = httpClient.execute(httpPost);
-            String responseBody = EntityUtils.toString(response.getEntity());
+            HttpPost httpPost1 = new HttpPost("https://pcipalstaging.cloud/api/v1/token");
+            httpPost1.setEntity(new UrlEncodedFormEntity(params));
+            HttpResponse response1 = httpClient.execute(httpPost1);
+            //String responseBody = EntityUtils.toString(response.getEntity());
+
+            PCIPALAntennaResponse pcipalAntennaResponse = objectMapper.readValue(response1.getEntity().getContent(), PCIPALAntennaResponse.class);
+            System.out.println(pcipalAntennaResponse);
+
+            //PCI PAL 2nd call
+
+            HttpPost httpPost2 = new HttpPost("https://euwest1.pcipalstaging.cloud/api/v1/session/319/launch");
+            httpPost2.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
+            httpPost2.addHeader(authorizationHeader(pcipalAntennaResponse.getAccessToken()));
+            PCIPALAntennaRequest pcipalAntennaRequest = PCIPALAntennaRequest.pciPALAntennaRequestWith().FlowId("1201")
+                .InitialValues(PCIPALAntennaRequest.InitialValues.initialValuesWith()
+                    .Amount(new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString())
+                    .CallbackURL(callbackUrl)
+                    .RedirectURL("http://localhost")
+                    .Reference(pciPalPaymentRequest.getOrderReference())
+                    .build())
+                    .build();
+            //String json = objectMapper.writeValueAsString(pcipalAntennaRequest);
+
+            Gson gson = new Gson();
+            String json = gson.toJson(pcipalAntennaRequest);
+            System.out.println(json);
+            StringEntity entity = new StringEntity(json);
+            httpPost2.setEntity(entity);
+            HttpResponse response2 = httpClient.execute(httpPost2);
+            //String responseBody = EntityUtils.toString(response2.getEntity());
+            PCIPALAntennaResponse2 pcipalAntennaResponse2 = objectMapper.readValue(response2.getEntity().getContent(), PCIPALAntennaResponse2.class);
+            System.out.println(pcipalAntennaResponse2);
+
+            //PCI PAL 3rd call
+
+            String uri = "https://euwest1.pcipalstaging.cloud/session/319/view/";
+            String finalUri = uri + pcipalAntennaResponse2.getId();
+            HttpPost httpPost3 = new HttpPost(finalUri);
+            httpPost3.addHeader(CONTENT_TYPE, APPLICATION_FORM_URLENCODED.toString());
+           // httpPost3.addHeader("X-BEARER-TOKEN",authorizationHeaderString(pcipalAntennaResponse.getAccessToken()));
+            //httpPost3.addHeader("X-REFRESH-TOKEN",pcipalAntennaResponse.getRefreshToken());
+
+
+            List<NameValuePair> params1 = new ArrayList<NameValuePair>();
+            params1.add(new BasicNameValuePair("X-BEARER-TOKEN", authorizationHeaderString(pcipalAntennaResponse.getAccessToken())));
+            params1.add(new BasicNameValuePair("X-REFRESH-TOKEN", pcipalAntennaResponse.getRefreshToken()));
+            httpPost3.setEntity(new UrlEncodedFormEntity(params1));
+            HttpResponse response3 = httpClient.execute(httpPost3);
+            String responseBody = EntityUtils.toString(response3.getEntity());
             System.out.println(responseBody);
-            return httpPost.getURI().toString();
+            return httpPost1.getURI().toString();
         });
+    }
+
+    private Header authorizationHeader(String authorizationKey) {
+        return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
+    }
+
+    private String authorizationHeaderString(String authorizationKey) {
+        return "Bearer " + authorizationKey;
     }
 
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {
