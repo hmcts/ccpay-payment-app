@@ -29,12 +29,15 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_PROBATE = "probate";
     private static final String SERVICE_TYPE_CMC = "cmc";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
+    private static final String SERVICE_TYPE_FINREM = "finrem";
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
     @Value("${pci-pal.account.id.probate}")
     private String ppAccountIDProbate;
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
+    @Value("${pci-pal.account.id.finrem}")
+    private String ppAccountIDFinrem;
 
     private final String callbackUrl;
     private final String url;
@@ -56,6 +59,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                 ppAccountID = ppAccountIDCmc;
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
                 ppAccountID = ppAccountIDProbate;
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM))
+                ppAccountID = ppAccountIDFinrem;
 
             LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
