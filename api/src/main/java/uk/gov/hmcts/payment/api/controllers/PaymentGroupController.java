@@ -323,6 +323,71 @@ public class PaymentGroupController {
 
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
+        allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentRequestStrategic, paymentGroupReference, newPayment, headers);
+        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+    }
+
+    @ApiOperation(value = "Record a Bulk Scan Payment with Payment Group", notes = "Record a Bulk Scan Payment with Payment Group")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Bulk Scan Payment with payment group created"),
+        @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+    })
+    @PostMapping(value = "/payment-groups/bulk-scan-payments-strategic")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPaymentStrategic(@Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic
+        , @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
+
+        // Check Any Duplicate payments for current DCN
+        if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
+            List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
+            if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
+                throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+            }
+        }
+
+        List<SiteDTO> sites = referenceDataService.getSiteIDs();
+
+        String paymentGroupReference = PaymentReference.getInstance().getNext();
+
+        if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequestStrategic.getSiteId()))) {
+            throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequestStrategic.getSiteId());
+        }
+
+        PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
+            paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
+            : null;
+
+        Payment payment = Payment.paymentWith()
+            .reference(referenceUtil.getNext("RC"))
+            .amount(bulkScanPaymentRequestStrategic.getAmount())
+            .caseReference(bulkScanPaymentRequestStrategic.getExceptionRecord())
+            .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
+            .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
+            .paymentProvider(paymentProvider)
+            .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
+            .siteId(bulkScanPaymentRequestStrategic.getSiteId())
+            .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
+            .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+            .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())
+            .documentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber())
+            .payerName(bulkScanPaymentRequestStrategic.getPayerName())
+            .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
+            .bankedDate(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+            .build();
+
+        PaymentFeeLink paymentFeeLink = paymentGroupService.addNewBulkScanPayment(payment, paymentGroupReference);
+
+        Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
+
+        allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentRequestStrategic, paymentGroupReference, newPayment, headers);
+        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+    }
+
+    public void allocateThePaymentAndMarkBulkScanPaymentAsProcessed(BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic, String paymentGroupReference, Payment newPayment,
+                                                                    MultiValueMap<String, String> headers) {
         //Payment Allocation endpoint call
         PaymentAllocationDto paymentAllocationDto = bulkScanPaymentRequestStrategic.getPaymentAllocationDTO();
         PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith()
@@ -341,15 +406,14 @@ public class PaymentGroupController {
 
         //Mark bulk scan payment as processed
         try {
-            markBulkScanPaymentProcessed(headers, newPayment.getDocumentControlNumber() , "PROCESSED"); // default status PROCESSED
+            markBulkScanPaymentProcessed(headers, newPayment.getDocumentControlNumber(), "PROCESSED"); // default status PROCESSED
         } catch (HttpClientErrorException httpClientErrorException) {
             throw new PaymentException("Bulk scan payment can't be marked as processed for DCN " + newPayment.getDocumentControlNumber() +
                 " Due to response status code as  = " + httpClientErrorException.getMessage());
         } catch (Exception exception) {
             throw new PaymentException("Error occurred while processing bulk scan payments with DCN " + newPayment.getDocumentControlNumber() +
-               " Exception message  = " + exception.getMessage());
+                " Exception message  = " + exception.getMessage());
         }
-        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
     public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws RestClientException {
