@@ -97,11 +97,18 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
             List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair("grant_type", "client_credentials"));
+            /*params.add(new BasicNameValuePair("grant_type", "client_credentials"));
             params.add(new BasicNameValuePair("tenantname", "PCI Pal Test Integration"));
             params.add(new BasicNameValuePair("username", "HMCTS_user"));
             params.add(new BasicNameValuePair("client_id", "HMCTStest"));
-            params.add(new BasicNameValuePair("client_secret", "469Q4RblXA5atSI1U8pFW3AQZqvYjwD9B7XUp47c"));
+            params.add(new BasicNameValuePair("client_secret", "469Q4RblXA5atSI1U8pFW3AQZqvYjwD9B7XUp47c"));*/
+
+
+            params.add(new BasicNameValuePair("grant_type", "client_credentials"));
+            params.add(new BasicNameValuePair("tenantname", "HMCTS"));
+            params.add(new BasicNameValuePair("username", "APIUser"));
+            params.add(new BasicNameValuePair("client_id", "HMCTSStage"));
+            params.add(new BasicNameValuePair("client_secret", "Vm82kOUZAf9U4Kms3hIQM03jqsDQKc8aHIGy5I9y"));
 
             HttpPost httpPost1 = new HttpPost("https://pcipalstaging.cloud/api/v1/token");
             httpPost1.setEntity(new UrlEncodedFormEntity(params));
@@ -113,7 +120,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             //PCI PAL 2nd call
 
-            HttpPost httpPost2 = new HttpPost("https://euwest1.pcipalstaging.cloud/api/v1/session/319/launch");
+            //HttpPost httpPost2 = new HttpPost("https://euwest1.pcipalstaging.cloud/api/v1/session/319/launch");
+            HttpPost httpPost2 = new HttpPost("https://euwest1.pcipalstaging.cloud/api/v1/session/303/launch");
             httpPost2.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost2.addHeader(authorizationHeader(pcipalAntennaResponse.getAccessToken()));
             PCIPALAntennaRequest pcipalAntennaRequest = PCIPALAntennaRequest.pciPALAntennaRequestWith().FlowId("1201")
@@ -138,7 +146,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             //PCI PAL 3rd call
 
-            String uri = "https://euwest1.pcipalstaging.cloud/session/319/view/";
+            //String uri = "https://euwest1.pcipalstaging.cloud/session/319/view/";
+            String uri = "https://euwest1.pcipalstaging.cloud/session/303/view/";
             String finalUri = uri + pcipalAntennaResponse2.getId();
             HttpPost httpPost3 = new HttpPost(finalUri);
             httpPost3.addHeader(CONTENT_TYPE, "application/x-www-form-urlencoded");
