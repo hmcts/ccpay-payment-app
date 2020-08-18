@@ -838,7 +838,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null))
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -850,7 +850,7 @@ public class PaymentGroupControllerTest {
         assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Allocated"));
 
         MvcResult duplicateRequest = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null))
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -858,43 +858,27 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void testValidTransferredBulkScanPayments() throws Exception{
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
+    public void testValidAndDuplicateTransferredBulkScanPayments() throws Exception{
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null))
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isCreated())
             .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
-        assertEquals(paymentGroupDto.getPaymentGroupReference(), paymentsResponse.getPaymentGroupReference());
         assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Transferred"));
+
+        MvcResult duplicateRequest = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(duplicateRequest.getResponse().getContentAsString().contains("Bulk scan payment already exists for DCN = DCN293842342342834278348"));
     }
 
     @Test
     public void testUnidentifiedBulkScanPayments() throws Exception{
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Unidentified","Unidentified bulk scan payments", "Test Unidentified Reason"))
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Unidentified","Unidentified bulk scan payments", "Test Unidentified Reason", "DCN293842342342834278348"))
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -923,11 +907,18 @@ public class PaymentGroupControllerTest {
             .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null))
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
         assertTrue(result2.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278348 Due to response status code as  = 404 NOT_FOUND"));
+
+        MvcResult result3 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result3.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
     }
 
     @Test
@@ -950,11 +941,18 @@ public class PaymentGroupControllerTest {
             .thenThrow(new RestClientException("Connection failed for bulk scan api"));
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference()  + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null))
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference()  + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
         assertTrue(result2.getResponse().getContentAsString().contains("Error occurred while processing bulk scan payments with DCN DCN293842342342834278348"));
+
+        MvcResult result3 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result3.getResponse().getContentAsString().contains("Error occurred while processing bulk scan payments with DCN DCN293842342342834278349"));
     }
 
     @Test
@@ -1306,13 +1304,13 @@ public class PaymentGroupControllerTest {
             .build();
     }
 
-    private BulkScanPaymentRequestStrategic getBulkScanPaymentStrategic(String paymentAllocationStatus, String paymentAllocationDescription, String unIdentifiedReason) {
+    private BulkScanPaymentRequestStrategic getBulkScanPaymentStrategic(String paymentAllocationStatus, String paymentAllocationDescription, String unIdentifiedReason, String documentControlNumber) {
         return BulkScanPaymentRequestStrategic.createBulkScanPaymentStrategicWith()
             .amount(new BigDecimal(100.00))
             .service(Service.DIGITAL_BAR)
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
-            .documentControlNumber("DCN293842342342834278348")
+            .documentControlNumber(documentControlNumber)
             .ccdCaseNumber("1231-1231-3453-4333")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User")
