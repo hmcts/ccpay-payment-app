@@ -92,39 +92,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void retrieveApportionDetailsWithReference() throws Exception {
-        Payment payment = populateCardPaymentToDb("1");
-        populateApportionDetails();
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-        MvcResult result = restActions
-            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
-        assertNotNull(paymentGroupDto);
-        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
-    }
-
-    @Test
-    @Transactional
-    public void retrieveApportionDetailsWithReferenceWithoutFees() throws Exception {
-        String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDbWithoutFees(paymentReference,false);
-        populateApportionDetails();
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-        MvcResult result = restActions
-            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
-        assertNotNull(paymentGroupDto);
-        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
-    }
-
-    @Test
-    @Transactional
     public void retrieveApportionDetailsWithReferenceForCardPayments() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails();
@@ -204,6 +171,39 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         String errorMessage = "errorMessage";
         PaymentNotFoundException ex = new PaymentNotFoundException(errorMessage);
         assertEquals(errorMessage, feePayApportionController.notFound(ex));
+    }
+
+    @Test
+    @Transactional
+    public void retrieveApportionDetailsWithReference() throws Exception {
+        Payment payment = populateCardPaymentToDb("1");
+        populateApportionDetails();
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        MvcResult result = restActions
+            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
+    }
+
+    @Test
+    @Transactional
+    public void retrieveApportionDetailsWithReferenceWithoutFees() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        Payment payment =populateTelephonyPaymentToDbWithoutFees(paymentReference,false);
+        populateApportionDetails();
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        MvcResult result = restActions
+            .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
+        assertNotNull(paymentGroupDto);
+        assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
     }
 
 }
