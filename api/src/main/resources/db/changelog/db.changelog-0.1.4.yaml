@@ -117,3 +117,21 @@ databaseChangeLog:
               - column:
                   name: date_updated
                   type: TIMESTAMP WITHOUT TIME ZONE
+
+# Apportionment DB Model Rollback Scripts
+#  - changeSet:
+#      id: 1554989041418-24
+#      author: ayan
+#      failOnError: true
+#      changes:
+#        - sql:
+#            splitStatements:
+#            sql: >
+#              DROP TABLE fee_pay_apportion;
+#              DROP TABLE audit_events_type;
+#              DROP TABLE payment_audit_history;
+#              ALTER TABLE fee DROP COLUMN amount_due;
+#              ALTER TABLE fee DROP COLUMN date_apportioned;
+#              ALTER TABLE fee DROP COLUMN date_created;
+#              ALTER TABLE fee DROP COLUMN date_updated;
+
