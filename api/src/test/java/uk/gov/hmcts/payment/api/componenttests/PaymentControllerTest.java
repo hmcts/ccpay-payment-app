@@ -1285,8 +1285,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledONForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populateTelephonyPaymentToDb(paymentReference,false);
-        populateApportionDetails();
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
+        populateApportionDetails(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
