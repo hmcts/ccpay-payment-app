@@ -1,7 +1,10 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,12 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
 public class FeePayApportionControllerTest extends PaymentsDataUtil {
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+
+    @Rule
+    public WireMockClassRule instanceRule = wireMockRule;
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
@@ -91,7 +100,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void retrieveApportionDetailsWithReferenceForCardPayments() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails();
@@ -107,7 +115,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void retrieveApportionDetailsWithReferenceNumber() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails();
@@ -123,7 +130,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void retrieveApportionDetailsWithReferenceWhenFeeIdIsDifferent() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails();
@@ -139,7 +145,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void retrieveApportionDetailsWithReferenceWhenFeeIdIsSame() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails();
@@ -155,7 +160,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void retrunEmptyListWhenPaymentIsNotPresent() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails();
@@ -174,7 +178,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void retrieveApportionDetailsWithReference() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
         populateApportionDetails();
@@ -190,7 +193,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void retrieveApportionDetailsWithReferenceWithoutFees() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment =populateTelephonyPaymentToDbWithoutFees(paymentReference,false);
