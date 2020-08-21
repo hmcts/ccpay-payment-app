@@ -193,7 +193,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
     }
 
-    @Test
+    /*@Test
     public void retrieveApportionDetailsWithReferenceWithoutFees() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment =populateTelephonyPaymentToDbWithoutFees(paymentReference,false);
@@ -207,6 +207,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
         assertNotNull(paymentGroupDto);
         assertThat(paymentGroupDto.getPayments().get(0).getReference()).isEqualTo(payment.getReference());
-    }
+    }*/
 
 }
