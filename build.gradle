@@ -87,6 +87,7 @@ allprojects {
             // HTML reports can be used to see code coverage
             // without any external tools
             html.enabled true
+            xml.destination = file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
         }
     }
 
@@ -219,7 +220,8 @@ sonarqube {
         property "sonar.coverage.exclusions", sonarExclusions.join(", ")
     }
 }
-project.tasks['sonarqube'].dependsOn test, jacocoTestReport
+
+project.tasks['sonarqube'].dependsOn codeCoverageReport
 
 task smoke(type: GradleBuild, description: 'Runs smoke tests', group: 'Verification') {
     buildFile = './api/build.gradle'
