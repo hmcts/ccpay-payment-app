@@ -361,6 +361,7 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeLiberataDto(PaymentFee fee,boolean apportionCheck) {
+        LOG.info("Inside toFeeLiberataDto");
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
         return FeeDto.feeDtoWith()
@@ -400,9 +401,10 @@ public class PaymentDtoMapper {
     }
 
     private FeeDto toFeeLiberataDtoWithCaseReference(PaymentFee fee, String caseReference,boolean apportionCheck) {
+
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
-
+        LOG.info("Inside toFeeLiberataDtoWithCaseReference");
         return FeeDto.feeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)

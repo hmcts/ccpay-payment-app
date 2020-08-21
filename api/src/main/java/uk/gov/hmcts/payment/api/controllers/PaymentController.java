@@ -203,11 +203,14 @@ public class PaymentController {
             //Apportion logic added for pulling allocation amount
             boolean apportionCheck = payment.getPaymentChannel() != null
                 && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName());
+            LOG.info("Apportion check value in liberata API: {}", apportionCheck);
             List<PaymentFee> fees = paymentFeeLink.getFees();
             boolean isPaymentAfterApportionment = false;
             if (apportionCheck && apportionFeature) {
+                LOG.info("Apportion check and feature passed");
                 final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
                 if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
+                    LOG.info("Apportion details available in PaymentController");
                     fees = new ArrayList<>();
                     getApportionedDetails(fees, feePayApportionList);
                     isPaymentAfterApportionment = true;
@@ -225,8 +228,10 @@ public class PaymentController {
             Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
             if(apportionedFee.isPresent())
             {
+                LOG.info("Apportioned fee is present");
                 PaymentFee fee = apportionedFee.get();
                 BigDecimal allocatedAmount = feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount() != null ? feePayApportion.getCallSurplusAmount() : BigDecimal.valueOf(0));
+                LOG.info("Allocated amount in PaymentController: {}", allocatedAmount);
                 fee.setAllocatedAmount(allocatedAmount);
                 fee.setDateApportioned(feePayApportion.getDateCreated());
                 fees.add(fee);
