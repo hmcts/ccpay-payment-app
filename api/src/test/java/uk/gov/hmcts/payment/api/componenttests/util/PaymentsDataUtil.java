@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests.util;
 
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -81,12 +80,11 @@ public class PaymentsDataUtil {
 
     public Payment populateCardPaymentToDb(String number) throws Exception {
         //Create a payment in remissionDbBackdoor
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("99.99"))
             .caseReference("Reference" + number)
-            .ccdCaseNumber(ccdCaseNumber)
+            .ccdCaseNumber("ccdCaseNumber" + number)
             .description("Test payments statuses for " + number)
             .serviceType("PROBATE")
             .currency("GBP")
