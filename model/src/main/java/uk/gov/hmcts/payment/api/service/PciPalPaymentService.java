@@ -62,7 +62,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM))
                 ppAccountID = ppAccountIDFinrem;
 
-            LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
+            LOG.info("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
             params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
