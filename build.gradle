@@ -218,6 +218,8 @@ sonarqube {
         property "sonar.exclusions", sonarExclusions.join(", ")
         property "sonar.test.exclusions", sonarExclusions.join(", ")
         property "sonar.coverage.exclusions", sonarExclusions.join(", ")
+        property "sonar.projectName", "payment-app"
+        property "sonar.projectKey", "uk.gov.hmcts.reform.payment:payment-app"
     }
 }
 
