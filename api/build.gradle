@@ -128,7 +128,7 @@ test {
     exclude 'uk/gov/hmcts/payment/api/v1/**'
 }
 
-task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
+/*task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
     testClassesDirs = sourceSets.smokeTest.output.classesDirs
     classpath = sourceSets.smokeTest.runtimeClasspath
 }
@@ -136,7 +136,7 @@ task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verifica
 task functionalTest(type: Test, description: 'Runs the functional tests', group: 'Verification') {
     testClassesDirs = sourceSets.functionalTest.output.classesDirs
     classpath = sourceSets.functionalTest.runtimeClasspath
-}
+}*/
 
 pitest {
     targetClasses = ['uk.gov.hmcts.payment.api.*']
