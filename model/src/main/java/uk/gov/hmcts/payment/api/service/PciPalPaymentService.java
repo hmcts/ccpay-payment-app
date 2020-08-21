@@ -124,7 +124,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             HttpPost httpPost2 = new HttpPost("https://euwest1.pcipalstaging.cloud/api/v1/session/303/launch");
             httpPost2.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost2.addHeader(authorizationHeader(pcipalAntennaResponse.getAccessToken()));
-            PCIPALAntennaRequest pcipalAntennaRequest = PCIPALAntennaRequest.pciPALAntennaRequestWith().FlowId("1201")
+            PCIPALAntennaRequest pcipalAntennaRequest = PCIPALAntennaRequest.pciPALAntennaRequestWith().FlowId("1356")
                 .InitialValues(PCIPALAntennaRequest.InitialValues.initialValuesWith()
                     .Amount(new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString())
                     .CallbackURL(callbackUrl)
