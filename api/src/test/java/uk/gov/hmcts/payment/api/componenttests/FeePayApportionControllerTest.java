@@ -100,9 +100,10 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void retrieveApportionDetailsWithReferenceForCardPayments() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
-        populateApportionDetails();
+        populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
@@ -117,7 +118,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @Test
     public void retrieveApportionDetailsWithReferenceNumber() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
-        populateApportionDetails();
+        populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
@@ -132,7 +133,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @Test
     public void retrieveApportionDetailsWithReferenceWhenFeeIdIsDifferent() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
-        populateApportionDetails();
+        populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
@@ -147,7 +148,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @Test
     public void retrieveApportionDetailsWithReferenceWhenFeeIdIsSame() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
-        populateApportionDetails();
+        populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
@@ -162,7 +163,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @Test
     public void retrunEmptyListWhenPaymentIsNotPresent() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
-        populateApportionDetails();
+        populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + "123")
@@ -180,7 +181,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @Test
     public void retrieveApportionDetailsWithReference() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
-        populateApportionDetails();
+        populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
@@ -196,7 +197,7 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     public void retrieveApportionDetailsWithReferenceWithoutFees() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment =populateTelephonyPaymentToDbWithoutFees(paymentReference,false);
-        populateApportionDetails();
+        populateApportionDetails(payment);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         MvcResult result = restActions
             .get("/payment-groups/fee-pay-apportion/" + payment.getReference())
