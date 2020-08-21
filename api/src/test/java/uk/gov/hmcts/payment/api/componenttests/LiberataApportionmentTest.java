@@ -23,7 +23,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -219,8 +218,8 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledONForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populateTelephonyPaymentToDb(paymentReference,false);
-        populateApportionDetails();
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
+        populateApportionDetails(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
@@ -327,8 +326,8 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledOFFForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populateTelephonyPaymentToDb(paymentReference,false);
-        populateApportionDetails();
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
+        populateApportionDetails(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
