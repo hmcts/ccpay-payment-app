@@ -149,6 +149,7 @@ public class CreditAccountPaymentController {
         LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
         if(apportionFeature) {
             Payment pbaPayment = paymentFeeLink.getPayments().get(0);
+            pbaPayment.setPaymentLink(paymentFeeLink);
             feePayApportionService.processApportion(pbaPayment);
 
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS

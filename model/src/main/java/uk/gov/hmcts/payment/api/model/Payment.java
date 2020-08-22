@@ -170,5 +170,4 @@ public class Payment extends Auditable<String> {
     @ToString.Exclude
     @Column(name = "payer_name")
     private String payerName;
-
 }
