@@ -240,7 +240,6 @@ public class CMCCardPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().getPaymentGroups(paymentDto.getCcdCaseNumber())
             .then().getPaymentGroups((paymentGroupsResponse -> {
-            //Assertions.assertThat(paymentGroupsResponse.getPaymentGroups().size()).isEqualTo(1);
             paymentGroupsResponse.getPaymentGroups().stream()
                 .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference().equalsIgnoreCase(paymentDto.getReference()))
                 .forEach(paymentGroupDto -> {

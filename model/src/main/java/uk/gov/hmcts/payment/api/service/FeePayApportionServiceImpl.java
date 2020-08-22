@@ -11,10 +11,7 @@ import uk.gov.hmcts.payment.api.util.ApportionType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -97,6 +94,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                 });
                 this.processFeePayApportion(FeePayApportionCCDCase.feePayApportionCCDCaseWith()
                     .ccdCaseNo(payment.getCcdCaseNumber())
+                    .feePayGroups(Collections.singletonList(payment.getPaymentLink()))
                     .fees(sortedFees)
                     .payments(Lists.newArrayList(payment))
                     .build());
@@ -154,12 +152,9 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                     if (isSurplus) {
                         findSurplusFee(feePayApportions, callSurplusAmount, feePayApportionCCDCase.getFees());
                     }
-                    feePayApportions.stream().forEach(feePayApportion -> {
-                        feePayApportionRepository.save(feePayApportion);
-                    });
-                    feePayApportionCCDCase.getFees().stream()
-                        .forEach(fee -> {
-                            paymentFeeRepository.save(fee);
+                    feePayApportionCCDCase.getFeePayGroups().stream()
+                        .forEach(paymentFeeLink -> {
+                            paymentFeeLink.setApportions(feePayApportions);
                         });
                 }
             }
@@ -175,6 +170,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
         FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
             .feeId(fee.getId())
             .paymentId(payment.getId())
+            .paymentLink(payment.getPaymentLink())
             .feeAmount(fee.getNetAmount())
             .paymentAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())

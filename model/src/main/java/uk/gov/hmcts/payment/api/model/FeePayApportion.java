@@ -12,6 +12,7 @@ import java.util.Date;
 @Entity
 @EntityListeners(FeePayApportionEntityListener.class)
 @Data
+@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "feePayApportionWith")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,6 +27,10 @@ public class FeePayApportion extends Auditable<String> {
 
     @Column(name = "fee_id")
     private Integer feeId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_link_id", insertable = false, updatable = false)
+    private PaymentFeeLink paymentLink;
 
     @Column(name = "fee_amount")
     private BigDecimal feeAmount;

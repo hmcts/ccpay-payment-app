@@ -272,7 +272,7 @@ public class PaymentGroupController {
             // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
             if(newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
                 LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
-                feePayApportionService.updateFeeAmountDue(payment);
+                feePayApportionService.updateFeeAmountDue(newPayment);
             }
         }
 
