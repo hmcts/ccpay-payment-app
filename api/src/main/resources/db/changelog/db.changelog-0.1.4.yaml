@@ -47,7 +47,7 @@ databaseChangeLog:
                   name: date_updated
                   type: TIMESTAMP WITHOUT TIME ZONE
   - changeSet:
-      id: 1554989041418-21
+      id: 1554989046143-21
       author: ayan
       failOnError: true
       changes:
@@ -55,7 +55,6 @@ databaseChangeLog:
             splitStatements:
             sql: >
               ALTER TABLE fee ADD COLUMN amount_due numeric(19, 2);
-              ALTER TABLE fee ADD COLUMN date_apportioned TIMESTAMP WITHOUT TIME ZONE;
               ALTER TABLE fee ADD COLUMN date_created TIMESTAMP(3) WITHOUT TIME ZONE;
               ALTER TABLE fee ADD COLUMN date_updated TIMESTAMP(3) WITHOUT TIME ZONE;
 

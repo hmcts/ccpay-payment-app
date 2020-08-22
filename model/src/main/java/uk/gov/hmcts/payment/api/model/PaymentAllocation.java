@@ -8,7 +8,6 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-//@EntityListeners(PaymentAllocationEntityListener.class)
 @Data
 @EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "paymentAllocationWith")
@@ -16,7 +15,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "payment_allocation")
-public class PaymentAllocation /*extends Auditable<String>*/ {
+public class PaymentAllocation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

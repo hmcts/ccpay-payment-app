@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.payment.api.dto.FeePayApportionCCDCase;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.util.ApportionType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.math.BigDecimal;
@@ -29,8 +30,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     private final FeePayApportionRepository feePayApportionRepository;
 
     private final PaymentFeeRepository paymentFeeRepository;
-
-    private final String APPORTION_TYPE_AUTO = "AUTO";
 
     private Boolean isSurplus = false;
 
@@ -180,7 +179,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             .paymentAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .createdBy("SYSTEM")
-            .apportionType(APPORTION_TYPE_AUTO)
+            .apportionType(ApportionType.AUTO.getName())
             .dateCreated(payment.getDateCreated())
             .build();
 
@@ -189,8 +188,6 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
         } else {
             feePayApportion.setApportionAmount(remainingPaymentAmount);
         }
-
-        fee.setDateApportioned(feePayApportion.getDateCreated());
 
         return feePayApportion;
     }
