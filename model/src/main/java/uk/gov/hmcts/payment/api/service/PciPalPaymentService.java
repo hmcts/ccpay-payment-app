@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -52,15 +53,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
         LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
-            String ppAccountID = null;
-            if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
-                ppAccountID = ppAccountIDDivorce;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
-                ppAccountID = ppAccountIDCmc;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
-                ppAccountID = ppAccountIDProbate;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM))
-                ppAccountID = ppAccountIDFinrem;
+            String ppAccountID = getppAccountId(serviceType);
 
             LOG.info("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -77,6 +70,27 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             return request.getURI().toString();
         });
+    }
+
+    private String getppAccountId(String serviceType) {
+        String ppAccountID = null;
+        if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
+            ppAccountID = ppAccountIDDivorce;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
+            ppAccountID = ppAccountIDCmc;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
+            ppAccountID = ppAccountIDProbate;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM)) {
+            ppAccountID = ppAccountIDFinrem;
+        }
+        else
+        {
+            throw new PaymentException("Invalid service type: " + serviceType);
+        }
+        return ppAccountID;
     }
 
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {
