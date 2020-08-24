@@ -682,7 +682,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
 
-    //@Test
+    @Test
     public void givenLiberataCheckOffAndCheckLiberataAccountForAllSericesOnThenAllServicesTriggerLiberataCheck() throws Exception {
         setCreditAccountPaymentLiberataCheckFeature(false);
         setCheckLiberataAccountForAllServices(true);

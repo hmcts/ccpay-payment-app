@@ -63,11 +63,13 @@ allprojects {
         // If a subproject applies the 'jacoco' plugin, add the result it to the report
         subprojects { subproject ->
             subproject.plugins.withType(JacocoPlugin).configureEach {
-                subproject.tasks.matching({ t -> t.extensions.findByType(JacocoTaskExtension) }).configureEach { testTask ->
-                    sourceSets subproject.sourceSets.main
-                    executionData(testTask)
+                subproject.tasks.matching({ t -> t.extensions.findByType(JacocoTaskExtension) }).configureEach {
+                    testTask ->
+                        if (testTask.getTaskIdentity().name == "test") {
+                            sourceSets subproject.sourceSets.main
+                            executionData(testTask)
+                        }
                 }
-
             }
         }
         // enable the different report types (html, xml, csv)
