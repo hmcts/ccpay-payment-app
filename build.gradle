@@ -68,22 +68,13 @@ allprojects {
                     executionData(testTask)
                 }
 
-                // To automatically run `test` every time `./gradlew codeCoverageReport` is called,
-                // you may want to set up a task dependency between them as shown below.
-                // Note that this requires the `test` tasks to be resolved eagerly (see `forEach`) which
-                // may have a negative effect on the configuration time of your build.
-                /* subproject.tasks.matching({ t -> t.extensions.findByType(JacocoTaskExtension) }).forEach {
-                     rootProject.tasks.codeCoverageReport.dependsOn(it)
-                 }*/
             }
         }
-
         // enable the different report types (html, xml, csv)
         reports {
             // xml is usually used to integrate code coverage with
             // other tools like SonarQube, Coveralls or Codecov
             xml.enabled true
-
             // HTML reports can be used to see code coverage
             // without any external tools
             html.enabled true
@@ -137,28 +128,6 @@ subprojects {
         }
 
     }
-
-    /*test {
-        finalizedBy jacocoTestReport
-        jacoco {
-            destinationFile = file("${project.rootDir}/build/jacoco/test.exec")
-        }
-
-    }
-
-    jacoco {
-        toolVersion = versions.jacocoVersion
-    }
-
-    jacocoTestReport {
-        dependsOn test
-        executionData(test)
-        reports {
-            html.enabled = true
-            xml.enabled = true
-            html.destination = file("${project.buildDir}/build/jacoco/jacocoTestReport.html")
-        }
-    }*/
 }
 
 dependencies {
@@ -212,9 +181,7 @@ sonarqube {
         property "sonar.host.url", "https://sonar.reform.hmcts.net/"
         property "sonar.dynamicAnalysis", "reuseReports"
         property "sonar.java.coveragePlugin", "jacoco"
-        //property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/test.exec"
         property "sonar.dependencyCheck.reportPath", "${project.buildDir}/reports/dependency-check-report.xml"
-        //property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
         property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
         property "sonar.exclusions", sonarExclusions.join(", ")
         property "sonar.test.exclusions", sonarExclusions.join(", ")
