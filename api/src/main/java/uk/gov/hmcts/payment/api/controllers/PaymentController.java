@@ -221,6 +221,7 @@ public class PaymentController {
     }
 
     private void getApportionedDetails(List<PaymentFee> fees, List<FeePayApportion> feePayApportionList) {
+        LOG.info("Getting Apportionment Details!!!");
         for (FeePayApportion feePayApportion : feePayApportionList)
         {
             Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
@@ -228,13 +229,19 @@ public class PaymentController {
             {
                 LOG.info("Apportioned fee is present");
                 PaymentFee fee = apportionedFee.get();
-                BigDecimal allocatedAmount = feePayApportion.getApportionAmount().add(feePayApportion.getCallSurplusAmount() != null ? feePayApportion.getCallSurplusAmount() : BigDecimal.valueOf(0));
-                LOG.info("Allocated amount in PaymentController: {}", allocatedAmount);
-                fee.setAllocatedAmount(allocatedAmount);
-                fee.setDateApportioned(feePayApportion.getDateCreated());
+                if(feePayApportion.getApportionAmount() != null) {
+                    LOG.info("Apportioned Amount is available!!!");
+                    BigDecimal allocatedAmount = feePayApportion.getApportionAmount()
+                        .add(feePayApportion.getCallSurplusAmount() != null
+                            ? feePayApportion.getCallSurplusAmount()
+                            : BigDecimal.valueOf(0));
+                    LOG.info("Allocated amount in PaymentController: {}", allocatedAmount);
+                    fee.setAllocatedAmount(allocatedAmount);
+                    fee.setDateApportioned(feePayApportion.getDateCreated());
+                }
                 fees.add(fee);
             }
-    }
+        }
     }
 
     private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(PaymentFeeLink paymentFeeLink) {
