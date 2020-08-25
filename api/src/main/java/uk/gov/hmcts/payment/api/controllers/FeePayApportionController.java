@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,24 +56,27 @@ public class FeePayApportionController {
         LOG.info("apportionFeature value in FeePayApportionController: {}", apportionFeature);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
-        List<PaymentFee> feeList = paymentFeeLink.getFees();
+
         if (payment.isPresent() && apportionFeature)
         {
             LOG.info("Apportion feature is true and payment is available in FeePayApportionController");
             List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
             if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
                 LOG.info("Apportion details available in FeePayApportionController");
-                feePayApportionList.stream()
-                    .forEach(feePayApportion -> {
-                        feeList.stream()
-                            .forEach(paymentFee -> {
-                                if (feePayApportion.getFeeId().equals(paymentFee.getId())) {
-                                    LOG.info("Fee id matched in FeePayApportionController");
-                                    PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-                                    fee.setApportionAmount(feePayApportion.getApportionAmount());
+                List<PaymentFee> feeList = new ArrayList<>();
+                for (FeePayApportion feePayApportion : feePayApportionList)
+                {
+                    LOG.info("Inside FeePayApportion section in FeePayApportionController");
+                    Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
+                    if(apportionedFee.isPresent())
+                    {
+                        LOG.info("Apportioned fee is present");
+                        PaymentFee fee = apportionedFee.get();
+                        LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());
+                        fee.setApportionAmount(feePayApportion.getApportionAmount());
+                        feeList.add(fee);
                                 }
-                            });
-                    });
+                            }
                 paymentFeeLink.setFees(feeList);
             }
 
