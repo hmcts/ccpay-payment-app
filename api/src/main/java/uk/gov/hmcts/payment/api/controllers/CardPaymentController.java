@@ -179,7 +179,7 @@ public class CardPaymentController {
         if(payment.isPresent()) {
             return paymentDtoMapper.toPaymentStatusesDto(payment.get());
         }
-       return null;
+        return new PaymentDto();
     }
 
     @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")

@@ -180,7 +180,7 @@ public class PaymentController {
         if(payment.isPresent()) {
             return paymentDtoMapper.toGetPaymentResponseDtos(payment.get());
         }
-        return null;
+        return new PaymentDto();
     }
 
     private Optional<Payment> getPaymentByReference(String reference) {
