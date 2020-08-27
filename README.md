@@ -18,7 +18,7 @@ you should use GOV.UK Pay admin console to create your API key(-s) and provide t
 Please make sure your application is integrated with IDAM before you start.  
 * **service-auth-provider**. All requests to Payment Gateway require a valid service JWT token to be passed in 
 "ServiceAuthorization" header. Please make sure your application is registered in service-auth-provider-app and you are 
-able to acquire service JWT tokens.
+able to acquire service JWT tokens..
 
 ### Integration GOTCHAs
 
