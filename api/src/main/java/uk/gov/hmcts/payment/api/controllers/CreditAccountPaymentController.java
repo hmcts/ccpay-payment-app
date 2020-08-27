@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
+import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -13,15 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -32,6 +28,7 @@ import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -60,18 +57,29 @@ public class CreditAccountPaymentController {
     private final AccountService<AccountDto, String> accountService;
     private final DuplicatePaymentValidator paymentValidator;
     private final FF4j ff4j;
+    private final FeePayApportionService feePayApportionService;
+    private final LaunchDarklyFeatureToggler featureToggler;
+    private final FeePayApportionRepository feePayApportionRepository;
+    private final PaymentFeeRepository paymentFeeRepository;
 
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
-                                          DuplicatePaymentValidator paymentValidator, FF4j ff4j) {
+                                          DuplicatePaymentValidator paymentValidator, FF4j ff4j,
+                                          FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
+                                          FeePayApportionRepository feePayApportionRepository,
+                                          PaymentFeeRepository paymentFeeRepository) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
         this.paymentValidator = paymentValidator;
         this.ff4j = ff4j;
+        this.feePayApportionService = feePayApportionService;
+        this.featureToggler = featureToggler;
+        this.feePayApportionRepository = feePayApportionRepository;
+        this.paymentFeeRepository = paymentFeeRepository;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -85,6 +93,7 @@ public class CreditAccountPaymentController {
     })
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
+    @Transactional
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
@@ -93,6 +102,13 @@ public class CreditAccountPaymentController {
         List<PaymentFee> fees = creditAccountPaymentRequest.getFees().stream()
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());
+
+        fees.stream().forEach(fee -> {
+            fee.setCcdCaseNumber((fee.getCcdCaseNumber() == null || fee.getCcdCaseNumber().isEmpty())
+                ? creditAccountPaymentRequest.getCcdCaseNumber()
+                : fee.getCcdCaseNumber());
+        });
+
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
@@ -127,6 +143,22 @@ public class CreditAccountPaymentController {
             LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
         }
+
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            Payment pbaPayment = paymentFeeLink.getPayments().get(0);
+            pbaPayment.setPaymentLink(paymentFeeLink);
+            feePayApportionService.processApportion(pbaPayment);
+
+            // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
+            if(Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
+                LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as {}" + pbaPayment.getPaymentStatus().getName());
+                feePayApportionService.updateFeeAmountDue(pbaPayment);
+            }
+        }
+
         LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
