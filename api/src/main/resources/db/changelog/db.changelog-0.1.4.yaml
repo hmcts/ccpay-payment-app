@@ -1,0 +1,170 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1554989041418-25
+      author: ayan
+      changes:
+        - createTable:
+            tableName: fee_pay_apportion
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  constraints:
+                    nullable: false
+                  name: payment_id
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: fee_id
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: payment_link_id
+                  type: INT
+              - column:
+                  name: fee_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: payment_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: apportion_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: ccd_case_number
+                  type: varchar(255)
+              - column:
+                  name: apportion_type
+                  type: varchar(10)
+              - column:
+                  name: call_surplus_amount
+                  type: numeric(19, 2)
+              - column:
+                  name: created_by
+                  type: varchar(255)
+              - column:
+                  name: date_created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: date_updated
+                  type: TIMESTAMP WITHOUT TIME ZONE
+  - changeSet:
+      id: 1554989041418-30
+      author: ayan
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: payment_link_id
+            baseTableName: fee_pay_apportion
+            constraintName: FK_3c04152jyub2e59dll71122
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: id
+            referencedTableName: payment_fee_link
+  - changeSet:
+      id: 1554989046143-21
+      author: ayan
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE fee ADD COLUMN amount_due numeric(19, 2);
+              ALTER TABLE fee ADD COLUMN date_created TIMESTAMP(3) WITHOUT TIME ZONE;
+              ALTER TABLE fee ADD COLUMN date_updated TIMESTAMP(3) WITHOUT TIME ZONE;
+
+  - changeSet:
+      id: 1554989041418-22
+      author: ayan
+      changes:
+        - createTable:
+            tableName: audit_events_type
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
+        - sql:
+            splitStatements: true
+            sql: >
+              INSERT INTO audit_events_type (name, description)
+                VALUES
+                  ('payment_created', 'Valid payment received and recorded successfully'),
+                  ('payment_updated', 'Payment updated successfully'),
+                  ('fee_created', 'Valid fee received and recorded successfully'),
+                  ('fee_updated', 'Fee updated successfully'),
+                  ('fee_removed', 'Fee removed successfully'),
+                  ('remission_applied', 'Valid remission received and applied to fee successfully'),
+                  ('payment_apportioned', 'Valid payment received and fee apportioned successfully');
+  - changeSet:
+      id: 1554989041418-23
+      author: ayan
+      changes:
+        - createTable:
+            tableName: payment_audit_history
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ccd_case_no
+                  type: varchar(255)
+              - column:
+                  name: audit_type
+                  type: varchar(255)
+              - column:
+                  name: audit_payload
+                  type: text
+              - column:
+                  name: audit_description
+                  type: varchar(255)
+              - column:
+                  name: date_created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: date_updated
+                  type: TIMESTAMP WITHOUT TIME ZONE
+  - changeSet:
+      id: 1554989041418-29
+      author: ayan
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: audit_type
+            baseTableName: payment_audit_history
+            constraintName: FK_boc1od01im5po7i8e5b7890
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: name
+            referencedTableName: audit_events_type
+
+# Apportionment DB Model Rollback Scripts
+#  - changeSet:
+#      id: 1554989041418-24
+#      author: ayan
+#      failOnError: true
+#      changes:
+#        - sql:
+#            splitStatements:
+#            sql: >
+#              DROP TABLE fee_pay_apportion;
+#              DROP TABLE audit_events_type;
+#              DROP TABLE payment_audit_history;
+#              ALTER TABLE fee DROP COLUMN amount_due;
+#              ALTER TABLE fee DROP COLUMN date_created;
+#              ALTER TABLE fee DROP COLUMN date_updated;
+
