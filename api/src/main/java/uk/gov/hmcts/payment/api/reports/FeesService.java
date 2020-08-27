@@ -39,22 +39,24 @@ public class FeesService {
 
     public Map<String, Map<String, FeeVersionDto>> getFeesVersionsData() {
 
-        Iterator<Map.Entry<String, Fee2Dto>> iterator = getFeesDtoMap().entrySet().iterator();
         Map<String, Map<String, FeeVersionDto>> mapOfFeeVersionsDtoMap = new HashMap<>();
+        if(getFeesDtoMap() != null){
+            Iterator<Map.Entry<String, Fee2Dto>> iterator = getFeesDtoMap().entrySet().iterator();
 
-        while (iterator.hasNext()) {
-            Map.Entry<String, Fee2Dto> entry = iterator.next();
-            Map<String, FeeVersionDto> feeVersionsDtoMap = new HashMap<>();
-            if (entry.getValue().getCurrentVersion() != null) {
-                feeVersionsDtoMap.put(entry.getValue().getCurrentVersion().getVersion().toString(),
-                    entry.getValue().getCurrentVersion());
+            while (iterator.hasNext()) {
+                Map.Entry<String, Fee2Dto> entry = iterator.next();
+                Map<String, FeeVersionDto> feeVersionsDtoMap = new HashMap<>();
+                if (entry.getValue().getCurrentVersion() != null) {
+                    feeVersionsDtoMap.put(entry.getValue().getCurrentVersion().getVersion().toString(),
+                        entry.getValue().getCurrentVersion());
+                }
+                for (FeeVersionDto feeVersion : entry.getValue().getFeeVersionDtos()) {
+                    feeVersionsDtoMap.put(feeVersion.getVersion().toString(), feeVersion);
+                }
+
+                mapOfFeeVersionsDtoMap.put(entry.getKey(), feeVersionsDtoMap);
+
             }
-            for (FeeVersionDto feeVersion : entry.getValue().getFeeVersionDtos()) {
-                feeVersionsDtoMap.put(feeVersion.getVersion().toString(), feeVersion);
-            }
-
-            mapOfFeeVersionsDtoMap.put(entry.getKey(), feeVersionsDtoMap);
-
         }
         return mapOfFeeVersionsDtoMap;
     }

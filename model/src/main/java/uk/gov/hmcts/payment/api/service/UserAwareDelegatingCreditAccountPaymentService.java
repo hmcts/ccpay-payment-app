@@ -70,7 +70,6 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
 
 
     @Override
-    @Transactional
     public PaymentFeeLink create(Payment creditAccount, List<PaymentFee> fees, String paymentGroupRef) throws CheckDigitException {
         LOG.debug("Create credit account payment with PaymentGroupReference: {}", paymentGroupRef);
 
