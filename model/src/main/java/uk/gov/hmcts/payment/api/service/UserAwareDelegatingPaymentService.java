@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
@@ -58,6 +59,10 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     private final ServiceIdSupplier serviceIdSupplier;
     private final AuditRepository auditRepository;
     private final CallbackService callbackService;
+    private final FeePayApportionRepository feePayApportionRepository;
+    private final PaymentFeeRepository paymentFeeRepository;
+    private final FeePayApportionService feePayApportionService;
+    private final LaunchDarklyFeatureToggler featureToggler;
 
     private static final Predicate[] REF = new Predicate[0];
 
@@ -77,7 +82,11 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                                              GovPayAuthUtil govPayAuthUtil,
                                              ServiceIdSupplier serviceIdSupplier,
                                              AuditRepository auditRepository,
-                                             CallbackService callbackService) {
+                                             CallbackService callbackService,
+                                             FeePayApportionRepository feePayApportionRepository,
+                                             PaymentFeeRepository paymentFeeRepository,
+                                             FeePayApportionService feePayApportionService,
+                                             LaunchDarklyFeatureToggler featureToggler) {
         this.userIdSupplier = userIdSupplier;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.delegateGovPay = delegateGovPay;
@@ -92,10 +101,13 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         this.serviceIdSupplier = serviceIdSupplier;
         this.auditRepository = auditRepository;
         this.callbackService = callbackService;
+        this.feePayApportionRepository = feePayApportionRepository;
+        this.paymentFeeRepository = paymentFeeRepository;
+        this.feePayApportionService = feePayApportionService;
+        this.featureToggler = featureToggler;
     }
 
     @Override
-    @Transactional
     public PaymentFeeLink create(PaymentServiceRequest paymentServiceRequest)
         throws CheckDigitException {
         String paymentReference = referenceUtil.getNext("RC");
@@ -138,7 +150,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
-    @Transactional
     public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest)
         throws CheckDigitException, MethodNotSupportedException {
 
@@ -224,6 +235,16 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     .errorCode(govPayPayment.getState().getCode())
                     .message(govPayPayment.getState().getMessage())
                     .build()));
+
+                //1. Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS
+                boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+                LOG.info("ApportionFeature Flag Value in UserAwareDelegatingPaymentService : {}", apportionFeature);
+                if(apportionFeature) {
+                    if(govPayPayment.getState().getStatus().toLowerCase().equalsIgnoreCase("success")) {
+                        LOG.info("Update Fee Amount Due as Payment Status received from GovPAY as SUCCESS!!!");
+                        feePayApportionService.updateFeeAmountDue(payment);
+                    }
+                }
 
                 if (shouldCallBack && payment.getServiceCallbackUrl() != null) {
                     callbackService.callback(paymentFeeLink, payment);
