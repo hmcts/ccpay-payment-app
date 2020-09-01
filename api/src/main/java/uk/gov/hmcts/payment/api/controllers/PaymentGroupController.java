@@ -335,7 +335,7 @@ public class PaymentGroupController {
         @ApiResponse(code = 400, message = "Payment creation failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments-antenna", produces = MediaType.TEXT_HTML_VALUE)
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments-antenna", produces = {MediaType.ALL_VALUE,MediaType.TEXT_HTML_VALUE})
     @ResponseBody
     public String createCardPaymentForPCIPALAntenna(
         @RequestHeader(value = "return-url") String returnURL,
