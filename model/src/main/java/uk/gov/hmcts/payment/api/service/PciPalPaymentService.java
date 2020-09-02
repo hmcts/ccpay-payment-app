@@ -93,7 +93,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         });
     }
 
-    public String getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
+    public PCIPALAntennaResponse getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
         LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
             List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -149,20 +149,9 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             //String uri = "https://euwest1.pcipalstaging.cloud/session/319/view/";
             String uri = "https://euwest1.pcipalstaging.cloud/session/303/view/";
             String finalUri = uri + pcipalAntennaResponse2.getId();
-            HttpPost httpPost3 = new HttpPost(finalUri);
-            httpPost3.addHeader(CONTENT_TYPE, "application/x-www-form-urlencoded");
-           // httpPost3.addHeader("X-BEARER-TOKEN",authorizationHeaderString(pcipalAntennaResponse.getAccessToken()));
-            //httpPost3.addHeader("X-REFRESH-TOKEN",pcipalAntennaResponse.getRefreshToken());
+            pcipalAntennaResponse.setNextUrl(finalUri);
 
-
-            List<NameValuePair> params1 = new ArrayList<NameValuePair>();
-            params1.add(new BasicNameValuePair("X-BEARER-TOKEN", pcipalAntennaResponse.getAccessToken()));
-            params1.add(new BasicNameValuePair("X-REFRESH-TOKEN", pcipalAntennaResponse.getRefreshToken()));
-            httpPost3.setEntity(new UrlEncodedFormEntity(params1));
-            HttpResponse response3 = httpClient.execute(httpPost3);
-            String responseBody = EntityUtils.toString(response3.getEntity());
-            System.out.println(responseBody);
-            return responseBody;
+            return pcipalAntennaResponse;
         });
     }
 
