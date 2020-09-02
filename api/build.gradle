@@ -66,7 +66,6 @@ dependencies {
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.1.2.RELEASE'
-  //compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version:'0.25.1.RELEASE'
   compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.9'
   compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version:'5.0'
   compile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.5.11'
