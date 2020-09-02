@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
@@ -335,15 +336,15 @@ public class PaymentGroupController {
         @ApiResponse(code = 400, message = "Payment creation failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments-antenna", produces = {MediaType.ALL_VALUE,MediaType.TEXT_HTML_VALUE})
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments-antenna")
     @ResponseBody
-    public String createCardPaymentForPCIPALAntenna(
+    @Transactional
+    public ResponseEntity<PaymentDto> createCardPaymentForPCIPALAntenna(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
 
-        String link = null;
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
@@ -373,12 +374,18 @@ public class PaymentGroupController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            link = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, request.getService().name());
-            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
+            PCIPALAntennaResponse pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, request.getService().name());
+            paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
         }
 
-        //return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
-        return link;
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            feePayApportionService.processApportion(payment);
+        }
+
+        return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
     }
 
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){

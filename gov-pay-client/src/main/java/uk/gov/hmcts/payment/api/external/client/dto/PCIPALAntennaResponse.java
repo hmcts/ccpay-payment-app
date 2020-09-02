@@ -40,4 +40,6 @@ public class PCIPALAntennaResponse {
 
     @JsonProperty(".expires")
     private String expires;
+
+    private String nextUrl;
 }

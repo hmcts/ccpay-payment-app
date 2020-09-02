@@ -85,6 +85,10 @@ public class PaymentDto {
 
     private String payerName;
 
+    private String accessToken;
+
+    private String refreshToken;
+
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;
