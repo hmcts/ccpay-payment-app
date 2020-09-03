@@ -1,17 +1,14 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +18,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -41,8 +40,13 @@ import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 
 import javax.validation.Valid;
@@ -56,6 +60,8 @@ import java.util.stream.Collectors;
 @Api(tags = {"Payment group"})
 @SwaggerDefinition(tags = {@Tag(name = "PaymentGroupController", description = "Payment group REST API")})
 public class PaymentGroupController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
 
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
 
@@ -73,6 +79,14 @@ public class PaymentGroupController {
 
     private final PaymentProviderRepository paymentProviderRepository;
 
+    private final PaymentFeeRepository paymentFeeRepository;
+
+    private final FeePayApportionService feePayApportionService;
+
+    private final LaunchDarklyFeatureToggler featureToggler;
+
+    private final FeePayApportionRepository feePayApportionRepository;
+
     private final Payment2Repository payment2Repository;
 
     @Autowired()
@@ -88,6 +102,11 @@ public class PaymentGroupController {
                                   PaymentDtoMapper paymentDtoMapper, PciPalPaymentService pciPalPaymentService,
                                   ReferenceUtil referenceUtil,
                                   ReferenceDataService<SiteDTO> referenceDataService,
+                                  PaymentProviderRepository paymentProviderRespository,
+                                  PaymentFeeRepository paymentFeeRepository,
+                                  FeePayApportionService feePayApportionService,
+                                  LaunchDarklyFeatureToggler featureToggler,
+                                  FeePayApportionRepository feePayApportionRepository){
                                   PaymentProviderRepository paymentProviderRespository, Payment2Repository payment2Repository){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
@@ -97,6 +116,10 @@ public class PaymentGroupController {
         this.referenceUtil = referenceUtil;
         this.referenceDataService = referenceDataService;
         this.paymentProviderRepository = paymentProviderRespository;
+        this.paymentFeeRepository = paymentFeeRepository;
+        this.feePayApportionService = feePayApportionService;
+        this.featureToggler = featureToggler;
+        this.feePayApportionRepository = feePayApportionRepository;
         this.payment2Repository = payment2Repository;
     }
 
@@ -175,6 +198,7 @@ public class PaymentGroupController {
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments")
     @ResponseBody
+    @Transactional
     public ResponseEntity<PaymentDto> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
@@ -214,6 +238,13 @@ public class PaymentGroupController {
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
         }
 
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            feePayApportionService.processApportion(payment);
+        }
+
         return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
     }
 
@@ -225,6 +256,7 @@ public class PaymentGroupController {
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments")
     @ResponseBody
+    @Transactional
     public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                 @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
 
@@ -260,6 +292,19 @@ public class PaymentGroupController {
         PaymentFeeLink paymentFeeLink = paymentGroupService.addNewPaymenttoExistingPaymentGroup(payment, paymentGroupReference);
 
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
+
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            feePayApportionService.processApportion(newPayment);
+
+            // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
+            if(newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
+                LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
+                feePayApportionService.updateFeeAmountDue(newPayment);
+            }
+        }
 
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
