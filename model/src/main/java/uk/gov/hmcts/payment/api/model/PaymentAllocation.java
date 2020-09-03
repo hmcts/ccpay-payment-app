@@ -9,6 +9,7 @@ import java.util.Date;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "paymentAllocationWith")
 @AllArgsConstructor
 @NoArgsConstructor

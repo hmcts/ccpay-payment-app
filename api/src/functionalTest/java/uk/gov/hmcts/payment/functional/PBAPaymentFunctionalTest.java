@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -20,12 +23,16 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.junit.Assert.assertEquals;
+import static org.springframework.http.HttpStatus.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_GROUP;
+import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -44,8 +51,11 @@ public class PBAPaymentFunctionalTest {
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
+    @Autowired
+    private LaunchDarklyFeature featureToggler;
 
     private static String USER_TOKEN;
+    private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
 
@@ -56,7 +66,9 @@ public class PBAPaymentFunctionalTest {
     public void setUp() {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CASE_WORKER_GROUP, "caseworker-cmc-solicitor").getAuthorisationToken();
+            USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
+
             TOKENS_INITIALIZED = true;
         }
     }
@@ -79,6 +91,82 @@ public class PBAPaymentFunctionalTest {
 
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
         assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+    }
+
+    @Test
+    public void makeAndRetrievePBAPaymentByCMCTestShouldReturnAutoApportionedFees() {
+        final String[] reference = new String[1];
+
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        // create card payment
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        // create a PBA payment
+        String accountNumber = "PBA234" + RandomUtils.nextInt();
+
+        CreditAccountPaymentRequest accountPaymentRequest = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("New passport application")
+            .caseReference("aCaseReference")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(Service.CMC)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA101")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber(accountNumber)
+            .fees(fees)
+            .build();
+
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
+            .then()
+            .statusCode(CREATED.value())
+            .body("status", equalTo("Pending"));
+
+        // Get pba payments by accountNumber
+        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+
+        // TEST retrieve payments, remissions and fees by payment-group-reference
+        dsl.given().userToken(USER_TOKEN_PAYMENT)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getPaymentGroups(paymentsResponse.getPayments().get(0).getCcdCaseNumber())
+            .then().getPaymentGroups((paymentGroupsResponse -> {
+            paymentGroupsResponse.getPaymentGroups().stream()
+                .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
+                    .equalsIgnoreCase(paymentsResponse.getPayments().get(0).getReference()))
+                .forEach(paymentGroupDto -> {
+
+                    boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+                    if(apportionFeature) {
+                        paymentGroupDto.getFees().stream()
+                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                            .forEach(fee -> {
+                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                            });
+                        paymentGroupDto.getFees().stream()
+                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                            .forEach(fee -> {
+                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                            });
+                        paymentGroupDto.getFees().stream()
+                            .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                            .forEach(fee -> {
+                                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                            });
+                    }
+                });
+        }));
     }
 
     //@Test
