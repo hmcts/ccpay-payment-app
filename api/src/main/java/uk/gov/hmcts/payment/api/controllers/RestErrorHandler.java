@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 
-import javax.annotation.Nonnull;
+import javax.validation.ValidationException;
 import java.util.List;
 import java.util.Locale;
 
@@ -63,13 +63,13 @@ public class RestErrorHandler {
         return dto;
     }
 
-    private String resolveErrorMessage(@Nonnull FieldError fieldError) {
+    private String resolveErrorMessage(FieldError fieldError) {
         Locale currentLocale = LocaleContextHolder.getLocale();
         String localizedErrorMessage = messageSource.getMessage(fieldError, currentLocale);
 
         if (localizedErrorMessage.equals(fieldError.getDefaultMessage())) {
             String[] fieldErrorCodes = fieldError.getCodes();
-            localizedErrorMessage = fieldErrorCodes != null ? fieldErrorCodes[0] : "";
+            localizedErrorMessage = fieldErrorCodes[0];
 
         }
 
