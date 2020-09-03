@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.dto.Reference;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 
 import java.util.List;
 
@@ -26,14 +28,21 @@ public class MaintenanceJobsController {
 
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
+    private final FeePayApportionService feePayApportionService;
+
+    @Autowired
+    private ReferenceUtil referenceUtil;
+
     @Autowired
     private TopicClientProxy topicClientProxy;
 
     @Autowired
     public MaintenanceJobsController(PaymentService<PaymentFeeLink, String> paymentService,
-                                     DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService) {
+                                     DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
+                                     FeePayApportionService feePayApportionService) {
         this.paymentService = paymentService;
         this.delegatingPaymentService = delegatingPaymentService;
+        this.feePayApportionService = feePayApportionService;
     }
 
     @ApiOperation(value = "Update payment status", notes = "Updates the payment status on all gov pay pending card payments")
@@ -66,6 +75,5 @@ public class MaintenanceJobsController {
             topicClientProxy.setKeepClientAlive(false);
             topicClientProxy.close();
         }
-
     }
 }
