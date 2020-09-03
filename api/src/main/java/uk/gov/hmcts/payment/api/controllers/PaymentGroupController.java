@@ -106,8 +106,7 @@ public class PaymentGroupController {
                                   PaymentFeeRepository paymentFeeRepository,
                                   FeePayApportionService feePayApportionService,
                                   LaunchDarklyFeatureToggler featureToggler,
-                                  FeePayApportionRepository feePayApportionRepository){
-                                  PaymentProviderRepository paymentProviderRespository, Payment2Repository payment2Repository){
+                                  FeePayApportionRepository feePayApportionRepository, Payment2Repository payment2Repository){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
