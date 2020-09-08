@@ -51,7 +51,7 @@ public class PaymentDtoMapper {
             .externalReference(payment.getExternalReference())
             .links(new PaymentDto.LinksDto(
                 payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                null, null
+                null, null,null,null
             ))
             .build();
     }
@@ -66,7 +66,7 @@ public class PaymentDtoMapper {
             .externalReference(payment.getExternalReference())
             .links(new PaymentDto.LinksDto(
                 payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
-                null, null
+                null, null,null,null
             ))
             .build();
     }
@@ -92,7 +92,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(paymentFeeLink.getFees() != null ? toFeeDtos(paymentFeeLink.getFees()) : null)
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null,null,null))
             .build();
     }
 
@@ -103,7 +103,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null,null,null))
             .build();
     }
 
@@ -114,9 +114,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(pcipalAntennaResponse.getNextUrl(), "POST"), null, null))
-            .accessToken(pcipalAntennaResponse.getAccessToken())
-            .refreshToken(pcipalAntennaResponse.getRefreshToken())
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(pcipalAntennaResponse.getNextUrl(), "POST"), null, null,pcipalAntennaResponse.getAccessToken(),pcipalAntennaResponse.getRefreshToken()))
             .build();
     }
 
@@ -140,7 +138,7 @@ public class PaymentDtoMapper {
             .fees(toFeeDtos(fees))
             .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
-                null
+                null,null,null
             ) : null)
             .build();
     }
@@ -166,7 +164,7 @@ public class PaymentDtoMapper {
             .fees(toFeeDtos(fees))
             .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
-                null
+                null,null,null
             ) : null)
             .build();
     }

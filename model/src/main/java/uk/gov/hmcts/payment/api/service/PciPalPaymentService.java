@@ -14,7 +14,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,10 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
-import uk.gov.hmcts.payment.api.external.client.dto.*;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaLinkIdResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -35,7 +37,6 @@ import java.util.List;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
-import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
 
 
 @Service
@@ -50,6 +51,46 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private String ppAccountIDProbate;
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
+
+    @Value("${pci-pal.antenna.grant.type}")
+    private String grantType;
+
+    @Value("${pci-pal.antenna.tenant.name}")
+    private String tenantName;
+
+    @Value("${pci-pal.antenna.user.name}")
+    private String userName;
+
+    @Value("${pci-pal.antenna.client.id}")
+    private String clientId;
+
+    @Value("${pci-pal.antenna.client.secret}")
+    private String clientSecret;
+
+    @Value("${pci-pal.antenna.get.tokens.url}")
+    private String tokensURL;
+
+    @Value("${pci-pal.antenna.launch.url}")
+    private String launchURL;
+
+    @Value("${pci-pal.antenna.view.id.url}")
+    private String viewIdURL;
+
+    @Value("${pci-pal.antenna.return.url}")
+    private String returnURL;
+
+    @Value("${pci-pal.antenna.cmc.flow.id}")
+    private String cmcFlowId;
+
+    @Value("${pci-pal.antenna.probate.flow.id")
+    private String probateFlowId;
+
+    @Value("${pci-pal.antenna.divorce.flow.id}")
+    private String divorceFlowId;
+
+    @Value("${pci-pal.antenna.financial.remedy.flow.id}")
+    private String financialRemedyFlowId;
+
 
     private final String callbackUrl;
     private final String url;
@@ -93,75 +134,63 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         });
     }
 
-    public PCIPALAntennaResponse getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
-        LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
+    public PCIPALAntennaResponse getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, PCIPALAntennaResponse pcipalAntennaResponse,String serviceType) {
         return withIOExceptionHandling(() -> {
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
-            /*params.add(new BasicNameValuePair("grant_type", "client_credentials"));
-            params.add(new BasicNameValuePair("tenantname", "PCI Pal Test Integration"));
-            params.add(new BasicNameValuePair("username", "HMCTS_user"));
-            params.add(new BasicNameValuePair("client_id", "HMCTStest"));
-            params.add(new BasicNameValuePair("client_secret", "469Q4RblXA5atSI1U8pFW3AQZqvYjwD9B7XUp47c"));*/
 
+            String flowId = null;
+            if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
+                flowId = divorceFlowId;
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
+                flowId = cmcFlowId;
+            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
+                flowId = probateFlowId;
 
-            params.add(new BasicNameValuePair("grant_type", "client_credentials"));
-            params.add(new BasicNameValuePair("tenantname", "HMCTS"));
-            params.add(new BasicNameValuePair("username", "APIUser"));
-            params.add(new BasicNameValuePair("client_id", "HMCTSStage"));
-            params.add(new BasicNameValuePair("client_secret", "Vm82kOUZAf9U4Kms3hIQM03jqsDQKc8aHIGy5I9y"));
-
-            HttpPost httpPost1 = new HttpPost("https://pcipalstaging.cloud/api/v1/token");
-            httpPost1.setEntity(new UrlEncodedFormEntity(params));
-            HttpResponse response1 = httpClient.execute(httpPost1);
-            //String responseBody = EntityUtils.toString(response.getEntity());
-
-            PCIPALAntennaResponse pcipalAntennaResponse = objectMapper.readValue(response1.getEntity().getContent(), PCIPALAntennaResponse.class);
-            System.out.println(pcipalAntennaResponse);
-
-            //PCI PAL 2nd call
-
-            //HttpPost httpPost2 = new HttpPost("https://euwest1.pcipalstaging.cloud/api/v1/session/319/launch");
-            HttpPost httpPost2 = new HttpPost("https://euwest1.pcipalstaging.cloud/api/v1/session/303/launch");
-            httpPost2.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
-            httpPost2.addHeader(authorizationHeader(pcipalAntennaResponse.getAccessToken()));
-            PCIPALAntennaRequest pcipalAntennaRequest = PCIPALAntennaRequest.pciPALAntennaRequestWith().FlowId("1356")
+            HttpPost httpPost = new HttpPost(launchURL);
+            httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
+            httpPost.addHeader(authorizationHeader(pcipalAntennaResponse.getAccessToken()));
+            PCIPALAntennaRequest pcipalAntennaRequest = PCIPALAntennaRequest.pciPALAntennaRequestWith().FlowId(flowId)
                 .InitialValues(PCIPALAntennaRequest.InitialValues.initialValuesWith()
-                    .Amount(new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString())
-                    .CallbackURL(callbackUrl)
-                    .RedirectURL("http://localhost")
-                    .Reference(pciPalPaymentRequest.getOrderReference())
+                    .amount(new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString())
+                    .callbackURL(callbackUrl)
+                    .returnURL(returnURL)
+                    .orderId(pciPalPaymentRequest.getOrderReference())
                     .build())
                     .build();
-            //String json = objectMapper.writeValueAsString(pcipalAntennaRequest);
 
             Gson gson = new Gson();
             String json = gson.toJson(pcipalAntennaRequest);
-            System.out.println(json);
             StringEntity entity = new StringEntity(json);
-            httpPost2.setEntity(entity);
-            HttpResponse response2 = httpClient.execute(httpPost2);
-            //String responseBody = EntityUtils.toString(response2.getEntity());
-            PCIPALAntennaResponse2 pcipalAntennaResponse2 = objectMapper.readValue(response2.getEntity().getContent(), PCIPALAntennaResponse2.class);
-            System.out.println(pcipalAntennaResponse2);
-
-            //PCI PAL 3rd call
-
-            //String uri = "https://euwest1.pcipalstaging.cloud/session/319/view/";
-            String uri = "https://euwest1.pcipalstaging.cloud/session/303/view/";
-            String finalUri = uri + pcipalAntennaResponse2.getId();
-            pcipalAntennaResponse.setNextUrl(finalUri);
+            httpPost.setEntity(entity);
+            HttpResponse response2 = httpClient.execute(httpPost);
+            PCIPALAntennaLinkIdResponse response = objectMapper.readValue(response2.getEntity().getContent(), PCIPALAntennaLinkIdResponse.class);
+            pcipalAntennaResponse.setNextUrl(viewIdURL + response.getId()+"/framed");
 
             return pcipalAntennaResponse;
         });
     }
 
+    public PCIPALAntennaResponse getPciPalTokens() {
+        return withIOExceptionHandling(() -> {
+            List<NameValuePair> params = new ArrayList<NameValuePair>();
+            params.add(new BasicNameValuePair("grant_type", grantType));
+            params.add(new BasicNameValuePair("tenantname", tenantName));
+            params.add(new BasicNameValuePair("username", userName));
+            params.add(new BasicNameValuePair("client_id", clientId));
+            params.add(new BasicNameValuePair("client_secret", clientSecret));
+
+            HttpPost httpPost = new HttpPost(tokensURL);
+            httpPost.setEntity(new UrlEncodedFormEntity(params));
+            HttpResponse response1 = httpClient.execute(httpPost);
+
+            PCIPALAntennaResponse pcipalAntennaResponse = objectMapper.readValue(response1.getEntity().getContent(), PCIPALAntennaResponse.class);
+
+            return pcipalAntennaResponse;
+        });
+    }
     private Header authorizationHeader(String authorizationKey) {
         return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
     }
 
-    private String authorizationHeaderString(String authorizationKey) {
-        return "Bearer " + authorizationKey;
-    }
 
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {
         try {

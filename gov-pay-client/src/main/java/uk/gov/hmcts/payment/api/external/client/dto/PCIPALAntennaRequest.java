@@ -28,9 +28,10 @@ public class PCIPALAntennaRequest {
     @NoArgsConstructor
     @Builder(builderMethodName = "initialValuesWith")
     public static class InitialValues {
-        private String Amount;
-        private String Reference;
-        private String CallbackURL;
-        private String RedirectURL;
+        private String orderId;
+        private String amount;
+        private String currencyCode;
+        private String callbackURL;
+        private String returnURL;
     }
 }
