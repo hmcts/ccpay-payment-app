@@ -85,10 +85,6 @@ public class PaymentDto {
 
     private String payerName;
 
-    private String accessToken;
-
-    private String refreshToken;
-
     //@JsonUnwrapped
     @NotNull
     private List<FeeDto> fees;
@@ -111,6 +107,10 @@ public class PaymentDto {
         private LinkDto nextUrl;
         private LinkDto self;
         private LinkDto cancel;
+
+        //Added as part of PCI PAL Antenna Implementation
+        private String accessToken;
+        private String refreshToken;
     }
 
     @Data

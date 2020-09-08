@@ -97,7 +97,7 @@ public class CreditAccountDtoMapper {
             .fees(toFeeDtos(fees))
             .links(new PaymentDto.LinksDto(null,
                 retrievePaymentLink(payment.getReference()),
-                null
+                null,null,null
             ))
             .build();
     }
