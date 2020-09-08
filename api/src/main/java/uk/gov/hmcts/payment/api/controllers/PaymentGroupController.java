@@ -366,6 +366,11 @@ public class PaymentGroupController {
             .provider(request.getProvider())
             .build();
 
+        PCIPALAntennaResponse pcipalAntennaResponse = new PCIPALAntennaResponse();
+
+        if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
+             pcipalAntennaResponse = pciPalPaymentService.getPciPalTokens();
+        }
         PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
         Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
@@ -374,7 +379,7 @@ public class PaymentGroupController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            PCIPALAntennaResponse pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, request.getService().name());
+            pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, pcipalAntennaResponse,request.getService().name());
             paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
         }
 
