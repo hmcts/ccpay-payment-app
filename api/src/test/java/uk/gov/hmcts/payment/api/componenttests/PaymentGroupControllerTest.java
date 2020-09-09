@@ -1539,7 +1539,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void createBulkScanPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
+    public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
@@ -1563,7 +1563,7 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        BigDecimal amount = new BigDecimal("200");
+        BigDecimal amount = new BigDecimal("120");
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
@@ -1584,9 +1584,9 @@ public class PaymentGroupControllerTest {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
-        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
-        assertEquals(new BigDecimal(-10), savedfees.get(2).getAmountDue());
+        assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
     }
 
     private CardPaymentRequest getCardPaymentRequest() {
