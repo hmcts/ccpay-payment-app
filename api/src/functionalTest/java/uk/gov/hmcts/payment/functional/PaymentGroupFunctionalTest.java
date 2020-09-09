@@ -475,6 +475,59 @@ public class PaymentGroupFunctionalTest {
 
     }
 
+    @Test
+    public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForPCIPALAntennaChanges() throws Exception {
+
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("110.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("1")
+            .code("FEE0123")
+            .description("Application for a third party debt order")
+            .jurisdiction1("civil")
+            .jurisdiction2("Country")
+            .memoLine("Receipt of Fees")
+            .naturalAccountCode("4481102145")
+            .build();
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("110"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .channel("telephony")
+            .currency(CurrencyCode.GBP)
+            .description("A test telephony payment")
+            .provider("pci pal")
+            .service(Service.DIVORCE)
+            .siteId("AA007")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+            assertThat(paymentGroupFeeDto).isNotNull();
+
+            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://google.co.uk")
+                .when().createTelephonyCardPaymentViaAntenna(cardPaymentRequest, paymentGroupReference)
+                .then().gotCreated(PaymentDto.class, paymentDto -> {
+                assertThat(paymentDto).isNotNull();
+                assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
+
+            });
+
+        });
+
+    }
+
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()

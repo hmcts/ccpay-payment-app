@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaLinkIdResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -45,6 +46,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_PROBATE = "probate";
     private static final String SERVICE_TYPE_CMC = "cmc";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
+    private static final String SERVICE_TYPE_FINREM = "finrem";
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
     @Value("${pci-pal.account.id.probate}")
@@ -137,13 +139,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public PCIPALAntennaResponse getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, PCIPALAntennaResponse pcipalAntennaResponse,String serviceType) {
         return withIOExceptionHandling(() -> {
 
-            String flowId = null;
-            if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
-                flowId = divorceFlowId;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
-                flowId = cmcFlowId;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
-                flowId = probateFlowId;
+            String flowId = getFlowId(serviceType);
 
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
@@ -167,6 +163,28 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             return pcipalAntennaResponse;
         });
+    }
+
+    private String getFlowId(String serviceType) {
+        String flowId = null;
+        if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
+            flowId = divorceFlowId;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
+            flowId = cmcFlowId;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
+            flowId = probateFlowId;
+        }
+
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM)) {
+            flowId = financialRemedyFlowId;
+        }
+        else
+        {
+            throw new PaymentException("Invalid service type: " + serviceType);
+        }
+        return flowId;
     }
 
     public PCIPALAntennaResponse getPciPalTokens() {
