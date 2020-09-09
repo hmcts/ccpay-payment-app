@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -29,12 +30,15 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_PROBATE = "probate";
     private static final String SERVICE_TYPE_CMC = "cmc";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
+    private static final String SERVICE_TYPE_FINREM = "finrem";
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
     @Value("${pci-pal.account.id.probate}")
     private String ppAccountIDProbate;
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
+    @Value("${pci-pal.account.id.finrem}")
+    private String ppAccountIDFinrem;
 
     private final String callbackUrl;
     private final String url;
@@ -49,15 +53,9 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
         LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
-            String ppAccountID = null;
-            if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
-                ppAccountID = ppAccountIDDivorce;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
-                ppAccountID = ppAccountIDCmc;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
-                ppAccountID = ppAccountIDProbate;
+            String ppAccountID = getppAccountId(serviceType);
 
-            LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
+            LOG.info("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
             params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
@@ -72,6 +70,27 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             return request.getURI().toString();
         });
+    }
+
+    private String getppAccountId(String serviceType) {
+        String ppAccountID = null;
+        if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
+            ppAccountID = ppAccountIDDivorce;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
+            ppAccountID = ppAccountIDCmc;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
+            ppAccountID = ppAccountIDProbate;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM)) {
+            ppAccountID = ppAccountIDFinrem;
+        }
+        else
+        {
+            throw new PaymentException("Invalid service type: " + serviceType);
+        }
+        return ppAccountID;
     }
 
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {

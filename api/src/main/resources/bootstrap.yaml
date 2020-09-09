@@ -8,6 +8,7 @@ spring:
         pci-pal-account-id-cmc: pci-pal.account.id.cmc
         pci-pal-account-id-probate: pci-pal.account.id.probate
         pci-pal-account-id-divorce: pci-pal.account.id.divorce
+        pci-pal-account-id-finrem: pci-pal.account.id.finrem
         pci-pal-api-url: pci-pal.api.url
         pci-pal-api-key: pci-pal.api.key
         gov-pay-keys-reference: GOV_PAY_AUTH_KEY_REFERENCE
