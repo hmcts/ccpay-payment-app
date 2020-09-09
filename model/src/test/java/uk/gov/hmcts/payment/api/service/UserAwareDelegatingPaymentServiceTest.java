@@ -6,16 +6,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -45,6 +41,11 @@ public class UserAwareDelegatingPaymentServiceTest {
     private AuditRepository auditRepository = mock(AuditRepository.class);
     private CallbackService callbackService = mock(CallbackService.class);
 
+    private FeePayApportionRepository feePayApportionRepository = mock(FeePayApportionRepository.class);
+    private PaymentFeeRepository paymentFeeRepository = mock(PaymentFeeRepository.class);
+    private FeePayApportionService feePayApportionService = mock(FeePayApportionService.class);
+    private LaunchDarklyFeatureToggler featureToggler = mock(LaunchDarklyFeatureToggler.class);
+
     private final static String PAYMENT_CHANNEL_TELEPHONY = "telephony";
     private final static String PAYMENT_PROVIDER_PCI_PAL = "pci pal";
 
@@ -53,7 +54,7 @@ public class UserAwareDelegatingPaymentServiceTest {
         userAwareDelegatingPaymentService = new UserAwareDelegatingPaymentService(userIdSupplier,
             paymentFeeLinkRepository, delegateGovPay, delegatePciPal, paymentChannelRepository, paymentMethodRepository,
             paymentProviderRepository, paymentStatusRepository, paymentRespository, referenceUtil, govPayAuthUtil,
-            serviceIdSupplier, auditRepository, callbackService);
+            serviceIdSupplier, auditRepository, callbackService, feePayApportionRepository, paymentFeeRepository, feePayApportionService, featureToggler);
     }
 
     //calls PCI_PAL service when telephony and pci pal

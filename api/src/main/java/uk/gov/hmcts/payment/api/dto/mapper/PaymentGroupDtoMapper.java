@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,9 +29,15 @@ public class PaymentGroupDtoMapper {
     @Autowired
     private FeesService feesService;
 
+    @Autowired
+    private LaunchDarklyFeatureToggler featureToggler;
+
+
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .dateCreated(paymentFeeLink.getDateCreated())
+            .dateUpdated(paymentFeeLink.getDateUpdated())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
@@ -104,7 +112,7 @@ public class PaymentGroupDtoMapper {
     private FeeDto toFeeDto(PaymentFee fee) {
 
         Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
-
+        LOG.info("Inside toFeeDto and amount due is: {}", fee.getAmountDue());
         return FeeDto.feeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
@@ -118,10 +126,18 @@ public class PaymentGroupDtoMapper {
             .memoLine(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getMemoLine() : null)
             .naturalAccountCode(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getNaturalAccountCode() : null)
             .description( optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getDescription() : null)
+            .allocatedAmount(fee.getAllocatedAmount())
+            .apportionAmount(fee.getApportionAmount())
+            .dateCreated(fee.getDateCreated())
+            .dateUpdated(fee.getDateUpdated())
+            .dateApportioned(fee.getDateApportioned())
+            .amountDue(fee.getAmountDue())
             .build();
     }
 
     public PaymentFee toPaymentFee(FeeDto feeDto){
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         return PaymentFee.feeWith()
             .code(feeDto.getCode())
             .version(feeDto.getVersion())
@@ -131,6 +147,7 @@ public class PaymentGroupDtoMapper {
             .feeAmount(feeDto.getFeeAmount())
             .netAmount(feeDto.getCalculatedAmount())
             .reference(feeDto.getReference())
+            .dateCreated(apportionFeature ? timestamp: null)
             .build();
     }
 }
