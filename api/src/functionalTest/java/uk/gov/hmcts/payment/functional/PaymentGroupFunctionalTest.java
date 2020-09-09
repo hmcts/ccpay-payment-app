@@ -513,7 +513,7 @@ public class PaymentGroupFunctionalTest {
 
             String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
-            dsl.given().userToken(USER_TOKEN)
+            /*dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://google.co.uk")
                 .when().createTelephonyCardPaymentViaAntenna(cardPaymentRequest, paymentGroupReference)
@@ -522,7 +522,7 @@ public class PaymentGroupFunctionalTest {
                 assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
                 assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
 
-            });
+            });*/
 
         });
 
