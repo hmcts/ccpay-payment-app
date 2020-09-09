@@ -400,10 +400,7 @@ public class PaymentGroupController {
             .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
             .paymentProvider(paymentProvider)
             .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
-            .paymentMethod(PaymentMethod.
-                paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType())
-                .description("Cheque")
-                .build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
             .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
             .siteId(bulkScanPaymentRequestStrategic.getSiteId())
             .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
