@@ -624,34 +624,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsFinrem() throws Exception {
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-
-        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getConsecutiveFee())).build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-
-        MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupFeeDto).isNotNull();
-        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
 
         BigDecimal amount = new BigDecimal("200");
@@ -690,10 +663,9 @@ public class PaymentGroupControllerTest {
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
-    @Test
-    public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsDivorce() throws Exception {
+    private PaymentGroupDto addNewPaymentToExistingPaymentGroup() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
@@ -720,6 +692,12 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
         assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+        return paymentGroupDto;
+    }
+
+    @Test
+    public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsDivorce() throws Exception {
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
 
         BigDecimal amount = new BigDecimal("200");
@@ -760,34 +738,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsProbate() throws Exception {
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-
-        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getConsecutiveFee())).build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-
-        MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupFeeDto).isNotNull();
-        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
 
         BigDecimal amount = new BigDecimal("200");
@@ -828,34 +779,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsCMC() throws Exception {
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-
-        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getConsecutiveFee())).build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-
-        MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupFeeDto).isNotNull();
-        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
 
         BigDecimal amount = new BigDecimal("200");
@@ -896,34 +820,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void shouldThrowPaymentExceptionWhilePassingUnsupportedServiceType() throws Exception {
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-
-        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getConsecutiveFee())).build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-
-        MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupFeeDto).isNotNull();
-        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
 
         BigDecimal amount = new BigDecimal("200");
@@ -949,34 +846,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-
-        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getConsecutiveFee())).build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-
-        MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupFeeDto).isNotNull();
-        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
 
         BigDecimal amount = new BigDecimal("200");
