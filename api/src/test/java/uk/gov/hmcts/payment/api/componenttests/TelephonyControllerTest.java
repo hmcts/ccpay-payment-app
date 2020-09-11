@@ -331,6 +331,70 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void updateTelephonyPaymentStatusWithSuccessAndAntennaPlatform_Apportionment() throws Exception {
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BigDecimal amount = new BigDecimal("101.99");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber(ccdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .platform("antenna")
+            .build();
+
+        MvcResult result2 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        String paymentReference = paymentDtoResult.getReference();
+
+        String rawFormData = "orderCurrency=&orderAmount=100&orderReference=" +
+            paymentReference +
+            "&ppAccountID=1210&" +
+            "transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
+            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
+            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
+
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isNoContent());
+
+        PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
+        List<Payment> payments = savedPaymentGroup.getPayments();
+
+        assertThat(payments.size()).isEqualTo(1);
+        assertEquals(payments.get(0).getReference(), paymentReference);
+        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
+
+        List<PaymentFee> fees = savedPaymentGroup.getFees();
+
+        assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAmountDue()));
+    }
+
+    @Test
     public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 

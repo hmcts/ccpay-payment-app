@@ -241,8 +241,7 @@ public class PaymentGroupController {
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference,
-                                                            @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
+    public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference, @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 

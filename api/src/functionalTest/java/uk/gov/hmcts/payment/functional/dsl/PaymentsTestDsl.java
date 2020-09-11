@@ -108,7 +108,6 @@ public class PaymentsTestDsl {
             return this;
         }
 
-
         public PaymentWhenDsl createTelephonyPayment(PaymentRecordRequest paymentRecordRequest) {
             response = newRequest().contentType(ContentType.JSON).body(paymentRecordRequest).post("/payment-records");
             return this;
