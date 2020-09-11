@@ -52,4 +52,9 @@ public class PaymentFeeLink {
     @ToString.Exclude
     private List<FeePayApportion> apportions;
 
+    @Override
+    public int hashCode(){
+        return super.hashCode();
+    }
+
 }
