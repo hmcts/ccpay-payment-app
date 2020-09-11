@@ -55,6 +55,8 @@ public class CardPaymentRequest {
 
     private String language;
 
+    private String platform;
+
     @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
@@ -69,8 +71,8 @@ public class CardPaymentRequest {
 
     @AssertFalse(message =  "Invalid value for language attribute.")
     private boolean isValidLanguage() {
-                return !StringUtils.isBlank(language) && !language.equalsIgnoreCase("string")
-                    && Arrays.stream(Language.values()).noneMatch(language1 ->
-                    language1.getLanguage().equalsIgnoreCase(language));
+        return !StringUtils.isBlank(language) && !language.equalsIgnoreCase("string")
+            && Arrays.stream(Language.values()).noneMatch(language1 ->
+            language1.getLanguage().equalsIgnoreCase(language));
     }
 }

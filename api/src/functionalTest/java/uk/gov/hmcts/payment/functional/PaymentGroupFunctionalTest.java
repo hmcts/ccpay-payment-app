@@ -500,8 +500,9 @@ public class PaymentGroupFunctionalTest {
             .provider("pci pal")
             .service(Service.DIVORCE)
             .siteId("AA007")
+            .platform("antenna")
             .build();
-
+        boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature",false);
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeDto)).build();
 
@@ -512,17 +513,18 @@ public class PaymentGroupFunctionalTest {
             assertThat(paymentGroupFeeDto).isNotNull();
 
             String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+                        if(antennaFeature) {
+                            dsl.given().userToken(USER_TOKEN)
+                                .s2sToken(SERVICE_TOKEN)
+                                .returnUrl("https://google.co.uk")
+                                .when().createTelephonyCardPayment(cardPaymentRequest, paymentGroupReference)
+                                .then().gotCreated(PaymentDto.class, paymentDto -> {
+                                assertThat(paymentDto).isNotNull();
+                                assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                                assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
 
-            /*dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://google.co.uk")
-                .when().createTelephonyCardPaymentViaAntenna(cardPaymentRequest, paymentGroupReference)
-                .then().gotCreated(PaymentDto.class, paymentDto -> {
-                assertThat(paymentDto).isNotNull();
-                assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-                assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
-
-            });*/
+                            });
+                        }
 
         });
 

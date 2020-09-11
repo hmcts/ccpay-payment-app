@@ -559,7 +559,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(false);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -627,7 +627,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(false);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -1271,7 +1271,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -1305,6 +1305,7 @@ public class PaymentGroupControllerTest {
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
             .service(Service.DIVORCE)
+            .platform("antenna")
             .siteId("AA07")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
@@ -1313,7 +1314,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments-antenna", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -1339,7 +1340,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -1374,6 +1375,7 @@ public class PaymentGroupControllerTest {
             .description("Test cross field validation")
             .service(Service.CMC)
             .siteId("AA07")
+            .platform("antenna")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
@@ -1381,7 +1383,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments-antenna", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -1407,7 +1409,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -1442,6 +1444,7 @@ public class PaymentGroupControllerTest {
             .description("Test cross field validation")
             .service(Service.PROBATE)
             .siteId("AA07")
+            .platform("antenna")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
@@ -1449,7 +1452,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments-antenna", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -1475,7 +1478,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -1510,6 +1513,7 @@ public class PaymentGroupControllerTest {
             .description("Test cross field validation")
             .service(Service.DIGITAL_BAR)
             .siteId("AA07")
+            .platform("antenna")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
@@ -1517,7 +1521,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments-antenna", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -1527,7 +1531,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -1562,6 +1566,7 @@ public class PaymentGroupControllerTest {
             .description("Test cross field validation")
             .service(Service.FINREM)
             .siteId("AA07")
+            .platform("antenna")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
@@ -1569,7 +1574,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments-antenna", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -1596,7 +1601,7 @@ public class PaymentGroupControllerTest {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
@@ -1623,12 +1628,13 @@ public class PaymentGroupControllerTest {
             .service(Service.FINREM)
             .siteId("AA07")
             .ccdCaseNumber(ccdCaseNumber)
+            .platform("antenna")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments-antenna", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 

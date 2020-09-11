@@ -181,6 +181,12 @@ public class PaymentGroupController {
             request.setChannel("online");
             request.setProvider("gov pay");
         }
+        PCIPALAntennaResponse pcipalAntennaResponse = new PCIPALAntennaResponse();
+        boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature",false);
+        boolean isAntennaPlatform = request.getPlatform() != null && request.getPlatform().equalsIgnoreCase("antenna") && antennaFeature;
+        if (isAntennaPlatform) {
+            pcipalAntennaResponse = pciPalPaymentService.getPciPalTokens();
+        }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .description(request.getDescription())
@@ -206,8 +212,15 @@ public class PaymentGroupController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
-            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
+            if (isAntennaPlatform) {
+                pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, pcipalAntennaResponse,request.getService().name());
+                paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
+            }
+            else
+            {
+                String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
+                paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
+            }
         }
 
         // trigger Apportion based on the launch darkly feature flag
@@ -230,7 +243,7 @@ public class PaymentGroupController {
     @ResponseBody
     @Transactional
     public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference,
-                                                @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
+                                                            @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
@@ -327,70 +340,6 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
-    }
-
-
-    @ApiOperation(value = "Create card payment in Payment Group", notes = "Create card payment in Payment Group")
-    @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment created"),
-        @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
-    })
-    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments-antenna")
-    @ResponseBody
-    @Transactional
-    public ResponseEntity<PaymentDto> createCardPaymentForPCIPALAntenna(
-        @RequestHeader(value = "return-url") String returnURL,
-        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
-        @PathVariable("payment-group-reference") String paymentGroupReference,
-        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
-
-        if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
-            request.setChannel("online");
-            request.setProvider("gov pay");
-        }
-
-        PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
-            .description(request.getDescription())
-            .paymentGroupReference(paymentGroupReference)
-            .paymentReference(referenceUtil.getNext("RC"))
-            .returnUrl(returnURL)
-            .ccdCaseNumber(request.getCcdCaseNumber())
-            .caseReference(request.getCaseReference())
-            .currency(request.getCurrency().getCode())
-            .siteId(request.getSiteId())
-            .serviceType(request.getService().getName())
-            .amount(request.getAmount())
-            .serviceCallbackUrl(serviceCallbackUrl)
-            .channel(request.getChannel())
-            .provider(request.getProvider())
-            .build();
-
-        PCIPALAntennaResponse pcipalAntennaResponse = new PCIPALAntennaResponse();
-
-        if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
-             pcipalAntennaResponse = pciPalPaymentService.getPciPalTokens();
-        }
-        PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
-        Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
-        PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
-
-        if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
-            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
-                .orderReference(paymentDto.getReference()).build();
-            pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, pcipalAntennaResponse,request.getService().name());
-            paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
-        }
-
-        // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
-        if(apportionFeature) {
-            feePayApportionService.processApportion(payment);
-        }
-
-        return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
     }
 
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){

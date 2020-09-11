@@ -272,7 +272,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(false);
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
             .build();
@@ -335,7 +335,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(false);
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
             .build();
