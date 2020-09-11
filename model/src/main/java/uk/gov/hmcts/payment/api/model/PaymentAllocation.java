@@ -9,7 +9,6 @@ import java.util.Date;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "paymentAllocationWith")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -57,6 +56,11 @@ public class PaymentAllocation {
     @JoinColumn(name = "payment_id", insertable = false, updatable = false)
     @ToString.Exclude
     private Payment payment;
+
+    @Override
+    public int hashCode(){
+        return super.hashCode();
+    }
 
 
 }
