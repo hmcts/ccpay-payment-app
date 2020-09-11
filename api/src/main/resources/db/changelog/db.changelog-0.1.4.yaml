@@ -161,6 +161,8 @@ databaseChangeLog:
 #        - sql:
 #            splitStatements:
 #            sql: >
+#              ALTER TABLE payment_audit_history DROP CONSTRAINT "FK_boc1od01im5po7i8e5b7890";
+#              ALTER TABLE fee_pay_apportion DROP CONSTRAINT "FK_3c04152jyub2e59dll71122";
 #              DROP TABLE fee_pay_apportion;
 #              DROP TABLE audit_events_type;
 #              DROP TABLE payment_audit_history;
