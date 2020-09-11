@@ -154,12 +154,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                     .build();
 
             Gson gson = new Gson();
-            String json = gson.toJson(pcipalAntennaRequest);
-            StringEntity entity = new StringEntity(json);
+            StringEntity entity = new StringEntity(gson.toJson(pcipalAntennaRequest));
             httpPost.setEntity(entity);
-            HttpResponse response2 = httpClient.execute(httpPost);
-            PCIPALAntennaLinkIdResponse response = objectMapper.readValue(response2.getEntity().getContent(), PCIPALAntennaLinkIdResponse.class);
-            pcipalAntennaResponse.setNextUrl(viewIdURL + response.getId()+"/framed");
+            HttpResponse response = httpClient.execute(httpPost);
+            PCIPALAntennaLinkIdResponse pcipalAntennaLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), PCIPALAntennaLinkIdResponse.class);
+            pcipalAntennaResponse.setNextUrl(viewIdURL + pcipalAntennaLinkIdResponse.getId()+"/framed");
 
             return pcipalAntennaResponse;
         });
