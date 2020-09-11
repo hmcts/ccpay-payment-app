@@ -995,6 +995,45 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
     }
 
+    @Test
+    public void retrieveCardPaymentStatuses_byInvalidPaymentReferenceTest() throws Exception {
+        stubFor(get(urlPathMatching("/v1/payments/e2kkddts5215h9qqoeuth5c0v3"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-status-response.json"))));
+
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("499.99"))
+            .caseReference("Reference1")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .description("Test payments statuses")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA01")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v3")
+            .reference("RC-1519-9028-2432-9115")
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("499.99")).version("1").code("X0123").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162002").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        restActions
+            .get("/card-payments/" + "12345" + "/statuses")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
