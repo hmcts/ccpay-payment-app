@@ -14,7 +14,6 @@ import java.util.List;
 @Entity
 @EntityListeners(PaymentFeeEntityListener.class)
 @Data
-@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "feeWith")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -81,4 +80,9 @@ public class PaymentFee extends Auditable<String> {
     @UpdateTimestamp
     @Column(name = "date_updated")
     private Timestamp dateUpdated;
+
+    @Override
+    public int hashCode(){
+        return super.hashCode();
+    }
 }
