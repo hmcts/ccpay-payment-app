@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -346,13 +345,8 @@ public class PaymentGroupController {
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
 
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature",false);
-        PaymentDto paymentDto = new PaymentDto();
-        if(antennaFeature) {
-
-            if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
-                request.setChannel("online");
-                request.setProvider("gov pay");
-            }
+        boolean telephonyCheck = (request.getChannel() !=null && request.getChannel().equals("telephony")) && (request.getProvider() !=null && request.getProvider().equals("pci pal"));
+        if(antennaFeature && telephonyCheck) {
 
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
                 .description(request.getDescription())
@@ -370,22 +364,17 @@ public class PaymentGroupController {
                 .provider(request.getProvider())
                 .build();
 
-            PCIPALAntennaResponse pcipalAntennaResponse = new PCIPALAntennaResponse();
+            PCIPALAntennaResponse pcipalAntennaResponse = pciPalPaymentService.getPciPalTokens();
 
-            if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
-                pcipalAntennaResponse = pciPalPaymentService.getPciPalTokens();
-            }
             PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
             Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
-            paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
+            PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
 
-            if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
                 PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                     .orderReference(paymentDto.getReference()).build();
                 pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
                 pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, pcipalAntennaResponse, request.getService().name());
                 paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
-            }
 
             // trigger Apportion based on the launch darkly feature flag
             boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
@@ -393,12 +382,13 @@ public class PaymentGroupController {
             if (apportionFeature) {
                 feePayApportionService.processApportion(payment);
             }
+            return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
         }
         else
         {
-            throw new MethodNotSupportedException("This feature is not available to use!!!");
+            throw new MethodNotSupportedException("This feature is not available to use or invalid request!!!");
         }
-        return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
+
     }
 
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
