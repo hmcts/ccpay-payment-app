@@ -216,12 +216,12 @@ public class CreditAccountDtoMapper {
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
         Method method = CreditAccountPaymentController.class.getMethod("cancel", String.class, Integer.class);
-        return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST",null,null);
+        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST",null,null);
     }
 
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto retrievePaymentLink(String reference) {
         Method method = CreditAccountPaymentController.class.getMethod("retrieve", String.class);
-        return new PaymentDto.LinkDto(ControllerLinkBuilder.linkTo(method, reference).toString(), "GET",null,null);
+        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET",null,null);
     }
 }
