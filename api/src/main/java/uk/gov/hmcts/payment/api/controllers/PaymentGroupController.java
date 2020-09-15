@@ -346,8 +346,10 @@ public class PaymentGroupController {
 
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature",false);
         boolean telephonyCheck = (request.getChannel() !=null && request.getChannel().equals("telephony")) && (request.getProvider() !=null && request.getProvider().equals("pci pal"));
+        LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
+        LOG.info("Telephony check Value in CardPaymentController : {}", telephonyCheck);
         if(antennaFeature && telephonyCheck) {
-
+            LOG.info("Inside Telephony check");
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
                 .description(request.getDescription())
                 .paymentGroupReference(paymentGroupReference)
@@ -365,7 +367,8 @@ public class PaymentGroupController {
                 .build();
 
             PCIPALAntennaResponse pcipalAntennaResponse = pciPalPaymentService.getPciPalTokens();
-
+            LOG.info("Access Token Value in CardPaymentController : {}", pcipalAntennaResponse.getAccessToken());
+            LOG.info("Refresh Token Value in CardPaymentController : {}", pcipalAntennaResponse.getRefreshToken());
             PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
             Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
             PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
@@ -374,6 +377,7 @@ public class PaymentGroupController {
                     .orderReference(paymentDto.getReference()).build();
                 pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
                 pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, pcipalAntennaResponse, request.getService().name());
+                LOG.info("Next URL Value in CardPaymentController : {}", pcipalAntennaResponse.getNextUrl());
                 paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
 
             // trigger Apportion based on the launch darkly feature flag
