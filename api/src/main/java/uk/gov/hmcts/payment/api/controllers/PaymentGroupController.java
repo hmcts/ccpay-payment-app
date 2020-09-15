@@ -60,13 +60,11 @@ public class PaymentGroupController {
 
     private final PaymentProviderRepository paymentProviderRepository;
 
-    private final PaymentFeeRepository paymentFeeRepository;
-
     private final FeePayApportionService feePayApportionService;
 
     private final LaunchDarklyFeatureToggler featureToggler;
 
-    private final FeePayApportionRepository feePayApportionRepository;
+    private String apportionFeatureValue = "apportion-feature";
 
 
     @Autowired
@@ -76,10 +74,8 @@ public class PaymentGroupController {
                                   ReferenceUtil referenceUtil,
                                   ReferenceDataService<SiteDTO> referenceDataService,
                                   PaymentProviderRepository paymentProviderRespository,
-                                  PaymentFeeRepository paymentFeeRepository,
                                   FeePayApportionService feePayApportionService,
-                                  LaunchDarklyFeatureToggler featureToggler,
-                                  FeePayApportionRepository feePayApportionRepository){
+                                  LaunchDarklyFeatureToggler featureToggler){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -88,10 +84,8 @@ public class PaymentGroupController {
         this.referenceUtil = referenceUtil;
         this.referenceDataService = referenceDataService;
         this.paymentProviderRepository = paymentProviderRespository;
-        this.paymentFeeRepository = paymentFeeRepository;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
-        this.feePayApportionRepository = feePayApportionRepository;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -210,8 +204,8 @@ public class PaymentGroupController {
         }
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue,false);
+        LOG.info("Apportion Feature Flag Value in CardPaymentController : {}", apportionFeature);
         if(apportionFeature) {
             feePayApportionService.processApportion(payment);
         }
@@ -265,7 +259,7 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue,false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if(apportionFeature) {
             feePayApportionService.processApportion(newPayment);
@@ -381,7 +375,7 @@ public class PaymentGroupController {
                 paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
 
             // trigger Apportion based on the launch darkly feature flag
-            boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+            boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue, false);
             LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
             if (apportionFeature) {
                 feePayApportionService.processApportion(payment);
