@@ -120,7 +120,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                 ppAccountID = ppAccountIDProbate;
 
             LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
+            List<NameValuePair> params = new ArrayList<>();
             params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
             params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
             params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
@@ -190,7 +190,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public PCIPALAntennaResponse getPciPalTokens() {
         return withIOExceptionHandling(() -> {
             LOG.info("grant_type: {} tenantname: {} username: {} client_id: {} client_secret: {} tokensURL: {}", grantType, tenantName, userName, clientId, clientSecret, tokensURL);
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
+            List<NameValuePair> params = new ArrayList<>();
             params.add(new BasicNameValuePair("grant_type", grantType));
             params.add(new BasicNameValuePair("tenantname", tenantName));
             params.add(new BasicNameValuePair("username", userName));
@@ -201,9 +201,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             httpPost.setEntity(new UrlEncodedFormEntity(params));
             HttpResponse response1 = httpClient.execute(httpPost);
 
-            PCIPALAntennaResponse pcipalAntennaResponse = objectMapper.readValue(response1.getEntity().getContent(), PCIPALAntennaResponse.class);
-
-            return pcipalAntennaResponse;
+            return objectMapper.readValue(response1.getEntity().getContent(), PCIPALAntennaResponse.class);
         });
     }
     private Header authorizationHeader(String authorizationKey) {
