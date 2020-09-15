@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
@@ -59,13 +60,11 @@ public class PaymentGroupController {
 
     private final PaymentProviderRepository paymentProviderRepository;
 
-    private final PaymentFeeRepository paymentFeeRepository;
-
     private final FeePayApportionService feePayApportionService;
 
     private final LaunchDarklyFeatureToggler featureToggler;
 
-    private final FeePayApportionRepository feePayApportionRepository;
+    private String apportionFeatureValue = "apportion-feature";
 
 
     @Autowired
@@ -75,10 +74,8 @@ public class PaymentGroupController {
                                   ReferenceUtil referenceUtil,
                                   ReferenceDataService<SiteDTO> referenceDataService,
                                   PaymentProviderRepository paymentProviderRespository,
-                                  PaymentFeeRepository paymentFeeRepository,
                                   FeePayApportionService feePayApportionService,
-                                  LaunchDarklyFeatureToggler featureToggler,
-                                  FeePayApportionRepository feePayApportionRepository){
+                                  LaunchDarklyFeatureToggler featureToggler){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -87,10 +84,8 @@ public class PaymentGroupController {
         this.referenceUtil = referenceUtil;
         this.referenceDataService = referenceDataService;
         this.paymentProviderRepository = paymentProviderRespository;
-        this.paymentFeeRepository = paymentFeeRepository;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
-        this.feePayApportionRepository = feePayApportionRepository;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -209,8 +204,8 @@ public class PaymentGroupController {
         }
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue,false);
+        LOG.info("Apportion Feature Flag Value in CardPaymentController : {}", apportionFeature);
         if(apportionFeature) {
             feePayApportionService.processApportion(payment);
         }
@@ -264,7 +259,7 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue,false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if(apportionFeature) {
             feePayApportionService.processApportion(newPayment);
@@ -325,6 +320,73 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+    }
+
+
+    @ApiOperation(value = "Create card payment in Payment Group", notes = "Create card payment in Payment Group")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Payment created"),
+        @ApiResponse(code = 400, message = "Payment creation failed"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+    })
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments-antenna")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<PaymentDto> createCardPaymentForPCIPALAntenna(
+        @RequestHeader(value = "return-url") String returnURL,
+        @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
+        @PathVariable("payment-group-reference") String paymentGroupReference,
+        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
+
+        boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature",false);
+        boolean telephonyCheck = (request.getChannel() !=null && request.getChannel().equals("telephony")) && (request.getProvider() !=null && request.getProvider().equals("pci pal"));
+        LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
+        LOG.info("Telephony check Value in CardPaymentController : {}", telephonyCheck);
+        if(antennaFeature && telephonyCheck) {
+            LOG.info("Inside Telephony check");
+            PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
+                .description(request.getDescription())
+                .paymentGroupReference(paymentGroupReference)
+                .paymentReference(referenceUtil.getNext("RC"))
+                .returnUrl(returnURL)
+                .ccdCaseNumber(request.getCcdCaseNumber())
+                .caseReference(request.getCaseReference())
+                .currency(request.getCurrency().getCode())
+                .siteId(request.getSiteId())
+                .serviceType(request.getService().getName())
+                .amount(request.getAmount())
+                .serviceCallbackUrl(serviceCallbackUrl)
+                .channel(request.getChannel())
+                .provider(request.getProvider())
+                .build();
+
+            PCIPALAntennaResponse pcipalAntennaResponse = pciPalPaymentService.getPciPalTokens();
+            LOG.info("Access Token Value in CardPaymentController : {}", pcipalAntennaResponse.getAccessToken());
+            LOG.info("Refresh Token Value in CardPaymentController : {}", pcipalAntennaResponse.getRefreshToken());
+            PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
+            Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
+            PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
+
+                PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
+                    .orderReference(paymentDto.getReference()).build();
+                pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
+                pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, pcipalAntennaResponse, request.getService().name());
+                LOG.info("Next URL Value in CardPaymentController : {}", pcipalAntennaResponse.getNextUrl());
+                paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
+
+            // trigger Apportion based on the launch darkly feature flag
+            boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue, false);
+            LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+            if (apportionFeature) {
+                feePayApportionService.processApportion(payment);
+            }
+            return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
+        }
+        else
+        {
+            throw new MethodNotSupportedException("This feature is not available to use or invalid request!!!");
+        }
+
     }
 
     private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){

@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -49,7 +50,7 @@ public class PaymentDtoMapper {
             .dateCreated(payment.getDateCreated())
             .externalReference(payment.getExternalReference())
             .links(new PaymentDto.LinksDto(
-                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
+                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET",null,null),
                 null, null
             ))
             .build();
@@ -64,7 +65,7 @@ public class PaymentDtoMapper {
             .dateCreated(payment.getDateCreated())
             .externalReference(payment.getExternalReference())
             .links(new PaymentDto.LinksDto(
-                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
+                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET",null,null),
                 null, null
             ))
             .build();
@@ -91,7 +92,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(paymentFeeLink.getFees() != null ? toFeeDtos(paymentFeeLink.getFees()) : null)
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET",null,null), null, null))
             .build();
     }
 
@@ -102,7 +103,18 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET",null,null), null, null))
+            .build();
+    }
+
+    public PaymentDto toPciPalAntennaCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, PCIPALAntennaResponse pcipalAntennaResponse) {
+        return PaymentDto.payment2DtoWith()
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
+            .reference(payment.getReference())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .dateCreated(payment.getDateCreated())
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(pcipalAntennaResponse.getNextUrl(), "POST",pcipalAntennaResponse.getAccessToken(),pcipalAntennaResponse.getRefreshToken()), null, null))
             .build();
     }
 
@@ -248,30 +260,30 @@ public class PaymentDtoMapper {
         LOG.info("isBulkScanPayment value in PaymentDtoMapper: {}",isBulkScanPayment);
         LOG.info("apportionFeature value in PaymentDtoMapper: {}",apportionFeature);
         LOG.info("apportionCheck value in PaymentDtoMapper: {}",apportionCheck);
-            PaymentDto paymentDto = PaymentDto.payment2DtoWith()
-                .paymentReference(payment.getReference())
-                .paymentGroupReference(apportionCheck ? null : paymentReference)
-                .serviceName(payment.getServiceType())
-                .siteId(payment.getSiteId())
-                .amount(payment.getAmount())
-                .caseReference(payment.getCaseReference())
-                .ccdCaseNumber(payment.getCcdCaseNumber())
-                .accountNumber(payment.getPbaNumber())
-                .organisationName(payment.getOrganisationName())
-                .customerReference(payment.getCustomerReference())
-                .channel(payment.getPaymentChannel()!= null ? payment.getPaymentChannel().getName(): null)
-                .currency(CurrencyCode.valueOf(payment.getCurrency()))
-                .status(bulkScanCheck ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
-                .dateCreated(payment.getDateCreated())
-                .dateUpdated(payment.getDateUpdated())
-                .method(payment.getPaymentMethod().getName())
-                .bankedDate(payment.getBankedDate())
-                .giroSlipNo(payment.getGiroSlipNo())
-                .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-                .externalReference(isBulkScanPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
-                .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
-                .fees(isBulkScanPayment ? toFeeLiberataDtosWithCaseReference(fees,payment.getCaseReference(),apportionCheck) : toFeeLiberataDtos(fees,apportionCheck))
-                .build();
+        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+            .paymentReference(payment.getReference())
+            .paymentGroupReference(apportionCheck ? null : paymentReference)
+            .serviceName(payment.getServiceType())
+            .siteId(payment.getSiteId())
+            .amount(payment.getAmount())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .accountNumber(payment.getPbaNumber())
+            .organisationName(payment.getOrganisationName())
+            .customerReference(payment.getCustomerReference())
+            .channel(payment.getPaymentChannel()!= null ? payment.getPaymentChannel().getName(): null)
+            .currency(CurrencyCode.valueOf(payment.getCurrency()))
+            .status(bulkScanCheck ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .dateCreated(payment.getDateCreated())
+            .dateUpdated(payment.getDateUpdated())
+            .method(payment.getPaymentMethod().getName())
+            .bankedDate(payment.getBankedDate())
+            .giroSlipNo(payment.getGiroSlipNo())
+            .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
+            .externalReference(isBulkScanPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
+            .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
+            .fees(isBulkScanPayment ? toFeeLiberataDtosWithCaseReference(fees,payment.getCaseReference(),apportionCheck) : toFeeLiberataDtos(fees,apportionCheck))
+            .build();
 
         if (bulkScanCheck && isBulkScanPayment) {
             paymentDto.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
@@ -444,7 +456,7 @@ public class PaymentDtoMapper {
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto retrieveCardPaymentLink(String reference) {
         Method method = CardPaymentController.class.getMethod("retrieve", String.class);
-        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
+        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET",null,null);
     }
 
     public PaymentDto toCreateRecordPaymentResponse(PaymentFeeLink paymentFeeLink) {
