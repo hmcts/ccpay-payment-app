@@ -150,6 +150,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                     .callbackURL(callbackUrl)
                     .returnURL(returnURL)
                     .orderId(pciPalPaymentRequest.getOrderReference())
+                    .currencyCode("GBP")
                     .build())
                     .build();
 
