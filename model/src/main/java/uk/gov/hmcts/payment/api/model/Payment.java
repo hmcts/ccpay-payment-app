@@ -14,7 +14,6 @@ import java.util.List;
 @Entity
 @EntityListeners(PaymentEntityListener.class)
 @Data
-@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "paymentWith")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -170,4 +169,9 @@ public class Payment extends Auditable<String> {
     @ToString.Exclude
     @Column(name = "payer_name")
     private String payerName;
+
+    @Override
+    public int hashCode(){
+        return super.hashCode();
+    }
 }
