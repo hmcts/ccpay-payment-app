@@ -12,7 +12,6 @@ import java.util.Date;
 @Entity
 @EntityListeners(FeePayApportionEntityListener.class)
 @Data
-@EqualsAndHashCode(callSuper=false)
 @Builder(builderMethodName = "feePayApportionWith")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -62,4 +61,9 @@ public class FeePayApportion extends Auditable<String> {
     @CreationTimestamp
     @Column(name = "date_updated", nullable = false)
     private Date dateUpdated;
+
+    @Override
+    public int hashCode(){
+        return super.hashCode();
+    }
 }
