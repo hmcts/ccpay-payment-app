@@ -140,7 +140,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         return withIOExceptionHandling(() -> {
 
             String flowId = getFlowId(serviceType);
-
+            LOG.info("flowId: {} launchURL: {} viewIdURL: {} callbackUrl: {} returnURL: {} ", flowId, launchURL, viewIdURL, callbackUrl, returnURL);
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(pcipalAntennaResponse.getAccessToken()));
@@ -189,6 +189,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     public PCIPALAntennaResponse getPciPalTokens() {
         return withIOExceptionHandling(() -> {
+            LOG.info("grant_type: {} tenantname: {} username: {} client_id: {} client_secret: {} tokensURL: {}", grantType, tenantName, userName, clientId, clientSecret, tokensURL);
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("grant_type", grantType));
             params.add(new BasicNameValuePair("tenantname", tenantName));
