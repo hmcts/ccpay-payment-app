@@ -538,6 +538,8 @@ public class PaymentGroupController {
         params.put("dcn", dcn);
         params.put("status", status);
 
+        LOG.info("Bulk Scan api url :- " +bulkScanPaymentsProcessedUrl);
+
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }
 
