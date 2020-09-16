@@ -520,7 +520,7 @@ public class PaymentGroupController {
                 " Due to response status code as  = " + httpClientErrorException.getMessage());
         } catch (Exception exception) {
             throw new PaymentException("Error occurred while processing bulk scan payments with DCN " + newPayment.getDocumentControlNumber() +
-                " Exception message  = " + exception.getStackTrace());
+                " Exception message  = " + exception.getMessage());
         }
     }
 
