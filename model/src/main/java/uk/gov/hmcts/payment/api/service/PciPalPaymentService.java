@@ -86,7 +86,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     @Value("${pci-pal.antenna.cmc.flow.id}")
     private String cmcFlowId;
 
-    @Value("${pci-pal.antenna.probate.flow.id")
+    @Value("${pci-pal.antenna.probate.flow.id}")
     private String probateFlowId;
 
     @Value("${pci-pal.antenna.divorce.flow.id}")
