@@ -18,7 +18,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -48,6 +47,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -88,6 +88,9 @@ public class PaymentGroupController {
     private final FeePayApportionRepository feePayApportionRepository;
 
     private final Payment2Repository payment2Repository;
+
+    @Autowired
+    AuthTokenGenerator authTokenGenerator;
 
     @Autowired()
     @Qualifier("restTemplatePaymentGroup")
@@ -522,12 +525,16 @@ public class PaymentGroupController {
     }
 
     public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws RestClientException {
+        //Generate token for payment api and replace
+        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
+        serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+        headersMap.replace("serviceauthorization", serviceAuthTokenPaymentList);
+
         HttpHeaders headers = new HttpHeaders(headersMap);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         Map<String, String> params = new HashMap<>();
         params.put("dcn", dcn);
         params.put("status", status);
-
 
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }

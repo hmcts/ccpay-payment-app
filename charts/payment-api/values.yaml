@@ -71,6 +71,7 @@ java:
 
     FEATURE_PAYMENTS_SEARCH: "true"
     FEATURE_SERVICE_CALLBACK: "true"
+    PAYMENT_S2S_MICROSERVICE_NAME: payment_app
 
 
   keyVaults:
@@ -105,3 +106,4 @@ java:
         - pba-divorce-payments-email-to
         - pba-fpl-payments-email-to
         - launch-darkly-sdk-key
+        - payment-s2s-secret
