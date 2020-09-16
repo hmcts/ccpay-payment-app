@@ -45,6 +45,9 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationHealthApi;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -99,6 +102,15 @@ public class PaymentGroupControllerTest {
 
     @Autowired
     private PaymentDbBackdoor db;
+
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
+
+    @MockBean
+    private ServiceAuthorisationApi serviceAuthorisationApi;
+
+    @MockBean
+    private ServiceAuthorisationHealthApi serviceAuthorisationHealthApi;
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
