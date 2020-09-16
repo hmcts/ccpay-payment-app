@@ -520,14 +520,16 @@ public class PaymentGroupController {
                 " Due to response status code as  = " + httpClientErrorException.getMessage());
         } catch (Exception exception) {
             throw new PaymentException("Error occurred while processing bulk scan payments with DCN " + newPayment.getDocumentControlNumber() +
-                " Exception message  = " + exception.getMessage());
+                " Exception message  = " + exception.getStackTrace());
         }
     }
 
     public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws RestClientException {
         //Generate token for payment api and replace
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
+        LOG.info("Before generating token");
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+        LOG.info("Before generating token value :- " +serviceAuthTokenPaymentList);
         headersMap.replace("serviceauthorization", serviceAuthTokenPaymentList);
 
         HttpHeaders headers = new HttpHeaders(headersMap);
