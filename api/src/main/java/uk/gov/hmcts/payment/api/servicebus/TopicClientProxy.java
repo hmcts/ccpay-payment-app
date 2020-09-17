@@ -32,6 +32,9 @@ public class TopicClientProxy {
 
 
     private void send(TopicClient client, IMessage message) throws InterruptedException, ServiceBusException {
+        LOG.info("Azure Service-Bus Connection: {}", connectionString);
+        LOG.info("Azure Service-Bus Topic: {}", topic);
+
         client.send(message);
     }
 
@@ -41,6 +44,9 @@ public class TopicClientProxy {
     }
 
     public synchronized void send(IMessage message) throws InterruptedException, ServiceBusException {
+
+        LOG.info("Azure Service-Bus Connection: {}", connectionString);
+        LOG.info("Azure Service-Bus Topic: {}", topic);
 
         if (!keepClientAlive) { /* One use client */
 
