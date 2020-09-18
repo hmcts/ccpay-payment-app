@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.TelephonyDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
@@ -1315,10 +1316,10 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+        TelephonyDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -1381,10 +1382,10 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+        TelephonyDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -1447,10 +1448,10 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+        TelephonyDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -1563,10 +1564,10 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+        TelephonyDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyDto.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getReference())
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -1620,9 +1621,7 @@ public class PaymentGroupControllerTest {
             .description("Test cross field validation")
             .service(Service.FINREM)
             .siteId("AA07")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
+            .ccdCaseNumber("2154234356342357")
             .build();
 
         MvcResult result3 = restActions
@@ -1678,7 +1677,7 @@ public class PaymentGroupControllerTest {
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
     }
@@ -1728,7 +1727,7 @@ public class PaymentGroupControllerTest {
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
     }
@@ -1779,7 +1778,7 @@ public class PaymentGroupControllerTest {
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
     }
@@ -1828,8 +1827,8 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments-antenna", cardPaymentRequest)
-            .andExpect(status().isBadRequest())
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
     }
@@ -1879,7 +1878,7 @@ public class PaymentGroupControllerTest {
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
     }
@@ -1888,7 +1887,7 @@ public class PaymentGroupControllerTest {
     @Test
     public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
 
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1111111122222222";
         when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
@@ -1925,9 +1924,9 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+        TelephonyDto telephonyDto = objectMapper.readValue(result2.getResponse().getContentAsString(), TelephonyDto.class);
 
-        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+        List<PaymentFee> savedfees = db.findByReference(telephonyDto.getPaymentGroupReference()).getFees();
 
         assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
         assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
