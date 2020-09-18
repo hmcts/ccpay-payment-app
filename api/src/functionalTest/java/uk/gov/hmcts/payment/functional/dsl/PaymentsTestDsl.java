@@ -108,8 +108,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createTelephonyCardPaymentViaAntenna(CardPaymentRequest cardPaymentRequest, String paymentGroupReference) {
-            response = newRequest().contentType(ContentType.JSON).body(cardPaymentRequest).post("/payment-groups/{payment-group-reference}/card-payments-antenna", paymentGroupReference);
+        public PaymentWhenDsl createTelephonyPayment(CardPaymentRequest cardPaymentRequest, String paymentGroupReference) {
+            response = newRequest().contentType(ContentType.JSON).body(cardPaymentRequest).post("/payment-groups/{payment-group-reference}/telephony-card-payments", paymentGroupReference);
             return this;
         }
 
