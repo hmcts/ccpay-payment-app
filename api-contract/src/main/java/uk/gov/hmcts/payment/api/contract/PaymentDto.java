@@ -116,10 +116,6 @@ public class PaymentDto {
     public static class LinkDto {
         private String href;
         private String method;
-
-        //Added as part of PCI PAL Antenna Implementation
-        private String accessToken;
-        private String refreshToken;
     }
 
     public String toCardPaymentCsv() {
