@@ -524,7 +524,6 @@ public class PaymentGroupController {
     public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws RestClientException {
         //Generate token for payment api and replace
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-        LOG.info("Before generating token printing header map : " +headersMap);
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
 
         MultiValueMap<String, String> headerMultiValueMapForBulkScan = new LinkedMultiValueMap<String, String>();

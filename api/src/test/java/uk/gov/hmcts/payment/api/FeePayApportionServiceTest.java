@@ -1,4 +1,3 @@
-/*
 package uk.gov.hmcts.payment.api;
 
 import org.junit.Test;
@@ -105,4 +104,3 @@ public class FeePayApportionServiceTest extends TestUtil {
     }
 
 }
-*/
