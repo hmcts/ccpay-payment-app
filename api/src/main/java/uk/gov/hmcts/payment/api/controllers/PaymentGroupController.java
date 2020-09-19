@@ -12,40 +12,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
-import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.PaymentGroupService;
-import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -90,7 +75,7 @@ public class PaymentGroupController {
     private final Payment2Repository payment2Repository;
 
     @Autowired
-    AuthTokenGenerator authTokenGenerator;
+    private AuthTokenGenerator authTokenGenerator;
 
     @Autowired()
     @Qualifier("restTemplatePaymentGroup")
@@ -376,63 +361,70 @@ public class PaymentGroupController {
     public ResponseEntity<PaymentDto> recordBulkScanPaymentStrategic(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                                      @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic,
                                                                      @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
-        // Check Any Duplicate payments for current DCN
-        if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
-            List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
-            if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
-                throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+
+        boolean prodStrategicFixFeatureFlag = featureToggler.getBooleanValue("prod-strategic-fix",false);
+        if (prodStrategicFixFeatureFlag) {
+            // Check Any Duplicate payments for current DCN
+            if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
+                List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
+                if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
+                    throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+                }
             }
-        }
 
-        //Bulk scan payments call
-        List<SiteDTO> sites = referenceDataService.getSiteIDs();
+            //Bulk scan payments call
+            List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
-        if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequestStrategic.getSiteId()))) {
-            throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequestStrategic.getSiteId());
-        }
-
-        PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
-            paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
-            : null;
-
-        Payment payment = Payment.paymentWith()
-            .reference(referenceUtil.getNext("RC"))
-            .amount(bulkScanPaymentRequestStrategic.getAmount())
-            .caseReference(bulkScanPaymentRequestStrategic.getExceptionRecord())
-            .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
-            .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
-            .paymentProvider(paymentProvider)
-            .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
-            .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
-            .siteId(bulkScanPaymentRequestStrategic.getSiteId())
-            .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
-            .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
-            .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())
-            .documentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber())
-            .payerName(bulkScanPaymentRequestStrategic.getPayerName())
-            .bankedDate(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
-            .build();
-
-        PaymentFeeLink paymentFeeLink = paymentGroupService.addNewPaymenttoExistingPaymentGroup(payment, paymentGroupReference);
-
-        Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
-
-        // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-        LOG.info("ApportionFeature Flag Value in PaymentGroupController  RecordBulkScanPaymentStrategic: {}", apportionFeature);
-        if(apportionFeature) {
-            feePayApportionService.processApportion(newPayment);
-
-            // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
-            if(newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
-                LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
-                feePayApportionService.updateFeeAmountDue(newPayment);
+            if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequestStrategic.getSiteId()))) {
+                throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequestStrategic.getSiteId());
             }
+
+            PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
+                paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
+                : null;
+
+            Payment payment = Payment.paymentWith()
+                .reference(referenceUtil.getNext("RC"))
+                .amount(bulkScanPaymentRequestStrategic.getAmount())
+                .caseReference(bulkScanPaymentRequestStrategic.getExceptionRecord())
+                .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
+                .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
+                .paymentProvider(paymentProvider)
+                .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
+                .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
+                .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
+                .siteId(bulkScanPaymentRequestStrategic.getSiteId())
+                .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
+                .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+                .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())
+                .documentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber())
+                .payerName(bulkScanPaymentRequestStrategic.getPayerName())
+                .bankedDate(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+                .build();
+
+            PaymentFeeLink paymentFeeLink = paymentGroupService.addNewPaymenttoExistingPaymentGroup(payment, paymentGroupReference);
+
+            Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
+
+            // trigger Apportion based on the launch darkly feature flag
+            boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+            LOG.info("ApportionFeature Flag Value in PaymentGroupController  RecordBulkScanPaymentStrategic: {}", apportionFeature);
+            if (apportionFeature) {
+                feePayApportionService.processApportion(newPayment);
+
+                // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
+                if (newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
+                    LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
+                    feePayApportionService.updateFeeAmountDue(newPayment);
+                }
+            }
+
+            allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentRequestStrategic, paymentGroupReference, newPayment, headers);
+            return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+        } else {
+            throw new PaymentException("This feature is not available to use !!!");
         }
 
-        allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentRequestStrategic, paymentGroupReference, newPayment, headers);
-        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "Record a Bulk Scan Payment with Payment Group", notes = "Record a Bulk Scan Payment with Payment Group")
@@ -447,51 +439,56 @@ public class PaymentGroupController {
     public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPaymentStrategic(@Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic
         , @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
 
-        // Check Any Duplicate payments for current DCN
-        if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
-            List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
-            if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
-                throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+        boolean prodStrategicFixFeatureFlag = featureToggler.getBooleanValue("prod-strategic-fix", false);
+        if (prodStrategicFixFeatureFlag) {
+            // Check Any Duplicate payments for current DCN
+            if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
+                List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
+                if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
+                    throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+                }
             }
+
+            List<SiteDTO> sites = referenceDataService.getSiteIDs();
+
+            String paymentGroupReference = PaymentReference.getInstance().getNext();
+
+            if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequestStrategic.getSiteId()))) {
+                throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequestStrategic.getSiteId());
+            }
+
+            PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
+                paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
+                : null;
+
+            Payment payment = Payment.paymentWith()
+                .reference(referenceUtil.getNext("RC"))
+                .amount(bulkScanPaymentRequestStrategic.getAmount())
+                .caseReference(bulkScanPaymentRequestStrategic.getExceptionRecord())
+                .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
+                .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
+                .paymentProvider(paymentProvider)
+                .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
+                .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
+                .siteId(bulkScanPaymentRequestStrategic.getSiteId())
+                .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
+                .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+                .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())
+                .documentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber())
+                .payerName(bulkScanPaymentRequestStrategic.getPayerName())
+                .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
+                .bankedDate(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+                .build();
+
+            PaymentFeeLink paymentFeeLink = paymentGroupService.addNewBulkScanPayment(payment, paymentGroupReference);
+
+            Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
+
+            allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentRequestStrategic, paymentGroupReference, newPayment, headers);
+            return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
+        } else {
+            throw new PaymentException("This feature is not available to use !!!");
         }
-
-        List<SiteDTO> sites = referenceDataService.getSiteIDs();
-
-        String paymentGroupReference = PaymentReference.getInstance().getNext();
-
-        if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequestStrategic.getSiteId()))) {
-            throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequestStrategic.getSiteId());
-        }
-
-        PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
-            paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
-            : null;
-
-        Payment payment = Payment.paymentWith()
-            .reference(referenceUtil.getNext("RC"))
-            .amount(bulkScanPaymentRequestStrategic.getAmount())
-            .caseReference(bulkScanPaymentRequestStrategic.getExceptionRecord())
-            .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
-            .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
-            .paymentProvider(paymentProvider)
-            .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
-            .siteId(bulkScanPaymentRequestStrategic.getSiteId())
-            .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
-            .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
-            .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())
-            .documentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber())
-            .payerName(bulkScanPaymentRequestStrategic.getPayerName())
-            .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
-            .bankedDate(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
-            .build();
-
-        PaymentFeeLink paymentFeeLink = paymentGroupService.addNewBulkScanPayment(payment, paymentGroupReference);
-
-        Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
-
-        allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentRequestStrategic, paymentGroupReference, newPayment, headers);
-        return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
     public void allocateThePaymentAndMarkBulkScanPaymentAsProcessed(BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic, String paymentGroupReference, Payment newPayment,
@@ -527,12 +524,18 @@ public class PaymentGroupController {
     public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws RestClientException {
         //Generate token for payment api and replace
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-        LOG.info("Before generating token");
+        LOG.info("Before generating token printing header map : " +headersMap);
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
-        LOG.info("Before generating token value :- " +serviceAuthTokenPaymentList);
-        headersMap.replace("serviceauthorization", serviceAuthTokenPaymentList);
 
-        HttpHeaders headers = new HttpHeaders(headersMap);
+        MultiValueMap<String, String> headerMultiValueMapForBulkScan = new LinkedMultiValueMap<String, String>();
+        headerMultiValueMapForBulkScan.put("content-type",headersMap.get("content-type"));
+        //User token
+        headerMultiValueMapForBulkScan.put("Authorization", headersMap.get("authorization"));
+        //Service token
+        headerMultiValueMapForBulkScan.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+        LOG.info("After generating token printing header map with token :- " +serviceAuthTokenPaymentList + "" +headerMultiValueMapForBulkScan);
+
+        HttpHeaders headers = new HttpHeaders(headerMultiValueMapForBulkScan);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         Map<String, String> params = new HashMap<>();
         params.put("dcn", dcn);
