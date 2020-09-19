@@ -904,6 +904,8 @@ public class PaymentGroupControllerTest {
             eq(String.class), any(Map.class)))
             .thenReturn(new ResponseEntity(HttpStatus.OK));
 
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
@@ -937,6 +939,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void testValidAndDuplicateTransferredBulkScanPayments() throws Exception{
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
         MvcResult result2 = restActions
             .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isCreated())
@@ -955,6 +958,7 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void testUnidentifiedBulkScanPayments() throws Exception{
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
         MvcResult result2 = restActions
             .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Unidentified","Unidentified bulk scan payments", "Test Unidentified Reason", "DCN293842342342834278348"))
             .andExpect(status().isCreated())
@@ -984,6 +988,8 @@ public class PaymentGroupControllerTest {
             eq(String.class), any(Map.class)))
             .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
@@ -997,6 +1003,36 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         assertTrue(result3.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
+    }
+
+    @Test
+    public void testToggleOffFeatureStrategicFix() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(false);
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result2.getResponse().getContentAsString().contains("This feature is not available to use !!!"));
+
+        MvcResult result3 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result3.getResponse().getContentAsString().contains("This feature is not available to use !!!"));
     }
 
     @Test
@@ -1017,6 +1053,7 @@ public class PaymentGroupControllerTest {
             any(HttpEntity.class),
             eq(String.class), any(Map.class)))
             .thenThrow(new RestClientException("Connection failed for bulk scan api"));
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference()  + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
