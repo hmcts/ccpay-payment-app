@@ -16,10 +16,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.TelephonyDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
@@ -1301,7 +1298,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1367,7 +1364,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("120");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1433,7 +1430,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1499,7 +1496,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1549,7 +1546,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1615,7 +1612,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1666,7 +1663,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .service(Service.FINREM)
@@ -1716,7 +1713,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .description("Test cross field validation")
             .service(Service.FINREM)
@@ -1766,7 +1763,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("0");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1817,7 +1814,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1867,7 +1864,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1910,7 +1907,7 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
         BigDecimal amount = new BigDecimal("120");
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
