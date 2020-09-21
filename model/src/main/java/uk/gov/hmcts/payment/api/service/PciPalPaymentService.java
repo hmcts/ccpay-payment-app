@@ -24,9 +24,9 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
-import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaLinkIdResponse;
-import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaRequest;
-import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALLinkIdResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.PCIPALResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
@@ -136,16 +136,16 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         });
     }
 
-    public PCIPALAntennaResponse getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, PCIPALAntennaResponse pcipalAntennaResponse,String serviceType) {
+    public PCIPALResponse getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, PCIPALResponse pcipalResponse, String serviceType) {
         return withIOExceptionHandling(() -> {
 
             String flowId = getFlowId(serviceType);
             LOG.info("flowId: {} launchURL: {} viewIdURL: {} callbackUrl: {} returnURL: {} ", flowId, launchURL, viewIdURL, callbackUrl, returnURL);
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
-            httpPost.addHeader(authorizationHeader(pcipalAntennaResponse.getAccessToken()));
-            PCIPALAntennaRequest pcipalAntennaRequest = PCIPALAntennaRequest.pciPALAntennaRequestWith().FlowId(flowId)
-                .InitialValues(PCIPALAntennaRequest.InitialValues.initialValuesWith()
+            httpPost.addHeader(authorizationHeader(pcipalResponse.getAccessToken()));
+            PCIPALRequest pcipalRequest = PCIPALRequest.pciPALAntennaRequestWith().FlowId(flowId)
+                .InitialValues(PCIPALRequest.InitialValues.initialValuesWith()
                     .amount(new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString())
                     .callbackURL(callbackUrl)
                     .returnURL(returnURL)
@@ -155,13 +155,13 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                     .build();
 
             Gson gson = new Gson();
-            StringEntity entity = new StringEntity(gson.toJson(pcipalAntennaRequest));
+            StringEntity entity = new StringEntity(gson.toJson(pcipalRequest));
             httpPost.setEntity(entity);
             HttpResponse response = httpClient.execute(httpPost);
-            PCIPALAntennaLinkIdResponse pcipalAntennaLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), PCIPALAntennaLinkIdResponse.class);
-            pcipalAntennaResponse.setNextUrl(viewIdURL + pcipalAntennaLinkIdResponse.getId()+"/framed");
+            PCIPALLinkIdResponse pcipalLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), PCIPALLinkIdResponse.class);
+            pcipalResponse.setNextUrl(viewIdURL + pcipalLinkIdResponse.getId()+"/framed");
 
-            return pcipalAntennaResponse;
+            return pcipalResponse;
         });
     }
 
@@ -187,7 +187,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         return flowId;
     }
 
-    public PCIPALAntennaResponse getPciPalTokens() {
+    public PCIPALResponse getPciPalTokens() {
         return withIOExceptionHandling(() -> {
             LOG.info("grant_type: {} tenantname: {} username: {} client_id: {} client_secret: {} tokensURL: {}", grantType, tenantName, userName, clientId, clientSecret, tokensURL);
             List<NameValuePair> params = new ArrayList<>();
@@ -201,7 +201,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             httpPost.setEntity(new UrlEncodedFormEntity(params));
             HttpResponse response1 = httpClient.execute(httpPost);
 
-            return objectMapper.readValue(response1.getEntity().getContent(), PCIPALAntennaResponse.class);
+            return objectMapper.readValue(response1.getEntity().getContent(), PCIPALResponse.class);
         });
     }
     private Header authorizationHeader(String authorizationKey) {
