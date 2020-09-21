@@ -17,8 +17,6 @@ public class ServiceAuthTokenConfiguration {
         @Value("${idam.s2s-auth.totp_secret}") final String secret,
         @Value("${idam.s2s-auth.microservice}") final String microservice,
         ServiceAuthorisationApi serviceAuthorisationApi) {
-       LOG.info("Payment S2S client microservice name :- " +microservice);
-       LOG.info("Payment S2S top secret :- " +secret);
         return AuthTokenGeneratorFactory
             .createDefaultGenerator(
                 secret,

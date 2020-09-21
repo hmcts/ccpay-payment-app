@@ -41,7 +41,7 @@ public class FeePayApportionServiceTest extends TestUtil {
     @MockBean
     private PaymentFeeRepository paymentFeeRepository;
 
-  @Test(expected = PaymentException.class)
+    @Test(expected = PaymentException.class)
     public void updateFeeAmountDueTest() {
         Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
             .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
@@ -102,5 +102,4 @@ public class FeePayApportionServiceTest extends TestUtil {
             .build();
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
     }
-
 }
