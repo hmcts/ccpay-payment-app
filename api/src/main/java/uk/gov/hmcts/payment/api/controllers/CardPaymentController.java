@@ -81,7 +81,7 @@ public class CardPaymentController {
 
         LOG.info("ITHC Security Fixes are deployed!!!");
 
-        if(! new URI(returnURL).getHost().matches(".*([\\-\\.]hmcts.net|[\\-\\.]gov.uk)")) {
+        if(! new URI(returnURL).getHost().matches("^https?:\\/\\/+([^:\\/]+\\.)?(hmcts\\.net|gov\\.uk)")) {
             return new ResponseEntity("returnUrl: Must be an internal domain of hmcts.net or gov.uk", BAD_REQUEST);
         }
 
