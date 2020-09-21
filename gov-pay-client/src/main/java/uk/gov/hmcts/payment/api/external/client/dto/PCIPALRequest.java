@@ -16,7 +16,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(builderMethodName = "pciPALAntennaRequestWith")
-public class PCIPALAntennaRequest {
+public class PCIPALRequest {
 
     private String FlowId;
     private InitialValues InitialValues;

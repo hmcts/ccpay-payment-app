@@ -24,7 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Builder(builderMethodName = "telephonyRequestDtoWith")
 @Wither
-public class TelephonyRequest {
+public class TelephonyCardPaymentsRequest {
 
     @NotNull
     @DecimalMin("0.01")

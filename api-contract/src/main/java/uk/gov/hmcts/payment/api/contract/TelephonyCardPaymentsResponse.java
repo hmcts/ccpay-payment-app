@@ -20,7 +20,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class TelephonyDto {
+public class TelephonyCardPaymentsResponse {
 
     private String paymentReference;
 
