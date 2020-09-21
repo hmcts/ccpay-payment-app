@@ -1298,7 +1298,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1309,14 +1309,14 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
-        TelephonyDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyDto.class);
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -1324,9 +1324,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -1364,7 +1364,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("120");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1375,11 +1375,11 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
-        TelephonyDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyDto.class);
+        TelephonyCardPaymentsResponse paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
 
         MvcResult result4 = restActions
             .get("/card-payments/" + paymentDtoResult.getPaymentReference())
@@ -1390,9 +1390,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -1430,7 +1430,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1441,14 +1441,14 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
-        TelephonyDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyDto.class);
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -1456,9 +1456,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -1496,7 +1496,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1507,7 +1507,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -1546,7 +1546,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1557,14 +1557,14 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
-        TelephonyDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyDto.class);
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
 
         MvcResult result4 = restActions
-            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
             .andExpect(status().isOk())
             .andReturn();
 
@@ -1572,9 +1572,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -1612,7 +1612,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1623,7 +1623,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -1663,7 +1663,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .service(Service.FINREM)
@@ -1673,7 +1673,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
@@ -1713,7 +1713,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .description("Test cross field validation")
             .service(Service.FINREM)
@@ -1723,7 +1723,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
@@ -1763,7 +1763,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("0");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1774,7 +1774,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
@@ -1814,7 +1814,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1824,7 +1824,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
@@ -1864,7 +1864,7 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1874,7 +1874,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
@@ -1907,7 +1907,7 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
         BigDecimal amount = new BigDecimal("120");
-        TelephonyRequest cardPaymentRequest = TelephonyRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
@@ -1917,13 +1917,13 @@ public class PaymentGroupControllerTest {
             .build();
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
-        TelephonyDto telephonyDto = objectMapper.readValue(result2.getResponse().getContentAsString(), TelephonyDto.class);
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), TelephonyCardPaymentsResponse.class);
 
-        List<PaymentFee> savedfees = db.findByReference(telephonyDto.getPaymentGroupReference()).getFees();
+        List<PaymentFee> savedfees = db.findByReference(telephonyCardPaymentsResponse.getPaymentGroupReference()).getFees();
 
         assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
         assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
