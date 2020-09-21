@@ -532,7 +532,6 @@ public class PaymentGroupController {
         headerMultiValueMapForBulkScan.put("Authorization", headersMap.get("authorization"));
         //Service token
         headerMultiValueMapForBulkScan.put("ServiceAuthorization", serviceAuthTokenPaymentList);
-        LOG.info("After generating token printing header map with token :- " +serviceAuthTokenPaymentList + "" +headerMultiValueMapForBulkScan);
 
         HttpHeaders headers = new HttpHeaders(headerMultiValueMapForBulkScan);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -540,8 +539,7 @@ public class PaymentGroupController {
         params.put("dcn", dcn);
         params.put("status", status);
 
-        LOG.info("Bulk Scan api url :- " +bulkScanPaymentsProcessedUrl);
-
+        LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }
 
