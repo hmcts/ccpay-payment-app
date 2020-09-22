@@ -15,7 +15,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
-public class PCIPALLinkIdResponse {
+public class TelephonyProviderLinkIdResponse {
 
     @JsonProperty("Id")
     private String id;

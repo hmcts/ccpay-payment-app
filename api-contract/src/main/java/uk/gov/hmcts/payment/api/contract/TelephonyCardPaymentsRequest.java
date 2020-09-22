@@ -22,7 +22,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "telephonyRequestDtoWith")
+@Builder(builderMethodName = "telephonyCardPaymentsRequestWith")
 @Wither
 public class TelephonyCardPaymentsRequest {
 
@@ -31,9 +31,6 @@ public class TelephonyCardPaymentsRequest {
     @Positive
     @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
-
-    @NotEmpty
-    private String description;
 
     @NotEmpty
     @Pattern(regexp="-?\\d+(\\.\\d+)?", message = "ccd_case_number should be numeric")
