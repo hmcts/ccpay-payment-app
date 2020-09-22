@@ -17,13 +17,16 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaResponse;
+import uk.gov.hmcts.payment.api.dto.mapper.TelephonyDtoMapper;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
@@ -32,6 +35,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
+import uk.gov.hmcts.payment.api.contract.util.PaymentChannels;
+import uk.gov.hmcts.payment.api.contract.util.PaymentProviders;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -51,6 +56,8 @@ public class PaymentGroupController {
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     private final PaymentDtoMapper paymentDtoMapper;
+
+    private final TelephonyDtoMapper telephonyDtoMapper;
 
     private final PciPalPaymentService pciPalPaymentService;
 
@@ -75,7 +82,7 @@ public class PaymentGroupController {
                                   ReferenceDataService<SiteDTO> referenceDataService,
                                   PaymentProviderRepository paymentProviderRespository,
                                   FeePayApportionService feePayApportionService,
-                                  LaunchDarklyFeatureToggler featureToggler){
+                                  LaunchDarklyFeatureToggler featureToggler,TelephonyDtoMapper telephonyDtoMapper){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -86,6 +93,7 @@ public class PaymentGroupController {
         this.paymentProviderRepository = paymentProviderRespository;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
+        this.telephonyDtoMapper = telephonyDtoMapper;
     }
 
     @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
@@ -323,56 +331,47 @@ public class PaymentGroupController {
     }
 
 
-    @ApiOperation(value = "Create card payment in Payment Group", notes = "Create card payment in Payment Group")
+    @ApiOperation(value = "Create telephony card payment in Payment Group", notes = "Create telephony card payment in Payment Group")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
-    @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments-antenna")
+    @PostMapping(value = "/payment-groups/{payment-group-reference}/telephony-card-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCardPaymentForPCIPALAntenna(
+    public ResponseEntity<TelephonyCardPaymentsResponse> createTelephonyCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @PathVariable("payment-group-reference") String paymentGroupReference,
-        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
+        @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature",false);
-        boolean telephonyCheck = (request.getChannel() !=null && request.getChannel().equals("telephony")) && (request.getProvider() !=null && request.getProvider().equals("pci pal"));
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
-        LOG.info("Telephony check Value in CardPaymentController : {}", telephonyCheck);
-        if(antennaFeature && telephonyCheck) {
+        if(antennaFeature) {
             LOG.info("Inside Telephony check");
+            TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService.getPaymentProviderAutorisationTokens();
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
-                .description(request.getDescription())
                 .paymentGroupReference(paymentGroupReference)
                 .paymentReference(referenceUtil.getNext("RC"))
-                .returnUrl(returnURL)
-                .ccdCaseNumber(request.getCcdCaseNumber())
-                .caseReference(request.getCaseReference())
-                .currency(request.getCurrency().getCode())
-                .siteId(request.getSiteId())
-                .serviceType(request.getService().getName())
-                .amount(request.getAmount())
-                .serviceCallbackUrl(serviceCallbackUrl)
-                .channel(request.getChannel())
-                .provider(request.getProvider())
+                .ccdCaseNumber(telephonyCardPaymentsRequest.getCcdCaseNumber())
+                .currency(telephonyCardPaymentsRequest.getCurrency().getCode())
+                .siteId(telephonyCardPaymentsRequest.getSiteId())
+                .serviceType(telephonyCardPaymentsRequest.getService().getName())
+                .amount(telephonyCardPaymentsRequest.getAmount())
+                .channel(PaymentChannels.TELEPHONY.getCode())
+                .provider(PaymentProviders.PCIPAL.getCode())
                 .build();
-
-            PCIPALAntennaResponse pcipalAntennaResponse = pciPalPaymentService.getPciPalTokens();
-            LOG.info("Access Token Value in CardPaymentController : {}", pcipalAntennaResponse.getAccessToken());
-            LOG.info("Refresh Token Value in CardPaymentController : {}", pcipalAntennaResponse.getRefreshToken());
+            LOG.info("Access Token Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getAccessToken());
+            LOG.info("Refresh Token Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getRefreshToken());
             PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
             Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
-            PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
 
-                PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
-                    .orderReference(paymentDto.getReference()).build();
-                pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-                pcipalAntennaResponse = pciPalPaymentService.getPciPalAntennaLink(pciPalPaymentRequest, pcipalAntennaResponse, request.getService().name());
-                LOG.info("Next URL Value in CardPaymentController : {}", pcipalAntennaResponse.getNextUrl());
-                paymentDto = paymentDtoMapper.toPciPalAntennaCardPaymentDto(paymentLink, payment, pcipalAntennaResponse);
+                PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
+                    .orderReference(payment.getReference()).build();
+                telephonyProviderAuthorisationResponse = pciPalPaymentService.getTelephonyProviderLink(pciPalPaymentRequest, telephonyProviderAuthorisationResponse, telephonyCardPaymentsRequest.getService().name());
+                LOG.info("Next URL Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getNextUrl());
+                TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
 
             // trigger Apportion based on the launch darkly feature flag
             boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue, false);
@@ -380,7 +379,7 @@ public class PaymentGroupController {
             if (apportionFeature) {
                 feePayApportionService.processApportion(payment);
             }
-            return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
+            return new ResponseEntity<>(telephonyCardPaymentsResponse, HttpStatus.CREATED);
         }
         else
         {

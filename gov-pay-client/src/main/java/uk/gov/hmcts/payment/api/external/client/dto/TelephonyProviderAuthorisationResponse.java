@@ -15,7 +15,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
-public class PCIPALAntennaResponse {
+public class TelephonyProviderAuthorisationResponse {
 
     @JsonProperty("access_token")
     private String accessToken;
