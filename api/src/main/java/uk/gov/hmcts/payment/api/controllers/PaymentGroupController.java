@@ -349,7 +349,7 @@ public class PaymentGroupController {
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature",false);
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
         if(antennaFeature) {
-            LOG.info("Inside Telephony check");
+            LOG.info("Inside Telephony check!!!");
             TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService.getPaymentProviderAutorisationTokens();
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
                 .paymentGroupReference(paymentGroupReference)
