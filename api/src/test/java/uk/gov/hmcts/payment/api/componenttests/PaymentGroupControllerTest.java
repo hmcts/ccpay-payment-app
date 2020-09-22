@@ -6,26 +6,34 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -33,15 +41,16 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationHealthApi;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -80,8 +89,24 @@ public class PaymentGroupControllerTest {
     @Autowired
     private SiteService<Site, String> siteServiceMock;
 
+    @InjectMocks
+    private PaymentGroupController paymentGroupController;
+
+    @MockBean
+    @Qualifier("restTemplatePaymentGroup")
+    private RestTemplate restTemplatePaymentGroup;
+
     @Autowired
     private PaymentDbBackdoor db;
+
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
+
+    @MockBean
+    private ServiceAuthorisationApi serviceAuthorisationApi;
+
+    @MockBean
+    private ServiceAuthorisationHealthApi serviceAuthorisationHealthApi;
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
@@ -1060,6 +1085,180 @@ public class PaymentGroupControllerTest {
 
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
         assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
+    }
+
+    @Test
+    public void testValidBulkScanPaymentForStrategic() throws Exception{
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            any(HttpEntity.class),
+            eq(String.class), any(Map.class)))
+            .thenReturn(new ResponseEntity(HttpStatus.OK));
+
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals("1231-1231-3453-4333", paymentsResponse.getCcdCaseNumber());
+        assertNotNull(paymentsResponse.getPaymentAllocation());
+        assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Allocated"));
+
+        MvcResult duplicateRequest = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(duplicateRequest.getResponse().getContentAsString().contains("Bulk scan payment already exists for DCN = DCN293842342342834278348"));
+    }
+
+    @Test
+    public void testValidAndDuplicateTransferredBulkScanPayments() throws Exception{
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+        assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Transferred"));
+
+        MvcResult duplicateRequest = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(duplicateRequest.getResponse().getContentAsString().contains("Bulk scan payment already exists for DCN = DCN293842342342834278348"));
+    }
+
+    @Test
+    public void testUnidentifiedBulkScanPayments() throws Exception{
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+        MvcResult result2 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Unidentified","Unidentified bulk scan payments", "Test Unidentified Reason", "DCN293842342342834278348"))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+        assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Unidentified"));
+        assertTrue(paymentsResponse.getPaymentAllocation().get(0).getUnidentifiedReason().equalsIgnoreCase("Test Unidentified Reason"));
+    }
+
+    @Test
+    public void testBulkScanPaymentHandlingClientErrorExceptions() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            any(HttpEntity.class),
+            eq(String.class), any(Map.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result2.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278348 Due to response status code as  = 404 NOT_FOUND"));
+
+        MvcResult result3 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result3.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
+    }
+
+    @Test
+    public void testToggleOffFeatureStrategicFix() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(false);
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result2.getResponse().getContentAsString().contains("This feature is not available to use !!!"));
+
+        MvcResult result3 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result3.getResponse().getContentAsString().contains("This feature is not available to use !!!"));
+    }
+
+    @Test
+    public void testBulkScanPaymentHandlingConnectionException() throws Exception{
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        when(this.restTemplatePaymentGroup.exchange(anyString(),
+            eq(HttpMethod.PATCH),
+            any(HttpEntity.class),
+            eq(String.class), any(Map.class)))
+            .thenThrow(new RestClientException("Connection failed for bulk scan api"));
+        when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference()  + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result2.getResponse().getContentAsString().contains("Error occurred while processing bulk scan payments with DCN DCN293842342342834278348"));
+
+        MvcResult result3 = restActions
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertTrue(result3.getResponse().getContentAsString().contains("Error occurred while processing bulk scan payments with DCN DCN293842342342834278349"));
     }
 
     @Test
@@ -2179,6 +2378,38 @@ public class PaymentGroupControllerTest {
             .amount(new BigDecimal(100.00))
             .service(Service.DIGITAL_BAR)
             .siteId("AA07")
+            .build();
+    }
+
+    private PaymentAllocationDto getPaymentAllocationDto(String paymentAllocationStatus, String paymentAllocationDescription, String unidentifiedReason) {
+        return PaymentAllocationDto.paymentAllocationDtoWith()
+            .dateCreated(new Date())
+            .explanation("test explanation")
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith()
+                .description(paymentAllocationDescription).name(paymentAllocationStatus).build())
+            .reason("testReason")
+            .receivingOffice("testReceivingOffice")
+            .unidentifiedReason(unidentifiedReason)
+            .userId("124")
+            .userName("testname")
+            .build();
+    }
+
+    private BulkScanPaymentRequestStrategic getBulkScanPaymentStrategic(String paymentAllocationStatus, String paymentAllocationDescription, String unIdentifiedReason, String documentControlNumber) {
+        return BulkScanPaymentRequestStrategic.createBulkScanPaymentStrategicWith()
+            .amount(new BigDecimal(100.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber(documentControlNumber)
+            .ccdCaseNumber("1231-1231-3453-4333")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate(DateTime.now().toString())
+            .giroSlipNo("BCH82173823")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .paymentAllocationDTO(getPaymentAllocationDto(paymentAllocationStatus,paymentAllocationDescription, unIdentifiedReason))
             .build();
     }
 }
