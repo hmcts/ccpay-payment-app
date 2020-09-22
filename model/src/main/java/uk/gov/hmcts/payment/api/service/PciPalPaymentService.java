@@ -24,9 +24,9 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
-import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaLinkIdResponse;
-import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaRequest;
-import uk.gov.hmcts.payment.api.external.client.dto.PCIPALAntennaResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
@@ -153,32 +153,32 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         return ppAccountID;
     }
 
-    public PCIPALAntennaResponse getPciPalAntennaLink(PciPalPaymentRequest pciPalPaymentRequest, PCIPALAntennaResponse pcipalAntennaResponse,String serviceType) {
+    public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType) {
         return withIOExceptionHandling(() -> {
 
             String flowId = getFlowId(serviceType);
             LOG.info("flowId: {} launchURL: {} viewIdURL: {} callbackUrl: {} returnURL: {} ", flowId, launchURL, viewIdURL, callbackUrl, returnURL);
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
-            httpPost.addHeader(authorizationHeader(pcipalAntennaResponse.getAccessToken()));
-            PCIPALAntennaRequest pcipalAntennaRequest = PCIPALAntennaRequest.pciPALAntennaRequestWith().FlowId(flowId)
-                .InitialValues(PCIPALAntennaRequest.InitialValues.initialValuesWith()
+            httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
+            TelephonyProviderLinkIdRequest telephonyProviderLinkIdRequest = TelephonyProviderLinkIdRequest.telephonyProviderLinkIdRequestWith().FlowId(flowId)
+                .InitialValues(TelephonyProviderLinkIdRequest.InitialValues.initialValuesWith()
                     .amount(new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString())
                     .callbackURL(callbackUrl)
                     .returnURL(returnURL)
                     .orderId(pciPalPaymentRequest.getOrderReference())
                     .currencyCode("GBP")
                     .build())
-                .build();
+                    .build();
 
             Gson gson = new Gson();
-            StringEntity entity = new StringEntity(gson.toJson(pcipalAntennaRequest));
+            StringEntity entity = new StringEntity(gson.toJson(telephonyProviderLinkIdRequest));
             httpPost.setEntity(entity);
             HttpResponse response = httpClient.execute(httpPost);
-            PCIPALAntennaLinkIdResponse pcipalAntennaLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), PCIPALAntennaLinkIdResponse.class);
-            pcipalAntennaResponse.setNextUrl(viewIdURL + pcipalAntennaLinkIdResponse.getId()+"/framed");
+            TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
+            telephonyProviderAuthorisationResponse.setNextUrl(viewIdURL + telephonyProviderLinkIdResponse.getId()+"/framed");
 
-            return pcipalAntennaResponse;
+            return telephonyProviderAuthorisationResponse;
         });
     }
 
@@ -204,7 +204,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         return flowId;
     }
 
-    public PCIPALAntennaResponse getPciPalTokens() {
+    public TelephonyProviderAuthorisationResponse getPaymentProviderAutorisationTokens() {
         return withIOExceptionHandling(() -> {
             LOG.info("grant_type: {} tenantname: {} username: {} client_id: {} client_secret: {} tokensURL: {}", grantType, tenantName, userName, clientId, clientSecret, tokensURL);
             List<NameValuePair> params = new ArrayList<>();
@@ -218,12 +218,13 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             httpPost.setEntity(new UrlEncodedFormEntity(params));
             HttpResponse response1 = httpClient.execute(httpPost);
 
-            return objectMapper.readValue(response1.getEntity().getContent(), PCIPALAntennaResponse.class);
+            return objectMapper.readValue(response1.getEntity().getContent(), TelephonyProviderAuthorisationResponse.class);
         });
     }
     private Header authorizationHeader(String authorizationKey) {
         return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
     }
+
 
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {
         try {

@@ -10,9 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
@@ -564,7 +562,7 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForPCIPALAntennaChanges() throws Exception {
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1345678912345678";
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("110.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -577,13 +575,10 @@ public class PaymentGroupFunctionalTest {
             .naturalAccountCode("4481102145")
             .build();
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(new BigDecimal("110"))
             .ccdCaseNumber(ccdCaseNumber)
-            .channel("telephony")
             .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
             .service(Service.DIVORCE)
             .siteId("AA007")
             .build();
@@ -599,6 +594,16 @@ public class PaymentGroupFunctionalTest {
 
             String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
 
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://google.co.uk")
+                .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupReference)
+                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                assertThat(telephonyCardPaymentsResponse).isNotNull();
+                assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+
+            });
         });
 
     }
