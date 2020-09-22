@@ -176,10 +176,7 @@ public class CardPaymentController {
         PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieve(paymentReference);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
-        if(payment.isPresent()) {
             return paymentDtoMapper.toPaymentStatusesDto(payment.get());
-        }
-        return new PaymentDto();
     }
 
     @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")
