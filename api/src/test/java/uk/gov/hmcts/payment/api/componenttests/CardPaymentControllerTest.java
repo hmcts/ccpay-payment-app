@@ -18,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
@@ -28,6 +27,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.UserAwareDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -71,6 +71,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
+
+    @MockBean
+    private UserAwareDelegatingPaymentService userAwareDelegatingPaymentService;
 
     @Autowired
     private PaymentDbBackdoor db;
@@ -1031,6 +1034,17 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         restActions
             .get("/card-payments/" + "12345" + "/statuses")
             .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
+    @Test
+    public void testToCoverRetrievePaymentStatus() throws Exception{
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().payments(Arrays.asList(Payment.paymentWith().id(432115).reference("54321").build())).build();
+        when(userAwareDelegatingPaymentService.retrieve("12345")).thenReturn(paymentFeeLink);
+
+        MvcResult result = restActions
+            .get("/card-payments/" + "12345" + "/statuses")
+            .andExpect(status().isOk())
             .andReturn();
     }
 
