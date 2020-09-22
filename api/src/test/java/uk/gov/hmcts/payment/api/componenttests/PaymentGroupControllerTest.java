@@ -1298,10 +1298,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.DIVORCE)
             .siteId("AA07")
             .ccdCaseNumber("2154234356342357")
@@ -1364,10 +1363,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("120");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.CMC)
             .siteId("AA07")
             .ccdCaseNumber("2154234356342357")
@@ -1430,10 +1428,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.PROBATE)
             .siteId("AA07")
             .ccdCaseNumber("2154234356342357")
@@ -1496,10 +1493,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.DIGITAL_BAR)
             .siteId("AA07")
             .ccdCaseNumber("2154234356342357")
@@ -1546,10 +1542,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.FINREM)
             .siteId("AA07")
             .ccdCaseNumber("2154234356342357")
@@ -1612,10 +1607,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.FINREM)
             .siteId("AA07")
             .ccdCaseNumber("2154234356342357")
@@ -1629,55 +1623,6 @@ public class PaymentGroupControllerTest {
 
     }
 
-    @Test
-    public void throwExceptionWhenDescriptionIsEmpty() throws Exception {
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(false);
-        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getConsecutiveFee())).build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-
-        MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupFeeDto).isNotNull();
-        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
-
-
-        BigDecimal amount = new BigDecimal("200");
-
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .service(Service.FINREM)
-            .siteId("AA07")
-            .ccdCaseNumber("2154234356342357")
-            .build();
-
-        MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-            .andExpect(status().isUnprocessableEntity())
-            .andReturn();
-
-    }
 
     @Test
     public void throwExceptionWhenCurrencyIsEmpty() throws Exception {
@@ -1713,9 +1658,8 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
-            .description("Test cross field validation")
             .service(Service.FINREM)
             .siteId("AA07")
             .ccdCaseNumber("2154234356342357")
@@ -1763,10 +1707,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("0");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.FINREM)
             .siteId("AA07")
             .ccdCaseNumber("2154234356342357")
@@ -1814,10 +1757,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.FINREM)
             .siteId("AA07")
             .build();
@@ -1864,10 +1806,9 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.FINREM)
             .ccdCaseNumber("2154234356342357")
             .build();
@@ -1907,10 +1848,9 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
         BigDecimal amount = new BigDecimal("120");
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyRequestDtoWith()
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
             .service(Service.FINREM)
             .siteId("AA07")
             .ccdCaseNumber(ccdCaseNumber)

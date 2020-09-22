@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
-import uk.gov.hmcts.payment.api.external.client.dto.PCIPALResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -10,13 +10,13 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 @Component
 public class TelephonyDtoMapper {
 
-    public TelephonyCardPaymentsResponse toPciPalTelephonyCardPaymentsDto(PaymentFeeLink paymentFeeLink, Payment payment, PCIPALResponse pcipalResponse) {
-        return TelephonyCardPaymentsResponse.telephonyDtoWith()
+    public TelephonyCardPaymentsResponse toTelephonyCardPaymentsResponse(PaymentFeeLink paymentFeeLink, Payment payment, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse) {
+        return TelephonyCardPaymentsResponse.telephonyCardPaymentsResponseWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
-            .links(new TelephonyCardPaymentsResponse.LinksDto(new TelephonyCardPaymentsResponse.LinkDto(pcipalResponse.getNextUrl(), "POST", pcipalResponse.getAccessToken(), pcipalResponse.getRefreshToken())))
+            .links(new TelephonyCardPaymentsResponse.LinksDto(new TelephonyCardPaymentsResponse.LinkDto(telephonyProviderAuthorisationResponse.getNextUrl(), "POST", telephonyProviderAuthorisationResponse.getAccessToken(), telephonyProviderAuthorisationResponse.getRefreshToken())))
             .build();
     }
 }
