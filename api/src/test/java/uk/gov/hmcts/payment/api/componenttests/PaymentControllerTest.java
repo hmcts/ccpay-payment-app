@@ -28,7 +28,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -74,9 +73,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @MockBean
     protected CallbackServiceImpl callbackServiceImplMock;
-
-    @MockBean
-    private PaymentServiceImpl paymentServiceImpl;
 
     @Autowired
     protected PaymentDbBackdoor db;
@@ -1578,18 +1574,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(paymentDto.getCcdCaseNumber()).isEqualTo(payment.getCcdCaseNumber());
 
     }
-
-    @Test
-    public void retrievePaymentByReferenceWithNoPaymentInformation() throws Exception {
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().payments(Arrays.asList(Payment.paymentWith().id(432115).reference("12345").build())).build();
-        when(paymentServiceImpl.retrieve("54321")).thenReturn(paymentFeeLink);
-
-        MvcResult result = restActions
-            .get("/payments/" + "54321")
-            .andExpect(status().isOk())
-            .andReturn();
-    }
-
 
     @Test
     @Transactional
