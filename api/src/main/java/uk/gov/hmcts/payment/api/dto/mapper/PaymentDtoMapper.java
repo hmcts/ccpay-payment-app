@@ -83,6 +83,23 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toBulkScanPaymentStrategicDto(Payment payment, String paymentGroupReference) {
+        PaymentAllocation paymentAllocation = (payment.getPaymentAllocation() != null && payment.getPaymentAllocation().size() > 0) ?
+            payment.getPaymentAllocation().get(0) : null;
+        List<PaymentAllocationDto> paymentAllocationDtoList =  new ArrayList<>();
+        paymentAllocationDtoList.add(toPaymentAllocationDto(paymentAllocation));
+
+        return PaymentDto.payment2DtoWith()
+            .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
+            .reference(payment.getReference())
+            .paymentGroupReference(paymentGroupReference)
+            .paymentAllocation(paymentAllocationDtoList)
+            .dateCreated(payment.getDateCreated())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .caseReference(payment.getCaseReference())
+            .build();
+    }
+
 
     public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
