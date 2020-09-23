@@ -16,7 +16,7 @@ public class TelephonyDtoMapper {
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
-            .links(new TelephonyCardPaymentsResponse.LinksDto(new TelephonyCardPaymentsResponse.LinkDto(telephonyProviderAuthorisationResponse.getNextUrl(), "POST", telephonyProviderAuthorisationResponse.getAccessToken(), telephonyProviderAuthorisationResponse.getRefreshToken())))
+            .links(new TelephonyCardPaymentsResponse.NextURLDtos(new TelephonyCardPaymentsResponse.NextURLDto(telephonyProviderAuthorisationResponse.getNextUrl(), "POST", telephonyProviderAuthorisationResponse.getAccessToken(), telephonyProviderAuthorisationResponse.getRefreshToken())))
             .build();
     }
 }
