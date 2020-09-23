@@ -341,7 +341,6 @@ public class PaymentGroupController {
     @ResponseBody
     @Transactional
     public ResponseEntity<TelephonyCardPaymentsResponse> createTelephonyCardPayment(
-        @RequestHeader(value = "return-url") String returnURL,
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
@@ -368,7 +367,7 @@ public class PaymentGroupController {
 
                 PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
                     .orderReference(payment.getReference()).build();
-                telephonyProviderAuthorisationResponse = pciPalPaymentService.getTelephonyProviderLink(pciPalPaymentRequest, telephonyProviderAuthorisationResponse, telephonyCardPaymentsRequest.getService().name(),returnURL);
+                telephonyProviderAuthorisationResponse = pciPalPaymentService.getTelephonyProviderLink(pciPalPaymentRequest, telephonyProviderAuthorisationResponse, telephonyCardPaymentsRequest.getService().name(),telephonyCardPaymentsRequest.getReturnURL());
                 LOG.info("Next URL Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getNextUrl());
                 TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
 

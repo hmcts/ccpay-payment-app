@@ -47,5 +47,8 @@ public class TelephonyCardPaymentsRequest {
     @JsonProperty("site_id")
     private String siteId;
 
+    @NotEmpty
+    private String returnURL;
+
 
 }
