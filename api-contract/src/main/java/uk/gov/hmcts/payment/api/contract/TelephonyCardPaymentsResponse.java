@@ -34,26 +34,24 @@ public class TelephonyCardPaymentsResponse {
     private Date dateCreated;
 
     @JsonProperty("_links")
-    private LinksDto links;
+    private NextURLDtos links;
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     @JsonInclude(NON_NULL)
-    public static class LinksDto {
-        private LinkDto nextUrl;
+    public static class NextURLDtos {
+        private NextURLDto nextUrl;
     }
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonInclude(NON_NULL)
-    public static class LinkDto {
+    public static class NextURLDto {
         private String href;
         private String method;
-
-        //Added as part of PCI PAL Antenna Implementation
         private String accessToken;
         private String refreshToken;
     }
