@@ -495,6 +495,7 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .service(Service.DIVORCE)
             .siteId("AA007")
+            .returnURL("https://google.co.uk")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
