@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
@@ -35,8 +35,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReference
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
-import uk.gov.hmcts.payment.api.contract.util.PaymentChannels;
-import uk.gov.hmcts.payment.api.contract.util.PaymentProviders;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -71,7 +69,7 @@ public class PaymentGroupController {
 
     private final LaunchDarklyFeatureToggler featureToggler;
 
-    private String apportionFeatureValue = "apportion-feature";
+    private static final String APPORTION_FEATURE = "apportion-feature";
 
 
     @Autowired
@@ -212,7 +210,7 @@ public class PaymentGroupController {
         }
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue,false);
+        boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE,false);
         LOG.info("Apportion Feature Flag Value in CardPaymentController : {}", apportionFeature);
         if(apportionFeature) {
             feePayApportionService.processApportion(payment);
@@ -267,7 +265,7 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue,false);
+        boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE,false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if(apportionFeature) {
             feePayApportionService.processApportion(newPayment);
@@ -357,8 +355,8 @@ public class PaymentGroupController {
                 .siteId(telephonyCardPaymentsRequest.getSiteId())
                 .serviceType(telephonyCardPaymentsRequest.getService().getName())
                 .amount(telephonyCardPaymentsRequest.getAmount())
-                .channel(PaymentChannels.TELEPHONY.getCode())
-                .provider(PaymentProviders.PCIPAL.getCode())
+                .channel(PaymentChannel.TELEPHONY.getName())
+                .provider(PaymentProvider.PCI_PAL.getName())
                 .build();
             LOG.info("Access Token Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getAccessToken());
             LOG.info("Refresh Token Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getRefreshToken());
@@ -372,7 +370,7 @@ public class PaymentGroupController {
                 TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
 
             // trigger Apportion based on the launch darkly feature flag
-            boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue, false);
+            boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
             LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
             if (apportionFeature) {
                 feePayApportionService.processApportion(payment);

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -24,17 +23,19 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
-import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdResponse;
-import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdRequest;
-import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdResponse;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
@@ -46,11 +47,17 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_PROBATE = "probate";
     private static final String SERVICE_TYPE_CMC = "cmc";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
-    private static final String SERVICE_TYPE_FINREM = "finrem";
+    private static final String PROBATE = "PROBATE";
+    private static final String DIVORCE = "DIVORCE";
+    private static final String CMC = "CMC";
+    private static final String FINREM = "FINREM";
+
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
+
     @Value("${pci-pal.account.id.probate}")
     private String ppAccountIDProbate;
+
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
 
@@ -141,8 +148,8 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
-            TelephonyProviderLinkIdRequest telephonyProviderLinkIdRequest = TelephonyProviderLinkIdRequest.telephonyProviderLinkIdRequestWith().FlowId(flowId)
-                .InitialValues(TelephonyProviderLinkIdRequest.InitialValues.initialValuesWith()
+            TelephonyProviderLinkIdRequest telephonyProviderLinkIdRequest = TelephonyProviderLinkIdRequest.telephonyProviderLinkIdRequestWith().flowId(flowId)
+                .initialValues(TelephonyProviderLinkIdRequest.InitialValues.initialValuesWith()
                     .amount(new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString())
                     .callbackURL(callbackUrl)
                     .returnURL(returnURL)
@@ -151,8 +158,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                     .build())
                     .build();
 
-            Gson gson = new Gson();
-            StringEntity entity = new StringEntity(gson.toJson(telephonyProviderLinkIdRequest));
+            StringEntity entity = new StringEntity(objectMapper.writeValueAsString(telephonyProviderLinkIdRequest));
             httpPost.setEntity(entity);
             HttpResponse response = httpClient.execute(httpPost);
             TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
@@ -162,24 +168,24 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         });
     }
 
-    private String getFlowId(String serviceType) {
-        String flowId = null;
-        if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
-            flowId = divorceFlowId;
-        }
-        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
-            flowId = cmcFlowId;
-        }
-        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
-            flowId = probateFlowId;
-        }
 
-        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM)) {
-            flowId = financialRemedyFlowId;
+    public String getFlowId(String serviceType)
+    {
+        String flowId;
+
+        Map<String, String> flowIdHashMap = new HashMap<>();
+        flowIdHashMap.put(DIVORCE, divorceFlowId);
+        flowIdHashMap.put(CMC, cmcFlowId);
+        flowIdHashMap.put(PROBATE, probateFlowId);
+        flowIdHashMap.put(FINREM, financialRemedyFlowId);
+
+        if(flowIdHashMap.containsKey(serviceType))
+        {
+            flowId = flowIdHashMap.get(serviceType);
         }
         else
         {
-            throw new PaymentException("Invalid service type: " + serviceType);
+            throw new PaymentException("This service type is not supported for Telephony Payments!!!: " + serviceType);
         }
         return flowId;
     }
