@@ -177,10 +177,11 @@ public class PaymentController {
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
-        if(payment.isPresent()) {
-            return paymentDtoMapper.toGetPaymentResponseDtos(payment.get());
-        }
-        return new PaymentDto();
+            Payment payment1 = null;
+            if (payment.isPresent()) {
+                payment1 = payment.get();
+            }
+            return paymentDtoMapper.toGetPaymentResponseDtos(payment1);
     }
 
     private Optional<Payment> getPaymentByReference(String reference) {
