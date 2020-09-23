@@ -78,9 +78,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     @Value("${pci-pal.antenna.view.id.url}")
     private String viewIdURL;
 
-    @Value("${pci-pal.antenna.return.url}")
-    private String returnURL;
-
     @Value("${pci-pal.antenna.cmc.flow.id}")
     private String cmcFlowId;
 
@@ -136,11 +133,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         });
     }
 
-    public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType) {
+    public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL) {
         return withIOExceptionHandling(() -> {
 
             String flowId = getFlowId(serviceType);
-            LOG.info("flowId: {} launchURL: {} viewIdURL: {} callbackUrl: {} returnURL: {} ", flowId, launchURL, viewIdURL, callbackUrl, returnURL);
+            LOG.info("flowId: {}   launchURL: {}   viewIdURL: {}   callbackUrl: {}   returnURL: {} ", flowId, launchURL, viewIdURL, callbackUrl, returnURL);
             HttpPost httpPost = new HttpPost(launchURL);
             httpPost.addHeader(CONTENT_TYPE, APPLICATION_JSON.toString());
             httpPost.addHeader(authorizationHeader(telephonyProviderAuthorisationResponse.getAccessToken()));
