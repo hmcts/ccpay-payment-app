@@ -603,7 +603,7 @@ public class PaymentGroupController {
         params.put("dcn", dcn);
         params.put("status", status);
 
-        LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
+        LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api" +bulkScanPaymentsProcessedUrl +"token generated " +serviceAuthTokenPaymentList);
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }
 
