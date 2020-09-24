@@ -461,7 +461,7 @@ public class PaymentGroupController {
             Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
             // trigger Apportion based on the launch darkly feature flag
-            boolean apportionFeature = featureToggler.getBooleanValue(apportionFeatureValue, false);
+            boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
             LOG.info("ApportionFeature Flag Value in PaymentGroupController  RecordBulkScanPaymentStrategic: {}", apportionFeature);
             if (apportionFeature) {
                 feePayApportionService.processApportion(newPayment);
