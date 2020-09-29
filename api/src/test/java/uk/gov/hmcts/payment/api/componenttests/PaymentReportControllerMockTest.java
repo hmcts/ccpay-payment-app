@@ -133,6 +133,7 @@ public class PaymentReportControllerMockTest {
     public void paymentReport_shouldThrowHttpMessageNotReadableException() throws Exception {
         doThrow(new HttpMessageNotReadableException("validation failed"))
             .when(validator).validate(Optional.of("CARD"), Optional.of("UNKNOWN"), Optional.of("2018-06-30"), Optional.of("2018-07-01"));
+
         this.mockMvc.perform(post("/jobs/email-pay-reports")
             .param("payment_method", "CARD")
             .param("start_date", "2018-06-30")
