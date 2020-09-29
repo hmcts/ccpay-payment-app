@@ -76,6 +76,7 @@ databaseChangeLog:
             splitStatements:
             sql: >
               ALTER TABLE fee ADD COLUMN amount_due numeric(19, 2);
+              ALTER TABLE fee ADD COLUMN date_apportioned TIMESTAMP WITHOUT TIME ZONE;
               ALTER TABLE fee ADD COLUMN date_created TIMESTAMP(3) WITHOUT TIME ZONE;
               ALTER TABLE fee ADD COLUMN date_updated TIMESTAMP(3) WITHOUT TIME ZONE;
   - changeSet:
@@ -150,3 +151,21 @@ databaseChangeLog:
             initiallyDeferred: false
             referencedColumnNames: name
             referencedTableName: audit_events_type
+
+#  # Apportionment DB Model Rollback Scripts
+#  - changeSet:
+#      id: 1554989041418-36
+#      author: ayan
+#      failOnError: true
+#      changes:
+#        - sql:
+#            splitStatements:
+#            sql: >
+#              ALTER TABLE payment_audit_history DROP CONSTRAINT "FK_boc1od01im5po7i8e5b7890";
+#              ALTER TABLE fee_pay_apportion DROP CONSTRAINT "FK_3c04152jyub2e59dll71122";
+#              DROP TABLE fee_pay_apportion;
+#              DROP TABLE audit_events_type;
+#              DROP TABLE payment_audit_history;
+#              ALTER TABLE fee DROP COLUMN amount_due;
+#              ALTER TABLE fee DROP COLUMN date_created;
+#              ALTER TABLE fee DROP COLUMN date_updated;
