@@ -55,7 +55,7 @@
         <cve>CVE-2017-18640</cve>
         <cve>CVE-2019-17638</cve>
         <cve>CVE-2020-24616</cve>
-        <cve>CVE-2020-5421</cve>>
+        <cve>CVE-2020-5421</cve>
     </suppress>
 
 </suppressions>
