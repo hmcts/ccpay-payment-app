@@ -152,9 +152,9 @@ databaseChangeLog:
             referencedColumnNames: name
             referencedTableName: audit_events_type
 
-#  # Apportionment DB Model Rollback Scripts
+# Apportionment DB Model Rollback Scripts
 #  - changeSet:
-#      id: 1554989041418-36
+#      id: 1554989041418-24
 #      author: ayan
 #      failOnError: true
 #      changes:
