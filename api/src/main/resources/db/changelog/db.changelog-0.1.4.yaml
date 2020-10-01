@@ -75,7 +75,6 @@ databaseChangeLog:
         - sql:
             splitStatements:
             sql: >
-              ALTER TABLE fee ADD COLUMN amount_due numeric(19, 2);
               ALTER TABLE fee ADD COLUMN date_created TIMESTAMP(3) WITHOUT TIME ZONE;
               ALTER TABLE fee ADD COLUMN date_updated TIMESTAMP(3) WITHOUT TIME ZONE;
 
