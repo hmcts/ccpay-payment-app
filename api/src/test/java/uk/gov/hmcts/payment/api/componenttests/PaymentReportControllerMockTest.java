@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -127,18 +126,5 @@ public class PaymentReportControllerMockTest {
             .andExpect(status().isBadRequest());
 
         verifyZeroInteractions(paymentsReportFacade);
-    }
-
-    @Test
-    public void paymentReport_shouldThrowHttpMessageNotReadableException() throws Exception {
-        doThrow(new HttpMessageNotReadableException("validation failed"))
-            .when(validator).validate(Optional.of("CARD"), Optional.of("UNKNOWN"), Optional.of("2018-06-30"), Optional.of("2018-07-01"));
-
-        this.mockMvc.perform(post("/jobs/email-pay-reports")
-            .param("payment_method", "CARD")
-            .param("start_date", "2018-06-30")
-            .param("end_date", "2018-07-01")
-            .param("service_name", "UNKNOWN"))
-            .andExpect(status().isBadRequest());
     }
 }
