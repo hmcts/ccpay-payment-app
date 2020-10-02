@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -56,30 +56,25 @@ public class CreditAccountPaymentController {
     private final CreditAccountDtoMapper creditAccountDtoMapper;
     private final AccountService<AccountDto, String> accountService;
     private final DuplicatePaymentValidator paymentValidator;
-    private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
-    private final FeePayApportionRepository feePayApportionRepository;
-    private final PaymentFeeRepository paymentFeeRepository;
+
+    @Value("#{'${pba.old.config.service.names}'.split(',')}")
+    private List<String> pbaOldConfigServiceNames;
 
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
-                                          DuplicatePaymentValidator paymentValidator, FF4j ff4j,
-                                          FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
-                                          FeePayApportionRepository feePayApportionRepository,
-                                          PaymentFeeRepository paymentFeeRepository) {
+                                          DuplicatePaymentValidator paymentValidator,
+                                          FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
         this.paymentValidator = paymentValidator;
-        this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
-        this.feePayApportionRepository = feePayApportionRepository;
-        this.paymentFeeRepository = paymentFeeRepository;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -113,7 +108,8 @@ public class CreditAccountPaymentController {
 
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
             payment.getCcdCaseNumber(), payment.getServiceType(), payment.getPbaNumber(), payment.getAmount(), fees.size());
-        if (isAccountStatusCheckRequired(creditAccountPaymentRequest.getService())) {
+        LOG.info("PBA Old Config Service Names : {}", pbaOldConfigServiceNames);
+        if (!pbaOldConfigServiceNames.contains(creditAccountPaymentRequest.getService().toString())) {
             LOG.info("Checking with Liberata for Service : {}", creditAccountPaymentRequest.getService());
 
             AccountDto accountDetails;
@@ -277,30 +273,13 @@ public class CreditAccountPaymentController {
         return ex.getMessage();
     }
 
-    private boolean isAccountStatusCheckRequired(Service service) {
-        final String serviceName = service.toString();
-        LOG.info("Service.FINREM.getName(): {}" + " service.toString(): {}" + " Service.FINREM.getName().equalsIgnoreCase(service.toString()): {}" +
-                " ff4j.check(\"check-liberata-account-for-all-services\"): {}" + " ff4j.check(\"credit-account-payment-liberata-check\"): {}",
-            Service.FINREM.getName(), serviceName, Service.FINREM.getName().equalsIgnoreCase(serviceName),
-            ff4j.check("check-liberata-account-for-all-services"), ff4j.check("credit-account-payment-liberata-check")
-        );
-
-        if (ff4j.check("check-liberata-account-for-all-services")) {
-            return true;
-        }
-
-        final boolean svcNameChk = Service.FINREM.getName().equalsIgnoreCase(serviceName) || Service.FPL.toString().equalsIgnoreCase(serviceName) || Service.IAC.toString().equalsIgnoreCase(serviceName);
-        return ff4j.check("credit-account-payment-liberata-check") && svcNameChk;
-    }
-
     private boolean isAccountBalanceSufficient(BigDecimal availableBalance, BigDecimal paymentAmount) {
         return availableBalance.compareTo(paymentAmount) >= 0;
     }
 
     private void checkDuplication(Payment payment, List<PaymentFee> fees) {
-        if (ff4j.check("duplicate-payment-check")) {
-            paymentValidator.checkDuplication(payment, fees);
-        }
+        paymentValidator.checkDuplication(payment, fees);
+
     }
 
 }
