@@ -70,6 +70,7 @@ services:
       - PAYBUBBLE_HOME_URL=https://ccpay-bubble-frontend-aat.service.core-compute-aat.internal
       - PCI_PAL_CALLBACK_URL=https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback
       - ASB_CONNECTION_STRING=some-azure-service-bus-connection-string
+      - azure.application-insights.instrumentation-key=dummy
     ports:
      - 8080:8080
     depends_on:
@@ -91,11 +92,9 @@ services:
   service-auth-provider-api:
     image: hmctspublic.azurecr.io/rpe/service-auth-provider
     environment:
-      - auth.provider.service.server.jwtKey=wThK0f0/lh3FlxFcL4xUWDMI5C1J9KyQBgXV4wseh1e5J1uYJIjvTvArHxQDrYoHJ23xFxjHkOnvNbR5dXRoxA==
-      - auth.provider.service.server.microserviceKeys.divorce=AAAAAAAAAAAAAAAA
-      - auth.provider.service.testing-support.enabled=true
+      - microserviceKeys_divorce=AAAAAAAAAAAAAAAA
     ports:
-      - 8085:8080
+      - 8085:8489
 
   ccfr-fees-api:
     image: hmctspublic.azurecr.io/fees-register/api
