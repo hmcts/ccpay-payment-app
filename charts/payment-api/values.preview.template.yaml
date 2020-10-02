@@ -22,5 +22,6 @@ java:
     #Below key required for preview pipeline
     GOV_PAY_AUTH_KEY_CMC: 8ln764q6jrbgqvvvv40uggsea3h1p602v79gdrt7ni66mrmpk416ulohvd
     LAUNCH_DARKLY_SDK_KEY: sdk-06456c8b-312c-475c-b154-ca585f5ca063
+    PBA_OLD_CONFIG_SERVICE_NAMES: CMC,PROBATE,DIVORCE
   postgresql:
     enabled: true
