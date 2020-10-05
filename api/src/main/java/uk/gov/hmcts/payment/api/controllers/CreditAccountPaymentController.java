@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
-import org.ff4j.FF4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,8 +58,8 @@ public class CreditAccountPaymentController {
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
 
-    @Value("#{'${pba.old.config.service.names}'.split(',')}")
-    private List<String> pbaOldConfigServiceNames;
+    @Value("#{'${pba.config1.service.names}'.split(',')}")
+    private List<String> pbaConfig1ServiceNames;
 
 
     @Autowired
@@ -108,8 +107,8 @@ public class CreditAccountPaymentController {
 
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
             payment.getCcdCaseNumber(), payment.getServiceType(), payment.getPbaNumber(), payment.getAmount(), fees.size());
-        LOG.info("PBA Old Config Service Names : {}", pbaOldConfigServiceNames);
-        if (!pbaOldConfigServiceNames.contains(creditAccountPaymentRequest.getService().toString())) {
+        LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
+        if (!pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService().toString())) {
             LOG.info("Checking with Liberata for Service : {}", creditAccountPaymentRequest.getService());
 
             AccountDto accountDetails;
