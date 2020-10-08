@@ -5,7 +5,7 @@ provider "azurerm" {
 
 locals {
 
-  vaultName = "${var.core_product}-${var.env}"
+  vaultName = join("-", [var.core_product, var.env])
 
   s2sUrl = "http://rpe-service-auth-provider-${var.env}.service.core-compute-${var.env}.internal"
 
@@ -19,7 +19,7 @@ locals {
 
 data "azurerm_key_vault" "payment_key_vault" {
   name = "${local.vaultName}"
-  resource_group_name = "${var.core_product}-${var.env}"
+  resource_group_name = join("-", [var.core_product, var.env])
 }
 
 data "azurerm_key_vault_secret" "gov_pay_keys_cmc" {
@@ -37,7 +37,7 @@ resource "azurerm_key_vault_secret" "gov-pay-keys-cmc-claim-store" {
 
 module "payment-database" {
   source = "git@github.com:hmcts/cnp-module-postgres?ref=master"
-  product = "${var.product}-postgres-db"
+  product = join("-", [var.product, "postgres-db"])
   location = var.location
   env = var.env
   postgresql_user = var.postgresql_user
