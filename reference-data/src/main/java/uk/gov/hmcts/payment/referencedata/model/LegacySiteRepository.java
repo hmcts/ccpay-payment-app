@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface LegacySiteRepository extends JpaRepository<LegacySite, String>, JpaSpecificationExecutor<LegacySite> {
 
-    Optional<LegacySite> findBySiteCode(String siteCode);
+    Optional<LegacySite> findBySiteId(String siteId);
 }

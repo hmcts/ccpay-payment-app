@@ -62,6 +62,9 @@ public class PaymentApiApplication {
                     .build()),
             new CaffeineCache("sites", Caffeine.newBuilder()
                 .expireAfterWrite(48, TimeUnit.HOURS)
+                .build()),
+            new CaffeineCache("legacySites", Caffeine.newBuilder()
+                .expireAfterWrite(48, TimeUnit.HOURS)
                 .build())
         ));
         return cacheManager;
