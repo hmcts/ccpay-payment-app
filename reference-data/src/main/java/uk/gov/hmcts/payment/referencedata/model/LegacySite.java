@@ -20,8 +20,8 @@ import javax.persistence.Table;
 public class LegacySite {
 
     @Id
-    @Column(name = "site_code")
-    private String siteCode;
+    @Column(name = "site_id")
+    private String siteId;
 
     @Column(name = "site_name")
     private String siteName;

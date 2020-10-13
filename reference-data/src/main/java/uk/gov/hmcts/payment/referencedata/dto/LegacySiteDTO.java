@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Builder(builderMethodName = "legacySiteDTOwith")
 public class LegacySiteDTO {
 
-    private String siteCode;
+    private String siteId;
     private String siteName;
 
     public static List<LegacySiteDTO> fromLegacySiteList(List<LegacySite> legacySiteList) {
@@ -25,7 +25,7 @@ public class LegacySiteDTO {
 
     private static LegacySiteDTO toLegacySiteDTO(LegacySite legacySite) {
         return LegacySiteDTO.legacySiteDTOwith()
-            .siteCode(legacySite.getSiteCode())
+            .siteId(legacySite.getSiteId())
             .siteName(legacySite.getSiteName())
             .build();
     }

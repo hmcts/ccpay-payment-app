@@ -15,7 +15,7 @@ public class LegacySiteServiceImpl implements LegacySiteService<LegacySite, Stri
     private LegacySiteRepository legacySiteRepository;
 
     @Override
-    @Cacheable(value = "legacysites", key = "#root.method.name", unless = "#result == null || #result.isEmpty()")
+    @Cacheable(value = "legacySites", key = "#root.method.name", unless = "#result == null || #result.isEmpty()")
     public List<LegacySite> getAllSites() {
         return legacySiteRepository.findAll();
     }
