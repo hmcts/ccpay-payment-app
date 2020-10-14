@@ -835,7 +835,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -883,7 +882,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -931,7 +929,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -977,7 +974,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -1084,7 +1080,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "  \"case_reference\": \"caseReference\",\n" +
             "  \"service\": \"CMC\",\n" +
             "  \"currency\": \"GBP\",\n" +
-            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"return_url\": \"https://www.moneyclaims.service.gov.uk\",\n" +
             "  \"site_id\": \"siteId\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
@@ -1104,7 +1100,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "  \"case_reference\": \"12345\",\n" +
             "  \"service\": \"PROBATE\",\n" +
             "  \"currency\": \"GBP\",\n" +
-            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"return_url\": \"https://www.moneyclaims.service.gov.uk\",\n" +
             "  \"site_id\": \"AA101\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
