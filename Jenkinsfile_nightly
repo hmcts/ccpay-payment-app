@@ -41,5 +41,6 @@ withNightlyPipeline("java", product, component) {
     loadVaultSecrets(secrets)
     enableSecurityScan()
     enableMutationTest()
+    enableFullFunctionalTest()
     enableSlackNotifications('#cc-payments-tech')
 }
