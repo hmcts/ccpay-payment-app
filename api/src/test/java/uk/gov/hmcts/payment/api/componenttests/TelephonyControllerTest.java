@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -17,8 +18,14 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -35,8 +42,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,6 +77,9 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -256,6 +265,144 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         //UpdateTimeStamp should not be changed after 2nd Request(Duplicate)
         assertEquals(updatedTsForFirstReq, updatedTsForSecondReq);
+    }
+
+    @Test
+    public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BigDecimal amount = new BigDecimal("101.99");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber(ccdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        MvcResult result2 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        String paymentReference = paymentDtoResult.getReference();
+
+        String rawFormData = "orderCurrency=&orderAmount=100&orderReference=" +
+            paymentReference +
+            "&ppAccountID=1210&" +
+            "transactionResult=SUCCESS&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
+            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
+            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
+
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isNoContent());
+
+        PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
+        List<Payment> payments = savedPaymentGroup.getPayments();
+
+        assertThat(payments.size()).isEqualTo(1);
+        assertEquals(payments.get(0).getReference(), paymentReference);
+        assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
+
+        List<PaymentFee> fees = savedPaymentGroup.getFees();
+
+        assertThat(BigDecimal.valueOf(0.00).equals(fees.get(0).getAmountDue()));
+    }
+
+    @Test
+    public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BigDecimal amount = new BigDecimal("101.99");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber(ccdCaseNumber)
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        MvcResult result2 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        String paymentReference = paymentDtoResult.getReference();
+
+        String rawFormData = "orderCurrency=&orderAmount=100&orderReference=" +
+            paymentReference +
+            "&ppAccountID=1210&" +
+            "transactionResult=FAILED&transactionAuthCode=test123&transactionID=3045021106&transactionResponseMsg=&" +
+            "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
+            "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
+
+        restActions
+            .postWithFormData("/telephony/callback", rawFormData)
+            .andExpect(status().isNoContent());
+
+        PaymentFeeLink savedPaymentGroup = db.findByReference(paymentGroupDto.getPaymentGroupReference());
+        List<Payment> payments = savedPaymentGroup.getPayments();
+        assertThat(payments.size()).isEqualTo(1);
+        assertEquals(payments.get(0).getReference(), paymentReference);
+        assertThat("failed".equalsIgnoreCase(payments.get(0).getStatus()));
+
+        List<PaymentFee> fees = savedPaymentGroup.getFees();
+
+        assertThat(BigDecimal.valueOf(101.99).equals(fees.get(0).getAmountDue()));
+
+    }
+
+    private FeeDto getNewFee(String ccdCaseNumber){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("101.99"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber(ccdCaseNumber)
+            .build();
+
     }
 
 

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +11,6 @@ import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -31,9 +29,7 @@ public class AppInsightsAuditRepository implements AuditRepository {
     private final TelemetryClient telemetry;
 
     @Autowired
-    public AppInsightsAuditRepository(@Value("${azure.application-insights.instrumentation-key}") String instrumentationKey,
-                                      TelemetryClient telemetry) {
-        TelemetryConfiguration.getActive().setInstrumentationKey(instrumentationKey);
+    public AppInsightsAuditRepository(TelemetryClient telemetry) {
         telemetry.getContext().getComponent().setVersion(getClass().getPackage().getImplementationVersion());
         this.telemetry = telemetry;
     }

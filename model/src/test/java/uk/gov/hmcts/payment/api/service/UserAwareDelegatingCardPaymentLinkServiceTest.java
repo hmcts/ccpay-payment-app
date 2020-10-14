@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.service;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
@@ -44,9 +45,15 @@ public class UserAwareDelegatingCardPaymentLinkServiceTest {
 
     private CallbackService callbackService = mock(CallbackService.class);
 
+    private FeePayApportionRepository feePayApportionRepository = mock(FeePayApportionRepository.class);
+    private PaymentFeeRepository paymentFeeRepository = mock(PaymentFeeRepository.class);
+    private FeePayApportionService feePayApportionService = mock(FeePayApportionService.class);
+    private LaunchDarklyFeatureToggler featureToggler = mock(LaunchDarklyFeatureToggler.class);
+
     private UserAwareDelegatingPaymentService cardPaymentService = new UserAwareDelegatingPaymentService(() -> USER_ID, paymentFeeLinkRepository,
         govPayDelegatingPaymentService, pciPalDelegatingPaymentService, paymentChannelRepository, paymentMethodRepository, paymentProviderRepository,
-        paymentStatusRepository, paymentRespository, referenceUtil, govPayAuthUtil, serviceIdSupplier, auditRepository, callbackService);
+        paymentStatusRepository, paymentRespository, referenceUtil, govPayAuthUtil, serviceIdSupplier, auditRepository, callbackService,
+        feePayApportionRepository, paymentFeeRepository, feePayApportionService, featureToggler);
 
     @Test
     public void testRetrieveWhenServiceCallbackUrlIsDefinedCallbackServiceIsInvoked() throws Exception {
