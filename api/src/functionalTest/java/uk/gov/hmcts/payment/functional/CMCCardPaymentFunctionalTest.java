@@ -212,7 +212,7 @@ public class CMCCardPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.google.com")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
             .then().created(savedPayment -> {
             reference[0] = savedPayment.getReference();
