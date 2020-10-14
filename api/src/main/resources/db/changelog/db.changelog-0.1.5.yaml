@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 1554989041418-30
+      id: 1554989041418-32
       author: jennings
       changes:
         - createTable:
@@ -374,3 +374,17 @@ databaseChangeLog:
                   ('York County Court','Y684'),
                   ('York Crown Court','W880'),
                   ('York Probate Sub Registry','P231');
+
+
+
+
+#  Legacy Site Id Rollback Scripts
+#  - changeSet:
+#      id: 1554989041418-31
+#      author: jennings
+#      failOnError: true
+#      changes:
+#        - sql:
+#            splitStatements:
+#            sql: >
+#              DROP TABLE legacy_site_id;
