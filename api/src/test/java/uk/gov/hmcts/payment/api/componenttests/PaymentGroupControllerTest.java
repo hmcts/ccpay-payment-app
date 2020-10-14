@@ -199,7 +199,6 @@ public class PaymentGroupControllerTest {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -227,7 +226,6 @@ public class PaymentGroupControllerTest {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
