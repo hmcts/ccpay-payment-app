@@ -57,5 +57,10 @@ public class PaymentAllocation {
     @ToString.Exclude
     private Payment payment;
 
+    @Override
+    public int hashCode(){
+        return super.hashCode();
+    }
+
 
 }

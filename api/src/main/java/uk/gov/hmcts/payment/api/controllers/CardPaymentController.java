@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
@@ -21,14 +23,17 @@ import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.util.Optional;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.stream.Collectors;
@@ -52,18 +57,23 @@ public class CardPaymentController {
     private final CardDetailsService<CardDetails, String> cardDetailsService;
     private final PciPalPaymentService pciPalPaymentService;
     private final FF4j ff4j;
+    private final FeePayApportionService feePayApportionService;
+    private final LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
-                                 FF4j ff4j) {
+                                 FF4j ff4j,
+                                 FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
         this.pciPalPaymentService = pciPalPaymentService;
         this.ff4j = ff4j;
+        this.feePayApportionService = feePayApportionService;
+        this.featureToggler = featureToggler;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -74,6 +84,7 @@ public class CardPaymentController {
     })
     @PostMapping(value = "/card-payments")
     @ResponseBody
+    @Transactional
     public ResponseEntity<PaymentDto> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
@@ -133,7 +144,12 @@ public class CardPaymentController {
             String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
         }
-
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
+        if(apportionFeature) {
+            feePayApportionService.processApportion(paymentLink.getPayments().get(0));
+        }
         return new ResponseEntity<>(paymentDto, CREATED);
     }
 
@@ -165,7 +181,14 @@ public class CardPaymentController {
     })
     @GetMapping(value = "/card-payments/{reference}/statuses")
     public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
-        return paymentDtoMapper.toRetrievePaymentStatusesDto(delegatingPaymentService.retrieve(paymentReference));
+        PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieve(paymentReference);
+        Optional<Payment> payment = paymentFeeLink.getPayments().stream()
+            .filter(p -> p.getReference().equals(paymentReference)).findAny();
+        Payment payment1 = null;
+        if (payment.isPresent()) {
+            payment1 = payment.get();
+        }
+            return paymentDtoMapper.toPaymentStatusesDto(payment1);
     }
 
     @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")
@@ -213,4 +236,5 @@ public class CardPaymentController {
     public String return403(AccessDeniedException ex) {
         return ex.getMessage();
     }
+
 }
