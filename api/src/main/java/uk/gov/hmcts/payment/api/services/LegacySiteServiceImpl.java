@@ -1,10 +1,10 @@
-package uk.gov.hmcts.payment.referencedata.service;
+package uk.gov.hmcts.payment.api.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.payment.referencedata.model.LegacySite;
-import uk.gov.hmcts.payment.referencedata.model.LegacySiteRepository;
+import uk.gov.hmcts.payment.api.model.LegacySite;
+import uk.gov.hmcts.payment.api.model.LegacySiteRepository;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class LegacySiteServiceImpl implements LegacySiteService<LegacySite, Stri
     private LegacySiteRepository legacySiteRepository;
 
     @Override
-    @Cacheable(value = "legacySites", key = "#root.method.name", unless = "#result == null || #result.isEmpty()")
+    //@Cacheable(value = "legacySites", key = "#root.method.name", unless = "#result == null || #result.isEmpty()")
     public List<LegacySite> getAllSites() {
         return legacySiteRepository.findAll();
     }

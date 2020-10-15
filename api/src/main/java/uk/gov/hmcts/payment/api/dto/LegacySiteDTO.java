@@ -1,15 +1,17 @@
-package uk.gov.hmcts.payment.referencedata.dto;
+package uk.gov.hmcts.payment.api.dto;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.payment.referencedata.model.LegacySite;
+import uk.gov.hmcts.payment.api.model.LegacySite;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

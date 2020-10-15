@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.referencedata.model;
+package uk.gov.hmcts.payment.api.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
