@@ -42,6 +42,7 @@ public class CreditAccountPaymentRequest {
 
     private String caseReference;
 
+    @NotNull
     private Service service;
 
     private CurrencyCode currency;
