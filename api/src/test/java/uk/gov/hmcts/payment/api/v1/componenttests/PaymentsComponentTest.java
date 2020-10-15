@@ -12,9 +12,8 @@ import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.StateDto;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto;
 import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
-import static java.lang.String.format;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static java.lang.String.format;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
