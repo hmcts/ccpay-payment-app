@@ -1,10 +1,7 @@
 package uk.gov.hmcts.payment.api.v1.componenttests;
 
 import org.junit.Test;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,4 +60,5 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
                 });
             }));
     }
+
 }

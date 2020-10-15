@@ -66,7 +66,7 @@ public class TestUtil {
     @Autowired
     protected UserAwareDelegatingCreditAccountPaymentService creditAccountPaymentService;
 
-    RestActions restActions;
+    protected RestActions restActions;
 
     @Before
     public void setUp() {
@@ -74,7 +74,7 @@ public class TestUtil {
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
     }
 
-    CustomResultMatcher body() {
+    protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
 
