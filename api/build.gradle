@@ -167,7 +167,7 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
 }
 
 task contractTest(type: Test) {
-    description = "Runs pact Tests"
+    logger.lifecycle("Runnning contract Tests")
     useJUnitPlatform()
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
