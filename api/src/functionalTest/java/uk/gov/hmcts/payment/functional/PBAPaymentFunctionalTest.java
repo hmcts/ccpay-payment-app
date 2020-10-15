@@ -194,6 +194,26 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
+    public void makeAndRetrievePbaPaymentsByUnSpec() {
+        // create a PBA payment
+        String accountNumber = "PBA234" + RandomUtils.nextInt();
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.UNSPEC);
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
+            .then()
+            .statusCode(CREATED.value())
+            .body("status", equalTo("Success"));
+
+        // Get pba payments by accountNumber
+        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+    }
+
+    @Test
     public void shouldRejectDuplicatePayment() {
         String accountNumber = "PBA333" + RandomUtils.nextInt();
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("550.50", Service.CMC);
