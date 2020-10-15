@@ -1,20 +1,13 @@
 package uk.gov.hmcts.payment.api.controllers.provider;
 
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
-
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Optional;
 import org.ff4j.FF4j;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,9 +40,19 @@ import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Optional;
+
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
+
 @ExtendWith(SpringExtension.class)
 @Provider("payment_cardPayment")
-@PactBroker(scheme = "http", host = "localhost", port = "80")
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}")
+@IgnoreNoPactsToVerify
 @Import(CardPaymentProviderTestConfiguration.class)
 public class CardPaymentProviderTest {
 
@@ -92,15 +95,18 @@ public class CardPaymentProviderTest {
     void before(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
 
-        testTarget.setControllers(new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j, feePayApportionService, featureToggler));
+        testTarget.setControllers(
+            new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
+                feePayApportionService, featureToggler));
         context.setTarget(testTarget);
 
     }
 
     @State({"A payment reference exists"})
     public void toGetCardPaymentDetailsWithSuccess() throws IOException, JSONException {
-        when(payment2RepositoryMock.findByReference("654321ABC")).thenReturn(Optional.of(populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw")));
-        when(govPayAuthUtil.getServiceName(null,"ccd_gw")).thenReturn("ccd_gw");
+        when(payment2RepositoryMock.findByReference("654321ABC"))
+            .thenReturn(Optional.of(populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw")));
+        when(govPayAuthUtil.getServiceName(null, "ccd_gw")).thenReturn("ccd_gw");
         when(govPayAuthUtil.getServiceToken("ccd_gw")).thenReturn("s2sAuthKey");
         when(govPayClientMock.retrievePayment("s2sAuthKey", "e2kkddts5215h9qqoeuth5c0v")).thenReturn(buildGovPaymentDto());
 
@@ -145,7 +151,8 @@ public class CardPaymentProviderTest {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)).build();
+        PaymentFeeLink paymentFeeLink =
+            paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)).build();
         payment.setPaymentLink(paymentFeeLink);
         return payment;
     }
