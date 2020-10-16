@@ -15,17 +15,6 @@ import uk.gov.hmcts.payment.api.service.LegacySiteService;
 
 import java.util.List;
 
-/**
- * <h1>Legacy References/h1>
- * The LegacyReferenceController depicts the reference information
- * of our payment hub with standard output.
- * <p>
- *
- * @author  Vignesh Pushkaran
- * @version 1.0
- * @since   15-10-2020
- */
-
 @RestController
 @Api(tags = {"Legacy Reference Data"})
 @SwaggerDefinition(tags = {@Tag(name = "LegacyReferenceController", description = "Legacy Reference Data REST API")})
