@@ -5,11 +5,14 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.configuration.security.AuthenticatedServiceIdSupplier;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
+import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
@@ -103,9 +106,6 @@ public class CreditAccountPaymentProviderTestConfiguration {
 
     }
 
-    ;
-
-
     @Bean
     @Primary
     public ServiceIdSupplier serviceIdSupplier() {
@@ -117,6 +117,19 @@ public class CreditAccountPaymentProviderTestConfiguration {
     public PaymentFeeLinkRepository paymentFeeLinkRepository() {
         return new PayFeeLinkRepositoryStub();
     }
+
+    @Bean
+    @Primary
+    public PBAStatusErrorMapper pBAStatusErrorMapper() {
+        return new PBAStatusErrorMapper();
+    }
+
+    @Bean
+    @Primary
+    CreditAccountPaymentRequestMapper requestMapper() {
+        return new CreditAccountPaymentRequestMapper();
+    }
+
 
 
 }

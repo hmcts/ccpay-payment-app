@@ -18,12 +18,15 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
+import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
@@ -44,7 +47,7 @@ import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
-@PactBroker(scheme = "http", host = "localhost", port = "80")
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}")
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 public class CreditAccountPaymentProviderTest {
 
@@ -88,6 +91,12 @@ public class CreditAccountPaymentProviderTest {
     @Autowired
     PaymentFeeLinkRepository paymentFeeLinkRepositoryMock;
 
+    @Autowired
+    PBAStatusErrorMapper pbaStatusErrorMapper;
+
+    @Autowired
+    CreditAccountPaymentRequestMapper requestMapper;
+
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
     private final static String PAYMENT_METHOD = "payment by account";
@@ -103,7 +112,7 @@ public class CreditAccountPaymentProviderTest {
     @BeforeEach
     void before(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountService, paymentValidator, ff4j, feePayApportionService, featureToggler, feePayApportionRepository, paymentFeeRepository));
+        testTarget.setControllers(new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountService, paymentValidator, feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("DIVORCE")));
         context.setTarget(testTarget);
 
     }
