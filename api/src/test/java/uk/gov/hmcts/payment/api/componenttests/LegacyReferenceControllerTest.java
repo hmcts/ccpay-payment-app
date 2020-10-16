@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,7 +29,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 public class LegacyReferenceControllerTest extends TestUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-    private static final Logger LOG = LoggerFactory.getLogger(LegacyReferenceControllerTest.class);
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
     @Autowired
