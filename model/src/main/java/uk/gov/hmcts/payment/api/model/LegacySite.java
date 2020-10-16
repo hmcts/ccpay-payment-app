@@ -12,6 +12,7 @@ import javax.persistence.Table;
 @Data
 @Builder(builderMethodName = "legacySiteWith")
 @Table(name = "legacy_site_id")
+@NoArgsConstructor
 public class LegacySite{
 
     @Id
