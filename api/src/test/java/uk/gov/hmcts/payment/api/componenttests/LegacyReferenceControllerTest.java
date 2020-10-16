@@ -2,20 +2,18 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.model.LegacySite;
-import uk.gov.hmcts.payment.api.services.LegacySiteService;
 import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -33,21 +31,16 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 public class LegacyReferenceControllerTest extends TestUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
+    private static final Logger LOG = LoggerFactory.getLogger(LegacyReferenceControllerTest.class);
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
-
+    RestActions restActions;
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @Autowired
     private ObjectMapper objectMapper;
-
-    RestActions restActions;
 
     @Before
     public void setup() {
@@ -67,7 +60,7 @@ public class LegacyReferenceControllerTest extends TestUtil {
             .andExpect(status().isOk())
             .andExpect(body().asListOf(LegacySite.class, legacySites -> {
                 assertThat(legacySites).anySatisfy(legacySite -> {
-                    assertThat(legacySite.getSiteId()).isEqualTo("Y4011");
+                    assertThat(legacySite.getSiteId()).isEqualTo("Y402");
                 });
             }));
     }

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.dto.LegacySiteDTO;
 import uk.gov.hmcts.payment.api.model.LegacySite;
-import uk.gov.hmcts.payment.api.services.LegacySiteService;
+import uk.gov.hmcts.payment.api.service.LegacySiteService;
 
 import java.util.List;
 
