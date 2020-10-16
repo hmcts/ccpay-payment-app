@@ -1,9 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,10 +11,8 @@ import javax.persistence.Table;
 @Entity
 @Data
 @Builder(builderMethodName = "legacySiteWith")
-@AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "legacy_site_id")
-public class LegacySite {
+public class LegacySite{
 
     @Id
     @Column(name = "site_id")
@@ -25,6 +20,11 @@ public class LegacySite {
 
     @Column(name = "site_name")
     private String siteName;
+
+    public LegacySite(String siteId,String siteName){
+        this.siteId=siteId;
+        this.siteName=siteName;
+    }
 
 }
 
