@@ -31,3 +31,4 @@ spring:
         pba-divorce-payments-email-to: pba.divorce.payments.email.to
         pba-fpl-payments-email-to: pba.fpl.payments.email.to
         launch-darkly-sdk-key: launch.darkly.sdk.key
+        payment-s2s-secret: PAYMENT_S2S_SECRET
