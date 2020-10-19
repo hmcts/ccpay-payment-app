@@ -111,10 +111,11 @@ public class CreditAccountPaymentProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
+
+        System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountService, paymentValidator, feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("DIVORCE")));
         context.setTarget(testTarget);
-
     }
 
     @State({"A credit account payment does not exist"})
