@@ -5,9 +5,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Wither;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
@@ -19,15 +24,13 @@ import java.math.BigDecimal;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-@With
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "createBulkScanPaymentWith")
-public class BulkScanPaymentRequest {
+@Builder(builderMethodName = "createBulkScanPaymentStrategicWith")
+public class BulkScanPaymentRequestStrategic {
 
     @NotNull
     @DecimalMin("0.01")
@@ -73,6 +76,10 @@ public class BulkScanPaymentRequest {
     @NotNull
     private String documentControlNumber;
 
+
+    @NotNull
+    private PaymentAllocationDto paymentAllocationDTO;
+
     @JsonIgnore
     @AssertFalse(message = "Invalid payment banked date. Date format should be UTC.")
     public boolean isValidBankedDate() {
@@ -90,6 +97,8 @@ public class BulkScanPaymentRequest {
     private boolean isEitherOneRequired() {
         return (StringUtils.isEmpty(ccdCaseNumber) && StringUtils.isEmpty(exceptionRecord));
     }
+
+
 
 }
 
