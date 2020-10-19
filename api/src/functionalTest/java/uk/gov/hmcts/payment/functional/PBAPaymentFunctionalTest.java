@@ -74,10 +74,10 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentsByCMC() {
+    public void makeAndRetrievePbaPaymentsByProbate() {
         // create a PBA payment
         String accountNumber = "PBA234" + RandomUtils.nextInt();
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.CMC);
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.PROBATE);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
@@ -115,7 +115,7 @@ public class PBAPaymentFunctionalTest {
             .description("New passport application")
             .caseReference("aCaseReference")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.CMC)
+            .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
             .siteId("AA101")
             .customerReference("CUST101")
@@ -196,7 +196,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void shouldRejectDuplicatePayment() {
         String accountNumber = "PBA333" + RandomUtils.nextInt();
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("550.50", Service.CMC);
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("550.50", Service.PROBATE);
         accountPaymentRequest.setAccountNumber(accountNumber);
         // when & then
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
