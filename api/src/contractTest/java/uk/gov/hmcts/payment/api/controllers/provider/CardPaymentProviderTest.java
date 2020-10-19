@@ -10,6 +10,7 @@ import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.google.common.collect.ImmutableMap;
 import org.ff4j.FF4j;
 import org.json.JSONException;
+import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,8 +94,9 @@ public class CardPaymentProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
-        MockMvcTestTarget testTarget = new MockMvcTestTarget();
 
+        System.getProperties().setProperty("pact.verifier.publishResults", "true");
+        MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
                 feePayApportionService, featureToggler));
