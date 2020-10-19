@@ -558,7 +558,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        verify(accountService, times(2)).retrieve(request.getAccountNumber());
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
     }
 
     @Test
@@ -577,7 +577,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        verify(accountService, times(0)).retrieve(request.getAccountNumber());
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
 
         request = objectMapper.readValue(creditAccountPaymentRequestJsonWithProbateJson().getBytes(), CreditAccountPaymentRequest.class);
         result = restActions
@@ -587,7 +587,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        verify(accountService, times(0)).retrieve(request.getAccountNumber());
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
     }
 
     @Test
@@ -708,7 +708,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        verify(accountService, times(2)).retrieve(request.getAccountNumber());
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
 
         // Retrieve payment by payment group reference
         MvcResult result3 = restActions
@@ -752,7 +752,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        verify(accountService, times(2)).retrieve(request.getAccountNumber());
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
     }
 
     @Test
@@ -782,7 +782,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
-        verify(accountService, times(2)).retrieve(request.getAccountNumber());
+        verify(accountService, times(1)).retrieve(request.getAccountNumber());
     }
 
     @Test
