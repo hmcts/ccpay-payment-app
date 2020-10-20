@@ -25,13 +25,13 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
-    @MockBean
-    private LegacySiteRepository legacySiteRepository;
+//    @MockBean
+//    private LegacySiteRepository legacySiteRepository;
 
     @Mock
-    private LegacySiteRepository legacySiteRepository1;
+    private LegacySiteRepository legacySiteRepository;
 
-    @InjectMocks
+    @MockBean
     private PaymentReferenceDataController paymentReferenceDataController;
 
     @MockBean
@@ -99,8 +99,9 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
     public void testFindAllLegacySites() throws Exception {
         LegacySite legacySiteExpected = new LegacySite("site1", "site name 2");
         LegacySite legacySiteActual = new LegacySite("site1", "site name 3");
+        when(paymentReferenceDataController.getLegacySites()).thenReturn(Lists.newArrayList(legacySiteActual));
         when(legacySiteRepository.findAll()).thenReturn(Lists.newArrayList(legacySiteActual));
-        when(legacySiteRepository1.findAll()).thenReturn(Lists.newArrayList(legacySiteActual));
+//        when(legacySiteRepository1.findAll()).thenReturn(Lists.newArrayList(legacySiteActual));
         MvcResult mvcResult = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
