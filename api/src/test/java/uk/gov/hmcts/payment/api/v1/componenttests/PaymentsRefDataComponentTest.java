@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MvcResult;
@@ -26,6 +27,9 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
 
     @MockBean
     private LegacySiteRepository legacySiteRepository;
+
+    @Mock
+    private LegacySiteRepository legacySiteRepository1;
 
     @InjectMocks
     private PaymentReferenceDataController paymentReferenceDataController;
@@ -90,6 +94,7 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
         LegacySite legacySiteExpected = new LegacySite("site1", "site name 2");
         LegacySite legacySiteActual = new LegacySite("site1", "site name 3");
         when(legacySiteRepository.findAll()).thenReturn(Lists.newArrayList(legacySiteActual));
+        when(legacySiteRepository1.findAll()).thenReturn(Lists.newArrayList(legacySiteActual));
         MvcResult mvcResult = restActions
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
@@ -101,6 +106,13 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
         LegacySite mockLegacySite = legacySites.get(0);
         assertEquals(mockLegacySite.getSiteId(),legacySiteExpected.getSiteId());
         assertNotEquals(mockLegacySite.getSiteName(),legacySiteExpected.getSiteName());
+
+        /* Method Test */
+        List<LegacySite> controllerMethodMockLegacySites = paymentReferenceDataController.getLegacySites();
+        LegacySite controllerMethodMockLegacySite = controllerMethodMockLegacySites.get(0);
+
+        assertEquals(controllerMethodMockLegacySite.getSiteId(),legacySiteExpected.getSiteId());
+        assertNotEquals(controllerMethodMockLegacySite.getSiteName(),legacySiteExpected.getSiteName());
     }
 
 
