@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.mockito.InjectMocks;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MvcResult;
@@ -23,9 +21,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
-
-
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentReferenceDataController.class);
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
