@@ -42,10 +42,12 @@ module "payment-database" {
   env = var.env
   postgresql_user = var.postgresql_user
   database_name = var.database_name
-  sku_name = "GP_Gen5_2"
+  sku_name = var.sku_name
+  sku_capacity = var.sku_capacity
   sku_tier = "GeneralPurpose"
   common_tags = var.common_tags
   subscription = var.subscription
+  postgresql_version = var.postgresql_version
 }
 
 # Populate Vault with DB info
