@@ -40,17 +40,17 @@ public class PaymentReferenceDataController {
 
     private final PaymentChannelRepository paymentChannelRepository;
 
-    @Autowired
-    private LegacySiteRepository legacySiteRepository;
+    private final LegacySiteRepository legacySiteRepository;
 
 
     @Autowired
     public PaymentReferenceDataController(PaymentStatusRepository paymentStatusRepository, PaymentProviderRepository paymentProviderRespository,
-                                          PaymentMethodRepository paymentMethodRepository, PaymentChannelRepository paymentChannelRepository) {
+                                          PaymentMethodRepository paymentMethodRepository, PaymentChannelRepository paymentChannelRepository, LegacySiteRepository legacySiteRepository) {
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentProviderRespository = paymentProviderRespository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentChannelRepository = paymentChannelRepository;
+        this.legacySiteRepository = legacySiteRepository;
     }
 
     @ApiOperation(value = "Payment channels", notes = "Get all payment channels")
