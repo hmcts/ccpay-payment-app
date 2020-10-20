@@ -19,8 +19,10 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -58,4 +60,5 @@ public class ReferenceDataControllerTest {
         assertEquals(expectedResponse, actualResponse);
         assertEquals(HttpStatus.OK, responseBody.getStatusCode());
     }
+
 }

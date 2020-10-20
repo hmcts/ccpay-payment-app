@@ -66,7 +66,7 @@ public class TestUtil {
     @Autowired
     protected UserAwareDelegatingCreditAccountPaymentService creditAccountPaymentService;
 
-    protected RestActions restActions;
+    RestActions restActions;
 
     @Before
     public void setUp() {
