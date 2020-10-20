@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.model.LegacySite;
 import uk.gov.hmcts.payment.api.model.LegacySiteRepository;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
