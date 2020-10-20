@@ -34,6 +34,9 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
     @InjectMocks
     private PaymentReferenceDataController paymentReferenceDataController;
 
+    @MockBean
+    private PaymentStatusRepository paymentStatusRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -79,14 +82,17 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
     @Test
     public void testFindAllPaymentStatuses() throws Exception {
 
-        restActions
+        PaymentStatus paymentStatusExpected = new PaymentStatus().CREATED;
+        PaymentStatus paymentStatusActual = new PaymentStatus().CREATED;
+        when(paymentStatusRepository.findAll()).thenReturn(Lists.newArrayList(paymentStatusActual));
+        MvcResult mvcResult = restActions
             .get("/refdata/status")
             .andExpect(status().isOk())
-            .andExpect(body().asListOf(PaymentStatus.class, paymentStatuses -> {
-                assertThat(paymentStatuses).anySatisfy(paymentStatus -> {
-                    assertThat(paymentStatus.getName()).isEqualTo("Pending");
-                });
-            }));
+            .andReturn();
+        List<PaymentStatus> paymentStatuses = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<PaymentStatus>>() {});
+        PaymentStatus mockPaymentStatus= paymentStatuses.get(0);
+        assertEquals(mockPaymentStatus.getName(),paymentStatusExpected.getName());
+        assertEquals(mockPaymentStatus.getDescription(),paymentStatusExpected.getDescription());
     }
 
     @Test
