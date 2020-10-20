@@ -54,5 +54,8 @@ withPipeline(type, product, app) {
     //installCharts()
     enableSlackNotifications('#cc-payments-tech')
     disableLegacyDeployment()
-    enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
+
+    onMaster() {
+        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
+    }
 }

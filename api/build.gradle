@@ -171,6 +171,7 @@ task contractTest(type: Test) {
     useJUnitPlatform()
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
+
 }
 
 task runProviderPactVerification(type: Test) {
