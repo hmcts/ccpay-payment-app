@@ -112,7 +112,6 @@ public class PaymentReferenceDataController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/legacy-sites")
     public List<LegacySite> getLegacySites() {
-        List<LegacySite> legacySites = legacySiteRepository.findAll();
-        return legacySites;
+        return legacySiteRepository.findAll();
     }
 }
