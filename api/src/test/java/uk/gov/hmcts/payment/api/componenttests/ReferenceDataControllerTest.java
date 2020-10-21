@@ -28,14 +28,14 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class ReferenceDataControllerTest extends PaymentsComponentTest {
 
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+
     @InjectMocks
     private ReferenceDataController referenceDataController;
 
     @Mock
     private SiteService<Site, String> siteServiceMock;
-
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
     @Test
     public void getAllSitesInformation() {
@@ -59,5 +59,4 @@ public class ReferenceDataControllerTest extends PaymentsComponentTest {
         assertEquals(expectedResponse, actualResponse);
         assertEquals(HttpStatus.OK, responseBody.getStatusCode());
     }
-
 }
