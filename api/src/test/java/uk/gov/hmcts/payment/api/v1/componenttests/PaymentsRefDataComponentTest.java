@@ -2,20 +2,28 @@ package uk.gov.hmcts.payment.api.v1.componenttests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MvcResult;
+import uk.gov.hmcts.payment.api.controllers.PaymentReferenceDataController;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -28,6 +36,18 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+
+    @InjectMocks
+    private PaymentReferenceDataController paymentReferenceDataController;
+
+    @Mock
+    private LegacySiteRepository legacySiteRepository;
+
+    @Mock
+    private PaymentStatusRepository paymentStatusRepository;
 
     @Test
     public void testFindAllPaymentChannels() throws Exception {
@@ -79,6 +99,11 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
         });
         PaymentStatus paymentStatus = paymentStatuses.get(0);
         assertEquals(paymentStatus.getName(), "created");
+        //Controller Mock Test
+        List<PaymentStatus> paymentStatusMock =  Collections.singletonList(new PaymentStatus().CREATED);
+        when(paymentStatusRepository.findAll()).thenReturn(paymentStatusMock);
+        List<PaymentStatus> paymentStatusMockResponse = paymentReferenceDataController.findAllPaymentStatuses();
+        assertEquals(paymentStatusMock, paymentStatusMockResponse);
     }
 
 
@@ -96,6 +121,11 @@ public class PaymentsRefDataComponentTest extends PaymentsComponentTest {
         LegacySite legacySite = legacySites.get(0);
         assertEquals(legacySite.getSiteId(), "Y402");
         assertEquals(legacySite.getSiteName(), "Aberdare County Court");
+        //Controller Mock Test
+        List<LegacySite> legacySiteMock =  Collections.singletonList(new LegacySite("site 2","Site name 1"));
+            when(legacySiteRepository.findAll()).thenReturn(legacySiteMock);
+            List<LegacySite> legacySiteMockResponse = paymentReferenceDataController.findAllLegacySites();
+            assertEquals(legacySiteMock, legacySiteMockResponse);
     }
 
 
