@@ -47,7 +47,7 @@ public class PaymentsComponentTest extends TestUtil {
                 .amount(100)
                 .description("description")
                 .reference("reference")
-                .returnUrl("https://returnUrl")
+                .returnUrl("http://localhost.hmcts.net")
                 .build();
 
         tryCreateAndExpect(validRequest.withAmount(null), "amount: must not be null");

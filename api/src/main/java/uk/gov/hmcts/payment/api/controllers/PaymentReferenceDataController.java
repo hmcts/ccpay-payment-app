@@ -1,10 +1,12 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.junit.ClassRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +44,9 @@ public class PaymentReferenceDataController {
 
     private final LegacySiteRepository legacySiteRepository;
 
-
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+    
     @Autowired
     public PaymentReferenceDataController(PaymentStatusRepository paymentStatusRepository, PaymentProviderRepository paymentProviderRespository,
                                           PaymentMethodRepository paymentMethodRepository, PaymentChannelRepository paymentChannelRepository, LegacySiteRepository legacySiteRepository) {
