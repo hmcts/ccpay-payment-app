@@ -17,8 +17,11 @@ import uk.gov.hmcts.payment.api.controllers.PaymentReferenceDataController;
 import uk.gov.hmcts.payment.api.model.LegacySite;
 import uk.gov.hmcts.payment.api.model.LegacySiteRepository;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentChannelRepository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.v1.componenttests.PaymentsComponentTest;
@@ -39,23 +42,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class PaymentReferenceDataControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @InjectMocks
-    private PaymentReferenceDataController paymentReferenceDataController;
-
-    @Mock
-    private LegacySiteRepository legacySiteRepository;
-
-    @Mock
-    private PaymentStatusRepository paymentStatusRepository;
-
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+    @Autowired
+    private ObjectMapper objectMapper;
+    @InjectMocks
+    private PaymentReferenceDataController paymentReferenceDataController;
+    @Mock
+    private LegacySiteRepository legacySiteRepository;
+    @Mock
+    private PaymentStatusRepository paymentStatusRepository;
+    @Mock
+    private PaymentProviderRepository paymentProviderRepository;
+    @Mock
+    private PaymentMethodRepository paymentMethodRepository;
+    @Mock
+    private PaymentChannelRepository paymentChannelRepository;
 
-//    @Test
+    @Test
     public void testFindAllPaymentChannels() throws Exception {
 //
 //        restActions
@@ -66,9 +70,15 @@ public class PaymentReferenceDataControllerTest {
 //                    assertThat(paymentChannel.getName()).isEqualTo("Online");
 //                });
 //            }));
+
+        //Controller Mock Test
+        List<PaymentChannel> paymentChannelMock = Collections.singletonList(new PaymentChannel("card", "card payment"));
+        when(paymentChannelRepository.findAll()).thenReturn(paymentChannelMock);
+        List<PaymentChannel> paymentChannelMockResponse = paymentReferenceDataController.findAllPaymentChannels();
+        assertEquals(paymentChannelMock, paymentChannelMockResponse);
     }
 
-//    @Test
+    @Test
     public void testFindAllPaymentMethods() throws Exception {
 
 //        restActions
@@ -79,9 +89,15 @@ public class PaymentReferenceDataControllerTest {
 //                    assertThat(paymentMethod.getName()).isEqualTo("Card");
 //                });
 //            }));
+
+        //Controller Mock Test
+        List<PaymentMethod> paymentMethodMock = Collections.singletonList(new PaymentMethod("online", "card payment"));
+        when(paymentMethodRepository.findAll()).thenReturn(paymentMethodMock);
+        List<PaymentMethod> paymentMethodMockResponse = paymentReferenceDataController.findAllPaymentMethods();
+        assertEquals(paymentMethodMock, paymentMethodMockResponse);
     }
 
-//    @Test
+    @Test
     public void testFindAllPaymentProviders() throws Exception {
 
 //        restActions
@@ -92,9 +108,14 @@ public class PaymentReferenceDataControllerTest {
 //                    assertThat(paymentProvider.getName()).isEqualTo("GovPay");
 //                });
 //            }));
+        //Controller Mock Test
+        List<PaymentProvider> paymentProviderMock = Collections.singletonList(new PaymentProvider().GOV_PAY);
+        when(paymentProviderRepository.findAll()).thenReturn(paymentProviderMock);
+        List<PaymentProvider> paymentProviderMockResponse = paymentReferenceDataController.findAllPaymentProviders();
+        assertEquals(paymentProviderMock, paymentProviderMockResponse);
     }
 
-//    @Test
+    @Test
     public void testFindAllPaymentStatuses() throws Exception {
 
 //        MvcResult mvcResult = restActions
