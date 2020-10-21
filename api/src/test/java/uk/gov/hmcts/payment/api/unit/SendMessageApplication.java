@@ -37,7 +37,6 @@ public class SendMessageApplication {
         msg.setProperties(Collections.singletonMap("serviceCallbackUrl", payment.getServiceCallbackUrl()));
 
         client.send(msg);
-        /*client.send(msg);
         client.send(msg);
         client.send(msg);
         client.send(msg);
@@ -47,7 +46,8 @@ public class SendMessageApplication {
         client.send(msg);
         client.send(msg);
         client.send(msg);
-        client.send(msg);*/
+        client.send(msg);
+        client.send(msg);
 
         client.close();
 
