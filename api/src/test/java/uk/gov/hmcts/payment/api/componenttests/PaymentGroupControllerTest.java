@@ -644,9 +644,49 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {
+    public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsFinrem() throws Exception {
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.FINREM)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + paymentDtoResult.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+    }
+
+    private PaymentGroupDto addNewPaymentToExistingPaymentGroup() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
@@ -673,6 +713,161 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
         assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+        return paymentGroupDto;
+    }
+
+    @Test
+    public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsDivorce() throws Exception {
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + paymentDtoResult.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+    }
+
+    @Test
+    public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsProbate() throws Exception {
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.PROBATE)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + paymentDtoResult.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+    }
+
+    @Test
+    public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsCMC() throws Exception {
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + paymentDtoResult.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+    }
+
+    @Test
+    public void shouldThrowPaymentExceptionWhilePassingUnsupportedServiceType() throws Exception {
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.FPL)
+            .siteId("AA07")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    }
+
+    @Test
+    public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
 
         BigDecimal amount = new BigDecimal("200");
