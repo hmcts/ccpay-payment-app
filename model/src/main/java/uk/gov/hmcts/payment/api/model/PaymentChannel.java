@@ -10,7 +10,6 @@ import javax.persistence.*;
 @Entity
 @Data
 @Builder(builderMethodName = "paymentChannelWith")
-@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "payment_channel")
 public class PaymentChannel {
@@ -21,4 +20,9 @@ public class PaymentChannel {
 
     @Column(name = "description")
     private String description;
+
+    public PaymentChannel(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
 }
