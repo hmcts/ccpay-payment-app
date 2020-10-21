@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class ReferenceDataControllerTest extends PaymentsComponentTest {
+public class ReferenceDataControllerTest{
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
