@@ -61,5 +61,10 @@
         <cve>CVE-2020-5421</cve>
     </suppress>
 
+    <suppress>
+        <notes> False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
+        <cve>CVE-2007-1651</cve>
+        <cve>CVE-2007-1652</cve>
+    </suppress>
 
 </suppressions>

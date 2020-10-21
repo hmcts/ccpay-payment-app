@@ -12,8 +12,9 @@ import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.StateDto;
 import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto;
 import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.lang.String.format;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
@@ -47,7 +48,7 @@ public class PaymentsComponentTest extends TestUtil {
                 .amount(100)
                 .description("description")
                 .reference("reference")
-                .returnUrl("http://localhost.hmcts.net")
+                .returnUrl("https://returnUrl.hmcts.net")
                 .build();
 
         tryCreateAndExpect(validRequest.withAmount(null), "amount: must not be null");
@@ -59,7 +60,7 @@ public class PaymentsComponentTest extends TestUtil {
         tryCreateAndExpect(validRequest.withReturnUrl(null), "returnUrl: must not be empty");
         tryCreateAndExpect(validRequest.withReturnUrl(""), "returnUrl: must not be empty");
         tryCreateAndExpect(validRequest.withReturnUrl("invalid"), "returnUrl: must be a valid URL");
-        tryCreateAndExpect(validRequest.withReturnUrl("http://invalid"), "returnUrl: must be a valid URL");
+        tryCreateAndExpect(validRequest.withReturnUrl("http://invalid"), "returnUrl: Must be an internal domain of hmcts.net or gov.uk");
     }
 
     private void tryCreateAndExpect(CreatePaymentRequestDto requestBody, String expectedContent) throws Exception {
