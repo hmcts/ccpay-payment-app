@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class PaymentReferenceDataControllerTest {
+public class PaymentReferenceDataControllerTest extends PaymentsComponentTest {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
