@@ -36,11 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class PaymentReferenceDataControllerTest extends PaymentsComponentTest {
+public class PaymentReferenceDataControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
     @Autowired
     private ObjectMapper objectMapper;
