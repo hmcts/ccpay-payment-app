@@ -52,6 +52,9 @@ public class PaymentReferenceDataControllerTest {
     @Mock
     private PaymentStatusRepository paymentStatusRepository;
 
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+
     @Test
     public void testFindAllPaymentChannels() throws Exception {
 
