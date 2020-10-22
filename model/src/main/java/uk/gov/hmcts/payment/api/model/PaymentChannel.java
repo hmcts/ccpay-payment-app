@@ -11,6 +11,7 @@ import javax.persistence.*;
 @Data
 @Builder(builderMethodName = "paymentChannelWith")
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "payment_channel")
 public class PaymentChannel {
 
@@ -20,9 +21,4 @@ public class PaymentChannel {
 
     @Column(name = "description")
     private String description;
-
-    public PaymentChannel(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
 }
