@@ -76,7 +76,7 @@ public class PciPalCallbackTest {
         // create telephony payment using old api
         PaymentDto paymentDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.google.com")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().getByStatusCode(201);
 
@@ -148,7 +148,7 @@ public class PciPalCallbackTest {
 
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://google.co.uk")
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when().createTelephonyCardPayment(cardPaymentRequest, paymentGroupReference)
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
                     Assertions.assertThat(paymentDto).isNotNull();
@@ -255,7 +255,7 @@ public class PciPalCallbackTest {
 
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://google.co.uk")
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when().createTelephonyCardPayment(cardPaymentRequest, paymentGroupReference)
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
                 Assertions.assertThat(paymentDto).isNotNull();
@@ -319,7 +319,7 @@ public class PciPalCallbackTest {
         // create telephony payment using old api
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.google.com")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createTelephonyPayment(paymentRecordRequest)
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
