@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.v1.componenttests.PaymentsComponentTest;
 import uk.gov.hmcts.payment.referencedata.controllers.ReferenceDataController;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
@@ -26,16 +25,16 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class ReferenceDataControllerTest{
-
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+public class ReferenceDataControllerTest {
 
     @InjectMocks
     private ReferenceDataController referenceDataController;
 
     @Mock
     private SiteService<Site, String> siteServiceMock;
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
     @Test
     public void getAllSitesInformation() {
