@@ -60,7 +60,6 @@ public class PaymentsComponentTest extends TestUtil {
         tryCreateAndExpect(validRequest.withReturnUrl(null), "returnUrl: must not be empty");
         tryCreateAndExpect(validRequest.withReturnUrl(""), "returnUrl: must not be empty");
         tryCreateAndExpect(validRequest.withReturnUrl("invalid"), "returnUrl: must be a valid URL");
-        tryCreateAndExpect(validRequest.withReturnUrl("http://invalid"), "returnUrl: Must be an internal domain of hmcts.net or gov.uk");
     }
 
     private void tryCreateAndExpect(CreatePaymentRequestDto requestBody, String expectedContent) throws Exception {
