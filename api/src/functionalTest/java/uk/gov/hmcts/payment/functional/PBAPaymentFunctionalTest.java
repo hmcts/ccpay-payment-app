@@ -192,50 +192,6 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByCMC() {
-
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.CMC);
-        accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
-            .then()
-            .statusCode(CREATED.value())
-            .body("status", equalTo("Success"));
-
-        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsByServiceBetweenDates(Service.CMC, startDate, endDate)
-            .then().getPayments((paymentsResponse -> {
-            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-        }));
-    }
-
-    @Test
-    public void makeAndRetrievePbaPaymentByDivorce() {
-
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.DIVORCE);
-        accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
-            .then()
-            .statusCode(CREATED.value())
-            .body("status", equalTo("Success"));
-
-        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsByServiceBetweenDates(Service.DIVORCE, startDate, endDate)
-            .then().getPayments((paymentsResponse -> {
-            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-        }));
-    }
-
-    @Test
     public void makeAndRetrievePbaPaymentByUnspecService() {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
