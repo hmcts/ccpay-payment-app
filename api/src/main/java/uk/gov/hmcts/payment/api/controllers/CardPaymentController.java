@@ -89,10 +89,6 @@ public class CardPaymentController {
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
 
-        if(! returnURL.matches("^https?:\\/\\/+([^:\\/]+\\.)?(hmcts\\.net|gov\\.uk)")) {
-            return new ResponseEntity("returnUrl: Must be an internal domain of hmcts.net or gov.uk", BAD_REQUEST);
-        }
-
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
