@@ -33,11 +33,13 @@ public class PaymentsComponentTest extends TestUtil {
         return new CustomResultMatcher(objectMapper);
     }
 
+
     @Before
     public void setup() {
         restActions
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID);
+
     }
 
     @Test
@@ -46,7 +48,7 @@ public class PaymentsComponentTest extends TestUtil {
             .amount(100)
             .description("description")
             .reference("reference")
-            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .returnUrl("https://returnUrl.hmcts.net")
             .build();
 
         tryCreateAndExpect(validRequest.withAmount(null), "amount: must not be null");
