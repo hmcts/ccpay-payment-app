@@ -11,8 +11,8 @@ import javax.persistence.*;
 @Entity
 @Data
 @Builder(builderMethodName = "paymentMethodWith")
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "payment_method")
 public class PaymentMethod {
 
