@@ -92,4 +92,15 @@ public class CreditAccountPaymentRequest {
         }
     }
 
+    @AssertFalse(message = "Invalid Site ID (URN) provided for UNSPEC CMC. Accepted values are AAA7")
+    private boolean isValidSiteIdUnspecCMC() {
+        String[] validSiteIds = {"AAA7"};
+        if(null != service && service.getName().equalsIgnoreCase(Service.UNSPEC.getName())) {
+            return siteId != null && !Arrays.asList(validSiteIds).stream().anyMatch(vm -> vm.equalsIgnoreCase(
+                siteId));
+        } else {
+            return false;
+        }
+    }
+
 }
