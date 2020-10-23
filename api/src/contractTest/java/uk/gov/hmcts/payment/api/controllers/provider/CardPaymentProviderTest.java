@@ -54,7 +54,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_cardPayment")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors={@VersionSelector(tag ="${PACT_BRANCH_NAME:development}")})
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors={@VersionSelector(tag ="${PACT_BRANCH_NAME:Dev}")})
 @Import(CardPaymentProviderTestConfiguration.class)
 public class CardPaymentProviderTest {
 
@@ -98,8 +98,6 @@ public class CardPaymentProviderTest {
 
     @BeforeEach
     void before(PactVerificationContext context) {
-
-        System.out.println("Pact branch set to {} " + branchName);
         System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
