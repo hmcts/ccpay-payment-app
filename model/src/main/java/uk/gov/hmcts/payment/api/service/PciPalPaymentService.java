@@ -4,14 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -57,12 +52,16 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String DIVORCE = "DIVORCE";
     private static final String CMC = "CMC";
     private static final String FINREM = "FINREM";
+
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
+
     @Value("${pci-pal.account.id.probate}")
     private String ppAccountIDProbate;
+
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
+
     @Value("${pci-pal.account.id.finrem}")
     private String ppAccountIDFinrem;
 
