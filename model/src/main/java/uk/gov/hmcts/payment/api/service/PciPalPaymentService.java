@@ -4,9 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -47,19 +52,19 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_PROBATE = "probate";
     private static final String SERVICE_TYPE_CMC = "cmc";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
+    private static final String SERVICE_TYPE_FINREM = "finrem";
     private static final String PROBATE = "PROBATE";
     private static final String DIVORCE = "DIVORCE";
     private static final String CMC = "CMC";
     private static final String FINREM = "FINREM";
-
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
-
     @Value("${pci-pal.account.id.probate}")
     private String ppAccountIDProbate;
-
     @Value("${pci-pal.account.id.divorce}")
     private String ppAccountIDDivorce;
+    @Value("${pci-pal.account.id.finrem}")
+    private String ppAccountIDFinrem;
 
     @Value("${pci-pal.antenna.grant.type}")
     private String grantType;
@@ -97,7 +102,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     @Value("${pci-pal.antenna.financial.remedy.flow.id}")
     private String financialRemedyFlowId;
 
-
     private final String callbackUrl;
     private final String url;
     private final HttpClient httpClient;
@@ -105,7 +109,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     @Autowired
     public PciPalPaymentService(@Value("${pci-pal.api.url}") String url,
-                                @Value("${pci-pal.callback-url}") String callbackUrl,HttpClient httpClient,ObjectMapper objectMapper) {
+                                @Value("${pci-pal.callback-url}") String callbackUrl, HttpClient httpClient, ObjectMapper objectMapper) {
         this.url = url;
         this.callbackUrl = callbackUrl;
         this.httpClient= httpClient;
@@ -115,16 +119,10 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
         LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
-            String ppAccountID = null;
-            if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE))
-                ppAccountID = ppAccountIDDivorce;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC))
-                ppAccountID = ppAccountIDCmc;
-            else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE))
-                ppAccountID = ppAccountIDProbate;
+            String ppAccountID = getppAccountId(serviceType);
 
             LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
-            List<NameValuePair> params = new ArrayList<>();
+            List<NameValuePair> params = new ArrayList<NameValuePair>();
             params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
             params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
             params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
@@ -139,6 +137,28 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             return request.getURI().toString();
         });
     }
+
+    private String getppAccountId(String serviceType) {
+        String ppAccountID = null;
+        if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
+            ppAccountID = ppAccountIDDivorce;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
+            ppAccountID = ppAccountIDCmc;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
+            ppAccountID = ppAccountIDProbate;
+        }
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM)) {
+            ppAccountID = ppAccountIDFinrem;
+        }
+        else
+        {
+            throw new PaymentException("Invalid service type: " + serviceType);
+        }
+        return ppAccountID;
+    }
+
 
     public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL) {
         return withIOExceptionHandling(() -> {
@@ -156,7 +176,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                     .orderId(pciPalPaymentRequest.getOrderReference())
                     .currencyCode("GBP")
                     .build())
-                    .build();
+                .build();
 
             StringEntity entity = new StringEntity(objectMapper.writeValueAsString(telephonyProviderLinkIdRequest));
             httpPost.setEntity(entity);
@@ -210,7 +230,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private Header authorizationHeader(String authorizationKey) {
         return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
     }
-
 
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {
         try {

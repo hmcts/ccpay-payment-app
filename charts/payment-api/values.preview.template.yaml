@@ -22,6 +22,9 @@ java:
     #Below key required for preview pipeline
     GOV_PAY_AUTH_KEY_CMC: 8ln764q6jrbgqvvvv40uggsea3h1p602v79gdrt7ni66mrmpk416ulohvd
     LAUNCH_DARKLY_SDK_KEY: sdk-06456c8b-312c-475c-b154-ca585f5ca063
+    CCPAY_BULK_SCANNING_API_URL: http://ccpay-bulkscanning-api-pr-251.service.core-compute-preview.internal
+    PAYMENT_S2S_SECRET: ETNY5CBN7NR62T6M
+    PBA_CONFIG1_SERVICE_NAMES: PROBATE
     PCI_PAL_ANTENNA_TENANT_NAME: HMCTS
     PCI_PAL_ANTENNA_USER_NAME: APIUser
     PCI_PAL_ANTENNA_CLIENT_ID: HMCTSStage
