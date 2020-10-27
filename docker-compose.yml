@@ -11,7 +11,7 @@ services:
     image: hmctspublic.azurecr.io/payment/api
     environment:
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8489
-      - auth.idam.client.baseUrl=http://localhost:23443
+      - auth.idam.client.baseUrl=http://
       - idam.s2s-auth.totp_secret=AAAAAAAAAAAAAAAB
       - idam.s2s-auth.microservice=payment_app
       - idam.s2s-auth.url=http://service-auth-provider-api:8489
@@ -122,47 +122,33 @@ services:
     - POSTGRES_DB=fees_register
     ports:
     - 5182:5432
-
-  idam-api:
-    image: hmcts.azurecr.io/hmcts/tidam-api:latest
-    healthcheck:
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://idam-database:5432/idam
-      - SPRING_DATASOURCE_USERNAME=idam-username
-      - SPRING_DATASOURCE_PASSWORD=idam-password
-      - SPRING_MAIL_HOST=smtp-server
-      - IDAM_TESTING_SUPPORT_ENABLED="true"
-      - IDAM_API_OAUTH2_CLIENT_CLIENT_SECRETS_WEBSHOW=AAAAAAAAAAAAAAAA
-      - IDAM_WEBSHOW_WHITELIST=http://localhost:8080/oauth2redirect
-      - REFORM_SERVICE_NAME=idam-api
-      - REFORM_TEAM=idam
-      - REFORM_ENVIRONMENT=local
-      - http_proxy=
-      - https_proxy=
-      - no_proxy=
-    ports:
-      - 4501:8080
-    links:
-      - smtp-server
-      - idam-database
+  fr-am:
+    image: hmctsprivate.azurecr.io/idam/idam-fr-am:latest
+    hostname: localam
     depends_on:
-      - idam-database
-      - smtp-server
-
+      - shared-db
+  fr-idm:
+    image: hmctsprivate.azurecr.io/idam/idam-fr-idm:latest
+    hostname: localidm
+    depends_on:
+      - fr-am
+      - shared-db
+  shared-db:
+    image: hmctsprivate.azurecr.io/idam/shared-db:latest
   smtp-server:
     image: mailhog/mailhog
-    ports:
-      - 1025:1025
-      - 8025:8025
+  idam-api:
+    image: hmctspublic.azurecr.io/idam/api:latest
+    depends_on:
+      - fr-am
+      - shared-db
+  idam-web-public:
+    image: hmctspublic.azurecr.io/idam/web-public:latest
+    depends_on:
+      - idam-api
+  idam-web-admin:
+    image: hmctspublic.azurecr.io/idam/web-admin:latest
+    depends_on:
+      - idam-api
 
-  idam-database:
-    image: postgres
-    environment:
-      - POSTGRES_USER=idam-username
-      - POSTGRES_PASSWORD=idam-password
-      - POSTGRES_DB=idam
-    ports:
-      - 5434:5432
+
