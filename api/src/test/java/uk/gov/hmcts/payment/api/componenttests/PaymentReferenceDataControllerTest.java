@@ -100,6 +100,6 @@ public class PaymentReferenceDataControllerTest {
         List<LegacySite> legacySiteMock = Collections.singletonList(new LegacySite("site 2", "Site name 1"));
         when(legacySiteRepository.findAll()).thenReturn(legacySiteMock);
         List<LegacySite> legacySiteMockResponse = paymentReferenceDataController.findAllLegacySites();
-        assertEquals(legacySiteMock, legacySiteMockResponse); 
+        assertEquals(legacySiteMock, legacySiteMockResponse);
     }
 }
