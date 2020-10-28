@@ -118,7 +118,7 @@ subprojects {
         compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-        compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.6.4') {
+        compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.7.3') {
             sourceSets {
                 main {
                     java {
