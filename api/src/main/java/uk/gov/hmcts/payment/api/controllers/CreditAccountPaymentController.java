@@ -57,9 +57,7 @@ public class CreditAccountPaymentController {
     private final LaunchDarklyFeatureToggler featureToggler;
     private final PBAStatusErrorMapper pbaStatusErrorMapper;
     private final CreditAccountPaymentRequestMapper requestMapper;
-
-    @Value("#{'${pba.config1.service.names}'.split(',')}")
-    private List<String> pbaConfig1ServiceNames;
+    private final List<String> pbaConfig1ServiceNames;
 
 
     @Autowired
@@ -69,7 +67,7 @@ public class CreditAccountPaymentController {
                                           DuplicatePaymentValidator paymentValidator,
                                           FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
                                           PBAStatusErrorMapper pbaStatusErrorMapper,
-                                          CreditAccountPaymentRequestMapper requestMapper) {
+                                          CreditAccountPaymentRequestMapper requestMapper,  @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -78,6 +76,7 @@ public class CreditAccountPaymentController {
         this.featureToggler = featureToggler;
         this.pbaStatusErrorMapper = pbaStatusErrorMapper;
         this.requestMapper = requestMapper;
+        this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
