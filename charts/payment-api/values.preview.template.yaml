@@ -34,5 +34,8 @@ java:
     PCI_PAL_ANTENNA_PROBATE_FLOW_ID: 1356
     PCI_PAL_ANTENNA_DIVORCE_FLOW_ID: 1356
     PCI_PAL_ANTENNA_FINANCIAL_REMEDY_FLOW_ID: 1356
+    CCPAY_BULK_SCANNING_API_URL: http://ccpay-bulkscanning-api-pr-251.service.core-compute-preview.internal
+    PAYMENT_S2S_SECRET: ETNY5CBN7NR62T6M
+    PBA_CONFIG1_SERVICE_NAMES: PROBATE
   postgresql:
     enabled: true
