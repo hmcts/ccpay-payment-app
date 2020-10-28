@@ -66,5 +66,8 @@
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2007-1652</cve>
     </suppress>
-
+    <suppress>
+        <notes>Apache tomcat vulnerability suppressing for timebeing</notes>
+        <cve>CVE-2020-13943</cve>
+    </suppress>
 </suppressions>
