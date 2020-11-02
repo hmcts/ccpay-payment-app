@@ -237,14 +237,14 @@ public class CardPaymentController {
         return ex.getMessage();
     }
 
-    public Boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
+    private Boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
         if(returnUrl != null && (getHostName(returnUrl).endsWith("hmcts.net") || getHostName(returnUrl).endsWith("gov.uk"))) {
            return true;
         }
         return false;
     }
 
-    public String getHostName(String url) throws URISyntaxException {
+    private String getHostName(String url) throws URISyntaxException {
         URI uri = new URI(url);
         String hostname = uri.getHost();
         // to provide faultproof result, check if not null then return only hostname, without www.
