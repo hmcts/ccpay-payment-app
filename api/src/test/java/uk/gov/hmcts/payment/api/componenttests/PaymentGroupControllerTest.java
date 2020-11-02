@@ -126,7 +126,7 @@ public class PaymentGroupControllerTest {
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .withReturnUrl("https://www.gooooogle.com");
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
         List<Site> serviceReturn = Arrays.asList(Site.siteWith()
                 .sopReference("sop")
@@ -154,7 +154,6 @@ public class PaymentGroupControllerTest {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -196,7 +195,6 @@ public class PaymentGroupControllerTest {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -224,7 +222,6 @@ public class PaymentGroupControllerTest {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -532,7 +529,6 @@ public class PaymentGroupControllerTest {
             .build();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -623,7 +619,6 @@ public class PaymentGroupControllerTest {
             .build();
 
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
@@ -884,7 +879,6 @@ public class PaymentGroupControllerTest {
             .build();
 
         MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isBadRequest())
             .andReturn();

@@ -104,7 +104,7 @@ public class PaymentGroupFunctionalTest {
         // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://google.co.uk")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
             .then().gotCreated(PaymentDto.class, paymentDto -> {
                 assertThat(paymentDto).isNotNull();
@@ -378,7 +378,7 @@ public class PaymentGroupFunctionalTest {
         // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://google.co.uk")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
             .then().gotCreated(PaymentDto.class, paymentDto -> {
             assertThat(paymentDto).isNotNull();
@@ -465,7 +465,7 @@ public class PaymentGroupFunctionalTest {
         // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://google.co.uk")
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
             .then().gotCreated(PaymentDto.class, paymentDto -> {
             assertThat(paymentDto).isNotNull();
@@ -546,7 +546,7 @@ public class PaymentGroupFunctionalTest {
 
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://google.co.uk")
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when().createTelephonyCardPayment(cardPaymentRequest, paymentGroupReference)
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
                 assertThat(paymentDto).isNotNull();

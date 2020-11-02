@@ -62,6 +62,11 @@
     </suppress>
 
     <suppress>
+        <notes>This suppress specific cve for tomcat-embed-core-9.0.33.jar and tomcat-embed-websocket-9.0.33.jar</notes>
+        <cve>CVE-2020-13943</cve>
+    </suppress>
+
+    <suppress>
         <notes> False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2007-1652</cve>
