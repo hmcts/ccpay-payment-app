@@ -121,5 +121,5 @@ services:
       - POSTGRES_PASSWORD=fees_register
       - POSTGRES_DB=fees_register
     ports:
-      - 5182:5432
+    - 5182:5432
 
