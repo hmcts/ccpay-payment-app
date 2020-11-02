@@ -238,8 +238,11 @@ public class CardPaymentController {
     }
 
     private Boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
-        if(returnUrl != null && (getHostName(returnUrl).endsWith("hmcts.net") || getHostName(returnUrl).endsWith("gov.uk"))) {
-           return true;
+        if(returnUrl != null) {
+            String hostName = getHostName(returnUrl);
+            if(StringUtils.isNotEmpty(hostName) && (hostName.endsWith("hmcts.net") || hostName.endsWith("gov.uk"))){
+                return true;
+            }
         }
         return false;
     }
