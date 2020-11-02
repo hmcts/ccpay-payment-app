@@ -33,6 +33,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -88,6 +89,10 @@ public class CardPaymentController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
+
+        if(!validateReturnUrl(returnURL)) {
+            return new ResponseEntity("returnUrl: Must be an internal domain of hmcts.net or gov.uk", BAD_REQUEST);
+        }
 
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
@@ -221,7 +226,7 @@ public class CardPaymentController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(PaymentException.class)
+    @ExceptionHandler({PaymentException.class, URISyntaxException.class})
     public String return400(PaymentException ex) {
         return ex.getMessage();
     }
@@ -230,6 +235,23 @@ public class CardPaymentController {
     @ExceptionHandler(AccessDeniedException.class)
     public String return403(AccessDeniedException ex) {
         return ex.getMessage();
+    }
+
+    public Boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
+        if(returnUrl != null && (getHostName(returnUrl).endsWith("hmcts.net") || getHostName(returnUrl).endsWith("gov.uk"))) {
+           return true;
+        }
+        return false;
+    }
+
+    public String getHostName(String url) throws URISyntaxException {
+        URI uri = new URI(url);
+        String hostname = uri.getHost();
+        // to provide faultproof result, check if not null then return only hostname, without www.
+        if (hostname != null) {
+            return hostname.startsWith("www.") ? hostname.substring(4) : hostname;
+        }
+        return hostname;
     }
 
 }
