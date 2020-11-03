@@ -177,10 +177,18 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                 .build();
 
             StringEntity entity = new StringEntity(objectMapper.writeValueAsString(telephonyProviderLinkIdRequest));
+            LOG.info(objectMapper.writeValueAsString(telephonyProviderLinkIdRequest));
             httpPost.setEntity(entity);
             HttpResponse response = httpClient.execute(httpPost);
-            TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
-            telephonyProviderAuthorisationResponse.setNextUrl(viewIdURL + telephonyProviderLinkIdResponse.getId()+"/framed");
+            if(response != null && response.getStatusLine() !=null && response.getStatusLine().getStatusCode() == 200)
+            {
+                TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
+                telephonyProviderAuthorisationResponse.setNextUrl(viewIdURL + telephonyProviderLinkIdResponse.getId()+"/framed");
+            }
+            else
+            {
+                throw new PaymentException("Received error from PCI PAL!!!");
+            }
 
             return telephonyProviderAuthorisationResponse;
         });
