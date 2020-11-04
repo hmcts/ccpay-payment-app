@@ -1044,6 +1044,21 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         assertEquals("returnUrl: Must be an internal domain of hmcts.net or gov.uk", result.getResponse().getContentAsString());
+
+        restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www");
+
+        result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertEquals("returnUrl: Must be an internal domain of hmcts.net or gov.uk", result.getResponse().getContentAsString());
     }
 
     @Test
