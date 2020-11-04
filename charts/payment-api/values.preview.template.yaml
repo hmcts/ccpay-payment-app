@@ -10,7 +10,6 @@ java:
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=allow"
 
     SPRING_LIQUIBASE_ENABLED: true
-    SPRING_CLOUD_PROPERTIESVOLUME_ENABLED: false
     OIDC_ISSUER: https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/hmcts
     OIDC_CLIENT_SECRET: DUMMY_CLIENT_SECRET
     OIDC_S2S_SECRET: DUMMY_S2S_SECRET
@@ -24,5 +23,38 @@ java:
     LAUNCH_DARKLY_SDK_KEY: sdk-06456c8b-312c-475c-b154-ca585f5ca063
     PAYMENT_S2S_SECRET: DUMMY_S2S_SECRET
     PBA_CONFIG1_SERVICE_NAMES: PROBATE
+
+  keyVaults:
+    "ccpay":
+      resourceGroup: ccpay
+      secrets:
+        - sb-primary-connection-string
+        - pci-pal-account-id-cmc
+        - pci-pal-account-id-probate
+        - pci-pal-account-id-divorce
+        - pci-pal-api-url
+        - pci-pal-api-key
+        - gov-pay-keys-reference
+        - gov-pay-keys-cmc
+        - gov-pay-keys-cmc-claim-store
+        - gov-pay-keys-divorce
+        - gov-pay-keys-probate
+        - liberata-keys-oauth2-client-id
+        - liberata-keys-oauth2-client-secret
+        - liberata-keys-oauth2-username
+        - liberata-keys-oauth2-password
+        - AppInsightsInstrumentationKey
+        - paybubble-s2s-secret
+        - paybubble-idam-client-secret
+        - card-payments-email-to
+        - bar-payments-email-to
+        - pba-cmc-payments-email-to
+        - pba-probate-payments-email-to
+        - pba-finrem-payments-email-to
+        - pba-divorce-payments-email-to
+        - pba-fpl-payments-email-to
+        - launch-darkly-sdk-key
+        - payment-s2s-secret
+        - pci-pal-account-id-finrem
   postgresql:
     enabled: true

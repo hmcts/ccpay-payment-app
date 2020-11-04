@@ -73,7 +73,7 @@
     </suppress>
 
     <suppress>
-        <notes>Jetty jar vulnerability, Suppression for time-being</notes>
+        <notes>Jetty jar vulnerability 9.4.27 Need to suppress, This is transitive dependency coming from properties-volume-spring-boot-starter project which is under reform</notes>
         <cve>CVE-2020-27216</cve>
     </suppress>
 
