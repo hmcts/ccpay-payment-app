@@ -237,7 +237,7 @@ public class CardPaymentController {
         return ex.getMessage();
     }
 
-    private Boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
+    private boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
         if(returnUrl != null) {
             String hostName = getHostName(returnUrl);
             if(StringUtils.isNotEmpty(hostName) && (hostName.endsWith("hmcts.net") || hostName.endsWith("gov.uk"))){
