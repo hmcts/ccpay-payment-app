@@ -1048,6 +1048,13 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCardPayment_withVvalidReturnUrl_shouldReturn201Test() throws Exception {
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
         CardPaymentRequest cardPaymentRequest = cardPaymentRequest();
 
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
