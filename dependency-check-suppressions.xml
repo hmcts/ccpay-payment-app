@@ -67,9 +67,14 @@
     </suppress>
 
     <suppress>
-        <notes> False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
+        <notes>False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2007-1652</cve>
+    </suppress>
+
+    <suppress>
+        <notes>Jetty jar vulnerability, Suppression for time-being</notes>
+        <cve>CVE-2020-27216</cve>
     </suppress>
 
 </suppressions>
