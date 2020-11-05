@@ -86,11 +86,8 @@ public class CreditAccountPaymentProviderTestConfiguration {
     @MockBean
     FeesService feesService;
 
-    @Bean
-    @Primary
-    public AccountService<AccountDto, String> accountService() {
-        return new MockAccountServiceImpl();
-    }
+    @MockBean
+    AccountService<AccountDto, String> accountService;
 
 
     @Bean
