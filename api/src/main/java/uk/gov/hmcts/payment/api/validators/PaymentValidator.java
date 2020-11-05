@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.validators;
 
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,8 @@ import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
@@ -47,6 +50,26 @@ public class PaymentValidator {
         if (dto.hasErrors()) {
             throw new ValidationErrorException("Error occurred in the payment params", dto);
         }
+    }
+
+    public boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
+        if(returnUrl != null) {
+            String hostName = getHostName(returnUrl);
+            if(StringUtils.isNotEmpty(hostName) && (hostName.endsWith("hmcts.net") || hostName.endsWith("gov.uk"))){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getHostName(String url) throws URISyntaxException {
+        URI uri = new URI(url);
+        String hostname = uri.getHost();
+        // to provide faultproof result, check if not null then return only hostname, without www.
+        if (hostname != null) {
+            return hostname.startsWith("www.") ? hostname.substring(4) : hostname;
+        }
+        return hostname;
     }
 
     private Optional<LocalDateTime> parseAndValidateDate(Optional<String> dateTimeString, String fieldName, ValidationErrorDTO dto) {

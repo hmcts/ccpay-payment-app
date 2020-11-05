@@ -1062,7 +1062,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCardPayment_withVvalidReturnUrl_shouldReturn201Test() throws Exception {
+    public void createCardPayment_withValidReturnUrl_shouldReturn201Test() throws Exception {
 
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
