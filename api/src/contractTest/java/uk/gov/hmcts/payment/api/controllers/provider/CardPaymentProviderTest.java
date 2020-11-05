@@ -48,6 +48,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
@@ -113,7 +114,7 @@ public class CardPaymentProviderTest {
             .thenReturn(Optional.of(populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw")));
         when(govPayAuthUtil.getServiceName(null, "ccd_gw")).thenReturn("ccd_gw");
         when(govPayAuthUtil.getServiceToken("ccd_gw")).thenReturn("s2sAuthKey");
-        when(govPayClientMock.retrievePayment("s2sAuthKey", "e2kkddts5215h9qqoeuth5c0v")).thenReturn(buildGovPaymentDto());
+        when(govPayClientMock.retrievePayment(anyString(), anyString())).thenReturn(buildGovPaymentDto());
 
 
     }

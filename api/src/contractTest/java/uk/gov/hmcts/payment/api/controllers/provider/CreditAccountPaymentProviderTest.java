@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.controllers.provider;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
-import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
@@ -36,22 +35,30 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_creditAccountPayment")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors={@VersionSelector(tag ="${PACT_BRANCH_NAME:development}")})
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
+    @VersionSelector(tag = "${PACT_BRANCH_NAME:Dev}")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 public class CreditAccountPaymentProviderTest {
 
+
+    private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
+    private static final String ACCOUNT_NAME_KEY = "accountName";
+    private static final String AVAILABLE_BALANCE_KEY = "availableBalance";
 
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
@@ -60,7 +67,7 @@ public class CreditAccountPaymentProviderTest {
     @Autowired
     CreditAccountDtoMapper creditAccountDtoMapper;
     @Autowired
-    AccountService<AccountDto, String> accountService;
+    AccountService<AccountDto, String> accountServiceMock;
     @Autowired
     DuplicatePaymentValidator paymentValidator;
     @Autowired
@@ -115,13 +122,43 @@ public class CreditAccountPaymentProviderTest {
         System.getProperties().setProperty("pact.verifier.publishResults", "true");
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
-            new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountService, paymentValidator,
-                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("DIVORCE")));
+            new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
+                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("PROBATE")));
         context.setTarget(testTarget);
     }
 
-    @State({"A credit account payment does not exist"})
-    public void toCreateNewCreditAccountPayment() throws IOException, JSONException {
+    @State({"An active account has sufficient funds for a payment"})
+    public void toCreateNewCreditAccountPayment(Map<String, Object> paymentMap) throws IOException, JSONException {
+
+        setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
+    }
+
+
+    @State({"An active account has insufficient funds for a payment"})
+    public void toRefuseCreditAccountPaymentInusfficientFunds(Map<String, Object> paymentMap) throws IOException, JSONException {
+
+        setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ACTIVE);
+    }
+
+    @State({"An on hold account requests a payment"})
+    public void toRefuseCreditAccountPaymenOnHold(Map<String, Object> paymentMap) throws IOException, JSONException {
+
+        setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ON_HOLD);
+    }
+
+
+    @State({"A deleted account requests a payment"})
+    public void toRefuseCreditAccountPaymenDeleted(Map<String, Object> paymentMap) throws IOException, JSONException {
+
+        setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.DELETED);
+    }
+
+
+    private void setUpMockInteractions(Map<String, Object> paymentMap, String s, String success, AccountStatus accountStatus) {
+        String accountNumber = (String) paymentMap.get(ACCOUNT_NUMBER_KEY);
+        String availableBalance = (String) paymentMap.get(AVAILABLE_BALANCE_KEY);
+        String accountName = (String) paymentMap.get(ACCOUNT_NAME_KEY);
+
         when(userIdSupplierMock.get()).thenReturn("userId");
         when(serviceIdSupplierMock.get()).thenReturn("ccd_gw");
         when(paymentChannelRepositoryMock.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
@@ -129,8 +166,14 @@ public class CreditAccountPaymentProviderTest {
         when(paymentMethodRepositoryMock.findByNameOrThrow(PAYMENT_METHOD))
             .thenReturn(PaymentMethod.paymentMethodWith().description("Payment by account").name("Payment by account").build());
         when(paymentStatusRepositoryMock.findByNameOrThrow(anyString()))
-            .thenReturn(PaymentStatus.paymentStatusWith().description("Payment Status success").name("success").build());
-
+            .thenReturn(PaymentStatus.paymentStatusWith().description(s).name(success).build());
+        when(accountServiceMock.retrieve(accountNumber)).thenReturn(AccountDto.accountDtoWith()
+            .accountNumber(accountNumber)
+            .accountName(accountName)
+            .creditLimit(BigDecimal.valueOf(28879))
+            .availableBalance(new BigDecimal(availableBalance))
+            .status(accountStatus)
+            .build());
     }
 
 
