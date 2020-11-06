@@ -572,15 +572,12 @@ public class PaymentGroupController {
                 .channel(PaymentChannel.TELEPHONY.getName())
                 .provider(PaymentProvider.PCI_PAL.getName())
                 .build();
-            LOG.info("Access Token Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getAccessToken());
-            LOG.info("Refresh Token Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getRefreshToken());
             PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
             Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
 
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
                 .orderReference(payment.getReference()).build();
             telephonyProviderAuthorisationResponse = pciPalPaymentService.getTelephonyProviderLink(pciPalPaymentRequest, telephonyProviderAuthorisationResponse, telephonyCardPaymentsRequest.getService().name(),telephonyCardPaymentsRequest.getReturnURL());
-            LOG.info("Next URL Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getNextUrl());
             TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
 
             // trigger Apportion based on the launch darkly feature flag
