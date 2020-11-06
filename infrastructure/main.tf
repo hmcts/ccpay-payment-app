@@ -46,6 +46,7 @@ module "payment-database" {
   sku_tier = "GeneralPurpose"
   common_tags = var.common_tags
   subscription = var.subscription
+  postgresql_version = var.postgresql_version
 }
 
 # Populate Vault with DB info
