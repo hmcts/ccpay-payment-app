@@ -20,7 +20,7 @@ java:
     OIDC_CLIENT_ID: "paybubble"
     OIDC_ISSUER: "https://forgerock-am.service.core-compute-idam-{{ .Values.global.environment }}.internal:8443/openam/oauth2/hmcts"
     OIDC_S2S_MICROSERVICE_NAME: ccpay_bubble
-    OIDC_AUDIENCE_LIST: paybubble,cmc_citizen,probate,divorce,xuiwebapp,xuimowebapp,xuiaowebapp,fees_admin_frontend,finrem,bar_frontend,fpl_case_service,ccd_gateway,iac
+    OIDC_AUDIENCE_LIST: paybubble,cmc_citizen,probate,divorce,xuiwebapp,xuimowebapp,xuiaowebapp,fees_admin_frontend,finrem,bar_frontend,fpl_case_service,ccd_gateway
     LAUNCH_DARKLY_USER_NAME_PREFIX: '{{ .Values.global.environment }}'
 
     AUTH_PROVIDER_SERVICE_CLIENT_BASEURL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
@@ -72,6 +72,7 @@ java:
     FEATURE_PAYMENTS_SEARCH: "true"
     FEATURE_SERVICE_CALLBACK: "true"
     PAYMENT_S2S_MICROSERVICE_NAME: payment_app
+    PBA_CONFIG1_SERVICE_NAMES: CMC,PROBATE
 
 
   keyVaults:
@@ -83,7 +84,6 @@ java:
         - pci-pal-account-id-cmc
         - pci-pal-account-id-probate
         - pci-pal-account-id-divorce
-        - pci-pal-account-id-finrem
         - pci-pal-api-url
         - pci-pal-api-key
         - gov-pay-keys-reference
@@ -106,16 +106,5 @@ java:
         - pba-divorce-payments-email-to
         - pba-fpl-payments-email-to
         - launch-darkly-sdk-key
-        - pci-pal-antenna-tenant-name
-        - pci-pal-antenna-user-name
-        - pci-pal-antenna-client-id
-        - pci-pal-antenna-client-secret
-        - pci-pal-antenna-get-tokens-url
-        - pci-pal-antenna-launch-url
-        - pci-pal-antenna-view-id-url
-        - pci-pal-antenna-return-url
-        - pci-pal-antenna-cmc-flow-id
-        - pci-pal-antenna-probate-flow-id
-        - pci-pal-antenna-divorce-flow-id
-        - pci-pal-antenna-financial-remedy-flow-id
         - payment-s2s-secret
+        - pci-pal-account-id-finrem
