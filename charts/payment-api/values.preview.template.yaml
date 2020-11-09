@@ -20,33 +20,8 @@ java:
     "ccpay":
       resourceGroup: ccpay
       secrets:
-        - sb-primary-connection-string
-        - pci-pal-account-id-cmc
-        - pci-pal-account-id-probate
-        - pci-pal-account-id-divorce
-        - pci-pal-api-url
-        - pci-pal-api-key
-        - gov-pay-keys-reference
         - gov-pay-keys-cmc
-        - gov-pay-keys-cmc-claim-store
-        - gov-pay-keys-divorce
-        - gov-pay-keys-probate
-        - liberata-keys-oauth2-client-id
-        - liberata-keys-oauth2-client-secret
-        - liberata-keys-oauth2-username
-        - liberata-keys-oauth2-password
-        - AppInsightsInstrumentationKey
-        - paybubble-s2s-secret
-        - paybubble-idam-client-secret
-        - card-payments-email-to
-        - bar-payments-email-to
-        - pba-cmc-payments-email-to
-        - pba-probate-payments-email-to
-        - pba-finrem-payments-email-to
-        - pba-divorce-payments-email-to
-        - pba-fpl-payments-email-to
         - launch-darkly-sdk-key
         - payment-s2s-secret
-        - pci-pal-account-id-finrem
   postgresql:
     enabled: true
