@@ -36,17 +36,18 @@ resource "azurerm_key_vault_secret" "gov-pay-keys-cmc-claim-store" {
 
 module "payment-database" {
   source = "git@github.com:hmcts/cnp-module-postgres?ref=master"
-  product = "${var.product}-postgres-db"
-  location = "${var.location}"
-  env = "${var.env}"
-  postgresql_user = "${var.postgresql_user}"
-  database_name = "${var.database_name}"
-  sku_name = "${var.sku_name}"
-  sku_capacity = "${var.sku_capacity}"
+  product = join("-", [var.product, "postgres-db"])
+  location = var.location
+  env = var.env
+  postgresql_user = var.postgresql_user
+  database_name = var.database_name
+  sku_name = var.sku_name
+  sku_capacity = var.sku_capacity
+  sku_name = "GP_Gen5_2"
   sku_tier = "GeneralPurpose"
-  common_tags = "${var.common_tags}"
-  subscription = "${var.subscription}"
-  postgresql_version = "${var.postgresql_version}"
+  common_tags = var.common_tags
+  subscription = var.subscription
+  postgresql_version = var.postgresql_version
 }
 
 # Populate Vault with DB info
