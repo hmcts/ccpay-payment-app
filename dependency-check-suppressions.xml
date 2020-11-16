@@ -55,13 +55,15 @@
         <cve>CVE-2017-18640</cve>
         <cve>CVE-2019-17638</cve>
         <cve>CVE-2020-24616</cve>
-        <cve>CVE-2020-15250</cve>
-
     </suppress>
     <suppress>
         <notes>Transitive dependency of spring boot version</notes>
         <cve>CVE-2020-5421</cve>
     </suppress>
+<!--    <suppress>-->
+<!--        <notes>Junit version error reference- https://nvd.nist.gov/vuln/detail/CVE-2020-15250</notes>-->
+<!--        <cve>CVE-2020-15250</cve>-->
+<!--    </suppress>-->
 
     <suppress>
         <notes>This suppress specific cve for tomcat-embed-core-9.0.33.jar and tomcat-embed-websocket-9.0.33.jar</notes>
