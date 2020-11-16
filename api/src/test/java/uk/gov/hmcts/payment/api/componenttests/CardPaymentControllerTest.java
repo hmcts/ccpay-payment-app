@@ -1087,6 +1087,32 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
+    @Test
+    public void createCardPayment_withInValidReturnUrl_shouldReturn400Test() throws Exception {
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(400)
+                .withHeader("Content-Type", "application/json")
+                .withBody("returnUrl: Must be an internal domain of hmcts.net or gov.uk")));
+
+        CardPaymentRequest cardPaymentRequest = cardPaymentRequest();
+
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RestActions restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.com");
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -14,6 +15,7 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
@@ -23,6 +25,9 @@ public class PaymentValidator {
 
 
     private final DateUtil dateUtil;
+
+    @Value("#{'${feature.payment.allowed.hostnames}'.split(',')}")
+    private List<String> allowedHost;
 
     @Autowired
     public PaymentValidator(DateUtil dateUtil) {
@@ -55,7 +60,16 @@ public class PaymentValidator {
     public boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
         if(returnUrl != null) {
             String hostName = getHostName(returnUrl);
-            if(StringUtils.isNotEmpty(hostName) && (hostName.endsWith("hmcts.net") || hostName.endsWith("gov.uk"))){
+            if(StringUtils.isNotEmpty(hostName) && validHostName(allowedHost,hostName)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean validHostName(List<String> allowedHostNames, String hostName){
+        for(int i=0; i< allowedHostNames.size();i++){
+            if(hostName.endsWith(allowedHostNames.get(i))){
                 return true;
             }
         }
