@@ -178,6 +178,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
                 .build();
 
             StringEntity entity = new StringEntity(objectMapper.writeValueAsString(telephonyProviderLinkIdRequest));
+            LOG.info(objectMapper.writeValueAsString(telephonyProviderLinkIdRequest));
             httpPost.setEntity(entity);
             HttpResponse response = httpClient.execute(httpPost);
             if(response != null && response.getStatusLine() !=null && response.getStatusLine().getStatusCode() == 200)
