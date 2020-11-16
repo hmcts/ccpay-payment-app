@@ -55,6 +55,7 @@
         <cve>CVE-2017-18640</cve>
         <cve>CVE-2019-17638</cve>
         <cve>CVE-2020-24616</cve>
+        <cve>CVE-2020-15250</cve>
     </suppress>
     <suppress>
         <notes>Transitive dependency of spring boot version</notes>
