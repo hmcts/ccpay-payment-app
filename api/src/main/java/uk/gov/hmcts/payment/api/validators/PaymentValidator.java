@@ -68,8 +68,8 @@ public class PaymentValidator {
     }
 
     private boolean validHostName(List<String> allowedHostNames, String hostName){
-        for(int i=0; i< allowedHostNames.size();i++){
-            if(hostName.endsWith(allowedHostNames.get(i))){
+        for (String allowedHostName : allowedHostNames) {
+            if(hostName.endsWith(allowedHostName)){
                 return true;
             }
         }
