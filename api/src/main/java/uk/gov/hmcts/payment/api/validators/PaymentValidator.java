@@ -68,12 +68,7 @@ public class PaymentValidator {
     }
 
     private boolean validHostName(List<String> allowedHostNames, String hostName){
-        for (String allowedHostName : allowedHostNames) {
-            if(hostName.endsWith(allowedHostName)){
-                return true;
-            }
-        }
-        return false;
+        return allowedHostNames.stream().anyMatch(allowedHostName -> hostName.endsWith(allowedHostName));
     }
 
     private String getHostName(String url) throws URISyntaxException {
