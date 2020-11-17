@@ -1,7 +1,7 @@
 
 version: '2.1'
 # Below images not published to container registry to use directly, So need to build image first with below names from the respective applications
-# 1) name: payment-returnurl:1.0, app_name: payment-app
+# 1) name: payment-app:1.0, app_name: payment-app
 # 2) name: idam-local:1.0 -> app_name: bar-idam-mock
 services:
   payments-api:
@@ -11,7 +11,7 @@ services:
         - http_proxy
         - https_proxy
         - no_proxy
-    image: payment-returnurl:1.0
+    image: payment-app:1.0
     environment:
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:23443
       - auth.idam.client.baseUrl=http://service-auth-provider-api:23443
