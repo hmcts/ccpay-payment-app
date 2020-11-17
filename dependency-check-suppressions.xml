@@ -82,5 +82,5 @@
         <packageUrl regex="true">^pkg:maven/junit/junit@.*$</packageUrl>
         <cve>CVE-2020-15250</cve>
     </suppress>
-    
+
 </suppressions>
