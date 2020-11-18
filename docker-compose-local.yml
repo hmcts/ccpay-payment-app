@@ -1,8 +1,5 @@
-
 version: '2.1'
-# Below images not published to container registry to use directly, So need to build image first with below names from the respective applications
-# 1) name: payment-app:1.0, app_name: payment-app
-# 2) name: idam-local:1.0 -> app_name: bar-idam-mock
+
 services:
   payments-api:
     build:
@@ -11,13 +8,14 @@ services:
         - http_proxy
         - https_proxy
         - no_proxy
-    image: payment-app:1.0
+    #Change image version on your needs for testing locally
+    image: hmctspublic.azurecr.io/payment/api:latest
     environment:
-      - auth.provider.service.client.baseUrl=http://service-auth-provider-api:23443
-      - auth.idam.client.baseUrl=http://service-auth-provider-api:23443
+      - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8489
+      - auth.idam.client.baseUrl=https://idam-api.aat.platform.hmcts.net
       - idam.s2s-auth.totp_secret=AAAAAAAAAAAAAAAB
-      - idam.s2s-auth.microservice=internal
-      - idam.s2s-auth.url=http://localhost:8489
+      - idam.s2s-auth.microservice=payment_app
+      - idam.s2s-auth.url=http://service-auth-provider-api:8489
       - CARD_PAYMENTS_REPORT_SCHEDULER_ENABLED=true
       - CARD_PAYMENTS_EMAIL_FROM=no-reply@reform.hmcts.net
       - CARD_PAYMENTS_EMAIL_TO=pepito@grillo.com
@@ -77,7 +75,7 @@ services:
       - PCI_PAL_CALLBACK_URL=https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback
       - ASB_CONNECTION_STRING=some-azure-service-bus-connection-string
       - azure.application-insights.instrumentation-key=dummy
-      - SPRING_PROFILES_ACTIVE=local
+      - RETURNURL_ALLOWED_HOSTNAMES=hmcts.net,gov.uk,localhost
     ports:
       - 8080:8080
     depends_on:
@@ -97,13 +95,12 @@ services:
 
   # service-auth-provider
   service-auth-provider-api:
-    container_name: service-auth-provider-api
-    image: idam-local:1.0
+    image: hmctspublic.azurecr.io/rpe/service-auth-provider
     environment:
       - microserviceKeys_divorce=AAAAAAAAAAAAAAAA
       - microserviceKeys_payment_app=AAAAAAAAAAAAAAAB
     ports:
-      - 8085:23443
+      - 8085:8489
 
   ccfr-fees-api:
     image: hmctspublic.azurecr.io/fees-register/api
@@ -127,4 +124,3 @@ services:
       - POSTGRES_DB=fees_register
     ports:
       - 5182:5432
-
