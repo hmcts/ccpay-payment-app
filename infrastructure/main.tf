@@ -48,35 +48,51 @@ module "payment-database" {
   postgresql_version = "${var.postgresql_version}"
 }
 
+
+module "payment-database-v11" {
+  source = "git@github.com:hmcts/cnp-module-postgres?ref=master"
+  product = join("-", [var.product, "postgres-db"])
+  location = var.location
+  env = var.env
+  postgresql_user = var.postgresql_user
+  database_name = var.database_name
+  sku_name = var.sku_name
+  sku_capacity = var.sku_capacity
+  sku_tier = "GeneralPurpose"
+  common_tags = var.common_tags
+  subscription = var.subscription
+  postgresql_version = var.postgresql_version
+}
+
 # Populate Vault with DB info
 
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name      = join("-", [var.component, "POSTGRES-USER"])
-  value     = module.payment-database.user_name
+  value     = module.payment-database-v11.user_name
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name      = join("-", [var.component, "POSTGRES-PASS"])
-  value     = module.payment-database.postgresql_password
+  value     = module.payment-database-v11.postgresql_password
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
   name      = join("-", [var.component, "POSTGRES-HOST"])
-  value     = module.payment-database.host_name
+  value     = module.payment-database-v11.host_name
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
   name      = join("-", [var.component, "POSTGRES-PORT"])
-  value     = module.payment-database.postgresql_listen_port
+  value     = module.payment-database-v11.postgresql_listen_port
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name      = join("-", [var.component, "POSTGRES-DATABASE"])
-  value     = module.payment-database.postgresql_database
+  value     = module.payment-database-v11.postgresql_database
   key_vault_id = data.azurerm_key_vault.payment_key_vault.id
 }
 
