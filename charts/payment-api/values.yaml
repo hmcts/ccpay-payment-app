@@ -1,6 +1,7 @@
 java:
   image: hmctspublic.azurecr.io/payment/api:latest
   applicationPort: 8080
+  readinessPath: '/health/readiness'
   ingressHost: payment-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: ccpay
   environment:
