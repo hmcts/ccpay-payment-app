@@ -75,7 +75,7 @@ services:
       - PCI_PAL_CALLBACK_URL=https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback
       - ASB_CONNECTION_STRING=some-azure-service-bus-connection-string
       - azure.application-insights.instrumentation-key=dummy
-      - RETURNURL_ALLOWED_HOSTNAMES=hmcts.net,gov.uk,localhost
+      - RETURNURL_ALLOWED_HOSTNAMES=hmcts.net,gov.uk,localhost,core-compute-preview.internal
     ports:
       - 8080:8080
     depends_on:

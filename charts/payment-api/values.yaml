@@ -74,6 +74,7 @@ java:
     PAYMENT_S2S_MICROSERVICE_NAME: payment_app
     PBA_CONFIG1_SERVICE_NAMES: CMC,PROBATE
 
+    RETURNURL_ALLOWED_HOSTNAMES: hmcts.net,gov.uk
 
   keyVaults:
     "ccpay":
