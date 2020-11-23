@@ -1,7 +1,5 @@
 package uk.gov.hmcts.payment.api.service;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -19,10 +17,10 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     @Value("${liberata.api.account.url}")
     private String baseUrl;
 
-    @Override
-     @HystrixCommand(commandKey = "retrievePbaAccount", commandProperties = {
-        @HystrixProperty(name = "execution.timeout.enabled", value = "false")
-    })
+//    @Override
+//     @HystrixCommand(commandKey = "retrievePbaAccount", commandProperties = {
+//        @HystrixProperty(name = "execution.timeout.enabled", value = "false")
+//    })
     public AccountDto retrieve(String pbaCode) {
         return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
