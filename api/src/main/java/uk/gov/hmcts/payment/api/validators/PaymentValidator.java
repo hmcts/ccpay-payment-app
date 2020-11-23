@@ -3,6 +3,8 @@ package uk.gov.hmcts.payment.api.validators;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,8 @@ public class PaymentValidator {
 
     private final DateUtil dateUtil;
 
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentValidator.class);
+
     @Value("#{'${feature.payment.allowed.hostnames}'.split(',')}")
     private List<String> allowedHost;
 
@@ -33,6 +37,7 @@ public class PaymentValidator {
     public PaymentValidator(DateUtil dateUtil) {
         this.dateUtil = dateUtil;
     }
+
 
     public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
@@ -59,7 +64,10 @@ public class PaymentValidator {
 
     public boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
         if(returnUrl != null) {
+            LOG.info("Inside validateReturnUrl: {}",returnUrl);
+            LOG.info("Allowed Host: {}",allowedHost);
             String hostName = getHostName(returnUrl);
+            LOG.info("hostName: {}",hostName);
             if(StringUtils.isNotEmpty(hostName) && validHostName(allowedHost,hostName)){
                 return true;
             }
