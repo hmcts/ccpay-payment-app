@@ -76,21 +76,20 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePbaPaymentsByProbate() {
         // create a PBA payment
-        String accountNumber = "PBA234" + RandomUtils.nextInt();
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00", Service.PROBATE);
-        accountPaymentRequest.setAccountNumber(accountNumber);
+        accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
         // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
+        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
             .then()
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(testProps.existingAccountNumber);
     }
 
     @Test
@@ -107,9 +106,6 @@ public class PBAPaymentFunctionalTest {
         fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
-        // create a PBA payment
-        String accountNumber = "PBA234" + RandomUtils.nextInt();
-
         CreditAccountPaymentRequest accountPaymentRequest = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal("120"))
             .description("New passport application")
@@ -120,7 +116,7 @@ public class PBAPaymentFunctionalTest {
             .siteId("ABA6")
             .customerReference("CUST101")
             .organisationName("ORG101")
-            .accountNumber(accountNumber)
+            .accountNumber(testProps.existingAccountNumber)
             .fees(fees)
             .build();
 
@@ -130,12 +126,12 @@ public class PBAPaymentFunctionalTest {
             .body("status", equalTo("Success"));
 
         // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
+        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
             .then()
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(testProps.existingAccountNumber);
 
         // TEST retrieve payments, remissions and fees by payment-group-reference
         dsl.given().userToken(USER_TOKEN_PAYMENT)
@@ -260,13 +256,13 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void shouldRejectDuplicatePayment() {
         String accountNumber = "PBA333" + RandomUtils.nextInt();
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("550.50", Service.PROBATE);
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("550.50", Service.PROBATE);
         accountPaymentRequest.setAccountNumber(accountNumber);
         // when & then
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
             .statusCode(CREATED.value())
-            .body("status", equalTo("Pending"));
+            .body("status", equalTo("Success"));
 
         // duplicate payment with same details from same user
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
