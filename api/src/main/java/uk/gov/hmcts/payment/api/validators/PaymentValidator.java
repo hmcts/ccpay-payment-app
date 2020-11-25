@@ -1,8 +1,12 @@
 package uk.gov.hmcts.payment.api.validators;
 
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -10,7 +14,10 @@ import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
@@ -21,10 +28,16 @@ public class PaymentValidator {
 
     private final DateUtil dateUtil;
 
+    private static final Logger LOG = LoggerFactory.getLogger(PaymentValidator.class);
+
+    @Value("#{'${feature.payment.allowed.hostnames}'.split(',')}")
+    private List<String> allowedHost;
+
     @Autowired
     public PaymentValidator(DateUtil dateUtil) {
         this.dateUtil = dateUtil;
     }
+
 
     public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
@@ -47,6 +60,33 @@ public class PaymentValidator {
         if (dto.hasErrors()) {
             throw new ValidationErrorException("Error occurred in the payment params", dto);
         }
+    }
+
+    public boolean validateReturnUrl(String returnUrl) throws URISyntaxException {
+        if(returnUrl != null) {
+            LOG.info("Inside validateReturnUrl: {}",returnUrl);
+            LOG.info("Allowed Host: {}",allowedHost);
+            String hostName = getHostName(returnUrl);
+            LOG.info("hostName: {}",hostName);
+            if(StringUtils.isNotEmpty(hostName) && validHostName(allowedHost,hostName)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean validHostName(List<String> allowedHostNames, String hostName){
+        return allowedHostNames.stream().anyMatch(allowedHostName -> hostName.endsWith(allowedHostName));
+    }
+
+    private String getHostName(String url) throws URISyntaxException {
+        URI uri = new URI(url);
+        String hostname = uri.getHost();
+        // to provide faultproof result, check if not null then return only hostname, without www.
+        if (hostname != null) {
+            return hostname.startsWith("www.") ? hostname.substring(4) : hostname;
+        }
+        return hostname;
     }
 
     private Optional<LocalDateTime> parseAndValidateDate(Optional<String> dateTimeString, String fieldName, ValidationErrorDTO dto) {

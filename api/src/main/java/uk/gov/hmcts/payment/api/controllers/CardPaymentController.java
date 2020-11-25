@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import javax.validation.Valid;
 import java.net.URISyntaxException;
@@ -58,6 +59,7 @@ public class CardPaymentController {
     private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
+    private final PaymentValidator paymentValidator;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
@@ -65,7 +67,8 @@ public class CardPaymentController {
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
                                  FF4j ff4j,
-                                 FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler) {
+                                 FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
+                                 PaymentValidator paymentValidator) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
@@ -73,6 +76,7 @@ public class CardPaymentController {
         this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
+        this.paymentValidator = paymentValidator;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -88,6 +92,10 @@ public class CardPaymentController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
+
+        if(!paymentValidator.validateReturnUrl(returnURL)) {
+            return new ResponseEntity("returnUrl: Must be an internal domain of hmcts.net or gov.uk", BAD_REQUEST);
+        }
 
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
@@ -221,7 +229,7 @@ public class CardPaymentController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(PaymentException.class)
+    @ExceptionHandler({PaymentException.class, URISyntaxException.class})
     public String return400(PaymentException ex) {
         return ex.getMessage();
     }
@@ -231,5 +239,4 @@ public class CardPaymentController {
     public String return403(AccessDeniedException ex) {
         return ex.getMessage();
     }
-
 }

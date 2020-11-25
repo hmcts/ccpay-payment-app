@@ -60,6 +60,15 @@
         <notes>Transitive dependency of spring boot version</notes>
         <cve>CVE-2020-5421</cve>
     </suppress>
+    <suppress>
+        <notes>Junit error reference- https://nvd.nist.gov/vuln/detail/CVE-2020-15250</notes>
+        <cve>CVE-2020-15250</cve>
+    </suppress>
+
+    <suppress>
+        <notes>We are currently using wiremock lib to support functional Tests, as a transitive dependency we are having Jetty Lib which is having this CVE</notes>
+        <cve>CVE-2020-27216</cve>
+    </suppress>
 
     <suppress>
         <notes>We are currently using wiremock lib to support functional Tests, as a transitive dependency we are having Jetty Lib which is having this CVE</notes>
@@ -75,6 +84,10 @@
         <notes> False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2007-1652</cve>
+    </suppress>
+    <suppress>
+        <notes>We are currently using wiremock lib to support functional Tests, as a transitive dependency we are having Jetty Lib which is having this CVE</notes>
+        <cve>CVE-2020-27216</cve>
     </suppress>
 
     <suppress>

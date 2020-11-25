@@ -8,7 +8,8 @@ services:
         - http_proxy
         - https_proxy
         - no_proxy
-    image: hmctspublic.azurecr.io/payment/api
+    #Change image version on your needs for testing locally
+    image: hmctspublic.azurecr.io/payment/api:latest
     environment:
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8489
       - auth.idam.client.baseUrl=https://idam-api.aat.platform.hmcts.net
@@ -74,6 +75,7 @@ services:
       - PCI_PAL_CALLBACK_URL=https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback
       - ASB_CONNECTION_STRING=some-azure-service-bus-connection-string
       - azure.application-insights.instrumentation-key=dummy
+      - RETURNURL_ALLOWED_HOSTNAMES=hmcts.net,gov.uk,localhost,core-compute-preview.internal
     ports:
       - 8080:8080
     depends_on:
@@ -121,5 +123,4 @@ services:
       - POSTGRES_PASSWORD=fees_register
       - POSTGRES_DB=fees_register
     ports:
-    - 5182:5432
-
+      - 5182:5432

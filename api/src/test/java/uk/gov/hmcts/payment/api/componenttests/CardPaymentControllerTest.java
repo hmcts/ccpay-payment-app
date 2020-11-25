@@ -1025,6 +1025,68 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
+    @Test
+    public void createCardPayment_withInvalidReturnUrl_shouldReturn400Test() throws Exception {
+        CardPaymentRequest cardPaymentRequest = cardPaymentRequest();
+
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RestActions restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.invalid.uk");
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertEquals("returnUrl: Must be an internal domain of hmcts.net or gov.uk", result.getResponse().getContentAsString());
+
+        restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www");
+
+        result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        assertEquals("returnUrl: Must be an internal domain of hmcts.net or gov.uk", result.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void createCardPayment_withValidReturnUrl_shouldReturn201Test() throws Exception {
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+        CardPaymentRequest cardPaymentRequest = cardPaymentRequest();
+
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RestActions restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
+        restActions
+            .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+        MvcResult result = restActions
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
