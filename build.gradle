@@ -129,7 +129,7 @@ subprojects {
                     }
                 }
             }
-            exclude(module: 'io.micrometer:micrometer-core:1.5.7')
+            exclude(module: 'micrometer-core')
         }
 
     }
