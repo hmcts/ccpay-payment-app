@@ -132,9 +132,7 @@ subprojects {
 
         }
 
-        compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.7.3') {
-            exclude(module:"micrometer-core")
-        }
+
     }
 }
 
