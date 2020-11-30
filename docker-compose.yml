@@ -11,7 +11,7 @@ services:
     image: hmctspublic.azurecr.io/payment/api
     environment:
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8489
-      - auth.idam.client.baseUrl=http ://idam-api:5000
+      - auth.idam.client.baseUrl=http://idam-api:5000
       - idam.s2s-auth.totp_secret=AAAAAAAAAAAAAAAB
       - idam.s2s-auth.microservice=payment_app
       - idam.s2s-auth.url=http://service-auth-provider-api:8489
