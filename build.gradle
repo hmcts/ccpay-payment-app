@@ -122,7 +122,6 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-validation'
 
         compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.7.3') {
-
             sourceSets {
                 main {
                     java {
@@ -133,6 +132,9 @@ subprojects {
 
         }
 
+        compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.7.3') {
+            exclude(module:"micrometer-core")
+        }
     }
 }
 
