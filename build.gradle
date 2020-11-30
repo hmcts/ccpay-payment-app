@@ -121,8 +121,10 @@ subprojects {
 
         implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+        compile (group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'){
+            exclude(module:"micrometer-core")
+        }
         compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.7.3') {
-            exclude(module:"org.springframework.boot:spring-boot-starter-actuator")
             sourceSets {
                 main {
                     java {
