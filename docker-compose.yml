@@ -78,7 +78,6 @@ services:
       - 8083:8080
     depends_on:
       - payments-database
-      - service-auth-provider-api
       - ccfr-fees-api
 
   payments-database:
