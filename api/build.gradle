@@ -122,7 +122,9 @@ dependencies {
     testCompile group: 'org.springframework.security', name: 'spring-security-test', version: '5.0.4.RELEASE'
     testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
     testCompile group: 'org.hsqldb', name: 'hsqldb', version: '2.3.4'
-    testCompile group: 'com.github.tomakehurst', name: 'wiremock'
+    testCompile (group: 'com.github.tomakehurst', name: 'wiremock'){
+        exclude(module:"micrometer-core")
+    }
     testCompile group: 'org.projectlombok', name: 'lombok', version: versions.lombok
     testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.0.7'
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
