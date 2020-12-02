@@ -85,4 +85,10 @@
         <cve>CVE-2020-27216</cve>
     </suppress>
 
+    <suppress>
+        <notes>file name: junit-4.13.1.jar Awaiting patch for Junit : https://deb.freexian.com/extended-lts/tracker/CVE-2020-15250</notes>
+        <packageUrl regex="true">^pkg:maven/junit/junit@.*$</packageUrl>
+        <cve>CVE-2020-15250</cve>
+    </suppress>
+
 </suppressions>
