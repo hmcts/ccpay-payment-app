@@ -27,9 +27,9 @@ services:
       - BAR_PAYMENTS_EMAIL_SUBJECT=Docker Env Bar Payments Reconciliation Report
       - FEATURE_PAYMENTS_SEARCH=true
       - FEES_REGISTER_URL=https://ccfr-fees-api:8080
-      - GOV_PAY_AUTH_KEY_CMC=la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3
-      - GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND=la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3
-      - GOV_PAY_AUTH_KEY_PROBATE_FRONTEND=la0ohpqa9er1bub2hddieeesc6sabbbqn4smkkve7s9ailn3n9d3hbnhc3
+      - GOV_PAY_AUTH_KEY_CMC=dummy_value_1
+      - GOV_PAY_AUTH_KEY_DIVORCE_FRONTEND=dummy_value_2
+      - GOV_PAY_AUTH_KEY_PROBATE_FRONTEND=dummy_value_3
       - GOV_PAY_OPERATIONAL_SERVICES=ccd_gw
       - GOV_PAY_URL=https://publicapi.payments.service.gov.uk/v1/payments
       - payments.report.file.location=.
