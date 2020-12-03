@@ -72,7 +72,7 @@
     </suppress>
 
     <suppress>
-        <notes>False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
+        <notes> False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2007-1652</cve>
     </suppress>
@@ -80,10 +80,12 @@
     <suppress>
         <notes>Jetty jar vulnerability 9.4.27 Need to suppress, This is transitive dependency coming from properties-volume-spring-boot-starter project which is under reform</notes>
         <cve>CVE-2020-27216</cve>
-      
+        <cve>CVE-2020-27218</cve>
+    </suppress>
+
+    <suppress>
         <notes>file name: junit-4.13.1.jar Awaiting patch for Junit : https://deb.freexian.com/extended-lts/tracker/CVE-2020-15250</notes>
         <packageUrl regex="true">^pkg:maven/junit/junit@.*$</packageUrl>
         <cve>CVE-2020-15250</cve>
     </suppress>
-
 </suppressions>
