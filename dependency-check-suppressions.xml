@@ -83,4 +83,9 @@
         <cve>CVE-2020-15250</cve>
     </suppress>
 
+    <suppress>
+        <notes>This suppress specific cve for Jetty Library which is a transitive dependency</notes>
+        <cve>CVE-2020-27218</cve>
+    </suppress>
+
 </suppressions>
