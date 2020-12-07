@@ -82,7 +82,9 @@ dependencies {
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
   compile (group: 'org.springframework.boot', name: 'spring-boot-starter-actuator',version: '2.3.6.RELEASE'){
       exclude(module: "micrometer-core")
+
   }
+  compile group: 'io.micrometer', name: 'micrometer-core', version: '1.6.1'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.1.2.RELEASE'
   compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.9'
