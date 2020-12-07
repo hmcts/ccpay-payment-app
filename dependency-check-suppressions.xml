@@ -88,4 +88,14 @@
         <packageUrl regex="true">^pkg:maven/junit/junit@.*$</packageUrl>
         <cve>CVE-2020-15250</cve>
     </suppress>
+
+    <suppress>
+        <notes>Hibernate core 5.4.12 related issue, its transitive dependency coming from spring boot starter JPA</notes>
+        <cve>CVE-2020-25638</cve>
+    </suppress>
+
+    <suppress>
+        <notes>HTTP Client 4.5.11 suppression, root cause and fix needs to be carried out separately</notes>
+        <cve>CVE-2020-13956</cve>
+    </suppress>
 </suppressions>
