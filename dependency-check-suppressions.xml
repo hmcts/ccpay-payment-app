@@ -78,19 +78,24 @@
     </suppress>
 
     <suppress>
+        <notes>Jetty jar vulnerability 9.4.27 Need to suppress, This is transitive dependency coming from properties-volume-spring-boot-starter project which is under reform</notes>
+        <cve>CVE-2020-27216</cve>
+        <cve>CVE-2020-27218</cve>
+    </suppress>
+
+    <suppress>
         <notes>file name: junit-4.13.1.jar Awaiting patch for Junit : https://deb.freexian.com/extended-lts/tracker/CVE-2020-15250</notes>
         <packageUrl regex="true">^pkg:maven/junit/junit@.*$</packageUrl>
         <cve>CVE-2020-15250</cve>
     </suppress>
 
     <suppress>
-        <notes>This suppress specific cve for Jetty Library which is a transitive dependency</notes>
-        <cve>CVE-2020-27218</cve>
-    </suppress>
-
-    <suppress>
-        <notes>This CVE occured because of hibernate-core which is a transitive dependency of jpa-data and it will be upgraded with spring boot version upgrade.</notes>
+        <notes>Hibernate core 5.4.12 related issue, its transitive dependency coming from spring boot starter JPA</notes>
         <cve>CVE-2020-25638</cve>
     </suppress>
 
+    <suppress>
+        <notes>HTTP Client 4.5.11 suppression, root cause and fix needs to be carried out separately</notes>
+        <cve>CVE-2020-13956</cve>
+    </suppress>
 </suppressions>
