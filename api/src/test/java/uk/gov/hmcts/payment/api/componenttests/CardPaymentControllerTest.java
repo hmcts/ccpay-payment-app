@@ -175,6 +175,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         CardPaymentRequest cardPaymentRequestWithEmptyValues = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("200.11"))
             .currency(CurrencyCode.GBP)
+            .caseReference("Reference1")
+            .ccdCaseNumber("ccdCaseNumber1")
             .description("Test cross field validation")
             .service(Service.CMC)
             .siteId("")
