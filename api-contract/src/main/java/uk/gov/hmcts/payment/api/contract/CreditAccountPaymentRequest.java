@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
+import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 
@@ -56,9 +57,11 @@ public class CreditAccountPaymentRequest {
     @NotEmpty
     private String accountNumber;
 
-    @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
+
+    @JsonProperty("case_type")
+    private String caseType;
 
     @NotEmpty
     @Valid
@@ -67,6 +70,12 @@ public class CreditAccountPaymentRequest {
     @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
     private boolean isEitherOneRequired() {
         return (ccdCaseNumber == null && caseReference == null);
+    }
+
+    @AssertFalse(message = "Either of siteID or caseType must not be empty.")
+    private boolean isEitherIdOrTypeRequired() {
+        return ((StringUtils.isNotEmpty(caseType) && StringUtils.isNotEmpty(siteId)) ||
+            (StringUtils.isEmpty(caseType) && StringUtils.isEmpty(siteId)));
     }
 
     @AssertFalse(message = "Invalid Site ID (URN) provided for FPL. Accepted values are ABA3")

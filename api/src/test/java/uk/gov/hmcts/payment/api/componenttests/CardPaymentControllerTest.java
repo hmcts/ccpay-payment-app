@@ -171,6 +171,30 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    public void createCardPayment_withNeitherSiteIdOrCaseType_shouldReturn422Test() throws Exception {
+        CardPaymentRequest cardPaymentRequestWithEmptyValues = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("200.11"))
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .service(Service.CMC)
+            .siteId("")
+            .caseType("")
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("200.11"))
+                .code("X0001")
+                .version("1")
+                .build())).build();
+
+
+        MvcResult resultWithEmptyValues = restActions
+            .post("/card-payments", cardPaymentRequestWithEmptyValues)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertEquals(resultWithEmptyValues.getResponse().getContentAsString(), "eitherIdOrTypeRequired: Either of siteID or caseType must not be empty.");
+ }
+
+    @Test
     public void retrieveCardPaymentAndMapTheGovPayStatusTest() throws Exception {
         stubFor(get(urlPathMatching("/v1/payments/ia2mv22nl5o880rct0vqfa7k76"))
             .willReturn(aResponse()
