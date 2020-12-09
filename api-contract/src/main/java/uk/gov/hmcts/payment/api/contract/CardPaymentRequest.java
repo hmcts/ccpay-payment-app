@@ -55,22 +55,30 @@ public class CardPaymentRequest {
 
     private String language;
 
-    @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
+
+    @JsonProperty("case_type")
+    private String caseType;
 
     @Valid
     private List<FeeDto> fees;
 
     @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
     private boolean isEitherOneRequired() {
-        return (ccdCaseNumber == null && caseReference == null);
+        return ((ccdCaseNumber == null || ccdCaseNumber.isEmpty()) && (caseReference == null || caseReference.isEmpty()));
     }
 
-    @AssertFalse(message =  "Invalid value for language attribute.")
+    @AssertFalse(message = "Either of siteID or caseType must not be empty.")
+    private boolean isEitherIdOrTypeRequired() {
+        return ((StringUtils.isNotEmpty(caseType) && StringUtils.isNotEmpty(siteId)) ||
+            (StringUtils.isEmpty(caseType) && StringUtils.isEmpty(siteId)));
+    }
+
+    @AssertFalse(message = "Invalid value for language attribute.")
     private boolean isValidLanguage() {
-                return !StringUtils.isBlank(language) && !language.equalsIgnoreCase("string")
-                    && Arrays.stream(Language.values()).noneMatch(language1 ->
-                    language1.getLanguage().equalsIgnoreCase(language));
+        return !StringUtils.isBlank(language) && !language.equalsIgnoreCase("string")
+            && Arrays.stream(Language.values()).noneMatch(language1 ->
+            language1.getLanguage().equalsIgnoreCase(language));
     }
 }
