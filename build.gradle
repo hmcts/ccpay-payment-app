@@ -21,11 +21,9 @@ def versions = [
 configurations.all {
     resolutionStrategy {
         eachDependency { DependencyResolveDetails det ->
-
             if (det.requested.name == 'micrometer-core' && det.requested.group == 'io.micrometer') {
                 det.useVersion '1.6.1'
             }
-
         }
     }
 }
@@ -132,7 +130,15 @@ subprojects {
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         implementation 'org.springframework.boot:spring-boot-starter-validation'
         compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.7.3') {
-            exclude(module: "micrometer-core")
+            configurations.all {
+                resolutionStrategy {
+                    eachDependency { DependencyResolveDetails det ->
+                        if (det.requested.name == 'micrometer-core' && det.requested.group == 'io.micrometer') {
+                            det.useVersion '1.6.1'
+                        }
+                    }
+                }
+            }
             sourceSets {
                 main {
                     java {
