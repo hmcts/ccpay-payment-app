@@ -8,7 +8,8 @@ services:
         - http_proxy
         - https_proxy
         - no_proxy
-    image: hmctspublic.azurecr.io/payment/api
+#    image: hmctspublic.azurecr.io/payment/api
+    image: payment-test:v1
     environment:
       - auth.provider.service.client.baseUrl=http://service-auth-provider-api:8489
       - auth.idam.client.baseUrl=http://idam-api:5000
@@ -74,6 +75,10 @@ services:
       - PCI_PAL_CALLBACK_URL=https://core-api-mgmt-aat.azure-api.net/telephony-api/telephony/callback
       - ASB_CONNECTION_STRING=some-azure-service-bus-connection-string
       - azure.application-insights.instrumentation-key=dummy
+      - core_case_data.api.url=http://localhost:4455
+      - management.endpoint.health.show-details=always
+      -  management.health.probes.enabled=true
+
     ports:
       - 8083:8080
     depends_on:
