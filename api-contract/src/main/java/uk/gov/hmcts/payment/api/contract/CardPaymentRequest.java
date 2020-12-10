@@ -69,10 +69,10 @@ public class CardPaymentRequest {
         return ((ccdCaseNumber == null || ccdCaseNumber.isEmpty()) && (caseReference == null || caseReference.isEmpty()));
     }
 
-    @AssertFalse(message = "Either of siteID or caseType must not be empty.")
+    @AssertFalse(message = "Either of Site ID or Case Type is mandatory as part of the request.")
     private boolean isEitherIdOrTypeRequired() {
-        return ((StringUtils.isNotEmpty(caseType) && StringUtils.isNotEmpty(siteId)) ||
-            (StringUtils.isEmpty(caseType) && StringUtils.isEmpty(siteId)));
+        return ((StringUtils.isNotBlank(caseType) && StringUtils.isNotBlank(siteId)) ||
+            (StringUtils.isBlank(caseType) && StringUtils.isBlank(siteId)));
     }
 
     @AssertFalse(message = "Invalid value for language attribute.")
