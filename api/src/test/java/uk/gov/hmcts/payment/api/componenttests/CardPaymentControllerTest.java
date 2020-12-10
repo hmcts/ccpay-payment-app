@@ -193,7 +193,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertEquals(resultWithEmptyValues.getResponse().getContentAsString(), "eitherIdOrTypeRequired: Either of siteID or caseType must not be empty.");
+        assertEquals(resultWithEmptyValues.getResponse().getContentAsString(), "eitherIdOrTypeRequired: Either of Site ID or Case Type is mandatory as part of the request.");
  }
 
     @Test

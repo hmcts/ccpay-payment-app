@@ -35,6 +35,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.OrgIdService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -80,6 +81,8 @@ public class CreditAccountPaymentProviderTest {
     FeePayApportionService feePayApportionService;
     @Autowired
     LaunchDarklyFeatureToggler featureToggler;
+    @Autowired
+    OrgIdService orgIdService;
 
     @Autowired
     UserIdSupplier userIdSupplierMock;
@@ -123,7 +126,7 @@ public class CreditAccountPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
-                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("PROBATE")));
+                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("PROBATE"), orgIdService));
         context.setTarget(testTarget);
     }
 
