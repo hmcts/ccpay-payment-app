@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.OrgIdService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -58,6 +59,7 @@ public class CardPaymentController {
     private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
+    private final OrgIdService orgIdService;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
@@ -65,7 +67,7 @@ public class CardPaymentController {
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
                                  FF4j ff4j,
-                                 FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler) {
+                                 FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler, OrgIdService orgIdService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
@@ -73,6 +75,7 @@ public class CardPaymentController {
         this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
+        this.orgIdService = orgIdService;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -116,7 +119,7 @@ public class CardPaymentController {
             .ccdCaseNumber(request.getCcdCaseNumber())
             .caseReference(request.getCaseReference())
             .currency(request.getCurrency().getCode())
-            .siteId(request.getSiteId())
+            .siteId(StringUtils.isNotBlank(request.getSiteId()) ? request.getSiteId() : orgIdService.getOrgId(request.getCaseType()))
             .serviceType(request.getService().getName())
             .fees((request.getFees() != null) ? paymentDtoMapper.toFees(request.getFees()) : null)
             .amount(request.getAmount())
@@ -128,7 +131,8 @@ public class CardPaymentController {
             //change language to lower case before sending to gov pay
             .build();
 
-        LOG.info("Language Value : {}",paymentServiceRequest.getLanguage());
+        LOG.info("Language Value : {}", paymentServiceRequest.getLanguage());
+        LOG.info("siteId Value : {}", paymentServiceRequest.getSiteId());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
 
@@ -140,9 +144,9 @@ public class CardPaymentController {
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
         }
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
-        if(apportionFeature) {
+        if (apportionFeature) {
             feePayApportionService.processApportion(paymentLink.getPayments().get(0));
         }
         return new ResponseEntity<>(paymentDto, CREATED);
@@ -183,7 +187,7 @@ public class CardPaymentController {
         if (payment.isPresent()) {
             payment1 = payment.get();
         }
-            return paymentDtoMapper.toPaymentStatusesDto(payment1);
+        return paymentDtoMapper.toPaymentStatusesDto(payment1);
     }
 
     @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")

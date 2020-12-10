@@ -60,7 +60,6 @@ public class CreditAccountPaymentRequest {
     @JsonProperty("site_id")
     private String siteId;
 
-    @JsonProperty("case_type")
     private String caseType;
 
     @NotEmpty
@@ -72,10 +71,10 @@ public class CreditAccountPaymentRequest {
         return (ccdCaseNumber == null && caseReference == null);
     }
 
-    @AssertFalse(message = "Either of siteID or caseType must not be empty.")
+    @AssertFalse(message = "Either of Site ID or Case Type is mandatory as part of the request.")
     private boolean isEitherIdOrTypeRequired() {
-        return ((StringUtils.isNotEmpty(caseType) && StringUtils.isNotEmpty(siteId)) ||
-            (StringUtils.isEmpty(caseType) && StringUtils.isEmpty(siteId)));
+        return ((StringUtils.isNotBlank(caseType) && StringUtils.isNotBlank(siteId)) ||
+            (StringUtils.isBlank(caseType) && StringUtils.isBlank(siteId)));
     }
 
     @AssertFalse(message = "Invalid Site ID (URN) provided for FPL. Accepted values are ABA3")

@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.OrgIdService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -58,6 +59,7 @@ public class CreditAccountPaymentController {
     private final PBAStatusErrorMapper pbaStatusErrorMapper;
     private final CreditAccountPaymentRequestMapper requestMapper;
     private final List<String> pbaConfig1ServiceNames;
+    private final OrgIdService orgIdService;
 
 
     @Autowired
@@ -65,9 +67,9 @@ public class CreditAccountPaymentController {
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
                                           DuplicatePaymentValidator paymentValidator,
-                                          FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
+                                          FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
                                           PBAStatusErrorMapper pbaStatusErrorMapper,
-                                          CreditAccountPaymentRequestMapper requestMapper,  @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
+                                          CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames, OrgIdService orgIdService) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -77,6 +79,7 @@ public class CreditAccountPaymentController {
         this.pbaStatusErrorMapper = pbaStatusErrorMapper;
         this.requestMapper = requestMapper;
         this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
+        this.orgIdService = orgIdService;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -94,7 +97,10 @@ public class CreditAccountPaymentController {
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
+
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
+
+        LOG.info("site Id value : {}", payment.getSiteId());
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
 
