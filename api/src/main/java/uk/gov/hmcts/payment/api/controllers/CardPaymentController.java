@@ -28,8 +28,8 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.OrgIdService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
@@ -59,7 +59,7 @@ public class CardPaymentController {
     private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
-    private final OrgIdService orgIdService;
+    private final ReferenceDataService referenceDataService;
 
     @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
@@ -67,7 +67,7 @@ public class CardPaymentController {
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
                                  FF4j ff4j,
-                                 FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler, OrgIdService orgIdService) {
+                                 FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler, ReferenceDataService referenceDataService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
@@ -75,7 +75,7 @@ public class CardPaymentController {
         this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
-        this.orgIdService = orgIdService;
+        this.referenceDataService = referenceDataService;
     }
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
@@ -119,7 +119,7 @@ public class CardPaymentController {
             .ccdCaseNumber(request.getCcdCaseNumber())
             .caseReference(request.getCaseReference())
             .currency(request.getCurrency().getCode())
-            .siteId(StringUtils.isNotBlank(request.getSiteId()) ? request.getSiteId() : orgIdService.getOrgId(request.getCaseType()))
+            .siteId(StringUtils.isNotBlank(request.getSiteId()) ? request.getSiteId() : referenceDataService.getOrgId(request.getCaseType()))
             .serviceType(request.getService().getName())
             .fees((request.getFees() != null) ? paymentDtoMapper.toFees(request.getFees()) : null)
             .amount(request.getAmount())
