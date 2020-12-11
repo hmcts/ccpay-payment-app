@@ -20,18 +20,22 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.PaymentMethodRepository;
 import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
+import uk.gov.hmcts.payment.api.model.TelephonyRepository;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.govpay.GovPayDelegatingPaymentService;
+import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
+import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 
 @TestConfiguration
@@ -46,7 +50,7 @@ public class CardPaymentProviderTestConfiguration {
     @Bean
     @Primary
     public UserAwareDelegatingPaymentService delegateUserPay() {
-        return new UserAwareDelegatingPaymentService( userIdSupplier,
+        return new UserAwareDelegatingPaymentService(userIdSupplier,
             paymentFeeLinkRepository, delegateGovPay(),
             delegatePciPal,
             paymentChannelRepository,
@@ -54,7 +58,7 @@ public class CardPaymentProviderTestConfiguration {
             paymentProviderRepository,
             paymentStatusRepository,
             paymentRespository,
-            referenceUtil,
+            referenceUtil(),
             govPayAuthUtil,
             serviceIdSupplier(),
             auditRepository,
@@ -67,12 +71,33 @@ public class CardPaymentProviderTestConfiguration {
 
     @Bean
     @Primary
-    public  GovPayDelegatingPaymentService delegateGovPay() {
-        return new GovPayDelegatingPaymentService( govPayKeyRepository,  govPayClient,  serviceIdSupplier(),  govPayAuthUtil);
+    public PaymentServiceImpl paymentService() {
+        return new PaymentServiceImpl(delegateUserPay(),
+            paymentRespository,
+            callbackService,
+            paymentStatusRepository,
+            telephonyRepository,
+            auditRepository,
+            feePayApportionService,
+            feePayApportionRepository,
+            launchDarklyFeatureToggler);
     }
 
-    @MockBean
-    ReferenceUtil referenceUtil;
+    @Bean
+    @Primary
+    public GovPayDelegatingPaymentService delegateGovPay() {
+        return new GovPayDelegatingPaymentService(govPayKeyRepository, govPayClient, serviceIdSupplier(), govPayAuthUtil);
+    }
+
+    @Bean
+    public PaymentValidator paymentValidator() {
+        return new PaymentValidator(dateUtil());
+    }
+
+    @Bean
+    public DateUtil dateUtil() {
+        return new DateUtil();
+    }
 
     @MockBean
     public GovPayKeyRepository govPayKeyRepository;
@@ -81,7 +106,7 @@ public class CardPaymentProviderTestConfiguration {
     public GovPayClient govPayClient;
 
     @MockBean
-    public  DelegatingPaymentService<PciPalPayment, String> delegatePciPal;
+    public DelegatingPaymentService<PciPalPayment, String> delegatePciPal;
 
 
     @MockBean
@@ -96,7 +121,8 @@ public class CardPaymentProviderTestConfiguration {
     public UserIdSupplier userIdSupplier;
     @MockBean
     public PaymentFeeLinkRepository paymentFeeLinkRepository;
-
+    @MockBean
+    public PaymentFeeRepository paymentFeeRepository;
     @MockBean
     public PaymentStatusRepository paymentStatusRepository;
     @MockBean
@@ -118,18 +144,19 @@ public class CardPaymentProviderTestConfiguration {
 
     @Bean
     @Primary
-    public ReferenceUtil referenceUtil(){
+    public ReferenceUtil referenceUtil() {
         return new ReferenceUtil();
-    };
+    }
 
     @MockBean
     public GovPayAuthUtil govPayAuthUtil;
 
     @Bean
     @Primary
-    public ServiceIdSupplier serviceIdSupplier(){
+    public ServiceIdSupplier serviceIdSupplier() {
         return new AuthenticatedServiceIdSupplier();
-    };
+    }
+
     @MockBean
     public AuditRepository auditRepository;
     @MockBean
@@ -137,6 +164,6 @@ public class CardPaymentProviderTestConfiguration {
     @MockBean
     public FeePayApportionRepository feePayApportionRepository;
     @MockBean
-    public PaymentFeeRepository paymentFeeRepository;
+    public TelephonyRepository telephonyRepository;
 
 }
