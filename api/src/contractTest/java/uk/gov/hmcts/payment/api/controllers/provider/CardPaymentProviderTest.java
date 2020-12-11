@@ -104,7 +104,7 @@ public class CardPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
-                feePayApportionService, featureToggler, orgIdService));
+                feePayApportionService, featureToggler, orgIdService, referenceDataService));
         context.setTarget(testTarget);
 
     }
