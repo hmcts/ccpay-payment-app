@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.mapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -24,7 +25,7 @@ public class CreditAccountPaymentRequestMapper {
     @Autowired
     ReferenceDataService referenceDataService;
 
-    public Payment mapPBARequest(CreditAccountPaymentRequest creditAccountPaymentRequest)
+    public Payment mapPBARequest(MultiValueMap<String, String> headers,CreditAccountPaymentRequest creditAccountPaymentRequest)
     {
         return Payment.paymentWith()
             .amount(creditAccountPaymentRequest.getAmount())
@@ -36,7 +37,7 @@ public class CreditAccountPaymentRequestMapper {
             .customerReference(creditAccountPaymentRequest.getCustomerReference())
             .organisationName(creditAccountPaymentRequest.getOrganisationName())
             .pbaNumber(creditAccountPaymentRequest.getAccountNumber())
-            .siteId(StringUtils.isNotBlank(creditAccountPaymentRequest.getSiteId()) ? creditAccountPaymentRequest.getSiteId() : referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType()))
+            .siteId(StringUtils.isNotBlank(creditAccountPaymentRequest.getSiteId()) ? creditAccountPaymentRequest.getSiteId() : referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers))
             .paymentChannel(PaymentChannel.paymentChannelWith().name(PAYMENT_CHANNEL_ONLINE).build())
             .build();
     }
