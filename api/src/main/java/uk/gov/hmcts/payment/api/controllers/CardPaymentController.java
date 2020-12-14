@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
@@ -90,6 +92,8 @@ public class CardPaymentController {
     public ResponseEntity<PaymentDto> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
+        @RequestHeader(value = "Authorization") String authorization,
+        @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
 
         String paymentGroupReference = PaymentReference.getInstance().getNext();
@@ -111,7 +115,9 @@ public class CardPaymentController {
                 .collect(Collectors.toList())
             );
         }
-
+        MultiValueMap<String, String> headersMap = new LinkedMultiValueMap<String, String>();
+        headersMap.add("Authorization",authorization);
+        headersMap.add("ServiceAuthorization",serviceAuthorization);
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .description(Encode.forHtml(request.getDescription()))
@@ -119,7 +125,7 @@ public class CardPaymentController {
             .ccdCaseNumber(request.getCcdCaseNumber())
             .caseReference(request.getCaseReference())
             .currency(request.getCurrency().getCode())
-            .siteId(StringUtils.isNotBlank(request.getSiteId()) ? request.getSiteId() : referenceDataService.getOrgId(request.getCaseType()))
+            .siteId(StringUtils.isNotBlank(request.getSiteId()) ? request.getSiteId() : referenceDataService.getOrgId(request.getCaseType(),headersMap))
             .serviceType(request.getService().getName())
             .fees((request.getFees() != null) ? paymentDtoMapper.toFees(request.getFees()) : null)
             .amount(request.getAmount())
