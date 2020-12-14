@@ -25,7 +25,7 @@ public class CreditAccountPaymentRequestMapper {
     @Autowired
     ReferenceDataService referenceDataService;
 
-    public Payment mapPBARequest(MultiValueMap<String, String> headers,CreditAccountPaymentRequest creditAccountPaymentRequest)
+    public Payment mapPBARequest(CreditAccountPaymentRequest creditAccountPaymentRequest)
     {
         return Payment.paymentWith()
             .amount(creditAccountPaymentRequest.getAmount())
@@ -37,7 +37,7 @@ public class CreditAccountPaymentRequestMapper {
             .customerReference(creditAccountPaymentRequest.getCustomerReference())
             .organisationName(creditAccountPaymentRequest.getOrganisationName())
             .pbaNumber(creditAccountPaymentRequest.getAccountNumber())
-            .siteId(StringUtils.isNotBlank(creditAccountPaymentRequest.getSiteId()) ? creditAccountPaymentRequest.getSiteId() : referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers))
+            .siteId(creditAccountPaymentRequest.getSiteId())
             .paymentChannel(PaymentChannel.paymentChannelWith().name(PAYMENT_CHANNEL_ONLINE).build())
             .build();
     }
