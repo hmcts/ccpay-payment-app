@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,7 +26,7 @@ public class CreditAccountPaymentRequestMapper {
     @Autowired
     ReferenceDataService referenceDataService;
 
-    public Payment mapPBARequest(MultiValueMap<String, String> headers,CreditAccountPaymentRequest creditAccountPaymentRequest)
+    public Payment mapPBARequest(Map<String, String> headers, CreditAccountPaymentRequest creditAccountPaymentRequest)
     {
         return Payment.paymentWith()
             .amount(creditAccountPaymentRequest.getAmount())

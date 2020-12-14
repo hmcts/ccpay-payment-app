@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,19 +10,22 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.OrgServiceDto;
 import uk.gov.hmcts.payment.api.dto.OrgServiceResponse;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ReferenceDataServiceImpl.class);
 
     @Autowired
     private SiteService<Site, String> siteService;
@@ -38,24 +43,26 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     }
 
     @Override
-    public String getOrgId(String caseType,MultiValueMap<String, String> headersMap) {
+    public String getOrgId(String caseType, Map<String, String> headersMap) {
         ResponseEntity<OrgServiceResponse> orgServiceResponse = getResponseFromLocationReference(caseType,headersMap);
+        LOG.info("orgServiceResponse"+orgServiceResponse.getBody().toString());
         String orgId = orgServiceResponse.getBody().getOrgServiceList().get(0).getServiceCode();
         return orgId;
     }
 
 
-    private ResponseEntity<OrgServiceResponse> getResponseFromLocationReference(String caseType, MultiValueMap<String, String> headersMap){
-        return restTemplatePaymentGroup.exchange(locationReferenceUrl + "/refdata/location/orgServices/{ccdCaseType}", HttpMethod.GET, getRequestHeaders(headersMap), OrgServiceResponse.class);
+    private ResponseEntity<OrgServiceResponse> getResponseFromLocationReference(String ccdCaseType, Map<String, String> headersMap){
+        getRequestHeaders(headersMap).getHeaders().forEach((k, v) -> LOG.info(k + ": " + v));
+        LOG.info(ccdCaseType);
+        LOG.info(restTemplatePaymentGroup.toString());
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(locationReferenceUrl + "/refdata/location/orgServices")
+            .queryParam("ccdCaseType", ccdCaseType);
+        return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, getRequestHeaders(headersMap), OrgServiceResponse.class);
     }
 
-    private HttpEntity<String> getRequestHeaders(MultiValueMap<String, String> headersMap){
-        MultiValueMap<String, String> locationRefHeader = new LinkedMultiValueMap<String, String>();
-        //User token
-        locationRefHeader.put("Authorization", headersMap.get("authorization"));
-        //Service token
-        locationRefHeader.put("ServiceAuthorization", headersMap.get("serviceAuthorization"));
-        HttpHeaders headers = new HttpHeaders(locationRefHeader);
+    private HttpEntity<String> getRequestHeaders(Map<String, String> headersMap){
+        HttpHeaders headers = new HttpHeaders();
+        headersMap.forEach((key,value)->headers.set(key,value));
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         return entity;
 
