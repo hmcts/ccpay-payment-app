@@ -27,6 +27,6 @@ public class OrgServiceDto {
     private String serviceCode;
     private String serviceShortDescription;
     private String ccdServiceName;
-    private Date lastUpdated;
+    private Date lastUpdate;
     private List<String> ccdCaseTypes;
 }
