@@ -16,8 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -39,7 +37,9 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -98,16 +98,22 @@ public class CreditAccountPaymentController {
                                                                  @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
         @Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+
+        MultiValueMap<String, String> headers = new HashMap<String, String>();
         if(StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())){
             headers.add("Authorization",authorization);
             headers.add("ServiceAuthorization",serviceAuthorization);
             creditAccountPaymentRequest.setSiteid(referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers));
         }
 
+        LOG.info("Case type"+ creditAccountPaymentRequest.getCaseType());
+
+
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
 
         LOG.info("site Id value : {}", payment.getSiteId());
+
+
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
 
