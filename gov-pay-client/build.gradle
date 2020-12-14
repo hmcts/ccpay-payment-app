@@ -1,5 +1,29 @@
 description = ''
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails det ->
+            if (det.requested.name == 'tomcat-embed-core') {
+                det.useVersion '9.0.41'
+            }
 
+            if (det.requested.name == 'tomcat-embed-websocket') {
+                det.useVersion '9.0.41'
+            }
+
+            if (det.requested.group == 'com.fasterxml.jackson.core') {
+                det.useVersion '2.12.0'
+            }
+
+            if (det.requested.name == 'launchdarkly-java-server-sdk') {
+                det.useVersion '5.2.1'
+            }
+
+            if (det.requested.name == 'handlebars') {
+                det.useVersion '4.2.0'
+            }
+        }
+    }
+}
 dependencies {
     compile group: 'org.springframework', name: 'spring-context', version: '5.1.3.RELEASE'
     compile group: 'org.apache.httpcomponents', name: 'httpclient'
