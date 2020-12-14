@@ -13,12 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.OrgServiceDto;
-import uk.gov.hmcts.payment.api.dto.OrgServiceResponse;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,27 +42,22 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
     @Override
     public String getOrgId(String caseType, Map<String, String> headersMap) {
-        ResponseEntity<OrgServiceResponse> orgServiceResponse = getResponseFromLocationReference(caseType,headersMap);
-        LOG.info("orgServiceResponse"+orgServiceResponse.getBody().toString());
-        String orgId = orgServiceResponse.getBody().getOrgServiceList().get(0).getServiceCode();
+        ResponseEntity<OrgServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType,headersMap);
+        OrgServiceDto[] orgServiceList = orgServiceResponse.getBody();
+        String orgId = orgServiceList[0].getServiceCode();
         return orgId;
     }
 
-
-    private ResponseEntity<OrgServiceResponse> getResponseFromLocationReference(String ccdCaseType, Map<String, String> headersMap){
-        getRequestHeaders(headersMap).getHeaders().forEach((k, v) -> LOG.info(k + ": " + v));
-        LOG.info(ccdCaseType);
-        LOG.info(restTemplatePaymentGroup.toString());
+    private ResponseEntity<OrgServiceDto[]> getResponseFromLocationReference(String ccdCaseType, Map<String, String> headersMap){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(locationReferenceUrl + "/refdata/location/orgServices")
             .queryParam("ccdCaseType", ccdCaseType);
-        return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, getRequestHeaders(headersMap), OrgServiceResponse.class);
+        return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, getRequestHeaders(headersMap), OrgServiceDto[].class);
     }
 
     private HttpEntity<String> getRequestHeaders(Map<String, String> headersMap){
         HttpHeaders headers = new HttpHeaders();
-        headersMap.forEach((key,value)->headers.set(key,value));
+        headersMap.forEach((key,value)->headers.add(key,value));
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         return entity;
-
     }
 }
