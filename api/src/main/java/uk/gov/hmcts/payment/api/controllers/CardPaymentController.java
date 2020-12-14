@@ -12,8 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
@@ -37,6 +35,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.Valid;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -115,9 +115,9 @@ public class CardPaymentController {
                 .collect(Collectors.toList())
             );
         }
-        MultiValueMap<String, String> headersMap = new LinkedMultiValueMap<String, String>();
-        headersMap.add("Authorization",authorization);
-        headersMap.add("ServiceAuthorization",serviceAuthorization);
+        Map<String, String> headersMap = new HashMap<String, String>();
+        headersMap.put("Authorization",authorization);
+        headersMap.put("ServiceAuthorization",serviceAuthorization);
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .description(Encode.forHtml(request.getDescription()))
