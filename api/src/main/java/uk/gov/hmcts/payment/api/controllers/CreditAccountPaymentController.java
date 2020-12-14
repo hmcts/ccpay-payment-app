@@ -6,6 +6,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +99,13 @@ public class CreditAccountPaymentController {
         @Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-        headers.add("Authorization",authorization);
-        headers.add("ServiceAuthorization",serviceAuthorization);
+        if(StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())){
+            headers.add("Authorization",authorization);
+            headers.add("ServiceAuthorization",serviceAuthorization);
+            creditAccountPaymentRequest.setSiteid(referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers));
+        }
 
-        final Payment payment = requestMapper.mapPBARequest(headers, creditAccountPaymentRequest);
+        final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
 
         LOG.info("site Id value : {}", payment.getSiteId());
 
