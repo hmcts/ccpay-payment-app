@@ -60,6 +60,7 @@ public class CreditAccountPaymentRequest {
     @JsonProperty("site_id")
     private String siteId;
 
+    @JsonProperty("case_type")
     private String caseType;
 
     @NotEmpty
