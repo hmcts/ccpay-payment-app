@@ -98,7 +98,8 @@ public class CreditAccountPaymentController {
         @Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
         Map<String, String> headers =  new HashMap<String, String>();
-        headers.put("Authorization",authorization);
+        LOG.info(authorization);
+        headers.put("Authorization","Bearer "+authorization);
         headers.put("ServiceAuthorization",serviceAuthorization);
         LOG.info("Case type"+ creditAccountPaymentRequest.getCaseType());
 
