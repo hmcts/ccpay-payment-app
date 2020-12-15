@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.dto.CardPaymentResponse;
-import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
-import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
@@ -85,7 +83,7 @@ public class CardPaymentController {
     @PostMapping(value = "/card-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCardPayment(
+    public ResponseEntity<CardPaymentCreatedResponse> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
@@ -131,14 +129,14 @@ public class CardPaymentController {
 
         LOG.info("Language Value : {}",paymentServiceRequest.getLanguage());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
-        PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
+        CardPaymentCreatedResponse paymentCreatedResponse = paymentDtoMapper.toCardPaymentDto(paymentLink);
 
         if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
-                .orderReference(paymentDto.getReference()).build();
+                .orderReference(paymentCreatedResponse.getReference()).build();
             pciPalPaymentRequest.setCustomData2(paymentLink.getPayments().get(0).getCcdCaseNumber());
             String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
-            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
+            paymentCreatedResponse = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
         }
         // trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -146,7 +144,7 @@ public class CardPaymentController {
         if(apportionFeature) {
             feePayApportionService.processApportion(paymentLink.getPayments().get(0));
         }
-        return new ResponseEntity<>(paymentDto, CREATED);
+        return new ResponseEntity<>(paymentCreatedResponse, CREATED);
     }
 
     @ApiOperation(value = "Get card payment details by payment reference", notes = "Get payment details for supplied payment reference")
@@ -176,7 +174,7 @@ public class CardPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/card-payments/{reference}/statuses")
-    public PaymentDto retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
+    public CardPaymentStatusResponse retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieve(paymentReference);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();

@@ -16,7 +16,9 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.dto.CardPaymentCreatedResponse;
 import uk.gov.hmcts.payment.api.dto.CardPaymentResponse;
+import uk.gov.hmcts.payment.api.dto.CardPaymentStatusResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -41,9 +43,9 @@ public class PaymentDtoMapper {
     private LaunchDarklyFeatureToggler featureToggler;
 
 
-    public PaymentDto toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
+    public CardPaymentCreatedResponse toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return PaymentDto.payment2DtoWith()
+        return CardPaymentCreatedResponse.cardPaymentCreatedWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
@@ -104,9 +106,9 @@ public class PaymentDtoMapper {
 
 
 
-    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
+    public CardPaymentCreatedResponse toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return PaymentDto.payment2DtoWith()
+        return CardPaymentCreatedResponse.cardPaymentCreatedWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
@@ -190,8 +192,8 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toPaymentStatusesDto(Payment payment) {
-        return PaymentDto.payment2DtoWith()
+    public CardPaymentStatusResponse toPaymentStatusesDto(Payment payment) {
+        return CardPaymentStatusResponse.cardPaymentStatusWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .paymentGroupReference(payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null)
