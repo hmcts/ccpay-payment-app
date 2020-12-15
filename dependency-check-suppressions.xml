@@ -90,11 +90,6 @@
     </suppress>
 
     <suppress>
-        <notes>This suppress specific cve for Jetty Library which is a transitive dependency</notes>
-        <cve>CVE-2020-27218</cve>
-    </suppress>
-
-    <suppress>
         <notes>Hibernate core 5.4.12 related issue, its transitive dependency coming from spring boot starter JPA</notes>
         <cve>CVE-2020-25638</cve>
     </suppress>
