@@ -13,11 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
@@ -41,9 +39,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -107,9 +103,9 @@ public class CreditAccountPaymentController {
 
         if(StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())){
             try{
-            creditAccountPaymentRequest.setSiteId(referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers));
-            }catch(HttpClientErrorException e){
-                LOG.error("ORG id Ref error {} ",e.getRawStatusCode());
+                creditAccountPaymentRequest.setSiteId(referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers));
+            } catch (HttpClientErrorException e) {
+                LOG.error("ORG ID Ref error status {} ", e.getMessage());
                 throw new PaymentException("Payment creation failed, Please try again later.");
             }
         }
@@ -120,6 +116,8 @@ public class CreditAccountPaymentController {
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
+
+        LOG.info("payment site map  Id"+ payment.getSiteId());
 
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
