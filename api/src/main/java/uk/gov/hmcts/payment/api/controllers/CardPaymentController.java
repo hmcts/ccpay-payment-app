@@ -120,8 +120,8 @@ public class CardPaymentController {
         if(StringUtils.isBlank(request.getSiteId())){
             try {
                 request.setSiteId(referenceDataService.getOrgId(request.getCaseType(), headers));
-            } catch(HttpClientErrorException e){
-                LOG.error("ORG id Ref error {} ",e.getRawStatusCode());
+            } catch (HttpClientErrorException e) {
+                LOG.error("ORG ID Ref error status {} ", e.getMessage());
                 throw new PaymentException("Payment creation failed, Please try again later.");
             }
         }
