@@ -10,10 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.model.*;
@@ -230,9 +227,9 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+    public CasePaymentResponse toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+        CasePaymentResponse casePaymentResponse = CasePaymentResponse.casePaymentResponseWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .serviceName(payment.getServiceType())
@@ -256,10 +253,10 @@ public class PaymentDtoMapper {
             .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
-        return enrichWithFeeData(paymentDto);
+        return (CasePaymentResponse)enrichWithFeeData(casePaymentResponse);
     }
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
+    public LiberataReconciliationPaymentResponse toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
         boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -268,7 +265,7 @@ public class PaymentDtoMapper {
         LOG.info("isBulkScanPayment value in PaymentDtoMapper: {}",isBulkScanPayment);
         LOG.info("apportionFeature value in PaymentDtoMapper: {}",apportionFeature);
         LOG.info("apportionCheck value in PaymentDtoMapper: {}",apportionCheck);
-            PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+        LiberataReconciliationPaymentResponse reconciliationPaymentResponse = LiberataReconciliationPaymentResponse.liberataPaymentReconciliationResponse()
                 .paymentReference(payment.getReference())
                 .paymentGroupReference(apportionCheck ? null : paymentReference)
                 .serviceName(payment.getServiceType())
@@ -294,14 +291,14 @@ public class PaymentDtoMapper {
                 .build();
 
         if (bulkScanCheck && isBulkScanPayment) {
-            paymentDto.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
+            reconciliationPaymentResponse.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
         }
-        return enrichWithFeeData(paymentDto);
+        return (LiberataReconciliationPaymentResponse)enrichWithFeeData(reconciliationPaymentResponse);
     }
 
 
-    private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
-        paymentDto.getFees().forEach(fee -> {
+    private PaymentResponse enrichWithFeeData(PaymentResponse paymentResponse) {
+        paymentResponse.getFees().forEach(fee -> {
             Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
             if (optFrFeeMap.isPresent()) {
                 Map<String, Fee2Dto> frFeeMap = optFrFeeMap.get();
@@ -321,7 +318,7 @@ public class PaymentDtoMapper {
                 }
             }
         });
-        return paymentDto;
+        return paymentResponse;
     }
 
     private List<FeeDto> toFeeDtos(List<PaymentFee> fees) {

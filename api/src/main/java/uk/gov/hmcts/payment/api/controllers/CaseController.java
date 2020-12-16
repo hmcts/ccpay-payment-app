@@ -4,7 +4,9 @@ import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.contract.CasePaymentResponse;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentResponse;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
@@ -49,9 +51,9 @@ public class CaseController {
     })
     @RequestMapping(value = "/cases/{case}/payments", method = GET)
     @PaymentExternalAPI
-    public PaymentsResponse retrieveCasePayments(@PathVariable(name = "case") String ccdCaseNumber) {
+    public CasePaymentResponse retrieveCasePayments(@PathVariable(name = "case") String ccdCaseNumber) {
 
-        List<PaymentDto> payments = paymentService
+        List<CasePaymentResponse> payments = paymentService
             .search(PaymentSearchCriteria.searchCriteriaWith().ccdCaseNumber(ccdCaseNumber).build())
             .stream()
             .map(paymentDtoMapper::toReconciliationResponseDto)
