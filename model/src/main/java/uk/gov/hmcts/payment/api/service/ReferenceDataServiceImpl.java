@@ -10,6 +10,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.OrgServiceDto;
@@ -17,6 +19,7 @@ import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -28,8 +31,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Autowired
     private SiteService<Site, String> siteService;
 
-    @Autowired()
-    @Qualifier("restTemplatePaymentGroup")
+    @Autowired
     private RestTemplate restTemplatePaymentGroup;
 
     @Value("${location.ref.url}")
@@ -41,23 +43,24 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     }
 
     @Override
-    public String getOrgId(String caseType, Map<String, String> headersMap) {
-        ResponseEntity<OrgServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType,headersMap);
+    public String getOrgId(String caseType, MultiValueMap<String, String> headers) {
+        ResponseEntity<OrgServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType,headers);
         OrgServiceDto[] orgServiceList = orgServiceResponse.getBody();
         String orgId = orgServiceList[0].getServiceCode();
         return orgId;
     }
 
-    private ResponseEntity<OrgServiceDto[]> getResponseFromLocationReference(String ccdCaseType, Map<String, String> headersMap){
+    private ResponseEntity<OrgServiceDto[]> getResponseFromLocationReference(String ccdCaseType, MultiValueMap<String, String>headers){
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(locationReferenceUrl + "/refdata/location/orgServices")
             .queryParam("ccdCaseType", ccdCaseType);
-        return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, getRequestHeaders(headersMap), OrgServiceDto[].class);
+        return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, getRequestHeaders(headers), OrgServiceDto[].class);
     }
 
-    private HttpEntity<String> getRequestHeaders(Map<String, String> headersMap){
-        HttpHeaders headers = new HttpHeaders();
-        headersMap.forEach((key,value)->headers.add(key,value));
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-        return entity;
+    private HttpEntity<String> getRequestHeaders(MultiValueMap<String, String> headers) {
+        MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
+        headerMultiValueMap.put("Authorization", Collections.singletonList("Bearer " + headers.getFirst("authorization")));
+        headerMultiValueMap.put("ServiceAuthorization",headers.get("serviceauthorization"));
+        HttpHeaders httpHeaders= new HttpHeaders(headerMultiValueMap);
+        return new HttpEntity<>(httpHeaders);
     }
 }
