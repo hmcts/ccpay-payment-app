@@ -99,4 +99,10 @@
         <cve>CVE-2020-13956</cve>
     </suppress>
 
+    <suppress>
+        <notes>Launch-darkley jar uses guava@28.2-jre as an internal library and it is not exposed outside. Since it cannot be upgraded,
+            this supression is added. </notes>
+        <cve>CVE-2020-8908</cve>
+    </suppress>
+
 </suppressions>
