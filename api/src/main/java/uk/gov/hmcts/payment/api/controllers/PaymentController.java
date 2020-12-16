@@ -132,7 +132,7 @@ public class PaymentController {
                     .build()
             );
 
-        final List<LiberataReconciliationPaymentResponse> liberataResponse = new ArrayList<>();
+        final List<LiberataReconciliationPaymentDto> liberataResponse = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", paymentFeeLinks.size());
         for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
             populatePaymentDtos(liberataResponse, paymentFeeLink);
@@ -188,7 +188,7 @@ public class PaymentController {
             .filter(p -> p.getReference().equals(reference)).findAny();
     }
 
-    private void populatePaymentDtos(final List<LiberataReconciliationPaymentResponse> liberataPaymentResponse, final PaymentFeeLink paymentFeeLink) {
+    private void populatePaymentDtos(final List<LiberataReconciliationPaymentDto> liberataPaymentResponse, final PaymentFeeLink paymentFeeLink) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -214,7 +214,7 @@ public class PaymentController {
                 }
             }
             //End of Apportion logic
-            final LiberataReconciliationPaymentResponse reconciliationPaymentResponse = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
+            final LiberataReconciliationPaymentDto reconciliationPaymentResponse = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
             liberataPaymentResponse.add(reconciliationPaymentResponse);
         }
     }

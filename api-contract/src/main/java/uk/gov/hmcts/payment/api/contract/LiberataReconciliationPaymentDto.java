@@ -23,7 +23,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class LiberataReconciliationPaymentResponse extends PaymentResponse{
+public class LiberataReconciliationPaymentDto extends PaymentResponse{
     private String paymentReference;
 
     private String paymentGroupReference;

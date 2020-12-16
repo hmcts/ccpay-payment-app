@@ -7,6 +7,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
@@ -471,7 +472,7 @@ public class PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
     }
 
-    protected void assertPbaPayments(List<PaymentDto> payments) {
+    protected void assertPbaPayments(List<ReconciliationPaymentDto> payments) {
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");

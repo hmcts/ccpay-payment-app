@@ -252,7 +252,7 @@ public class PaymentDtoMapper {
         return (ReconciliationPaymentDto)enrichWithFeeData(casePaymentResponse);
     }
 
-    public LiberataReconciliationPaymentResponse toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
+    public LiberataReconciliationPaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j, boolean isPaymentAfterApportionment) {
         boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -261,7 +261,7 @@ public class PaymentDtoMapper {
         LOG.info("isBulkScanPayment value in PaymentDtoMapper: {}",isBulkScanPayment);
         LOG.info("apportionFeature value in PaymentDtoMapper: {}",apportionFeature);
         LOG.info("apportionCheck value in PaymentDtoMapper: {}",apportionCheck);
-        LiberataReconciliationPaymentResponse reconciliationPaymentResponse = LiberataReconciliationPaymentResponse.liberataPaymentReconciliationResponse()
+        LiberataReconciliationPaymentDto reconciliationPaymentResponse = LiberataReconciliationPaymentDto.liberataPaymentReconciliationResponse()
                 .paymentReference(payment.getReference())
                 .paymentGroupReference(apportionCheck ? null : paymentReference)
                 .serviceName(payment.getServiceType())
@@ -289,7 +289,7 @@ public class PaymentDtoMapper {
         if (bulkScanCheck && isBulkScanPayment) {
             reconciliationPaymentResponse.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
         }
-        return (LiberataReconciliationPaymentResponse)enrichWithFeeData(reconciliationPaymentResponse);
+        return (LiberataReconciliationPaymentDto)enrichWithFeeData(reconciliationPaymentResponse);
     }
 
 
