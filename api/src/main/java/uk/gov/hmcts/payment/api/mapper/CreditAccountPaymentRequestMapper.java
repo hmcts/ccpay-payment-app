@@ -23,9 +23,6 @@ public class CreditAccountPaymentRequestMapper {
     @Autowired
     private CreditAccountDtoMapper creditAccountDtoMapper;
 
-    @Autowired
-    ReferenceDataService referenceDataService;
-
     public Payment mapPBARequest(CreditAccountPaymentRequest creditAccountPaymentRequest)
     {
         return Payment.paymentWith()

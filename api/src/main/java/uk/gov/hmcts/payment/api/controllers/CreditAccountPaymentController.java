@@ -13,9 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -31,6 +34,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -64,6 +68,9 @@ public class CreditAccountPaymentController {
 
 
     @Autowired
+    ReferenceDataService referenceDataService;
+
+    @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
@@ -94,26 +101,23 @@ public class CreditAccountPaymentController {
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCreditAccountPayment(@RequestHeader(value = "Authorization") String authorization,
-                                                                 @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
+    public ResponseEntity<PaymentDto> createCreditAccountPayment(@RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        MultiValueMap<String, String> headers = new HashMap<String, String>();
         if(StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())){
-            headers.add("Authorization",authorization);
-            headers.add("ServiceAuthorization",serviceAuthorization);
-            creditAccountPaymentRequest.setSiteid(referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers));
+            try{
+            creditAccountPaymentRequest.setSiteId(referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers));
+            }catch(HttpClientErrorException e){
+                LOG.error("ORG id Ref error {} ",e.getRawStatusCode());
+                throw new PaymentException("Payment creation failed, Please try again later.");
+            }
         }
 
         LOG.info("Case type"+ creditAccountPaymentRequest.getCaseType());
-
+        LOG.info("Site Id"+ creditAccountPaymentRequest.getSiteId());
 
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
-
-        LOG.info("site Id value : {}", payment.getSiteId());
-
-
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
 

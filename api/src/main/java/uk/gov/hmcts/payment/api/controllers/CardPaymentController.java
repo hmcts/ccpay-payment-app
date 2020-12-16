@@ -12,7 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -92,10 +95,8 @@ public class CardPaymentController {
     public ResponseEntity<PaymentDto> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
-        @RequestHeader(value = "Authorization") String authorization,
-        @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
-
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
@@ -115,9 +116,16 @@ public class CardPaymentController {
                 .collect(Collectors.toList())
             );
         }
-        Map<String, String> headersMap = new HashMap<String, String>();
-        headersMap.put("Authorization",authorization);
-        headersMap.put("ServiceAuthorization",serviceAuthorization);
+
+        if(StringUtils.isBlank(request.getSiteId())){
+            try {
+                request.setSiteId(referenceDataService.getOrgId(request.getCaseType(), headers));
+            } catch(HttpClientErrorException e){
+                LOG.error("ORG id Ref error {} ",e.getRawStatusCode());
+                throw new PaymentException("Payment creation failed, Please try again later.");
+            }
+        }
+
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
             .description(Encode.forHtml(request.getDescription()))
@@ -125,7 +133,7 @@ public class CardPaymentController {
             .ccdCaseNumber(request.getCcdCaseNumber())
             .caseReference(request.getCaseReference())
             .currency(request.getCurrency().getCode())
-            .siteId(StringUtils.isNotBlank(request.getSiteId()) ? request.getSiteId() : referenceDataService.getOrgId(request.getCaseType(),headersMap))
+            .siteId(request.getSiteId())
             .serviceType(request.getService().getName())
             .fees((request.getFees() != null) ? paymentDtoMapper.toFees(request.getFees()) : null)
             .amount(request.getAmount())
