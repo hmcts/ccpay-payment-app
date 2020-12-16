@@ -373,7 +373,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         assertThat(payments.getPayments().size()).isEqualTo(2);
 
-        PaymentDto payment = payments.getPayments().get(0);
+        LiberataReconciliationPaymentDto payment = payments.getPayments().get(0);
 
         assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
 
@@ -406,8 +406,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> payments = paymentsResponse.getPayments();
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = paymentsResponse.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
@@ -447,7 +447,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
         assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
 
     }
@@ -572,7 +572,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
 
         assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
 
@@ -599,7 +599,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
 
         assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
 
@@ -772,8 +772,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> payments = paymentsResponse.getPayments();
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = paymentsResponse.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
@@ -812,8 +812,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> payments = paymentsResponse.getPayments();
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = paymentsResponse.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
@@ -875,8 +875,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(2);
     }
@@ -899,8 +899,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(2);
     }
@@ -924,8 +924,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(2);
 
@@ -978,8 +978,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
@@ -1000,7 +1000,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
         payments = response.getPayments();
         assertNotNull(payments);
         payments.stream().forEach(p -> {
@@ -1031,8 +1031,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
@@ -1053,7 +1053,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
         payments = response.getPayments();
         assertNotNull(payments);
         payments.stream().forEach(p -> {
@@ -1095,8 +1095,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
 
@@ -1133,8 +1133,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1160,8 +1160,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1188,8 +1188,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1216,8 +1216,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1244,8 +1244,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1272,8 +1272,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1299,8 +1299,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1326,8 +1326,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1352,8 +1352,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1393,8 +1393,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1431,8 +1431,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1459,8 +1459,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1487,8 +1487,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
@@ -1515,8 +1515,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(0);
     }
@@ -1540,8 +1540,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
 

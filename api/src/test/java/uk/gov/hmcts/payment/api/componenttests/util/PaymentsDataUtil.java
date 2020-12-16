@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
+import uk.gov.hmcts.payment.api.contract.LiberataReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
@@ -538,7 +539,7 @@ public class PaymentsDataUtil {
         return feePayApportion;
     }
 
-    protected void assertPbaPaymentsForLibereta(List<PaymentDto> payments) {
+    protected void assertPbaPaymentsForLibereta(List<LiberataReconciliationPaymentDto> payments) {
         assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
