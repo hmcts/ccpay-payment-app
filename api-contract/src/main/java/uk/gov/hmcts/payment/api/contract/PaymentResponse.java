@@ -70,5 +70,4 @@ public class PaymentResponse {
 
     @NotNull
     private List<FeeDto> fees;
-
 }

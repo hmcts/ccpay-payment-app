@@ -4,10 +4,8 @@ import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.contract.CasePaymentResponse;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentResponse;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
@@ -51,9 +49,9 @@ public class CaseController {
     })
     @RequestMapping(value = "/cases/{case}/payments", method = GET)
     @PaymentExternalAPI
-    public CasePaymentResponse retrieveCasePayments(@PathVariable(name = "case") String ccdCaseNumber) {
+    public ReconciliationPaymentsResponse retrieveCasePayments(@PathVariable(name = "case") String ccdCaseNumber) {
 
-        List<CasePaymentResponse> payments = paymentService
+        List<ReconciliationPaymentDto> payments = paymentService
             .search(PaymentSearchCriteria.searchCriteriaWith().ccdCaseNumber(ccdCaseNumber).build())
             .stream()
             .map(paymentDtoMapper::toReconciliationResponseDto)
@@ -63,7 +61,7 @@ public class CaseController {
             throw new PaymentNotFoundException();
         }
 
-        return new PaymentsResponse(payments);
+        return new ReconciliationPaymentsResponse(payments);
     }
 
 

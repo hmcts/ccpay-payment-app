@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.reports;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -61,13 +61,13 @@ public class PaymentsReportService {
 
         LOG.info("Start of payments csv report for method type :{} and service name :{}", paymentMethodType, serviceName);
 
-        List<PaymentDto> cardPaymentsCsvData = findPaymentsBy(startDate, endDate, paymentMethodType, serviceName);
+        List<ReconciliationPaymentDto> cardPaymentsCsvData = findPaymentsBy(startDate, endDate, paymentMethodType, serviceName);
         generateCsvAndSendEmail(cardPaymentsCsvData, reportConfig);
 
         LOG.info("End of payments csv report for method type :{} and service name :{}", paymentMethodType, serviceName);
     }
 
-    private List<PaymentDto> findPaymentsBy(Date startDate, Date endDate, PaymentMethodType paymentMethodType, Service serviceName) {
+    private List<ReconciliationPaymentDto> findPaymentsBy(Date startDate, Date endDate, PaymentMethodType paymentMethodType, Service serviceName) {
         String serviceType = Optional.ofNullable(serviceName).map(Service::getName).orElse(null);
         String paymentMethodTypeString = Optional.ofNullable(paymentMethodType).map(PaymentMethodType::getType).orElse(null);
 
@@ -85,7 +85,7 @@ public class PaymentsReportService {
             .collect(Collectors.toList());
     }
 
-    private void generateCsvAndSendEmail(List<PaymentDto> payments, PaymentReportConfig reportConfig) {
+    private void generateCsvAndSendEmail(List<ReconciliationPaymentDto> payments, PaymentReportConfig reportConfig) {
         String paymentsCsvFileName = reportConfig.getCsvFileNamePrefix() + LocalDateTime.now().format(formatter) + PAYMENTS_CSV_FILE_EXTENSION;
         byte[] paymentsByteArray = createPaymentsCsvByteArray(payments, paymentsCsvFileName, reportConfig);
         Email email = Email.emailWith()
@@ -103,12 +103,12 @@ public class PaymentsReportService {
         LOG.info("PaymentsReportService - Payments report email sent to " + Arrays.toString(email.getTo()));
     }
 
-    private byte[] createPaymentsCsvByteArray(List<PaymentDto> payments, String paymentsCsvFileName, PaymentReportConfig reportConfig) {
+    private byte[] createPaymentsCsvByteArray(List<ReconciliationPaymentDto> payments, String paymentsCsvFileName, PaymentReportConfig reportConfig) {
         byte[] paymentsCsvByteArray = null;
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             bos.write(reportConfig.getCsvHeader().getBytes(utf8));
             bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes(utf8));
-            for (PaymentDto payment : payments) {
+            for (ReconciliationPaymentDto payment : payments) {
                 bos.write(reportConfig.getCsvRecord(payment).getBytes(utf8));
                 bos.write(BYTE_ARRAY_OUTPUT_STREAM_NEWLINE.getBytes(utf8));
             }

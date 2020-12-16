@@ -96,10 +96,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-
-
-
-
     public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
@@ -195,8 +191,8 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toGetPaymentResponseDtos(Payment payment) {
-        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+    public GetPaymentResponse toGetPaymentResponseDtos(Payment payment) {
+        GetPaymentResponse getPaymentResponse = GetPaymentResponse.getPaymentResponseWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null)
             .serviceName(payment.getServiceType())
@@ -224,12 +220,12 @@ public class PaymentDtoMapper {
             .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toGetPaymentFeeDtos(payment.getPaymentLink() != null ? payment.getPaymentLink().getFees() : new ArrayList<>()))
             .build();
-        return enrichWithFeeData(paymentDto);
+        return (GetPaymentResponse)enrichWithFeeData(getPaymentResponse);
     }
 
-    public CasePaymentResponse toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
+    public ReconciliationPaymentDto toReconciliationResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        CasePaymentResponse casePaymentResponse = CasePaymentResponse.casePaymentResponseWith()
+        ReconciliationPaymentDto casePaymentResponse = ReconciliationPaymentDto.casePaymentResponseWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .serviceName(payment.getServiceType())
@@ -253,7 +249,7 @@ public class PaymentDtoMapper {
             .reportedDateOffline(payment.getReportedDateOffline())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .build();
-        return (CasePaymentResponse)enrichWithFeeData(casePaymentResponse);
+        return (ReconciliationPaymentDto)enrichWithFeeData(casePaymentResponse);
     }
 
     public LiberataReconciliationPaymentResponse toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {

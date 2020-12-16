@@ -13,9 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -99,7 +97,7 @@ public class PaymentController {
     })
     @GetMapping(value = "/payments")
     @PaymentExternalAPI
-    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+    public LiberataPaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                              @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                              @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                              @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -134,12 +132,12 @@ public class PaymentController {
                     .build()
             );
 
-        final List<PaymentDto> paymentDtos = new ArrayList<>();
+        final List<LiberataReconciliationPaymentResponse> liberataResponse = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", paymentFeeLinks.size());
         for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
-            populatePaymentDtos(paymentDtos, paymentFeeLink);
+            populatePaymentDtos(liberataResponse, paymentFeeLink);
         }
-        return new PaymentsResponse(paymentDtos);
+        return new LiberataPaymentsResponse(liberataResponse);
     }
 
     @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
@@ -172,7 +170,7 @@ public class PaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/payments/{reference}")
-    public PaymentDto retrievePayment(@PathVariable("reference") String paymentReference) {
+    public GetPaymentResponse retrievePayment(@PathVariable("reference") String paymentReference) {
 
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
@@ -190,7 +188,7 @@ public class PaymentController {
             .filter(p -> p.getReference().equals(reference)).findAny();
     }
 
-    private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink) {
+    private void populatePaymentDtos(final List<LiberataReconciliationPaymentResponse> liberataPaymentResponse, final PaymentFeeLink paymentFeeLink) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -216,8 +214,8 @@ public class PaymentController {
                 }
             }
             //End of Apportion logic
-            final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
-            paymentDtos.add(paymentDto);
+            final LiberataReconciliationPaymentResponse reconciliationPaymentResponse = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
+            liberataPaymentResponse.add(reconciliationPaymentResponse);
         }
     }
 

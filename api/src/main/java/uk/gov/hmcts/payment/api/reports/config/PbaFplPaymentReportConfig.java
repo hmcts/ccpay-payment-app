@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.reports.PaymentReportType;
 
 @Component
@@ -43,7 +43,7 @@ public class PbaFplPaymentReportConfig implements PaymentReportConfig {
     }
 
     @Override
-    public String getCsvRecord(PaymentDto paymentDto) {
+    public String getCsvRecord(ReconciliationPaymentDto paymentDto) {
         return paymentDto.toCreditAccountPaymentCsv();
     }
 

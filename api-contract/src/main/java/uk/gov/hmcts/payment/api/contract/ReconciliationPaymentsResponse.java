@@ -12,8 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PaymentsResponse {
+public class ReconciliationPaymentsResponse {
 
-    private List<PaymentResponse> payments;
-
+    private List<ReconciliationPaymentDto> payments;
 }

@@ -12,8 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PaymentsResponse {
-
-    private List<PaymentResponse> payments;
-
+public class LiberataPaymentsResponse {
+    private List<LiberataReconciliationPaymentResponse> payments;
 }
