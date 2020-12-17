@@ -22,9 +22,11 @@ import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.ReplayCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
@@ -51,6 +53,11 @@ public class ReplayCreditAccountPaymentController {
     private final CreditAccountPaymentRequestMapper requestMapper;
     private final List<String> pbaConfig1ServiceNames;
 
+    private final ReplayCreditAccountPaymentService replayCreditAccountPaymentService;
+    private final CreditAccountPaymentController creditAccountPaymentController;
+
+    private final static String PAYMENT_STATUS_HISTORY_MESSAGE = "System Failure. Not charged";
+
 
     @Autowired
     public ReplayCreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
@@ -59,7 +66,9 @@ public class ReplayCreditAccountPaymentController {
                                                 DuplicatePaymentValidator paymentValidator,
                                                 FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
                                                 PBAStatusErrorMapper pbaStatusErrorMapper,
-                                                CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
+                                                CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames,
+                                                ReplayCreditAccountPaymentService replayCreditAccountPaymentService,
+                                                CreditAccountPaymentController creditAccountPaymentController) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -69,6 +78,8 @@ public class ReplayCreditAccountPaymentController {
         this.pbaStatusErrorMapper = pbaStatusErrorMapper;
         this.requestMapper = requestMapper;
         this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
+        this.replayCreditAccountPaymentService = replayCreditAccountPaymentService;
+        this.creditAccountPaymentController = creditAccountPaymentController;
     }
 
     @ApiOperation(value = "Replay credit account payment", notes = "Replay credit account payment")
@@ -82,7 +93,20 @@ public class ReplayCreditAccountPaymentController {
     @Transactional
     public ResponseEntity<String> createCreditAccountPayment(@Valid @RequestBody ReplayCreditAccountPaymentRequest replayCreditAccountPaymentRequest) throws CheckDigitException {
 
-        return new ResponseEntity<String>("", HttpStatus.OK);
+        /*
+        3. Foreach Old Payment References
+            a.Update the Payment Status to be ‘failed’
+            b.Update Payment History to reflect Error status and comments 'System Failure. Not charged'
+            c.Create JSON requests by reading the payments table
+            d.Call the Payment PBA API v1
+        4. Consolidation of Logs we will send back as response (Success , Failed)
+         */
+        replayCreditAccountPaymentService.updatePaymentStatusByReference(
+                    replayCreditAccountPaymentRequest.getExistingPaymentReference(),
+                    PaymentStatus.FAILED, PAYMENT_STATUS_HISTORY_MESSAGE);
+
+        creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentRequest.getCreditAccountPaymentRequest());
+        return new ResponseEntity<String>("Replay Payment Completed Successfully", HttpStatus.OK);
     }
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
