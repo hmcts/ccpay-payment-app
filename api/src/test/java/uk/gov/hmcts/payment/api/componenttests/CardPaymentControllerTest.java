@@ -9,14 +9,17 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -27,6 +30,7 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -41,12 +45,13 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -80,6 +85,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    ReferenceDataService referenceDataService;
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
@@ -195,6 +203,67 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         assertEquals(resultWithEmptyValues.getResponse().getContentAsString(), "eitherIdOrTypeRequired: Either of Site ID or Case Type is mandatory as part of the request.");
  }
+
+    @Test
+    public void createCardPaymentWithCaseTypeReturnStatusBadRequestTest() throws Exception {
+        Mockito.when(referenceDataService.getOrgId(any(),any())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        restActions
+            .post("/card-payments", cardPaymentRequestWithCaseType())
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("Payment creation failed, Please try again later."));
+    }
+
+//    public void createCardPaymentWithCaseTypeReturnStatusSuccess() throws Exception{
+//
+////        Mockito.when(referenceDataService.getOrgId(any(),any())).thenReturn("VP96");
+////
+////        restActions
+////            .post("/card-payments", cardPaymentRequestWithCaseType())
+////            .andExpect(status().isCreated())
+////            .andReturn();
+//
+//        BigDecimal amount = new BigDecimal("100");
+//        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+//            .amount(amount)
+//            .description("description")
+//            .caseReference("telRefNumber")
+//            .ccdCaseNumber("1234")
+//            .service(Service.PROBATE)
+//            .currency(CurrencyCode.GBP)
+//            .provider("pci pal")
+//            .channel("telephony")
+//            .caseType("VP123")
+//            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+//                .code("feeCode")
+//                .version("1")
+//                .calculatedAmount(new BigDecimal("100.1"))
+//                .build()))
+//            .build();
+//
+//        MvcResult result = restActions
+//            .withHeader("service-callback-url", "http://payments.com")
+//            .post("/card-payments", cardPaymentRequest)
+//            .andExpect(status().isCreated())
+//            .andReturn();
+//
+//        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+//
+//        MvcResult result2 = restActions
+//            .get("/card-payments/" + paymentDto.getReference())
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+//
+//        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
+//
+//        assertNotNull(paymentDto);
+//        assertEquals("Initiated", paymentDto.getStatus());
+//        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+//        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+//
+//    }
+
 
     @Test
     public void retrieveCardPaymentAndMapTheGovPayStatusTest() throws Exception {
@@ -1057,6 +1126,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     private CardPaymentRequest cardPaymentRequestWithCaseReference() throws Exception {
         return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
+    }
+    private CardPaymentRequest cardPaymentRequestWithCaseType() throws Exception {
+        return objectMapper.readValue(requestJsonWithCaseType().getBytes(), CardPaymentRequest.class);
     }
 
     @NotNull
