@@ -1,22 +1,27 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.ReplayCreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
@@ -31,8 +36,12 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 
-import javax.validation.Valid;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @Api(tags = {"Replay Credit Account Payment"})
@@ -88,26 +97,82 @@ public class ReplayCreditAccountPaymentController {
         @ApiResponse(code = 400, message = "BAD Request"),
         @ApiResponse(code = 500, message = "Replay Payment failed")
     })
-    @PostMapping(value = "/replay-credit-account-payments")
+    @PostMapping(value = "/replay-credit-account-payments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     @Transactional
-    public ResponseEntity<String> createCreditAccountPayment(@Valid @RequestBody ReplayCreditAccountPaymentRequest replayCreditAccountPaymentRequest) throws CheckDigitException {
+    public ResponseEntity<String> replayCreditAccountPayment(@RequestParam("csvFile") MultipartFile replayPBAPaymentsFile) {
 
-        /*
-        3. Foreach Old Payment References
-            a.Update the Payment Status to be ‘failed’
-            b.Update Payment History to reflect Error status and comments 'System Failure. Not charged'
-            c.Create JSON requests by reading the payments table
-            d.Call the Payment PBA API v1
-        4. Consolidation of Logs we will send back as response (Success , Failed)
-         */
-        replayCreditAccountPaymentService.updatePaymentStatusByReference(
-                    replayCreditAccountPaymentRequest.getExistingPaymentReference(),
-                    PaymentStatus.FAILED, PAYMENT_STATUS_HISTORY_MESSAGE);
+        //Validate csv file
+        if (replayPBAPaymentsFile.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } else {
+            // Parse CSV file to get list of PBA payments for replay
+            try (Reader reader = new BufferedReader(new InputStreamReader(replayPBAPaymentsFile.getInputStream()))) {
 
-        creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentRequest.getCreditAccountPaymentRequest());
+                // Create csv reader to get list of credit account payments
+                CsvToBean<ReplayCreditAccountPaymentRequest> csvToBean = new CsvToBeanBuilder(reader)
+                    .withType(ReplayCreditAccountPaymentRequest.class)
+                    .withIgnoreLeadingWhiteSpace(true)
+                    .build();
+
+                // List of replay credit account payment requests
+                List<ReplayCreditAccountPaymentRequest> replayCreditAccountPaymentRequestList = csvToBean.parse();
+
+                List<ReplayCreditAccountPaymentDTO> replayCreditAccountPaymentDTOList = replayCreditAccountPaymentRequestList.stream()
+                    .map(replayCreditAccountPaymentRequest -> populateRequestToDTO(replayCreditAccountPaymentRequest))
+                    .collect(Collectors.toList());
+
+                //a.Update the Payment Status to be 'failed'
+                //b.Update Payment History to reflect Error status and comments 'System Failure. Not charged'
+                replayCreditAccountPaymentDTOList.stream().forEach(replayCreditAccountPaymentDTO -> {
+                    replayCreditAccountPaymentService.updatePaymentStatusByReference(
+                        replayCreditAccountPaymentDTO.getExistingPaymentReference(),
+                        PaymentStatus.FAILED, PAYMENT_STATUS_HISTORY_MESSAGE);
+
+                    try {
+                        // d.Call the Payment PBA API v1
+                        ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest());
+                        LOG.info("Existing Payment Reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference()
+                            + "New Payment Reference : " + paymentDtoResponseEntity.getBody().getReference()
+                            + "CCD_CASE_NUMBER : " + paymentDtoResponseEntity.getBody().getCcdCaseNumber());
+
+                    } catch (Exception exception) {
+                        LOG.info("Replay PBA Payment ERROR for reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference());
+                    }
+                });
+
+            } catch (Exception ex) {
+                LOG.info("Replay PBA Payment failed for All");
+                throw new PaymentException("Unable to replay credit account payment due to ", ex);
+            }
+        }
+
         return new ResponseEntity<String>("Replay Payment Completed Successfully", HttpStatus.OK);
     }
+
+    private ReplayCreditAccountPaymentDTO populateRequestToDTO(ReplayCreditAccountPaymentRequest replayCreditAccountPaymentRequest) {
+        return ReplayCreditAccountPaymentDTO.replayCreditAccountPaymentDTOWith()
+            .existingPaymentReference(replayCreditAccountPaymentRequest.getExistingPaymentReference())
+            .creditAccountPaymentRequest(CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+                .amount(replayCreditAccountPaymentRequest.getAmount())
+                .ccdCaseNumber(replayCreditAccountPaymentRequest.getCcdCaseNumber())
+                .accountNumber(replayCreditAccountPaymentRequest.getPbaNumber())
+                .description(replayCreditAccountPaymentRequest.getDescription())
+                .caseReference(replayCreditAccountPaymentRequest.getCaseReference())
+                .service(Service.valueOf(replayCreditAccountPaymentRequest.getService()))
+                .currency(CurrencyCode.valueOf(replayCreditAccountPaymentRequest.getCurrency()))
+                .customerReference(replayCreditAccountPaymentRequest.getCustomerReference())
+                .organisationName(replayCreditAccountPaymentRequest.getOrganisationName())
+                .siteId(replayCreditAccountPaymentRequest.getSiteId())
+                .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                    .code(replayCreditAccountPaymentRequest.getCode())
+                    .calculatedAmount(replayCreditAccountPaymentRequest.getCalculatedAmount())
+                    .version(replayCreditAccountPaymentRequest.getVersion())
+                    .build()))
+                .build())
+            .build();
+    }
+
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
