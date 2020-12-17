@@ -20,9 +20,6 @@ def versions = [
 configurations.all {
     resolutionStrategy {
         eachDependency { DependencyResolveDetails det ->
-            if (det.requested.name == 'guava') {
-                det.useVersion '30.1-jre'
-            }
             if (det.requested.name == 'handlebars') {
                 det.useVersion '4.2.0'
             }
