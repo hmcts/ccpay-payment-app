@@ -1,29 +1,58 @@
 package uk.gov.hmcts.payment.api.contract;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.opencsv.bean.CsvBindByName;
+import lombok.*;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-@JsonInclude(NON_NULL)
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "replayCreditAccountPaymentRequestWith")
 public class ReplayCreditAccountPaymentRequest {
 
-    @NotEmpty
+    @CsvBindByName(column = "impacted.payment.reference")
     private String existingPaymentReference;
 
-    @NotNull
-    private CreditAccountPaymentRequest creditAccountPaymentRequest;
+    @CsvBindByName(column = "payment.amount")
+    private BigDecimal amount;
+
+    @CsvBindByName(column = "payment.ccd_case_number")
+    private String ccdCaseNumber;
+
+    @CsvBindByName(column = "payment.pba_number")
+    private String pbaNumber;
+
+    @CsvBindByName(column = "payment.description")
+    private String description;
+
+    @CsvBindByName(column = "payment.case_reference")
+    private String caseReference;
+
+    @CsvBindByName(column = "payment.service")
+    private String service;
+
+    @CsvBindByName(column = "payment.currency")
+    private String currency;
+
+    @CsvBindByName(column = "payment.customer_reference")
+    private String customerReference;
+
+    @CsvBindByName(column = "payment.organisation_name")
+    private String organisationName;
+
+    @CsvBindByName(column = "payment.site_id")
+    private String siteId;
+
+    @CsvBindByName(column = "fee.code")
+    private String code;
+
+    @CsvBindByName(column = "fee.calculated_amount")
+    private BigDecimal calculatedAmount;
+
+    @CsvBindByName(column = "fee.version")
+    private String version;
+
+
 }
+
