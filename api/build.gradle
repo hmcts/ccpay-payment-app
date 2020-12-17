@@ -34,6 +34,16 @@ sourceSets {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails det ->
+            if (det.requested.name == 'handlebars') {
+                det.useVersion '4.2.0'
+            }
+        }
+    }
+}
+
 apply plugin: 'idea'
 idea {
     module {

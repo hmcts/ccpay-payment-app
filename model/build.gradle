@@ -1,5 +1,14 @@
 
 description = ''
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails det ->
+            if (det.requested.name == 'handlebars') {
+                det.useVersion '4.2.0'
+            }
+        }
+    }
+}
 dependencies {
     compile project(':payment-gov-pay-client')
     compile project(':payment-reference-data')
@@ -12,7 +21,7 @@ dependencies {
     compile group: 'commons-validator', name: 'commons-validator', version:'1.6'
     compile group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: '5.1.1'
     compile group: 'com.netflix.hystrix', name: 'hystrix-javanica', version: '1.5.12'
-    compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.0.0'
+    compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.1'
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test') {
       exclude(module: 'commons-logging')
