@@ -18,8 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
@@ -91,7 +90,7 @@ public class CreditAccountPaymentController {
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
+    public ResponseEntity<CreditAccountPaymentResponse> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
@@ -158,7 +157,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/credit-account-payments/{paymentReference}", method = GET)
-    public ResponseEntity<PaymentDto> retrieve(@PathVariable("paymentReference") String paymentReference) {
+    public ResponseEntity<RetrievePaymentResponse> retrieve(@PathVariable("paymentReference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
         Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
             .findAny()
@@ -173,7 +172,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/credit-account-payments/{paymentReference}/statuses", method = GET)
-    public ResponseEntity<PaymentDto> retrievePaymentStatus(@PathVariable("paymentReference") String paymentReference) {
+    public ResponseEntity<RetrievePaymentStatusResponse> retrievePaymentStatus(@PathVariable("paymentReference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
         Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
             .findAny()

@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -29,9 +26,9 @@ public class CreditAccountDtoMapper {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
-    public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
+    public CreditAccountPaymentResponse toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return PaymentDto.payment2DtoWith()
+        return CreditAccountPaymentResponse.creditAccountPaymentResponse()
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
@@ -76,8 +73,8 @@ public class CreditAccountDtoMapper {
             .build();
     }
 
-    public PaymentDto toRetrievePaymentResponse(Payment payment, List<PaymentFee> fees) {
-        return PaymentDto.payment2DtoWith()
+    public RetrievePaymentResponse toRetrievePaymentResponse(Payment payment, List<PaymentFee> fees) {
+        return RetrievePaymentResponse.retrievePaymentResponseWith()
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .amount(payment.getAmount())
@@ -102,8 +99,8 @@ public class CreditAccountDtoMapper {
             .build();
     }
 
-    public PaymentDto toRetrievePaymentStatusResponse(Payment payment) {
-        return PaymentDto.payment2DtoWith()
+    public RetrievePaymentStatusResponse toRetrievePaymentStatusResponse(Payment payment) {
+        return RetrievePaymentStatusResponse.retrievePaymentResponseWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
