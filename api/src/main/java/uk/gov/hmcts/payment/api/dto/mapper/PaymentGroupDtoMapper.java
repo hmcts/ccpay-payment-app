@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
+import uk.gov.hmcts.payment.api.PaymentDtoForPaymentGroup;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
@@ -44,12 +45,12 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-    private List<PaymentDto> toPaymentDtos(List<Payment> payments) {
+    private List<PaymentDtoForPaymentGroup> toPaymentDtos(List<Payment> payments) {
         return payments.stream().map(p -> toPaymentDto(p)).collect(Collectors.toList());
     }
     //added missing pba account details
-    private PaymentDto toPaymentDto(Payment payment) {
-        return PaymentDto.payment2DtoWith()
+    public PaymentDtoForPaymentGroup toPaymentDto(Payment payment) {
+        return PaymentDtoForPaymentGroup.paymentDtoForPaymentGroupWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))

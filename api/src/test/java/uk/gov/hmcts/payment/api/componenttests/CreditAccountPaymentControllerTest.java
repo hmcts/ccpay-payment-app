@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.PaymentDtoForPaymentGroup;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
@@ -717,7 +718,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDto paymentDtoForCredit = paymentGroupDto.getPayments().get(0);
+        PaymentDtoForPaymentGroup paymentDtoForCredit = paymentGroupDto.getPayments().get(0);
         //PAY-2856-Missing PBA details changes
         assertTrue(paymentDtoForCredit.getAccountNumber().equalsIgnoreCase("AC101010"));
         assertTrue(paymentDtoForCredit.getCustomerReference().equalsIgnoreCase("CUST101"));

@@ -29,6 +29,9 @@ public class CreditAccountDtoMapper {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
+    @Autowired
+    private PaymentGroupDtoMapper paymentGroupDtoMapper;
+
     public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
@@ -71,7 +74,7 @@ public class CreditAccountDtoMapper {
     public PaymentGroupDto toRetrievePaymentGroupReferenceResponse(PaymentFeeLink paymentFeeLink) {
         return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .payments(paymentFeeLink.getPayments().stream().map(this::toPaymentDto).collect(Collectors.toList()))
+            .payments(paymentFeeLink.getPayments().stream().map(paymentGroupDtoMapper::toPaymentDto).collect(Collectors.toList()))
             .fees(paymentFeeLink.getFees().stream().map(this::toFeeDto).collect(Collectors.toList()))
             .build();
     }
