@@ -1,4 +1,14 @@
 description = 'OTP (One Time Password) utility in Java'
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails det ->
+            if (det.requested.name == 'handlebars') {
+                det.useVersion '4.2.0'
+            }
+
+        }
+    }
+}
 dependencies {
     compile 'com.amdelamar:jotp:1.2.0'
 }

@@ -49,7 +49,9 @@ module "payment-database" {
 
 module "payment-database-v11" {
   source = "git@github.com:hmcts/cnp-module-postgres?ref=master"
-  product = join("-", [var.product, "postgres-db-v11"])
+  product = var.product
+  component = var.component
+  name = join("-", [var.product, "postgres-db-v11"])
   location = var.location
   env = var.env
   postgresql_user = var.postgresql_user
