@@ -100,7 +100,10 @@ public class ReplayCreditAccountPaymentController {
     @PostMapping(value = "/replay-credit-account-payments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     @Transactional
-    public ResponseEntity<String> replayCreditAccountPayment(@RequestParam("csvFile") MultipartFile replayPBAPaymentsFile) {
+    public ResponseEntity<String> replayCreditAccountPayment(@RequestParam("csvFile") MultipartFile replayPBAPaymentsFile,
+                                                             @RequestParam("isReplayPBAPayments") String isReplayPBAPayments) {
+
+        LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: isReplayPBAPayments = " + isReplayPBAPayments);
 
         //Validate csv file
         if (replayPBAPaymentsFile.isEmpty()) {
@@ -117,73 +120,96 @@ public class ReplayCreditAccountPaymentController {
 
                 // List of replay credit account payment requests
                 List<ReplayCreditAccountPaymentRequest> replayCreditAccountPaymentRequestList = csvToBean.parse();
+                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: CSV TO OBJECT PARSED COUNT = " + replayCreditAccountPaymentRequestList.size());
 
                 List<ReplayCreditAccountPaymentDTO> replayCreditAccountPaymentDTOList = replayCreditAccountPaymentRequestList.stream()
-                    .map(replayCreditAccountPaymentRequest -> populateRequestToDTO(replayCreditAccountPaymentRequest))
+                    .map(replayCreditAccountPaymentRequest -> populateRequestToDTO(isReplayPBAPayments, replayCreditAccountPaymentRequest))
                     .collect(Collectors.toList());
 
-                //a.Update the Payment Status to be 'failed'
-                //b.Update Payment History to reflect Error status and comments 'System Failure. Not charged'
-                replayCreditAccountPaymentDTOList.stream().forEach(replayCreditAccountPaymentDTO -> {
-                    replayCreditAccountPaymentService.updatePaymentStatusByReference(
-                        replayCreditAccountPaymentDTO.getExistingPaymentReference(),
-                        PaymentStatus.FAILED, PAYMENT_STATUS_HISTORY_MESSAGE);
+                if (null != replayCreditAccountPaymentDTOList && !replayCreditAccountPaymentDTOList.isEmpty()) {
+                    LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: REQUEST TO DTO COUNT = " + replayCreditAccountPaymentDTOList.size());
+                    //a.Update the Payment Status to be 'failed'
+                    //b.Update Payment History to reflect Error status and comments 'System Failure. Not charged'
+                    replayCreditAccountPaymentDTOList.stream().forEach(replayCreditAccountPaymentDTO -> {
+                        try {
+                            replayCreditAccountPaymentService.updatePaymentStatusByReference(
+                                replayCreditAccountPaymentDTO.getExistingPaymentReference(),
+                                PaymentStatus.FAILED, PAYMENT_STATUS_HISTORY_MESSAGE);
+                        } catch (Exception exception) {
+                            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: PBA Payment not found for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
+                        }
 
-                    try {
-                        // d.Call the Payment PBA API v1
-                        ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest());
-                        LOG.info("Existing Payment Reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference()
-                            + "New Payment Reference : " + paymentDtoResponseEntity.getBody().getReference()
-                            + "CCD_CASE_NUMBER : " + paymentDtoResponseEntity.getBody().getCcdCaseNumber());
+                        if (isReplayPBAPayments.equalsIgnoreCase("Y")) {
+                            createPBAPayments(replayCreditAccountPaymentDTO);
+                        }
+                    });
+                }
 
-                    } catch (Exception exception) {
-                        LOG.info("Replay PBA Payment ERROR for reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference());
-                    }
-                });
+                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  PROCESS COMPLETED For " + replayCreditAccountPaymentDTOList.size() + " Payments");
 
             } catch (Exception ex) {
-                LOG.info("Replay PBA Payment failed for All");
-                throw new PaymentException("Unable to replay credit account payment due to ", ex);
+                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: Replay PBA Payment failed for All");
+                throw new PaymentException(ex);
             }
         }
 
         return new ResponseEntity<String>("Replay Payment Completed Successfully", HttpStatus.OK);
     }
 
-    private ReplayCreditAccountPaymentDTO populateRequestToDTO(ReplayCreditAccountPaymentRequest replayCreditAccountPaymentRequest) {
-        return ReplayCreditAccountPaymentDTO.replayCreditAccountPaymentDTOWith()
-            .existingPaymentReference(replayCreditAccountPaymentRequest.getExistingPaymentReference())
-            .creditAccountPaymentRequest(CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
-                .amount(replayCreditAccountPaymentRequest.getAmount())
-                .ccdCaseNumber(replayCreditAccountPaymentRequest.getCcdCaseNumber())
-                .accountNumber(replayCreditAccountPaymentRequest.getPbaNumber())
-                .description(replayCreditAccountPaymentRequest.getDescription())
-                .caseReference(replayCreditAccountPaymentRequest.getCaseReference())
-                .service(Service.valueOf(replayCreditAccountPaymentRequest.getService()))
-                .currency(CurrencyCode.valueOf(replayCreditAccountPaymentRequest.getCurrency()))
-                .customerReference(replayCreditAccountPaymentRequest.getCustomerReference())
-                .organisationName(replayCreditAccountPaymentRequest.getOrganisationName())
-                .siteId(replayCreditAccountPaymentRequest.getSiteId())
-                .fees(Collections.singletonList(FeeDto.feeDtoWith()
-                    .code(replayCreditAccountPaymentRequest.getCode())
-                    .calculatedAmount(replayCreditAccountPaymentRequest.getCalculatedAmount())
-                    .version(replayCreditAccountPaymentRequest.getVersion())
-                    .build()))
-                .build())
-            .build();
+    private void createPBAPayments(ReplayCreditAccountPaymentDTO replayCreditAccountPaymentDTO) {
+
+        try {
+            // d.Call the Payment PBA API v1
+            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest());
+            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  Existing Payment Reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference()
+                + " New Payment Reference : " + paymentDtoResponseEntity.getBody().getReference()
+                + " CCD_CASE_NUMBER : " + replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest().getCcdCaseNumber());
+
+        } catch (Exception exception) {
+            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: Replay PBA Payment ERROR for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
+        }
     }
 
+
+    private ReplayCreditAccountPaymentDTO populateRequestToDTO(String isReplayPBAPayments,
+                                                               ReplayCreditAccountPaymentRequest replayCreditAccountPaymentRequest) {
+        if (isReplayPBAPayments.equalsIgnoreCase("Y")) {
+            return ReplayCreditAccountPaymentDTO.replayCreditAccountPaymentDTOWith()
+                .existingPaymentReference(replayCreditAccountPaymentRequest.getExistingPaymentReference())
+                .creditAccountPaymentRequest(CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+                    .amount(replayCreditAccountPaymentRequest.getAmount())
+                    .ccdCaseNumber(replayCreditAccountPaymentRequest.getCcdCaseNumber())
+                    .accountNumber(replayCreditAccountPaymentRequest.getPbaNumber().replace("\"", ""))
+                    .description(replayCreditAccountPaymentRequest.getDescription())
+                    .caseReference(replayCreditAccountPaymentRequest.getCaseReference().replace("\"", ""))
+                    .service(Service.valueOf(replayCreditAccountPaymentRequest.getService()))
+                    .currency(CurrencyCode.valueOf(replayCreditAccountPaymentRequest.getCurrency()))
+                    .customerReference(replayCreditAccountPaymentRequest.getCustomerReference())
+                    .organisationName(replayCreditAccountPaymentRequest.getOrganisationName().replace("\"", ""))
+                    .siteId(replayCreditAccountPaymentRequest.getSiteId())
+                    .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                        .code(replayCreditAccountPaymentRequest.getCode())
+                        .calculatedAmount(replayCreditAccountPaymentRequest.getCalculatedAmount())
+                        .version(replayCreditAccountPaymentRequest.getVersion())
+                        .build()))
+                    .build())
+                .build();
+        } else if (isReplayPBAPayments.equalsIgnoreCase("N")) {
+            return ReplayCreditAccountPaymentDTO.replayCreditAccountPaymentDTOWith()
+                .existingPaymentReference(replayCreditAccountPaymentRequest.getExistingPaymentReference())
+                .build();
+        }
+        return null;
+    }
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
     public ResponseEntity httpClientErrorException() {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(PaymentException.class)
-    public String return400(PaymentException ex) {
-        LOG.error("Error while processing payment request:", ex);
-        return ex.getMessage();
+    @ExceptionHandler(value = {PaymentException.class})
+    public ResponseEntity returnInternalError(PaymentException ex) {
+        return new ResponseEntity(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
 
