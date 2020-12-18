@@ -117,5 +117,4 @@
         <notes>Guava  Package, root cause and fix needs to be carried out separately</notes>
         <cve>>CVE-2020-8908</cve>
     </suppress>
-
 </suppressions>
