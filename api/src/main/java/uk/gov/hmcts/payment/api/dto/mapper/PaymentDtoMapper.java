@@ -10,12 +10,10 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.dto.CardPaymentCreatedResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -55,9 +53,9 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toCardPaymentDto(Payment payment, String paymentGroupReference) {
+    public CardPaymentCreatedResponse toCardPaymentDto(Payment payment, String paymentGroupReference) {
 
-        return PaymentDto.payment2DtoWith()
+        return CardPaymentCreatedResponse.cardPaymentCreatedResponseWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentGroupReference)
@@ -82,13 +80,13 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toBulkScanPaymentStrategicDto(Payment payment, String paymentGroupReference) {
+    public BulkScanPaymentStrategicDto toBulkScanPaymentStrategicDto(Payment payment, String paymentGroupReference) {
         PaymentAllocation paymentAllocation = (payment.getPaymentAllocation() != null && payment.getPaymentAllocation().size() > 0) ?
             payment.getPaymentAllocation().get(0) : null;
         List<PaymentAllocationDto> paymentAllocationDtoList =  new ArrayList<>();
         paymentAllocationDtoList.add(toPaymentAllocationDto(paymentAllocation));
 
-        return PaymentDto.payment2DtoWith()
+        return BulkScanPaymentStrategicDto.bulkScanPaymentStrategicDtoWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentGroupReference)
@@ -115,8 +113,8 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, String link) {
-        return PaymentDto.payment2DtoWith()
+    public CardPaymentCreatedResponse toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, String link) {
+        return CardPaymentCreatedResponse.cardPaymentCreatedResponseWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())

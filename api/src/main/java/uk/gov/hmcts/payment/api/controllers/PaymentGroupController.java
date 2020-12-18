@@ -21,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.contract.BulkScanPaymentStrategicDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -186,7 +187,7 @@ public class PaymentGroupController {
     @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCardPayment(
+    public ResponseEntity<CardPaymentCreatedResponse> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @PathVariable("payment-group-reference") String paymentGroupReference,
@@ -215,7 +216,7 @@ public class PaymentGroupController {
 
         PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
         Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
-        PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
+        CardPaymentCreatedResponse paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
 
         if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
@@ -358,7 +359,7 @@ public class PaymentGroupController {
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments-strategic")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> recordBulkScanPaymentStrategic(@PathVariable("payment-group-reference") String paymentGroupReference,
+    public ResponseEntity<BulkScanPaymentStrategicDto> recordBulkScanPaymentStrategic(@PathVariable("payment-group-reference") String paymentGroupReference,
                                                                      @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic,
                                                                      @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
 
@@ -436,7 +437,7 @@ public class PaymentGroupController {
     @PostMapping(value = "/payment-groups/bulk-scan-payments-strategic")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPaymentStrategic(@Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic
+    public ResponseEntity<BulkScanPaymentStrategicDto> recordUnsolicitedBulkScanPaymentStrategic(@Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic
         , @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
 
         boolean prodStrategicFixFeatureFlag = featureToggler.getBooleanValue("prod-strategic-fix", false);

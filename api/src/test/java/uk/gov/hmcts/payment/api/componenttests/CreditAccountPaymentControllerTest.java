@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.PaymentDtoForPaymentGroup;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.*;
@@ -717,7 +718,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDto paymentDtoForCredit = paymentGroupDto.getPayments().get(0);
+        PaymentDtoForPaymentGroup paymentDtoForCredit = paymentGroupDto.getPayments().get(0);
         //PAY-2856-Missing PBA details changes
         assertTrue(paymentDtoForCredit.getAccountNumber().equalsIgnoreCase("AC101010"));
         assertTrue(paymentDtoForCredit.getCustomerReference().equalsIgnoreCase("CUST101"));

@@ -32,10 +32,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -183,7 +180,7 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
+        PaymentDtoForPaymentGroup paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
@@ -213,7 +210,7 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
+        PaymentDtoForPaymentGroup paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
@@ -240,7 +237,7 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
+        PaymentDtoForPaymentGroup paymentDto = paymentGroupDto.getPayments().get(0);
         FeeDto feeDto = paymentGroupDto.getFees().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
@@ -564,7 +561,7 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
+        PaymentDtoForPaymentGroup paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);

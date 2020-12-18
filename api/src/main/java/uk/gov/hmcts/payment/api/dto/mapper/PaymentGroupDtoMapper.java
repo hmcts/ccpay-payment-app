@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.dto.PaymentDtoForPaymentGroup;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.model.*;
@@ -44,12 +45,12 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-    private List<PaymentDto> toPaymentDtos(List<Payment> payments) {
+    private List<PaymentDtoForPaymentGroup> toPaymentDtos(List<Payment> payments) {
         return payments.stream().map(p -> toPaymentDto(p)).collect(Collectors.toList());
     }
     //added missing pba account details
-    private PaymentDto toPaymentDto(Payment payment) {
-        return PaymentDto.payment2DtoWith()
+    public PaymentDtoForPaymentGroup toPaymentDto(Payment payment) {
+        return PaymentDtoForPaymentGroup.paymentDtoForPaymentGroupWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
