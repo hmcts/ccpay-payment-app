@@ -33,7 +33,6 @@ public class ReplayCreditAccountPaymentServiceImpl implements ReplayCreditAccoun
         payment.setPaymentStatus(paymentStatus);
         payment.setStatus(paymentStatus.getName());
         payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
-            .externalStatus(paymentStatus.getName())
             .status(PayStatusToPayHubStatus.valueOf(paymentStatus.getName().toLowerCase()).getMappedStatus())
             .message(message)
             .build()));
