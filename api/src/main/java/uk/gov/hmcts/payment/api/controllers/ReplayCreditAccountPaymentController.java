@@ -143,9 +143,8 @@ public class ReplayCreditAccountPaymentController {
                             createPBAPayments(replayCreditAccountPaymentDTO);
                         }
                     });
+                    LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  PROCESS COMPLETED For " + replayCreditAccountPaymentDTOList.size() + " Payments");
                 }
-
-                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  PROCESS COMPLETED For " + replayCreditAccountPaymentDTOList.size() + " Payments");
 
             } catch (Exception ex) {
                 LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: Replay PBA Payment failed for All");
@@ -161,9 +160,11 @@ public class ReplayCreditAccountPaymentController {
         try {
             // d.Call the Payment PBA API v1
             ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest());
-            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  Existing Payment Reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference()
-                + " New Payment Reference : " + paymentDtoResponseEntity.getBody().getReference()
-                + " CCD_CASE_NUMBER : " + replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest().getCcdCaseNumber());
+            if (paymentDtoResponseEntity != null && paymentDtoResponseEntity.getBody() != null) {
+                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  Existing Payment Reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference()
+                    + " New Payment Reference : " + paymentDtoResponseEntity.getBody().getReference()
+                    + " CCD_CASE_NUMBER : " + replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest().getCcdCaseNumber());
+            }
 
         } catch (Exception exception) {
             LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: Replay PBA Payment ERROR for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
