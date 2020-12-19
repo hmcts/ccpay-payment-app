@@ -2,7 +2,9 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.math.RandomUtils;
+import org.assertj.core.util.Files;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -42,7 +45,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.util.Files.newFile;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -52,8 +57,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@TestPropertySource(properties = "duplicate.payment.check.interval.in.minutes=0")
-@TestPropertySource(properties = "pba.config1.service.names=PROBATE,CMC")
+@TestPropertySource(properties = {"duplicate.payment.check.interval.in.minutes=0", "pba.config1.service.names=PROBATE,CMC"})
 @Transactional
 public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
@@ -110,17 +114,20 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void replayCreditAccountPayment_AutomatedTest() throws Exception {
+        //create test csv file
+        final File testCSV = newFile("src/test/resources/paymentsToReplay.csv");
+
         Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
 
         //Create 10 PBA payments
-        createCreditAccountPayments(csvParseMap);
+        createCreditAccountPayments(csvParseMap, 10);
 
         //Create CSV
-        createCSV(csvParseMap);
+        createCSV(csvParseMap,"paymentsToReplay.csv");
 
         //Invoke replay-credit-account-payment
-        MockMultipartFile csvFile = new MockMultipartFile("csvFile", "test.csv", "text/csv",
-            new FileInputStream(new File("src/test/resources/test.csv")));
+        MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
+            new FileInputStream(new File("src/test/resources/paymentsToReplay.csv")));
 
         MvcResult result = restActions
             .postWithMultiPartFileData("/replay-credit-account-payments",
@@ -128,13 +135,96 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        /*List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
-        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());*/
+        csvParseMap.entrySet().stream().forEach(entry -> {
+            List<Payment> paymentList = db.findByCcdCaseNumber(entry.getValue().getCcdCaseNumber());
 
+            Payment existingPayment = paymentList
+                .stream()
+                .filter(payment -> payment.getReference().equalsIgnoreCase(entry.getKey())).collect(Collectors.toList())
+                .get(0);
+
+            Payment newPayment = paymentList
+                .stream()
+                .filter(payment -> !payment.getReference().equalsIgnoreCase(entry.getKey())).collect(Collectors.toList())
+                .get(0);
+
+            //existing payment should be failed
+            Assert.assertEquals(existingPayment.getPaymentStatus().getName() ,"failed");
+            //Status history should contain message as System Failure. Not charged
+            Assert.assertEquals(existingPayment.getStatusHistories().get(0).getMessage(),"System Failure. Not charged");
+
+            //new payment should be pending
+            Assert.assertEquals(newPayment.getPaymentStatus().getName(),"pending");
+        });
+
+        //Delete test csvfile
+        Files.delete(testCSV);
     }
 
-    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap) throws IOException {
-        String csvFile = "src/test/resources/test.csv";
+    @Test
+    public void markPBAPaymentFailed_AutomatedTest() throws Exception {
+        //create test csv file
+        final File testCSV = newFile("src/test/resources/paymentsToFailed.csv");
+
+        Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
+
+        //Create 10 PBA payments
+        createCreditAccountPayments(csvParseMap, 5);
+
+        //Create CSV
+        createCSV(csvParseMap ,"paymentsToFailed.csv");
+
+        //Invoke replay-credit-account-payment
+        MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToFailed.csv", "text/csv",
+            new FileInputStream(new File("src/test/resources/paymentsToFailed.csv")));
+
+        MvcResult result = restActions
+            .postWithMultiPartFileData("/replay-credit-account-payments",
+                csvFile, "isReplayPBAPayments", "false")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        csvParseMap.entrySet().stream().forEach(entry -> {
+            List<Payment> paymentList = db.findByCcdCaseNumber(entry.getValue().getCcdCaseNumber());
+
+            Assert.assertEquals(paymentList.size(), 1);
+
+            Payment existingPayment = paymentList
+                .stream()
+                .filter(payment -> payment.getReference().equalsIgnoreCase(entry.getKey())).collect(Collectors.toList())
+                .get(0);
+
+            //existing payment should be failed
+            Assert.assertEquals(existingPayment.getPaymentStatus().getName() ,"failed");
+            //Status history should contain message as System Failure. Not charged
+            Assert.assertEquals(existingPayment.getStatusHistories().get(0).getMessage(),"System Failure. Not charged");
+        });
+
+        //Delete test csvfile
+        Files.delete(testCSV);
+    }
+
+    @Test
+    public void replayCreditAccountPayment_AutomatedTest_BadRequest() throws Exception {
+        //create test csv file
+        final File testCSV = newFile("src/test/resources/emptyFile.csv");
+
+        //Invoke replay-credit-account-payment
+        MockMultipartFile csvFile = new MockMultipartFile("csvFile", "emptyFile.csv", "text/csv",
+            new FileInputStream(new File("src/test/resources/emptyFile.csv")));
+
+        MvcResult result = restActions
+            .postWithMultiPartFileData("/replay-credit-account-payments",
+                csvFile, "isReplayPBAPayments", "false")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        //Delete test csvfile
+        Files.delete(testCSV);
+    }
+
+    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap , String fileName) throws IOException {
+        String csvFile = "src/test/resources/" +fileName;
         FileWriter writer = new FileWriter(csvFile);
 
         //for header
@@ -176,14 +266,14 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         writer.close();
     }
 
-    private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap) throws Exception {
-        for (int i = 0; i < 10; i++) {
+    private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap , int noOfPayments) throws Exception {
+        for (int i = 0; i < noOfPayments; i++) {
             //create PBA payment
             setCreditAccountPaymentLiberataCheckFeature(true);
 
             when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
-            Double calculatedAmount = Double.parseDouble(Integer.toString(RandomUtils.nextInt(99)));
+            Double calculatedAmount = Double.parseDouble(Integer.toString(RandomUtils.nextInt(99) + 1));
 
             List<FeeDto> fees = getFees(calculatedAmount);
 
