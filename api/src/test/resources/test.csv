@@ -1,0 +1,11 @@
+index_col,impacted.payment.reference,payment.amount,payment.ccd_case_number,payment.pba_number,payment.description,payment.case_reference,payment.service,payment.currency,payment.customer_reference,payment.organisation_name,payment.site_id,fee.code,fee.calculated_amount,fee.version
+,RC-1608-4007-0266-3499,15,1607065536649978,""PBA0073938"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee4ba"",CMC,GBP,DEA2682/1/SWG630,""Slater & Gordon952"",Y689,FEE0205,15,6
+,RC-1608-4007-0278-7330,81,1607065536649770,""PBA0073432"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee397ba"",CMC,GBP,DEA2682/1/SWG171,""Slater & Gordon514"",Y689,FEE0202,81,8
+,RC-1608-4007-0291-7275,27,1607065536649792,""PBA0073265"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee648ba"",CMC,GBP,DEA2682/1/SWG542,""Slater & Gordon791"",Y689,FEE0207,27,3
+,RC-1608-4007-0345-9566,95,1607065536649170,""PBA007380"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee570ba"",CMC,GBP,DEA2682/1/SWG892,""Slater & Gordon680"",Y689,FEE0202,95,2
+,RC-1608-4007-0328-3776,21,1607065536649604,""PBA0073653"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee937ba"",CMC,GBP,DEA2682/1/SWG372,""Slater & Gordon109"",Y689,FEE0206,21,1
+,RC-1608-4007-0229-5581,79,1607065536649215,""PBA0073778"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee710ba"",CMC,GBP,DEA2682/1/SWG395,""Slater & Gordon265"",Y689,FEE0208,79,2
+,RC-1608-4007-0304-2743,94,1607065536649775,""PBA007326"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee461ba"",CMC,GBP,DEA2682/1/SWG275,""Slater & Gordon932"",Y689,FEE0205,94,3
+,RC-1608-4007-0315-9224,87,1607065536649204,""PBA0073541"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee714ba"",CMC,GBP,DEA2682/1/SWG871,""Slater & Gordon880"",Y689,FEE0206,87,5
+,RC-1608-4007-0333-0700,73,1607065536649807,""PBA0073877"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee499ba"",CMC,GBP,DEA2682/1/SWG896,""Slater & Gordon971"",Y689,FEE0201,73,1
+,RC-1608-4007-0363-3640,46,1607065536649175,""PBA0073109"",Money Claim issue fee,""9eb95270-7fee-48cf-afa2-e6c58ee455ba"",CMC,GBP,DEA2682/1/SWG725,""Slater & Gordon551"",Y689,FEE0202,46,7
