@@ -200,30 +200,6 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         }
     }
 
-   /* private PaymentDto getPBAPayment() throws Exception {
-        //create PBA payment
-        setCreditAccountPaymentLiberataCheckFeature(true);
-
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-
-        Double calculatedAmount = Double.parseDouble(Integer.toString(RandomUtils.nextInt(99))) ;
-
-        List<FeeDto> fees = getFees(calculatedAmount);
-
-        CreditAccountPaymentRequest request = getPBAPayment(calculatedAmount, fees);
-
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(calculatedAmount), new BigDecimal(calculatedAmount), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        MvcResult result = restActions
-            .post("/credit-account-payments", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        return objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-    }*/
-
     private CreditAccountPaymentRequest getPBAPayment(Double calculatedAmount, List<FeeDto> fees) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
                 .amount(new BigDecimal(calculatedAmount))
@@ -262,36 +238,4 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .post(url)
             .andExpect(status().isAccepted());
     }
-
-   /* @Test
-    public void csvWriter() throws Exception {
-            String csvFile = "src/test/resources/test.csv";
-            FileWriter writer = new FileWriter(csvFile);
-
-            List<PaymentDto> paymentDtoList = Collections.singletonList(getPBAPayment());
-
-            //for header
-        CSVUtil.writeLine
-            (writer, Arrays.asList("index_col", "impacted.payment.reference", "payment.amount", "payment.ccd_case_number",
-                "payment.pba_number", "payment.description", "payment.case_reference", "payment.service",
-                "payment.currency", "payment.customer_reference", "payment.organisation_name", "payment.site_id",
-                "fee.code", "fee.calculated_amount", "fee.version"));
-
-            paymentDtoList.stream().forEach(paymentDto -> {
-                List<String> list = new ArrayList<>();
-                list.add("PBA0073752");
-                list.add("\"9eb95270-7fee-48cf-afa2-e6c58ee756bc\"");
-                list.add("1251");
-
-                try {
-                    CSVUtil.writeLine(writer, list);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            });
-
-            writer.flush();
-            writer.close();
-    }*/
 }
