@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.math.RandomUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -104,37 +106,33 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void replayCreditAccountPayment_AutomatedTest() throws Exception {
+        //Create 10 PBA payments
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            paymentDtoList.add(getPBAPayment());
+        }
 
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+        //Create CSV
 
+        /*List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());*/
+
+    }
+
+    private PaymentDto getPBAPayment() throws Exception {
+        //create PBA payment
         setCreditAccountPaymentLiberataCheckFeature(true);
 
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
-        List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
-            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
-            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
-            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+        Double calculatedAmount = Double.parseDouble(Integer.toString(RandomUtils.nextInt(99))) ;
 
-        CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
-            .amount(new BigDecimal("120"))
-            .description("description")
-            .caseReference("telRefNumber")
-            .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.PROBATE)
-            .currency(CurrencyCode.GBP)
-            .siteId("AA08")
-            .customerReference("CUST101")
-            .organisationName("ORG101")
-            .accountNumber("AC101010")
-            .fees(fees)
-            .build();
+        List<FeeDto> fees = getFees(calculatedAmount);
+
+        CreditAccountPaymentRequest request = getPBAPayment(calculatedAmount, fees);
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+            new BigDecimal(calculatedAmount), new BigDecimal(calculatedAmount), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
 
         MvcResult result = restActions
@@ -142,13 +140,33 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+        return objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+    }
 
-        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+    private CreditAccountPaymentRequest getPBAPayment(Double calculatedAmount, List<FeeDto> fees) {
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+                .amount(new BigDecimal(calculatedAmount))
+                .ccdCaseNumber("1607065536649" + RandomUtils.nextInt(999))
+                .accountNumber("\"PBA0073" + RandomUtils.nextInt(999) + "\"")
+                .description("Money Claim issue fee")
+                .caseReference("\"9eb95270-7fee-48cf-afa2-e6c58ee" + RandomUtils.nextInt(999) + "ba\"")
+                .service(Service.CMC)
+                .currency(CurrencyCode.GBP)
+                .customerReference("DEA2682/1/SWG" + RandomUtils.nextInt(999))
+                .organisationName("\"Slater & Gordon" + RandomUtils.nextInt(999) + "\"")
+                .siteId("Y689")
+                .fees(fees)
+                .build();
+    }
 
-        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
-        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
-        assertEquals(new BigDecimal(0), savedfees.get(2).getAmountDue());
+    @NotNull
+    private List<FeeDto> getFees(Double calculatedAmount) {
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith()
+            .code("FEE020" + RandomUtils.nextInt())
+            .version(Integer.toString(RandomUtils.nextInt()))
+            .calculatedAmount(new BigDecimal(calculatedAmount)).build());
+        return fees;
     }
 
     private void setCreditAccountPaymentLiberataCheckFeature(boolean enabled) throws Exception {
