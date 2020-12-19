@@ -17,6 +17,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.CSVUtil;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
@@ -52,6 +53,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @TestPropertySource(properties = "duplicate.payment.check.interval.in.minutes=0")
+@TestPropertySource(properties = "pba.config1.service.names=PROBATE,CMC")
+@Transactional
 public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
