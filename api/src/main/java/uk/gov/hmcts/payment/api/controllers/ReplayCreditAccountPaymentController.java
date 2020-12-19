@@ -101,7 +101,7 @@ public class ReplayCreditAccountPaymentController {
     @ResponseBody
     @Transactional
     public ResponseEntity<String> replayCreditAccountPayment(@RequestParam("csvFile") MultipartFile replayPBAPaymentsFile,
-                                                             @RequestParam("isReplayPBAPayments") String isReplayPBAPayments) {
+                                                             @RequestParam("isReplayPBAPayments") Boolean isReplayPBAPayments) {
 
         LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: isReplayPBAPayments = " + isReplayPBAPayments);
 
@@ -139,7 +139,7 @@ public class ReplayCreditAccountPaymentController {
                             LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: PBA Payment not found for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
                         }
 
-                        if (isReplayPBAPayments.equalsIgnoreCase("Y")) {
+                        if (isReplayPBAPayments) {
                             createPBAPayments(replayCreditAccountPaymentDTO);
                         }
                     });
@@ -171,9 +171,9 @@ public class ReplayCreditAccountPaymentController {
     }
 
 
-    private ReplayCreditAccountPaymentDTO populateRequestToDTO(String isReplayPBAPayments,
+    private ReplayCreditAccountPaymentDTO populateRequestToDTO(Boolean isReplayPBAPayments,
                                                                ReplayCreditAccountPaymentRequest replayCreditAccountPaymentRequest) {
-        if (isReplayPBAPayments.equalsIgnoreCase("Y")) {
+        if (isReplayPBAPayments) {
             return ReplayCreditAccountPaymentDTO.replayCreditAccountPaymentDTOWith()
                 .existingPaymentReference(replayCreditAccountPaymentRequest.getExistingPaymentReference())
                 .creditAccountPaymentRequest(CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -194,12 +194,11 @@ public class ReplayCreditAccountPaymentController {
                         .build()))
                     .build())
                 .build();
-        } else if (isReplayPBAPayments.equalsIgnoreCase("N")) {
+        } else {
             return ReplayCreditAccountPaymentDTO.replayCreditAccountPaymentDTOWith()
                 .existingPaymentReference(replayCreditAccountPaymentRequest.getExistingPaymentReference())
                 .build();
         }
-        return null;
     }
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
