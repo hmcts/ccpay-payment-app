@@ -10,8 +10,6 @@ import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,19 +20,10 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
-import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.service.AccountService;
-import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.ReplayCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -52,15 +41,7 @@ public class ReplayCreditAccountPaymentController {
     private static final String FAILED = "failed";
 
 
-    private final CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService;
-    private final CreditAccountDtoMapper creditAccountDtoMapper;
-    private final AccountService<AccountDto, String> accountService;
-    private final DuplicatePaymentValidator paymentValidator;
-    private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
-    private final PBAStatusErrorMapper pbaStatusErrorMapper;
-    private final CreditAccountPaymentRequestMapper requestMapper;
-    private final List<String> pbaConfig1ServiceNames;
 
     private final ReplayCreditAccountPaymentService replayCreditAccountPaymentService;
     private final CreditAccountPaymentController creditAccountPaymentController;
@@ -69,24 +50,10 @@ public class ReplayCreditAccountPaymentController {
 
 
     @Autowired
-    public ReplayCreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
-                                                CreditAccountDtoMapper creditAccountDtoMapper,
-                                                AccountService<AccountDto, String> accountService,
-                                                DuplicatePaymentValidator paymentValidator,
-                                                FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
-                                                PBAStatusErrorMapper pbaStatusErrorMapper,
-                                                CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames,
+    public ReplayCreditAccountPaymentController(LaunchDarklyFeatureToggler featureToggler,
                                                 ReplayCreditAccountPaymentService replayCreditAccountPaymentService,
                                                 CreditAccountPaymentController creditAccountPaymentController) {
-        this.creditAccountPaymentService = creditAccountPaymentService;
-        this.creditAccountDtoMapper = creditAccountDtoMapper;
-        this.accountService = accountService;
-        this.paymentValidator = paymentValidator;
-        this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
-        this.pbaStatusErrorMapper = pbaStatusErrorMapper;
-        this.requestMapper = requestMapper;
-        this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
         this.replayCreditAccountPaymentService = replayCreditAccountPaymentService;
         this.creditAccountPaymentController = creditAccountPaymentController;
     }
@@ -108,48 +75,53 @@ public class ReplayCreditAccountPaymentController {
         //Validate csv file
         if (replayPBAPaymentsFile.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else {
-            // Parse CSV file to get list of PBA payments for replay
-            try (Reader reader = new BufferedReader(new InputStreamReader(replayPBAPaymentsFile.getInputStream()))) {
+        }
 
-                // Create csv reader to get list of credit account payments
-                CsvToBean<ReplayCreditAccountPaymentRequest> csvToBean = new CsvToBeanBuilder(reader)
-                    .withType(ReplayCreditAccountPaymentRequest.class)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build();
+        // Parse CSV file to get list of PBA payments for replay
+        try (Reader reader = new BufferedReader(new InputStreamReader(replayPBAPaymentsFile.getInputStream()))) {
 
-                // List of replay credit account payment requests
-                List<ReplayCreditAccountPaymentRequest> replayCreditAccountPaymentRequestList = csvToBean.parse();
-                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: CSV TO OBJECT PARSED COUNT = " + replayCreditAccountPaymentRequestList.size());
+            // Create csv reader to get list of credit account payments
+            CsvToBean<ReplayCreditAccountPaymentRequest> csvToBean = new CsvToBeanBuilder(reader)
+                .withType(ReplayCreditAccountPaymentRequest.class)
+                .withIgnoreLeadingWhiteSpace(true)
+                .build();
 
-                List<ReplayCreditAccountPaymentDTO> replayCreditAccountPaymentDTOList = replayCreditAccountPaymentRequestList.stream()
-                    .map(replayCreditAccountPaymentRequest -> populateRequestToDTO(isReplayPBAPayments, replayCreditAccountPaymentRequest))
-                    .collect(Collectors.toList());
+            // List of replay credit account payment requests
+            List<ReplayCreditAccountPaymentRequest> replayCreditAccountPaymentRequestList = csvToBean.parse();
+            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: CSV TO OBJECT PARSED COUNT = " + replayCreditAccountPaymentRequestList.size());
 
-                if (null != replayCreditAccountPaymentDTOList && !replayCreditAccountPaymentDTOList.isEmpty()) {
-                    LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: REQUEST TO DTO COUNT = " + replayCreditAccountPaymentDTOList.size());
-                    //a.Update the Payment Status to be 'failed'
-                    //b.Update Payment History to reflect Error status and comments 'System Failure. Not charged'
-                    replayCreditAccountPaymentDTOList.stream().forEach(replayCreditAccountPaymentDTO -> {
-                        try {
-                            replayCreditAccountPaymentService.updatePaymentStatusByReference(
-                                replayCreditAccountPaymentDTO.getExistingPaymentReference(),
-                                PaymentStatus.FAILED, PAYMENT_STATUS_HISTORY_MESSAGE);
-                        } catch (Exception exception) {
-                            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: PBA Payment not found for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
-                        }
+            List<ReplayCreditAccountPaymentDTO> replayCreditAccountPaymentDTOList = replayCreditAccountPaymentRequestList.stream()
+                .map(replayCreditAccountPaymentRequest -> populateRequestToDTO(isReplayPBAPayments, replayCreditAccountPaymentRequest))
+                .collect(Collectors.toList());
 
+            if (null != replayCreditAccountPaymentDTOList && !replayCreditAccountPaymentDTOList.isEmpty()) {
+                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: REQUEST TO DTO COUNT = " + replayCreditAccountPaymentDTOList.size());
+
+                // Note : Repeat the below 3 Steps for All Payments in the requested CSV
+
+                // 1. Update the Payment Status to be 'failed'
+                // 2. Update Payment History to reflect Error status and comments 'System Failure. Not charged'
+                replayCreditAccountPaymentDTOList.stream().forEach(replayCreditAccountPaymentDTO -> {
+                    try {
+                        replayCreditAccountPaymentService.updatePaymentStatusByReference(
+                            replayCreditAccountPaymentDTO.getExistingPaymentReference(),
+                            PaymentStatus.FAILED, PAYMENT_STATUS_HISTORY_MESSAGE);
+
+                        // 3. Replay New PBA Payment as Data Provided in CSV
                         if (isReplayPBAPayments) {
                             createPBAPayments(replayCreditAccountPaymentDTO);
                         }
-                    });
-                    LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  PROCESS COMPLETED For " + replayCreditAccountPaymentDTOList.size() + " Payments");
-                }
+                    } catch (Exception exception) {
+                        LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT ERROR: PBA Payment not found for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
+                    }
+                });
 
-            } catch (Exception ex) {
-                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: Replay PBA Payment failed for All");
-                throw new PaymentException(ex);
+                LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  PROCESS COMPLETED For " + replayCreditAccountPaymentDTOList.size() + " Payments");
             }
+
+        } catch (Exception ex) {
+            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: Replay PBA Payment failed for All");
+            throw new PaymentException(ex);
         }
 
         return new ResponseEntity<String>("Replay Payment Completed Successfully", HttpStatus.OK);
@@ -158,7 +130,7 @@ public class ReplayCreditAccountPaymentController {
     private void createPBAPayments(ReplayCreditAccountPaymentDTO replayCreditAccountPaymentDTO) {
 
         try {
-            // d.Call the Payment PBA API v1
+            // Call the Payment PBA API v1
             ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest());
             if (paymentDtoResponseEntity != null) {
                 PaymentDto paymentDto = paymentDtoResponseEntity.getBody();
@@ -171,7 +143,7 @@ public class ReplayCreditAccountPaymentController {
             }
 
         } catch (Exception exception) {
-            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: Replay PBA Payment ERROR for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
+            LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT ERROR: Replay PBA Payment ERROR for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
         }
     }
 
