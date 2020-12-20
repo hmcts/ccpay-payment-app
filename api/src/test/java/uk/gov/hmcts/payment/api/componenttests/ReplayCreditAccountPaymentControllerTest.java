@@ -224,9 +224,13 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
                     .get(0);
 
                 //existing payment should be failed
-                Assert.assertEquals(existingPayment.getPaymentStatus().getName() ,"failed");
+                Assert.assertEquals("failed", existingPayment.getPaymentStatus().getName());
+
                 //Status history should contain message as System Failure. Not charged
-                Assert.assertEquals(existingPayment.getStatusHistories().get(0).getMessage(),"System Failure. Not charged");
+                Assert.assertEquals("System Failure. Not charged", existingPayment.getStatusHistories().get(0).getMessage());
+
+                //Status History table status should be also failed
+                Assert.assertEquals("failed", existingPayment.getStatusHistories().get(0).getStatus());
             });
         } finally {
             //Delete test csvfile
@@ -291,6 +295,9 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
                 Assert.assertEquals(1, paymentList.size());
                 Assert.assertNotEquals(entry.getKey(), paymentList.get(0).getReference());
+
+                //Old payment status should be pending
+                Assert.assertEquals("pending", paymentList.get(0).getPaymentStatus().getName());
             });
         } finally {
             //Delete test csvfile
