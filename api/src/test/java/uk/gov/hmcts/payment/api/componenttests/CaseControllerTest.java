@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.*;
@@ -265,7 +266,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDb("1");
 
-        FeeDto feeRequest = FeeDto.feeDtoWith()
+        PaymentGroupFeeDto feeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -301,7 +302,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDbWithApportionmentDetails("1");
 
-        FeeDto feeRequest = FeeDto.feeDtoWith()
+        PaymentGroupFeeDto feeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -327,7 +328,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
         PaymentGroupDto paymentGroupDto1 = paymentGroups.getPaymentGroups().get(0);
-        FeeDto feeDto = paymentGroupDto1.getFees().get(0);
+        PaymentGroupFeeDto feeDto = paymentGroupDto1.getFees().get(0);
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
         assertThat(feeDto.getApportionAmount()).isEqualTo(new BigDecimal("99.99"));
@@ -341,7 +342,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDb("1");
 
-        FeeDto feeRequest = FeeDto.feeDtoWith()
+        PaymentGroupFeeDto feeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -350,7 +351,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
-        FeeDto consecutiveFeeRequest = FeeDto.feeDtoWith()
+        PaymentGroupFeeDto consecutiveFeeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
             .id(1)
@@ -395,7 +396,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Transactional
     public void getAllPaymentGroupsHavingMultipleFeesRemissionsAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
-        FeeDto feeRequest = FeeDto.feeDtoWith()
+        PaymentGroupFeeDto feeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -404,7 +405,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
-        FeeDto consecutiveFeeRequest = FeeDto.feeDtoWith()
+        PaymentGroupFeeDto consecutiveFeeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
             .id(1)

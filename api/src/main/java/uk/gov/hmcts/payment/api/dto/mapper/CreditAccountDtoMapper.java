@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -75,7 +76,7 @@ public class CreditAccountDtoMapper {
         return PaymentGroupDto.paymentGroupDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .payments(paymentFeeLink.getPayments().stream().map(paymentGroupDtoMapper::toPaymentDto).collect(Collectors.toList()))
-            .fees(paymentFeeLink.getFees().stream().map(this::toFeeDto).collect(Collectors.toList()))
+            .fees(paymentFeeLink.getFees().stream().map(this::toPaymentGroupFeeDto).collect(Collectors.toList()))
             .build();
     }
 
@@ -215,6 +216,14 @@ public class CreditAccountDtoMapper {
 
     }
 
+    public PaymentGroupFeeDto toPaymentGroupFeeDto(PaymentFee fee) {
+        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .calculatedAmount(fee.getCalculatedAmount())
+            .code(fee.getCode()).version(fee.getVersion())
+            .volume(fee.getVolume())
+            .build();
+
+    }
 
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {

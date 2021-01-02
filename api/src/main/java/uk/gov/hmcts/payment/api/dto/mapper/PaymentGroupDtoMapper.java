@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentDtoForPaymentGroup;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -106,15 +107,15 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-    private List<FeeDto> toFeeDtos(List<PaymentFee> paymentFees) {
+    private List<PaymentGroupFeeDto> toFeeDtos(List<PaymentFee> paymentFees) {
         return paymentFees.stream().map(f -> toFeeDto(f)).collect(Collectors.toList());
     }
 
-    private FeeDto toFeeDto(PaymentFee fee) {
+    private PaymentGroupFeeDto toFeeDto(PaymentFee fee) {
 
         Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
         LOG.info("Inside toFeeDto and amount due is: {}", fee.getAmountDue());
-        return FeeDto.feeDtoWith()
+        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
             .netAmount(fee.getNetAmount())
@@ -136,7 +137,7 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-    public PaymentFee toPaymentFee(FeeDto feeDto){
+    public PaymentFee toPaymentFee(PaymentGroupFeeDto feeDto){
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         return PaymentFee.feeWith()

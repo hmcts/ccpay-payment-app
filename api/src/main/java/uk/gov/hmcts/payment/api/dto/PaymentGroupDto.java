@@ -33,6 +33,6 @@ public class PaymentGroupDto {
     private List<RemissionDto> remissions;
 
     @Valid
-    private List<FeeDto> fees;
+    private List<PaymentGroupFeeDto> fees;
 
 }

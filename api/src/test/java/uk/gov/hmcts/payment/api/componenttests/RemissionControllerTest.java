@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -859,8 +860,8 @@ public class RemissionControllerTest {
             .build();
     }
 
-    private FeeDto getNewFee(){
-        return FeeDto.feeDtoWith()
+    private PaymentGroupFeeDto getNewFee(){
+        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("250"))
             .code("FEE312")
             .version("1")
@@ -887,8 +888,8 @@ public class RemissionControllerTest {
             .build();
     }
 
-    private FeeDto getConsecutiveFee() {
-        return FeeDto.feeDtoWith()
+    private PaymentGroupFeeDto getConsecutiveFee() {
+        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
             .id(1)
