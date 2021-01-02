@@ -166,7 +166,6 @@ public class PaymentDtoMapper {
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .serviceName(payment.getServiceType())
             .siteId(payment.getSiteId())
-            .siteId(payment.getSiteId())
             .description(payment.getDescription())
             .channel(payment.getPaymentChannel() != null ? payment.getPaymentChannel().getName() : null)
             .method(payment.getPaymentMethod() != null ? payment.getPaymentMethod().getName() : null)
