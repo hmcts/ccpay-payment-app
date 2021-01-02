@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupRemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -15,11 +16,11 @@ import java.util.stream.Collectors;
 @Component
 public class RemissionDtoMapper {
 
-    public RemissionDto toCreateRemissionResponse(PaymentFeeLink paymentFeeLink) {
+    public PaymentGroupRemissionDto toCreateRemissionResponse(PaymentFeeLink paymentFeeLink) {
         Remission remission = paymentFeeLink.getRemissions().get(0);
         FeeDto feeDto = toFeeDto(paymentFeeLink.getFees().get(0));
 
-        return RemissionDto.remissionDtoWith()
+        return PaymentGroupRemissionDto.paymentGroupRemissionDtoWith()
             .remissionReference(remission.getRemissionReference())
             .paymentReference(paymentFeeLink.getPayments() == null || paymentFeeLink.getPayments().isEmpty() ? null : paymentFeeLink.getPayments().get(0).getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())

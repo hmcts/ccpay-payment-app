@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupRemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
@@ -53,7 +54,7 @@ public class RemissionController {
     @PostMapping(value = "/remission")
     @ResponseBody
     @Deprecated
-    public ResponseEntity<RemissionDto> createRemissionV1(@Valid @RequestBody RemissionRequest remissionRequest)
+    public ResponseEntity<PaymentGroupRemissionDto> createRemissionV1(@Valid @RequestBody RemissionRequest remissionRequest)
         throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
 
@@ -77,7 +78,7 @@ public class RemissionController {
     })
     @PostMapping(value = "/remissions")
     @ResponseBody
-    public ResponseEntity<RemissionDto> createRemission(@Valid @RequestBody RemissionRequest remissionRequest)
+    public ResponseEntity<PaymentGroupRemissionDto> createRemission(@Valid @RequestBody RemissionRequest remissionRequest)
         throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
 
@@ -98,7 +99,7 @@ public class RemissionController {
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions")
     @ResponseBody
-    public ResponseEntity<RemissionDto> createRetrospectiveRemission(
+    public ResponseEntity<PaymentGroupRemissionDto> createRetrospectiveRemission(
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @PathVariable("unique_fee_id") Integer feeId,
         @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
