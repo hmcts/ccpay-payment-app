@@ -127,7 +127,7 @@ public class FeesControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .siteId("AA001")
             .hwfReference("HWFref")
-            .fee(getFee())
+            .fee(getPaymentGroupFee())
             .build();
 
         MvcResult result = restActions
@@ -168,6 +168,15 @@ public class FeesControllerTest {
 
     private FeeDto getFee() {
         return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("10.00"))
+            .ccdCaseNumber("CCD1234")
+            .version("1")
+            .code("FEE0123")
+            .build();
+    }
+
+    private PaymentGroupFeeDto getPaymentGroupFee() {
+        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("10.00"))
             .ccdCaseNumber("CCD1234")
             .version("1")

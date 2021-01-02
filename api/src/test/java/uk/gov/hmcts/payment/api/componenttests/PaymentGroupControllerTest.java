@@ -1546,12 +1546,12 @@ public class PaymentGroupControllerTest {
 
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
-        List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
+        List<PaymentGroupFeeDto> fees = new ArrayList<>();
+        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -1676,7 +1676,7 @@ public class PaymentGroupControllerTest {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(getFee()))
+            .fees(Collections.singletonList(getCardPaymentFee()))
             .build();
     }
 
@@ -1698,6 +1698,14 @@ public class PaymentGroupControllerTest {
             .code("FEE0123")
             .build();
     }
+    private FeeDto getCardPaymentFee() {
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("250.00"))
+            .version("1")
+            .code("FEE0123")
+            .build();
+    }
+
 
     private FeeDto getFeeWithApportionDetails() {
         return FeeDto.feeDtoWith()

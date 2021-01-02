@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.fees.register.legacymodel.Fee;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -405,6 +406,15 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
+        FeeDto cardFeeRequest = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .build();
+
         PaymentGroupFeeDto consecutiveFeeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
@@ -433,7 +443,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(feeRequest))
+            .fees(Collections.singletonList(cardFeeRequest))
             .build();
 
         MvcResult result1 = restActions
@@ -519,13 +529,22 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
+        PaymentGroupFeeDto remissionFeeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE0383")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .build();
+
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
             .ccdCaseNumber("ccdCaseNumber1")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
             .siteId("AA001")
-            .fee(feeRequest)
+            .fee(remissionFeeRequest)
             .build();
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
