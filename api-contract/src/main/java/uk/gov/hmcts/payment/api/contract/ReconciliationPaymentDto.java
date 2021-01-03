@@ -6,7 +6,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.EnrichablePaymentDto;
+import uk.gov.hmcts.payment.api.EnrichablePaymentFeeDto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -26,7 +27,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class ReconciliationPaymentDto extends PaymentResponse{
+public class ReconciliationPaymentDto extends EnrichablePaymentDto {
     private List<StatusHistoryDto> statusHistories;
 
     public String toCardPaymentCsv() {
@@ -34,7 +35,7 @@ public class ReconciliationPaymentDto extends PaymentResponse{
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        for (FeeDto fee : getFees()) {
+        for (EnrichablePaymentFeeDto fee : getFees()) {
             StringJoiner sb = new StringJoiner(",")
                 .add(getServiceName())
                 .add(getPaymentGroupReference())
@@ -73,7 +74,7 @@ public class ReconciliationPaymentDto extends PaymentResponse{
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        for (FeeDto fee : getFees()) {
+        for (EnrichablePaymentFeeDto fee : getFees()) {
             StringJoiner sb = new StringJoiner(",")
                 .add(getServiceName())
                 .add(getPaymentGroupReference())

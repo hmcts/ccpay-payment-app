@@ -111,7 +111,6 @@ public class PaymentGroupDtoMapper {
     }
 
     private FeeDto toFeeDto(PaymentFee fee) {
-
         Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
         LOG.info("Inside toFeeDto and amount due is: {}", fee.getAmountDue());
         return FeeDto.feeDtoWith()

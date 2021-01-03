@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.contract;
+package uk.gov.hmcts.payment.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -8,31 +8,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.payment.api.EnrichablePaymentDto;
-import uk.gov.hmcts.payment.api.EnrichablePaymentFeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentResponse;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@SuperBuilder(builderMethodName = "getPaymentResponseWith")
+@SuperBuilder(builderMethodName = "enrichablePaymentDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class GetPaymentResponse  extends EnrichablePaymentDto {
-    private List<StatusHistoryDto> statusHistories;
-
-    private List<PaymentAllocationDto> paymentAllocation;
-
-    private Date bankedDate;
-
-    private String payerName;
-
-    private String documentControlNumber;
-
+public class EnrichablePaymentDto extends PaymentResponse {
+    @NotNull
+    private List<EnrichablePaymentFeeDto> fees;
 }

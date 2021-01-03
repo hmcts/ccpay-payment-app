@@ -9,6 +9,9 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
+import uk.gov.hmcts.payment.api.EnrichablePaymentDto;
+import uk.gov.hmcts.payment.api.EnrichablePaymentFeeDto;
+import uk.gov.hmcts.payment.api.LiberataFeeDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -218,7 +221,7 @@ public class PaymentDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .externalReference(payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline())
-            .fees(toGetPaymentFeeDtos(payment.getPaymentLink() != null ? payment.getPaymentLink().getFees() : new ArrayList<>()))
+            .fees(toEnrichablePaymentFeeDtos(payment.getPaymentLink() != null ? payment.getPaymentLink().getFees() : new ArrayList<>()))
             .build();
         return (GetPaymentResponse)enrichWithFeeData(getPaymentResponse);
     }
@@ -247,7 +250,7 @@ public class PaymentDtoMapper {
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(payment.getExternalReference())
             .reportedDateOffline(payment.getReportedDateOffline())
-            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .fees(toEnrichablePaymentFeeDtos(paymentFeeLink.getFees()))
             .build();
         return (ReconciliationPaymentDto)enrichWithFeeData(casePaymentResponse);
     }
@@ -289,11 +292,34 @@ public class PaymentDtoMapper {
         if (bulkScanCheck && isBulkScanPayment) {
             reconciliationPaymentResponse.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
         }
-        return (LiberataReconciliationPaymentDto)enrichWithFeeData(reconciliationPaymentResponse);
+        return enrichWithFeeData(reconciliationPaymentResponse);
     }
 
+    private LiberataReconciliationPaymentDto enrichWithFeeData(LiberataReconciliationPaymentDto paymentResponse) {
+        paymentResponse.getFees().forEach(fee -> {
+            Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
+            if (optFrFeeMap.isPresent()) {
+                Map<String, Fee2Dto> frFeeMap = optFrFeeMap.get();
 
-    private PaymentResponse enrichWithFeeData(PaymentResponse paymentResponse) {
+                if (frFeeMap.containsKey(fee.getCode())) {
+                    Fee2Dto frFee = frFeeMap.get(fee.getCode());
+                    fee.setJurisdiction1(frFee.getJurisdiction1Dto().getName());
+                    fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
+
+                    Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+                    if (optionalFeeVersionDto.isPresent()) {
+                        fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
+                        fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+                    }
+                } else {
+                    LOG.info("No fee found with the code: {}", fee.getCode());
+                }
+            }
+        });
+        return paymentResponse;
+    }
+
+    private EnrichablePaymentDto enrichWithFeeData(EnrichablePaymentDto paymentResponse) {
         paymentResponse.getFees().forEach(fee -> {
             Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
             if (optFrFeeMap.isPresent()) {
@@ -321,16 +347,18 @@ public class PaymentDtoMapper {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
-    private List<FeeDto> toFeeLiberataDtos(List<PaymentFee> fees,boolean apportionCheck) {
+
+
+    private List<LiberataFeeDto> toFeeLiberataDtos(List<PaymentFee> fees,boolean apportionCheck) {
         return fees.stream().map(fee -> toFeeLiberataDto(fee,apportionCheck)).collect(Collectors.toList());
     }
 
-    private List<FeeDto> toGetPaymentFeeDtos(List<PaymentFee> fees) {
-        return fees.stream().map(this::toGetPaymentsFeeDto).collect(Collectors.toList());
+    private List<EnrichablePaymentFeeDto> toEnrichablePaymentFeeDtos(List<PaymentFee> fees) {
+        return fees.stream().map(this::toEnrichablePaymentFeeDto).collect(Collectors.toList());
     }
 
 
-    private List<FeeDto> toFeeLiberataDtosWithCaseReference(List<PaymentFee> fees, String caseReference,boolean apportionCheck) {
+    private List<LiberataFeeDto> toFeeLiberataDtosWithCaseReference(List<PaymentFee> fees, String caseReference,boolean apportionCheck) {
         return fees.stream().map(fee -> toFeeLiberataDtoWithCaseReference(fee,caseReference,apportionCheck)).collect(Collectors.toList());
     }
 
@@ -370,11 +398,11 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    private FeeDto toFeeLiberataDto(PaymentFee fee,boolean apportionCheck) {
+    private LiberataFeeDto toFeeLiberataDto(PaymentFee fee,boolean apportionCheck) {
         LOG.info("Inside toFeeLiberataDto");
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
-        return FeeDto.feeDtoWith()
+        return LiberataFeeDto.buildLiberataFeeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
@@ -389,11 +417,11 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    private FeeDto toGetPaymentsFeeDto(PaymentFee fee) {
+    private EnrichablePaymentFeeDto toEnrichablePaymentFeeDto(PaymentFee fee) {
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
-        return FeeDto.feeDtoWith()
+        return EnrichablePaymentFeeDto.buildEnrichablePaymentFeeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
@@ -410,12 +438,12 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    private FeeDto toFeeLiberataDtoWithCaseReference(PaymentFee fee, String caseReference,boolean apportionCheck) {
+    private LiberataFeeDto toFeeLiberataDtoWithCaseReference(PaymentFee fee, String caseReference, boolean apportionCheck) {
 
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
         LOG.info("Inside toFeeLiberataDtoWithCaseReference");
-        return FeeDto.feeDtoWith()
+        return LiberataFeeDto.buildLiberataFeeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())

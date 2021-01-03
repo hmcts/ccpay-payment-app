@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.payment.api.EnrichablePaymentFeeDto;
+import uk.gov.hmcts.payment.api.LiberataFeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.constraints.NotEmpty;
@@ -71,5 +73,8 @@ public class LiberataReconciliationPaymentDto extends PaymentResponse{
     private Date reportedDateOffline;
 
     private List<PaymentAllocationDto> paymentAllocation;
+
+    @NotNull
+    private List<LiberataFeeDto> fees;
 
 }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.payment.api.EnrichablePaymentFeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.constraints.NotEmpty;
@@ -68,6 +69,5 @@ public class PaymentResponse {
 
     private Date reportedDateOffline;
 
-    @NotNull
-    private List<FeeDto> fees;
+
 }

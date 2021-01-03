@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.EnrichablePaymentDto;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
@@ -115,7 +116,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentResponse> payments = response.getPayments();
+        List<EnrichablePaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);
         assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
@@ -238,7 +239,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentResponse> payments = response.getPayments();
+        List<EnrichablePaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);
         Date updatedTsForFirstReq = payments.get(0).getDateUpdated();

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.payment.api.EnrichablePaymentDto;
 
 import java.util.List;
 
@@ -14,6 +15,6 @@ import java.util.List;
 @Data
 public class PaymentsResponse {
 
-    private List<PaymentResponse> payments;
+    private List<EnrichablePaymentDto> payments;
 
 }
