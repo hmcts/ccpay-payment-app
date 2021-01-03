@@ -98,26 +98,6 @@ public class PaymentDto {
     @JsonProperty("_links")
     private LinksDto links;
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @JsonNaming(SnakeCaseStrategy.class)
-    @JsonInclude(NON_NULL)
-    public static class LinksDto {
-        private LinkDto nextUrl;
-        private LinkDto self;
-        private LinkDto cancel;
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @JsonInclude(NON_NULL)
-    public static class LinkDto {
-        private String href;
-        private String method;
-    }
-
     public String toCardPaymentCsv() {
         StringJoiner result = new StringJoiner("\n");
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss zzz");

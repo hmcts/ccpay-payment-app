@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -95,7 +92,7 @@ public class CreditAccountDtoMapper {
             .organisationName(payment.getOrganisationName())
             .accountNumber(payment.getPbaNumber())
             .fees(toFeeDtos(fees))
-            .links(new PaymentDto.LinksDto(null,
+            .links(new LinksDto(null,
                 retrievePaymentLink(payment.getReference()),
                 null
             ))
@@ -214,14 +211,14 @@ public class CreditAccountDtoMapper {
 
 
     @SneakyThrows(NoSuchMethodException.class)
-    private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
+    private LinkDto cancellationLink(String userId, Integer paymentId) {
         Method method = CreditAccountPaymentController.class.getMethod("cancel", String.class, Integer.class);
-        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
+        return new LinkDto(WebMvcLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
     }
 
     @SneakyThrows(NoSuchMethodException.class)
-    private PaymentDto.LinkDto retrievePaymentLink(String reference) {
+    private LinkDto retrievePaymentLink(String reference) {
         Method method = CreditAccountPaymentController.class.getMethod("retrieve", String.class);
-        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
+        return new LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 }

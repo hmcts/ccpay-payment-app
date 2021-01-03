@@ -10,10 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.dto.CardPaymentCreatedResponse;
@@ -51,8 +48,8 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
             .externalReference(payment.getExternalReference())
-            .links(new PaymentDto.LinksDto(
-                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
+            .links(new LinksDto(
+                payment.getNextUrl() == null ? null : new LinkDto(payment.getNextUrl(), "GET"),
                 null, null
             ))
             .build();
@@ -66,8 +63,8 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentGroupReference)
             .dateCreated(payment.getDateCreated())
             .externalReference(payment.getExternalReference())
-            .links(new PaymentDto.LinksDto(
-                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
+            .links(new LinksDto(
+                payment.getNextUrl() == null ? null : new LinkDto(payment.getNextUrl(), "GET"),
                 null, null
             ))
             .build();
@@ -112,9 +109,9 @@ public class PaymentDtoMapper {
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .fees(paymentFeeLink.getFees() != null ? toFeeDtos(paymentFeeLink.getFees()) : null)
+            .fees(paymentFeeLink.getFees() != null ? toPaymentFeeDtos(paymentFeeLink.getFees()) : null)
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
+            .links(new LinksDto(new LinkDto(link, "GET"), null, null))
             .build();
     }
 
@@ -125,7 +122,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .dateCreated(payment.getDateCreated())
-            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
+            .links(new LinksDto(new LinkDto(link, "GET"), null, null))
             .build();
     }
 
@@ -147,7 +144,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .fees(toFeeDtos(fees))
-            .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
+            .links(payment.getReference() != null ? new LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
             ) : null)
@@ -172,8 +169,8 @@ public class PaymentDtoMapper {
             .externalReference(payment.getExternalReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
-            .fees(toFeeDtos(fees))
-            .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
+            .fees(toPaymentFeeDtos(fees))
+            .links(payment.getReference() != null ? new LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
             ) : null)
@@ -331,6 +328,10 @@ public class PaymentDtoMapper {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
+    private List<PaymentFeeDto> toPaymentFeeDtos(List<PaymentFee> fees) {
+        return fees.stream().map(this::toPaymentFeeDto).collect(Collectors.toList());
+    }
+
     private List<FeeDto> toFeeLiberataDtos(List<PaymentFee> fees,boolean apportionCheck) {
         return fees.stream().map(fee -> toFeeLiberataDto(fee,apportionCheck)).collect(Collectors.toList());
     }
@@ -369,6 +370,22 @@ public class PaymentDtoMapper {
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
         return FeeDto.feeDtoWith()
+            .id(fee.getId())
+            .calculatedAmount(calculatedAmount)
+            .code(fee.getCode())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
+            .version(fee.getVersion())
+            .volume(fee.getVolume())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .reference(fee.getReference())
+            .build();
+    }
+
+    private PaymentFeeDto toPaymentFeeDto(PaymentFee fee) {
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
+
+        return PaymentFeeDto.paymentFeeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
@@ -465,9 +482,9 @@ public class PaymentDtoMapper {
 
 
     @SneakyThrows(NoSuchMethodException.class)
-    private PaymentDto.LinkDto retrieveCardPaymentLink(String reference) {
+    private LinkDto retrieveCardPaymentLink(String reference) {
         Method method = CardPaymentController.class.getMethod("retrieve", String.class);
-        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
+        return new LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 
     public PaymentDto toCreateRecordPaymentResponse(PaymentFeeLink paymentFeeLink) {

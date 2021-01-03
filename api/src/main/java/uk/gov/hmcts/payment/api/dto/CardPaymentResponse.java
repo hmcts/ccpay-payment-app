@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.LinksDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentFeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.constraints.NotEmpty;
@@ -56,9 +58,9 @@ public class CardPaymentResponse {
     private String externalProvider;
 
     @NotNull
-    private List<FeeDto> fees;
+    private List<PaymentFeeDto> fees;
 
     @JsonProperty("_links")
-    private PaymentDto.LinksDto links;
+    private LinksDto links;
 
 }
