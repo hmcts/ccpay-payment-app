@@ -12,6 +12,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -148,6 +149,35 @@ public class PaymentGroupDtoMapper {
             .netAmount(feeDto.getCalculatedAmount())
             .reference(feeDto.getReference())
             .dateCreated(apportionFeature ? timestamp: null)
+            .build();
+    }
+
+    private List<PaymentGroupFeeDto> toPaymentGroupFeeDtos(List<PaymentFee> paymentFees) {
+        return paymentFees.stream().map(f -> toPaymentGroupFeeDto(f)).collect(Collectors.toList());
+    }
+
+    private PaymentGroupFeeDto toPaymentGroupFeeDto(PaymentFee fee) {
+        Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+        LOG.info("Inside toFeeDto and amount due is: {}", fee.getAmountDue());
+        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .calculatedAmount(fee.getCalculatedAmount())
+            .code(fee.getCode())
+            .netAmount(fee.getNetAmount())
+            .version(fee.getVersion())
+            .volume(fee.getVolume())
+            .feeAmount(fee.getFeeAmount())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .reference(fee.getReference())
+            .id(fee.getId())
+            .memoLine(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getMemoLine() : null)
+            .naturalAccountCode(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getNaturalAccountCode() : null)
+            .description( optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getDescription() : null)
+            .allocatedAmount(fee.getAllocatedAmount())
+            .apportionAmount(fee.getApportionAmount())
+            .dateCreated(fee.getDateCreated())
+            .dateUpdated(fee.getDateUpdated())
+            .dateApportioned(fee.getDateApportioned())
+            .amountDue(fee.getAmountDue())
             .build();
     }
 }
