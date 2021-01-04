@@ -25,6 +25,10 @@ configurations.all {
             if (det.requested.name == 'handlebars') {
                 det.useVersion '4.2.0'
             }
+
+            if (det.requested.name == 'bcprov-jdk15on') {
+                det.useVersion '1.64'
+            }
         }
 
     }
