@@ -380,10 +380,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
 
-        assertThat(payment.getReference()).isNotBlank();
+        assertThat(payment.getChannel()).isNotBlank();
         assertThat(payment.getAmount()).isPositive();
         assertThat(payment.getDateCreated()).isNotNull();
-        assertThat(payment.getCustomerReference()).isNotBlank();
+        assertThat(payment.getExternalProvider()).isNotBlank();
+        assertThat(payment.getPaymentReference()).isNotBlank();
+        assertThat(payment.getSiteId()).isNotBlank();
     }
 
     @Test
