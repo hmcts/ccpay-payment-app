@@ -90,7 +90,7 @@ public class CreditAccountPaymentController {
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<CreditAccountPaymentResponse> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
+    public ResponseEntity<CreditAccountPaymentCreatedResponse> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
@@ -157,7 +157,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/credit-account-payments/{paymentReference}", method = GET)
-    public ResponseEntity<RetrievePaymentResponse> retrieve(@PathVariable("paymentReference") String paymentReference) {
+    public ResponseEntity<CreditAccountPaymentResponse> retrieve(@PathVariable("paymentReference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
         Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
             .findAny()
@@ -172,7 +172,7 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @RequestMapping(value = "/credit-account-payments/{paymentReference}/statuses", method = GET)
-    public ResponseEntity<RetrievePaymentStatusResponse> retrievePaymentStatus(@PathVariable("paymentReference") String paymentReference) {
+    public ResponseEntity<CreditAccountPaymentStatusResponse> retrievePaymentStatus(@PathVariable("paymentReference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.retrieveByPaymentReference(paymentReference);
         Payment payment = paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference))
             .findAny()
