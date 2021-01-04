@@ -104,7 +104,7 @@ public class PaymentDtoTest {
         dateUpdated = currentDateTime.plusDays(1).toDate();
         List<StatusHistoryDto> statusHistories = new ArrayList<>();
         List<PaymentAllocationDto> paymentAllocations = new ArrayList<>();
-        PaymentDto.LinksDto links = new PaymentDto.LinksDto();
+        LinksDto links = new LinksDto();
 
         amount = new BigDecimal(1);
         id = "1";

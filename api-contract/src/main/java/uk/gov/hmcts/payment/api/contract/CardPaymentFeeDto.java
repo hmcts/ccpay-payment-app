@@ -18,11 +18,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "paymentFeeDtoWith")
+@Builder(builderMethodName = "cardPaymentFeeDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PaymentFeeDto {
+public class CardPaymentFeeDto {
     private Integer id;
 
     @NotNull

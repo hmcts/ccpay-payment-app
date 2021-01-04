@@ -99,10 +99,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-
-
-
-
     public CardPaymentCreatedResponse toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return CardPaymentCreatedResponse.cardPaymentCreatedWith()
@@ -328,7 +324,7 @@ public class PaymentDtoMapper {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
-    private List<PaymentFeeDto> toPaymentFeeDtos(List<PaymentFee> fees) {
+    private List<CardPaymentFeeDto> toPaymentFeeDtos(List<PaymentFee> fees) {
         return fees.stream().map(this::toPaymentFeeDto).collect(Collectors.toList());
     }
 
@@ -381,11 +377,11 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    private PaymentFeeDto toPaymentFeeDto(PaymentFee fee) {
+    private CardPaymentFeeDto toPaymentFeeDto(PaymentFee fee) {
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
-        return PaymentFeeDto.paymentFeeDtoWith()
+        return CardPaymentFeeDto.cardPaymentFeeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
