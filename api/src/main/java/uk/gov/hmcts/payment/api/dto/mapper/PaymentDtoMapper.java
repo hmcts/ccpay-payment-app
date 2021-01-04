@@ -380,7 +380,7 @@ public class PaymentDtoMapper {
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
-        return CardPaymentFeeDto.pcipalCardPaymentFeeDtoWith()
+        return CardPaymentFeeDto.cardPaymentFeeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
