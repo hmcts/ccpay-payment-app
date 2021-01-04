@@ -22,5 +22,5 @@ public class PaymentGroupRemissionDto {
 
     private String paymentGroupReference;
 
-    private FeeDto fee;
+    private RemissionFeeDto fee;
 }

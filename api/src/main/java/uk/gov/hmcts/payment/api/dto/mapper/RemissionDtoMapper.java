@@ -5,6 +5,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupRemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.dto.RemissionFeeDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -18,7 +19,7 @@ public class RemissionDtoMapper {
 
     public PaymentGroupRemissionDto toCreateRemissionResponse(PaymentFeeLink paymentFeeLink) {
         Remission remission = paymentFeeLink.getRemissions().get(0);
-        FeeDto feeDto = toFeeDto(paymentFeeLink.getFees().get(0));
+        RemissionFeeDto feeDto = toRemissionFeeDto(paymentFeeLink.getFees().get(0));
 
         return PaymentGroupRemissionDto.paymentGroupRemissionDtoWith()
             .remissionReference(remission.getRemissionReference())
@@ -32,8 +33,8 @@ public class RemissionDtoMapper {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
-    public FeeDto toFeeDto(PaymentFee fee) {
-        return FeeDto.feeDtoWith()
+    public RemissionFeeDto toRemissionFeeDto(PaymentFee fee) {
+        return RemissionFeeDto.remissionFeeDtoWith()
             .id(fee.getId())
             .calculatedAmount(fee.getCalculatedAmount())
             .code(fee.getCode())
