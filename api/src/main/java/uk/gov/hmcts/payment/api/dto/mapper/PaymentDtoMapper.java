@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.dto.CardPaymentCreatedResponse;
+import uk.gov.hmcts.payment.api.dto.CardPaymentFeeDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -97,10 +98,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-
-
-
-
     public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
@@ -118,7 +115,7 @@ public class PaymentDtoMapper {
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .fees(toFeeDtos(paymentFeeLink.getFees()))
+            .fees(toCardPaymentFeeDtos(paymentFeeLink.getFees()))
             .dateCreated(payment.getDateCreated())
             .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
@@ -326,6 +323,10 @@ public class PaymentDtoMapper {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
+    private List<CardPaymentFeeDto> toCardPaymentFeeDtos(List<PaymentFee> fees) {
+        return fees.stream().map(this::toCardPaymentFeeDto).collect(Collectors.toList());
+    }
+
     private List<FeeDto> toFeeLiberataDtos(List<PaymentFee> fees,boolean apportionCheck) {
         return fees.stream().map(fee -> toFeeLiberataDto(fee,apportionCheck)).collect(Collectors.toList());
     }
@@ -364,6 +365,22 @@ public class PaymentDtoMapper {
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
 
         return FeeDto.feeDtoWith()
+            .id(fee.getId())
+            .calculatedAmount(calculatedAmount)
+            .code(fee.getCode())
+            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
+            .version(fee.getVersion())
+            .volume(fee.getVolume())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .reference(fee.getReference())
+            .build();
+    }
+
+    private CardPaymentFeeDto toCardPaymentFeeDto(PaymentFee fee) {
+        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
+        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
+
+        return CardPaymentFeeDto.pcipalCardPaymentFeeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())

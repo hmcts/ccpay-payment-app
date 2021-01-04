@@ -36,5 +36,5 @@ public class CardPaymentCreatedResponse {
     @JsonProperty("_links")
     private PaymentDto.LinksDto links;
 
-    private List<FeeDto> fees;
+    private List<CardPaymentFeeDto> fees;
 }
