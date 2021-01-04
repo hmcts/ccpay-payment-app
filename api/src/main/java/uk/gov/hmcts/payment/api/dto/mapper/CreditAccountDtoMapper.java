@@ -51,7 +51,7 @@ public class CreditAccountDtoMapper {
     }
 
     public CreditAccountPaymentResponse toRetrievePaymentResponse(Payment payment, List<PaymentFee> fees) {
-        return CreditAccountPaymentResponse.retrievePaymentResponseWith()
+        return CreditAccountPaymentResponse.creditAccountPaymentResponseWith()
             .reference(payment.getReference())
             .dateCreated(payment.getDateCreated())
             .amount(payment.getAmount())
