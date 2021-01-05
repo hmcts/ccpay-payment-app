@@ -27,7 +27,8 @@ public class FeeDtoTest {
         feeDto.setVolume(-1);
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
-        assertThat(violations).extracting(ConstraintViolation::getMessage)
+        Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
+        assertThat(iterator).extracting(ConstraintViolation::getMessage)
             .contains("must be greater than 0");
     }
 
@@ -37,7 +38,9 @@ public class FeeDtoTest {
         feeDto.setVolume(0);
 
         Set<ConstraintViolation<FeeDto>> violations = validator.validate(feeDto);
-        assertThat(violations).extracting(ConstraintViolation::getMessage)
+
+        Iterator<ConstraintViolation<FeeDto>> iterator = violations.iterator();
+        assertThat(iterator).extracting(ConstraintViolation::getMessage)
             .contains("must be greater than 0");
     }
 
