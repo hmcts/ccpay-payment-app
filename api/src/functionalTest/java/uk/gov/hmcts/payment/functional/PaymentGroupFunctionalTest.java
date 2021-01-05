@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequestFee;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -338,7 +339,7 @@ public class PaymentGroupFunctionalTest {
     public void givenMultipleFeesAndRemissionWithPaymentInPG_WhenCaseIsSearchedShouldBeReturned() throws Exception {
 
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        FeeDto feeDto = FeeDto.feeDtoWith()
+        CardPaymentRequestFee feeDto = CardPaymentRequestFee.cardPaymentRequestFeeWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
             .version("1")
@@ -425,7 +426,7 @@ public class PaymentGroupFunctionalTest {
     public void givenMultipleFeesAndRemissionWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForFinrem() throws Exception {
 
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        FeeDto feeDto = FeeDto.feeDtoWith()
+        CardPaymentRequestFee feeDto = CardPaymentRequestFee.cardPaymentRequestFeeWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
             .version("1")
@@ -572,7 +573,7 @@ public class PaymentGroupFunctionalTest {
             .provider("pci pal")
             .service(Service.DIVORCE)
             .siteId("AA001")
-            .fees(Collections.singletonList(getFee()))
+            .fees(Collections.singletonList(getCardPaymentRequestFee()))
             .build();
     }
 
@@ -607,6 +608,17 @@ public class PaymentGroupFunctionalTest {
             .code("FEE0123")
             .build();
     }
+
+    private CardPaymentRequestFee getCardPaymentRequestFee() {
+        return CardPaymentRequestFee.cardPaymentRequestFeeWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber("1111-CCD2-3333-4444")
+            .version("1")
+            .code("FEE0123")
+            .build();
+    }
+
+
 
 
 }

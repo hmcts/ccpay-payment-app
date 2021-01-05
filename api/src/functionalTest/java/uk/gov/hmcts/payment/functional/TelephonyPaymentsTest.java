@@ -11,10 +11,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
@@ -211,7 +208,7 @@ public class TelephonyPaymentsTest {
             .provider("pci pal")
             .channel("telephony")
             .siteId("siteId")
-            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+            .fees(Collections.singletonList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .code("feeCode")
                 .version("1")
                 .calculatedAmount(new BigDecimal("100.1"))
@@ -240,7 +237,7 @@ public class TelephonyPaymentsTest {
             .provider("pci pal")
             .channel("telephony")
             .siteId("sideId")
-            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+            .fees(Collections.singletonList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .code("feeCode")
                 .version("1")
                 .calculatedAmount(new BigDecimal("100.1"))

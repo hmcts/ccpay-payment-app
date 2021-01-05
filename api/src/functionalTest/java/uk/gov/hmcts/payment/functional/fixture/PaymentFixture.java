@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequestFee;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -26,7 +27,7 @@ public class PaymentFixture {
             .currency(CurrencyCode.GBP)
             .siteId("AA101")
             .fees(Lists.newArrayList(
-                FeeDto.feeDtoWith()
+                CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .calculatedAmount(new BigDecimal(amountString))
                 .code("FEE0001")
                 .version("1")
