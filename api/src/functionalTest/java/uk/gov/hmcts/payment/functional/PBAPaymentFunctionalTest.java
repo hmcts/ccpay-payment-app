@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequestFee;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -99,12 +100,12 @@ public class PBAPaymentFunctionalTest {
 
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         // create card payment
-        List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        List<CreditAccountPaymentRequestFee> fees = new ArrayList<>();
+        fees.add(CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         // create a PBA payment
