@@ -60,7 +60,7 @@ public class CardPaymentRequest {
     private String siteId;
 
     @Valid
-    private List<FeeDto> fees;
+    private List<CardPaymentRequestFee> fees;
 
     @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
     private boolean isEitherOneRequired() {
