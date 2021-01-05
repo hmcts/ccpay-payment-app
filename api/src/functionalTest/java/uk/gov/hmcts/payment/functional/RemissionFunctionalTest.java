@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -136,7 +137,7 @@ public class RemissionFunctionalTest {
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .siteId("Y431")
-            .fee(getFee())
+            .fee(getRemissionFee())
             .build();
     }
 
@@ -144,6 +145,15 @@ public class RemissionFunctionalTest {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber("1111-2222-3333-4444")
+            .version("1")
+            .code("FEE0123")
+            .build();
+    }
+
+    private PaymentGroupFeeDto getRemissionFee() {
+        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .calculatedAmount(new BigDecimal("550.00"))
+            .ccdCaseNumber("1111-CCD2-3333-4444")
             .version("1")
             .code("FEE0123")
             .build();
