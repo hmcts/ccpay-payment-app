@@ -129,15 +129,6 @@ subprojects {
             exceptionFormat = 'full'
         }
     }
-    configurations.all {
-        resolutionStrategy {
-            eachDependency { DependencyResolveDetails det ->
-                if (det.requested.name == 'handlebars') {
-                    det.useVersion '4.2.0'
-                }
-            }
-        }
-    }
     dependencies {
         compile ('com.sun.xml.bind:jaxb-osgi:2.3.1')
         testCompile 'io.github.openfeign:feign-jackson:9.7.0'
