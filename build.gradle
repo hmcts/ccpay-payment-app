@@ -18,6 +18,17 @@ def versions = [
         jacocoVersion: '0.8.5'
 ]
 
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails det ->
+            if (det.requested.name == 'bcprov-jdk15on') {
+                det.useVersion '1.68'
+            }
+
+        }
+    }
+}
+
 allprojects {
     apply plugin: 'maven'
     apply plugin: 'io.spring.dependency-management'
