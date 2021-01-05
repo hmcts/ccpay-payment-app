@@ -375,7 +375,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         LiberataReconciliationPaymentDto payment = payments.getPayments().get(0);
         assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
-//        assertThat(payment.getReference()).isNotBlank();
+        assertThat(payment.getPaymentReference()).isNotBlank();
         assertThat(payment.getAmount()).isPositive();
         assertThat(payment.getDateCreated()).isNotNull();
         assertThat(payment.getCustomerReference()).isNotBlank();

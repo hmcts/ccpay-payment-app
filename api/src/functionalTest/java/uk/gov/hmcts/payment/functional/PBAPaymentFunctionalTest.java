@@ -144,7 +144,7 @@ public class PBAPaymentFunctionalTest {
             .then().getPaymentGroups((paymentGroupsResponse -> {
             paymentGroupsResponse.getPaymentGroups().stream()
                 .filter(paymentGroupDto -> paymentGroupDto.getPayments().get(0).getReference()
-                    .equalsIgnoreCase(paymentsResponse.getPayments().get(0).getReference()))
+                    .equalsIgnoreCase(paymentsResponse.getPayments().get(0).getPaymentReference()))
                 .forEach(paymentGroupDto -> {
 
                     boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
