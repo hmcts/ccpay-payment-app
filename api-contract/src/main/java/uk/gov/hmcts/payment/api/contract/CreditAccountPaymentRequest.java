@@ -62,7 +62,7 @@ public class CreditAccountPaymentRequest {
 
     @NotEmpty
     @Valid
-    private List<FeeDto> fees;
+    private List<CreditAccountPaymentRequestFee> fees;
 
     @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
     private boolean isEitherOneRequired() {

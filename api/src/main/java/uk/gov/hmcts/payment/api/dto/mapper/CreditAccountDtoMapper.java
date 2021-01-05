@@ -100,7 +100,7 @@ public class CreditAccountDtoMapper {
         return fees.stream().map(this::toCreditAccountFeeDto).collect(Collectors.toList());
     }
 
-    public PaymentFee toFee(FeeDto feeDto) {
+    public PaymentFee toFee(CreditAccountPaymentRequestFee feeDto) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         return PaymentFee.feeWith()
