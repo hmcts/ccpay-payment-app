@@ -109,7 +109,6 @@
         <notes><![CDATA[
             This CVE is related to file type tag parsing. However, the associated CVE seems to be a false positive on the lang-tag jar.
         ]]></notes>
-        <packageUrl regex="true">^pkg:maven/com.nimbusds/lang-tag@.*$</packageUrl>
         <cve>CVE-2020-29242</cve>
         <cve>CVE-2020-29243</cve>
         <cve>CVE-2020-29244</cve>
