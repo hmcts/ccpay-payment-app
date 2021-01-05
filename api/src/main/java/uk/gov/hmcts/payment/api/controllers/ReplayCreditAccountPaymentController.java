@@ -131,9 +131,9 @@ public class ReplayCreditAccountPaymentController {
 
         try {
             // Call the Payment PBA API v1
-            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest());
+            ResponseEntity<CreditAccountPaymentCreatedResponse> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest());
             if (paymentDtoResponseEntity != null) {
-                PaymentDto paymentDto = paymentDtoResponseEntity.getBody();
+                CreditAccountPaymentCreatedResponse paymentDto = paymentDtoResponseEntity.getBody();
                 if (paymentDto != null && paymentDto.getReference() != null) {
                     String newPaymentReference = paymentDto.getReference();
                     LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  Existing Payment Reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference()
@@ -164,7 +164,7 @@ public class ReplayCreditAccountPaymentController {
                     .customerReference(replayCreditAccountPaymentRequest.getCustomerReference())
                     .organisationName(replayCreditAccountPaymentRequest.getOrganisationName().replace("\"", ""))
                     .siteId(replayCreditAccountPaymentRequest.getSiteId())
-                    .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                    .fees(Collections.singletonList(CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith()
                         .code(replayCreditAccountPaymentRequest.getCode())
                         .calculatedAmount(replayCreditAccountPaymentRequest.getCalculatedAmount())
                         .version(replayCreditAccountPaymentRequest.getVersion())
