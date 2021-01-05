@@ -345,6 +345,25 @@ public class PaymentDtoMapper {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
+    public List<PaymentFee> toCardPaymentFees(List<CardPaymentRequestFee> feeDtos) {
+        return feeDtos.stream().map(this::toCardPaymentFee).collect(Collectors.toList());
+    }
+
+    public PaymentFee toCardPaymentFee(CardPaymentRequestFee feeDto) {
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        return PaymentFee.feeWith()
+            .calculatedAmount(feeDto.getCalculatedAmount())
+            .code(feeDto.getCode())
+            .netAmount(feeDto.getNetAmount())
+            .version(feeDto.getVersion())
+            .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
+            .ccdCaseNumber(feeDto.getCcdCaseNumber())
+            .reference(feeDto.getReference())
+            .dateCreated(apportionFeature ? timestamp: null)
+            .build();
+    }
+
     public PaymentFee toFee(FeeDto feeDto) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);

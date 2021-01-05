@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequestFee;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -838,7 +839,7 @@ public class RemissionControllerTest {
             .provider("pci pal")
             .service(Service.DIVORCE)
             .siteId("AA001")
-            .fees(Collections.singletonList(getFee()))
+            .fees(Collections.singletonList(getCardPaymentRequestFee()))
             .build();
     }
 
@@ -849,6 +850,16 @@ public class RemissionControllerTest {
             .version("1")
             .code("FEE0123")
             .build();
+    }
+
+    private CardPaymentRequestFee getCardPaymentRequestFee(){
+        return CardPaymentRequestFee.cardPaymentRequestFeeWith()
+            .calculatedAmount(new BigDecimal("10.00"))
+            .ccdCaseNumber("CCD1234")
+            .version("1")
+            .code("FEE0123")
+            .build();
+
     }
 
     private FeeDto getFeeWithOutCCDCaseNumber() {

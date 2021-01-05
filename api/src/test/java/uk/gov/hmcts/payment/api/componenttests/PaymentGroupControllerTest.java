@@ -25,10 +25,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
@@ -1679,7 +1676,7 @@ public class PaymentGroupControllerTest {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(getFee()))
+            .fees(Collections.singletonList(getCardPaymentRequestFee()))
             .build();
     }
 
@@ -1701,6 +1698,15 @@ public class PaymentGroupControllerTest {
             .code("FEE0123")
             .build();
     }
+
+    private CardPaymentRequestFee getCardPaymentRequestFee() {
+        return CardPaymentRequestFee.cardPaymentRequestFeeWith()
+            .calculatedAmount(new BigDecimal("250.00"))
+            .version("1")
+            .code("FEE0123")
+            .build();
+    }
+
 
     private FeeDto getFeeWithApportionDetails() {
         return FeeDto.feeDtoWith()

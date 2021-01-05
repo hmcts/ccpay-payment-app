@@ -14,10 +14,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -395,6 +392,14 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Transactional
     public void getAllPaymentGroupsHavingMultipleFeesRemissionsAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
+        CardPaymentRequestFee cardPaymentRequestFee = CardPaymentRequestFee.cardPaymentRequestFeeWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .build();
         FeeDto feeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
@@ -432,7 +437,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(feeRequest))
+            .fees(Collections.singletonList(cardPaymentRequestFee))
             .build();
 
         MvcResult result1 = restActions
@@ -518,6 +523,15 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
+        CardPaymentRequestFee cardPaymentRequestFee = CardPaymentRequestFee.cardPaymentRequestFeeWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE0383")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .build();
+
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
             .ccdCaseNumber("ccdCaseNumber1")
@@ -536,7 +550,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(feeRequest))
+            .fees(Collections.singletonList(cardPaymentRequestFee))
             .build();
 
         MvcResult result1 = restActions

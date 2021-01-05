@@ -116,7 +116,7 @@ public class CardPaymentController {
             .currency(request.getCurrency().getCode())
             .siteId(request.getSiteId())
             .serviceType(request.getService().getName())
-            .fees((request.getFees() != null) ? paymentDtoMapper.toFees(request.getFees()) : null)
+            .fees((request.getFees() != null) ? paymentDtoMapper.toCardPaymentFees(request.getFees()) : null)
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())

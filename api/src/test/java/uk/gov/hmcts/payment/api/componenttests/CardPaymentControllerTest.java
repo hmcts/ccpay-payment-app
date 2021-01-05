@@ -21,6 +21,7 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequestFee;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -155,7 +156,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .description("Test cross field validation")
             .service(Service.CMC)
             .siteId("siteID")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
+            .fees(Arrays.asList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .calculatedAmount(new BigDecimal("200.11"))
                 .code("X0001")
                 .version("1")
@@ -363,7 +364,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .provider("pci pal")
             .channel("telephony")
             .siteId("siteId")
-            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+            .fees(Collections.singletonList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .code("feeCode")
                 .version("1")
                 .calculatedAmount(new BigDecimal("100.1"))
@@ -485,7 +486,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber(testCcdCaseNumber)
             .provider("pci pal")
             .channel("telephony")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
+            .fees(Arrays.asList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .calculatedAmount(new BigDecimal("200.11"))
                 .code("X0001")
                 .version("1")
@@ -518,7 +519,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber(testCcdCaseNumber)
             .provider("pci pal")
             .channel("telephony")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
+            .fees(Arrays.asList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .calculatedAmount(new BigDecimal("200.11"))
                 .code("X0001")
                 .version("1")
@@ -551,11 +552,11 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber(testCcdCaseNumber)
             .provider("pci pal")
             .channel("telephony")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
+            .fees(Arrays.asList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .calculatedAmount(new BigDecimal("200.11"))
                 .code("X0001")
                 .version("1")
-                .build(), FeeDto.feeDtoWith()
+                .build(), CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .calculatedAmount(new BigDecimal("300.11"))
                 .code("X0002")
                 .ccdCaseNumber(testCcdCaseNumber2)
@@ -649,7 +650,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber(testccdCaseNumber)
             .provider("gov pay")
             .channel("telephony")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
+            .fees(Arrays.asList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .calculatedAmount(new BigDecimal("200.11"))
                 .code("X0001")
                 .version("1")
@@ -673,7 +674,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .description("Test Language validation Checks")
             .service(Service.CMC)
             .siteId("siteID")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
+            .fees(Arrays.asList(CardPaymentRequestFee.cardPaymentRequestFeeWith()
                 .calculatedAmount(new BigDecimal("200.11"))
                 .code("X0001")
                 .version("1")
@@ -813,12 +814,12 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
 
-        List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        List<CardPaymentRequestFee> fees = new ArrayList<>();
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -860,12 +861,12 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
 
-        List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
+        List<CardPaymentRequestFee> fees = new ArrayList<>();
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -907,12 +908,12 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
 
-        List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+        List<CardPaymentRequestFee> fees = new ArrayList<>();
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -952,12 +953,12 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
 
-        List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+        List<CardPaymentRequestFee> fees = new ArrayList<>();
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(CardPaymentRequestFee.cardPaymentRequestFeeWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
