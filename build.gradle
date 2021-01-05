@@ -17,6 +17,7 @@ def versions = [
         javaVersion: '11',
         jacocoVersion: '0.8.5'
 ]
+
 allprojects {
     apply plugin: 'maven'
     apply plugin: 'io.spring.dependency-management'
