@@ -42,4 +42,6 @@ public class EnrichablePaymentFeeDto extends PaymentFeeDto {
 
     private BigDecimal apportionedPayment;
 
+    private Date dateReceiptProcessed;
+
 }
