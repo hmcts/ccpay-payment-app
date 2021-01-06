@@ -10,10 +10,8 @@ import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.payment.api.contract.PaymentFeeDto;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
