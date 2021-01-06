@@ -3,9 +3,7 @@ package uk.gov.hmcts.payment.api;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.payment.api.contract.PaymentFeeDto;
 
@@ -20,7 +18,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @SuperBuilder(builderMethodName = "buildEnrichablePaymentFeeDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 public class EnrichablePaymentFeeDto extends PaymentFeeDto {
     @NotEmpty
     private String code;
