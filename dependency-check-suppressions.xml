@@ -98,6 +98,11 @@
         <notes>HTTP Client 4.5.11 suppression, root cause and fix needs to be carried out separately</notes>
         <cve>CVE-2020-13956</cve>
     </suppress>
+    <suppress>
+        <notes>Launch-darkley jar uses guava@28.2-jre as an internal library and it is not exposed outside. Since it cannot be upgraded,
+            this supression is added.</notes>
+        <cve>CVE-2020-8908</cve>
+    </suppress>
     <suppress until="2021-01-20">
         <notes><![CDATA[
             This CVE is related to file type tag parsing. However, the associated CVE seems to be a false positive on the lang-tag jar.
