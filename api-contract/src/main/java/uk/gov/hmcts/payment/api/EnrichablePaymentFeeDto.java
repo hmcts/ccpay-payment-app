@@ -21,8 +21,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Getter
 @Setter
 public class EnrichablePaymentFeeDto extends PaymentFeeDto {
-    @NotEmpty
-    private String code;
 
     private String jurisdiction1;
 
@@ -38,13 +36,10 @@ public class EnrichablePaymentFeeDto extends PaymentFeeDto {
 
     private Date dateApportioned;
 
-    @NotEmpty
-    private String version;
-
     private String memoLine;
 
     private String naturalAccountCode;
 
     private BigDecimal apportionedPayment;
-    
+
 }
