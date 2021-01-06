@@ -45,5 +45,6 @@ public class EnrichablePaymentFeeDto extends PaymentFeeDto {
 
     private String naturalAccountCode;
 
-
+    private BigDecimal apportionedPayment;
+    
 }

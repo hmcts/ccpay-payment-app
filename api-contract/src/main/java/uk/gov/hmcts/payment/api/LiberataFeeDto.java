@@ -21,7 +21,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class LiberataFeeDto extends EnrichablePaymentFeeDto{
     private String caseReference;
 
-    private BigDecimal apportionedPayment;
 
     private Date dateReceiptProcessed;
 
