@@ -48,6 +48,23 @@ module "payment-database-v11" {
   postgresql_version = var.postgresql_version
 }
 
+module "payment-database-v11" {
+  source = "git@github.com:hmcts/cnp-module-postgres?ref=master"
+  product = var.product
+  component = var.component
+  name = join("-", [var.product, "postgres-db-v11"])
+  location = var.location
+  env = var.env
+  postgresql_user = var.postgresql_user
+  database_name = var.database_name
+  sku_name = var.sku_name
+  sku_capacity = var.sku_capacity
+  sku_tier = "GeneralPurpose"
+  common_tags = var.common_tags
+  subscription = var.subscription
+  postgresql_version = var.postgresql_version
+}
+
 # Populate Vault with DB info
 
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {

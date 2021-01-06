@@ -22,11 +22,14 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -67,7 +70,7 @@ public class CreditAccountPaymentController {
                                           DuplicatePaymentValidator paymentValidator,
                                           FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
                                           PBAStatusErrorMapper pbaStatusErrorMapper,
-                                          CreditAccountPaymentRequestMapper requestMapper,  @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
+                                          CreditAccountPaymentRequestMapper requestMapper,@Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -123,7 +126,6 @@ public class CreditAccountPaymentController {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
-
         checkDuplication(payment, fees);
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
