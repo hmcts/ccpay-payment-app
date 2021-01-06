@@ -275,18 +275,7 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-        LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
-        if(apportionFeature) {
-            feePayApportionService.processApportion(newPayment);
-
-            // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
-            if(newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
-                LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
-                feePayApportionService.updateFeeAmountDue(newPayment);
-            }
-        }
-
+        processApportionAndUpdateFeeAmoutDue(newPayment);
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
