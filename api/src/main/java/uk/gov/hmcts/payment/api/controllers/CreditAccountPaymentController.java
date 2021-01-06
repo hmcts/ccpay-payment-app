@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -58,6 +60,7 @@ public class CreditAccountPaymentController {
     private final LaunchDarklyFeatureToggler featureToggler;
     private final PBAStatusErrorMapper pbaStatusErrorMapper;
     private final CreditAccountPaymentRequestMapper requestMapper;
+    private final List<String> pbaConfig1ServiceNames;
 
 
     @Autowired
@@ -67,7 +70,7 @@ public class CreditAccountPaymentController {
                                           DuplicatePaymentValidator paymentValidator,
                                           FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
                                           PBAStatusErrorMapper pbaStatusErrorMapper,
-                                          CreditAccountPaymentRequestMapper requestMapper) {
+                                          CreditAccountPaymentRequestMapper requestMapper,@Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -76,6 +79,7 @@ public class CreditAccountPaymentController {
         this.featureToggler = featureToggler;
         this.pbaStatusErrorMapper = pbaStatusErrorMapper;
         this.requestMapper = requestMapper;
+        this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -101,7 +105,8 @@ public class CreditAccountPaymentController {
 
         LOG.info("CreditAccountPayment received for ccdCaseNumber : {} serviceType : {} pbaNumber : {} amount : {} NoOfFees : {}",
             payment.getCcdCaseNumber(), payment.getServiceType(), payment.getPbaNumber(), payment.getAmount(), fees.size());
-
+        LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
+        if (!pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService().toString())) {
             LOG.info("Checking with Liberata for Service : {}", creditAccountPaymentRequest.getService());
             AccountDto accountDetails;
             try {
@@ -116,7 +121,11 @@ public class CreditAccountPaymentController {
             }
 
             pbaStatusErrorMapper.setPaymentStatus(creditAccountPaymentRequest, payment, accountDetails);
-
+        } else {
+            LOG.info("Setting status to pending");
+            payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+        }
         checkDuplication(payment, fees);
 
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
