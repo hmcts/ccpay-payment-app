@@ -65,13 +65,9 @@ public class PaymentGroupController {
 
     private final PaymentProviderRepository paymentProviderRepository;
 
-    private final PaymentFeeRepository paymentFeeRepository;
-
     private final FeePayApportionService feePayApportionService;
 
     private final LaunchDarklyFeatureToggler featureToggler;
-
-    private final FeePayApportionRepository feePayApportionRepository;
 
     private final Payment2Repository payment2Repository;
 
@@ -92,10 +88,9 @@ public class PaymentGroupController {
                                   ReferenceUtil referenceUtil,
                                   ReferenceDataService<SiteDTO> referenceDataService,
                                   PaymentProviderRepository paymentProviderRespository,
-                                  PaymentFeeRepository paymentFeeRepository,
                                   FeePayApportionService feePayApportionService,
                                   LaunchDarklyFeatureToggler featureToggler,
-                                  FeePayApportionRepository feePayApportionRepository, Payment2Repository payment2Repository){
+                                  Payment2Repository payment2Repository){
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -104,10 +99,8 @@ public class PaymentGroupController {
         this.referenceUtil = referenceUtil;
         this.referenceDataService = referenceDataService;
         this.paymentProviderRepository = paymentProviderRespository;
-        this.paymentFeeRepository = paymentFeeRepository;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
-        this.feePayApportionRepository = feePayApportionRepository;
         this.payment2Repository = payment2Repository;
     }
 
@@ -366,13 +359,7 @@ public class PaymentGroupController {
         boolean prodStrategicFixFeatureFlag = featureToggler.getBooleanValue("prod-strategic-fix",false);
         if (prodStrategicFixFeatureFlag) {
             // Check Any Duplicate payments for current DCN
-            if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
-                List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
-                if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
-                    throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
-                }
-            }
-
+            checkForDuplicatePaymentsInCurrentDcn(bulkScanPaymentRequestStrategic);
             //Bulk scan payments call
             List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
@@ -408,17 +395,7 @@ public class PaymentGroupController {
             Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
             // trigger Apportion based on the launch darkly feature flag
-            boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
-            LOG.info("ApportionFeature Flag Value in PaymentGroupController  RecordBulkScanPaymentStrategic: {}", apportionFeature);
-            if (apportionFeature) {
-                feePayApportionService.processApportion(newPayment);
-
-                // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
-                if (newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
-                    LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
-                    feePayApportionService.updateFeeAmountDue(newPayment);
-                }
-            }
+            processApportionAndUpdateFeeAmoutDue(newPayment);
 
             allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentRequestStrategic, paymentGroupReference, newPayment, headers);
             return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
@@ -492,6 +469,7 @@ public class PaymentGroupController {
         }
     }
 
+
     public void allocateThePaymentAndMarkBulkScanPaymentAsProcessed(BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic, String paymentGroupReference, Payment newPayment,
                                                                     MultiValueMap<String, String> headers) {
         //Payment Allocation endpoint call
@@ -542,6 +520,31 @@ public class PaymentGroupController {
 
         LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
+    }
+
+    private void  processApportionAndUpdateFeeAmoutDue(Payment newPayment){
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+        LOG.info("ApportionFeature Flag Value in PaymentGroupController  RecordBulkScanPaymentStrategic: {}", apportionFeature);
+        if (apportionFeature) {
+            feePayApportionService.processApportion(newPayment);
+
+            // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
+            if (newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
+                LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
+                feePayApportionService.updateFeeAmountDue(newPayment);
+            }
+        }
+
+    }
+
+    private void checkForDuplicatePaymentsInCurrentDcn(BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic){
+        if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
+            List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
+            if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
+                throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+            }
+        }
+
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

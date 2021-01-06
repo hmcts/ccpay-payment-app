@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupRemissionDto;
-import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.RemissionDtoMapper;
@@ -54,6 +53,7 @@ public class RemissionController {
     @PostMapping(value = "/remission")
     @ResponseBody
     @Deprecated
+
     public ResponseEntity<PaymentGroupRemissionDto> createRemissionV1(@Valid @RequestBody RemissionRequest remissionRequest)
         throws CheckDigitException {
         remissionValidator.validate(remissionRequest);
