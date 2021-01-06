@@ -43,6 +43,12 @@ public class RemissionController {
     private RemissionDtoMapper remissionDtoMapper;
 
 
+    /**
+     * @deprecated 
+      * @param remissionRequest
+     * @return
+     * @throws CheckDigitException
+     */
     @ApiOperation(value = "Create upfront/retrospective remission record", notes = "Create upfront/retrospective remission record - Tactical")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Remission created"),
