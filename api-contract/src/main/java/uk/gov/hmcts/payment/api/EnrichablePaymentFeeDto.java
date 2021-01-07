@@ -44,4 +44,6 @@ public class EnrichablePaymentFeeDto extends PaymentFeeDto {
 
     private Date dateReceiptProcessed;
 
+    private String paymentGroupReference;
+
 }
