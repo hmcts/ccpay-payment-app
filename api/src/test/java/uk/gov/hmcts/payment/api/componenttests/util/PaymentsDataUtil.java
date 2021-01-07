@@ -616,5 +616,41 @@ public class PaymentsDataUtil {
             "}";
     }
 
+    public Payment populatePaymentToDbForBulkScanPayment(String paymentRef, String groupRef) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference(groupRef)
+            .paymentReference(paymentRef)
+            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Allocated").build())
+            .receivingOffice("Home office")
+            .reason("receiver@receiver.com")
+            .explanation("sender@sender.com")
+            .userId("userId")
+            .build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .ccdCaseNumber("1111222233335555")
+            .description("Test payments statuses for " + paymentRef)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA08")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v")
+            .reference(paymentRef)
+            .statusHistories(Arrays.asList(statusHistory))
+            .paymentAllocation(Arrays.asList(paymentAllocation))
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference(groupRef).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        //payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
 
 }

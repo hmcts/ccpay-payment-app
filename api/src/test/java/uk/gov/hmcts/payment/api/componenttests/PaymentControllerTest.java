@@ -1611,6 +1611,56 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    @Transactional
+    public void duplicateBSPPaymentsShouldNotAppearLiberata() throws Exception {
+        String paymentReference = "RC-1519-9028-1909-1435";
+        populatePaymentToDbForBulkScanPayment(paymentReference, "2018-00000000001");
+
+        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        restActions
+            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result1 = restActions
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        List<PaymentDto> payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .get("/payments?start_date=" + startDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(1);
+
+        endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
+        MvcResult result3 = restActions
+            .get("/payments?end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        response = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        payments = response.getPayments();
+        assertNotNull(payments);
+        assertThat(payments.size()).isEqualTo(0);
+    }
+
     private Date parseDate(String date) {
         try {
             return new SimpleDateFormat("dd.MM.yyyy").parse(date);
