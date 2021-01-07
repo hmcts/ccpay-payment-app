@@ -489,7 +489,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
-
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
@@ -801,8 +800,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void searchCardPayments_withValidEndDateAndNoStartDate_shouldReturnOk() throws Exception {
 
-        populateCardPaymentToDb("2");
+        populateCardPaymentToDb("2", "RC-1519-9028-2432-0002");
         populateCreditAccountPaymentToDb("1");
+
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
