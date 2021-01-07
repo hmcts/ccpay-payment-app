@@ -7,79 +7,40 @@
         <cve>CVE-2018-1258</cve>
     </suppress>
 
-        <suppress>
-            <notes>We are on latest version , these are coming form mvn:pkg </notes>
-            <cve>CVE-2020-10683</cve>
-            <cve>CVE-2020-13692</cve>
-        </suppress>
+    <suppress>
+        <notes>We are on latest version , these are coming form mvn:pkg </notes>
+        <cve>CVE-2020-10683</cve>
+        <cve>CVE-2020-13692</cve>
+    </suppress>
 
     <suppress>
-        <notes>Latest CVE's </notes>
-        <cve>CVE-2020-11996</cve>
-        <cve>CVE-2020-13934</cve>
-        <cve>CVE-2020-13935</cve>
-        <cve>CVE-2020-8022</cve>
-        <cve>CVE-2020-5398</cve>
-        <cve>CVE-2020-10672</cve>
-        <cve>CVE-2020-10673</cve>
-        <cve>CVE-2019-10172</cve>
-        <cve>CVE-2019-14900</cve>
-        <cve>CVE-2019-10086</cve>
-        <cve>CVE-2019-12402</cve>
-        <cve>CVE-2019-14540</cve>
-        <cve>CVE-2019-14893</cve>
-        <cve>CVE-2019-16335</cve>
-        <cve>CVE-2019-17267</cve>
-        <cve>CVE-2019-17638</cve>
-        <cve>CVE-2019-17195</cve>
-        <cve>CVE-2019-0223</cve>
-        <cve>CVE-2018-1270</cve>
-        <cve>CVE-2018-1271</cve>
-        <cve>CVE-2018-1272</cve>
-        <cve>CVE-2018-10237</cve>
-        <cwe>79</cwe>
-        <cve>CVE-2018-1000873</cve>
-        <cve>CVE-2018-14718</cve>
-        <cve>CVE-2018-5968</cve>
-        <cve>CVE-2018-17187</cve>
-        <cve>CVE-2018-7489</cve>
-        <cve>CVE-2017-15095</cve>
-        <cve>CVE-2017-17485</cve>
-        <cve>CVE-2017-7525</cve>
-        <cve>CVE-2015-0203</cve>
-        <cve>CVE-2015-0224</cve>
+        <notes>This CVE appears in the latest version of JSTL.</notes>
         <cve>CVE-2015-0254</cve>
-        <cve>CVE-2015-0223</cve>
-        <cve>CVE-2017-18640</cve>
-        <cve>CVE-2019-17638</cve>
-        <cve>CVE-2020-24616</cve>
     </suppress>
+
+    <suppress>
+        <notes>This CVE appears in the latest version of wiremock </notes>
+        <cve>CVE-2020-11022</cve>
+        <cve>CVE-2020-11023</cve>
+    </suppress>
+
     <suppress>
         <notes>Transitive dependency of spring boot version</notes>
         <cve>CVE-2020-5421</cve>
     </suppress>
 
     <suppress>
-        <notes>We are currently using wiremock lib to support functional Tests, as a transitive dependency we are having Jetty Lib which is having this CVE</notes>
-        <cve>CVE-2020-27216</cve>
-    </suppress>
-
-<!--    <suppress>-->
-<!--        <notes>This suppress specific cve for tomcat-embed-core-9.0.33.jar and tomcat-embed-websocket-9.0.33.jar</notes>-->
-<!--        <cve>CVE-2020-13943</cve>-->
-<!--    </suppress>-->
-
-    <suppress>
-        <notes> False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
+        <notes>False positive reported at https://github.com/jeremylong/DependencyCheck/issues/1658 </notes>
         <cve>CVE-2007-1651</cve>
         <cve>CVE-2007-1652</cve>
     </suppress>
 
-<!--    <suppress>-->
-<!--        <notes>Jetty jar vulnerability 9.4.27 Need to suppress, This is transitive dependency coming from properties-volume-spring-boot-starter project which is under reform</notes>-->
-<!--        <cve>CVE-2020-27216</cve>-->
-<!--        <cve>CVE-2020-27218</cve>-->
-<!--    </suppress>-->
+    <suppress>
+        <notes>Jetty jar vulnerability 9.4.27 Need to suppress, This is transitive dependency coming from properties-volume-spring-boot-starter project which is under reform</notes>
+        <cve>CVE-2020-27216</cve>
+        <cve>CVE-2020-27218</cve>
+        <cve>CVE-2019-17638</cve>
+    </suppress>
 
     <suppress>
         <notes>Launch-darkley jar uses guava@28.2-jre as an internal library and it is not exposed outside. Since it cannot be upgraded,

@@ -82,12 +82,49 @@ allprojects {
                     det.useVersion '4.13.1'
                 }
 
-                if(det.requested.name == 'jetty-continuation' || det.requested.name == 'jetty-http' || det.requested.name == 'jetty-security'
-                        ||det.requested.name == 'jetty-server'||det.requested.name == 'jetty-servlet'||det.requested.name == 'jetty-servlets'
-                        ||det.requested.name == 'jetty-util'||det.requested.name == 'jetty-webapp'||det.requested.name == 'jetty-xml'){
-                    det.useVersion '5.4.2'
+                if (det.requested.name == 'spring-context') {
+                    det.useVersion '5.2.9.RELEASE'
                 }
 
+                if (det.requested.name == 'commons-beanutils') {
+                    det.useVersion '1.9.4'
+                }
+
+                if (det.requested.name == 'proton-j') {
+                    det.useVersion '0.33.8'
+                }
+
+                if (det.requested.name == 'feign-form-spring') {
+                    det.useVersion '3.8.0'
+                }
+
+                if (det.requested.name == 'guava') {
+                    det.useVersion '30.1-jre'
+                }
+
+                if(det.requested.name == 'snakeyaml'){
+                    det.useVersion '1.27'
+                }
+
+                if(det.requested.name == 'ff4j-web'){
+                    det.useVersion '1.8.11'
+                }
+
+                if(det.requested.name == 'ff4j-web'){
+                    det.useVersion '1.8.11'
+                }
+
+                if(det.requested.name == 'hystrix-core'){
+                    det.useVersion '1.5.18'
+                }
+
+                if(det.requested.name == 'hystrix-core'){
+                    det.useVersion '1.5.18'
+                }
+
+                if(det.requested.name == 'wiremock'){
+                    det.useVersion '2.26.2'
+                }
             }
         }
     }
