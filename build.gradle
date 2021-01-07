@@ -67,7 +67,7 @@ allprojects {
                 }
 
                 if (det.requested.name == 'bcprov-jdk15on') {
-                    det.useVersion '1.64'
+                    det.useVersion '1.68'
                 }
 
             }
