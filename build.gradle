@@ -65,6 +65,29 @@ allprojects {
                     det.useVersion '1.68'
                 }
 
+                if(det.requested.name == 'spring-security-config' || det.requested.name == 'spring-security-core' || det.requested.name == 'spring-security-crypto'
+                    ||det.requested.name == 'spring-security-web'){
+                    det.useVersion '5.4.2'
+                }
+
+                if (det.requested.name == 'httpclient') {
+                    det.useVersion '4.5.13'
+                }
+
+                if (det.requested.name == 'hibernate-core') {
+                    det.useVersion '5.4.27.Final'
+                }
+
+                if (det.requested.name == 'junit' && det.requested.group == 'junit') {
+                    det.useVersion '4.13.1'
+                }
+
+                if(det.requested.name == 'jetty-continuation' || det.requested.name == 'jetty-http' || det.requested.name == 'jetty-security'
+                        ||det.requested.name == 'jetty-server'||det.requested.name == 'jetty-servlet'||det.requested.name == 'jetty-servlets'
+                        ||det.requested.name == 'jetty-util'||det.requested.name == 'jetty-webapp'||det.requested.name == 'jetty-xml'){
+                    det.useVersion '5.4.2'
+                }
+
             }
         }
     }
