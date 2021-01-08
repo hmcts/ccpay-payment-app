@@ -34,7 +34,6 @@ public class PaymentRecordFunctionalTest {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordFunctionalTest.class);
 
     @Autowired
@@ -64,13 +63,19 @@ public class PaymentRecordFunctionalTest {
 
     @Test
     public void createPaymentRecordAndValidateSearchResults() throws Exception {
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createTelephonyPayment(getPaymentRecordRequest())
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                LOG.error(e.getMessage());
+            }
 
             String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
             // search payment and assert the result

@@ -61,7 +61,6 @@ public class PBAPaymentFunctionalTest {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     @Before
     public void setUp() {
@@ -171,9 +170,9 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByFinrem() {
+    public void makeAndRetrievePbaPaymentByFinrem() throws InterruptedException {
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.FINREM);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
@@ -181,7 +180,7 @@ public class PBAPaymentFunctionalTest {
             .then()
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
-
+        Thread.sleep(1000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -193,9 +192,9 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByUnspecService() {
+    public void makeAndRetrievePbaPaymentByUnspecService() throws InterruptedException {
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForUnspec("90.00", Service.UNSPEC);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
@@ -203,7 +202,7 @@ public class PBAPaymentFunctionalTest {
             .then()
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
-
+        Thread.sleep(1000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -215,9 +214,9 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByIACService() {
+    public void makeAndRetrievePbaPaymentByIACService() throws InterruptedException {
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForIAC("90.00", Service.IAC);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
@@ -226,6 +225,7 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
+        Thread.sleep(1000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -237,9 +237,9 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByFPLService() {
+    public void makeAndRetrievePbaPaymentByFPLService() throws InterruptedException {
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForFPL("90.00", Service.FPL);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
@@ -248,6 +248,7 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
+        Thread.sleep(1000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
