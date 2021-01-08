@@ -125,6 +125,10 @@ allprojects {
                 if(det.requested.name == 'wiremock'){
                     det.useVersion '2.26.2'
                 }
+
+                if(det.requested.name == 'postgresql'){
+                    det.useVersion '42.2.17'
+                }
             }
         }
     }
