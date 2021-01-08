@@ -39,6 +39,16 @@ allprojects {
         jcenter()
         maven { url 'https://repo.spring.io/libs-milestone' }
     }
+
+    configurations.all {
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails det ->
+                if (det.requested.name == 'handlebars') {
+                    det.useVersion '4.2.0'
+                }
+            }
+        }
+    }
     dependencyManagement {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
