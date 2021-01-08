@@ -50,6 +50,7 @@ public class TelephonyPaymentsTest {
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Before
@@ -81,7 +82,7 @@ public class TelephonyPaymentsTest {
         PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
         String status = "success";
 
-        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -122,7 +123,7 @@ public class TelephonyPaymentsTest {
         PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
         String status = "failed";
 
-        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -164,7 +165,7 @@ public class TelephonyPaymentsTest {
         PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
         String status = "error";
 
-        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
