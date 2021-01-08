@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.payment.api.EnrichablePaymentDto;
-import uk.gov.hmcts.payment.api.EnrichablePaymentFeeDto;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;

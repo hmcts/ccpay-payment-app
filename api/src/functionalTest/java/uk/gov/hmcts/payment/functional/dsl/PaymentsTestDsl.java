@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
@@ -278,8 +275,8 @@ public class PaymentsTestDsl {
             return response.then().statusCode(200).extract().as(AccountDto.class);
         }
 
-        public PaymentThenDsl getPayments(Consumer<PaymentsResponse> paymentsResponseAssertions) {
-            PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
+        public PaymentThenDsl getPayments(Consumer<LiberataPaymentsResponse> paymentsResponseAssertions) {
+            LiberataPaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(LiberataPaymentsResponse.class);
             paymentsResponseAssertions.accept(paymentsResponse);
             return this;
         }

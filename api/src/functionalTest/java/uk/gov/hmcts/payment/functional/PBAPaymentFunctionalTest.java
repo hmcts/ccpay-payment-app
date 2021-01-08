@@ -13,6 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
@@ -130,9 +131,9 @@ public class PBAPaymentFunctionalTest {
             .body("status", equalTo("Pending"));
 
         // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
+        ReconciliationPaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
             .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+            .statusCode(OK.value()).extract().as(ReconciliationPaymentsResponse.class);
 
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
         assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
