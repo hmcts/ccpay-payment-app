@@ -7,11 +7,10 @@
         <cve>CVE-2018-1258</cve>
     </suppress>
 
-    <suppress>
-        <notes>We are on latest version , these are coming form mvn:pkg </notes>
-        <cve>CVE-2020-10683</cve>
-        <cve>CVE-2020-13692</cve>
-    </suppress>
+<!--    <suppress>-->
+<!--        <notes>We are on latest version , these are coming form mvn:pkg </notes>-->
+<!--        <cve>CVE-2020-13692</cve>-->
+<!--    </suppress>-->
 
     <suppress>
         <notes>This CVE appears in the latest version of JSTL.</notes>
