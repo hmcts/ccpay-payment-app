@@ -61,6 +61,7 @@ public class PBAPaymentFunctionalTest {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     @Before
     public void setUp() {
@@ -172,7 +173,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePbaPaymentByFinrem() {
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.FINREM);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
@@ -194,7 +195,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePbaPaymentByUnspecService() {
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForUnspec("90.00", Service.UNSPEC);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
@@ -216,7 +217,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePbaPaymentByIACService() {
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForIAC("90.00", Service.IAC);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);
@@ -238,7 +239,7 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePbaPaymentByFPLService() {
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
 
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForFPL("90.00", Service.FPL);
         accountPaymentRequest.setAccountNumber(testProps.existingAccountNumber);

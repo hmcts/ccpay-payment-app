@@ -124,7 +124,7 @@ public class PaymentsSearchFunctionalTest {
 
     @Test
     public void givenTwoPaymentsInPeriodWhensearchPaymentsWithStartDateEndDateThenShouldPass() {
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
