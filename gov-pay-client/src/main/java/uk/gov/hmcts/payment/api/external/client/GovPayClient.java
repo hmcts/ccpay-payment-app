@@ -71,6 +71,7 @@ public class GovPayClient {
     @HystrixCommand(commandKey = "retrieveCardPayment", ignoreExceptions = {GovPayPaymentNotFoundException.class})
     public GovPayPayment retrievePayment(String authorizationKey, String govPayId) {
         return withIOExceptionHandling(() -> {
+            LOG.error("Gov pay authorisation key: {}", authorizationKey);
             HttpGet request = getRequestFor(authorizationKey, url + "/" + govPayId);
             HttpResponse response = httpClient.execute(request);
             checkNotAnError(response);

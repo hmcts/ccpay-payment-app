@@ -42,7 +42,7 @@ public class CardDetailsServiceImpl implements CardDetailsService<CardDetails, S
             PaymentMethod.paymentMethodWith().name(PAYMENT_BY_CARD).build()).orElseThrow(PaymentNotFoundException::new);
 
         String paymentService = govPayAuthUtil.getServiceName(serviceIdSupplier.get(), payment.getS2sServiceName());
-
+        LOG.error("Payment Service passed to Gov pay: {}", paymentService);
         GovPayPayment govPayPayment = delegate.retrieve(payment.getExternalReference(), paymentService);
 
         Optional<CardDetails> opt = Optional.ofNullable(govPayPayment.getCardDetails());
