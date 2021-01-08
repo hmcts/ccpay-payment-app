@@ -1618,7 +1618,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populatePaymentToDbForBulkScanPayment(paymentReference, "2018-00000000001");
 
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1648,7 +1648,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
 
-        endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
 
         MvcResult result3 = restActions
             .get("/payments?end_date=" + endDate)
@@ -1658,7 +1658,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         response = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         payments = response.getPayments();
         assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(0);
+        assertThat(payments.size()).isEqualTo(1);
     }
 
     private Date parseDate(String date) {

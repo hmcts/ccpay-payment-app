@@ -648,7 +648,7 @@ public class PaymentsDataUtil {
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference(groupRef).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
-        //payment.setPaymentLink(paymentFeeLink);
+        Thread.sleep(1000);
         return payment;
     }
 
