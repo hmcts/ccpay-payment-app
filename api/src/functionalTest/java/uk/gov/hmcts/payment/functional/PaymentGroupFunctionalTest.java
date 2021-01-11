@@ -573,7 +573,7 @@ public class PaymentGroupFunctionalTest {
             .provider("pci pal")
             .service(Service.DIVORCE)
             .siteId("AA001")
-            .fees(Collections.singletonList(getFeeDto()))
+            .fees(Collections.singletonList(getFee()))
             .build();
     }
 
@@ -608,17 +608,6 @@ public class PaymentGroupFunctionalTest {
             .code("FEE0123")
             .build();
     }
-
-    private FeeDto getFeeDto() {
-        return FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("550.00"))
-            .ccdCaseNumber("1111-CCD2-3333-4444")
-            .version("1")
-            .code("FEE0123")
-            .build();
-    }
-
-
 
 
 }
