@@ -5,7 +5,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequestFee;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -50,7 +50,7 @@ public class PaymentFixture {
             .organisationName("ORG101")
             .accountNumber("PBA0082848")
             .fees(Lists.newArrayList(
-                CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith()
+                FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
@@ -73,7 +73,7 @@ public class PaymentFixture {
             .organisationName("ORG101")
             .accountNumber("PBA0082848")
             .fees(Lists.newArrayList(
-                CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith()
+                FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
@@ -96,7 +96,7 @@ public class PaymentFixture {
             .organisationName("ORG101")
             .accountNumber("PBA0082848")
             .fees(Lists.newArrayList(
-                CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith()
+                FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")
@@ -119,7 +119,7 @@ public class PaymentFixture {
             .organisationName("ORG101")
             .accountNumber("PBA0082848")
             .fees(Lists.newArrayList(
-                CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith()
+                FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
                     .version("1")

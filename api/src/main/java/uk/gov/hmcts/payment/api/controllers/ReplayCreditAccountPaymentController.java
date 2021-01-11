@@ -164,7 +164,7 @@ public class ReplayCreditAccountPaymentController {
                     .customerReference(replayCreditAccountPaymentRequest.getCustomerReference())
                     .organisationName(replayCreditAccountPaymentRequest.getOrganisationName().replace("\"", ""))
                     .siteId(replayCreditAccountPaymentRequest.getSiteId())
-                    .fees(Collections.singletonList(CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith()
+                    .fees(Collections.singletonList(FeeDto.feeDtoWith()
                         .code(replayCreditAccountPaymentRequest.getCode())
                         .calculatedAmount(replayCreditAccountPaymentRequest.getCalculatedAmount())
                         .version(replayCreditAccountPaymentRequest.getVersion())

@@ -25,7 +25,7 @@ import uk.gov.hmcts.payment.api.componenttests.util.CSVUtil;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequestFee;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -358,7 +358,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
             Double calculatedAmount = Double.parseDouble(Integer.toString(RandomUtils.nextInt(99) + 1));
 
-            List<CreditAccountPaymentRequestFee> fees = getFees(calculatedAmount);
+            List<FeeDto> fees = getFees(calculatedAmount);
 
             CreditAccountPaymentRequest request = getPBAPayment(calculatedAmount, fees);
 
@@ -376,7 +376,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         }
     }
 
-    private CreditAccountPaymentRequest getPBAPayment(Double calculatedAmount, List<CreditAccountPaymentRequestFee> fees) {
+    private CreditAccountPaymentRequest getPBAPayment(Double calculatedAmount, List<FeeDto> fees) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
                 .amount(new BigDecimal(calculatedAmount))
                 .ccdCaseNumber("1607065" + RandomUtils.nextInt(999999999))
@@ -393,9 +393,9 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @NotNull
-    private List<CreditAccountPaymentRequestFee> getFees(Double calculatedAmount) {
-        List<CreditAccountPaymentRequestFee> fees = new ArrayList<>();
-        fees.add(CreditAccountPaymentRequestFee.createCreditAccountPaymentRequestFeeWith()
+    private List<FeeDto> getFees(Double calculatedAmount) {
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith()
             .code("FEE020" + RandomUtils.nextInt(9))
             .version(Integer.toString(RandomUtils.nextInt(9)))
             .calculatedAmount(new BigDecimal(calculatedAmount)).build());
