@@ -24,53 +24,53 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Builder(builderMethodName = "createCreditAccountPaymentRequestFeeWith")
 public class CreditAccountPaymentRequestFee {
-    private BigDecimal allocatedAmount;
-
-    private BigDecimal amountDue;
-
-    private BigDecimal apportionAmount;
-
-    private BigDecimal apportionedPayment;
+//    private BigDecimal allocatedAmount;
+//
+//    private BigDecimal amountDue;
+//
+//    private BigDecimal apportionAmount;
+//
+//    private BigDecimal apportionedPayment;
 
     @NotNull
     @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
     private BigDecimal calculatedAmount;
 
-    private String caseReference;
-
-    private String ccdCaseNumber;
+//    private String caseReference;
+//
+//    private String ccdCaseNumber;
 
     @NotEmpty
     private String code;
 
-    private Date dateApportioned;
-
-    private Date dateCreated;
-
-    private Date dateReceiptProcessed;
-
-    private Date dateUpdated;
-
-    private String description;
-
-    private BigDecimal feeAmount;
-
-    private Integer id;
-
-    private String jurisdiction1;
-
-    private String jurisdiction2;
-
-    private String memoLine;
-
-    private String naturalAccountCode;
-
-    @Digits(integer = 10, fraction = 2, message = "Net amount cannot have more than 2 decimal places")
-    private BigDecimal netAmount;
-
-    private String paymentGroupReference;
-
-    private String reference;
+//    private Date dateApportioned;
+//
+//    private Date dateCreated;
+//
+//    private Date dateReceiptProcessed;
+//
+//    private Date dateUpdated;
+//
+//    private String description;
+//
+//    private BigDecimal feeAmount;
+//
+//    private Integer id;
+//
+//    private String jurisdiction1;
+//
+//    private String jurisdiction2;
+//
+//    private String memoLine;
+//
+//    private String naturalAccountCode;
+//
+//    @Digits(integer = 10, fraction = 2, message = "Net amount cannot have more than 2 decimal places")
+//    private BigDecimal netAmount;
+//
+//    private String paymentGroupReference;
+//
+//    private String reference;
 
     @NotEmpty
     private String version;
