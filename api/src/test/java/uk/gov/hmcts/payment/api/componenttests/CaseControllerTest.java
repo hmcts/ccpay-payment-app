@@ -392,7 +392,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Transactional
     public void getAllPaymentGroupsHavingMultipleFeesRemissionsAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
-        CardPaymentRequestFee cardPaymentRequestFee = CardPaymentRequestFee.cardPaymentRequestFeeWith()
+        FeeDto cardPaymentRequestFee = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -523,7 +523,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
-        CardPaymentRequestFee cardPaymentRequestFee = CardPaymentRequestFee.cardPaymentRequestFeeWith()
+        FeeDto cardPaymentRequestFee = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE0383")
             .version("1")

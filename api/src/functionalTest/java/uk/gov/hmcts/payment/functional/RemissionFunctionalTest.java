@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequestFee;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -126,7 +126,7 @@ public class RemissionFunctionalTest {
             .provider("pci pal")
             .service(Service.DIVORCE)
             .siteId("AA001")
-            .fees(Collections.singletonList(getCardPaymentRequestFee()))
+            .fees(Collections.singletonList(getFeeDto()))
             .build();
     }
 
@@ -150,8 +150,8 @@ public class RemissionFunctionalTest {
             .build();
     }
 
-    private CardPaymentRequestFee getCardPaymentRequestFee() {
-        return CardPaymentRequestFee.cardPaymentRequestFeeWith()
+    private FeeDto getFeeDto() {
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber("1111-CCD2-3333-4444")
             .version("1")

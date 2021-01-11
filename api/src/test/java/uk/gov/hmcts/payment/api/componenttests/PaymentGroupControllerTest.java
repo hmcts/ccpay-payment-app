@@ -1691,7 +1691,7 @@ public class PaymentGroupControllerTest {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(getCardPaymentRequestFee()))
+            .fees(Collections.singletonList(getFeeDto()))
             .build();
     }
 
@@ -1714,8 +1714,8 @@ public class PaymentGroupControllerTest {
             .build();
     }
 
-    private CardPaymentRequestFee getCardPaymentRequestFee() {
-        return CardPaymentRequestFee.cardPaymentRequestFeeWith()
+    private FeeDto getFeeDto() {
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250.00"))
             .version("1")
             .code("FEE0123")

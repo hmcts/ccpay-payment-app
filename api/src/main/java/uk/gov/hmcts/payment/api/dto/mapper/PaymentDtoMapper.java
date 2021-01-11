@@ -345,11 +345,11 @@ public class PaymentDtoMapper {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
-    public List<PaymentFee> toCardPaymentFees(List<CardPaymentRequestFee> feeDtos) {
+    public List<PaymentFee> toCardPaymentFees(List<FeeDto> feeDtos) {
         return feeDtos.stream().map(this::toCardPaymentFee).collect(Collectors.toList());
     }
 
-    public PaymentFee toCardPaymentFee(CardPaymentRequestFee feeDto) {
+    public PaymentFee toCardPaymentFee(FeeDto feeDto) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         return PaymentFee.feeWith()
