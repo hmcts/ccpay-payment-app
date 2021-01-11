@@ -10,10 +10,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.PaymentDtoForPaymentGroup;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
-import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -35,8 +32,8 @@ public class PaymentGroupDtoMapper {
     private LaunchDarklyFeatureToggler featureToggler;
 
 
-    public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
-        return PaymentGroupDto.paymentGroupDtoWith()
+    public PaymentGroupResponseDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
+        return PaymentGroupResponseDto.paymentGroupResponseDtoWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(paymentFeeLink.getDateCreated())
             .dateUpdated(paymentFeeLink.getDateUpdated())
@@ -137,7 +134,7 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-    public PaymentFee toPaymentFee(PaymentGroupFeeDto feeDto){
+    public PaymentFee toPaymentFee(FeeDto feeDto){
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         return PaymentFee.feeWith()

@@ -394,8 +394,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     }
 
-    private PaymentGroupFeeDto getNewFee(String ccdCaseNumber){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getNewFee(String ccdCaseNumber){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("101.99"))
             .code("FEE312")
             .version("1")

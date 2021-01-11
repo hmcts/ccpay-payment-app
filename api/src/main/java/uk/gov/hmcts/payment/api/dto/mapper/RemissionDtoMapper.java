@@ -2,11 +2,8 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupRemissionDto;
-import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.dto.RemissionResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionFeeDto;
-import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
@@ -17,11 +14,11 @@ import java.util.stream.Collectors;
 @Component
 public class RemissionDtoMapper {
 
-    public PaymentGroupRemissionDto toCreateRemissionResponse(PaymentFeeLink paymentFeeLink) {
+    public RemissionResponse toCreateRemissionResponse(PaymentFeeLink paymentFeeLink) {
         Remission remission = paymentFeeLink.getRemissions().get(0);
         RemissionFeeDto feeDto = toRemissionFeeDto(paymentFeeLink.getFees().get(0));
 
-        return PaymentGroupRemissionDto.paymentGroupRemissionDtoWith()
+        return RemissionResponse.paymentGroupRemissionDtoWith()
             .remissionReference(remission.getRemissionReference())
             .paymentReference(paymentFeeLink.getPayments() == null || paymentFeeLink.getPayments().isEmpty() ? null : paymentFeeLink.getPayments().get(0).getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
@@ -29,7 +26,7 @@ public class RemissionDtoMapper {
             .build();
     }
 
-    public List<PaymentFee> toFees(List<PaymentGroupFeeDto> feeDtos) {
+    public List<PaymentFee> toFees(List<FeeDto> feeDtos) {
         return feeDtos.stream().map(this::toFee).collect(Collectors.toList());
     }
 
@@ -44,7 +41,7 @@ public class RemissionDtoMapper {
             .build();
     }
 
-    public PaymentFee toFee(PaymentGroupFeeDto feeDto) {
+    public PaymentFee toFee(FeeDto feeDto) {
         return PaymentFee.feeWith()
             .calculatedAmount(feeDto.getCalculatedAmount())
             .code(feeDto.getCode())

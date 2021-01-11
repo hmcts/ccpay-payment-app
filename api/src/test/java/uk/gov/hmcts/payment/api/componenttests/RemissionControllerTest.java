@@ -479,7 +479,7 @@ public class RemissionControllerTest {
         BigDecimal calculatedAmount = new BigDecimal("199.99");
         String feeReference = "feeReference";
 
-        PaymentGroupFeeDto feeDto = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(calculatedAmount)
             .code("FEE0001")
             .version("1")
@@ -515,7 +515,7 @@ public class RemissionControllerTest {
         String feeReference = "feeReference";
 
         String feeCode = "FEE0001";
-        PaymentGroupFeeDto feeDto = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(calculatedAmount)
             .code(feeCode)
             .version("1")
@@ -820,7 +820,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("20"))
             .hwfReference("HR1111")
             .siteId("AA001")
-            .fee(PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .fee(FeeDto.feeDtoWith()
                 .calculatedAmount(new BigDecimal("300"))
                 .code("FEE0111")
                 .version("1")
@@ -851,24 +851,24 @@ public class RemissionControllerTest {
             .code("FEE0123")
             .build();
     }
-    private PaymentGroupFeeDto getRemissionFee(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getRemissionFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("10.00"))
             .ccdCaseNumber("CCD1234")
             .version("1")
             .code("FEE0123")
             .build();
     }
-    private PaymentGroupFeeDto getFeeWithOutCCDCaseNumber() {
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getFeeWithOutCCDCaseNumber() {
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("10.00"))
             .version("1")
             .code("FEE0123")
             .build();
     }
 
-    private PaymentGroupFeeDto getNewFee(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getNewFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250"))
             .code("FEE312")
             .version("1")
@@ -886,7 +886,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("150"))
             .hwfReference("HR1111")
             .siteId("AA001")
-            .fee(PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .fee(FeeDto.feeDtoWith()
                 .calculatedAmount(new BigDecimal("250"))
                 .code("FEE312")
                 .version("1")
@@ -895,8 +895,8 @@ public class RemissionControllerTest {
             .build();
     }
 
-    private PaymentGroupFeeDto getConsecutiveFee() {
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getConsecutiveFee() {
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
             .id(1)

@@ -40,7 +40,7 @@ public class RemissionRequest {
 
     @NotNull
     @Valid
-    private PaymentGroupFeeDto fee;
+    private FeeDto fee;
 
     @NotNull
     private String siteId;

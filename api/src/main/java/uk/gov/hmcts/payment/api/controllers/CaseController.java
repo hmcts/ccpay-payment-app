@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupList;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupResponseDto;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -73,9 +73,9 @@ public class CaseController {
         @ApiResponse(code = 404, message = "Payment Groups not found")
     })
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
-    public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
+    public PaymentGroupList retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
 
-        List<PaymentGroupDto> paymentGroups = paymentGroupService
+        List<PaymentGroupResponseDto> paymentGroups = paymentGroupService
             .search(ccdCaseNumber)
             .stream()
             .map(paymentGroupDtoMapper::toPaymentGroupDto)
@@ -85,7 +85,7 @@ public class CaseController {
             throw new PaymentGroupNotFoundException();
         }
 
-        return new PaymentGroupResponse(paymentGroups);
+        return new PaymentGroupList(paymentGroups);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -20,7 +19,6 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -284,8 +282,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentThenDsl getPaymentGroups(Consumer<PaymentGroupResponse> paymentGroupsResponseAssertions) {
-            PaymentGroupResponse paymentGroupsResponse = response.then().statusCode(200).extract().as(PaymentGroupResponse.class);
+        public PaymentThenDsl getPaymentGroups(Consumer<PaymentGroupList> paymentGroupsResponseAssertions) {
+            PaymentGroupList paymentGroupsResponse = response.then().statusCode(200).extract().as(PaymentGroupList.class);
             paymentGroupsResponseAssertions.accept(paymentGroupsResponse);
             return this;
         }

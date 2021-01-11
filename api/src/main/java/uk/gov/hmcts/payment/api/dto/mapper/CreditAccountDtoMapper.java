@@ -72,14 +72,6 @@ public class CreditAccountDtoMapper {
             .build();
     }
 
-    public PaymentGroupDto toRetrievePaymentGroupReferenceResponse(PaymentFeeLink paymentFeeLink) {
-        return PaymentGroupDto.paymentGroupDtoWith()
-            .paymentGroupReference(paymentFeeLink.getPaymentReference())
-            .payments(paymentFeeLink.getPayments().stream().map(paymentGroupDtoMapper::toPaymentDto).collect(Collectors.toList()))
-            .fees(paymentFeeLink.getFees().stream().map(this::toPaymentGroupFeeDto).collect(Collectors.toList()))
-            .build();
-    }
-
     public PaymentDto toRetrievePaymentResponse(Payment payment, List<PaymentFee> fees) {
         return PaymentDto.payment2DtoWith()
             .reference(payment.getReference())

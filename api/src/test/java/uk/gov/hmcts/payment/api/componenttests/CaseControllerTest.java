@@ -13,7 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.fees.register.legacymodel.Fee;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -21,10 +20,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupFeeDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
-import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -255,7 +251,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupList paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupList>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
 
@@ -267,7 +263,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDb("1");
 
-        PaymentGroupFeeDto feeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto feeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -291,7 +287,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupList paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupList>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
 
@@ -303,7 +299,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDbWithApportionmentDetails("1");
 
-        PaymentGroupFeeDto feeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto feeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -327,8 +323,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
-        PaymentGroupDto paymentGroupDto1 = paymentGroups.getPaymentGroups().get(0);
+        PaymentGroupList paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupList>(){});
+        PaymentGroupResponseDto paymentGroupDto1 = paymentGroups.getPaymentGroups().get(0);
         PaymentGroupFeeDto feeDto = paymentGroupDto1.getFees().get(0);
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
@@ -343,7 +339,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDb("1");
 
-        PaymentGroupFeeDto feeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto feeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -352,7 +348,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
-        PaymentGroupFeeDto consecutiveFeeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto consecutiveFeeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
             .id(1)
@@ -387,7 +383,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupList paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupList>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
 
@@ -397,7 +393,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Transactional
     public void getAllPaymentGroupsHavingMultipleFeesRemissionsAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
-        PaymentGroupFeeDto feeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto feeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -415,7 +411,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
-        PaymentGroupFeeDto consecutiveFeeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto consecutiveFeeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
             .id(1)
@@ -501,7 +497,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupList paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupList>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(3);
 
@@ -529,7 +525,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
-        PaymentGroupFeeDto remissionFeeRequest = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto remissionFeeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE0383")
             .version("1")
@@ -586,7 +582,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupList paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupList>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
         assertThat(paymentGroups.getPaymentGroups().get(0)

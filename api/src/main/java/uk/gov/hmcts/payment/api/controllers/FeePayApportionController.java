@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -49,7 +50,7 @@ public class FeePayApportionController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/payment-groups/fee-pay-apportion/{paymentreference}")
-    public ResponseEntity<PaymentGroupDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference) {
+    public ResponseEntity<PaymentGroupResponseDto> retrieveApportionDetails(@PathVariable("paymentreference") String paymentReference) {
         LOG.info("Invoking new API in FeePayApportionController");
         PaymentFeeLink paymentFeeLink = paymentService.retrieve(paymentReference);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);

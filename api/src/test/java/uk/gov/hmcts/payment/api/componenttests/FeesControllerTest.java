@@ -154,8 +154,8 @@ public class FeesControllerTest {
             .andReturn();
     }
 
-    private PaymentGroupFeeDto getNewFee(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getNewFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -175,8 +175,8 @@ public class FeesControllerTest {
             .build();
     }
 
-    private PaymentGroupFeeDto getPaymentGroupFee() {
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getPaymentGroupFee() {
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("10.00"))
             .ccdCaseNumber("CCD1234")
             .version("1")

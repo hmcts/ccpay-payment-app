@@ -180,12 +180,12 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDtoForPaymentGroup paymentDto = paymentGroupDto.getPayments().get(0);
+        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
         assertThat(paymentDto.getReference()).isEqualTo(createPaymentResponseDto.getReference());
-        PaymentGroupFeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
+        FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
         assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
     }
@@ -210,7 +210,7 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDtoForPaymentGroup paymentDto = paymentGroupDto.getPayments().get(0);
+        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
@@ -237,8 +237,8 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDtoForPaymentGroup paymentDto = paymentGroupDto.getPayments().get(0);
-        PaymentGroupFeeDto feeDto = paymentGroupDto.getFees().get(0);
+        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
+        FeeDto feeDto = paymentGroupDto.getFees().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(feeDto).isNotNull();
@@ -561,13 +561,13 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        PaymentDtoForPaymentGroup paymentDto = paymentGroupDto.getPayments().get(0);
+        PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentDto).isEqualToComparingOnlyGivenFields(cardPaymentRequest);
         assertThat(paymentDto.getReference()).isEqualTo(createPaymentResponseDto.getReference());
         assertThat(paymentGroupDto.getFees().size()).isEqualTo(2);
-        PaymentGroupFeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
+        FeeDto feeDto = paymentGroupDto.getFees().stream().filter(f -> f.getCode().equals("FEE0123")).findAny().get();
         assertThat(feeDto).isEqualToComparingOnlyGivenFields(getFee());
         assertThat(feeDto.getNetAmount()).isEqualTo(new BigDecimal("200.00"));
 
@@ -1490,12 +1490,12 @@ public class PaymentGroupControllerTest {
 
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
-        List<PaymentGroupFeeDto> fees = new ArrayList<>();
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -1546,12 +1546,12 @@ public class PaymentGroupControllerTest {
 
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
-        List<PaymentGroupFeeDto> fees = new ArrayList<>();
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -1617,12 +1617,12 @@ public class PaymentGroupControllerTest {
 
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
-        List<PaymentGroupFeeDto> fees = new ArrayList<>();
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -1706,8 +1706,8 @@ public class PaymentGroupControllerTest {
             .build();
     }
 
-    private PaymentGroupFeeDto getFee() {
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getFee() {
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250.00"))
             .version("1")
             .code("FEE0123")
@@ -1732,8 +1732,8 @@ public class PaymentGroupControllerTest {
             .build();
     }
 
-    private PaymentGroupFeeDto getNewFee(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getNewFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -1744,8 +1744,8 @@ public class PaymentGroupControllerTest {
 
     }
 
-    private PaymentGroupFeeDto getNewFeeWithOutCaseDetails(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getNewFeeWithOutCaseDetails(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -1754,8 +1754,8 @@ public class PaymentGroupControllerTest {
 
     }
 
-    private PaymentGroupFeeDto getNewFeeWithCCDcasenumberOnly(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getNewFeeWithCCDcasenumberOnly(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -1765,8 +1765,8 @@ public class PaymentGroupControllerTest {
 
     }
 
-    private PaymentGroupFeeDto getNewFeeWithCaseReferenceOnly(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getNewFeeWithCaseReferenceOnly(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -1776,8 +1776,8 @@ public class PaymentGroupControllerTest {
 
     }
 
-    private PaymentGroupFeeDto getInvalidFee(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getInvalidFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .version("1")
             .volume(2)
@@ -1787,8 +1787,8 @@ public class PaymentGroupControllerTest {
     }
 
 
-    private PaymentGroupFeeDto getConsecutiveFee(){
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+    private FeeDto getConsecutiveFee(){
+        return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
             .id(1)
