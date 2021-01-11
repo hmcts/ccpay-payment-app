@@ -317,7 +317,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
 
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
     }
@@ -344,7 +344,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
 
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
     }
@@ -473,7 +473,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
 
     }
@@ -497,7 +497,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(0);
 
     }
@@ -520,7 +520,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
 
     }
@@ -543,7 +543,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(0);
     }
 
@@ -943,7 +943,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        LiberataPaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
         assertNotNull(response);
     }
 

@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.LiberataPaymentsResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -162,7 +162,7 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
 
         System.out.println("Search took " + durationOfSearch + " milliseconds");
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        LiberataPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), LiberataPaymentsResponse.class);
 
         assertThat(paymentsResponse.getPayments().size()).isGreaterThan(PAYMENTS_TODAY - 1);
 

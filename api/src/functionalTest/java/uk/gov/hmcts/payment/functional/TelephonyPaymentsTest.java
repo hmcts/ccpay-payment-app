@@ -14,8 +14,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.EnrichablePaymentDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.LiberataPaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.LiberataReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
@@ -106,11 +106,11 @@ public class TelephonyPaymentsTest {
                 .when()
                 .enableSearch()
                 .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
-                .then().got(PaymentsResponse.class, paymentsResponse -> {
+                .then().got(LiberataPaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
                         .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                EnrichablePaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+                LiberataReconciliationPaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
                 assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
                 assertEquals("payment status is properly set", "success", paymentRetrieved.getStatus());
             });
@@ -147,11 +147,11 @@ public class TelephonyPaymentsTest {
                 .when()
                 .enableSearch()
                 .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
-                .then().got(PaymentsResponse.class, paymentsResponse -> {
+                .then().got(LiberataPaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
                         .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                EnrichablePaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+                LiberataReconciliationPaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
 
                 assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
                 assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
@@ -188,11 +188,11 @@ public class TelephonyPaymentsTest {
                 .when()
                 .enableSearch()
                 .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
-                .then().got(PaymentsResponse.class, paymentsResponse -> {
+                .then().got(LiberataPaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
                         .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                EnrichablePaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+                LiberataReconciliationPaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
                 assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
                 assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
             });

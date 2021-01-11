@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentsResponse;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -97,7 +96,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        ReconciliationPaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReconciliationPaymentsResponse.class);
 
         assertEquals(1, paymentsResponse.getPayments().size());
         assertEquals(netAmount,  paymentsResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount());

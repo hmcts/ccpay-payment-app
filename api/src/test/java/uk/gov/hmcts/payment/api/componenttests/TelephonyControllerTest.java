@@ -115,8 +115,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<EnrichablePaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);
         assertThat("success".equalsIgnoreCase(payments.get(0).getStatus()));
@@ -238,8 +238,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<EnrichablePaymentDto> payments = response.getPayments();
+        LiberataPaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
+        List<LiberataReconciliationPaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);
         Date updatedTsForFirstReq = payments.get(0).getDateUpdated();
@@ -255,7 +255,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
         payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
         assertEquals(payments.get(0).getPaymentReference(), paymentReference);

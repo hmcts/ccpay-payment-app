@@ -535,7 +535,7 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response2 = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+        LiberataPaymentsResponse response2 = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), LiberataPaymentsResponse.class);
 
         assertThat(response2.getPayments().size()).isGreaterThan(0);
 

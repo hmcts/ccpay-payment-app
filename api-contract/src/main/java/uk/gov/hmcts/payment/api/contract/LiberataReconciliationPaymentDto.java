@@ -25,51 +25,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Getter
 @Setter
 public class LiberataReconciliationPaymentDto extends PaymentResponse{
-    private String paymentReference;
-
-    private String paymentGroupReference;
-
-    private String serviceName;
-
-    @NotEmpty
-    private String siteId;
-
-    @NotEmpty
-    private BigDecimal amount;
-
-    private String caseReference;
-
-    private String ccdCaseNumber;
-
-    private String accountNumber;
-
-    private String organisationName;
-
-    private String customerReference;
-
-    private String channel;
-
-    private CurrencyCode currency;
-
-    private String status;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
-    private Date dateCreated;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
-    private Date dateUpdated;
-
-    private String method;
 
     private Date bankedDate;
-
-    private String giroSlipNo;
-
-    private String externalProvider;
-
-    private String externalReference;
-
-    private Date reportedDateOffline;
 
     private List<PaymentAllocationDto> paymentAllocation;
 
