@@ -49,7 +49,7 @@ public class CreditAccountDtoMapper {
             .dateUpdated(statusHistory.getDateUpdated())
             .build();
     }
-
+    
     public CreditAccountPaymentResponse toRetrievePaymentResponse(Payment payment, List<PaymentFee> fees) {
         return CreditAccountPaymentResponse.creditAccountPaymentResponseWith()
             .reference(payment.getReference())
