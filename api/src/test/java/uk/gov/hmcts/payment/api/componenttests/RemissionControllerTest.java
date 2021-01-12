@@ -120,7 +120,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
             .siteId("AA001")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         restActions
@@ -140,7 +140,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .siteId("AA001")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         restActions
@@ -186,7 +186,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .siteId("AA001")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         restActions
@@ -316,7 +316,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .siteId("AA001")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         restActions
@@ -335,7 +335,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .siteId("AA001")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         restActions
@@ -355,7 +355,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .siteId("AA001")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         restActions
@@ -374,7 +374,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
             .siteId("AA001")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         restActions
@@ -461,7 +461,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
             .siteId("AA001")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         MvcResult result = restActions
@@ -560,7 +560,7 @@ public class RemissionControllerTest {
             .hwfAmount(new BigDecimal("10.00"))
             .siteId("AA001")
             .hwfReference("HWFref")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         MvcResult result = restActions
@@ -586,7 +586,7 @@ public class RemissionControllerTest {
             .siteId("AA001")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         MvcResult result = restActions
@@ -851,14 +851,7 @@ public class RemissionControllerTest {
             .code("FEE0123")
             .build();
     }
-    private FeeDto getRemissionFee(){
-        return FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("10.00"))
-            .ccdCaseNumber("CCD1234")
-            .version("1")
-            .code("FEE0123")
-            .build();
-    }
+
     private FeeDto getFeeWithOutCCDCaseNumber() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("10.00"))

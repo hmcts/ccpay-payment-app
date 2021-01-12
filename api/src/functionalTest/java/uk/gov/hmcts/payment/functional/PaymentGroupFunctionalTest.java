@@ -175,7 +175,7 @@ public class PaymentGroupFunctionalTest {
             .build();
 
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
                 .calculatedAmount(new BigDecimal("450.00"))
                 .code("FEE3132")
                 .version("1")
@@ -210,12 +210,12 @@ public class PaymentGroupFunctionalTest {
     public void makeAndRetrieveBulkScanPayment_TestShouldReturnAutoApportionedFees() {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
 
-        List<PaymentGroupFeeDto> fees = new ArrayList<>();
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(PaymentGroupFeeDto.paymentGroupFeeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
@@ -348,7 +348,7 @@ public class PaymentGroupFunctionalTest {
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .siteId("Y431")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -364,7 +364,7 @@ public class PaymentGroupFunctionalTest {
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
-        .fees(Arrays.asList(PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        .fees(Arrays.asList(FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250.00"))
             .code("FEE3232")
             .version("1")
@@ -435,7 +435,7 @@ public class PaymentGroupFunctionalTest {
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .siteId("Y431")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -451,7 +451,7 @@ public class PaymentGroupFunctionalTest {
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
                 .calculatedAmount(new BigDecimal("250.00"))
                 .code("FEE3232")
                 .version("1")
@@ -509,14 +509,14 @@ public class PaymentGroupFunctionalTest {
     public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturned() throws Exception {
 
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        PaymentGroupFeeDto feeDto = PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+        FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("110.00"))
             .ccdCaseNumber(ccdCaseNumber)
             .version("1")
             .code("FEE0123")
             .description("Application for a third party debt order")
-//            .jurisdiction1("civil")
-//            .jurisdiction2("Country")
+            .jurisdiction1("civil")
+            .jurisdiction2("Country")
             .memoLine("Receipt of Fees")
             .naturalAccountCode("4481102145")
             .build();
@@ -580,13 +580,13 @@ public class PaymentGroupFunctionalTest {
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
             .siteId("Y431")
-            .fee(getRemissionFee())
+            .fee(getFee())
             .build();
     }
 
     private PaymentGroupDto getPaymentFeeGroupRequest() {
         return PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(PaymentGroupFeeDto.paymentGroupFeeDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250.00"))
             .code("FEE3232")
             .version("1")
@@ -598,15 +598,6 @@ public class PaymentGroupFunctionalTest {
 
     private FeeDto getFee() {
         return FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("550.00"))
-            .ccdCaseNumber("1111-CCD2-3333-4444")
-            .version("1")
-            .code("FEE0123")
-            .build();
-    }
-
-    private PaymentGroupFeeDto getRemissionFee() {
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber("1111-CCD2-3333-4444")
             .version("1")

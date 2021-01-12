@@ -30,9 +30,6 @@ public class CreditAccountDtoMapper {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
-    @Autowired
-    PaymentGroupDtoMapper paymentGroupDtoMapper;
-
     public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
