@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.response.CreateCardPaymentResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
@@ -84,7 +85,7 @@ public class CardPaymentController {
     @PostMapping(value = "/card-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCardPayment(
+    public ResponseEntity<CreateCardPaymentResponse> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
@@ -130,14 +131,14 @@ public class CardPaymentController {
 
         LOG.info("Language Value : {}",paymentServiceRequest.getLanguage());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
-        PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
+        CreateCardPaymentResponse createCardPaymentResponse = paymentDtoMapper.toCreateCardPaymentResponse(paymentLink);
 
         if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
-                .orderReference(paymentDto.getReference()).build();
+                .orderReference(createCardPaymentResponse.getReference()).build();
             pciPalPaymentRequest.setCustomData2(paymentLink.getPayments().get(0).getCcdCaseNumber());
             String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
-            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
+            createCardPaymentResponse = paymentDtoMapper.toCreateCardPaymentTelephonyResponse(paymentLink, link);
         }
         // trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -145,7 +146,7 @@ public class CardPaymentController {
         if(apportionFeature) {
             feePayApportionService.processApportion(paymentLink.getPayments().get(0));
         }
-        return new ResponseEntity<>(paymentDto, CREATED);
+        return new ResponseEntity<>(createCardPaymentResponse, CREATED);
     }
 
     @ApiOperation(value = "Get card payment details by payment reference", notes = "Get payment details for supplied payment reference")
