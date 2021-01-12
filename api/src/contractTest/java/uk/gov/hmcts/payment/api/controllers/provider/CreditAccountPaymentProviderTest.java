@@ -80,8 +80,6 @@ public class CreditAccountPaymentProviderTest {
     FeePayApportionService feePayApportionService;
     @Autowired
     LaunchDarklyFeatureToggler featureToggler;
-    @Autowired
-    OrgIdService orgIdService;
 
     @Autowired
     UserIdSupplier userIdSupplierMock;

@@ -17,7 +17,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrgServiceDto {
+public class OrganisationalServiceDto {
     private String jurisdiction;
     private String serviceId;
     private String orgUnit;
