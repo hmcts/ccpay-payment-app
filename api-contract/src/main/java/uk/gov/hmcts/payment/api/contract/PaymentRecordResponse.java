@@ -19,7 +19,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class RecordPaymentResponse {
+public class PaymentRecordResponse {
     private String reference;
 
     private String paymentGroupReference;

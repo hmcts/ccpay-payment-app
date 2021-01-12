@@ -464,9 +464,9 @@ public class PaymentDtoMapper {
         return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 
-    public RecordPaymentResponse toCreateRecordPaymentResponse(PaymentFeeLink paymentFeeLink) {
+    public PaymentRecordResponse toCreateRecordPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return RecordPaymentResponse.recordPaymentResponseWith()
+        return PaymentRecordResponse.recordPaymentResponseWith()
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .reference(payment.getReference())
