@@ -39,7 +39,6 @@ allprojects {
         jcenter()
         maven { url 'https://repo.spring.io/libs-milestone' }
     }
-
     configurations.all {
         resolutionStrategy {
             eachDependency { DependencyResolveDetails det ->
