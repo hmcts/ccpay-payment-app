@@ -17,7 +17,6 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -281,8 +280,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentThenDsl getPaymentGroups(Consumer<PaymentGroupResponse> paymentGroupsResponseAssertions) {
-            PaymentGroupResponse paymentGroupsResponse = response.then().statusCode(200).extract().as(PaymentGroupResponse.class);
+        public PaymentThenDsl getPaymentGroups(Consumer<RetrievePaymentGroupsResponse> paymentGroupsResponseAssertions) {
+            RetrievePaymentGroupsResponse paymentGroupsResponse = response.then().statusCode(200).extract().as(RetrievePaymentGroupsResponse.class);
             paymentGroupsResponseAssertions.accept(paymentGroupsResponse);
             return this;
         }

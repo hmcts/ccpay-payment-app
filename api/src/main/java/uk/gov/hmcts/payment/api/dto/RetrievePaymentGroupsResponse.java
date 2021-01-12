@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class PaymentGroupResponse {
+public class RetrievePaymentGroupsResponse {
 
     private List<PaymentGroupDto> paymentGroups;
 }

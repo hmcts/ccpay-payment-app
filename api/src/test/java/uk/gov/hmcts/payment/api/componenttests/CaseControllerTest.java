@@ -18,7 +18,7 @@ import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
+import uk.gov.hmcts.payment.api.dto.RetrievePaymentGroupsResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -250,7 +250,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        RetrievePaymentGroupsResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<RetrievePaymentGroupsResponse>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
 
@@ -286,7 +286,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        RetrievePaymentGroupsResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<RetrievePaymentGroupsResponse>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
 
@@ -322,7 +322,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        RetrievePaymentGroupsResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<RetrievePaymentGroupsResponse>(){});
         PaymentGroupDto paymentGroupDto1 = paymentGroups.getPaymentGroups().get(0);
         FeeDto feeDto = paymentGroupDto1.getFees().get(0);
 
@@ -382,7 +382,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        RetrievePaymentGroupsResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<RetrievePaymentGroupsResponse>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
 
@@ -487,7 +487,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        RetrievePaymentGroupsResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<RetrievePaymentGroupsResponse>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(3);
 
@@ -563,7 +563,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        RetrievePaymentGroupsResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<RetrievePaymentGroupsResponse>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
         assertThat(paymentGroups.getPaymentGroups().get(0)

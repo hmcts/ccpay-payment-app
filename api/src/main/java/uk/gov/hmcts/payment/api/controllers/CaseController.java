@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupResponseDto;
+import uk.gov.hmcts.payment.api.dto.RetrievePaymentGroupsResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -73,7 +74,7 @@ public class CaseController {
         @ApiResponse(code = 404, message = "Payment Groups not found")
     })
     @RequestMapping(value = "/cases/{ccdcasenumber}/paymentgroups", method = GET)
-    public PaymentGroupResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
+    public RetrievePaymentGroupsResponse retrieveCasePaymentGroups(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
 
         List<PaymentGroupDto> paymentGroups = paymentGroupService
             .search(ccdCaseNumber)
@@ -85,7 +86,7 @@ public class CaseController {
             throw new PaymentGroupNotFoundException();
         }
 
-        return new PaymentGroupResponse(paymentGroups);
+        return new RetrievePaymentGroupsResponse(paymentGroups);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
