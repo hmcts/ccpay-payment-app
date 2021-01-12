@@ -109,32 +109,31 @@ public class CreditAccountPaymentController {
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCreditAccountPayment(@RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
+    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+//        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
 //        headerMultiValueMapForBulkScan.put("content-type",headersMap.get("content-type"));
         //User token
-        headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
+//        headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
         //Service token
-        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(authTokenGenerator.generate()));
+//        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(authTokenGenerator.generate()));
+//
+//        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+//        Map<String, String> params = new HashMap<>();
 
-        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-        Map<String, String> params = new HashMap<>();
-
-        params.put("ccdCaseType", creditAccountPaymentRequest.getCaseType());
-
-        if(StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())){
-            try{
-                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), new HttpEntity<>(httpHeaders),params);
-                creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
-                creditAccountPaymentRequest.setService(Service.valueOf(organisationalServiceDto.getServiceShortDescription()));
-            } catch (HttpClientErrorException e) {
-                LOG.error("ORG ID Ref error status {} ", e.getMessage());
-                throw new PaymentException("Payment creation failed, Please try again later.");
-            }
-        }
+//        params.put("ccdCaseType", creditAccountPaymentRequest.getCaseType());
+//
+//        if(StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())){
+//            try{
+//                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), new HttpEntity<>(httpHeaders),params);
+//                creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
+//                creditAccountPaymentRequest.setService(Service.valueOf(organisationalServiceDto.getServiceShortDescription()));
+//            } catch (HttpClientErrorException e) {
+//                LOG.error("ORG ID Ref error status {} ", e.getMessage());
+//                throw new PaymentException("Payment creation failed, Please try again later.");
+//            }
+//        }
 
         LOG.info("Case type"+ creditAccountPaymentRequest.getCaseType());
         LOG.info("Site Id"+ creditAccountPaymentRequest.getSiteId());
