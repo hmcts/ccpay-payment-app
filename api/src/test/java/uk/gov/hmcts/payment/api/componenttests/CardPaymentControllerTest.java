@@ -9,6 +9,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
@@ -35,6 +38,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -89,6 +93,12 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @MockBean
     ReferenceDataService referenceDataService;
+
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
+
+    @InjectMocks
+    CardPaymentController cardPaymentController;
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
@@ -205,65 +215,67 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(resultWithEmptyValues.getResponse().getContentAsString(), "eitherIdOrTypeRequired: Either of Site ID or Case Type is mandatory as part of the request.");
  }
 
-//    @Test
-//    public void createCardPaymentWithCaseTypeReturnStatusBadRequestTest() throws Exception {
-//        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-//        restActions
-//            .post("/card-payments", cardPaymentRequestWithCaseType())
-//            .andExpect(status().isBadRequest())
-//            .andExpect(content().string("Payment creation failed, Please try again later."));
-//    }
+    @Test
+    public void createCardPaymentWithCaseTypeReturn404Test() throws Exception {
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        restActions
+            .post("/card-payments", cardPaymentRequestWithCaseType())
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("No Service found for given CaseType"));
+    }
 
-//    public void createCardPaymentWithCaseTypeReturnStatusSuccess() throws Exception{
-//
-////        Mockito.when(referenceDataService.getOrgId(any(),any())).thenReturn("VP96");
-////
-////        restActions
-////            .post("/card-payments", cardPaymentRequestWithCaseType())
-////            .andExpect(status().isCreated())
-////            .andReturn();
-//
-//        BigDecimal amount = new BigDecimal("100");
-//        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-//            .amount(amount)
-//            .description("description")
-//            .caseReference("telRefNumber")
-//            .ccdCaseNumber("1234")
-//            .service(Service.PROBATE)
-//            .currency(CurrencyCode.GBP)
-//            .provider("pci pal")
-//            .channel("telephony")
-//            .caseType("VP123")
-//            .fees(Collections.singletonList(FeeDto.feeDtoWith()
-//                .code("feeCode")
-//                .version("1")
-//                .calculatedAmount(new BigDecimal("100.1"))
-//                .build()))
-//            .build();
-//
-//        MvcResult result = restActions
-//            .withHeader("service-callback-url", "http://payments.com")
-//            .post("/card-payments", cardPaymentRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-//
-//        MvcResult result2 = restActions
-//            .get("/card-payments/" + paymentDto.getReference())
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
-//
-//        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
-//
-//        assertNotNull(paymentDto);
-//        assertEquals("Initiated", paymentDto.getStatus());
-//        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-//        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
-//
-//    }
+    @Test
+    public void createCardPaymentWithCaseTypeReturn504Test() throws Exception {
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
+        restActions
+            .post("/card-payments", cardPaymentRequestWithCaseType())
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Unable to retrieve service information. Please try again later"));
+    }
+
+    public void createCardPaymentWithCaseTypeReturnStatusSuccess() throws Exception{
+
+        BigDecimal amount = new BigDecimal("100");
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber("1234")
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .provider("pci pal")
+            .channel("telephony")
+            .caseType("VP123")
+            .fees(Collections.singletonList(FeeDto.feeDtoWith()
+                .code("feeCode")
+                .version("1")
+                .calculatedAmount(new BigDecimal("100.1"))
+                .build()))
+            .build();
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        MvcResult result2 = restActions
+            .get("/card-payments/" + paymentDto.getReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
+
+        assertNotNull(paymentDto);
+        assertEquals("Initiated", paymentDto.getStatus());
+        assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+
+    }
 
 
     @Test

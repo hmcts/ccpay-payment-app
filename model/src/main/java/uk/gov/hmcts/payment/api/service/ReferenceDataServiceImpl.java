@@ -25,8 +25,6 @@ import java.util.Map;
 @Service
 public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ReferenceDataService.class);
-
     @Autowired
     private SiteService<Site, String> siteService;
 
@@ -53,10 +51,5 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
             .queryParam("ccdCaseType", ccdCaseType);
         return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, headers, OrganisationalServiceDto[].class);
-    }
-
-    private HttpEntity<String> getRequestHeaders(MultiValueMap<String, String> headers) {
-        HttpHeaders httpHeaders = new HttpHeaders(headers);
-        return new HttpEntity<>(httpHeaders);
     }
 }
