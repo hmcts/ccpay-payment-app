@@ -18,14 +18,13 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class CreditAccountPaymentCreatedResponse {
+public class CreateCreditAccountPaymentResponse {
     private String status;
 
     private String reference;
 
     private String paymentGroupReference;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 
     private List<StatusHistoryDto> statusHistories;

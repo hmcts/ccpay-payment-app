@@ -18,10 +18,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class CreditAccountPaymentStatusResponse {
+public class RetrieveCreditAccountPaymentStatusResponse {
     private String reference;
 
-    @NotEmpty
     private BigDecimal amount;
 
     private String status;

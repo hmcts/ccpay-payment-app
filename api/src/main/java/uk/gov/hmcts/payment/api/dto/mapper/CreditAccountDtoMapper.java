@@ -26,9 +26,9 @@ public class CreditAccountDtoMapper {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
-    public CreditAccountPaymentCreatedResponse toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
+    public CreateCreditAccountPaymentResponse toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CreditAccountPaymentCreatedResponse.creditAccountPaymentResponse()
+        return CreateCreditAccountPaymentResponse.creditAccountPaymentResponse()
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
@@ -76,8 +76,8 @@ public class CreditAccountDtoMapper {
             .build();
     }
 
-    public CreditAccountPaymentStatusResponse toRetrievePaymentStatusResponse(Payment payment) {
-        return CreditAccountPaymentStatusResponse.retrievePaymentResponseWith()
+    public RetrieveCreditAccountPaymentStatusResponse toRetrievePaymentStatusResponse(Payment payment) {
+        return RetrieveCreditAccountPaymentStatusResponse.retrievePaymentResponseWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())

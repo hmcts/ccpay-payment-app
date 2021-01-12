@@ -27,10 +27,8 @@ public class CreditAccountPaymentResponse {
 
     private String reference;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 
-    @NotEmpty
     private BigDecimal amount;
 
     private CurrencyCode currency;
@@ -43,10 +41,8 @@ public class CreditAccountPaymentResponse {
 
     private String serviceName;
 
-    @NotEmpty
     private String siteId;
 
-    @NotEmpty
     private String description;
 
     private String channel;
@@ -61,10 +57,8 @@ public class CreditAccountPaymentResponse {
 
     private String accountNumber;
 
-    @NotNull
     private List<CreditAccountFeeDto> fees;
 
-    @JsonProperty("_links")
     private PaymentDto.LinksDto links;
 
 }
