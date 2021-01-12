@@ -8,6 +8,8 @@ import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,9 +18,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -33,12 +38,19 @@ import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import javax.management.ServiceNotFoundException;
 import javax.validation.Valid;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,6 +79,9 @@ public class CardPaymentController {
     private final ReferenceDataService referenceDataService;
 
     @Autowired
+    private AuthTokenGenerator authTokenGenerator;
+
+    @Autowired
     public CardPaymentController(DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService,
                                  PaymentDtoMapper paymentDtoMapper,
                                  CardDetailsService<CardDetails, String> cardDetailsService,
@@ -87,7 +102,8 @@ public class CardPaymentController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
+        @ApiResponse(code = 404, message = "No Service Found")
     })
     @PostMapping(value = "/card-payments")
     @ResponseBody
@@ -96,8 +112,24 @@ public class CardPaymentController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
+        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException, ServiceNotFoundException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
+
+        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
+        serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+        LOG.info("Service Token : {}",serviceAuthTokenPaymentList);
+
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+        headerMultiValueMapForOrganisationalDetail.put("Content-Type",headers.get("content-type"));
+        //User token
+        headerMultiValueMapForOrganisationalDetail.put("Authorization",Collections.singletonList("Bearer " + headers.get("authorization")));
+        //Service token
+        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+
+        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+        final HttpEntity<String> entity = new HttpEntity<>(headers);
+        Map<String, String> params = new HashMap<>();
+        params.put("ccdCaseType", request.getCaseType());
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
@@ -117,12 +149,25 @@ public class CardPaymentController {
             );
         }
 
+        LOG.info("Case Type: {} ",request.getCaseType());
+        LOG.info("Service Name : {} ",request.getService().getName());
+        LOG.info("User Authorization Token: {} ",headers.get("authorization"));
         if(StringUtils.isBlank(request.getSiteId())){
             try {
-                request.setSiteId(referenceDataService.getOrgId(request.getCaseType(), headers));
-            } catch (HttpClientErrorException e) {
-                LOG.error("ORG ID Ref error status {} ", e.getMessage());
-                throw new PaymentException("Payment creation failed, Please try again later.");
+                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), entity,params);
+                request.setSiteId(organisationalServiceDto.getServiceCode());
+                Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+                request.setService(Service.valueOf("ORGID"));
+                LOG.info("After Set ORGID service : {} ",request.getService().getName());
+                LOG.info("Service Code : {} ",organisationalServiceDto.getServiceCode());
+            } catch (HttpClientErrorException | HttpServerErrorException e) {
+                LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
+                if( e.getRawStatusCode() == 404){
+                    throw new NoServiceFoundException( "No Service found for given CaseType");
+                }
+                if(e.getRawStatusCode() == 504){
+                    throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
+                }
             }
         }
 
@@ -238,6 +283,12 @@ public class CardPaymentController {
         return new ResponseEntity(INTERNAL_SERVER_ERROR);
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(value = {NoServiceFoundException.class})
+    public String return404(NoServiceFoundException ex) {
+        return ex.getMessage();
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
@@ -250,4 +301,9 @@ public class CardPaymentController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return504(GatewayTimeoutException ex) {
+        return ex.getMessage();
+    }
 }
