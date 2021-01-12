@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentRecordResponse;
 import uk.gov.hmcts.payment.api.contract.RecordPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -75,7 +76,7 @@ public class PaymentRecordController {
     })
     @RequestMapping(value = "/payment-records", method = POST)
     @ResponseBody
-    public ResponseEntity<RecordPaymentResponse> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {
+    public ResponseEntity<PaymentRecordResponse> recordPayment(@Valid @RequestBody PaymentRecordRequest paymentRecordRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
