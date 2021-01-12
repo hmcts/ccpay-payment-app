@@ -11,7 +11,9 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
+import uk.gov.hmcts.payment.api.dto.CreditAccountStatusHistoryDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.response.CreateCreditAccountPaymentResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -29,18 +31,32 @@ public class CreditAccountDtoMapper {
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
-    public PaymentDto toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
+    public CreateCreditAccountPaymentResponse toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return PaymentDto.payment2DtoWith()
+        return CreateCreditAccountPaymentResponse.creditAccountPaymentResponse()
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
             .statusHistories(payment.getStatusHistories()
-                .stream().map(this::statusHistoryToDto).collect(Collectors.toList())
+                .stream().map(this::creditAccountStatusHistoryDto).collect(Collectors.toList())
             )
             .build();
     }
+
+    private CreditAccountStatusHistoryDto creditAccountStatusHistoryDto(StatusHistory statusHistory) {
+        return CreditAccountStatusHistoryDto.creditAccountStatusHistoryDtoWith()
+            .status(statusHistory.getStatus())
+            .externalStatus(statusHistory.getExternalStatus())
+            .errorCode(statusHistory.getErrorCode())
+            .errorMessage(statusHistory.getMessage())
+            .dateCreated(statusHistory.getDateCreated())
+            .dateUpdated(statusHistory.getDateUpdated())
+            .build();
+    }
+
+
+
 
     private StatusHistoryDto statusHistoryToDto(StatusHistory statusHistory) {
         return StatusHistoryDto.statusHistoryDtoWith()
