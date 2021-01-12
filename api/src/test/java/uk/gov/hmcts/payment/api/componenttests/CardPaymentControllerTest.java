@@ -234,20 +234,13 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andExpect(content().string("Unable to retrieve service information. Please try again later"));
     }
 
-    @Test
-    public void createCardPaymentWithCaseTypeReturn200Test() throws Exception {
+    public void createCardPaymentWithCaseTypeReturnStatusSuccess() throws Exception{
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("vig123")
             .serviceDescription("jkk")
             .build();
         Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
-        restActions
-            .post("/card-payments", cardPaymentRequestWithCaseType())
-            .andExpect(status().isCreated());
-    }
-
-    public void createCardPaymentWithCaseTypeReturnStatusSuccess() throws Exception{
 
         BigDecimal amount = new BigDecimal("100");
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
