@@ -27,6 +27,7 @@ public class CreditAccountPaymentResponse {
 
     private String reference;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 
     private BigDecimal amount;
