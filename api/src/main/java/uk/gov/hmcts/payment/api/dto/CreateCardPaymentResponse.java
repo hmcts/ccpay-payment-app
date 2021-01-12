@@ -21,19 +21,17 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class CardPaymentCreatedResponse {
+public class CreateCardPaymentResponse {
     private String status;
 
     private String reference;
 
     private String paymentGroupReference;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 
     private String externalReference;
 
-    @JsonProperty("_links")
     private PaymentDto.LinksDto links;
 
     private List<CardPaymentFeeDto> fees;

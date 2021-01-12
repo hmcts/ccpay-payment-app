@@ -13,9 +13,9 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.dto.CardPaymentCreatedResponse;
-import uk.gov.hmcts.payment.api.dto.CardPaymentResponse;
-import uk.gov.hmcts.payment.api.dto.CardPaymentStatusResponse;
+import uk.gov.hmcts.payment.api.dto.CreateCardPaymentResponse;
+import uk.gov.hmcts.payment.api.dto.RetrieveCardPaymentResponse;
+import uk.gov.hmcts.payment.api.dto.RetrieveCardPaymentStatusResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -40,9 +40,9 @@ public class PaymentDtoMapper {
     private LaunchDarklyFeatureToggler featureToggler;
 
 
-    public CardPaymentCreatedResponse toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
+    public CreateCardPaymentResponse toCardPaymentDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CardPaymentCreatedResponse.cardPaymentCreatedWith()
+        return CreateCardPaymentResponse.cardPaymentCreatedWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
@@ -99,9 +99,9 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public CardPaymentCreatedResponse toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
+    public CreateCardPaymentResponse toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CardPaymentCreatedResponse.cardPaymentCreatedWith()
+        return CreateCardPaymentResponse.cardPaymentCreatedWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
@@ -147,10 +147,10 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public CardPaymentResponse toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
+    public RetrieveCardPaymentResponse toRetrieveCardPaymentResponseDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         List<PaymentFee> fees = paymentFeeLink.getFees();
-        return CardPaymentResponse.cardPaymentWith()
+        return RetrieveCardPaymentResponse.cardPaymentWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
@@ -184,8 +184,8 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public CardPaymentStatusResponse toPaymentStatusesDto(Payment payment) {
-        return CardPaymentStatusResponse.cardPaymentStatusWith()
+    public RetrieveCardPaymentStatusResponse toPaymentStatusesDto(Payment payment) {
+        return RetrieveCardPaymentStatusResponse.cardPaymentStatusWith()
             .reference(payment.getReference())
             .amount(payment.getAmount())
             .paymentGroupReference(payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null)

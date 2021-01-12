@@ -18,7 +18,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class CardPaymentStatusResponse {
+public class RetrieveCardPaymentStatusResponse {
 
     private String reference;
 

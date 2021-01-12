@@ -1,8 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import org.junit.Test;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.dto.CardPaymentCreatedResponse;
+import uk.gov.hmcts.payment.api.dto.CreateCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -19,7 +18,7 @@ public class StatusMapperTest {
     public void whenGovPayStatusIsCreated_thenShouldMappedAsInitiated() {
 
         PaymentDtoMapper mapper = new PaymentDtoMapper();
-        CardPaymentCreatedResponse
+        CreateCardPaymentResponse
             payment = mapper.toCardPaymentDto(getPaymentWithStatus("created"));
 
         assertThat("Initiated", is(payment.getStatus()));
@@ -30,7 +29,7 @@ public class StatusMapperTest {
     public void whenGovPayStatusIsStarted_thenShouldMappedAsInitiated() {
 
         PaymentDtoMapper mapper = new PaymentDtoMapper();
-        CardPaymentCreatedResponse
+        CreateCardPaymentResponse
             payment = mapper.toCardPaymentDto(getPaymentWithStatus("started"));
 
         assertThat("Initiated", is(payment.getStatus()));
@@ -39,7 +38,7 @@ public class StatusMapperTest {
     public void whenGovPayStatusIsError_thenShouldMappedAsInitiated() {
 
         PaymentDtoMapper mapper = new PaymentDtoMapper();
-        CardPaymentCreatedResponse payment = mapper.toCardPaymentDto(getPaymentWithStatus("error"));
+        CreateCardPaymentResponse payment = mapper.toCardPaymentDto(getPaymentWithStatus("error"));
 
         assertThat("Failed", is(payment.getStatus()));
     }
@@ -47,7 +46,7 @@ public class StatusMapperTest {
     public void whenGovPayStatusIsFailed_thenShouldMappedAsInitiated() {
 
         PaymentDtoMapper mapper = new PaymentDtoMapper();
-        CardPaymentCreatedResponse payment = mapper.toCardPaymentDto(getPaymentWithStatus("failed"));
+        CreateCardPaymentResponse payment = mapper.toCardPaymentDto(getPaymentWithStatus("failed"));
 
         assertThat("Failed", is(payment.getStatus()));
     }
@@ -55,7 +54,7 @@ public class StatusMapperTest {
     public void whenGovPayStatusIsUnknown_thenShouldReturnSameStatus() {
 
         PaymentDtoMapper mapper = new PaymentDtoMapper();
-        CardPaymentCreatedResponse payment = mapper.toCardPaymentDto(getPaymentWithStatus("PBAStatus"));
+        CreateCardPaymentResponse payment = mapper.toCardPaymentDto(getPaymentWithStatus("PBAStatus"));
 
         assertThat("PBAStatus", is(payment.getStatus()));
     }

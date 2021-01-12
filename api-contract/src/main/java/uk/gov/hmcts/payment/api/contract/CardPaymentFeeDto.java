@@ -25,20 +25,14 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class CardPaymentFeeDto {
     private Integer id;
 
-    @NotNull
-    @Digits(integer = 10, fraction = 2, message = "Fee calculated amount cannot have more than 2 decimal places")
     private BigDecimal calculatedAmount;
 
-    @NotEmpty
     private String code;
 
-    @Digits(integer = 10, fraction = 2, message = "Net amount cannot have more than 2 decimal places")
     private BigDecimal netAmount;
 
-    @NotEmpty
     private String version;
 
-    @Positive
     private Integer volume;
 
     private String ccdCaseNumber;

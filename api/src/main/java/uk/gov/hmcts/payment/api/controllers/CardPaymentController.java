@@ -82,7 +82,7 @@ public class CardPaymentController {
     @PostMapping(value = "/card-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<CardPaymentCreatedResponse> createCardPayment(
+    public ResponseEntity<CreateCardPaymentResponse> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException {
@@ -128,7 +128,7 @@ public class CardPaymentController {
 
         LOG.info("Language Value : {}",paymentServiceRequest.getLanguage());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
-        CardPaymentCreatedResponse paymentCreatedResponse = paymentDtoMapper.toCardPaymentDto(paymentLink);
+        CreateCardPaymentResponse paymentCreatedResponse = paymentDtoMapper.toCardPaymentDto(paymentLink);
 
         if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
@@ -153,7 +153,7 @@ public class CardPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/card-payments/{reference}")
-    public CardPaymentResponse retrieve(@PathVariable("reference") String paymentReference) {
+    public RetrieveCardPaymentResponse retrieve(@PathVariable("reference") String paymentReference) {
         return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference));
     }
 
@@ -173,7 +173,7 @@ public class CardPaymentController {
         @ApiResponse(code = 404, message = "Payment not found")
     })
     @GetMapping(value = "/card-payments/{reference}/statuses")
-    public CardPaymentStatusResponse retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
+    public RetrieveCardPaymentStatusResponse retrievePaymentStatus(@PathVariable("reference") String paymentReference) {
         PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieve(paymentReference);
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
