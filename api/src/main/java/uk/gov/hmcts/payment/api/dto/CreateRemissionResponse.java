@@ -15,7 +15,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class RemissionResponse {
+public class CreateRemissionResponse {
     private String remissionReference;
 
     private String paymentReference;

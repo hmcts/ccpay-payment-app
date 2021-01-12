@@ -180,7 +180,7 @@ public class PaymentGroupController {
     @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<CardPaymentCreatedResponse> createCardPayment(
+    public ResponseEntity<CreateCardPaymentResponse> createCardPayment(
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @PathVariable("payment-group-reference") String paymentGroupReference,
@@ -209,7 +209,7 @@ public class PaymentGroupController {
 
         PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
         Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
-        CardPaymentCreatedResponse paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
+        CreateCardPaymentResponse paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
 
         if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())

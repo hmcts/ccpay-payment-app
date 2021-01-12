@@ -29,6 +29,5 @@ public class PaymentGroupResponseDto {
 
     private List<RemissionDto> remissions;
 
-    @Valid
     private List<PaymentGroupFeeDto> fees;
 }

@@ -13,7 +13,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
-import uk.gov.hmcts.payment.api.dto.CardPaymentCreatedResponse;
+import uk.gov.hmcts.payment.api.dto.CreateCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.CardPaymentFeeDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -54,9 +54,9 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public CardPaymentCreatedResponse toCardPaymentDto(Payment payment, String paymentGroupReference) {
+    public CreateCardPaymentResponse toCardPaymentDto(Payment payment, String paymentGroupReference) {
 
-        return CardPaymentCreatedResponse.cardPaymentCreatedResponseWith()
+        return CreateCardPaymentResponse.cardPaymentCreatedResponseWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentGroupReference)
@@ -110,8 +110,8 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public CardPaymentCreatedResponse toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, String link) {
-        return CardPaymentCreatedResponse.cardPaymentCreatedResponseWith()
+    public CreateCardPaymentResponse toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, String link) {
+        return CreateCardPaymentResponse.cardPaymentCreatedResponseWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())

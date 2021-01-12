@@ -282,8 +282,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentThenDsl getPaymentGroups(Consumer<PaymentGroupList> paymentGroupsResponseAssertions) {
-            PaymentGroupList paymentGroupsResponse = response.then().statusCode(200).extract().as(PaymentGroupList.class);
+        public PaymentThenDsl getPaymentGroups(Consumer<RetrievePaymentGroupsResponse> paymentGroupsResponseAssertions) {
+            RetrievePaymentGroupsResponse paymentGroupsResponse = response.then().statusCode(200).extract().as(RetrievePaymentGroupsResponse.class);
             paymentGroupsResponseAssertions.accept(paymentGroupsResponse);
             return this;
         }
