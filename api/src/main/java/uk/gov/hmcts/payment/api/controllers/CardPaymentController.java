@@ -116,20 +116,8 @@ public class CardPaymentController {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-        serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
-        LOG.info("Service Token : {}",serviceAuthTokenPaymentList);
 
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-        headerMultiValueMapForOrganisationalDetail.put("Content-Type",headers.get("content-type"));
-        //User token
-        headerMultiValueMapForOrganisationalDetail.put("Authorization",Collections.singletonList("Bearer " + headers.get("authorization")));
-        //Service token
-        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
-
-        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-        Map<String, String> params = new HashMap<>();
-        params.put("ccdCaseType", request.getCaseType());
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
@@ -154,6 +142,19 @@ public class CardPaymentController {
         LOG.info("User Authorization Token: {} ",headers.get("authorization"));
         if(StringUtils.isBlank(request.getSiteId())){
             try {
+                serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+                LOG.info("Service Token : {}",serviceAuthTokenPaymentList);
+                headerMultiValueMapForOrganisationalDetail.put("Content-Type",headers.get("content-type"));
+                //User token
+                headerMultiValueMapForOrganisationalDetail.put("Authorization",Collections.singletonList("Bearer " + headers.get("authorization")));
+                //Service token
+                headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+                //Http headers
+                HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+                final HttpEntity<String> entity = new HttpEntity<>(headers);
+                Map<String, String> params = new HashMap<>();
+                params.put("ccdCaseType", request.getCaseType());
+
                 OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), entity,params);
                 request.setSiteId(organisationalServiceDto.getServiceCode());
                 Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
