@@ -392,14 +392,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Transactional
     public void getAllPaymentGroupsHavingMultipleFeesRemissionsAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
-        FeeDto cardPaymentRequestFee = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("92.19"))
-            .code("FEE312")
-            .version("1")
-            .volume(2)
-            .reference("BXsd1123")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .build();
         FeeDto feeRequest = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
@@ -437,7 +429,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(cardPaymentRequestFee))
+            .fees(Collections.singletonList(feeRequest))
             .build();
 
         MvcResult result1 = restActions
@@ -523,15 +515,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .build();
 
-        FeeDto cardPaymentRequestFee = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("92.19"))
-            .code("FEE0383")
-            .version("1")
-            .volume(2)
-            .reference("BXsd1123")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .build();
-
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
             .ccdCaseNumber("ccdCaseNumber1")
@@ -550,7 +533,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(cardPaymentRequestFee))
+            .fees(Collections.singletonList(feeRequest))
             .build();
 
         MvcResult result1 = restActions

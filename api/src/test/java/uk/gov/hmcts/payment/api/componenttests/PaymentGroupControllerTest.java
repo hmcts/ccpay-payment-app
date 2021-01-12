@@ -1691,7 +1691,7 @@ public class PaymentGroupControllerTest {
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
-            .fees(Collections.singletonList(getFeeDto()))
+            .fees(Collections.singletonList(getFee()))
             .build();
     }
 
@@ -1713,15 +1713,6 @@ public class PaymentGroupControllerTest {
             .code("FEE0123")
             .build();
     }
-
-    private FeeDto getFeeDto() {
-        return FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("250.00"))
-            .version("1")
-            .code("FEE0123")
-            .build();
-    }
-
 
     private FeeDto getFeeWithApportionDetails() {
         return FeeDto.feeDtoWith()

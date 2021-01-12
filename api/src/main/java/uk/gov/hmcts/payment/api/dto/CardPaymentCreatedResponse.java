@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import uk.gov.hmcts.payment.api.contract.LinksDto;
 import uk.gov.hmcts.payment.api.contract.CardPaymentFeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 
 import java.util.Date;
 import java.util.List;
@@ -34,7 +34,7 @@ public class CardPaymentCreatedResponse {
     private String externalReference;
 
     @JsonProperty("_links")
-    private LinksDto links;
+    private PaymentDto.LinksDto links;
 
     private List<CardPaymentFeeDto> fees;
 

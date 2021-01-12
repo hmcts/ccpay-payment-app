@@ -48,8 +48,8 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
             .externalReference(payment.getExternalReference())
-            .links(new LinksDto(
-                payment.getNextUrl() == null ? null : new LinkDto(payment.getNextUrl(), "GET"),
+            .links(new PaymentDto.LinksDto(
+                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
                 null, null
             ))
             .build();
@@ -63,8 +63,8 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentGroupReference)
             .dateCreated(payment.getDateCreated())
             .externalReference(payment.getExternalReference())
-            .links(new LinksDto(
-                payment.getNextUrl() == null ? null : new LinkDto(payment.getNextUrl(), "GET"),
+            .links(new PaymentDto.LinksDto(
+                payment.getNextUrl() == null ? null : new PaymentDto.LinkDto(payment.getNextUrl(), "GET"),
                 null, null
             ))
             .build();
@@ -107,7 +107,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(paymentFeeLink.getFees() != null ? toPaymentFeeDtos(paymentFeeLink.getFees()) : null)
             .dateCreated(payment.getDateCreated())
-            .links(new LinksDto(new LinkDto(link, "GET"), null, null))
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
     }
 
@@ -118,7 +118,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
             .dateCreated(payment.getDateCreated())
-            .links(new LinksDto(new LinkDto(link, "GET"), null, null))
+            .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
     }
 
@@ -140,7 +140,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .fees(toFeeDtos(fees))
-            .links(payment.getReference() != null ? new LinksDto(null,
+            .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
             ) : null)
@@ -166,7 +166,7 @@ public class PaymentDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .fees(toPaymentFeeDtos(fees))
-            .links(payment.getReference() != null ? new LinksDto(null,
+            .links(payment.getReference() != null ? new PaymentDto.LinksDto(null,
                 retrieveCardPaymentLink(payment.getReference()),
                 null
             ) : null)
@@ -497,9 +497,9 @@ public class PaymentDtoMapper {
 
 
     @SneakyThrows(NoSuchMethodException.class)
-    private LinkDto retrieveCardPaymentLink(String reference) {
+    private PaymentDto.LinkDto retrieveCardPaymentLink(String reference) {
         Method method = CardPaymentController.class.getMethod("retrieve", String.class);
-        return new LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
+        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 
     public PaymentDto toCreateRecordPaymentResponse(PaymentFeeLink paymentFeeLink) {

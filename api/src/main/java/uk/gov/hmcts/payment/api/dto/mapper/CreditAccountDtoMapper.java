@@ -92,7 +92,7 @@ public class CreditAccountDtoMapper {
             .organisationName(payment.getOrganisationName())
             .accountNumber(payment.getPbaNumber())
             .fees(toFeeDtos(fees))
-            .links(new LinksDto(null,
+            .links(new PaymentDto.LinksDto(null,
                 retrievePaymentLink(payment.getReference()),
                 null
             ))
@@ -211,14 +211,14 @@ public class CreditAccountDtoMapper {
 
 
     @SneakyThrows(NoSuchMethodException.class)
-    private LinkDto cancellationLink(String userId, Integer paymentId) {
+    private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
         Method method = CreditAccountPaymentController.class.getMethod("cancel", String.class, Integer.class);
-        return new LinkDto(WebMvcLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
+        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, userId, paymentId).toString(), "POST");
     }
 
     @SneakyThrows(NoSuchMethodException.class)
-    private LinkDto retrievePaymentLink(String reference) {
+    private PaymentDto.LinkDto retrievePaymentLink(String reference) {
         Method method = CreditAccountPaymentController.class.getMethod("retrieve", String.class);
-        return new LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
+        return new PaymentDto.LinkDto(WebMvcLinkBuilder.linkTo(method, reference).toString(), "GET");
     }
 }
