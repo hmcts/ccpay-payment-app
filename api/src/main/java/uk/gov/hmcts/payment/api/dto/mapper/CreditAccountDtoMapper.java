@@ -205,15 +205,6 @@ public class CreditAccountDtoMapper {
 
     }
 
-    public PaymentGroupFeeDto toPaymentGroupFeeDto(PaymentFee fee) {
-        return PaymentGroupFeeDto.paymentGroupFeeDtoWith()
-            .calculatedAmount(fee.getCalculatedAmount())
-            .code(fee.getCode()).version(fee.getVersion())
-            .volume(fee.getVolume())
-            .build();
-
-    }
-
     @SneakyThrows(NoSuchMethodException.class)
     private PaymentDto.LinkDto cancellationLink(String userId, Integer paymentId) {
         Method method = CreditAccountPaymentController.class.getMethod("cancel", String.class, Integer.class);
