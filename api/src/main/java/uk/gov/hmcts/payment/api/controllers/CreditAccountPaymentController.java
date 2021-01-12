@@ -13,16 +13,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -37,9 +42,13 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.validation.Valid;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -65,6 +74,9 @@ public class CreditAccountPaymentController {
 
     @Autowired
     ReferenceDataService referenceDataService;
+
+    @Autowired
+    private AuthTokenGenerator authTokenGenerator;
 
     @Autowired
     public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
@@ -101,9 +113,23 @@ public class CreditAccountPaymentController {
         @Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+//        headerMultiValueMapForBulkScan.put("content-type",headersMap.get("content-type"));
+        //User token
+        headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
+        //Service token
+        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(authTokenGenerator.generate()));
+
+        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+        Map<String, String> params = new HashMap<>();
+
+        params.put("ccdCaseType", creditAccountPaymentRequest.getCaseType());
+
         if(StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())){
             try{
-                creditAccountPaymentRequest.setSiteId(referenceDataService.getOrgId(creditAccountPaymentRequest.getCaseType(),headers));
+                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), new HttpEntity<>(httpHeaders),params);
+                creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
+                creditAccountPaymentRequest.setService(Service.valueOf(organisationalServiceDto.getServiceShortDescription()));
             } catch (HttpClientErrorException e) {
                 LOG.error("ORG ID Ref error status {} ", e.getMessage());
                 throw new PaymentException("Payment creation failed, Please try again later.");

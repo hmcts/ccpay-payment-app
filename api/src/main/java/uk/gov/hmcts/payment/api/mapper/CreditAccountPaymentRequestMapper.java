@@ -1,18 +1,14 @@
 package uk.gov.hmcts.payment.api.mapper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
