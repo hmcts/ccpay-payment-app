@@ -158,7 +158,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .caseReference("caseReference")
-            //.ccdCaseNumber("ccdCaseNumber")
+            .ccdCaseNumber("ccdCaseNumber")
             .description("Description1")
             .serviceType("Probate")
             .currency("GBP")
