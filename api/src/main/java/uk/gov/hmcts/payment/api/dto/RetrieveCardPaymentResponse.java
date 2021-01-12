@@ -26,7 +26,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class RetrieveCardPaymentResponse {
     private String reference;
 
-    @NotEmpty
     private BigDecimal amount;
 
     private CurrencyCode currency;
@@ -37,12 +36,10 @@ public class RetrieveCardPaymentResponse {
 
     private String status;
 
-    @NotEmpty
     private String siteId;
 
     private String serviceName;
 
-    @NotEmpty
     private String description;
 
     private String channel;
