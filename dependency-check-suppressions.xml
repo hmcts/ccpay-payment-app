@@ -98,6 +98,7 @@
         <notes>HTTP Client 4.5.11 suppression, root cause and fix needs to be carried out separately</notes>
         <cve>CVE-2020-13956</cve>
     </suppress>
+
     <suppress>
         <notes>Launch-darkley jar uses guava@28.2-jre as an internal library and it is not exposed outside. Since it cannot be upgraded,
             this supression is added. </notes>
