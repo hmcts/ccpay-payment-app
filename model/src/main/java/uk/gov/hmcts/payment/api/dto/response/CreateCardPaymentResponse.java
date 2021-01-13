@@ -36,10 +36,10 @@ public class CreateCardPaymentResponse {
     private List<CardPaymentFeeDto> fees;
 
     @AllArgsConstructor
+    @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     @JsonInclude(NON_NULL)
     @Getter
-    @Setter
     public static class LinksDto {
         private LinkDto nextUrl;
         private LinkDto self;
@@ -47,9 +47,9 @@ public class CreateCardPaymentResponse {
     }
 
     @AllArgsConstructor
+    @NoArgsConstructor
     @JsonInclude(NON_NULL)
     @Getter
-    @Setter
     public static class LinkDto {
         private String href;
         private String method;
