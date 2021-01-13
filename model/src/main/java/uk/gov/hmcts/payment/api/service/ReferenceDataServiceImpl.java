@@ -36,10 +36,8 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) throws NoServiceFoundException {
             ResponseEntity<OrganisationalServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType, headers);
-            if(orgServiceResponse.hasBody() && orgServiceResponse.getBody() != null) {
-                OrganisationalServiceDto[] orgServiceList = orgServiceResponse.getBody();
-                OrganisationalServiceDto organisationalServiceDto = orgServiceList[0];
-                return organisationalServiceDto;
+            if(orgServiceResponse.hasBody() && orgServiceResponse.getBody() != null && orgServiceResponse.getBody()[0] !=null) {
+                return orgServiceResponse.getBody()[0];
             }else{
                 throw new NoServiceFoundException( "No Service found for given CaseType");
             }
