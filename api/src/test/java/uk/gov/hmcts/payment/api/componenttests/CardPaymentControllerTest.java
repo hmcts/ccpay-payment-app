@@ -33,7 +33,14 @@ import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -47,9 +54,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -218,7 +231,26 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCardPaymentWithCaseTypeReturn404Test() throws Exception {
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+//        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+//        //User token
+//        header.put("Authorization",Collections.singletonList("Bearer 131313"));
+//        //Service token
+//        header.put("ServiceAuthorization", Collections.singletonList("defefe"));
+//        //Http headers
+//        HttpHeaders httpHeaders = new HttpHeaders(header);
+//        HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
+
+
+//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+//            .serviceCode("1234")
+//            .serviceDescription("asdfghjkl")
+//            .build();
+//        List<OrganisationalServiceDto> organisationalServiceDtos = new ArrayList<>();
+//        organisationalServiceDtos.add(organisationalServiceDto);
+//        ResponseEntity<List<OrganisationalServiceDto>> myEntity = new ResponseEntity<List<OrganisationalServiceDto>>(organisationalServiceDtos, HttpStatus.OK);
+//        given(restTemplatePaymentGroup.exchange(eq("http://check.1243"),eq(HttpMethod.GET),eq(entity),eq(OrganisationalServiceDto[].class))).re(myEntity);
+//        Mockito.when(referenceDataService.getOrganisationalDetail("1234",entity)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         restActions
             .post("/card-payments", cardPaymentRequestWithCaseType())
             .andExpect(status().isNotFound())
@@ -227,14 +259,20 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCardPaymentWithCaseTypeReturn504Test() throws Exception {
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
         restActions
             .post("/card-payments", cardPaymentRequestWithCaseType())
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Unable to retrieve service information. Please try again later"));
     }
 
+    @Test
     public void createCardPaymentWithCaseTypeReturnSuccess() throws Exception{
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("VPAA!")
+            .serviceDescription("asdfghjkl")
+            .build();
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
@@ -248,27 +286,10 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody(contentsOf("gov-pay-responses/get-payment-response.json"))));
 
-        BigDecimal amount = new BigDecimal("100");
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(amount)
-            .description("description")
-            .caseReference("telRefNumber")
-            .ccdCaseNumber("1234")
-            .service(Service.CMC)
-            .currency(CurrencyCode.GBP)
-            .provider("pci pal")
-            .channel("telephony")
-            .caseType("VP123")
-            .fees(Collections.singletonList(FeeDto.feeDtoWith()
-                .code("feeCode")
-                .version("1")
-                .calculatedAmount(new BigDecimal("100.1"))
-                .build()))
-            .build();
 
         MvcResult result = restActions
             .withHeader("service-callback-url", "http://payments.com")
-            .post("/card-payments", cardPaymentRequest)
+            .post("/card-payments", cardPaymentRequestWithCaseType())
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -286,7 +307,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(paymentDto);
         assertEquals("Initiated", paymentDto.getStatus());
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
 
     }
 
@@ -479,9 +499,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber("1234")
-            .service(Service.PROBATE)
+            .service(Service.ORGID)
             .currency(CurrencyCode.GBP)
-            .provider("pci pal")
             .channel("telephony")
             .siteId("siteId")
             .fees(Collections.singletonList(FeeDto.feeDtoWith()

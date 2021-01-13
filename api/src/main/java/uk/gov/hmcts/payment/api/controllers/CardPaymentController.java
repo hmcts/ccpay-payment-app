@@ -152,10 +152,8 @@ public class CardPaymentController {
                 //Http headers
                 HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
                 final HttpEntity<String> entity = new HttpEntity<>(headers);
-                Map<String, String> params = new HashMap<>();
-                params.put("ccdCaseType", request.getCaseType());
 
-                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), entity,params);
+                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), entity);
                 request.setSiteId(organisationalServiceDto.getServiceCode());
                 Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
                 request.setService(Service.valueOf("ORGID"));
@@ -291,12 +289,6 @@ public class CardPaymentController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ExceptionHandler(AccessDeniedException.class)
-    public String return403(AccessDeniedException ex) {
         return ex.getMessage();
     }
 
