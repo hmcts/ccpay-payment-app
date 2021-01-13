@@ -18,6 +18,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.response.CreateCardPaymentResponse;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -222,7 +223,7 @@ public class TelephonyPaymentsTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(paymentRequest)
-            .then().created(paymentDto -> {
+            .then().gotCreated(CreateCardPaymentResponse.class,paymentDto -> {
             assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
@@ -253,7 +254,7 @@ public class TelephonyPaymentsTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(paymentRequest)
-            .then().created(paymentDto -> {
+            .then().gotCreated(CreateCardPaymentResponse.class,paymentDto -> {
             assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
             String[] schemes = {"https"};

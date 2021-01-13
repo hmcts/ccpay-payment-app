@@ -12,6 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.dto.response.CreateCardPaymentResponse;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
@@ -130,7 +131,7 @@ public class PaymentsSearchFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
-            .then().created(paymentDto -> {
+            .then().gotCreated(CreateCardPaymentResponse.class,paymentDto -> {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });

@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.response.CreateCardPaymentResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -99,7 +100,7 @@ public class CMCCardPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
-            .then().created(paymentDto -> {
+            .then().gotCreated(CreateCardPaymentResponse.class, paymentDto -> {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
@@ -114,7 +115,7 @@ public class CMCCardPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
-            .then().created(savedPayment -> {
+            .then().gotCreated(CreateCardPaymentResponse.class,savedPayment -> {
             reference[0] = savedPayment.getReference();
 
             assertNotNull(savedPayment.getReference());
@@ -151,7 +152,7 @@ public class CMCCardPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
-            .then().created(savedPayment -> {
+            .then().gotCreated(CreateCardPaymentResponse.class, savedPayment -> {
             reference[0] = savedPayment.getReference();
 
             assertNotNull(savedPayment.getReference());
@@ -214,7 +215,7 @@ public class CMCCardPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
-            .then().created(savedPayment -> {
+            .then().gotCreated(CreateCardPaymentResponse.class,savedPayment -> {
             reference[0] = savedPayment.getReference();
 
             assertNotNull(savedPayment.getReference());
