@@ -493,7 +493,19 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createPaymentWithChannelTelephonyAndProviderPciPal() throws Exception {
-        BigDecimal amount = new BigDecimal("100");
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response.json"))));
+
+        stubFor(get(urlPathMatching("/v1/payments/ak8gtvb438drmp59cs7ijppr3i"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-response.json"))));
+
+        BigDecimal amount = new BigDecimal("11.99");
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(amount)
             .description("description")
