@@ -159,8 +159,6 @@ public class CardPaymentController {
                 request.setSiteId(organisationalServiceDto.getServiceCode());
                 Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
                 request.setService(Service.valueOf("ORGID"));
-                LOG.info("After Set ORGID service : {} ",request.getService().getName());
-                LOG.info("Service Code : {} ",organisationalServiceDto.getServiceCode());
             } catch (HttpClientErrorException | HttpServerErrorException e) {
                 LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
                 if( e.getRawStatusCode() == 404){
