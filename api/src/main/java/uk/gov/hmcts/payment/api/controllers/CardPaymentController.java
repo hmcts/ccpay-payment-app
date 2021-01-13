@@ -127,7 +127,7 @@ public class CardPaymentController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, URISyntaxException, ServiceNotFoundException {
+        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
