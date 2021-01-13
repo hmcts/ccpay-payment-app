@@ -380,13 +380,13 @@ public class PaymentGroupFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(cardPaymentRequest)
-            .then().gotCreated(PaymentDto.class, paymentDto -> {
+            .then().gotCreated(CreateCardPaymentResponse.class, paymentDto -> {
             assertThat(paymentDto).isNotNull();
             assertThat(paymentDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(feeDto);
             assertThat(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
 
             String paymentGroupReference = paymentDto.getPaymentGroupReference();
-            FeeDto feeDto1 = paymentDto.getFees().get(0);
+            CardPaymentFeeDto feeDto1 = paymentDto.getFees().get(0);
             Integer feeId = feeDto1.getId();
 
             // TEST create retrospective remission
