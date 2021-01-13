@@ -46,7 +46,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
@@ -250,6 +249,13 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCardPaymentWithCaseTypeReturnSuccess() throws Exception{
+
+//        stubFor(get(urlPathMatching("/refdata/location/orgServices?ccdCaseType=qwerty"))
+//            .willReturn(aResponse()
+//                .withStatus(200)
+//                .withHeader("Content-Type", "application/json")
+//                .withBody(contentsOf("gov-pay-responses/rd-location-ref-response.json"))));
+
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("VPAA!")
             .serviceDescription("asdfghjkl")
