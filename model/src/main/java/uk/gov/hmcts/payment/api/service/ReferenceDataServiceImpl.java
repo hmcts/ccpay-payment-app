@@ -14,6 +14,7 @@ import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -37,9 +38,9 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) throws NoServiceFoundException {
             ResponseEntity<OrganisationalServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType, headers);
             if(null != orgServiceResponse  && orgServiceResponse.hasBody()){
-                OrganisationalServiceDto organisationalServiceDto = orgServiceResponse.getBody()[0];
-                if(organisationalServiceDto != null && orgServiceResponse.getBody()[0] !=null) {
-                    return organisationalServiceDto;
+                OrganisationalServiceDto[] organisationalServiceDtos = orgServiceResponse.getBody();
+                if(organisationalServiceDtos != null && null != organisationalServiceDtos && Arrays.stream(organisationalServiceDtos).count() > 0) {
+                    return organisationalServiceDtos[0];
                 }else{
                     throw new NoServiceFoundException( "No Service found for given CaseType");
                 }
@@ -48,7 +49,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
             }
     }
 
-    private ResponseEntity<OrganisationalServiceDto[]> getResponseFromLocationReference(String ccdCaseType, HttpEntity<String> headers) {
+    public ResponseEntity<OrganisationalServiceDto[]> getResponseFromLocationReference(String ccdCaseType, HttpEntity<String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
             .queryParam("ccdCaseType", ccdCaseType);
         return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, headers, OrganisationalServiceDto[].class);
