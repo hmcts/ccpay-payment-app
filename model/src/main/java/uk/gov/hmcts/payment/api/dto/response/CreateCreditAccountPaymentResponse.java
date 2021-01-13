@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import uk.gov.hmcts.payment.api.dto.CreditAccountStatusHistoryDto;
+import uk.gov.hmcts.payment.api.dto.StatusHistoryDto;
 
 import java.util.Date;
 import java.util.List;
@@ -29,5 +29,5 @@ public class CreateCreditAccountPaymentResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT")
     private Date dateCreated;
 
-    private List<CreditAccountStatusHistoryDto> statusHistories;
+    private List<StatusHistoryDto> statusHistories;
 }

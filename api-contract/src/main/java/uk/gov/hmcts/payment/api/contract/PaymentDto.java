@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.dto.StatusHistoryDto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

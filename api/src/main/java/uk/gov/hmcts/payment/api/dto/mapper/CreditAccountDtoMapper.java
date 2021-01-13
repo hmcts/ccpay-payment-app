@@ -8,11 +8,10 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
-import uk.gov.hmcts.payment.api.dto.CreditAccountStatusHistoryDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.StatusHistoryDto;
 import uk.gov.hmcts.payment.api.dto.response.CreateCreditAccountPaymentResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -39,24 +38,10 @@ public class CreditAccountDtoMapper {
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
             .statusHistories(payment.getStatusHistories()
-                .stream().map(this::creditAccountStatusHistoryDto).collect(Collectors.toList())
+                .stream().map(this::statusHistoryToDto).collect(Collectors.toList())
             )
             .build();
     }
-
-    private CreditAccountStatusHistoryDto creditAccountStatusHistoryDto(StatusHistory statusHistory) {
-        return CreditAccountStatusHistoryDto.creditAccountStatusHistoryDtoWith()
-            .status(statusHistory.getStatus())
-            .externalStatus(statusHistory.getExternalStatus())
-            .errorCode(statusHistory.getErrorCode())
-            .errorMessage(statusHistory.getMessage())
-            .dateCreated(statusHistory.getDateCreated())
-            .dateUpdated(statusHistory.getDateUpdated())
-            .build();
-    }
-
-
-
 
     private StatusHistoryDto statusHistoryToDto(StatusHistory statusHistory) {
         return StatusHistoryDto.statusHistoryDtoWith()
