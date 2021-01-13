@@ -32,7 +32,7 @@ public class CreditAccountDtoMapper {
 
     public CreateCreditAccountPaymentResponse toCreateCreditAccountPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CreateCreditAccountPaymentResponse.creditAccountPaymentResponse()
+        return CreateCreditAccountPaymentResponse.createCreditAccountPaymentResponse()
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
