@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
@@ -30,7 +31,8 @@ public class CreateCardPaymentResponse {
     private Date dateCreated;
 
     private String externalReference;
-
+    
+    @JsonProperty("_links")
     private LinksDto links;
 
     private List<CardPaymentFeeDto> fees;
