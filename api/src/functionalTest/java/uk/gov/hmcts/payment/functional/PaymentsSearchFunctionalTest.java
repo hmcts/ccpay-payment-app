@@ -140,7 +140,7 @@ public class PaymentsSearchFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createCardPayment(getCardPaymentRequest())
-            .then().created(paymentDto -> {
+            .then().gotCreated(CreateCardPaymentResponse.class, paymentDto -> {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
