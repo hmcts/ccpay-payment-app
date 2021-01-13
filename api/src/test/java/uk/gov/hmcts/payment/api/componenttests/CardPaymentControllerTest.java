@@ -46,6 +46,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
@@ -231,25 +232,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     public void createCardPaymentWithCaseTypeReturn404Test() throws Exception {
-//        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-//        //User token
-//        header.put("Authorization",Collections.singletonList("Bearer 131313"));
-//        //Service token
-//        header.put("ServiceAuthorization", Collections.singletonList("defefe"));
-//        //Http headers
-//        HttpHeaders httpHeaders = new HttpHeaders(header);
-//        HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
-
-
-//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-//            .serviceCode("1234")
-//            .serviceDescription("asdfghjkl")
-//            .build();
-//        List<OrganisationalServiceDto> organisationalServiceDtos = new ArrayList<>();
-//        organisationalServiceDtos.add(organisationalServiceDto);
-//        ResponseEntity<List<OrganisationalServiceDto>> myEntity = new ResponseEntity<List<OrganisationalServiceDto>>(organisationalServiceDtos, HttpStatus.OK);
-//        given(restTemplatePaymentGroup.exchange(eq("http://check.1243"),eq(HttpMethod.GET),eq(entity),eq(OrganisationalServiceDto[].class))).re(myEntity);
-//        Mockito.when(referenceDataService.getOrganisationalDetail("1234",entity)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         restActions
             .post("/card-payments", cardPaymentRequestWithCaseType())

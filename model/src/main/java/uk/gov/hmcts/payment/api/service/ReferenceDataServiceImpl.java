@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import com.launchdarkly.shaded.kotlin.collections.EmptyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +15,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -40,10 +43,14 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     }
 
     @Override
-    public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) {
+    public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) throws NoServiceFoundException {
             ResponseEntity<OrganisationalServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType, headers);
             OrganisationalServiceDto[] orgServiceList = orgServiceResponse.getBody();
-           return orgServiceList[0];
+            if(orgServiceList.length > 0){
+                return orgServiceList[0];
+            }else{
+                throw new NoServiceFoundException( "No Service found for given CaseType");
+            }
     }
 
 
