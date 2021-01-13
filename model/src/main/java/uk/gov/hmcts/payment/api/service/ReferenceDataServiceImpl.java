@@ -40,14 +40,14 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     }
 
     @Override
-    public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers,Map<String, String> params) {
-            ResponseEntity<OrganisationalServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType, headers,params);
+    public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) {
+            ResponseEntity<OrganisationalServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType, headers);
             OrganisationalServiceDto[] orgServiceList = orgServiceResponse.getBody();
            return orgServiceList[0];
     }
 
 
-    private ResponseEntity<OrganisationalServiceDto[]> getResponseFromLocationReference(String ccdCaseType, HttpEntity<String> headers, Map<String, String> params) {
+    public ResponseEntity<OrganisationalServiceDto[]> getResponseFromLocationReference(String ccdCaseType, HttpEntity<String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
             .queryParam("ccdCaseType", ccdCaseType);
         return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, headers, OrganisationalServiceDto[].class);
