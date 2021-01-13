@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -24,6 +25,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     private SiteService<Site, String> siteService;
 
     @Autowired
+    @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
 
     @Value("${rd.location.url}")
@@ -36,22 +38,18 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) throws NoServiceFoundException {
-            ResponseEntity<OrganisationalServiceDto[]> orgServiceResponse = getResponseFromLocationReference(caseType, headers);
-            if(null != orgServiceResponse  && orgServiceResponse.hasBody()){
-                OrganisationalServiceDto[] organisationalServiceDtos = orgServiceResponse.getBody();
-                if(organisationalServiceDtos != null && null != organisationalServiceDtos && Arrays.stream(organisationalServiceDtos).count() > 0) {
-                    return organisationalServiceDtos[0];
-                }else{
-                    throw new NoServiceFoundException( "No Service found for given CaseType");
-                }
-            }else{
-                throw new NoServiceFoundException( "No Service found for given CaseType");
-            }
-    }
-
-    public ResponseEntity<OrganisationalServiceDto[]> getResponseFromLocationReference(String ccdCaseType, HttpEntity<String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
-            .queryParam("ccdCaseType", ccdCaseType);
-        return restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, headers, OrganisationalServiceDto[].class);
+            .queryParam("ccdCaseType", caseType);
+        ResponseEntity<OrganisationalServiceDto[]> orgServiceResponse = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, headers, OrganisationalServiceDto[].class);
+        if (orgServiceResponse.hasBody()) {
+            OrganisationalServiceDto[] organisationalServiceDtos = orgServiceResponse.getBody();
+            if (organisationalServiceDtos != null && Arrays.stream(organisationalServiceDtos).count() > 0) {
+                return organisationalServiceDtos[0];
+            } else {
+                throw new NoServiceFoundException("No Service found for given CaseType");
+            }
+        } else {
+            throw new NoServiceFoundException("No Service found for given CaseType");
+        }
     }
 }
