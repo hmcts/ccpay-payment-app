@@ -14,7 +14,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "cardPaymentCreatedWith")
+@Builder(builderMethodName = "createCardPaymentWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -35,21 +35,23 @@ public class CreateCardPaymentResponse {
 
     private List<CardPaymentFeeDto> fees;
 
-    @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     @JsonInclude(NON_NULL)
+    @Getter
+    @Setter
     public static class LinksDto {
         private LinkDto nextUrl;
         private LinkDto self;
         private LinkDto cancel;
     }
 
-    @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonInclude(NON_NULL)
+    @Getter
+    @Setter
     public static class LinkDto {
         private String href;
         private String method;

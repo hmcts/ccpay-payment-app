@@ -43,7 +43,7 @@ public class PaymentDtoMapper {
 
     public CreateCardPaymentResponse toCreateCardPaymentResponse(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CreateCardPaymentResponse.cardPaymentCreatedWith()
+        return CreateCardPaymentResponse.createCardPaymentWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
@@ -144,7 +144,7 @@ public class PaymentDtoMapper {
 
     public CreateCardPaymentResponse toCreateCardPaymentTelephonyResponse(PaymentFeeLink paymentFeeLink, String link) {
         Payment payment = paymentFeeLink.getPayments().get(0);
-        return CreateCardPaymentResponse.cardPaymentCreatedWith()
+        return CreateCardPaymentResponse.createCardPaymentWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
