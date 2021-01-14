@@ -597,7 +597,7 @@ public class PaymentsDataUtil {
             "  \"service\": \"CMC\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.moneyclaims.service.gov.uk\",\n" +
-            "  \"case_type\": \"AA101\",\n" +
+            "  \"case_type\": \"tax_exception\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
             "      \"calculated_amount\": 100.89,\n" +
