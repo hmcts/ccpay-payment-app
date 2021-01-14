@@ -250,6 +250,12 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void createCardPaymentWithCaseTypeReturnSuccess() throws Exception{
 
+//        stubFor(get(urlPathMatching("/refdata/location/orgServices"))
+//            .willReturn(aResponse()
+//                .withStatus(200)
+//                .withHeader("Content-Type", "application/json")
+//                .withBody(contentsOf("gov-pay-responses/rd-location-ref-response.json"))));
+
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("VPAA!")
             .serviceDescription("asdfghjkl")
