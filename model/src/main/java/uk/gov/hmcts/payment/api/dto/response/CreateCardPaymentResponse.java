@@ -31,7 +31,7 @@ public class CreateCardPaymentResponse {
     private Date dateCreated;
 
     private String externalReference;
-    
+
     @JsonProperty("_links")
     private LinksDto links;
 
