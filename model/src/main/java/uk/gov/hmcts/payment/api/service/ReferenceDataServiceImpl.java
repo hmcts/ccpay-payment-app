@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -14,6 +17,8 @@ import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -38,7 +43,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
             .queryParam("ccdCaseType", caseType);
         List<OrganisationalServiceDto> orgServiceResponse = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, headers, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}).getBody();
-        if (orgServiceResponse != null && orgServiceResponse.size() > 0) {
+        if (orgServiceResponse != null && !orgServiceResponse.isEmpty()) {
             return orgServiceResponse.get(0);
         } else {
             throw new NoServiceFoundException("No Service found for given CaseType");
