@@ -14,6 +14,7 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -78,14 +79,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     @Qualifier("restTemplatePaymentGroup")
-    private RestTemplate restTemplate;
-
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
-
-
-    @Rule
-    public WireMockClassRule instanceRule = wireMockRule;
+    private RestTemplate restTemplate = new RestTemplate();
 
     @InjectMocks
     private ReferenceDataService referenceDataServiceImp = new ReferenceDataServiceImpl();
@@ -105,7 +99,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("VPAA")
-            .serviceDescription("asdfghjkl")
+            .serviceDescription("New description")
             .ccdCaseTypes(Collections.singletonList("VPAA"))
             .build();
         List<OrganisationalServiceDto> organisationalServiceDtos = Collections.singletonList(organisationalServiceDto);
@@ -113,9 +107,9 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         when(restTemplate.exchange(Mockito.anyString(),
             Mockito.<HttpMethod>eq(HttpMethod.GET),
             Matchers.<HttpEntity<?>>any(),
-            Mockito.<Class<List<OrganisationalServiceDto>>>any()).getBody()).thenReturn(organisationalServiceDtos);
+            Mockito.<Class>any()).getBody()).thenReturn(organisationalServiceDtos);
         OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", entity);
-
+        assertEquals(res.getServiceCode(),"VPAA");
     }
 
     protected String ResponseJson() {
