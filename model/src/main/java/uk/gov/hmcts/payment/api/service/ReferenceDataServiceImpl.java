@@ -28,7 +28,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     private SiteService<Site, String> siteService;
 
     @Autowired
-    private RestTemplate restTemplatePaymentGroup;
+    private RestTemplate restTemplate;
 
     @Value("${rd.location.url}")
     private String rdBaseUrl;
@@ -42,11 +42,6 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) throws NoServiceFoundException {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
             .queryParam("ccdCaseType", caseType);
-        List<OrganisationalServiceDto> orgServiceResponse = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, headers, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}).getBody();
-        if (orgServiceResponse != null && !orgServiceResponse.isEmpty()) {
-            return orgServiceResponse.get(0);
-        } else {
-            throw new NoServiceFoundException("No Service found for given CaseType");
-        }
+        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, headers, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}).getBody().get(0);
     }
 }
