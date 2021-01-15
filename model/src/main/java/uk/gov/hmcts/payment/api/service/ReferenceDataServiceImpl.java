@@ -42,25 +42,13 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) throws NoServiceFoundException {
-//        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
-//            .queryParam("ccdCaseType", caseType);
-//        List<OrganisationalServiceDto> orgServiceResponse = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, headers, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
-//        }).getBody();
-//        if (orgServiceResponse != null && !orgServiceResponse.isEmpty()) {
-//            return orgServiceResponse.get(0);
-//        }
-//        throw new NoServiceFoundException("No Service found for given CaseType");
-        return testResponse(caseType);
-    }
-
-    public OrganisationalServiceDto testResponse(String caseType){
-        if(caseType != "fail"){
-            OrganisationalServiceDto orgDummy = OrganisationalServiceDto.orgServiceDtoWith()
-                .ccdCaseTypes(Collections.singletonList("CMC_ExceptionRecord"))
-                .serviceDescription("Specified Money Claims")
-                .serviceCode("AAA6")
-                .build();
-            return orgDummy;
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
+            .queryParam("ccdCaseType", caseType);
+        List<OrganisationalServiceDto> orgServiceResponse = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, headers, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+        }).getBody();
+        System.out.println(orgServiceResponse);
+        if (orgServiceResponse != null && !orgServiceResponse.isEmpty()) {
+            return orgServiceResponse.get(0);
         }
         throw new NoServiceFoundException("No Service found for given CaseType");
     }
