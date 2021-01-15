@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -27,7 +28,8 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Autowired
     private SiteService<Site, String> siteService;
 
-    @Autowired
+    @Autowired()
+    @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplate;
 
     @Value("${rd.location.url}")
@@ -42,6 +44,11 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers) throws NoServiceFoundException {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
             .queryParam("ccdCaseType", caseType);
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, headers, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}).getBody().get(0);
+        List<OrganisationalServiceDto> orgServiceResponse = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, headers, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}).getBody();
+        if (orgServiceResponse != null && !orgServiceResponse.isEmpty()) {
+            return orgServiceResponse.get(0);
+        } else {
+            throw new NoServiceFoundException("No Service found for given CaseType");
+        }
     }
 }
