@@ -151,7 +151,7 @@ dependencies {
 
 test {
     // Base test class for other tests - has no runnable test methods
-    exclude 'uk/gov/hmcts/payment/api/v1/**'
+    exclude ['uk/gov/hmcts/payment/api/v1/**','uk/gov/hmcts/payment/api/service/ReferenceDataServiceImpl']
 }
 
 task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verification') {
