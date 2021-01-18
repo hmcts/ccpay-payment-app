@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 
 import javax.validation.Valid;
@@ -42,8 +43,10 @@ public class RemissionRequest {
     @Valid
     private FeeDto fee;
 
-    @NotNull
     private String siteId;
+
+    @NotNull
+    private String caseType;
 
     @AssertFalse(message = "Hwf amount cannot be greater than calculated amount.")
     private boolean isHwfAmountInvalid() {
