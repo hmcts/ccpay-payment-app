@@ -23,7 +23,8 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Autowired
     private SiteService<Site, String> siteService;
 
-    @Autowired
+    @Autowired()
+    @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplate;
 
     @Value("${rd.location.url}")
