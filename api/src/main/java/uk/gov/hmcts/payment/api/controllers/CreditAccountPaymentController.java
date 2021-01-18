@@ -22,6 +22,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -39,12 +40,15 @@ import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -109,40 +113,50 @@ public class CreditAccountPaymentController {
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
+    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-//        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-//        headerMultiValueMapForBulkScan.put("content-type",headersMap.get("content-type"));
-        //User token
-//        headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
-        //Service token
-//        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(authTokenGenerator.generate()));
-//
-//        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-//        Map<String, String> params = new HashMap<>();
+        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
 
-//        params.put("ccdCaseType", creditAccountPaymentRequest.getCaseType());
-//
-//        if(StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())){
-//            try{
-//                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), new HttpEntity<>(httpHeaders),params);
-//                creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
-//                creditAccountPaymentRequest.setService(Service.valueOf(organisationalServiceDto.getServiceShortDescription()));
-//            } catch (HttpClientErrorException e) {
-//                LOG.error("ORG ID Ref error status {} ", e.getMessage());
-//                throw new PaymentException("Payment creation failed, Please try again later.");
-//            }
-//        }
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
 
-        LOG.info("Case type"+ creditAccountPaymentRequest.getCaseType());
-        LOG.info("Site Id"+ creditAccountPaymentRequest.getSiteId());
+        LOG.info("Case Type: {} ",creditAccountPaymentRequest.getCaseType());
+        LOG.info("Service Name : {} ",creditAccountPaymentRequest.getService().getName());
+        LOG.info("User Authorization Token: {} ",headers.get("authorization"));
+        if (StringUtils.isBlank(creditAccountPaymentRequest.getSiteId())) {
+            try {
+                serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+                LOG.info("Service Token : {}",serviceAuthTokenPaymentList);
+                headerMultiValueMapForOrganisationalDetail.put("Content-Type",headers.get("content-type"));
+                //User token
+                headerMultiValueMapForOrganisationalDetail.put("Authorization",Collections.singletonList("Bearer " + headers.get("authorization")));
+                //Service token
+                headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+                //Http headers
+                HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+                final HttpEntity<String> entity = new HttpEntity<>(headers);
+
+                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), new HttpEntity<>(httpHeaders));
+                creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
+                Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+                creditAccountPaymentRequest.setService(Service.valueOf("ORGID"));
+                LOG.info("Service Description: {} ",organisationalServiceDto.getServiceDescription());
+            }catch (HttpClientErrorException | HttpServerErrorException e) {
+                LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
+                if( e.getRawStatusCode() == 404){
+                    throw new NoServiceFoundException( "No Service found for given CaseType");
+                }
+                if(e.getRawStatusCode() == 504){
+                    throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
+                }
+            }
+        }
 
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
 
-        LOG.info("payment site map  Id"+ payment.getSiteId());
+        LOG.info("payment site map  Id" + payment.getSiteId());
 
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 
@@ -180,15 +194,15 @@ public class CreditAccountPaymentController {
         }
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
-        if(apportionFeature) {
+        if (apportionFeature) {
             Payment pbaPayment = paymentFeeLink.getPayments().get(0);
             pbaPayment.setPaymentLink(paymentFeeLink);
             feePayApportionService.processApportion(pbaPayment);
 
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
-            if(Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
+            if (Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
                 LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as {}" + pbaPayment.getPaymentStatus().getName());
                 feePayApportionService.updateFeeAmountDue(pbaPayment);
             }
@@ -256,6 +270,18 @@ public class CreditAccountPaymentController {
     @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
     @ExceptionHandler(AccountServiceUnavailableException.class)
     public String return504(AccountServiceUnavailableException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(value = {NoServiceFoundException.class})
+    public String return404(NoServiceFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
 
