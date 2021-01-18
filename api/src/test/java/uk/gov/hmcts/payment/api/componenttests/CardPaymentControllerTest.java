@@ -252,7 +252,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("VPAA!")
-            .serviceDescription("asdfghjkl")
+            .serviceDescription("new Service Description")
             .build();
         Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
