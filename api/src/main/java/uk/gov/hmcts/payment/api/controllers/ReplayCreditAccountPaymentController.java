@@ -70,7 +70,8 @@ public class ReplayCreditAccountPaymentController {
     @ResponseBody
     @Transactional
     public ResponseEntity<String> replayCreditAccountPayment(@RequestParam("csvFile") MultipartFile replayPBAPaymentsFile,
-                                                             @RequestParam("isReplayPBAPayments") Boolean isReplayPBAPayments) {
+                                                             @RequestParam("isReplayPBAPayments") Boolean isReplayPBAPayments,
+                                                             @RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
         LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT: isReplayPBAPayments = " + isReplayPBAPayments);
 
@@ -111,7 +112,7 @@ public class ReplayCreditAccountPaymentController {
 
                         // 3. Replay New PBA Payment as Data Provided in CSV
                         if (isReplayPBAPayments) {
-                            createPBAPayments(replayCreditAccountPaymentDTO);
+                            createPBAPayments(replayCreditAccountPaymentDTO,headers);
                         }
                     } catch (Exception exception) {
                         LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT ERROR: PBA Payment not found for reference =" + replayCreditAccountPaymentDTO.getExistingPaymentReference());
@@ -129,12 +130,11 @@ public class ReplayCreditAccountPaymentController {
         return new ResponseEntity<String>("Replay Payment Completed Successfully", HttpStatus.OK);
     }
 
-    private void createPBAPayments(ReplayCreditAccountPaymentDTO replayCreditAccountPaymentDTO) {
+    private void createPBAPayments(ReplayCreditAccountPaymentDTO replayCreditAccountPaymentDTO,MultiValueMap<String, String> headers) {
 
         try {
             // Call the Payment PBA API v1
-            MultiValueMap<String, String> htest = new LinkedMultiValueMap<String, String>();
-            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest(),htest);
+            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest(),headers);
             if (paymentDtoResponseEntity != null) {
                 PaymentDto paymentDto = paymentDtoResponseEntity.getBody();
                 if (paymentDto != null && paymentDto.getReference() != null) {

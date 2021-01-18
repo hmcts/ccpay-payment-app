@@ -132,7 +132,10 @@ public class RemissionController {
 
         LOG.info("Case Type: {} ", remissionRequest.getCaseType());
 
-        getOrganisationalDetails(headers, remissionRequest);
+        if(StringUtils.isNotBlank(remissionRequest.getCaseType())) {
+            getOrganisationalDetails(headers, remissionRequest);
+        }
+        LOG.info("SiteId : {} ", remissionRequest.getSiteId());
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
         PaymentFeeLink paymentFeeLink = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentGroupReference, feeId);
@@ -151,7 +154,7 @@ public class RemissionController {
             //User token
             headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
             //Service token
-            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50X2FwcCIsImV4cCI6MTYxMDc0NTUyMn0.3bokXAq6sRVX0P6vRNmmXGJyonC8JQJjcKvImgSlS7LEb7_cOK7mLUW5DwC73kl_wRzEdlw1JXEjLdCPhZ3mNA"));
+            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
             //Http headers
             HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
             final HttpEntity<String> entity = new HttpEntity<>(headers);

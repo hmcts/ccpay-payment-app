@@ -130,10 +130,6 @@ public class CardPaymentController {
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-
-        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
@@ -155,32 +151,9 @@ public class CardPaymentController {
         LOG.info("Case Type: {} ",request.getCaseType());
         LOG.info("Service Name : {} ",request.getService().getName());
         LOG.info("User Authorization Token: {} ",headers.get("authorization"));
-        if(StringUtils.isBlank(request.getSiteId())){
-            try {
-                serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
-                LOG.info("Service Token : {}",serviceAuthTokenPaymentList);
-                headerMultiValueMapForOrganisationalDetail.put("Content-Type",headers.get("content-type"));
-                //User token
-                headerMultiValueMapForOrganisationalDetail.put("Authorization",Collections.singletonList("Bearer " + headers.get("authorization")));
-                //Service token
-                headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
-                //Http headers
-                HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-                final HttpEntity<String> entity = new HttpEntity<>(headers);
 
-                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), entity);
-                request.setSiteId(organisationalServiceDto.getServiceCode());
-                Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
-                request.setService(Service.valueOf("ORGID"));
-            } catch (HttpClientErrorException | HttpServerErrorException e) {
-                LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
-                if( e.getRawStatusCode() == 404){
-                    throw new NoServiceFoundException( "No Service found for given CaseType");
-                }
-                if(e.getRawStatusCode() == 504){
-                    throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
-                }
-            }
+        if(StringUtils.isNotBlank(request.getCaseType())) {
+            getOrganisationalDetails(headers, request);
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
@@ -277,6 +250,38 @@ public class CardPaymentController {
         }
         delegatingPaymentService.cancel(paymentReference);
         return new ResponseEntity(NO_CONTENT);
+    }
+
+
+    private void getOrganisationalDetails(MultiValueMap<String, String> headers, CardPaymentRequest request) {
+            List<String> serviceAuthTokenPaymentList = new ArrayList<>();
+
+            MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+            try {
+                serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+                LOG.info("Service Token : {}", serviceAuthTokenPaymentList);
+                headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
+                //User token
+                headerMultiValueMapForOrganisationalDetail.put("Authorization",Collections.singletonList("Bearer " + headers.get("authorization")));
+                //Service token
+                headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+                //Http headers
+                HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+                final HttpEntity<String> entity = new HttpEntity<>(headers);
+
+                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), entity);
+                request.setSiteId(organisationalServiceDto.getServiceCode());
+                Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+                request.setService(Service.valueOf("ORGID"));
+            } catch (HttpClientErrorException | HttpServerErrorException e) {
+                LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
+                if( e.getRawStatusCode() == 404){
+                    throw new NoServiceFoundException( "No Service found for given CaseType");
+                }
+                if(e.getRawStatusCode() == 504){
+                    throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
+                }
+            }
     }
 
     @ExceptionHandler(value = {GovPayCancellationFailedException.class})

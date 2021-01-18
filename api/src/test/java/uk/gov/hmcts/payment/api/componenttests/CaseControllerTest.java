@@ -419,7 +419,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(feeRequest)
             .build();
 
@@ -523,7 +523,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(feeRequest)
             .build();
 
