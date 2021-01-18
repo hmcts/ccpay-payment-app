@@ -18,6 +18,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -36,6 +37,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -191,11 +193,16 @@ public class PaymentGroupController {
         @RequestHeader(value = "return-url") String returnURL,
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @PathVariable("payment-group-reference") String paymentGroupReference,
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
 
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
+        }
+
+        if(StringUtils.isNotBlank(request.getCaseType())){
+            getOrganisationalDetails(headers,request);
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
@@ -544,6 +551,35 @@ public class PaymentGroupController {
 
         LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
+    }
+
+    private void getOrganisationalDetails(MultiValueMap<String, String> headers, CardPaymentRequest cardPaymentRequest) {
+        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
+
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+        try {
+            serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+            LOG.info("Service Token : {}", serviceAuthTokenPaymentList);
+            headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
+            //User token
+            headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
+            //Service token
+            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+            //Http headers
+            HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+            final HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(cardPaymentRequest.getCaseType(), entity);
+            cardPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
+            if (e.getRawStatusCode() == 404) {
+                throw new NoServiceFoundException("No Service found for given CaseType");
+            }
+            if (e.getRawStatusCode() == 504) {
+                throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
+            }
+        }
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

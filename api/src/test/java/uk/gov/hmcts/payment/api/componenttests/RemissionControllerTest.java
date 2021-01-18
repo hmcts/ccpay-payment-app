@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,12 +18,14 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
@@ -38,6 +41,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -79,6 +83,9 @@ public class RemissionControllerTest {
     @Autowired
     private SiteService<Site, String> siteServiceMock;
 
+    @MockBean
+    private ReferenceDataService referenceDataService;
+
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -107,6 +114,13 @@ public class RemissionControllerTest {
         );
 
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("asdfghjkl")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
     }
 
     @Test
@@ -118,7 +132,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
 
@@ -138,7 +152,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
 
@@ -162,7 +176,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFeeWithOutCCDCaseNumber())
             .build();
 
@@ -184,7 +198,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
 
@@ -314,7 +328,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
 
@@ -333,7 +347,7 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
 
@@ -353,7 +367,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
 
@@ -372,7 +386,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
 
@@ -392,7 +406,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .build();
 
         restActions
@@ -408,7 +422,7 @@ public class RemissionControllerTest {
             .beneficiaryName("beneficiary")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .build();
 
         restActions
@@ -425,7 +439,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .build();
 
         restActions
@@ -442,7 +456,7 @@ public class RemissionControllerTest {
             .caseReference("")
             .hwfAmount(new BigDecimal("10.01"))
             .hwfReference(hwfReference)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .build();
 
         restActions
@@ -459,7 +473,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
 
@@ -490,7 +504,7 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .siteId("AA001")
+            .caseType("tax_exception")
             .hwfReference("HWFref")
             .fee(feeDto)
             .build();
@@ -525,7 +539,7 @@ public class RemissionControllerTest {
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
             .fee(feeDto)
@@ -557,7 +571,7 @@ public class RemissionControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .siteId("AA001")
+            .caseType("tax_exception")
             .hwfReference("HWFref")
             .fee(getFee())
             .build();
@@ -582,7 +596,7 @@ public class RemissionControllerTest {
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
             .fee(getFee())
@@ -818,7 +832,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("1111-2222-3333-4444")
             .hwfAmount(new BigDecimal("20"))
             .hwfReference("HR1111")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(FeeDto.feeDtoWith()
                 .calculatedAmount(new BigDecimal("300"))
                 .code("FEE0111")
@@ -877,7 +891,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("1111-2222-2222-1111")
             .hwfAmount(new BigDecimal("150"))
             .hwfReference("HR1111")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(FeeDto.feeDtoWith()
                 .calculatedAmount(new BigDecimal("250"))
                 .code("FEE312")
