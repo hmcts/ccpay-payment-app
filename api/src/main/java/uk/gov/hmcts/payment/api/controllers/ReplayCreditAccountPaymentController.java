@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -131,7 +133,8 @@ public class ReplayCreditAccountPaymentController {
 
         try {
             // Call the Payment PBA API v1
-            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest());
+            MultiValueMap<String, String> htest = new LinkedMultiValueMap<String, String>();
+            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest(),htest);
             if (paymentDtoResponseEntity != null) {
                 PaymentDto paymentDto = paymentDtoResponseEntity.getBody();
                 if (paymentDto != null && paymentDto.getReference() != null) {
