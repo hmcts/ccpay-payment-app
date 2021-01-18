@@ -42,7 +42,6 @@
         <cve>CVE-2020-11022</cve>
         <cve>CVE-2020-11023</cve>
     </suppress >
-
     <!-- Supression Group ends here -->
 
     <!-- Other Supressions -->
