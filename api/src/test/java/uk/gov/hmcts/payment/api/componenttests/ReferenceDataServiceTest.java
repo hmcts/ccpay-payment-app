@@ -49,12 +49,9 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         //User token
         header.put("Authorization", Collections.singletonList("Bearer 131313"));
         //Service token
-        header.put("ServiceAuthorization", Collections.singletonList("defefe"));
+        header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
         header.put("Content-Type", Collections.singletonList("application/json"));
 
-        //Http headers
-        HttpHeaders httpHeaders = new HttpHeaders(header);
-        HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("VPAA")
             .serviceDescription("New description")
@@ -66,7 +63,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
             Mockito.<HttpMethod>eq(HttpMethod.GET),
             Matchers.<HttpEntity<?>>any(),
             Mockito.<Class>any()).getBody()).thenReturn(organisationalServiceDtos);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", entity);
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
         assertEquals(res.getServiceCode(),"VPAA");
     }
 
