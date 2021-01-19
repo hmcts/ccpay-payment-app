@@ -70,6 +70,9 @@ public class BulkScanPaymentRequestStrategic {
     @JsonProperty("site_id")
     private String siteId;
 
+    @NotBlank
+    private String caseType;
+
     private String payerName;
 
     @NotEmpty

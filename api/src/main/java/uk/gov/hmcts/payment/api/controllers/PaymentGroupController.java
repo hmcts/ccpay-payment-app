@@ -25,6 +25,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -202,7 +203,10 @@ public class PaymentGroupController {
         }
 
         if(StringUtils.isNotBlank(request.getCaseType())){
-            getOrganisationalDetails(headers,request);
+            OrganisationalServiceDto organisationalServiceDto = getOrganisationalDetails(headers,request.getCaseType());
+            request.setSiteId(organisationalServiceDto.getServiceCode());
+            Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+            request.setService(Service.valueOf("ORGID"));
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
@@ -382,11 +386,11 @@ public class PaymentGroupController {
                 }
             }
 
-            //Bulk scan payments call
-            List<SiteDTO> sites = referenceDataService.getSiteIDs();
-
-            if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequestStrategic.getSiteId()))) {
-                throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequestStrategic.getSiteId());
+            if(StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())){
+                OrganisationalServiceDto organisationalServiceDto = getOrganisationalDetails(headers,bulkScanPaymentRequestStrategic.getCaseType());
+                bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
+                Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+                bulkScanPaymentRequestStrategic.setService(Service.valueOf("ORGID"));
             }
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
@@ -553,7 +557,7 @@ public class PaymentGroupController {
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
     }
 
-    private void getOrganisationalDetails(MultiValueMap<String, String> headers, CardPaymentRequest cardPaymentRequest) {
+    private OrganisationalServiceDto getOrganisationalDetails(MultiValueMap<String, String> headers, String caseType) {
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
 
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
@@ -569,8 +573,7 @@ public class PaymentGroupController {
             HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
             final HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(cardPaymentRequest.getCaseType(), entity);
-            cardPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
+            return referenceDataService.getOrganisationalDetail(caseType, entity);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
             if (e.getRawStatusCode() == 404) {
