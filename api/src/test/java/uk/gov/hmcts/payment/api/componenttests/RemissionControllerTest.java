@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -18,6 +19,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.controllers.RemissionController;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
@@ -81,6 +83,9 @@ public class RemissionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @InjectMocks
+    RemissionController remissionController;
+
     @Autowired
     private SiteService<Site, String> siteServiceMock;
 
@@ -115,12 +120,12 @@ public class RemissionControllerTest {
         );
 
 
-//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-//            .serviceCode("AA001")
-//            .serviceDescription("asdfghjkl")
-//            .build();
-//
-//        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("asdfghjkl")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         when(referenceDataService.getSiteIDs()).thenReturn(SiteDTO.fromSiteList(serviceReturn));
 
@@ -513,14 +518,6 @@ public class RemissionControllerTest {
             .fee(feeDto)
             .build();
 
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("asdfghjkl")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
-
         MvcResult result = restActions.post("/remission", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
@@ -556,13 +553,6 @@ public class RemissionControllerTest {
             .hwfReference("HWFref")
             .fee(feeDto)
             .build();
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("asdfghjkl")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result = restActions
             .post("/remission", remissionRequest)
