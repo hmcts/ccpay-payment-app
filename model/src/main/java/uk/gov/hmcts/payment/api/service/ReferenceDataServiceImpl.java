@@ -15,6 +15,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
@@ -75,12 +76,14 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
                 .queryParam("ccdCaseType", caseType);
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
-            orgServiceResponse = responseEntity.hasBody() ?  responseEntity.getBody() : null;
+            if(responseEntity != null && responseEntity.hasBody()){
+                orgServiceResponse =  responseEntity.getBody();
+            }
             if (orgServiceResponse == null || orgServiceResponse.isEmpty()) {
                 throw new NoServiceFoundException("No Service found for given CaseType");
             }
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
+        } catch (HttpStatusCodeException e) {
+            LOG.error("ORG ID Ref error Message {} ", e.getMessage());
             if (e.getRawStatusCode() == 404) {
                 throw new NoServiceFoundException("No Service found for given CaseType");
             }
