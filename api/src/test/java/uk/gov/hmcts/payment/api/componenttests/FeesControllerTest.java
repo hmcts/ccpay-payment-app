@@ -25,6 +25,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -62,6 +63,9 @@ public class FeesControllerTest {
 
     @MockBean
     private ReferenceDataService referenceDataService;
+
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
 
 
     protected CustomResultMatcher body() {
@@ -139,7 +143,7 @@ public class FeesControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("asdfghjkl")
+            .serviceDescription("New Service Description")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
