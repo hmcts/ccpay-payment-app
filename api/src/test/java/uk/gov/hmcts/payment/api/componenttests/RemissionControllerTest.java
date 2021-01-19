@@ -27,11 +27,13 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -81,12 +83,14 @@ public class RemissionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
 
     @Autowired
     private SiteService<Site, String> siteServiceMock;
 
     @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
-    private ReferenceDataService referenceDataService;
+    private ReferenceDataServiceImpl referenceDataService;
 
 
     @Before
@@ -100,22 +104,12 @@ public class RemissionControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
-                .sopReference("sop")
-                .siteId("AA99")
-                .name("name")
-                .service("service")
-                .id(1)
-                .build(),
-            Site.siteWith()
-                .sopReference("sop")
-                .siteId("AA001")
-                .name("name")
-                .service("service")
-                .id(1)
-                .build()
-        );
-        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("new service description")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
     }
 
     @Test
@@ -130,13 +124,6 @@ public class RemissionControllerTest {
             .caseType("tax_exception")
             .fee(getFee())
             .build();
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("new service description")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         restActions
             .post("/remission", remission)
