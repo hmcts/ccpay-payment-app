@@ -203,7 +203,7 @@ public class PaymentGroupController {
         }
 
         if(StringUtils.isNotBlank(request.getCaseType())){
-            OrganisationalServiceDto organisationalServiceDto = getOrganisationalDetails(headers,request.getCaseType());
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
             request.setSiteId(organisationalServiceDto.getServiceCode());
             Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
             request.setService(Service.valueOf("ORGID"));
@@ -387,7 +387,7 @@ public class PaymentGroupController {
             }
 
             if(StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())){
-                OrganisationalServiceDto organisationalServiceDto = getOrganisationalDetails(headers,bulkScanPaymentRequestStrategic.getCaseType());
+                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
                 bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
                 Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
                 bulkScanPaymentRequestStrategic.setService(Service.valueOf("ORGID"));
@@ -555,34 +555,6 @@ public class PaymentGroupController {
 
         LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
         return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
-    }
-
-    private OrganisationalServiceDto getOrganisationalDetails(MultiValueMap<String, String> headers, String caseType) {
-        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-
-        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-        try {
-            serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
-            LOG.info("Service Token : {}", serviceAuthTokenPaymentList);
-            headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
-            //User token
-            headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
-            //Service token
-            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
-            //Http headers
-            HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-            final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            return referenceDataService.getOrganisationalDetail(caseType, entity);
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
-            if (e.getRawStatusCode() == 404) {
-                throw new NoServiceFoundException("No Service found for given CaseType");
-            }
-            if (e.getRawStatusCode() == 504) {
-                throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
-            }
-        }
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

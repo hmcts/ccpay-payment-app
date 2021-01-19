@@ -10,5 +10,6 @@ import java.util.Map;
 public interface ReferenceDataService<T> {
     List<T> getSiteIDs();
 
-    OrganisationalServiceDto getOrganisationalDetail(String caseType, HttpEntity<String> headers);
+    OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers);
+
 }
