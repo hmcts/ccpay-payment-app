@@ -116,11 +116,12 @@ public class CreditAccountPaymentController {
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-
         LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
-        LOG.info("Service Name : {} ", creditAccountPaymentRequest.getService().getName());
         if (StringUtils.isNotBlank(creditAccountPaymentRequest.getCaseType())) {
-            getOrganisationalDetails(creditAccountPaymentRequest, headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), headers);
+            creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
+            Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+            creditAccountPaymentRequest.setService(Service.valueOf("ORGID"));
         }
 
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
@@ -211,40 +212,6 @@ public class CreditAccountPaymentController {
             .orElseThrow(PaymentNotFoundException::new);
 
         return new ResponseEntity<>(creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment), HttpStatus.OK);
-    }
-
-
-    private void getOrganisationalDetails(CreditAccountPaymentRequest creditAccountPaymentRequest, MultiValueMap<String, String> headers) {
-        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-
-        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-
-        try {
-            serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
-            LOG.info("Service Token : {}",serviceAuthTokenPaymentList);
-            headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
-            //User token
-            headerMultiValueMapForOrganisationalDetail.put("Authorization",Collections.singletonList("Bearer " + headers.get("authorization")));
-            //Service token
-            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
-            //Http headers
-            HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-            final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), new HttpEntity<>(httpHeaders));
-            creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
-            Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
-            creditAccountPaymentRequest.setService(Service.valueOf("ORGID"));
-            LOG.info("Service Description: {} ",organisationalServiceDto.getServiceDescription());
-        }catch (HttpClientErrorException | HttpServerErrorException e) {
-            LOG.error("ORG ID Ref error status Code {} ", e.getRawStatusCode());
-            if( e.getRawStatusCode() == 404){
-                throw new NoServiceFoundException( "No Service found for given CaseType");
-            }
-            if(e.getRawStatusCode() == 504){
-                throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
-            }
-        }
     }
 
     @ExceptionHandler(value = {PaymentNotFoundException.class})
