@@ -45,7 +45,7 @@ public class RemissionRequest {
 
     private String siteId;
 
-    @NotNull
+    @NotBlank
     private String caseType;
 
     @AssertFalse(message = "Hwf amount cannot be greater than calculated amount.")
