@@ -6,6 +6,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,6 @@ public class PaymentGroupControllerTest {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
-
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private RestActions restActions;
@@ -104,7 +104,7 @@ public class PaymentGroupControllerTest {
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
 
-    @MockBean
+    @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
     private ReferenceDataServiceImpl referenceDataService;
 
     @Autowired
