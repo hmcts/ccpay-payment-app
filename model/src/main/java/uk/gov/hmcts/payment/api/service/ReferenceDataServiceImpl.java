@@ -9,6 +9,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -72,8 +73,9 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
                 .queryParam("ccdCaseType", caseType);
-            orgServiceResponse = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
-            }).getBody();
+            ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            });
+            orgServiceResponse = responseEntity.getBody();
             if (orgServiceResponse == null || orgServiceResponse.isEmpty()) {
                 throw new NoServiceFoundException("No Service found for given CaseType");
             }
