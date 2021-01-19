@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -20,7 +19,6 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.controllers.RemissionController;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
@@ -29,11 +27,9 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
@@ -43,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -85,12 +81,12 @@ public class RemissionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
-    private ReferenceDataServiceImpl referenceDataService;
-
 
     @Autowired
     private SiteService<Site, String> siteServiceMock;
+
+    @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
+    private ReferenceDataService referenceDataService;
 
 
     @Before
@@ -119,14 +115,6 @@ public class RemissionControllerTest {
                 .id(1)
                 .build()
         );
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("asdfghjkl")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
-
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
     }
 
@@ -142,6 +130,13 @@ public class RemissionControllerTest {
             .caseType("tax_exception")
             .fee(getFee())
             .build();
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("new service description")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         restActions
             .post("/remission", remission)
@@ -496,6 +491,7 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void feeDtoFilledGetsFeeSaved() throws Exception {
+
         BigDecimal calculatedAmount = new BigDecimal("199.99");
         String feeReference = "feeReference";
 
