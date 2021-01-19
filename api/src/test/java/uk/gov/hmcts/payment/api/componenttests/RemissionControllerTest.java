@@ -29,6 +29,7 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 
@@ -113,14 +114,17 @@ public class RemissionControllerTest {
                 .build()
         );
 
+
+//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+//            .serviceCode("AA001")
+//            .serviceDescription("asdfghjkl")
+//            .build();
+//
+//        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
+        when(referenceDataService.getSiteIDs()).thenReturn(SiteDTO.fromSiteList(serviceReturn));
+
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("asdfghjkl")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
     }
 
     @Test
@@ -509,6 +513,14 @@ public class RemissionControllerTest {
             .fee(feeDto)
             .build();
 
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("asdfghjkl")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result = restActions.post("/remission", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
@@ -544,6 +556,13 @@ public class RemissionControllerTest {
             .hwfReference("HWFref")
             .fee(feeDto)
             .build();
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("asdfghjkl")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result = restActions
             .post("/remission", remissionRequest)
