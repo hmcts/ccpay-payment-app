@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
@@ -242,7 +243,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenThrow(new HttpClientErrorException(HttpStatus.GATEWAY_TIMEOUT));
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
 
         restActions
             .post("/card-payments", cardPaymentRequestWithCaseType())
