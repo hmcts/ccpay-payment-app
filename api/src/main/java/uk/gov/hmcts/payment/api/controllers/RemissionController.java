@@ -150,7 +150,7 @@ public class RemissionController {
             MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
             serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
             LOG.info("Service Token : {}", serviceAuthTokenPaymentList);
-            headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
+            headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("Content-Type"));
             //User token
             headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
             //Service token

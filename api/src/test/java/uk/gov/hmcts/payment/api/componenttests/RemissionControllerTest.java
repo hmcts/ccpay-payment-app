@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
@@ -83,14 +85,13 @@ public class RemissionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @InjectMocks
-    RemissionController remissionController;
+    @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
+    private ReferenceDataServiceImpl referenceDataService;
+
 
     @Autowired
     private SiteService<Site, String> siteServiceMock;
 
-    @MockBean
-    private ReferenceDataService referenceDataService;
 
     @Before
     public void setUp() {
@@ -119,15 +120,12 @@ public class RemissionControllerTest {
                 .build()
         );
 
-
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
             .serviceDescription("asdfghjkl")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
-
-        when(referenceDataService.getSiteIDs()).thenReturn(SiteDTO.fromSiteList(serviceReturn));
 
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
     }
