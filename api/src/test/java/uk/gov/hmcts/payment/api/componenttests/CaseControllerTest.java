@@ -34,6 +34,7 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -77,6 +78,9 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
+
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
 
     @Autowired
     private SiteService<Site, String> siteServiceMock;
