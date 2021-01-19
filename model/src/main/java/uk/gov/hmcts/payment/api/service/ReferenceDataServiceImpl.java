@@ -60,7 +60,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
 
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-        List<OrganisationalServiceDto> orgServiceResponse = Collections.emptyList();
+//        List<OrganisationalServiceDto> orgServiceResponse = Collections.emptyList();
         try {
             serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
@@ -76,21 +76,14 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
                 .queryParam("ccdCaseType", caseType);
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
-            if(responseEntity != null && responseEntity.hasBody()){
-                orgServiceResponse =  responseEntity.getBody();
+            if(responseEntity != null && responseEntity.hasBody() && responseEntity.getBody() != null && !responseEntity.getBody().isEmpty()){
+                return responseEntity.getBody().get(0);
             }
-            if (orgServiceResponse == null || orgServiceResponse.isEmpty()) {
-                throw new NoServiceFoundException("No Service found for given CaseType");
-            }
-        } catch (HttpStatusCodeException e) {
-            LOG.error("ORG ID Ref error Message {} ", e.getMessage());
-            if (e.getRawStatusCode() == 404) {
-                throw new NoServiceFoundException("No Service found for given CaseType");
-            }
-            if (e.getRawStatusCode() == 504) {
-                throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
-            }
+            throw new NoServiceFoundException("No Service found for given CaseType");
+        } catch (HttpClientErrorException e) {
+            throw new NoServiceFoundException("No Service found for given CaseType");
+        }catch (HttpServerErrorException e){
+            throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
         }
-        return orgServiceResponse.get(0);
     }
 }
