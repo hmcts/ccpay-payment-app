@@ -130,11 +130,7 @@ public class RemissionController {
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
 
-        LOG.info("Case Type: {} ", remissionRequest.getCaseType());
-
-        if(StringUtils.isNotBlank(remissionRequest.getCaseType())) {
-            getOrganisationalDetails(headers, remissionRequest);
-        }
+        getOrganisationalDetails(headers, remissionRequest);
         LOG.info("SiteId : {} ", remissionRequest.getSiteId());
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
