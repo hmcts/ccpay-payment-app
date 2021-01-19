@@ -57,7 +57,9 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
+import javax.management.ServiceNotFoundException;
 import javax.validation.Valid;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -147,7 +149,7 @@ public class CardPaymentController {
         }
 
         LOG.info("Case Type: {} ",request.getCaseType());
-        LOG.info("Service Name : {} ",request.getService().getName())
+        LOG.info("Service Name : {} ",request.getService().getName());
 
         if(StringUtils.isNotBlank(request.getCaseType())) {
             getOrganisationalDetails(headers, request);
