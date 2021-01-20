@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -93,7 +94,7 @@ public class PaymentGroupControllerTest {
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
 
-    @Autowired
+    @MockBean
     private SiteService<Site, String> siteServiceMock;
 
     @InjectMocks
@@ -106,8 +107,8 @@ public class PaymentGroupControllerTest {
     @MockBean
     private RestTemplate restTemplate;
 
-    @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
-    private ReferenceDataServiceImpl referenceDataService;
+    @MockBean
+    private ReferenceDataService referenceDataService;
 
     @Autowired
     private PaymentDbBackdoor db;
@@ -157,9 +158,7 @@ public class PaymentGroupControllerTest {
                 .build()
         );
 
-        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
         when(referenceDataService.getSiteIDs()).thenReturn(SiteDTO.fromSiteList(serviceReturn));
-
     }
 
     @Test
@@ -183,8 +182,8 @@ public class PaymentGroupControllerTest {
 
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("asdfghjkl")
+            .serviceCode("AAD7")
+            .serviceDescription("DIVORCE")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
@@ -546,8 +545,8 @@ public class PaymentGroupControllerTest {
     public void retrievePaymentsAndFeesByPaymentGroupReferenceAfterFeeAdditionTest() throws Exception {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("asdfghjkl")
+            .serviceCode("AAD7")
+            .serviceDescription("DIVORCE")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
@@ -1182,6 +1181,13 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isCreated())
@@ -1205,6 +1211,12 @@ public class PaymentGroupControllerTest {
     @Test
     public void testValidAndDuplicateTransferredBulkScanPayments() throws Exception{
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
         MvcResult result2 = restActions
             .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isCreated())
@@ -1224,6 +1236,12 @@ public class PaymentGroupControllerTest {
     @Test
     public void testUnidentifiedBulkScanPayments() throws Exception{
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
         MvcResult result2 = restActions
             .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Unidentified","Unidentified bulk scan payments", "Test Unidentified Reason", "DCN293842342342834278348"))
             .andExpect(status().isCreated())
@@ -1254,6 +1272,13 @@ public class PaymentGroupControllerTest {
             .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
@@ -1319,6 +1344,13 @@ public class PaymentGroupControllerTest {
             eq(String.class), any(Map.class)))
             .thenThrow(new RestClientException("Connection failed for bulk scan api"));
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference()  + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))

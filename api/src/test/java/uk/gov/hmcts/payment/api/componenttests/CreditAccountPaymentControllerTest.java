@@ -363,9 +363,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("VPAA")
-            .serviceDescription("New description")
-            .ccdCaseTypes(Collections.singletonList("VPAA"))
+            .serviceCode("AAD7")
+            .serviceDescription("Divorce")
+            .ccdCaseTypes(Collections.singletonList("DIVORCE"))
             .build();
 
         when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenReturn(organisationalServiceDto);

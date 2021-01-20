@@ -142,8 +142,8 @@ public class FeesControllerTest {
             .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("New Service Description")
+            .serviceCode("AAD7")
+            .serviceDescription("DIVORCE")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);

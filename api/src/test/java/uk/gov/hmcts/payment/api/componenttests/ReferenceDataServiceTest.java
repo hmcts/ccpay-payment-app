@@ -58,7 +58,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("VPAA")
-            .serviceDescription("New description")
+            .serviceDescription("DIVORCE")
             .ccdCaseTypes(Collections.singletonList("VPAA"))
             .build();
         List<OrganisationalServiceDto> organisationalServiceDtos = new ArrayList<>();
