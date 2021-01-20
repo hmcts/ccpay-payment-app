@@ -30,6 +30,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.RefDataServiceType;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
@@ -123,8 +124,7 @@ public class CreditAccountPaymentController {
         if (StringUtils.isNotBlank(creditAccountPaymentRequest.getCaseType())) {
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), headers);
             creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
-            Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
-            creditAccountPaymentRequest.setService(Service.ORGID);
+            creditAccountPaymentRequest.setService(Service.valueOf(RefDataServiceType.fromString(organisationalServiceDto.getServiceDescription()).toString()));
         }
 
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
