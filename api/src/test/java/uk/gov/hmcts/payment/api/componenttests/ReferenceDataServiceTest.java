@@ -83,14 +83,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
         header.put("Content-Type", Collections.singletonList("application/json"));
 
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("VPAA")
-            .serviceDescription("New description")
-            .ccdCaseTypes(Collections.singletonList("VPAA"))
-            .build();
-        List<OrganisationalServiceDto> organisationalServiceDtos = new ArrayList<>();
-        organisationalServiceDtos.add(organisationalServiceDto);
-        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(HttpStatus.OK);
+        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(Collections.emptyList(),HttpStatus.OK);
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
