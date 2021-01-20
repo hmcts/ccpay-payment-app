@@ -34,11 +34,9 @@ import java.util.List;
 @Service
 public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ReferenceDataService.class);
     @Autowired
     private SiteService<Site, String> siteService;
-
-    private static final Logger LOG = LoggerFactory.getLogger(ReferenceDataService.class);
-
     @Autowired()
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplate;
@@ -55,7 +53,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     }
 
     @Override
-    public OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers){
+    public OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers) {
 
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
 
@@ -76,14 +74,14 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
                 .queryParam("ccdCaseType", caseType);
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
-            if(responseEntity != null && responseEntity.hasBody() && responseEntity.getBody() != null){
-                orgServiceResponse = responseEntity.getBody();
+            orgServiceResponse = responseEntity.getBody();
+            if (orgServiceResponse != null && !orgServiceResponse.isEmpty()) {
                 return orgServiceResponse.get(0);
             }
             throw new NoServiceFoundException("No Service found for given CaseType");
         } catch (HttpClientErrorException e) {
             throw new NoServiceFoundException("No Service found for given CaseType");
-        }catch (HttpServerErrorException e){
+        } catch (HttpServerErrorException e) {
             throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
         }
     }
