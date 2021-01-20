@@ -350,7 +350,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
-            .siteId("Y431")
+            .caseType("MoneyClaimCase")
             .fee(getFee())
             .build();
 
@@ -362,7 +362,7 @@ public class PaymentGroupFunctionalTest {
             .description("A test telephony payment")
             .provider("pci pal")
             .service(Service.DIVORCE)
-            .siteId("AA001")
+            .caseType("MoneyClaimCase")
             .fees(Collections.singletonList(feeDto))
             .build();
 
@@ -437,7 +437,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber(ccdCaseNumber)
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
-            .siteId("Y431")
+            .caseType("MoneyClaimCase")
             .fee(getFee())
             .build();
 
@@ -582,7 +582,7 @@ public class PaymentGroupFunctionalTest {
             .ccdCaseNumber("1111-CCD2-3333-4444")
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
-            .siteId("Y431")
+            .caseType("MoneyClaimCase")
             .fee(getFee())
             .build();
     }
