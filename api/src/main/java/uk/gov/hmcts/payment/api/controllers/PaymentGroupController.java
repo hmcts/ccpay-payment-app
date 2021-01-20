@@ -42,7 +42,6 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.util.RefDataServiceType;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
@@ -246,7 +245,8 @@ public class PaymentGroupController {
         if(StringUtils.isNotBlank(request.getCaseType())){
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
             request.setSiteId(organisationalServiceDto.getServiceCode());
-            request.setService(Service.valueOf(RefDataServiceType.fromString(organisationalServiceDto.getServiceDescription()).toString()));
+            Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+            request.setService(Service.ORGID);
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
@@ -429,7 +429,8 @@ public class PaymentGroupController {
             if(StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())){
                 OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
                 bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
-                bulkScanPaymentRequestStrategic.setService(Service.valueOf(RefDataServiceType.fromString(organisationalServiceDto.getServiceDescription()).toString()));
+                Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+                bulkScanPaymentRequestStrategic.setService(Service.ORGID);
             }
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
