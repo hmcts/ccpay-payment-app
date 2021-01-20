@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
@@ -41,6 +43,8 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
@@ -57,6 +61,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -97,6 +102,9 @@ public class PaymentGroupControllerTest {
     @MockBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
+
+    @MockBean
+    private RestTemplate restTemplate;
 
     @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
     private ReferenceDataServiceImpl referenceDataService;
@@ -861,7 +869,6 @@ public class PaymentGroupControllerTest {
     public void shouldThrowPaymentExceptionWhilePassingUnsupportedServiceType() throws Exception {
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
-
         BigDecimal amount = new BigDecimal("200");
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -882,6 +889,57 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
     }
+
+    @Test
+    public void shouldThrowNoServiceExceptionWithCaseType() throws Exception {
+
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .caseType("tax_exception")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenThrow(new NoServiceFoundException("No Service found for given CaseType"));
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("No Service found for given CaseType"));
+    }
+
+    @Test
+    public void shouldThrowGatewyTimeOutExceptionWithCaseType() throws Exception {
+
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .caseType("tax_exception")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenThrow(new GatewayTimeoutException("Unable to retrieve service information. Please try again later"));
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Unable to retrieve service information. Please try again later"));
+    }
+
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {

@@ -145,7 +145,7 @@ public class CardPaymentController {
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
             request.setSiteId(organisationalServiceDto.getServiceCode());
             Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
-            request.setService(Service.valueOf("ORGID"));
+            request.setService(Service.ORGID);
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()

@@ -35,11 +35,13 @@ import java.util.List;
 public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReferenceDataService.class);
+
     @Autowired
     private SiteService<Site, String> siteService;
+
     @Autowired()
     @Qualifier("restTemplatePaymentGroup")
-    private RestTemplate restTemplate;
+    private RestTemplate restTemplatePaymentGroup;
 
     @Value("${rd.location.url}")
     private String rdBaseUrl;
@@ -72,7 +74,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
                 .queryParam("ccdCaseType", caseType);
-            ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
             orgServiceResponse = responseEntity.getBody();
             if (orgServiceResponse != null && !orgServiceResponse.isEmpty()) {
