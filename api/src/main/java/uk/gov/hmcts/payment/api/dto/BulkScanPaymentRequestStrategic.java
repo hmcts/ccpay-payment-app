@@ -66,7 +66,6 @@ public class BulkScanPaymentRequestStrategic {
     @NotNull
     private String bankedDate;
 
-    @NotEmpty
     @JsonProperty("site_id")
     private String siteId;
 

@@ -303,7 +303,7 @@ public class PaymentGroupController {
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
-        if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequest.getSiteId()))) {
+        if (!sites.stream().anyMatch(site -> site.getSiteID().equalsIgnoreCase(bulkScanPaymentRequest.getSiteId()))) {
             throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequest.getSiteId());
         }
 
@@ -364,7 +364,7 @@ public class PaymentGroupController {
 
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-        if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequest.getSiteId()))) {
+        if (!sites.stream().anyMatch(site -> site.getSiteID().equalsIgnoreCase(bulkScanPaymentRequest.getSiteId()))) {
             throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequest.getSiteId());
         }
 
@@ -502,12 +502,12 @@ public class PaymentGroupController {
                 }
             }
 
-            List<SiteDTO> sites = referenceDataService.getSiteIDs();
-
             String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-            if (sites.stream().noneMatch(o -> o.getSiteID().equals(bulkScanPaymentRequestStrategic.getSiteId()))) {
-                throw new PaymentException("Invalid siteID: " + bulkScanPaymentRequestStrategic.getSiteId());
+            if(StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())){
+                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
+                bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
+                bulkScanPaymentRequestStrategic.setService(Service.valueOf(RefDataServiceType.fromString(organisationalServiceDto.getServiceDescription()).toString()));
             }
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?

@@ -462,13 +462,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .fees(Collections.singletonList(feeRequest))
             .build();
 
-//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-//            .serviceCode("AA001")
-//            .serviceDescription("New Service Description")
-//            .build();
-//
-//        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
-
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
