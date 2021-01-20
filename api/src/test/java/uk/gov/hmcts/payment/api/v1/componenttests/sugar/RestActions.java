@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
+import uk.gov.hmcts.reform.auth.checker.core.service.ServiceRequestAuthorizer;
 import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
 
 import java.util.UUID;
@@ -34,8 +35,9 @@ public class RestActions {
     }
 
     public RestActions withAuthorizedService(String serviceId) {
-        String token = "Bearer "+serviceId+ UUID.randomUUID().toString();
-        httpHeaders.add(SERVICE_AUTHORISATION, token);
+        String token = UUID.randomUUID().toString();
+        serviceRequestAuthorizer.registerToken(token, serviceId);
+        httpHeaders.add(ServiceRequestAuthorizer.AUTHORISATION, token);
         return this;
     }
 

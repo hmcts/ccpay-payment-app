@@ -14,9 +14,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -63,7 +60,7 @@ import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuth
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"componenttest"})
+@ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
 @EnableFeignClients
@@ -88,12 +85,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected AccountService<AccountDto, String> accountService;
 
     RestActions restActions;
-
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
 
     @Autowired
     private ServiceAuthFilter serviceAuthFilter;
@@ -130,7 +121,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         restActions
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
@@ -264,6 +254,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .serviceType("Probate")
             .currency("GBP")
             .siteId("AA01")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
@@ -323,6 +314,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .serviceType("Probate")
             .currency("GBP")
             .siteId("AA011")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
@@ -456,7 +448,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
 
     @Test
-
     public void createCreditAccountPaymentWithSuccessWhenAvailableBalanceGreaterThanRequestedAmount() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFinRemJson().getBytes(),
             CreditAccountPaymentRequest.class);
@@ -794,7 +785,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-
     public void createCreditAccountPaymentTest_FPLService() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJson().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
@@ -807,7 +797,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-
     public void createCreditAccountPaymentTest_FPLService_InvalidSiteId() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJsonInvalidSiteId().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",

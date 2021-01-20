@@ -11,8 +11,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -74,21 +72,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
-
-    @Autowired
-    private ServiceAuthFilter serviceAuthFilter;
-
-    @InjectMocks
-    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
-
-    @MockBean
-    private SecurityUtils securityUtils;
-
     @Autowired
     private ServicePaymentFilter servicePaymentFilter;
 
@@ -98,7 +81,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
 
-    @MockBean
+    @Autowired
     private SiteService<Site, String> siteServiceMock;
 
     @Autowired
@@ -155,6 +138,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber1/payments")
             .andExpect(status().isOk())
             .andReturn();
@@ -193,7 +177,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA0" + number)
-            .userId("1")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
@@ -233,7 +217,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
         restActions
             .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
             .withUserId(UserResolverBackdoor.CITIZEN_ID)
-            .post("/api/ff4j/store/features/payment-search/enable","")
+            .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         RestActions restActions_Citizen = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
@@ -253,10 +237,14 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCreditAccountPaymentToDb("1");
 
         restActions
-            .post("/api/ff4j/store/features/payment-search/enable","")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         assertThat(restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber2/payments")
             .andExpect(status().isNotFound())
             .andReturn()).isNotNull();
@@ -269,6 +257,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDb("1");
 
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber1/paymentgroups")
             .andExpect(status().isOk())
             .andReturn();
@@ -303,6 +293,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber1/paymentgroups")
             .andExpect(status().isOk())
             .andReturn();
@@ -387,6 +379,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result1 = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .post("/payment-groups", paymentGroupDto)
             .andReturn();
 
@@ -473,11 +467,11 @@ public class CaseControllerTest extends PaymentsDataUtil {
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
-        // create a partial remission commented this due to failure
-       /* MvcResult result2 = restActions
+        // create a partial remission
+        MvcResult result2 = restActions
             .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
             .andExpect(status().isCreated())
-            .andReturn();*/
+            .andReturn();
 
         // Adding another fee to the exisitng payment group
         restActions
@@ -500,6 +494,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber1/paymentgroups")
             .andExpect(status().isOk())
             .andReturn();
@@ -567,13 +563,15 @@ public class CaseControllerTest extends PaymentsDataUtil {
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
-        // create a partial remission. Commented this due to failure.
-        /* MvcResult result2 = restActions
+        // create a partial remission. .
+         MvcResult result2 = restActions
             .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
             .andExpect(status().isCreated())
-            .andReturn();*/
+            .andReturn();
 
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber1/paymentgroups")
             .andExpect(status().isOk())
             .andReturn();
@@ -583,7 +581,11 @@ public class CaseControllerTest extends PaymentsDataUtil {
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
         assertThat(paymentGroups.getPaymentGroups().get(0)
             .getFees().get(0).getDescription()).isEqualTo("Application for a charging order");
+        System.out.println(paymentGroups.getPaymentGroups().get(0)
+            .getRemissions().get(0).getDateCreated());
         System.out.println(new Date());
+        assertThat(paymentGroups.getPaymentGroups().get(0)
+            .getRemissions().get(0).getDateCreated().getDate()).isEqualTo(new Date().getDate());
     }
 
     @Test

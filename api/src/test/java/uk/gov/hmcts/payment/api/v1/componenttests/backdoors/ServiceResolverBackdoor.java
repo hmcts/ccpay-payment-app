@@ -28,4 +28,3 @@ public class ServiceResolverBackdoor implements SubjectResolver<Service> {
         tokenToServiceMap.put(token, serviceId);
     }
 }
-

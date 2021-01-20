@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.configuration.security.authcheckerconfiguration;
+package uk.gov.hmcts.payment.api.configuration.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGeneratorFactory;
 import uk.gov.hmcts.reform.authorisation.validators.AuthTokenValidator;
 import uk.gov.hmcts.reform.authorisation.validators.ServiceAuthTokenValidator;
-import uk.gov.hmcts.reform.idam.client.IdamApi;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
@@ -28,7 +27,7 @@ import java.util.stream.Stream;
  */
 @Configuration
 @Lazy
-@EnableFeignClients(basePackageClasses = {IdamApi.class, ServiceAuthorisationApi.class})
+//@EnableFeignClients(basePackageClasses = {IdamApi.class, ServiceAuthorisationApi.class})
 public class AuthCheckerConfiguration {
 
     /**

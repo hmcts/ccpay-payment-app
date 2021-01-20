@@ -13,9 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.http.*;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -24,14 +21,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
-import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
-import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -47,7 +40,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"componenttest"})
+@ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @EnableFeignClients
 @AutoConfigureMockMvc
@@ -61,29 +54,11 @@ public class GovPayComponentMockTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
-
-    @Autowired
-    private ServiceAuthFilter serviceAuthFilter;
-
-    @Autowired
-    private ServicePaymentFilter servicePaymentFilter;
-
-    @InjectMocks
-    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
-
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
-    @MockBean
-    private SecurityUtils securityUtils;
 
     protected ObjectMapper objectMapper;
 
@@ -113,7 +88,6 @@ public class GovPayComponentMockTest {
 
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
 
         restActions
             .withAuthorizedService("divorce")
@@ -126,7 +100,6 @@ public class GovPayComponentMockTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void verifyGovPayPostResponseTest() throws Exception {
         DefaultResponseCreator govPayRespnse = withStatus(HttpStatus.CREATED)
             .body(contentsOf("gov-pay-responses/create-payment-response.json").getBytes())
@@ -150,7 +123,6 @@ public class GovPayComponentMockTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void verifyGovPayGetResponseTest() throws Exception {
         String reference = "RC-1519-9028-1909-3475";
         DefaultResponseCreator govPayResponse = withStatus(HttpStatus.OK)

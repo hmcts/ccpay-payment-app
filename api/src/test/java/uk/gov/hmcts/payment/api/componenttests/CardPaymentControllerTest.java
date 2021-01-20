@@ -15,8 +15,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -59,7 +57,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"componenttest"})
+@ActiveProfiles({"local","componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @EnableFeignClients
 @AutoConfigureMockMvc
@@ -77,27 +75,14 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
-
     @Autowired
     private ServiceAuthFilter serviceAuthFilter;
 
     @InjectMocks
     private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
-    @MockBean
-    private SecurityUtils securityUtils;
-
-    @Autowired
-    private ServicePaymentFilter servicePaymentFilter;
-
     @Autowired
     private PaymentDbBackdoor db;
-
 
     private RestActions restActions;
 
@@ -123,7 +108,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         restActions
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
@@ -216,7 +200,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA01")
-            .userId("1")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
@@ -264,7 +248,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA01")
-            .userId("1")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
@@ -313,7 +297,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA011")
-            .userId("1")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
@@ -359,7 +343,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA001")
-            .userId("1")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
@@ -447,7 +431,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA00")
-            .userId("1")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
@@ -723,14 +707,14 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Test
     public void cancelPayment_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
         restActions
-            .post("/api/ff4j/store/features/payment-cancel/disable","")
+            .post("/api/ff4j/store/features/payment-cancel/disable")
             .andExpect(status().isAccepted());
 
         MvcResult result = createMockPayment();
 
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
 
-        result = restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel","")
+        result = restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -741,7 +725,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void cancelPaymentSuccess_shouldReturn204Test() throws Exception {
         restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable","")
+            .post("/api/ff4j/store/features/payment-cancel/enable")
             .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
@@ -752,7 +736,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withStatus(204)
                 .withHeader("Content-Type", "application/json")));
 
-        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel","")
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isNoContent())
             .andReturn();
     }
@@ -772,7 +756,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withStatus(204)
                 .withHeader("Content-Type", "application/json")));
 
-        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel","")
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isNoContent())
             .andReturn();
 
@@ -783,7 +767,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withBody("{\"code\":\"P0501\",\"description\":\"Cancellation of payment failed\"}")));
 
         MvcResult result2 = restActions
-            .post("/card-payments/" + paymentDto.getReference() + "/cancel","")
+            .post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -793,7 +777,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void cancelPaymentIncorrectPaymentRef_shouldReturn404Test() throws Exception {
         restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable","")
+            .post("/api/ff4j/store/features/payment-cancel/enable")
             .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
@@ -805,7 +789,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"code\":\"P0200\",\"description\":\"Govpay Payment Not Found\"}")));
 
-        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel","")
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isNotFound())
             .andReturn();
     }
@@ -815,7 +799,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void cancelPaymentInternalServerError_shouldReturn500Test() throws Exception {
         restActions
-            .post("/api/ff4j/store/features/payment-cancel/enable","")
+            .post("/api/ff4j/store/features/payment-cancel/enable")
             .andExpect(status().isAccepted());
         MvcResult result = createMockPayment();
 
@@ -827,7 +811,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"code\":\"P0198\",\"description\":\"GovPayDownstreamSystemErrorException\"}")));
 
-        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel","")
+        restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isInternalServerError())
             .andReturn();
     }
@@ -1116,7 +1100,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
-            "  ]\nnm" +
+            "  ]\n" +
             "}";
     }
 }

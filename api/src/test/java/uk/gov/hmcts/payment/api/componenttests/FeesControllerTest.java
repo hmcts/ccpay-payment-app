@@ -10,9 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.context.support.WithMockUser;
+
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -45,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"componenttest"})
+@ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
 @EnableFeignClients
@@ -54,12 +52,6 @@ public class FeesControllerTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
-
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
 
     @Autowired
     private ServiceAuthFilter serviceAuthFilter;
@@ -88,7 +80,7 @@ public class FeesControllerTest {
         return new CustomResultMatcher(objectMapper);
     }
 
-    @MockBean
+    @Autowired
     private SiteService<Site, String> siteServiceMock;
 
     private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
@@ -97,7 +89,6 @@ public class FeesControllerTest {
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         restActions
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
@@ -126,7 +117,6 @@ public class FeesControllerTest {
 
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void deleteFeesTest() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -148,7 +138,6 @@ public class FeesControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void deleteFeesCreatedUsingRemissionTest() throws Exception {
 
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
@@ -176,7 +165,6 @@ public class FeesControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void deleteNoFeesExistingTest() throws Exception {
 
         Integer feeId = 12;

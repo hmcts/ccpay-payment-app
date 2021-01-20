@@ -11,16 +11,12 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,8 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
-import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
-import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -38,11 +32,12 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
-import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -78,23 +73,14 @@ public class PaymentRecordControllerTest {
     @MockBean
     private SiteService<Site, String> siteServiceMock;
 
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
-
     @Autowired
-    private ServiceAuthFilter serviceAuthFilter;
-
-    @Autowired
-    private ServicePaymentFilter servicePaymentFilter;
-
-    @InjectMocks
-    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
-
-    @MockBean
     private SecurityUtils securityUtils;
+
+    @Autowired
+    private ServiceResolverBackdoor serviceRequestAuthorizer;
+
+    @Autowired
+    private UserResolverBackdoor userRequestAuthorizer;
 
     private RestActions restActions;
 
@@ -122,12 +108,12 @@ public class PaymentRecordControllerTest {
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-        this.restActions = new RestActions(mvc, objectMapper);
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
         cd = new LuhnCheckDigit();
         restActions
             .withAuthorizedService("divorce")
             .withReturnUrl("https://www.gooooogle.com");
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         List<Site> serviceReturn = Arrays.asList(Site.siteWith()
                 .sopReference("sop")
                 .siteId("AA99")
@@ -148,7 +134,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testRecordCashPaymentWithValidData() throws Exception {
         PaymentRecordRequest request = getCashPaymentRequest();
 
@@ -168,7 +153,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testRecordPaymentWithoutPaymentMethod() throws Exception {
         PaymentRecordRequest request = getRequestWithNoCcdCaseNumberAndCaseReference();
         request.setReference("ref_123");
@@ -182,7 +166,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testRecordChequePaymentWithoutReference() throws Exception {
         PaymentRecordRequest request = getRequestWithNoCcdCaseNumberAndCaseReference();
         request.setPaymentMethod(PaymentMethodType.CHEQUE);
@@ -196,7 +179,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testRecordCashPaymentWithInvalidRequest() throws Exception {
         PaymentRecordRequest request = getRequestWithNoCcdCaseNumberAndCaseReference();
 
@@ -206,7 +188,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     @Transactional
     public void testGetBarPaymentsForBetweenDates() throws Exception {
         PaymentRecordRequest cashPaymentRequest = getCashPaymentRequest();
@@ -261,7 +242,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testRecordPostOrderPayment() throws Exception {
         PaymentRecordRequest request = getPostalOrderPaymentRequest();
 
@@ -278,7 +258,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testRecordBarclaycardPayment() throws Exception {
         PaymentRecordRequest request = getBarclayCardPaymentRequest();
 
@@ -294,7 +273,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testNoProviderPayment() throws Exception {
         PaymentRecordRequest request = getNoProviderPaymentRequest();
 
@@ -310,7 +288,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testBarclaycardPaymentWithoutReportedDateOfflineShouldFail() throws Exception {
         PaymentRecordRequest request = getBarclayCardPaymentRequestWithoutReportedDateOffline();
 
@@ -323,7 +300,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testBarclaycardPaymentWithEmptyReportedDateOfflineShouldFail() throws Exception {
         PaymentRecordRequest request = getBarclayCardPaymentRequest();
         request.setReportedDateOffline("");
@@ -337,7 +313,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testBarclaycardPaymentRecordRequestWithInvalidReportedDateOfflineShouldFail() throws Exception {
         PaymentRecordRequest request = getBarclayCardPaymentRequest();
         request.setReportedDateOffline("Invalid_date_string");
@@ -352,7 +327,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testCreatePaymentRecordsWithInvalidPaymentMethodShouldFail() throws Exception {
         PaymentRecordRequest request = getCashPaymentRequest();
         request.setPaymentMethod(PaymentMethodType.PBA);
@@ -541,7 +515,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void testThatGivenARecordBarclaycardPaymentWhenItsFetchedThroughSlashPaymentsItContainsAReportedDateOffline() throws Exception {
         PaymentRecordRequest request = getBarclayCardPaymentRequest();
 
@@ -578,7 +551,6 @@ public class PaymentRecordControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void testPaymentForMultipleFeesAndMultipleCases() throws Exception {
         String startDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
         PaymentRecordRequest request = getChequePaymentForMultipleCases();
@@ -622,7 +594,6 @@ public class PaymentRecordControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void testPaymentForCaseSingleCaseMultipleFees() throws Exception {
         String startDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
         PaymentRecordRequest request = getChequePaymentForSingleCaseWithMultipleFees();
@@ -657,7 +628,6 @@ public class PaymentRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void ifSiteExistsThenAcceptPayment() throws Exception {
         PaymentRecordRequest request = getCashPaymentRequest();
         request.setSiteId("AA001");
@@ -679,7 +649,6 @@ public class PaymentRecordControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void ifSiteDoesNotExistThenDoNotAcceptPayment() throws Exception {
         PaymentRecordRequest request = getCashPaymentRequest();
         request.setSiteId("non-existing-site-id");

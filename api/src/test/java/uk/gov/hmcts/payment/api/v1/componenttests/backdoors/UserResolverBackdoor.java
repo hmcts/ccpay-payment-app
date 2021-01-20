@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Primary
-public class UserResolverBackdoor implements SubjectResolver<User> {
+public class UserResolverBackdoor implements SubjectResolver<User>{
     private final ConcurrentHashMap<String, User> tokenToUserMap = new ConcurrentHashMap<>();
 
     public final static String CITIZEN_ID = "1";

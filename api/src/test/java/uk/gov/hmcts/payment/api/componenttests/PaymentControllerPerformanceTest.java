@@ -17,8 +17,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,6 +30,8 @@ import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
 import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
@@ -62,25 +62,6 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
 
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
-
-    @Autowired
-    private ServiceAuthFilter serviceAuthFilter;
-
-    @Autowired
-    private ServicePaymentFilter servicePaymentFilter;
-
-    @InjectMocks
-    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
-
-    @MockBean
-    private SecurityUtils securityUtils;
-
-
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -92,7 +73,15 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ServiceResolverBackdoor serviceRequestAuthorizer;
+
+    @Autowired
+    private UserResolverBackdoor userRequestAuthorizer;
+
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
+
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -101,10 +90,11 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-       this.restActions = new RestActions(mvc, objectMapper);
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
+       this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
         restActions
             .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
 
     }
@@ -120,6 +110,7 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA01")
+            .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
@@ -163,7 +154,7 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
         }
 
         restActions
-            .post("/api/ff4j/store/features/payment-search/enable","")
+            .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         String startDate = LocalDate.now().minus(Minutes.ONE).toString(DATE_FORMAT);

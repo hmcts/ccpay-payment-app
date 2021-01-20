@@ -18,7 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
-import uk.gov.hmcts.payment.api.configuration.security.authcheckerconfiguration.AuthCheckerConfiguration;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 
 import javax.servlet.FilterChain;
