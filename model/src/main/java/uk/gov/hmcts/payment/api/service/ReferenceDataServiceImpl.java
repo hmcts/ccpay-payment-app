@@ -60,7 +60,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
 
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-        List<OrganisationalServiceDto> orgServiceResponse = Collections.emptyList();
+        List<OrganisationalServiceDto> orgServiceResponse;
         try {
             serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
@@ -76,14 +76,16 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
                 .queryParam("ccdCaseType", caseType);
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
-            orgServiceResponse = responseEntity.getBody();
-            if (orgServiceResponse != null && !orgServiceResponse.isEmpty()) {
-                return orgServiceResponse.get(0);
+            orgServiceResponse = responseEntity.hasBody() ? responseEntity.getBody() : null;
+            if (orgServiceResponse == null || orgServiceResponse.isEmpty()) {
+                throw new NoServiceFoundException("No Service found for given CaseType");
             }
-            throw new NoServiceFoundException("No Service found for given CaseType");
+            return orgServiceResponse.get(0);
         } catch (HttpClientErrorException e) {
+            LOG.error("client err ",e);
             throw new NoServiceFoundException("No Service found for given CaseType");
         } catch (HttpServerErrorException e) {
+            LOG.error("server err ",e);
             throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
         }
     }
