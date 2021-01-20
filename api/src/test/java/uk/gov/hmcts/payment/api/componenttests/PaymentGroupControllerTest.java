@@ -1599,12 +1599,12 @@ public class PaymentGroupControllerTest {
             savedfees.stream()
                 .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
                 .forEach(fee -> {
-                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                    assertEquals(BigDecimal.valueOf(10).intValue(), fee.getAmountDue().intValue());
                 });
             savedfees.stream()
                 .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
                 .forEach(fee -> {
-                    assertEquals(BigDecimal.valueOf(10).intValue(), fee.getAmountDue().intValue());
+                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
                 });
         }
     }
