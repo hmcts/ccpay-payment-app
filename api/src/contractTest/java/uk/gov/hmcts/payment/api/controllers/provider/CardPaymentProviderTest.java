@@ -90,12 +90,12 @@ public class CardPaymentProviderTest {
     @Value("${PACT_BRANCH_NAME}")
     String branchName;
 
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
         context.verifyInteraction();
     }
-
 
     @BeforeEach
     void before(PactVerificationContext context) {
