@@ -110,7 +110,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @MockBean
-    private RestTemplate restTemplate;
+    private RestTemplate restTemplatePaymentGroup;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -229,7 +229,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
-        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+        when(restTemplatePaymentGroup.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         restActions
@@ -242,7 +242,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     public void createCardPaymentWithCaseTypeReturn504Test() throws Exception {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
-        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+        when(restTemplatePaymentGroup.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
 
         restActions
@@ -265,7 +265,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
-        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+        when(restTemplatePaymentGroup.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
 
         stubFor(post(urlPathMatching("/v1/payments"))

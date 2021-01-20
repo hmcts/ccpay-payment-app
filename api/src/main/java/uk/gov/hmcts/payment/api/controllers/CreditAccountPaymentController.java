@@ -124,7 +124,7 @@ public class CreditAccountPaymentController {
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), headers);
             creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
             Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
-            creditAccountPaymentRequest.setService(Service.valueOf("ORGID"));
+            creditAccountPaymentRequest.setService(Service.ORGID);
         }
 
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
