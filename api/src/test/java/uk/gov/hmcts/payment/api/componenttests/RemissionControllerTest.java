@@ -106,7 +106,7 @@ public class RemissionControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("new service description")
+            .serviceDescription("DIVORCE")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);

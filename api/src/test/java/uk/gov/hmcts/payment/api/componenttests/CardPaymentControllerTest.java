@@ -256,7 +256,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("VPAA")
-            .serviceDescription("New description")
+            .serviceDescription("DIVORCE")
             .ccdCaseTypes(Collections.singletonList("VPAA"))
             .build();
         List<OrganisationalServiceDto> organisationalServiceDtos = new ArrayList<>();
@@ -505,7 +505,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber("1234")
-            .service(Service.ORGID)
+            .service(Service.CMC)
             .currency(CurrencyCode.GBP)
             .channel("telephony")
             .siteId("siteId")
