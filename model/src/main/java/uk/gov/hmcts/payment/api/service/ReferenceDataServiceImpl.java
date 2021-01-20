@@ -60,7 +60,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
 
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-//        List<OrganisationalServiceDto> orgServiceResponse = Collections.emptyList();
+        List<OrganisationalServiceDto> orgServiceResponse = Collections.emptyList();
         try {
             serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
@@ -76,13 +76,15 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
                 .queryParam("ccdCaseType", caseType);
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
-            return responseEntity.getBody().get(0);
+            if(responseEntity != null && responseEntity.hasBody() && responseEntity.getBody() != null){
+                orgServiceResponse = responseEntity.getBody();
+                return orgServiceResponse.get(0);
+            }
+            throw new NoServiceFoundException("No Service found for given CaseType");
         } catch (HttpClientErrorException e) {
             throw new NoServiceFoundException("No Service found for given CaseType");
         }catch (HttpServerErrorException e){
             throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
-        }catch(NullPointerException e){
-            throw new NoServiceFoundException("No Service found for given CaseType");
         }
     }
 }
