@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.util.RefDataServiceType;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
@@ -140,14 +139,14 @@ public class CardPaymentController {
         }
 
         LOG.info("Case Type: {} ",request.getCaseType());
+        LOG.info("Service Name : {} ",request.getService().getName());
 
         if(StringUtils.isNotBlank(request.getCaseType())) {
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
             request.setSiteId(organisationalServiceDto.getServiceCode());
-            request.setService(Service.valueOf(RefDataServiceType.fromString(organisationalServiceDto.getServiceDescription()).toString()));
+            Service.ORGID.setName(organisationalServiceDto.getServiceDescription());
+            request.setService(Service.ORGID);
         }
-
-        LOG.info("Service Name : {} ",request.getService().getName());
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .paymentGroupReference(paymentGroupReference)
