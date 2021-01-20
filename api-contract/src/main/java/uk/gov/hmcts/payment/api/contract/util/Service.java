@@ -8,11 +8,9 @@ public enum Service {
     DIGITAL_BAR("Digital Bar"),
     FPL("Family Public Law"),
     IAC("Immigration and Asylum Appeals"),
-    UNSPEC("Unspecified Claim"),
-    ORGID("");
+    UNSPEC("Unspecified Claim");
 
     private String name;
-
 
     Service(String name) {
         this.name = name;
@@ -20,9 +18,5 @@ public enum Service {
 
     public String getName() {
         return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }
