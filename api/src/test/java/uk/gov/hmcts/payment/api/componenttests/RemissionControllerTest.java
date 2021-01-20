@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -27,10 +26,11 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -38,7 +38,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +46,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -89,8 +89,8 @@ public class RemissionControllerTest {
     @Autowired
     private SiteService<Site, String> siteServiceMock;
 
-    @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
-    private ReferenceDataServiceImpl referenceDataService;
+    @MockBean
+    private ReferenceDataService referenceDataService;
 
 
     @Before
@@ -110,6 +110,7 @@ public class RemissionControllerTest {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
     }
 
     @Test
@@ -813,6 +814,45 @@ public class RemissionControllerTest {
         restActions
             .post("/payment-groups/2019-0000000001/fees/1/remissions" + getRemissionRequest())
             .andExpect(status().isNotFound());
+    }
+
+
+    @Test
+    public void correctAndValidRemissionDataShouldReturn404NoServiceFound() throws Exception {
+        RemissionRequest remission = RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference("HWFref")
+            .caseType("tax_exception")
+            .fee(getFee())
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+        restActions
+            .post("/remission", remission)
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void correctAndValidRemissionDataShouldReturn504NoServiceFound() throws Exception {
+        RemissionRequest remission = RemissionRequest.createRemissionRequestWith()
+            .beneficiaryName("beneficiary")
+            .caseReference("caseRef1234")
+            .ccdCaseNumber("CCD1234")
+            .hwfAmount(new BigDecimal("10.00"))
+            .hwfReference("HWFref")
+            .caseType("tax_exception")
+            .fee(getFee())
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        restActions
+            .post("/remission", remission)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Test Error"));
     }
 
 

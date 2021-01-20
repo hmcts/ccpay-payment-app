@@ -11,7 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +31,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.model.*;
@@ -37,10 +42,13 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -350,39 +358,57 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertEquals("eitherIdOrTypeRequired: Either of Site ID or Case Type is mandatory as part of the request.", res.getResponse().getContentAsString());
     }
 
-//    @Test
-//    public void CreateCreditAccountPayment_withCaseType() throws Exception {
-//        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
-//
-//        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn("VP96");
-//
-//        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-//            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-//        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-//
-//        setCreditAccountPaymentLiberataCheckFeature(true);
-//
-//        MvcResult res = restActions
-//            .post("/credit-account-payments", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentDto paymentDto = objectMapper.readValue(res.getResponse().getContentAsByteArray(), PaymentDto.class);
-//        assertNotNull(paymentDto);
-//        assertEquals("Success", paymentDto.getStatus());
-//    }
+    @Test
+    public void CreateCreditAccountPayment_withCaseType() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-//    @Test
-//    public void CreateCreditAccountPayment_withCaseTypereturn400() throws Exception {
-//        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType400().getBytes(), CreditAccountPaymentRequest.class);
-//
-//        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-//
-//        restActions
-//            .post("/credit-account-payments", request)
-//            .andExpect(status().isBadRequest())
-//            .andExpect(content().string("Payment creation failed, Please try again later."));
-//    }
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("VPAA")
+            .serviceDescription("New description")
+            .ccdCaseTypes(Collections.singletonList("VPAA"))
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenReturn(organisationalServiceDto);
+
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+
+        MvcResult res = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(res.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals("Success", paymentDto.getStatus());
+        assertNotNull(paymentDto.getPaymentGroupReference());
+    }
+
+    @Test
+    public void CreateCreditAccountPayment_withCaseTypereturn404() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
+
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+
+        restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void CreateCreditAccountPayment_withCaseTypeReturn504() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
+
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
+        restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Test Error"));
+    }
 
     @Test
     public void createCreditAccountPayment_withEitherCcdCaseNumberOrCaseReferenceTest() throws Exception {
@@ -1152,28 +1178,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         return "{\n" +
             "  \"amount\": 101.89,\n" +
             "  \"case_type\": \"Caveat\",\n" +
-            "  \"description\": \"New passport application\",\n" +
-            "  \"ccd_case_number\": \"CCD101\",\n" +
-            "  \"case_reference\": \"12345\",\n" +
-            "  \"service\": \"DIVORCE\",\n" +
-            "  \"currency\": \"GBP\",\n" +
-            "  \"customer_reference\": \"CUST101\",\n" +
-            "  \"organisation_name\": \"ORG101\",\n" +
-            "  \"account_number\": \"AC101010\",\n" +
-            "  \"fees\": [\n" +
-            "    {\n" +
-            "      \"calculated_amount\": 101.89,\n" +
-            "      \"code\": \"X0101\",\n" +
-            "      \"version\": \"1\"\n" +
-            "    }\n" +
-            "  ]\n" +
-            "}";
-    }
-
-    private String jsonRequestWithCaseType400() {
-        return "{\n" +
-            "  \"amount\": 101.89,\n" +
-            "  \"case_type\": \"Vp123\",\n" +
             "  \"description\": \"New passport application\",\n" +
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
