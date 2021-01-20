@@ -1592,8 +1592,8 @@ public class PaymentGroupControllerTest {
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
         assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
-        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
-        assertEquals(new BigDecimal(10), savedfees.get(2).getAmountDue());
+        assertEquals(new BigDecimal(10), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(2).getAmountDue());
     }
 
     @Test
