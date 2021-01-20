@@ -3,31 +3,44 @@ package uk.gov.hmcts.payment.api.v1.componenttests.sugar;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.util.MultiValueMap;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
+import uk.gov.hmcts.reform.auth.checker.core.user.UserRequestAuthorizer;
 
 import java.util.UUID;
 
-import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
+
+import static org.springframework.http.MediaType.*;
 
 public class RestActions {
     private final HttpHeaders httpHeaders = new HttpHeaders();
     private final MockMvc mvc;
     private final ObjectMapper objectMapper;
+    private final ServiceResolverBackdoor serviceRequestAuthorizer;
+    private final UserResolverBackdoor userRequestAuthorizer;
 
     public static final String AUTHORISATION = "Authorization";
     public static final String SERVICE_AUTHORISATION = "ServiceAuthorization";
 
-    public RestActions(MockMvc mvc, ObjectMapper objectMapper) {
+    public RestActions(MockMvc mvc, ServiceResolverBackdoor serviceRequestAuthorizer, UserResolverBackdoor userRequestAuthorizer, ObjectMapper objectMapper) {
         this.mvc = mvc;
+        this.serviceRequestAuthorizer = serviceRequestAuthorizer;
+        this.userRequestAuthorizer = userRequestAuthorizer;
         this.objectMapper = objectMapper;
     }
 
     public RestActions withAuthorizedService(String serviceId) {
         String token = "Bearer "+serviceId+ UUID.randomUUID().toString();
         httpHeaders.add(SERVICE_AUTHORISATION, token);
+        return this;
+    }
+
+    public RestActions withUserId(String userId) {
+        httpHeaders.add("user-id", userId);
         return this;
     }
 
@@ -41,9 +54,10 @@ public class RestActions {
         return this;
     }
 
-    public RestActions withAuthorizedUser() {
+    public RestActions withAuthorizedUser(String userId) {
         String token = UUID.randomUUID().toString();
-        httpHeaders.add(AUTHORISATION, token);
+        userRequestAuthorizer.registerToken(token, userId);
+        httpHeaders.add(UserRequestAuthorizer.AUTHORISATION, token);
         return this;
     }
 
@@ -89,6 +103,18 @@ public class RestActions {
             .headers(httpHeaders)
             .content(requestBody)
             .contentType(APPLICATION_FORM_URLENCODED_VALUE)
+            .accept(APPLICATION_JSON)));
+    }
+
+    public ResultActions postWithMultiPartFileData(String urlTemplate, MockMultipartFile mockMultipartFile
+        , String paramName, String paramValue) {
+
+        return translateException(() -> mvc.perform(MockMvcRequestBuilders
+            .multipart(urlTemplate)
+            .file(mockMultipartFile)
+            .headers(httpHeaders)
+            .param(paramName, paramValue)
+            .contentType(MULTIPART_FORM_DATA_VALUE)
             .accept(APPLICATION_JSON)));
     }
 

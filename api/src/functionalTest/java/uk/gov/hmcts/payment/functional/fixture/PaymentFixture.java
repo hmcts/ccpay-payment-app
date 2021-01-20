@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional.fixture;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
@@ -15,9 +16,11 @@ import java.math.BigDecimal;
 public class PaymentFixture {
 
     public static CardPaymentRequest aCardPaymentRequest(String amountString) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
             .caseReference("aCaseReference")
             .service(Service.CMC)
             .currency(CurrencyCode.GBP)
@@ -33,9 +36,11 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, Service service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
             .caseReference("aCaseReference")
             .service(service)
             .currency(CurrencyCode.GBP)
@@ -47,6 +52,121 @@ public class PaymentFixture {
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
                     .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForUnspec(String amountString, Service service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("AAA7")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber("PBA0082848")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForIAC(String amountString, Service service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("BFA1")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber("PBA0082848")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForFPL(String amountString, Service service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("ABA3")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber("PBA0082848")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(String amountString, Service service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("ABA6")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber("PBA0082848")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateForSuccessLiberataValidation(String amountString, Service service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("New passport application")
+            .ccdCaseNumber(ccdCaseNumber)
+            .caseReference("aCaseReference")
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("ABA6")
+            .customerReference("CUST101")
+            .organisationName("ORG101")
+            .accountNumber("PBA0082848")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0226")
                     .version("1")
                     .build())
             )

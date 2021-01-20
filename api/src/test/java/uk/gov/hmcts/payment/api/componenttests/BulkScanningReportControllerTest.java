@@ -29,6 +29,8 @@ import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
@@ -70,26 +72,23 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
 
     private RestActions restActions;
 
-    @MockBean
-    private SecurityUtils securityUtils;
+    @Autowired
+    protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
-    private ServicePaymentFilter servicePaymentFilter;
+    protected UserResolverBackdoor userRequestAuthorizer;
 
-    @Autowired
-    private ServiceAuthFilter serviceAuthFilter;
-
-    @InjectMocks
-    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
 
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("user123","payments"));
-        this.restActions = new RestActions(mvc, objectMapper);
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
         restActions
             .withAuthorizedService("divorce")
-            .withReturnUrl("https://www.gooooogle.com");
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
     }
 
     @Test
@@ -131,7 +130,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
@@ -177,7 +177,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
@@ -223,7 +224,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
@@ -238,7 +240,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=DATA_LOSS")
             .andExpect(status().is5xxServerError())
             .andReturn();
@@ -252,7 +255,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String startDate = "12345";
         String endDate = "12345";
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().is5xxServerError())
             .andReturn();
@@ -270,7 +274,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
@@ -318,7 +323,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
 
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
@@ -366,7 +372,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
 
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();
@@ -439,7 +446,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=SURPLUS_AND_SHORTFALL")
             .andExpect(status().isOk())
             .andReturn();
@@ -511,7 +519,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=SURPLUS_AND_SHORTFALL")
             .andExpect(status().isOk())
             .andReturn();
@@ -558,7 +567,8 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/payment/bulkscan-data-report?date_from=" + startDate + "&date_to=" + endDate + "&report_type=PROCESSED_UNALLOCATED")
             .andExpect(status().isOk())
             .andReturn();

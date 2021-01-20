@@ -27,6 +27,8 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.DbBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
@@ -51,6 +53,12 @@ public class TestUtil {
 
     @Autowired
     protected DbBackdoor db;
+
+    @Autowired
+    protected ServiceResolverBackdoor serviceRequestAuthorizer;
+
+    @Autowired
+    protected UserResolverBackdoor userRequestAuthorizer;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -90,7 +98,7 @@ public class TestUtil {
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-        this.restActions = new RestActions(mvc, objectMapper);
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
     }
 
     CustomResultMatcher body() {

@@ -33,6 +33,8 @@ import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
@@ -60,6 +62,8 @@ import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuth
 @EnableFeignClients
 @AutoConfigureMockMvc
 public class RemissionControllerTest {
+
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private final static String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
 
@@ -95,6 +99,12 @@ public class RemissionControllerTest {
     @Autowired
     private ServicePaymentFilter servicePaymentFilter;
 
+    @Autowired
+    protected ServiceResolverBackdoor serviceRequestAuthorizer;
+
+    @Autowired
+    protected UserResolverBackdoor userRequestAuthorizer;
+
     @InjectMocks
     private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
@@ -104,11 +114,15 @@ public class RemissionControllerTest {
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-        this.restActions  = new RestActions(mvc, objectMapper);
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
             .withAuthorizedService("divorce")
-            .withReturnUrl("https://www.gooooogle.com");
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+
         when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         List<Site> serviceReturn = Arrays.asList(Site.siteWith()
                 .sopReference("sop")
@@ -729,6 +743,7 @@ public class RemissionControllerTest {
     public void createRetrospectiveRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         // create a telephony payment
         MvcResult result1 = restActions
+            .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", getCardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();

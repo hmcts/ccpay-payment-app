@@ -21,7 +21,7 @@ public class PaymentTestService {
 
     public Response postcardPayment(String userToken, String serviceToken, CardPaymentRequest request) {
         return givenWithAuthHeaders(userToken, serviceToken)
-            .header("return-url", "http://localhost")
+            .header("return-url", "http://localhost.hmcts.net")
             .contentType(ContentType.JSON)
             .body(request)
             .when()
@@ -62,9 +62,20 @@ public class PaymentTestService {
             .get("/pba-accounts/{accountNumber}/payments", accountNumber);
     }
 
+    public Response getPbaPaymentsByCCDCaseNumber(String serviceToken, String ccdCaseNumber) {
+        return givenWithServiceHeaders(serviceToken)
+            .when()
+            .get("/payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
+    }
+
     public RequestSpecification givenWithAuthHeaders(String userToken, String serviceToken) {
         return RestAssured.given()
             .header(AUTHORIZATION, userToken)
+            .header("ServiceAuthorization", serviceToken);
+    }
+
+    public RequestSpecification givenWithServiceHeaders(String serviceToken) {
+        return RestAssured.given()
             .header("ServiceAuthorization", serviceToken);
     }
 }

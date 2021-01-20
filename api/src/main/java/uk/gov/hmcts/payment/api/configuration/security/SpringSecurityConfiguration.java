@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,6 +19,9 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
 import uk.gov.hmcts.payment.api.configuration.converters.JwtGrantedAuthoritiesConverter;
 import uk.gov.hmcts.payment.api.configuration.validator.AudienceValidator;
+import uk.gov.hmcts.reform.auth.checker.core.RequestAuthorizer;
+import uk.gov.hmcts.reform.auth.checker.core.service.Service;
+import uk.gov.hmcts.reform.auth.checker.core.user.User;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import javax.inject.Inject;
@@ -31,6 +35,9 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @EnableWebSecurity
 public class SpringSecurityConfiguration {
+
+    private static final String CITIZEN_ROLE = "citizen";
+    private static final String PAYMENTS_ROLE = "payments";
 
     @Configuration
     @Order(1)
@@ -89,10 +96,15 @@ public class SpringSecurityConfiguration {
         @Value("${oidc.issuer}")
         private String issuerOverride;
 
+        private AuthCheckerServiceAndAnonymousUserFilter authCheckerFilter;
+
+
         @Inject
         public InternalApiSecurityConfigurationAdapter(final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter, final ServiceAuthFilter serviceAuthFilter, final Function<HttpServletRequest, Optional<String>> userIdExtractor,
                                                        final Function<HttpServletRequest, Collection<String>> authorizedRolesExtractor,
-                                                       final SecurityUtils securityUtils, final ServicePaymentFilter servicePaymentFilter) {
+                                                       final SecurityUtils securityUtils, final ServicePaymentFilter servicePaymentFilter,
+                                                       RequestAuthorizer<User> userRequestAuthorizer,
+                                                       RequestAuthorizer<Service> serviceRequestAuthorizer, AuthenticationManager authenticationManager) {
             super();
             this.serviceAuthFilter =  serviceAuthFilter;
             this.servicePaymentFilter = servicePaymentFilter;
@@ -100,6 +112,8 @@ public class SpringSecurityConfiguration {
                 userIdExtractor, authorizedRolesExtractor, securityUtils);
             jwtAuthenticationConverter = new JwtAuthenticationConverter();
             jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+            authCheckerFilter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
+            authCheckerFilter.setAuthenticationManager(authenticationManager);
         }
 
         @Override
@@ -108,9 +122,13 @@ public class SpringSecurityConfiguration {
                 "/webjars/springfox-swagger-ui/**",
                 "/swagger-resources/**",
                 "/v2/**",
-                "/refdata/**",
+                "/refdata/methods",
+                "/refdata/channels",
+                "/refdata/providers",
+                "/refdata/status",
                 "/health",
                 "/health/liveness",
+                "/health/readiness",
                 "/info",
                 "/favicon.ico",
                 "/mock-api/**",
@@ -121,47 +139,22 @@ public class SpringSecurityConfiguration {
         @Override
         @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED", justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         protected void configure(HttpSecurity http) throws Exception {
-                http.addFilterBefore(serviceAuthFilter, BearerTokenAuthenticationFilter.class)
-                    .addFilterAfter(serviceAndUserAuthFilter, BearerTokenAuthenticationFilter.class)
-                    .addFilterAfter(servicePaymentFilter,ServiceAuthFilter.class)
-                    .sessionManagement().sessionCreationPolicy(STATELESS).and()
-                    .csrf().disable()
-                    .formLogin().disable()
-                    .logout().disable()
-                    .authorizeRequests()
-                    .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority("payments")
-                    .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority("payments")
-                    .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority("payments", "citizen")
-                    .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority("payments", "pui-finance-manager", "caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
-                    .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority("payments", "citizen")
-                    .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/api/**").permitAll()
-                    .antMatchers("/error").permitAll()
-                    .anyRequest().authenticated()
-                    .and()
-                    .oauth2ResourceServer()
-                    .jwt()
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter)
-                    .and()
-                    .and()
-                    .oauth2Client();
-        }
-
-        @Bean
-        @SuppressWarnings("unchecked")
-        JwtDecoder jwtDecoder() {
-            NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder)
-                JwtDecoders.fromOidcIssuerLocation(issuerUri);
-
-            OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(Arrays.asList(allowedAudiences));
-
-            OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-
-            OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(withTimestamp,
-                audienceValidator);
-            jwtDecoder.setJwtValidator(withAudience);
-
-            return jwtDecoder;
+            http.addFilter(authCheckerFilter)
+                .sessionManagement().sessionCreationPolicy(STATELESS).and()
+                .csrf().disable()
+                .formLogin().disable()
+                .logout().disable()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.GET, "/cases/**").hasAuthority(PAYMENTS_ROLE)
+                .antMatchers(HttpMethod.DELETE, "/fees/**").hasAuthority(PAYMENTS_ROLE)
+                .antMatchers(HttpMethod.POST, "/card-payments").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .antMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
+                .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/**").permitAll()
+                .anyRequest().authenticated();
         }
     }
 

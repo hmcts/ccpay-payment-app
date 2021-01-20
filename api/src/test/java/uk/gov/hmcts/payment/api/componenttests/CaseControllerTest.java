@@ -13,7 +13,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +34,8 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
@@ -108,14 +109,24 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     RestActions restActions;
 
+    @Autowired
+    protected ServiceResolverBackdoor serviceRequestAuthorizer;
+
+    @Autowired
+    protected UserResolverBackdoor userRequestAuthorizer;
+
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
+
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
-        this.restActions = new RestActions(mvc, objectMapper);
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
+        this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
         restActions
             .withAuthorizedService("divorce")
-            .withReturnUrl("https://www.gooooogle.com");
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
         List<Site> serviceReturn = Arrays.asList(Site.siteWith()
                 .sopReference("sop")
@@ -138,13 +149,12 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void searchAllPaymentsWithCcdCaseNumberShouldReturnRequiredFieldsForVisualComponent() throws Exception {
 
         populateCardPaymentToDb("1");
 
         MvcResult result = restActions
-            .withAuthorizedUser()
+            .withAuthorizedUser(USER_ID)
             .get("/cases/ccdCaseNumber1/payments")
             .andExpect(status().isOk())
             .andReturn();
@@ -168,7 +178,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void shouldReturnStatusHistoryWithErrorCodeForSearchByCaseReference() throws Exception {
         String number = "1";
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Failed").externalStatus("failed")
@@ -217,25 +226,28 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void searchAllPaymentsWithCcdCaseNumberAndCitizenCredentialsFails() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
 
         restActions
+            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
+            .withUserId(UserResolverBackdoor.CITIZEN_ID)
             .post("/api/ff4j/store/features/payment-search/enable","")
             .andExpect(status().isAccepted());
+        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        RestActions restActions_Citizen = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
-        assertThat(restActions
+        assertThat(restActions_Citizen
+            .withAuthorizedUser(UserResolverBackdoor.CITIZEN_ID)
+            .withUserId(UserResolverBackdoor.CITIZEN_ID)
             .get("/cases/ccdCaseNumber1/payments")
-            .andExpect(status().isOk())
+            .andExpect(status().isForbidden())
             .andReturn()).isNotNull();
-
     }
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void searchAllPaymentsWithWrongCcdCaseNumberShouldReturn404() throws Exception {
         populateCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("1");
@@ -252,7 +264,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void searchAllPaymentGroupsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
         populateCardPaymentToDb("1");
@@ -270,7 +281,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void getAllPaymentGroupsHavingFeesAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
         populateCardPaymentToDb("1");
@@ -303,10 +313,48 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     }
 
+    @Test
+    @Transactional
+    public void getAllPaymentGroupsHavingFeesAndPaymentsWithCcdCaseNumberShouldReturnRequiredFieldsWithApportionmentDetails() throws Exception {
+
+        populateCardPaymentToDbWithApportionmentDetails("1");
+
+        FeeDto feeRequest = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .build();
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeRequest))
+            .build();
+
+        restActions
+            .post("/payment-groups", paymentGroupDto)
+            .andReturn();
+
+        MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
+            .get("/cases/ccdCaseNumber1/paymentgroups")
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupDto paymentGroupDto1 = paymentGroups.getPaymentGroups().get(0);
+        FeeDto feeDto = paymentGroupDto1.getFees().get(0);
+
+        assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
+        assertThat(feeDto.getApportionAmount()).isEqualTo(new BigDecimal("99.99"));
+        assertThat(feeDto.getAllocatedAmount()).isEqualTo(new BigDecimal("99.99"));
+
+    }
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void getAllPaymentGroupsHavingMultipleFeesAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
         populateCardPaymentToDb("1");
@@ -359,9 +407,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     }
 
-   @Test
+    @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void getAllPaymentGroupsHavingMultipleFeesRemissionsAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
         FeeDto feeRequest = FeeDto.feeDtoWith()
@@ -405,7 +452,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -466,7 +512,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void validateNewlyAddedFieldsInPaymentGroupResponse() throws Exception {
 
         stubFor(get(urlPathMatching("/fees-register/fees"))
@@ -509,7 +554,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .build();
 
         MvcResult result1 = restActions
-            .withReturnUrl("https://www.google.com")
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
@@ -544,7 +588,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void searchPaymentGroupsWithInexistentCcdCaseNumberShouldReturn404() throws Exception {
 
         MvcResult result = restActions
