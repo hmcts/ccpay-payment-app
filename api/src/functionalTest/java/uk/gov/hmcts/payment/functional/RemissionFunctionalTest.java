@@ -124,7 +124,7 @@ public class RemissionFunctionalTest {
             .description("A test telephony payment")
             .provider("pci pal")
             .service(Service.DIVORCE)
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fees(Collections.singletonList(getFee()))
             .build();
     }
