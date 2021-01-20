@@ -76,8 +76,10 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
                 .queryParam("ccdCaseType", caseType);
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
-            if(responseEntity != null && responseEntity.hasBody() && responseEntity.getBody() != null && !responseEntity.getBody().isEmpty()){
-                return responseEntity.getBody().get(0);
+            if(responseEntity != null && responseEntity.hasBody() && responseEntity.getBody() != null ){
+                if(responseEntity.getBody().size() > 0){
+                    return responseEntity.getBody().get(0);
+                }
             }
             throw new NoServiceFoundException("No Service found for given CaseType");
         } catch (HttpClientErrorException e) {
