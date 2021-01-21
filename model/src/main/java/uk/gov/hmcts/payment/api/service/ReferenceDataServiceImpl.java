@@ -57,17 +57,15 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers) {
 
-        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
 
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
         List<OrganisationalServiceDto> orgServiceResponse;
         try {
-            serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
             //User token
             headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
             //Service token
-            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(authTokenGenerator.generate()));
             //Http headers
             HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
             final HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
