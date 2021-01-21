@@ -25,9 +25,7 @@ import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
@@ -63,7 +61,8 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
             String serviceAuthorisation = authTokenGenerator.generate();
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
             //User token
-            headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization").get(0)));
+            headerMultiValueMapForOrganisationalDetail.put("Authorization",
+                Collections.singletonList("Bearer " + (headers.get("authorization") == null ? "" : headers.get("authorization").get(0))));
             //Service token
             headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
             //Http headers
