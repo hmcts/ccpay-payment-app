@@ -63,9 +63,9 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
             String serviceAuthorisation = authTokenGenerator.generate();
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
             //User token
-            headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
+            headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization").get(0)));
             //Service token
-            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList("Bearer " + serviceAuthorisation));
+            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
             //Http headers
             HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
             final HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
