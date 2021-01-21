@@ -70,7 +70,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
             headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
             //Http headers
             HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-            final HttpEntity<String> entity = new HttpEntity<>(headers);
+            final HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
                 .queryParam("ccdCaseType", caseType);
