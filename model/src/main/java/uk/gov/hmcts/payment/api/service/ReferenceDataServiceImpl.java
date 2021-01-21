@@ -53,8 +53,6 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers) {
 
-        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
         List<OrganisationalServiceDto> orgServiceResponse;
         try {
@@ -71,9 +69,6 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
                 .queryParam("ccdCaseType", caseType);
-            LOG.info("builder.toUriString() : {}",builder.toUriString());
-            LOG.info("Authorization : {}",headerMultiValueMapForOrganisationalDetail.get("Authorization"));
-            LOG.info("ServiceAuthorization : {}",headerMultiValueMapForOrganisationalDetail.get("ServiceAuthorization"));
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
             orgServiceResponse = responseEntity.hasBody() ? responseEntity.getBody() : null;
