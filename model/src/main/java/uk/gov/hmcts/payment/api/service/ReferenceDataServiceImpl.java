@@ -15,7 +15,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
@@ -25,7 +24,6 @@ import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,12 +60,12 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
         List<OrganisationalServiceDto> orgServiceResponse;
         try {
-            serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+            String serviceAuthorisation = authTokenGenerator.generate();
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
             //User token
             headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList("Bearer " + headers.get("authorization")));
             //Service token
-            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList("Bearer " + serviceAuthorisation));
             //Http headers
             HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
             final HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
