@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Wither;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
@@ -41,7 +40,6 @@ public class BulkScanPaymentRequestStrategic {
     @NotNull
     private PaymentMethodType paymentMethod;
 
-    @NotNull
     @JsonProperty("requestor")
     private Service service;
 
