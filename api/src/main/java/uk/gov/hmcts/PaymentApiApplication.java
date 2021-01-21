@@ -80,9 +80,4 @@ public class PaymentApiApplication {
         return cacheManager;
     }
 
-    @Bean
-    public PluginRegistry<LinkDiscoverer, MediaType> discoverers(
-        OrderAwarePluginRegistry<LinkDiscoverer, MediaType> relProviderPluginRegistry) {
-        return relProviderPluginRegistry;
-    }
 }

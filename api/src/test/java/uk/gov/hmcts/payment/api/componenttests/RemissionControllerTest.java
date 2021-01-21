@@ -8,20 +8,14 @@ import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.context.support.WithMockUser;
+
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
-import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
-import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -38,7 +32,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
-import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -53,7 +46,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"componenttest"})
@@ -84,32 +76,14 @@ public class RemissionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @MockBean
+    @Autowired
     private SiteService<Site, String> siteServiceMock;
-
-    @MockBean
-    private ClientRegistrationRepository clientRegistrationRepository;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
-
-    @Autowired
-    private ServiceAuthFilter serviceAuthFilter;
-
-    @Autowired
-    private ServicePaymentFilter servicePaymentFilter;
 
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
-    @InjectMocks
-    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
-
-    @MockBean
-    private SecurityUtils securityUtils;
 
     @Before
     public void setUp() {
@@ -122,8 +96,6 @@ public class RemissionControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-
-        when(securityUtils.getUserInfo()).thenReturn(getUserInfoBasedOnUID_Roles("UID123","payments"));
         List<Site> serviceReturn = Arrays.asList(Site.siteWith()
                 .sopReference("sop")
                 .siteId("AA99")
@@ -145,7 +117,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void correctAndValidRemissionDataShouldReturn201() throws Exception {
         RemissionRequest remission = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
@@ -165,7 +136,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void correctAndValidRemissionDataShouldSaveToDb() {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -190,7 +160,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void correctAndValidRemissionWithoutCCDNumberInFeeDataShouldSaveToDb() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
@@ -213,7 +182,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void duplicatehwfReferenceRemissionShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -239,7 +207,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void emptyHwfReferenceShouldReturn400() throws Exception {
         String hwfReference = "";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -258,7 +225,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void nullHwfReferenceShouldReturn400() throws Exception {
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
@@ -275,7 +241,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void nullHwfAmountShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -293,7 +258,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void negativeHwfAmountShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -312,7 +276,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void hwfAmountEqualToZeroShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -331,7 +294,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void hwfAmountWithMoreThan2DecimalPlacesShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -350,7 +312,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void emptyCcdCaseNumberShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -371,7 +332,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void nullCcdCaseNumberShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -391,7 +351,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void emptyCaseReferenceShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -412,7 +371,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void nullCaseReferenceShouldReturn201() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -432,7 +390,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void emptyCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -451,7 +408,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void nullCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -468,7 +424,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void nullCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -486,7 +441,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void emptyCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -504,7 +458,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void getRemissionRequestUponSuccessfulCreation() throws Exception {
         RemissionRequest remission = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
@@ -527,7 +480,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void feeDtoFilledGetsFeeSaved() throws Exception {
         BigDecimal calculatedAmount = new BigDecimal("199.99");
         String feeReference = "feeReference";
@@ -563,7 +515,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void paymentFeeLinkAndFeeCreatedWhenNoPaymentGroupReferenceSent() throws Exception {
         BigDecimal calculatedAmount = new BigDecimal("199.99");
         String feeReference = "feeReference";
@@ -606,7 +557,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void noFeeAndNoPaymentGroupReferenceAndRemissionGetsCreated() throws Exception {
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
@@ -633,7 +583,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void noFeeWithPaymentGroupReferenceAndRemissionGetsCreated() throws Exception {
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
@@ -661,7 +610,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void remissionWithWrongSiteIDShouldNotSaveToDb() throws Exception {
         String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
@@ -679,7 +627,6 @@ public class RemissionControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void createRemissionWithoutFeeShouldFailTest() throws Exception {
         RemissionRequest remissionRequest = getRemissionRequest();
         remissionRequest.setFee(null);
@@ -693,7 +640,6 @@ public class RemissionControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void createRemissionWithIncorrectHwfAmountShouldFailTest() throws Exception {
         RemissionRequest remissionRequest = getRemissionRequest();
         remissionRequest.setHwfAmount(new BigDecimal("550"));
@@ -707,7 +653,6 @@ public class RemissionControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void createRemissionWithNoCcdCaseNumberAndCaseReferenceShoudFailTest() throws Exception {
         RemissionRequest remissionRequest = getRemissionRequest();
         remissionRequest.setCcdCaseNumber(null);
@@ -722,7 +667,6 @@ public class RemissionControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void createUpfrontRemissionTest() throws Exception {
         RemissionRequest remissionRequest = getRemissionRequest();
 
@@ -739,7 +683,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void createRetrospectiveRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         // create a telephony payment
         MvcResult result1 = restActions
@@ -773,7 +716,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void createRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -814,7 +756,6 @@ public class RemissionControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(authorities = "payments")
     public void createRemissionWithoutFeesShouldBeSuccessfulTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -870,7 +811,6 @@ public class RemissionControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     public void createRetrospectiveRemissionWithInvalidPaymentGroupReferenceShouldFailTest() throws Exception {
         restActions
             .post("/payment-groups/2019-0000000001/fees/1/remissions" , getRemissionRequest())

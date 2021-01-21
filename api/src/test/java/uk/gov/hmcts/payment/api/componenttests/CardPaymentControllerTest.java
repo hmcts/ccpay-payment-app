@@ -9,13 +9,9 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,9 +19,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
-import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
-import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -38,7 +31,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -54,13 +46,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local","componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@EnableFeignClients
-@AutoConfigureMockMvc
 @Transactional
 public class CardPaymentControllerTest extends PaymentsDataUtil {
 
@@ -74,12 +63,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
-
-    @Autowired
-    private ServiceAuthFilter serviceAuthFilter;
-
-    @InjectMocks
-    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @Autowired
     private PaymentDbBackdoor db;
@@ -773,7 +756,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     @Transactional
     public void cancelPaymentIncorrectPaymentRef_shouldReturn404Test() throws Exception {
         restActions
@@ -795,7 +777,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @WithMockUser(authorities = "payments")
     @Transactional
     public void cancelPaymentInternalServerError_shouldReturn500Test() throws Exception {
         restActions

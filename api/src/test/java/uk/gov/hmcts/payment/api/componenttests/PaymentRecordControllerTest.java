@@ -16,7 +16,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,7 +23,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -53,12 +51,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@Transactional
-@EnableFeignClients
 @AutoConfigureMockMvc
 public class PaymentRecordControllerTest {
 
@@ -72,9 +67,6 @@ public class PaymentRecordControllerTest {
 
     @MockBean
     private SiteService<Site, String> siteServiceMock;
-
-    @Autowired
-    private SecurityUtils securityUtils;
 
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
@@ -95,6 +87,8 @@ public class PaymentRecordControllerTest {
 
     private CheckDigit cd;
 
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+
     @SneakyThrows
     private String contentsOf(String fileName) {
         String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
@@ -113,6 +107,8 @@ public class PaymentRecordControllerTest {
         cd = new LuhnCheckDigit();
         restActions
             .withAuthorizedService("divorce")
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
         List<Site> serviceReturn = Arrays.asList(Site.siteWith()
                 .sopReference("sop")
@@ -529,7 +525,7 @@ public class PaymentRecordControllerTest {
         assertThat(response.getStatus()).isEqualTo("Success");
 
         restActions
-            .post("/api/ff4j/store/features/payment-search/enable","")
+            .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
@@ -564,7 +560,7 @@ public class PaymentRecordControllerTest {
 
 
         restActions
-            .post("/api/ff4j/store/features/payment-search/enable","")
+            .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         String endDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");

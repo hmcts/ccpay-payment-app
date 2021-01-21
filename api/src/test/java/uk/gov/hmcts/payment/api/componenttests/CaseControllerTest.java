@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import org.junit.*;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,8 +17,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
-import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
 import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -37,7 +34,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
-import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -53,13 +49,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"componenttest"})
+@ActiveProfiles({"local","componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-@EnableFeignClients
-@AutoConfigureMockMvc
 @Transactional
 public class CaseControllerTest extends PaymentsDataUtil {
 
@@ -190,6 +183,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
         populateCardPaymentToDbWith(payment, number);
 
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber1/payments")
             .andExpect(status().isOk())
             .andReturn();
@@ -391,6 +386,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber1/paymentgroups")
             .andExpect(status().isOk())
             .andReturn();
@@ -593,6 +590,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
     public void searchPaymentGroupsWithInexistentCcdCaseNumberShouldReturn404() throws Exception {
 
         MvcResult result = restActions
+            .withAuthorizedUser(USER_ID)
+            .withUserId(USER_ID)
             .get("/cases/ccdCaseNumber2/paymentgroups")
             .andExpect(status().isNotFound())
             .andReturn();

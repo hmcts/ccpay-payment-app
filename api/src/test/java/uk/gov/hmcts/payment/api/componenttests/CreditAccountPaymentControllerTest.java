@@ -6,14 +6,11 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,9 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
-import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
-import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
@@ -41,7 +35,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -56,15 +49,12 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-@EnableFeignClients
-@AutoConfigureMockMvc
 public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
@@ -81,29 +71,16 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected Payment2Repository paymentRepository;
 
-    @MockBean
+    @Autowired
     protected AccountService<AccountDto, String> accountService;
 
     RestActions restActions;
-
-    @Autowired
-    private ServiceAuthFilter serviceAuthFilter;
-
-    @Autowired
-    private ServicePaymentFilter servicePaymentFilter;
-
-    @InjectMocks
-    private ServiceAndUserAuthFilter serviceAndUserAuthFilter;
 
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
 
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
-
-    @MockBean
-    private SecurityUtils securityUtils;
 
     @Autowired
     private ObjectMapper objectMapper;

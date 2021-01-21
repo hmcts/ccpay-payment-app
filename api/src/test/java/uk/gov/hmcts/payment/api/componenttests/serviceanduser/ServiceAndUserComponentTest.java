@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.componenttests.serviceanduser;
 
-
 import lombok.SneakyThrows;
 import org.junit.Test;
 import org.junit.runner.RunWith;
