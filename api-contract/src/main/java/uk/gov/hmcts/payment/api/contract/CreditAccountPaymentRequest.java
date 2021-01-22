@@ -42,6 +42,7 @@ public class CreditAccountPaymentRequest {
 
     private String caseReference;
 
+    @NotNull
     private Service service;
 
     private CurrencyCode currency;
@@ -72,6 +73,40 @@ public class CreditAccountPaymentRequest {
     private boolean isValidSiteId() {
         String[] validSiteIds = {"ABA3"};
         if(null != service && service.getName().equalsIgnoreCase(Service.FPL.getName())) {
+            return siteId != null && !Arrays.asList(validSiteIds).stream().anyMatch(vm -> vm.equalsIgnoreCase(
+                siteId));
+        } else {
+            return false;
+        }
+    }
+
+
+    @AssertFalse(message = "Invalid Site ID (URN) provided for IAC. Accepted values are BFA1")
+    private boolean isValidSiteIdIAC() {
+        String[] validSiteIds = {"BFA1"};
+        if(null != service && service.getName().equalsIgnoreCase(Service.IAC.getName())) {
+            return siteId != null && !Arrays.asList(validSiteIds).stream().anyMatch(vm -> vm.equalsIgnoreCase(
+                siteId));
+        } else {
+            return false;
+        }
+    }
+
+    @AssertFalse(message = "Invalid Site ID (URN) provided for UNSPEC CMC. Accepted values are AAA7")
+    private boolean isValidSiteIdUnspecCMC() {
+        String[] validSiteIds = {"AAA7"};
+        if(null != service && service.getName().equalsIgnoreCase(Service.UNSPEC.getName())) {
+            return siteId != null && !Arrays.asList(validSiteIds).stream().anyMatch(vm -> vm.equalsIgnoreCase(
+                siteId));
+        } else {
+            return false;
+        }
+    }
+
+    @AssertFalse(message = "Invalid Site ID (URN) provided for PROBATE. Accepted values are ABA6")
+    private boolean isValidSiteIdProbate() {
+        String[] validSiteIds = {"ABA6"};
+        if(null != service && service.getName().equalsIgnoreCase(Service.PROBATE.getName())) {
             return siteId != null && !Arrays.asList(validSiteIds).stream().anyMatch(vm -> vm.equalsIgnoreCase(
                 siteId));
         } else {

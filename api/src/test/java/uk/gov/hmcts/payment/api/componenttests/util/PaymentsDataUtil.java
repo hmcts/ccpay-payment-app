@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,6 +100,40 @@ public class PaymentsDataUtil {
             .build();
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populateCardPaymentToDbWithApportionmentDetails(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+
+        PaymentFee fee = feeWith()
+            .calculatedAmount(new BigDecimal("99.99"))
+            .version("1")
+            .code("FEE000" + number)
+            .volume(1)
+            .allocatedAmount(new BigDecimal("99.99"))
+            .apportionAmount(new BigDecimal("99.99")).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -291,6 +326,32 @@ public class PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
     }
 
+    public Payment populateBarCashPaymentToDbForApportionment(String number) throws Exception {
+        //create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("123.19"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Description" + number)
+            .serviceType("Digital Bar")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .giroSlipNo("Grio" + number)
+            .reportedDateOffline(DateTime.now().toDate())
+            .userId(USER_ID)
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("middle office provider").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("digital bar").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("cash").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("pending").build())
+            .reference("RC-1519-9028-1909-111" + number)
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("123.19")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000011" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
 
     public void populateBarChequePaymentToDb(String number) throws Exception {
         //create a payment in remissionDbBackdoor
@@ -371,10 +432,38 @@ public class PaymentsDataUtil {
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference(reference).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
+        return payment;
+    }
+
+    public Payment populateTelephonyPaymentToDbWithoutFees(String reference, boolean withServiceCallbackURL) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("101.99"))
+            .ccdCaseNumber("ccdCaseNumber" + reference)
+            .description("description" + reference)
+            .serviceType("Divorce")
+            .currency("GBP")
+            .siteId("AA00" + reference)
+            .userId(USER_ID)
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("pci pal").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("telephony").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference(reference)
+            .build();
+
+        if(withServiceCallbackURL) {
+            payment.setServiceCallbackUrl("www.gooooooogle.com");
+        }
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference(reference).payments(Arrays.asList(payment)).fees((Collections.EMPTY_LIST)));
+        payment.setPaymentLink(paymentFeeLink);
+
 
 
         return payment;
     }
+
 
     public void populateCardPaymentToDbWith(Payment payment, String number) {
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
@@ -402,6 +491,50 @@ public class PaymentsDataUtil {
                 assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("11.99"));
             });
         });
+    }
+
+    public FeePayApportion populateApportionDetails(Payment payment) {
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(payment.getAmount())
+            .apportionType("AUTO")
+            .feeId(payment.getPaymentLink().getFees().get(0).getId())
+            .paymentId(payment.getId())
+            .paymentLink(payment.getPaymentLink())
+            .feeAmount(payment.getPaymentLink().getFees().get(0).getCalculatedAmount())
+            .build();
+        payment.getPaymentLink().setApportions(Collections.singletonList(feePayApportion));
+        return feePayApportion;
+    }
+
+    public FeePayApportion populateApportionDetailsWithCallSurplusAmount(Payment payment) {
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(payment.getPaymentLink().getFees().get(0).getId())
+            .paymentId(payment.getId())
+            .paymentLink(payment.getPaymentLink())
+            .feeAmount(BigDecimal.valueOf(100))
+            .callSurplusAmount(BigDecimal.valueOf(100))
+            .callSurplusAmount(BigDecimal.valueOf(100))
+            .build();
+        payment.getPaymentLink().setApportions(Collections.singletonList(feePayApportion));
+        return feePayApportion;
+    }
+
+    public FeePayApportion populateApportionDetailsWithDifferentFeeId(Payment payment) {
+
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+            .apportionAmount(BigDecimal.valueOf(100))
+            .apportionType("AUTO")
+            .feeId(payment.getPaymentLink().getFees().get(0).getId())
+            .paymentId(payment.getId())
+            .paymentLink(payment.getPaymentLink())
+            .feeAmount(BigDecimal.valueOf(100))
+            .build();
+        payment.getPaymentLink().setApportions(Collections.singletonList(feePayApportion));
+        return feePayApportion;
     }
 
     protected void assertPbaPaymentsForLibereta(List<PaymentDto> payments) {
@@ -443,7 +576,7 @@ public class PaymentsDataUtil {
             "  \"case_reference\": \"12345\",\n" +
             "  \"service\": \"PROBATE\",\n" +
             "  \"currency\": \"GBP\",\n" +
-            "  \"return_url\": \"https://www.gooooogle.com\",\n" +
+            "  \"return_url\": \"https://www.moneyclaims.service.gov.uk\",\n" +
             "  \"site_id\": \"AA101\",\n" +
             "  \"fees\": [\n" +
             "    {\n" +
