@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.configuration.SecurityUtils;
 import uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilter;
 import uk.gov.hmcts.payment.api.configuration.security.ServicePaymentFilter;
@@ -39,8 +41,10 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +57,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"componenttest"})
+@ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @EnableFeignClients
 @AutoConfigureMockMvc
@@ -97,6 +101,9 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -839,6 +846,236 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
     }
 
+    @Test
+    @WithMockUser(authorities = "payments")
+    public void createCardPaymentWithMultipleFee_ExactPayment() throws Exception {
+
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(20), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
+    }
+
+    @Test
+    @WithMockUser(authorities = "payments")
+    public void createCardPaymentWithMultipleFee_ShortfallPayment() throws Exception {
+
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(30), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
+    }
+
+    @Test
+    @WithMockUser(authorities = "payments")
+    public void createCardPaymentWithMultipleFee_SurplusPayment() throws Exception {
+
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
+    }
+
+    @Test
+    @WithMockUser(authorities = "payments")
+    public void createCardPaymentWithMultipleFee_SurplusPayment_When_Apportion_Flag_Is_On() throws Exception {
+
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        stubFor(post(urlPathMatching("/v1/payments"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/create-payment-response-apportion.json"))));
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal("120"))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(Service.PROBATE)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "http://payments.com")
+            .post("/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
+    }
+
+    @Test
+    @WithMockUser(authorities = "payments")
+    public void retrieveCardPaymentStatuses_byInvalidPaymentReferenceTest() throws Exception {
+        stubFor(get(urlPathMatching("/v1/payments/e2kkddts5215h9qqoeuth5c0v3"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(contentsOf("gov-pay-responses/get-payment-status-response.json"))));
+
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("499.99"))
+            .caseReference("Reference1")
+            .ccdCaseNumber("ccdCaseNumber1")
+            .description("Test payments statuses")
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA01")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v3")
+            .reference("RC-1519-9028-2432-9115")
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+        PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("499.99")).version("1").code("X0123").build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162002").payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        Payment savedPayment = paymentFeeLink.getPayments().get(0);
+
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .get("/card-payments/" + "12345" + "/statuses")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
     }
@@ -899,7 +1136,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "      \"code\": \"X0101\",\n" +
             "      \"version\": \"1\"\n" +
             "    }\n" +
-            "  ]\nnm" +
+            "  ]\n" +
             "}";
     }
 }

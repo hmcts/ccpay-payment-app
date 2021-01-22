@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"componenttest"})
+@ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @EnableFeignClients
 @AutoConfigureMockMvc

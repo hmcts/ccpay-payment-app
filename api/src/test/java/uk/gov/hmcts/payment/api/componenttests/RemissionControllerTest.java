@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import static uk.gov.hmcts.payment.api.configuration.security.ServiceAndUserAuthFilterTest.getUserInfoBasedOnUID_Roles;
 
 @RunWith(SpringRunner.class)
-@ActiveProfiles({"componenttest"})
+@ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @Transactional
 @EnableFeignClients
@@ -729,6 +729,7 @@ public class RemissionControllerTest {
     public void createRetrospectiveRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         // create a telephony payment
         MvcResult result1 = restActions
+            .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", getCardPaymentRequest())
             .andExpect(status().isCreated())
             .andReturn();

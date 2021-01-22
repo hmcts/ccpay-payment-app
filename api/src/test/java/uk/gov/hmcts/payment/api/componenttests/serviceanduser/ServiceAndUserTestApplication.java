@@ -47,5 +47,11 @@ public class ServiceAndUserTestApplication {
         }
 
     }
+
+    @Bean
+    public PluginRegistry<LinkDiscoverer, MediaType> discoverers(
+        OrderAwarePluginRegistry<LinkDiscoverer, MediaType> relProviderPluginRegistry) {
+        return relProviderPluginRegistry;
+    }
 }
 
