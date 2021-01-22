@@ -58,9 +58,9 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         try {
             String serviceAuthorisation = authTokenGenerator.generate();
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
+            String userAuthorization = "Bearer " + (headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0));
             //User token
-            headerMultiValueMapForOrganisationalDetail.put("Authorization",
-                Collections.singletonList("Bearer " + (headers.get("authorization") == null ? "" : headers.get("authorization").get(0))));
+            headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization));
             //Service token
             headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
             //Http headers
@@ -69,6 +69,9 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
                 .queryParam("ccdCaseType", caseType);
+            LOG.info("builder.toUriString() : {}", builder.toUriString());
+            LOG.info("Authorization : {}", headerMultiValueMapForOrganisationalDetail.get("Authorization"));
+            LOG.info("ServiceAuthorization : {}", headerMultiValueMapForOrganisationalDetail.get("ServiceAuthorization"));
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
             orgServiceResponse = responseEntity.hasBody() ? responseEntity.getBody() : null;
@@ -77,10 +80,10 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
             }
             return orgServiceResponse.get(0);
         } catch (HttpClientErrorException e) {
-            LOG.error("client err ",e);
+            LOG.error("client err ", e);
             throw new NoServiceFoundException("No Service found for given CaseType");
         } catch (HttpServerErrorException e) {
-            LOG.error("server err ",e);
+            LOG.error("server err ", e);
             throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
         }
     }
