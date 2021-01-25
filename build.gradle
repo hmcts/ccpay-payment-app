@@ -65,6 +65,9 @@ allprojects {
                     det.useVersion '1.68'
                 }
 
+                if (det.requested.name == 'lang-tag') {
+                    det.useVersion '1.5'
+                }
             }
         }
     }
