@@ -25,7 +25,8 @@ import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {

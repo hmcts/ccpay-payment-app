@@ -14,14 +14,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.ReplayCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
@@ -162,7 +160,7 @@ public class ReplayCreditAccountPaymentController {
                     .accountNumber(replayCreditAccountPaymentRequest.getPbaNumber().replace("\"", ""))
                     .description(replayCreditAccountPaymentRequest.getDescription())
                     .caseReference(replayCreditAccountPaymentRequest.getCaseReference().replace("\"", ""))
-                    .service(Service.valueOf(replayCreditAccountPaymentRequest.getService()))
+                    .service(replayCreditAccountPaymentRequest.getService())
                     .currency(CurrencyCode.valueOf(replayCreditAccountPaymentRequest.getCurrency()))
                     .customerReference(replayCreditAccountPaymentRequest.getCustomerReference())
                     .organisationName(replayCreditAccountPaymentRequest.getOrganisationName().replace("\"", ""))

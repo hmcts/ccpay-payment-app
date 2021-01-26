@@ -7,7 +7,6 @@ import uk.gov.hmcts.payment.api.model.Payment;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 public interface PaymentService<T, ID> {
 
@@ -22,5 +21,7 @@ public interface PaymentService<T, ID> {
     List<Payment> getPayments(Date atStartOfDay, Date atEndOfDay);
 
     List<FeePayApportion> findByPaymentId(Integer paymentId);
+
+    String getServiceNameByCode(String serviceCode);
 
 }

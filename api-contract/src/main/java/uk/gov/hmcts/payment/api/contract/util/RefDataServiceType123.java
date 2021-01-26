@@ -1,8 +1,6 @@
 package uk.gov.hmcts.payment.api.contract.util;
 
-import java.util.Arrays;
-
-public enum RefDataServiceType {
+public enum RefDataServiceType123 {
     CMC("Specified Money Claims"),
     DIVORCE("Divorce"),
     FINREM("Financial Remedy"),
@@ -12,7 +10,7 @@ public enum RefDataServiceType {
 
     private String name;
 
-    RefDataServiceType(String name) {
+    RefDataServiceType123(String name) {
         this.name = name;
     }
 
@@ -20,8 +18,8 @@ public enum RefDataServiceType {
         return this.name;
     }
 
-    public static RefDataServiceType fromString(String name) throws IllegalArgumentException {
-        for (RefDataServiceType enumName : RefDataServiceType.values()) {
+    public static RefDataServiceType123 fromString(String name) throws IllegalArgumentException {
+        for (RefDataServiceType123 enumName : RefDataServiceType123.values()) {
             if (enumName.getName().equalsIgnoreCase(name)) {
                 return enumName;
             }

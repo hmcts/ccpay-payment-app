@@ -1,12 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
@@ -17,24 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -42,39 +24,13 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.util.RefDataServiceType;
-import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
-import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentAllocation;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
-import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.PaymentGroupService;
-import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -128,6 +84,9 @@ public class PaymentGroupController {
 
     @Value("${bulk.scanning.payments.processed.url}")
     private String bulkScanPaymentsProcessedUrl;
+
+    @Autowired
+    private PaymentService<PaymentFeeLink, String> paymentService;
 
     @Autowired
     public PaymentGroupController(PaymentGroupService paymentGroupService, PaymentGroupDtoMapper paymentGroupDtoMapper,
@@ -238,15 +197,19 @@ public class PaymentGroupController {
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
 
+        /* Clean up Required--------------------
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
         }
+        */
 
         if(StringUtils.isNotBlank(request.getCaseType())){
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
             request.setSiteId(organisationalServiceDto.getServiceCode());
-            request.setService(Service.valueOf(RefDataServiceType.fromString(organisationalServiceDto.getServiceDescription()).toString()));
+            request.setService(organisationalServiceDto.getServiceDescription());
+        } else {
+            request.setService(paymentService.getServiceNameByCode(request.getService()));
         }
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
@@ -258,7 +221,7 @@ public class PaymentGroupController {
             .caseReference(request.getCaseReference())
             .currency(request.getCurrency().getCode())
             .siteId(request.getSiteId())
-            .serviceType(request.getService().getName())
+            .serviceType(request.getService())
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())
@@ -275,7 +238,7 @@ public class PaymentGroupController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
+            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService());
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
         }
 
@@ -318,7 +281,7 @@ public class PaymentGroupController {
             .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
             .currency(bulkScanPaymentRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
-            .serviceType(bulkScanPaymentRequest.getService().getName())
+            .serviceType(bulkScanPaymentRequest.getService())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequest.getPaymentMethod().getType()).build())
             .paymentStatus(bulkScanPaymentRequest.getPaymentStatus())
             .siteId(bulkScanPaymentRequest.getSiteId())
@@ -379,7 +342,7 @@ public class PaymentGroupController {
             .ccdCaseNumber(bulkScanPaymentRequest.getCcdCaseNumber())
             .currency(bulkScanPaymentRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
-            .serviceType(bulkScanPaymentRequest.getService().getName())
+            .serviceType(bulkScanPaymentRequest.getService())
             .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequest.getPaymentMethod().getType()).build())
             .siteId(bulkScanPaymentRequest.getSiteId())
             .giroSlipNo(bulkScanPaymentRequest.getGiroSlipNo())
@@ -429,7 +392,7 @@ public class PaymentGroupController {
             if(StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())){
                 OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
                 bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
-                bulkScanPaymentRequestStrategic.setService(Service.valueOf(RefDataServiceType.fromString(organisationalServiceDto.getServiceDescription()).toString()));
+                bulkScanPaymentRequestStrategic.setService(organisationalServiceDto.getServiceDescription());
             }
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
@@ -443,7 +406,7 @@ public class PaymentGroupController {
                 .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
                 .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
                 .paymentProvider(paymentProvider)
-                .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
+                .serviceType(bulkScanPaymentRequestStrategic.getService())
                 .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
                 .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
                 .siteId(bulkScanPaymentRequestStrategic.getSiteId())
@@ -507,7 +470,7 @@ public class PaymentGroupController {
             if(StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())){
                 OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
                 bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
-                bulkScanPaymentRequestStrategic.setService(Service.valueOf(RefDataServiceType.fromString(organisationalServiceDto.getServiceDescription()).toString()));
+                bulkScanPaymentRequestStrategic.setService(organisationalServiceDto.getServiceDescription());
             }
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
@@ -521,7 +484,7 @@ public class PaymentGroupController {
                 .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
                 .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
                 .paymentProvider(paymentProvider)
-                .serviceType(bulkScanPaymentRequestStrategic.getService().getName())
+                .serviceType(bulkScanPaymentRequestStrategic.getService())
                 .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
                 .siteId(bulkScanPaymentRequestStrategic.getSiteId())
                 .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
