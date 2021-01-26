@@ -16,7 +16,6 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -130,7 +129,7 @@ public class PaymentController {
                     .ccdCaseNumber(ccdCaseNumber)
                     .pbaNumber(pbaNumber)
                     .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
-                    .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
+                    .serviceType(serviceType.orElse(null))
                     .build()
             );
 
@@ -201,7 +200,7 @@ public class PaymentController {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             //Apportion logic added for pulling allocation amount
             boolean apportionCheck = payment.getPaymentChannel() != null
-                && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName());
+                && !payment.getPaymentChannel().getName().equalsIgnoreCase("Digital Bar");
             LOG.info("Apportion check value in liberata API: {}", apportionCheck);
             List<PaymentFee> fees = paymentFeeLink.getFees();
             boolean isPaymentAfterApportionment = false;

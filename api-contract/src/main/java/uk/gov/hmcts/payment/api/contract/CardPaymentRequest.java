@@ -12,7 +12,6 @@ import lombok.experimental.Wither;
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Language;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -45,7 +44,7 @@ public class CardPaymentRequest {
 
     private String caseReference;
 
-    private Service service;
+    private String service;
 
     private CurrencyCode currency;
 

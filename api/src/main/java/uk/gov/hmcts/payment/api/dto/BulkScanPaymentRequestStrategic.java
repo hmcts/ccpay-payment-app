@@ -13,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -41,7 +40,7 @@ public class BulkScanPaymentRequestStrategic {
     private PaymentMethodType paymentMethod;
 
     @JsonProperty("requestor")
-    private Service service;
+    private String service;
 
     private String ccdCaseNumber;
 
