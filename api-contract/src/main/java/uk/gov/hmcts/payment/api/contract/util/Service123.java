@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.contract.util;
 
-public enum Service {
+public enum Service123 {
     CMC("Civil Money Claims"),
     DIVORCE("Divorce"),
     PROBATE("Probate"),
@@ -12,7 +12,7 @@ public enum Service {
 
     private String name;
 
-    Service(String name) {
+    Service123(String name) {
         this.name = name;
     }
 
