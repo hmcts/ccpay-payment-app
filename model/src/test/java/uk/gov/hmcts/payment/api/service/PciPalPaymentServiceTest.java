@@ -60,7 +60,7 @@ public class PciPalPaymentServiceTest {
             .orderReference("orderReference")
             .build();
 
-        String response = pciPalPaymentService.getPciPalLink(request, "cmc");
+        String response = pciPalPaymentService.getPciPalLink(request, "Civil Money Claims");
 
         URIBuilder uriBuilder = new URIBuilder(url + "?" + sb.toString());
         HttpGet getRequest = new HttpGet(uriBuilder.build());
