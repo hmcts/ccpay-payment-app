@@ -634,29 +634,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void searchAllPayments_withInvalidServiceType_shouldReturn400() throws Exception {
-        populateCardPaymentToDb("1");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = startDate;
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=UNKNOWN")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
-        assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid service name requested");
-    }
-
-    @Test
-    @Transactional
     public void searchAllPayment_withFutureDate_shouldReturn400() throws Exception {
         populateCardPaymentToDb("1");
 

@@ -8,7 +8,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
@@ -66,10 +65,10 @@ public class PaymentsReportFacadeTest {
         Date toDate = new Date();
 
         // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, null, Service.DIGITAL_BAR);
+        facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
 
         // then
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, Service.DIGITAL_BAR, barPaymentReportConfig);
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
     }
 
     @Test
@@ -79,7 +78,7 @@ public class PaymentsReportFacadeTest {
         Date toDate = new Date();
 
         // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, Service.CMC);
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "CMC");
 
         // then
         verifyZeroInteractions(reportService);
@@ -90,7 +89,7 @@ public class PaymentsReportFacadeTest {
         exception.expect(UnsupportedOperationException.class);
 
         // given & when
-        facade.generateCsvAndSendEmail(new Date(), new Date(), CARD, Service.CMC);
+        facade.generateCsvAndSendEmail(new Date(), new Date(), CARD,"CMC");
 
     }
 
@@ -109,10 +108,10 @@ public class PaymentsReportFacadeTest {
         Date toDate = new Date();
 
         // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, Service.FPL);
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "FPL");
 
         // then
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, Service.FPL, pbaFplPaymentReportConfig);
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "FPL", pbaFplPaymentReportConfig);
 
     }
 }
