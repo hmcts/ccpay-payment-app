@@ -25,7 +25,7 @@ public class PaymentValidator {
         this.dateUtil = dateUtil;
     }
 
-    public void validate(Optional<String> paymentMethodType, Optional<String> serviceType, Optional<String> startDateString, Optional<String> endDateString) {
+    public void validate(Optional<String> paymentMethodType, Optional<String> startDateString, Optional<String> endDateString) {
         ValidationErrorDTO dto = new ValidationErrorDTO();
 
         if (paymentMethodType.isPresent() && !EnumUtils.isValidEnum(PaymentMethodType.class, paymentMethodType.get().toUpperCase())) {

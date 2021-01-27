@@ -6,13 +6,11 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -23,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
@@ -33,12 +30,18 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
-import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -54,11 +57,20 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationHealthApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -639,7 +651,7 @@ public class PaymentGroupControllerTest {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .siteId("AA07")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
@@ -679,7 +691,7 @@ public class PaymentGroupControllerTest {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.FINREM)
+            .service("FINREM")
             .siteId("AA07")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
@@ -752,7 +764,7 @@ public class PaymentGroupControllerTest {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .siteId("AA07")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
@@ -793,7 +805,7 @@ public class PaymentGroupControllerTest {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .siteId("AA07")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
@@ -834,7 +846,7 @@ public class PaymentGroupControllerTest {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.CMC)
+            .service("CMC")
             .siteId("AA07")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
@@ -874,7 +886,7 @@ public class PaymentGroupControllerTest {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.FPL)
+            .service("FPL")
             .siteId("AA07")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
@@ -951,7 +963,7 @@ public class PaymentGroupControllerTest {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .siteId("AA07")
             .ccdCaseNumber("2154-2343-5634-2357")
             .build();
@@ -977,7 +989,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA07")
             .build();
 
@@ -1002,7 +1014,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1036,7 +1048,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1070,7 +1082,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .ccdCaseNumber("1231-1231-3453-4333")
@@ -1136,7 +1148,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1382,7 +1394,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("aaaa")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1417,7 +1429,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1447,7 +1459,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA07")
             .build();
 
@@ -1462,7 +1474,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1491,7 +1503,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1522,7 +1534,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("aaaaa")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1546,7 +1558,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA07")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1569,7 +1581,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1622,7 +1634,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1678,7 +1690,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1749,7 +1761,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1797,7 +1809,7 @@ public class PaymentGroupControllerTest {
             .amount(new BigDecimal("250.00"))
             .description("description")
             .ccdCaseNumber("1111-2222-2222-1111")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")
@@ -1905,7 +1917,7 @@ public class PaymentGroupControllerTest {
     private BulkScanPaymentRequest getInvalidBulkScanRequest(){
         return BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA07")
             .build();
     }
@@ -1927,7 +1939,7 @@ public class PaymentGroupControllerTest {
     private BulkScanPaymentRequestStrategic getBulkScanPaymentStrategic(String paymentAllocationStatus, String paymentAllocationDescription, String unIdentifiedReason, String documentControlNumber) {
         return BulkScanPaymentRequestStrategic.createBulkScanPaymentStrategicWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(documentControlNumber)

@@ -25,7 +25,6 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
@@ -450,49 +449,57 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .fee(feeRequest)
             .build();
 
+        /*
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("250.00"))
             .description("description")
             .ccdCaseNumber("ccdCaseNumber1")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")
             .siteId("AA001")
             .fees(Collections.singletonList(feeRequest))
             .build();
-
-        MvcResult result1 = restActions
-            .withHeader("service-callback-url", "http://payments.com")
-            .post("/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
+        */
 
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(consecutiveFeeRequest))
             .build();
+
+        MvcResult result1 = restActions
+            .post("/payment-groups", paymentGroupDto)
+            .andReturn();
+
+//        MvcResult result1 = restActions
+//            .withHeader("service-callback-url", "http://payments.com")
+//            .post("/card-payments", cardPaymentRequest)
+//            .andExpect(status().isCreated())
+//            .andReturn();
+
+
 
         PaymentGroupDto newPaymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
             .build();
 
 
-        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        PaymentGroupDto createPaymentGroupResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         // Create a remission
         // Get fee id
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentGroupResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
+            .post("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
         // Adding another fee to the exisitng payment group
         restActions
-            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), paymentGroupDto)
+            .put("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference(), paymentGroupDto)
             .andReturn();
 
         // create new payment which inturns creates a payment group
@@ -553,12 +560,12 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .caseType("tax_exception")
             .fee(feeRequest)
             .build();
-
+   /*
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("250.00"))
             .description("description")
             .ccdCaseNumber("ccdCaseNumber1")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")
@@ -566,23 +573,32 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .fees(Collections.singletonList(feeRequest))
             .build();
 
+
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
+            .andReturn();*/
+
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeRequest))
+            .build();
+
+        MvcResult result1 = restActions
+            .post("/payment-groups", paymentGroupDto)
             .andReturn();
 
 
-        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        PaymentGroupDto createPaymentGroupResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         // Create a remission
         // Get fee id
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentGroupResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
+            .post("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 

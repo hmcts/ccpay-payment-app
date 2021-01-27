@@ -110,7 +110,7 @@ public class PaymentController {
             throw new PaymentException("Payment search feature is not available for usage.");
         }
 
-        validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
+        validator.validate(paymentMethodType, startDateTimeString, endDateTimeString);
 
         Date fromDateTime = Optional.ofNullable(startDateTimeString.map(formatter::parseLocalDateTime).orElse(null))
             .map(LocalDateTime::toDate)

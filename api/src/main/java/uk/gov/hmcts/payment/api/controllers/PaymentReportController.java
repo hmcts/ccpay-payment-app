@@ -42,15 +42,13 @@ public class PaymentReportController {
                                        @RequestParam(name = "start_date", required = false) Optional<String> startDateString,
                                        @RequestParam(name = "end_date", required = false) Optional<String> endDateString) {
 
-        validator.validate(paymentMethodType, serviceType, startDateString, endDateString);
+        validator.validate(paymentMethodType, startDateString, endDateString);
 
         Date fromDate = startDateString.map(s -> clock.atStartOfDay(s, FORMATTER)).orElseGet(clock::getYesterdayDate);
         Date toDate = endDateString.map(s -> clock.atEndOfDay(s, FORMATTER)).orElseGet(clock::getTodayDate);
-        //Service service = serviceType.map(value -> Service.valueOf(value.toUpperCase())).orElse(null);
+        String service = serviceType.isPresent() ? serviceType.get() : null;
         PaymentMethodType paymentMethodTypeName = paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase())).orElse(null);
 
-        if(serviceType.isPresent()) {
-            paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, serviceType.get());
-        }
+        paymentsReportFacade.generateCsvAndSendEmail(fromDate, toDate, paymentMethodTypeName, service);
     }
 }
