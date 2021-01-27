@@ -256,7 +256,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
-            .post("/x", cardPaymentRequest)
+            .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
