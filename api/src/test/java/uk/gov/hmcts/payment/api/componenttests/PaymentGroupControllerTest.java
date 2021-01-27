@@ -256,7 +256,7 @@ public class PaymentGroupControllerTest {
 
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
-            .post("/card-payments", cardPaymentRequest)
+            .post("/x", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -899,6 +899,45 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isBadRequest())
             .andReturn();
 
+    }
+
+    @Test
+    public void addnewPaymentgroupWithCaseTypeShouldReturnSuccess() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .caseType("tax_exception")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isCreated());
     }
 
     @Test
