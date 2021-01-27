@@ -11,11 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,12 +24,18 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -53,8 +54,12 @@ import java.util.Date;
 import java.util.List;
 
 import static java.lang.String.format;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -811,20 +816,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void checkPBAPaymentsErrorWithDifferentSiteIdFor_Unspec_Service() throws Exception {
-
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithDifferentSiteIdForUnSpec_Json().getBytes(), CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        MvcResult result = restActions
-            .post("/credit-account-payments", request)
-            .andExpect(status().isUnprocessableEntity())
-            .andReturn();
-    }
-
-    @Test
     public void checkPBAPaymentsErrorWithNoServiceNameFor_Unspec_Service() throws Exception {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithNoServiceNameForUnSpec_Json().getBytes(), CreditAccountPaymentRequest.class);
@@ -851,45 +842,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCreditAccountPaymentTest_FPLService_InvalidSiteId() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJsonInvalidSiteId().getBytes(), CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
-    public void createCreditAccountPaymentTest_ProbateService_InvalidSiteId() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithInvalidSiteIdForProbateJson().getBytes(), CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
     public void createCreditAccountPaymentTest_ProbateService_NoSiteId() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithNoSiteIdForProbateJson().getBytes(), CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isUnprocessableEntity());
-    }
-
-
-    @Test
-    public void createCreditAccountPaymentTest_IACService_InvalidSiteId() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIACLJsonInvalidSiteId().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
@@ -919,7 +873,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .siteId("ABA6")
             .customerReference("CUST101")
@@ -966,7 +920,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .siteId("ABA6")
             .fees(fees)
@@ -1013,7 +967,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .siteId("ABA6")
             .fees(fees)
@@ -1060,7 +1014,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.FPL)
+            .service("FPL")
             .currency(CurrencyCode.GBP)
             .siteId("ABA3")
             .customerReference("CUST101")
@@ -1105,7 +1059,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.FPL)
+            .service("FPL")
             .currency(CurrencyCode.GBP)
             .siteId("ABA3")
             .customerReference("CUST101")

@@ -24,7 +24,6 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
@@ -290,7 +289,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .siteId("AA07")
             .ccdCaseNumber(ccdCaseNumber)
             .provider("pci pal")
@@ -353,7 +352,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .siteId("AA07")
             .ccdCaseNumber(ccdCaseNumber)
             .provider("pci pal")
