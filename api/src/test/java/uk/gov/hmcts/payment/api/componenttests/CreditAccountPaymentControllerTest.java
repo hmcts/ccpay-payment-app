@@ -1081,6 +1081,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
+        //adding this to resolve error in pipeline for data retrieving
+        Thread.sleep(300);
         assertEquals(BigDecimal.valueOf(0), savedfees.get(0).getAmountDue());
         assertEquals(BigDecimal.valueOf(0), savedfees.get(1).getAmountDue());
         assertEquals(BigDecimal.valueOf(20), savedfees.get(2).getAmountDue());
