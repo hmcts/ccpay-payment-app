@@ -65,10 +65,10 @@ public class PaymentsReportFacadeTest {
         Date toDate = new Date();
 
         // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR");
+        facade.generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR");
 
         // then
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL_BAR", barPaymentReportConfig);
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, null, "DIGITAL BAR", barPaymentReportConfig);
     }
 
     @Test
@@ -89,7 +89,7 @@ public class PaymentsReportFacadeTest {
         exception.expect(UnsupportedOperationException.class);
 
         // given & when
-        facade.generateCsvAndSendEmail(new Date(), new Date(), CARD,"CMC");
+        facade.generateCsvAndSendEmail(new Date(), new Date(), CARD,"Civil Money Claims");
 
     }
 
@@ -108,10 +108,11 @@ public class PaymentsReportFacadeTest {
         Date toDate = new Date();
 
         // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "FPL");
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Family Public Law");
 
         // then
-        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "FPL", pbaFplPaymentReportConfig);
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Family Public Law", pbaFplPaymentReportConfig);
 
     }
+
 }
