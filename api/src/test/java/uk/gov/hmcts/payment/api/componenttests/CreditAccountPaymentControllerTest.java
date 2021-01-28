@@ -74,35 +74,24 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
-
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     protected PaymentDbBackdoor db;
-
     @Autowired
     protected Payment2Repository paymentRepository;
-
     @Autowired
     protected AccountService<AccountDto, String> accountService;
-
     @MockBean
     ReferenceDataService referenceDataService;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
     RestActions restActions;
-
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -373,7 +362,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .ccdCaseTypes(Collections.singletonList("DIVORCE"))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenReturn(organisationalServiceDto);
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
@@ -395,7 +384,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypereturn404() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -407,7 +396,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypeReturn504() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -858,14 +847,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(0,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(1,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(2,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -905,14 +894,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(0,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-        fees.add(1,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(2,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -952,14 +941,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(0,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-        fees.add(1,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(2,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -999,14 +988,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(0,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(1,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(2,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -1036,22 +1025,31 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(0).getAmountDue());
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(1).getAmountDue());
-        assertEquals(BigDecimal.valueOf(20), savedfees.get(2).getAmountDue());
+        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+            .forEach(fee -> {
+                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+            });
+        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+            .forEach(fee -> {
+                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+            });
+        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+            .forEach(fee -> {
+                assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
+            });
     }
 
     @Test
     public void createCreditAccountPaymentWithMultipleFee_AmountDue_When_Apportion_Flag_Is_True() throws Exception {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(0,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(1,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(2,FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -1081,9 +1079,18 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(0).getAmountDue());
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(1).getAmountDue());
-        assertEquals(BigDecimal.valueOf(20), savedfees.get(2).getAmountDue());
+        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+            .forEach(fee -> {
+                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+            });
+        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+            .forEach(fee -> {
+                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+            });
+        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+            .forEach(fee -> {
+                assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
+            });
     }
 
 
