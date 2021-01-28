@@ -29,6 +29,7 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
@@ -647,19 +648,25 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service("DIVORCE")
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -674,9 +681,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -687,20 +694,26 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service("FINREM")
-            .siteId("AA07")
+            .caseType("FinancialRemedyContested")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -715,9 +728,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -760,20 +773,26 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service("DIVORCE")
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -788,9 +807,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -801,20 +820,26 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service("PROBATE")
-            .siteId("AA07")
+            .caseType("PROBATE_ExceptionRecord")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("Probate")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -829,9 +854,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -842,20 +867,26 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service("CMC")
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -870,35 +901,10 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
-    }
-
-    @Test
-    public void shouldThrowPaymentExceptionWhilePassingUnsupportedServiceType() throws Exception {
-        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
-
-        BigDecimal amount = new BigDecimal("200");
-
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .service("FPL")
-            .siteId("AA07")
-            .ccdCaseNumber("2154-2343-5634-2357")
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
     }
 
     @Test
@@ -998,17 +1004,24 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service("DIVORCE")
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .build();
 
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
     }

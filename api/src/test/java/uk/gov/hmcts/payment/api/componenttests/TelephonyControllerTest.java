@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -23,9 +25,12 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -73,6 +78,9 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     RestActions restActions;
+
+    @MockBean
+    private ReferenceDataService referenceDataService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -285,20 +293,26 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         BigDecimal amount = new BigDecimal("101.99");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service("DIVORCE")
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber(ccdCaseNumber)
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -348,20 +362,26 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         BigDecimal amount = new BigDecimal("101.99");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service("DIVORCE")
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber(ccdCaseNumber)
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 

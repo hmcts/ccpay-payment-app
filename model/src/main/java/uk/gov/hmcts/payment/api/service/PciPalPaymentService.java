@@ -28,11 +28,9 @@ import java.util.List;
 public class PciPalPaymentService implements DelegatingPaymentService<PciPalPayment, String> {
     private static final Logger LOG = LoggerFactory.getLogger(PciPalPaymentService.class);
     private static final String SERVICE_TYPE_PROBATE = "probate";
-    private static final String SERVICE_TYPE_CMC = "Civil Money Claims";
-    private static final String SERVICE_TYPE_CMC_REFDATA = "Specified Money Claims";
+    private static final String SERVICE_TYPE_CMC= "Specified Money Claims";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
-    private static final String SERVICE_TYPE_FINREM = "Finrem";
-    private static final String SERVICE_TYPE_FINREM_REFDATA = "Financial Remedy";
+    private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
 
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
@@ -80,13 +78,13 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
             ppAccountID = ppAccountIDDivorce;
         }
-        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC) || serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC_REFDATA)) {
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
             ppAccountID = ppAccountIDCmc;
         }
         else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
             ppAccountID = ppAccountIDProbate;
         }
-        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM) || serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM_REFDATA)) {
+        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM)) {
             ppAccountID = ppAccountIDFinrem;
         }
         else
