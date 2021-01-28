@@ -62,11 +62,6 @@
             this supression is added. </notes>
         <cve>CVE-2020-8908</cve>
     </suppress>
-
-<!--    <suppress until="2021-02-14">-->
-<!--        <notes>This CVE is caused by hibernate core, upgrading the hibernate JAR disrupts the database connection and so suppressing. This needs further study </notes>-->
-<!--        <cve>CVE-2020-25638</cve>-->
-<!--    </suppress>-->
     <!-- Other Supression Group Ends here -->
 
 </suppressions>
