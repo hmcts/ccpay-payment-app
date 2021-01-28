@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
@@ -98,7 +99,7 @@ public class PaymentGroupController {
                                   PaymentFeeRepository paymentFeeRepository,
                                   FeePayApportionService feePayApportionService,
                                   LaunchDarklyFeatureToggler featureToggler,
-                                  FeePayApportionRepository feePayApportionRepository, Payment2Repository payment2Repository){
+                                  FeePayApportionRepository feePayApportionRepository, Payment2Repository payment2Repository) {
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -138,7 +139,7 @@ public class PaymentGroupController {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         paymentGroupDto.getFees().stream().forEach(f -> {
-            if (f.getCcdCaseNumber() == null && f.getReference() == null){
+            if (f.getCcdCaseNumber() == null && f.getReference() == null) {
                 throw new InvalidFeeRequestException("Either ccdCaseNumber or caseReference is required.");
             }
         });
@@ -169,7 +170,7 @@ public class PaymentGroupController {
                                                                    @Valid @RequestBody PaymentGroupDto paymentGroupDto) {
 
         paymentGroupDto.getFees().stream().forEach(f -> {
-            if (f.getCcdCaseNumber() == null && f.getReference() == null){
+            if (f.getCcdCaseNumber() == null && f.getReference() == null) {
                 throw new InvalidFeeRequestException("Either ccdCaseNumber or caseReference is required.");
             }
         });
@@ -195,22 +196,11 @@ public class PaymentGroupController {
         @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackUrl,
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
-        @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
+        @Valid @RequestBody TelephonyPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
 
-        /* Clean up Required--------------------
-        if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
-            request.setChannel("online");
-            request.setProvider("gov pay");
-        }
-        */
-
-        if(StringUtils.isNotBlank(request.getCaseType())){
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
-            request.setSiteId(organisationalServiceDto.getServiceCode());
-            request.setService(organisationalServiceDto.getServiceDescription());
-        } else {
-            request.setService(paymentService.getServiceNameByCode(request.getService()));
-        }
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
+        request.setSiteId(organisationalServiceDto.getServiceCode());
+        request.setService(organisationalServiceDto.getServiceDescription());
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .description(request.getDescription())
@@ -243,9 +233,9 @@ public class PaymentGroupController {
         }
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
-        if(apportionFeature) {
+        if (apportionFeature) {
             feePayApportionService.processApportion(payment);
         }
 
@@ -262,7 +252,7 @@ public class PaymentGroupController {
     @ResponseBody
     @Transactional
     public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference,
-                                                @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
+                                                            @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
@@ -298,13 +288,13 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
-        if(apportionFeature) {
+        if (apportionFeature) {
             feePayApportionService.processApportion(newPayment);
 
             // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
-            if(newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
+            if (newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
                 LOG.info("Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS!!!");
                 feePayApportionService.updateFeeAmountDue(newPayment);
             }
@@ -361,7 +351,7 @@ public class PaymentGroupController {
         return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
     }
 
-    private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference){
+    private Payment getPayment(PaymentFeeLink paymentFeeLink, String paymentReference) {
         return paymentFeeLink.getPayments().stream().filter(p -> p.getReference().equals(paymentReference)).findAny()
             .orElseThrow(() -> new PaymentNotFoundException("Payment with reference " + paymentReference + " does not exists."));
     }
@@ -379,7 +369,7 @@ public class PaymentGroupController {
                                                                      @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic,
                                                                      @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
 
-        boolean prodStrategicFixFeatureFlag = featureToggler.getBooleanValue("prod-strategic-fix",false);
+        boolean prodStrategicFixFeatureFlag = featureToggler.getBooleanValue("prod-strategic-fix", false);
         if (prodStrategicFixFeatureFlag) {
             // Check Any Duplicate payments for current DCN
             if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
@@ -389,7 +379,7 @@ public class PaymentGroupController {
                 }
             }
 
-            if(StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())){
+            if (StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())) {
                 OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
                 bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
                 bulkScanPaymentRequestStrategic.setService(organisationalServiceDto.getServiceDescription());
@@ -467,7 +457,7 @@ public class PaymentGroupController {
 
             String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-            if(StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())){
+            if (StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())) {
                 OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
                 bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
                 bulkScanPaymentRequestStrategic.setService(organisationalServiceDto.getServiceDescription());
@@ -537,13 +527,13 @@ public class PaymentGroupController {
         }
     }
 
-    public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn , String status) throws RestClientException {
+    public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn, String status) throws RestClientException {
         //Generate token for payment api and replace
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
 
         MultiValueMap<String, String> headerMultiValueMapForBulkScan = new LinkedMultiValueMap<String, String>();
-        headerMultiValueMapForBulkScan.put("content-type",headersMap.get("content-type"));
+        headerMultiValueMapForBulkScan.put("content-type", headersMap.get("content-type"));
         //User token
         headerMultiValueMapForBulkScan.put("Authorization", headersMap.get("authorization"));
         //Service token
