@@ -91,6 +91,8 @@ public class PaymentsReportFacadeTest {
         // given & when
         facade.generateCsvAndSendEmail(new Date(), new Date(), CARD,"Civil Money Claims");
 
+        facade.generateCsvAndSendEmail(new Date(), new Date(), CARD,"Specified Money Claims");
+
     }
 
     @Test
