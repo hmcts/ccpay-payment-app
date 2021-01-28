@@ -110,7 +110,7 @@ public class PBAPaymentFunctionalTest {
             .description("New passport application")
             .caseReference("aCaseReference")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .siteId("ABA6")
             .customerReference("CUST101")
