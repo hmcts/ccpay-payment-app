@@ -106,7 +106,7 @@ public class CreditAccountPaymentController {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
-        Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService().toString())
+        Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService())
             ? true : false;
 
         LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
@@ -122,7 +122,7 @@ public class CreditAccountPaymentController {
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
 
-        LOG.info("payment site map  Id" + payment.getSiteId());
+        LOG.info("payment site map  Id : {}", payment.getSiteId());
 
         LOG.debug("Create credit account request for PaymentGroupRef:" + paymentGroupReference + " ,with Payment and " + fees.size() + " - Fees");
 

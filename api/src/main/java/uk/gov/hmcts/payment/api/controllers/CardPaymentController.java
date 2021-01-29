@@ -53,7 +53,6 @@ public class CardPaymentController {
     private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
     private final PaymentDtoMapper paymentDtoMapper;
     private final CardDetailsService<CardDetails, String> cardDetailsService;
-    private final PciPalPaymentService pciPalPaymentService;
     private final FF4j ff4j;
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
@@ -75,7 +74,6 @@ public class CardPaymentController {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
-        this.pciPalPaymentService = pciPalPaymentService;
         this.ff4j = ff4j;
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
