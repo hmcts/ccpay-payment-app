@@ -15,12 +15,12 @@ public enum PaymentReportType {
     public static PaymentReportType from(PaymentMethodType paymentMethodType, String serviceType) {
         String value = "";
 
-        serviceType = getServiceType(serviceType);
+        String serviceTypeEnum = getServiceTypeEnum(serviceType);
 
-        if (paymentMethodType != null && serviceType != null) {
-            value = String.join("_", paymentMethodType.name(), serviceType);
-        } else if (serviceType != null) {
-            value = serviceType;
+        if (paymentMethodType != null && serviceTypeEnum != null) {
+            value = String.join("_", paymentMethodType.name(), serviceTypeEnum);
+        } else if (serviceTypeEnum != null) {
+            value = serviceTypeEnum;
         } else if (paymentMethodType != null) {
             value = paymentMethodType.name();
         }
@@ -29,22 +29,28 @@ public enum PaymentReportType {
             return PaymentReportType.valueOf(value);
         } catch (IllegalArgumentException ex) {
             throw new UnsupportedOperationException(String.format("No config defined as the report type is not supported for " +
-                "paymentMethod %s and service %s ", paymentMethodType, serviceType));
+                "paymentMethod %s and service %s ", paymentMethodType, serviceTypeEnum));
         }
     }
 
-    private static String getServiceType(String serviceType) {
-        if(serviceType != null && (serviceType.equalsIgnoreCase("Civil Money Claims") || serviceType.equalsIgnoreCase("Specified Money Claims"))) {
-            serviceType = "CMC";
+    private static String getServiceTypeEnum(String serviceType) {
+        if(serviceType != null && serviceType.equalsIgnoreCase("Specified Money Claims")) {
+            return "CMC";
         }
-        if(serviceType != null && (serviceType.equalsIgnoreCase("Finrem") || serviceType.equalsIgnoreCase("Financial Remedy"))) {
-            serviceType = "FINREM";
+        if(serviceType != null && serviceType.equalsIgnoreCase("Financial Remedy")) {
+            return "FINREM";
         }
         if(serviceType != null && (serviceType.equalsIgnoreCase("Family Public Law"))) {
-            serviceType = "FPL";
+            return "FPL";
         }
         if(serviceType != null && (serviceType.equalsIgnoreCase("Digital Bar"))) {
-            serviceType = "DIGITAL_BAR";
+            return "DIGITAL_BAR";
+        }
+        if(serviceType != null && (serviceType.equalsIgnoreCase("Divorce"))) {
+            return "DIVORCE";
+        }
+        if(serviceType != null && (serviceType.equalsIgnoreCase("Probate"))) {
+            return "PROBATE";
         }
         return serviceType;
     }
