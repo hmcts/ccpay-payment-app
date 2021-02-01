@@ -46,6 +46,8 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
+    private static final String RD_ENDPOINT = "/refdata/location/orgServices";
+
     @Override
     public List<SiteDTO> getSiteIDs() {
         return SiteDTO.fromSiteList(siteService.getAllSites());
@@ -60,21 +62,17 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
             String serviceAuthorisation = authTokenGenerator.generate();
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
             String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
-            //User token
             headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
                 ? userAuthorization : "Bearer ".concat(userAuthorization)));
-            //Service token
             headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
-            //Http headers
             HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
             final HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
 
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + "/refdata/location/orgServices")
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + RD_ENDPOINT)
                 .queryParam("ccdCaseType", caseType);
-            LOG.info("builder.toUriString() : {}", builder.toUriString());
-            LOG.info("Authorization : {}", headerMultiValueMapForOrganisationalDetail.get("Authorization"));
-            LOG.info("ServiceAuthorization : {}", headerMultiValueMapForOrganisationalDetail.get("ServiceAuthorization"));
-            ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplatePaymentGroup.exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            LOG.debug("builder.toUriString() : {}", builder.toUriString());
+            ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplatePaymentGroup
+                .exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             });
             orgServiceResponse = responseEntity.hasBody() ? responseEntity.getBody() : null;
             if (orgServiceResponse == null || orgServiceResponse.isEmpty()) {
