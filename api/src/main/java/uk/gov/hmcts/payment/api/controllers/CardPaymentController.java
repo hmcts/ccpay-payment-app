@@ -87,7 +87,8 @@ public class CardPaymentController {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute"),
-        @ApiResponse(code = 404, message = "No Service Found")
+        @ApiResponse(code = 404, message = "No Service found for given CaseType"),
+        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
     })
     @PostMapping(value = "/card-payments")
     @ResponseBody
@@ -119,11 +120,11 @@ public class CardPaymentController {
 
         LOG.info("Case Type: {} ",request.getCaseType());
 
-        if(StringUtils.isNotBlank(request.getCaseType())) {
+        if (StringUtils.isNotBlank(request.getCaseType())) {
             OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
             request.setSiteId(organisationalServiceDto.getServiceCode());
             request.setService(organisationalServiceDto.getServiceDescription());
-        }else {
+        } else {
             request.setService(paymentService.getServiceNameByCode(request.getService()));
         }
 
@@ -152,16 +153,6 @@ public class CardPaymentController {
         LOG.info("siteId Value : {}", paymentServiceRequest.getSiteId());
         PaymentFeeLink paymentLink = delegatingPaymentService.create(paymentServiceRequest);
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentLink);
-
-        /* Clean required------------
-        if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
-            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
-                .orderReference(paymentDto.getReference()).build();
-            pciPalPaymentRequest.setCustomData2(paymentLink.getPayments().get(0).getCcdCaseNumber());
-            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService().name());
-            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, link);
-        }
-        */
 
         // trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
