@@ -11,7 +11,6 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
@@ -123,7 +122,7 @@ public class RemissionFunctionalTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .caseType("tax_exception")
             .fees(Collections.singletonList(getFee()))
             .build();

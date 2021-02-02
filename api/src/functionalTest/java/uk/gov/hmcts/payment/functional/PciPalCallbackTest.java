@@ -14,7 +14,6 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
@@ -129,7 +128,7 @@ public class PciPalCallbackTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .siteId("AA007")
             .build();
 
@@ -236,7 +235,7 @@ public class PciPalCallbackTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .siteId("AA007")
             .build();
 
@@ -344,7 +343,7 @@ public class PciPalCallbackTest {
             .amount(new BigDecimal("99.99"))
             .paymentMethod(PaymentMethodType.CARD)
             .reference(reference)
-            .service(Service.CMC)
+            .service("CMC")
             .currency(CurrencyCode.GBP)
             .externalReference(reference)
             .siteId("AA01")
