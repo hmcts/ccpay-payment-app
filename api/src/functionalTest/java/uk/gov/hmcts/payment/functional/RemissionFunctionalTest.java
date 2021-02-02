@@ -123,7 +123,7 @@ public class RemissionFunctionalTest {
             .description("A test telephony payment")
             .provider("pci pal")
             .service("DIVORCE")
-            .caseType("tax_exception")
+            .caseType("DIVORCE_ExceptionRecord")
             .fees(Collections.singletonList(getFee()))
             .build();
     }
@@ -134,7 +134,7 @@ public class RemissionFunctionalTest {
             .ccdCaseNumber("1111-2222-3333-4444")
             .hwfAmount(new BigDecimal("50"))
             .hwfReference("HR1111")
-            .siteId("Y431")
+            .caseType("DIVORCE_ExceptionRecord")
             .fee(getFee())
             .build();
     }
