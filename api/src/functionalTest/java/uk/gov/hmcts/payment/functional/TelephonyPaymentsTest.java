@@ -16,7 +16,6 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -206,7 +205,7 @@ public class TelephonyPaymentsTest {
             .description("description")
             .caseReference(telRefNumber)
             .ccdCaseNumber("1234")
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")
@@ -235,7 +234,7 @@ public class TelephonyPaymentsTest {
             .description("telephonyPayment")
             .caseReference("caseRef")
             .ccdCaseNumber("1234")
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")
@@ -270,7 +269,7 @@ public class TelephonyPaymentsTest {
             .amount(new BigDecimal("99.99"))
             .paymentMethod(PaymentMethodType.CARD)
             .reference(reference)
-            .service(Service.CMC)
+            .service("CMC")
             .currency(CurrencyCode.GBP)
             .externalReference(reference)
             .siteId("AA01")
