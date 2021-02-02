@@ -40,7 +40,8 @@ public class CreditAccountPaymentRequest {
     private String ccdCaseNumber;
 
     private String caseReference;
-    
+
+    @NotNull
     private String service;
 
     private CurrencyCode currency;
