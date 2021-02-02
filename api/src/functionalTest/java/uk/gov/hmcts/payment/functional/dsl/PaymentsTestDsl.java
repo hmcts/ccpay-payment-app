@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -106,8 +107,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createTelephonyCardPayment(CardPaymentRequest cardPaymentRequest, String paymentGroupReference) {
-            response = newRequest().contentType(ContentType.JSON).body(cardPaymentRequest).post("/payment-groups/{payment-group-reference}/card-payments", paymentGroupReference);
+        public PaymentWhenDsl createTelephonyCardPayment(TelephonyPaymentRequest telephonyPaymentRequest, String paymentGroupReference) {
+            response = newRequest().contentType(ContentType.JSON).body(telephonyPaymentRequest).post("/payment-groups/{payment-group-reference}/card-payments", paymentGroupReference);
             return this;
         }
 
