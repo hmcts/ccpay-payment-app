@@ -14,7 +14,6 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
@@ -164,7 +163,7 @@ public class PaymentGroupFunctionalTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIVORCE)
+            .service("Divorce")
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN2903423425343478348")
@@ -223,7 +222,7 @@ public class PaymentGroupFunctionalTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
-            .service(Service.DIVORCE)
+            .service("Divorce")
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN2903423425343478348")
@@ -299,7 +298,7 @@ public class PaymentGroupFunctionalTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("Digital Bar")
             .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -361,7 +360,7 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service(Service.DIVORCE)
+            .service("CMC")
             .caseType("MoneyClaimCase")
             .fees(Collections.singletonList(feeDto))
             .build();
@@ -448,7 +447,7 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service(Service.FINREM)
+            .service("FINREM")
             .siteId("AA001")
             .fees(Collections.singletonList(feeDto))
             .build();
@@ -531,8 +530,8 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service(Service.DIVORCE)
-            .siteId("AA007")
+            .service("DIVORCE")
+            .caseType("DIVORCE")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -570,7 +569,7 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .siteId("AA001")
             .fees(Collections.singletonList(getFee()))
             .build();

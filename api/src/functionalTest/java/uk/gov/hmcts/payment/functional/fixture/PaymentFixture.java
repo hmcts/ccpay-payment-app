@@ -7,7 +7,6 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
@@ -22,7 +21,7 @@ public class PaymentFixture {
             .description("New passport application")
             .ccdCaseNumber(ccdCaseNumber)
             .caseReference("aCaseReference")
-            .service(Service.CMC)
+            .service("CMC")
             .currency(CurrencyCode.GBP)
             .siteId("AA101")
             .fees(Lists.newArrayList(
@@ -35,7 +34,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -58,7 +57,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForUnspec(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForUnspec(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -81,7 +80,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForIAC(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForIAC(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -104,7 +103,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForFPL(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForFPL(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -127,7 +126,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -150,7 +149,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateForSuccessLiberataValidation(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbateForSuccessLiberataValidation(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -178,7 +177,7 @@ public class PaymentFixture {
             .amount(new BigDecimal(amountString))
             .paymentMethod(PaymentMethodType.CASH)
             .reference("case_ref_123")
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
             .reportedDateOffline(DateTime.now().toString())
