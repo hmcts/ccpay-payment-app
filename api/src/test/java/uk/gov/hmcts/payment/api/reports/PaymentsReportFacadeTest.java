@@ -13,6 +13,8 @@ import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
 
 import java.util.Date;
 import java.util.Map;
@@ -35,13 +37,21 @@ public class PaymentsReportFacadeTest {
 
     private CardPaymentReportConfig cardPaymentReportConfig = new CardPaymentReportConfig("from", null, "subject", "message", true);
     private BarPaymentReportConfig barPaymentReportConfig = new BarPaymentReportConfig("from", null, "subject", "message", true);
-    private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig = new PbaCmcPaymentReportConfig("from", null, "subject", "message", false);
+    private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfig = new PbaCmcPaymentReportConfig("from", null, "subject", "message", true);
+    private PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig = new PbaDivorcePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFplPaymentReportConfig pbaFplPaymentReportConfig = new PbaFplPaymentReportConfig("from", null, "subject", "message", true);
+    private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
+    private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfigSearchDisable = new PbaCmcPaymentReportConfig("from", null, "subject", "message", false);
 
     @Before
     public void setUp() {
-        Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.of(PaymentReportType.CARD, cardPaymentReportConfig, PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig,
-            PaymentReportType.DIGITAL_BAR, barPaymentReportConfig, PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig);
+        Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
+            .put(PaymentReportType.CARD, cardPaymentReportConfig)
+            .put(PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig)
+            .put(PaymentReportType.DIGITAL_BAR,barPaymentReportConfig)
+            .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
+            .put(PaymentReportType.PBA_DIVORCE,pbaDivorcePaymentReportConfig)
+            .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig).build();
         facade = new PaymentsReportFacade(reportService, map);
     }
 
@@ -72,30 +82,31 @@ public class PaymentsReportFacadeTest {
     }
 
     @Test
-    public void shouldNotDelegateToServiceIfDisabled() {
+    public void PbaCmcDelegatePaymentReportType() {
+
         // given
         Date fromDate = new Date();
         Date toDate = new Date();
 
-        // when
-        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "CMC");
+        // given & when
 
-        // then
-        verifyZeroInteractions(reportService);
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA,"Specified Money Claims");
+
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaCmcPaymentReportConfig);
+
     }
 
     @Test
     public void shouldThrowExceptionForInvalidPaymentReportType() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
         exception.expect(UnsupportedOperationException.class);
-
-        // given & when
-        facade.generateCsvAndSendEmail(new Date(), new Date(), CARD,"Civil Money Claims");
-
-        facade.generateCsvAndSendEmail(new Date(), new Date(), CARD,"Specified Money Claims");
-
+        facade.generateCsvAndSendEmail(fromDate, toDate, null,null);
     }
 
-    @Test
+        @Test
     public void shouldThrowExceptionForEmptyValuesForMethodTypeAndService() {
         exception.expect(UnsupportedOperationException.class);
 
@@ -114,6 +125,35 @@ public class PaymentsReportFacadeTest {
 
         // then
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Family Public Law", pbaFplPaymentReportConfig);
+
+    }
+
+    @Test
+    public void PbaDivorceConfigurationService() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Divorce");
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Divorce", pbaDivorcePaymentReportConfig);
+
+    }
+
+
+    @Test
+    public void PbaProbateConfigurationService() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Probate");
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Probate", pbaProbatePaymentReportConfig);
 
     }
 
