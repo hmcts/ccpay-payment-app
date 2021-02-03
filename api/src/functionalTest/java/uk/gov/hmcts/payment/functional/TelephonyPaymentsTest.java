@@ -15,7 +15,9 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -28,28 +30,26 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class TelephonyPaymentsTest {
+    private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    private static String USER_TOKEN;
+    private static String SERVICE_TOKEN;
+    private static boolean TOKENS_INITIALIZED = false;
     @Autowired
     private TestConfigProperties testProps;
-
     @Autowired
     private PaymentsTestDsl dsl;
-
     @Autowired
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
-
-    private static String USER_TOKEN;
-    private static String SERVICE_TOKEN;
-    private static boolean TOKENS_INITIALIZED = false;
-    private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Before
     public void setUp() throws Exception {
@@ -103,7 +103,7 @@ public class TelephonyPaymentsTest {
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when()
                 .enableSearch()
-                .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
+                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
                 .then().got(PaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
@@ -144,7 +144,7 @@ public class TelephonyPaymentsTest {
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when()
                 .enableSearch()
-                .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
+                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
                 .then().got(PaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
@@ -185,7 +185,7 @@ public class TelephonyPaymentsTest {
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when()
                 .enableSearch()
-                .searchPaymentsByServiceBetweenDates(paymentRecordRequest.getService(), startDateTime, endDateTime)
+                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
                 .then().got(PaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
@@ -229,16 +229,15 @@ public class TelephonyPaymentsTest {
 
     @Test
     public void retrieveCorrectPciPalUrlWhenCreatingATelephonyCardPayment() {
-        CardPaymentRequest paymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest paymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(new BigDecimal("99.99"))
             .description("telephonyPayment")
             .caseReference("caseRef")
             .ccdCaseNumber("1234")
-            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")
-            .siteId("sideId")
+            .caseType("LegacySearch")
             .fees(Collections.singletonList(FeeDto.feeDtoWith()
                 .code("feeCode")
                 .version("1")
@@ -250,15 +249,25 @@ public class TelephonyPaymentsTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createCardPayment(paymentRequest)
-            .then().created(paymentDto -> {
-            assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-            assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-            String[] schemes = {"https"};
-            UrlValidator urlValidator = new UrlValidator(schemes);
-            assertNotNull(paymentDto.getLinks().getNextUrl());
-            assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
+            .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+            assertThat(paymentGroupFeeDto).isNotNull();
+            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
+            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
+                .when().createTelephonyCardPayment(paymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
+                .then().created(paymentDto -> {
+                assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+                String[] schemes = {"https"};
+                UrlValidator urlValidator = new UrlValidator(schemes);
+                assertNotNull(paymentDto.getLinks().getNextUrl());
+                assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
+            });
+
         });
     }
 
@@ -287,4 +296,17 @@ public class TelephonyPaymentsTest {
             .reportedDateOffline(DateTime.now().toString())
             .build();
     }
+
+    private PaymentGroupDto getPaymentFeeGroupRequest() {
+        return PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("250.00"))
+                .code("FEE3232")
+                .version("1")
+                .reference("testRef")
+                .volume(2)
+                .build())).build();
+    }
+
 }
+

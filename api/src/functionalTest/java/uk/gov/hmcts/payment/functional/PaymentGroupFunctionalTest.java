@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.assertj.core.api.Assertions;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -37,6 +38,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
@@ -105,10 +108,19 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service("FINREM")
             .caseType("FinancialRemedyContested")
             .fees(Collections.singletonList(getFee()))
             .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(FeeDto.feeDtoWith()
+                .calculatedAmount(new BigDecimal("250.00"))
+                .code("FEE3232")
+                .version("1")
+                .reference("testRef")
+                .volume(2)
+                .ccdCaseNumber("1111-CCD2-3353-4464")
+                .build())).build();
 
         // TEST create telephony card payment
         dsl.given().userToken(USER_TOKEN)
@@ -122,6 +134,28 @@ public class PaymentGroupFunctionalTest {
             String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
             FeeDto feeDto = paymentGroupFeeDto.getFees().get(0);
             Integer feeId = feeDto.getId();
+
+            //Test add new Fee to payment group
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .when().addNewFeetoExistingPaymentGroup(groupDto, paymentGroupReference)
+                .then().got(PaymentGroupDto.class, paymentGroupFeeDto2 -> {
+                assertThat(paymentGroupFeeDto2).isNotNull();
+                assertThat(paymentGroupFeeDto2.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+            });
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
+                .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
+                .then().created(paymentDto -> {
+                assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
+                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
+                String[] schemes = {"https"};
+                UrlValidator urlValidator = new UrlValidator(schemes);
+                assertNotNull(paymentDto.getLinks().getNextUrl());
+                assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
+            });
 
             // TEST create retrospective remission
             dsl.given().userToken(USER_TOKEN)
@@ -422,7 +456,6 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service("FINREM")
             .caseType("FinancialRemedyContested")
             .fees(Collections.singletonList(feeDto))
             .build();
@@ -510,7 +543,6 @@ public class PaymentGroupFunctionalTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service("DIVORCE")
             .caseType("DIVORCE")
             .build();
 
