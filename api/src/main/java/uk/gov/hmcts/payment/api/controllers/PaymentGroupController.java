@@ -21,7 +21,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
@@ -199,8 +198,6 @@ public class PaymentGroupController {
         @Valid @RequestBody TelephonyPaymentRequest request) throws CheckDigitException, MethodNotSupportedException {
 
         OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
-        request.setSiteId(organisationalServiceDto.getServiceCode());
-        request.setService(organisationalServiceDto.getServiceDescription());
 
         PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
             .description(request.getDescription())
@@ -210,8 +207,8 @@ public class PaymentGroupController {
             .ccdCaseNumber(request.getCcdCaseNumber())
             .caseReference(request.getCaseReference())
             .currency(request.getCurrency().getCode())
-            .siteId(request.getSiteId())
-            .serviceType(request.getService())
+            .siteId(organisationalServiceDto.getServiceCode())
+            .serviceType(organisationalServiceDto.getServiceDescription())
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
             .channel(request.getChannel())
@@ -228,7 +225,7 @@ public class PaymentGroupController {
             PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, request.getService());
+            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, paymentServiceRequest.getServiceType());
             paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
         }
 
