@@ -8,19 +8,20 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
 
 import java.util.Date;
 import java.util.Map;
 
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.hmcts.payment.api.util.PaymentMethodType.CARD;
 import static uk.gov.hmcts.payment.api.util.PaymentMethodType.PBA;
 
@@ -41,7 +42,7 @@ public class PaymentsReportFacadeTest {
     private PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig = new PbaDivorcePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFplPaymentReportConfig pbaFplPaymentReportConfig = new PbaFplPaymentReportConfig("from", null, "subject", "message", true);
     private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
-    private PbaCmcPaymentReportConfig pbaCmcPaymentReportConfigSearchDisable = new PbaCmcPaymentReportConfig("from", null, "subject", "message", false);
+    private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig= new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
 
     @Before
     public void setUp() {
@@ -51,7 +52,8 @@ public class PaymentsReportFacadeTest {
             .put(PaymentReportType.DIGITAL_BAR,barPaymentReportConfig)
             .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
             .put(PaymentReportType.PBA_DIVORCE,pbaDivorcePaymentReportConfig)
-            .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig).build();
+            .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
+            .put(PaymentReportType.PBA_FINREM,pbaFinremPaymentReportConfig).build();
         facade = new PaymentsReportFacade(reportService, map);
     }
 
@@ -154,6 +156,20 @@ public class PaymentsReportFacadeTest {
 
         // then
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Probate", pbaProbatePaymentReportConfig);
+
+    }
+
+    @Test
+    public void PbaFinremConfigurationService() {
+        // given
+        Date fromDate = new Date();
+        Date toDate = new Date();
+
+        // when
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Financial Remedy");
+
+        // then
+        verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Financial Remedy", pbaFinremPaymentReportConfig);
 
     }
 
