@@ -126,11 +126,10 @@ public class PciPalCallbackTest {
             .amount(new BigDecimal("120"))
             .ccdCaseNumber(ccdCaseNumber)
             .channel("telephony")
+            .caseType("DIVORCE")
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service("DIVORCE")
-            .siteId("AA007")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
@@ -236,7 +235,6 @@ public class PciPalCallbackTest {
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")
-            .service("DIVORCE")
             .caseType("DIVORCE")
             .build();
 
