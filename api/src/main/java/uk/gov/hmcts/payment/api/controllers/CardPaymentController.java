@@ -30,7 +30,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -57,9 +56,6 @@ public class CardPaymentController {
     private final FeePayApportionService feePayApportionService;
     private final LaunchDarklyFeatureToggler featureToggler;
     private final ReferenceDataService referenceDataService;
-
-    @Autowired
-    private AuthTokenGenerator authTokenGenerator;
 
     @Autowired
     private PaymentService<PaymentFeeLink, String> paymentService;
