@@ -106,7 +106,6 @@ public class PaymentController {
                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
                                              @RequestParam(name = "pba_number", required = false) String pbaNumber
     ) {
-
         if (!ff4j.check("payment-search")) {
             throw new PaymentException("Payment search feature is not available for usage.");
         }
@@ -197,6 +196,7 @@ public class PaymentController {
 
         LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
         LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
+        
         for (final Payment payment: payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             //Apportion logic added for pulling allocation amount
