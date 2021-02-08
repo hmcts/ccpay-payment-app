@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
 import io.swagger.annotations.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
@@ -376,11 +375,7 @@ public class PaymentGroupController {
                 }
             }
 
-            if (StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())) {
-                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
-                bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
-                bulkScanPaymentRequestStrategic.setService(organisationalServiceDto.getServiceDescription());
-            }
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
                 paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
@@ -393,10 +388,10 @@ public class PaymentGroupController {
                 .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
                 .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
                 .paymentProvider(paymentProvider)
-                .serviceType(bulkScanPaymentRequestStrategic.getService())
+                .serviceType(organisationalServiceDto.getServiceDescription())
                 .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
                 .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
-                .siteId(bulkScanPaymentRequestStrategic.getSiteId())
+                .siteId(organisationalServiceDto.getServiceCode())
                 .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
                 .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
                 .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())
@@ -427,7 +422,6 @@ public class PaymentGroupController {
         } else {
             throw new PaymentException("This feature is not available to use !!!");
         }
-
     }
 
     @ApiOperation(value = "Record a Bulk Scan Payment with Payment Group", notes = "Record a Bulk Scan Payment with Payment Group")
@@ -454,11 +448,7 @@ public class PaymentGroupController {
 
             String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-            if (StringUtils.isNotBlank(bulkScanPaymentRequestStrategic.getCaseType())) {
-                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
-                bulkScanPaymentRequestStrategic.setSiteId(organisationalServiceDto.getServiceCode());
-                bulkScanPaymentRequestStrategic.setService(organisationalServiceDto.getServiceDescription());
-            }
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
                 paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
@@ -471,9 +461,9 @@ public class PaymentGroupController {
                 .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
                 .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
                 .paymentProvider(paymentProvider)
-                .serviceType(bulkScanPaymentRequestStrategic.getService())
+                .serviceType(organisationalServiceDto.getServiceDescription())
                 .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
-                .siteId(bulkScanPaymentRequestStrategic.getSiteId())
+                .siteId(organisationalServiceDto.getServiceCode())
                 .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
                 .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
                 .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())

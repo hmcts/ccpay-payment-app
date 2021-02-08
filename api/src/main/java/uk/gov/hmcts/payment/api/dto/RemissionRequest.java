@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 
 import javax.validation.Valid;
@@ -42,8 +41,6 @@ public class RemissionRequest {
     @NotNull
     @Valid
     private FeeDto fee;
-
-    private String siteId;
 
     @NotBlank
     private String caseType;

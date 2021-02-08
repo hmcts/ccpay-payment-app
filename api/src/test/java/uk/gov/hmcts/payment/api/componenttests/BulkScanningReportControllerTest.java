@@ -398,7 +398,6 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .ccdCaseNumber("1111-2222-2222-1111")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
-            .siteId("AA001")
             .build();
        Remission remission= Remission.remissionWith()
             .remissionReference("12345")
@@ -471,7 +470,6 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .ccdCaseNumber("1111-2222-2222-1111")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
-            .siteId("AA001")
             .build();
         Remission remission= Remission.remissionWith()
             .remissionReference("12345")

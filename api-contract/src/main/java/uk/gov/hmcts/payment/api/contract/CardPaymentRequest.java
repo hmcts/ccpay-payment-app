@@ -44,6 +44,9 @@ public class CardPaymentRequest {
 
     private String caseReference;
 
+    /*
+    Following attribute to be removed once all Services are on-boarded to Enterprise ORG ID
+    */
     private String service;
 
     private CurrencyCode currency;
@@ -54,6 +57,9 @@ public class CardPaymentRequest {
 
     private String language;
 
+    /*
+    Following attribute to be removed once all Services are on-boarded to Enterprise ORG ID
+    */
     @JsonProperty("site_id")
     private String siteId;
 

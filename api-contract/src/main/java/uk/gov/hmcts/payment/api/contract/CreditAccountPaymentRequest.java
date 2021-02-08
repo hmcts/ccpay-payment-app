@@ -41,6 +41,9 @@ public class CreditAccountPaymentRequest {
 
     private String caseReference;
 
+    /*
+    Following attribute to be removed once all Services are on-boarded to PBA Config 2
+    */
     @NotNull
     private String service;
 
@@ -55,6 +58,9 @@ public class CreditAccountPaymentRequest {
     @NotEmpty
     private String accountNumber;
 
+    /*
+    Following attribute to be removed once all Services are on-boarded to Enterprise ORG ID
+    */
     @JsonProperty("site_id")
     private String siteId;
 
