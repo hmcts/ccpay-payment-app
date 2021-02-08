@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -17,7 +18,7 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import static org.ff4j.utils.Util.assertNotNull;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 @Ignore
 public class AccountFunctionalTest {

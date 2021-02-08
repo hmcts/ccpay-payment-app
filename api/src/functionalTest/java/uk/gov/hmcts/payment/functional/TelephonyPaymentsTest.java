@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import com.mifmif.common.regex.Generex;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -32,7 +33,7 @@ import java.util.Collections;
 import static org.junit.Assert.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
-@RunWith(SpringRunner.class)
+@RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class TelephonyPaymentsTest {
     @Autowired

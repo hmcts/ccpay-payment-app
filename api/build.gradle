@@ -1,9 +1,17 @@
+buildscript {
+    dependencies {
+        classpath "net.serenity-bdd:serenity-gradle-plugin:2.1.4"
+        classpath "net.serenity-bdd:serenity-single-page-report:2.1.4"
+    }
+}
+
 plugins {
     id "info.solidsoft.pitest" version '1.5.1'
     id 'au.com.dius.pact' version '4.1.0'
 }
 
 apply from: 'liquibase.gradle'
+apply plugin: 'net.serenity-bdd.aggregator'
 
 description = ''
 
@@ -59,7 +67,10 @@ def versions = [
         sonarPitest : '0.5',
         lombok      : '1.18.12',
         pact_version: '4.1.7',
-        reformS2sClient    : '3.1.1'
+        reformS2sClient    : '3.1.1',
+        serenity                : '2.2.12',
+        serenityreporter        : '2.1.4',
+        serenityCucumber        : '1.9.51'
 ]
 
 def javaLoggingVersion = '5.1.1'
@@ -139,6 +150,11 @@ dependencies {
     compile group: 'org.pitest', name: 'pitest', version: versions.pitest
     compile 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.4.6'
     compile 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
+    functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
+    functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-cucumber', version: versions.serenityCucumber
+    functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
+    functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
+    functionalTestCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
 
     contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: versions.pact_version
     contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: versions.pact_version
@@ -159,10 +175,19 @@ task smokeTest(type: Test, description: 'Runs the smoke tests', group: 'Verifica
     classpath = sourceSets.smokeTest.runtimeClasspath
 }
 
+serenity {
+    reports = ["single-page-html"]
+}
+
+
 task functionalTest(type: Test, description: 'Runs the functional tests', group: 'Verification') {
     testClassesDirs = sourceSets.functionalTest.output.classesDirs
     classpath = sourceSets.functionalTest.runtimeClasspath
+    finalizedBy aggregate
 }
+
+functionalTest.finalizedBy(aggregate)
+
 
 task contractTest(type: Test) {
     logger.lifecycle("Runnning contract Tests")
