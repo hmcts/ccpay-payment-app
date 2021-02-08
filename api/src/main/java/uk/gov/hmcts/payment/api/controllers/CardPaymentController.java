@@ -119,6 +119,9 @@ public class CardPaymentController {
             request.setSiteId(organisationalServiceDto.getServiceCode());
             request.setService(organisationalServiceDto.getServiceDescription());
         } else {
+            /*
+            Following piece of code to be removed once all Services are on-boarded to Enterprise ORG ID
+            */
             request.setService(paymentService.getServiceNameByCode(request.getService()));
         }
 

@@ -105,6 +105,9 @@ public class CreditAccountPaymentController {
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
+        /*
+        Following piece of code to be removed once all Services are on-boarded to PBA Config 2
+         */
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
         Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService())
             ? true : false;

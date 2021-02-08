@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -149,7 +148,7 @@ public class FeesControllerTest {
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result = restActions
-            .post("/remission", remissionRequest)
+            .post("/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 

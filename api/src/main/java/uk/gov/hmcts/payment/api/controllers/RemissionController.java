@@ -19,8 +19,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RemissionService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
-import uk.gov.hmcts.payment.api.validators.RemissionValidator;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.validation.Valid;
 
@@ -34,44 +32,10 @@ public class RemissionController {
     private RemissionService remissionService;
 
     @Autowired
-    private RemissionValidator remissionValidator;
-
-    @Autowired
     private RemissionDtoMapper remissionDtoMapper;
 
     @Autowired
-    private AuthTokenGenerator authTokenGenerator;
-
-    @Autowired
     private ReferenceDataService referenceDataService;
-
-
-    @ApiOperation(value = "Create upfront/retrospective remission record", notes = "Create upfront/retrospective remission record - Tactical")
-    @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Remission created"),
-        @ApiResponse(code = 400, message = "Remission creation failed"),
-        @ApiResponse(code = 404, message = "Given payment group reference not found"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
-    })
-    @PostMapping(value = "/remission")
-    @ResponseBody
-    @Deprecated
-    public ResponseEntity<RemissionDto> createRemissionV1(@Valid @RequestBody RemissionRequest remissionRequest,
-                                                          @RequestHeader(required = false) MultiValueMap<String, String> headers)
-        throws CheckDigitException {
-
-        getOrganisationalDetails(headers, remissionRequest);
-
-        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
-        remissionRequest.getFee().setCcdCaseNumber(remissionRequest.getCcdCaseNumber());
-        remissionServiceRequest.setFee(remissionDtoMapper.toFee(remissionRequest.getFee()));
-        PaymentFeeLink paymentFeeLink = remissionRequest.getPaymentGroupReference() == null ?
-            remissionService.createRemission(remissionServiceRequest) :
-            remissionService.createRetrospectiveRemission(remissionServiceRequest, remissionRequest.getPaymentGroupReference(), null);
-
-        return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
-    }
-
 
     @ApiOperation(value = "Create upfront remission record", notes = "Create upfront remission record")
     @ApiResponses(value = {
@@ -86,9 +50,9 @@ public class RemissionController {
                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers)
         throws CheckDigitException {
 
-        getOrganisationalDetails(headers, remissionRequest);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(remissionRequest.getCaseType(), headers);
 
-        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest, organisationalServiceDto);
         remissionRequest.getFee().setCcdCaseNumber(remissionRequest.getCcdCaseNumber());
         remissionServiceRequest.setFee(remissionDtoMapper.toFee(remissionRequest.getFee()));
         PaymentFeeLink paymentFeeLink = remissionService.createRemission(remissionServiceRequest);
@@ -111,21 +75,15 @@ public class RemissionController {
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
 
-        getOrganisationalDetails(headers, remissionRequest);
-        LOG.info("SiteId : {} ", remissionRequest.getSiteId());
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(remissionRequest.getCaseType(), headers);
 
-        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest);
+        RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest, organisationalServiceDto);
         PaymentFeeLink paymentFeeLink = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentGroupReference, feeId);
 
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
-    private void getOrganisationalDetails(MultiValueMap<String, String> headers, RemissionRequest remissionRequest) {
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(remissionRequest.getCaseType(), headers);
-        remissionRequest.setSiteId(organisationalServiceDto.getServiceCode());
-    }
-
-    private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest) {
+    private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest, OrganisationalServiceDto organisationalServiceDto) {
         return RemissionServiceRequest.remissionServiceRequestWith()
             .paymentGroupReference(PaymentReference.getInstance().getNext())
             .hwfAmount(remissionRequest.getHwfAmount())
@@ -133,7 +91,7 @@ public class RemissionController {
             .beneficiaryName(remissionRequest.getBeneficiaryName())
             .ccdCaseNumber(remissionRequest.getCcdCaseNumber())
             .caseReference(remissionRequest.getCaseReference())
-            .siteId(remissionRequest.getSiteId())
+            .siteId(organisationalServiceDto.getServiceCode())
             .build();
     }
 

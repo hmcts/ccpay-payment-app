@@ -66,7 +66,10 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         this.featureToggler = featureToggler;
     }
 
-    static{
+    /*
+    Following piece of code to be removed once all Services are on-boarded to Enterprise ORG ID
+    */
+    static {
         serviceNameMap = new HashMap<>();
         serviceNameMap.put("CMC", "Civil Money Claims");
         serviceNameMap.put("DIVORCE", "Divorce");

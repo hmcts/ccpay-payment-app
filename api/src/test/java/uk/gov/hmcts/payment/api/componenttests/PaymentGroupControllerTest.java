@@ -1991,8 +1991,6 @@ public class PaymentGroupControllerTest {
     private BulkScanPaymentRequestStrategic getBulkScanPaymentStrategic(String paymentAllocationStatus, String paymentAllocationDescription, String unIdentifiedReason, String documentControlNumber) {
         return BulkScanPaymentRequestStrategic.createBulkScanPaymentStrategicWith()
             .amount(new BigDecimal(100.00))
-            .service("DIGITAL_BAR")
-            .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(documentControlNumber)
             .ccdCaseNumber("1231-1231-3453-4333")
