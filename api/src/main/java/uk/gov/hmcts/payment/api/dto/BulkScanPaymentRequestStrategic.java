@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -39,9 +38,6 @@ public class BulkScanPaymentRequestStrategic {
     @NotNull
     private PaymentMethodType paymentMethod;
 
-    @JsonProperty("requestor")
-    private String service;
-
     private String ccdCaseNumber;
 
     private String exceptionRecord;
@@ -62,9 +58,6 @@ public class BulkScanPaymentRequestStrategic {
 
     @NotNull
     private String bankedDate;
-
-    @JsonProperty("site_id")
-    private String siteId;
 
     @NotBlank
     private String caseType;
