@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.annotation.PostConstruct;
 
@@ -16,6 +17,7 @@ import static io.restassured.config.JsonConfig.jsonConfig;
 @Configuration
 @ComponentScan("uk.gov.hmcts.payment.functional")
 @PropertySource("classpath:application-functional-tests.properties")
+@ActiveProfiles({"local", "functionaltest", "liberataMock"})
 public class TestContextConfiguration {
 
     @Value("${test.url:http://localhost:8080}")
