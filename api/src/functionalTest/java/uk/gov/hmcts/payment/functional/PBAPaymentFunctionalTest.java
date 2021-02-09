@@ -37,7 +37,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-@ActiveProfiles(profiles = "liberataMock")
+@ActiveProfiles({"local", "functionaltest", "liberataMock"})
 public class PBAPaymentFunctionalTest {
 
     @Autowired
