@@ -92,5 +92,24 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
     }
 
+    @Test(expected = NoServiceFoundException.class)
+    public void getOrganisationalDetailNoServiceFoundWithNull() throws Exception {
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+        //User token
+        header.put("Authorization", Collections.singletonList("Bearer 131313"));
+        //Service token
+        header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
+        header.put("Content-Type", Collections.singletonList("application/json"));
+
+        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(null,HttpStatus.OK);
+
+        when(authTokenGenerator.generate()).thenReturn("test-token");
+
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+    }
+
 }
 
