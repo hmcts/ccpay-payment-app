@@ -8,7 +8,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -37,9 +36,8 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CASE_WORKER_G
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = "spring.profiles.active:liberataMock")
 @ContextConfiguration(classes = TestContextConfiguration.class)
-@ActiveProfiles({"local", "functionaltest", "liberataMock"})
+@ActiveProfiles({"liberataMock"})
 public class PBAPaymentFunctionalTest {
 
     @Autowired
