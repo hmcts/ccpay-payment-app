@@ -78,7 +78,9 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePbaPaymentsByProbate() {
         // create a PBA payment
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00", Service.PROBATE);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
@@ -86,17 +88,17 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().searchPaymentsByServiceBetweenDates(Service.PROBATE, startDate, endDate)
+            .then().getPayments((paymentsResponse -> {
+            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        }));
     }
 
     @Test
     public void makeAndRetrievePBAPaymentByProbateTestShouldReturnAutoApportionedFees() {
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
@@ -127,7 +129,7 @@ public class PBAPaymentFunctionalTest {
             .body("status", equalTo("Success"));
 
         // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
+        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, "PBA1111111")
             .then()
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
@@ -168,7 +170,9 @@ public class PBAPaymentFunctionalTest {
     @Test
     public void makeAndRetrievePbaPaymentsByProbateForSuccessLiberataValidation() {
         // create a PBA payment
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbateForSuccessLiberataValidation("215.00", Service.PROBATE);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
@@ -176,12 +180,12 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().searchPaymentsByServiceBetweenDates(Service.PROBATE, startDate, endDate)
+            .then().getPayments((paymentsResponse -> {
+            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        }));
 
         // Get pba payments by ccdCaseNumber
         PaymentsResponse liberataResponse = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber())
@@ -199,7 +203,9 @@ public class PBAPaymentFunctionalTest {
 
     @Test
     public void makeAndRetrievePBAPaymentByProbateTestShouldReturnAutoApportionedFeesForSuccessMultipleFeesLiberataValidation() {
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
+        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         // create card payment
         List<FeeDto> fees = new ArrayList<>();
@@ -229,12 +235,12 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().searchPaymentsByServiceBetweenDates(Service.PROBATE, startDate, endDate)
+            .then().getPayments((paymentsResponse -> {
+            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        }));
 
         // Get pba payments by ccdCaseNumber
         PaymentsResponse liberataResponse = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber())
@@ -266,7 +272,7 @@ public class PBAPaymentFunctionalTest {
     public void makeAndRetrievePbaPaymentByFinrem() {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", Service.FINREM);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
@@ -288,7 +294,7 @@ public class PBAPaymentFunctionalTest {
     public void makeAndRetrievePbaPaymentByUnspecService() {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForUnspec("90.00", Service.UNSPEC);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
@@ -310,7 +316,7 @@ public class PBAPaymentFunctionalTest {
     public void makeAndRetrievePbaPaymentByIACService() {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForIAC("90.00", Service.IAC);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
@@ -332,7 +338,7 @@ public class PBAPaymentFunctionalTest {
     public void makeAndRetrievePbaPaymentByFPLService() {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForFPL("90.00", Service.FPL);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
@@ -352,7 +358,7 @@ public class PBAPaymentFunctionalTest {
 
     @Test
     public void shouldRejectDuplicatePayment() {
-        String accountNumber = testProps.existingAccountNumber;
+        String accountNumber = "PBA1111111";
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("550.50", Service.PROBATE);
         accountPaymentRequest.setAccountNumber(accountNumber);
         // when & then

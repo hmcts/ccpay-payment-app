@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +61,7 @@ public class CreditAccountPaymentController {
     private final CreditAccountPaymentRequestMapper requestMapper;
     private final List<String> pbaConfig1ServiceNames;
     private final Environment environment;
+    private ConfigurableEnvironment env;
 
 
     @Autowired
@@ -69,7 +71,7 @@ public class CreditAccountPaymentController {
                                           DuplicatePaymentValidator paymentValidator,
                                           FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
                                           PBAStatusErrorMapper pbaStatusErrorMapper,
-                                          CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames, Environment environment) {
+                                          CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames, Environment environment,ConfigurableEnvironment env) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -80,6 +82,7 @@ public class CreditAccountPaymentController {
         this.requestMapper = requestMapper;
         this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
         this.environment = environment;
+        this.env = env;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -101,6 +104,12 @@ public class CreditAccountPaymentController {
         for(String profile: environment.getActiveProfiles()) {
             LOG.error("Profile Values : {}",profile);
         }
+        if(creditAccountPaymentRequest.getAccountNumber().equalsIgnoreCase("PBA1111111"))
+        {
+            env.setActiveProfiles("liberataMock");
+        }
+
+        LOG.error("Env Profile Values : {}",env.getActiveProfiles());
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
