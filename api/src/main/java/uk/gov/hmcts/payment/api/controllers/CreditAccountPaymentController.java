@@ -96,8 +96,10 @@ public class CreditAccountPaymentController {
     @Transactional
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
+        LOG.error("Inside createCreditAccountPayment");
+        LOG.error("Profile Array Values : {}", environment.getActiveProfiles());
         for(String profile: environment.getActiveProfiles()) {
-            LOG.info("Profile Values : {}",profile);
+            LOG.error("Profile Values : {}",profile);
         }
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
 
