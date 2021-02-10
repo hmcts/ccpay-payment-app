@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +59,7 @@ public class CreditAccountPaymentController {
     private final PBAStatusErrorMapper pbaStatusErrorMapper;
     private final CreditAccountPaymentRequestMapper requestMapper;
     private final List<String> pbaConfig1ServiceNames;
+    private final Environment environment;
 
 
     @Autowired
@@ -65,9 +67,9 @@ public class CreditAccountPaymentController {
                                           CreditAccountDtoMapper creditAccountDtoMapper,
                                           AccountService<AccountDto, String> accountService,
                                           DuplicatePaymentValidator paymentValidator,
-                                          FeePayApportionService feePayApportionService,LaunchDarklyFeatureToggler featureToggler,
+                                          FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
                                           PBAStatusErrorMapper pbaStatusErrorMapper,
-                                          CreditAccountPaymentRequestMapper requestMapper,  @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
+                                          CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames, Environment environment) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -77,6 +79,7 @@ public class CreditAccountPaymentController {
         this.pbaStatusErrorMapper = pbaStatusErrorMapper;
         this.requestMapper = requestMapper;
         this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
+        this.environment = environment;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -93,7 +96,9 @@ public class CreditAccountPaymentController {
     @Transactional
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
-
+        for(String profile: environment.getActiveProfiles()) {
+            LOG.info("Profile Values : {}",profile);
+        }
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
