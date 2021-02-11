@@ -20,9 +20,9 @@ public class MockAccountServiceImpl implements AccountService<AccountDto, String
     @Override
     public AccountDto retrieve(String pbaCode) {
         LOG.info("Called mock liberata account service");
-        if ("PBA0082848".equalsIgnoreCase(pbaCode)) {
+        if ("PBA0081334".equalsIgnoreCase(pbaCode)) {
             return AccountDto.accountDtoWith()
-                .accountNumber("PBA0082848")
+                .accountNumber("PBA0081334")
                 .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
                 .creditLimit(BigDecimal.valueOf(28879))
                 .availableBalance(BigDecimal.valueOf(30000))
