@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
-import uk.gov.hmcts.payment.api.dto.mapper.RemissionDtoMapper;
+import uk.gov.hmcts.payment.api.mapper.RemissionDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.RemissionService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;

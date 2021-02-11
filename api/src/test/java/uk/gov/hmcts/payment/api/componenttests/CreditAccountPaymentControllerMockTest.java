@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
-import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
+import uk.gov.hmcts.payment.api.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 

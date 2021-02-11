@@ -18,7 +18,7 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
@@ -195,7 +195,7 @@ public class CardPaymentController {
         @ApiResponse(code = 404, message = "Payment Not found"),
         @ApiResponse(code = 500, message = "Downstream system error")
     })
-    @PostMapping(value = "/card-payments/{reference}/cancel")
+    @PostMapping(value = "/card-payms/{reference}/cancel")
     public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
         if (!ff4j.check("payment-cancel")) {
             throw new PaymentException("Payment cancel feature is not available for usage.");

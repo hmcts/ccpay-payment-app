@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.BulkScanningReportDto;
 import uk.gov.hmcts.payment.api.contract.BulkScanningUnderOverPaymentDto;
-import uk.gov.hmcts.payment.api.dto.mapper.BulkScanningReportMapper;
+import uk.gov.hmcts.payment.api.mapper.BulkScanningReportMapper;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
