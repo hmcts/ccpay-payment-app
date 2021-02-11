@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.exception;
 
 import org.junit.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class AccountNotFoundExceptionTest {
 
     private void throwException(){
@@ -13,6 +15,15 @@ public class AccountNotFoundExceptionTest {
         throwException();
     }
 
+    @Test
+    public void checkingMessageThrownByException(){
+        try{
+            throwException();
+        }catch (AccountNotFoundException e){
+            assertEquals("Account not found",e.getMessage());
+        }
+
+    }
 
 
 }
