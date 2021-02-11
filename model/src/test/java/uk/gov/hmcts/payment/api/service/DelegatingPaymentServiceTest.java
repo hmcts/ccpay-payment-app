@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.service;
 
 import org.joda.time.MutableDateTime;
 import org.junit.Before;

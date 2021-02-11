@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.mapper;
 
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
