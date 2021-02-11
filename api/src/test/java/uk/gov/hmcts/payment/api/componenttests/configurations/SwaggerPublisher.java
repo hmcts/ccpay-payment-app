@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.componenttests.configurations;
 
 import com.microsoft.applicationinsights.web.internal.WebRequestTrackingFilter;
 import java.io.OutputStream;

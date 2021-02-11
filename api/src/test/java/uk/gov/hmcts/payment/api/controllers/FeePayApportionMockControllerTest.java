@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.controllers;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
