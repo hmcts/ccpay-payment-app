@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.unit;
+package uk.gov.hmcts.payment.api.servicebus;
 
 import com.microsoft.azure.servicebus.Message;
 import org.junit.Test;
