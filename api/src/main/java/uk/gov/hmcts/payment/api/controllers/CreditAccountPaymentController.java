@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +22,14 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.mapper.CreditAccountPaymentRequestMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
@@ -60,8 +61,6 @@ public class CreditAccountPaymentController {
     private final PBAStatusErrorMapper pbaStatusErrorMapper;
     private final CreditAccountPaymentRequestMapper requestMapper;
     private final List<String> pbaConfig1ServiceNames;
-    private final Environment environment;
-    private ConfigurableEnvironment env;
 
 
     @Autowired
@@ -71,7 +70,7 @@ public class CreditAccountPaymentController {
                                           DuplicatePaymentValidator paymentValidator,
                                           FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
                                           PBAStatusErrorMapper pbaStatusErrorMapper,
-                                          CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames, Environment environment,ConfigurableEnvironment env) {
+                                          CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -81,8 +80,6 @@ public class CreditAccountPaymentController {
         this.pbaStatusErrorMapper = pbaStatusErrorMapper;
         this.requestMapper = requestMapper;
         this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
-        this.environment = environment;
-        this.env = env;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -99,17 +96,7 @@ public class CreditAccountPaymentController {
     @Transactional
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
-        LOG.error("Inside createCreditAccountPayment");
-        LOG.error("Profile Array Values : {}", environment.getActiveProfiles());
-        for(String profile: environment.getActiveProfiles()) {
-            LOG.error("Profile Values : {}",profile);
-        }
-        if(creditAccountPaymentRequest.getAccountNumber().equalsIgnoreCase("PBA1111111"))
-        {
-            env.setActiveProfiles("liberataMock");
-        }
 
-        LOG.error("Env Profile Values : {}",env.getActiveProfiles());
         final Payment payment = requestMapper.mapPBARequest(creditAccountPaymentRequest);
 
         List<PaymentFee> fees = requestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);

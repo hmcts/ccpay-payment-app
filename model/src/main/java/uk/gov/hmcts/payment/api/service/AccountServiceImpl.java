@@ -10,6 +10,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
+
+import java.math.BigDecimal;
 
 @Service
 @Profile("!liberataMock")
@@ -22,12 +25,25 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
     @Value("${liberata.api.account.url}")
     private String baseUrl;
 
+    @Value("${liberata.api.functional.test.mock.account}")
+    private String mockAccount;
+
     @Override
-     @HystrixCommand(commandKey = "retrievePbaAccount", commandProperties = {
+    @HystrixCommand(commandKey = "retrievePbaAccount", commandProperties = {
         @HystrixProperty(name = "execution.timeout.enabled", value = "false")
     })
     public AccountDto retrieve(String pbaCode) {
         LOG.error("Calling liberata account service!!!");
-        return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
+        if (mockAccount.equalsIgnoreCase(pbaCode)) {
+            return AccountDto.accountDtoWith()
+                .accountNumber("PBA1111111")
+                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                .creditLimit(BigDecimal.valueOf(28879))
+                .availableBalance(BigDecimal.valueOf(30000))
+                .status(AccountStatus.ACTIVE)
+                .build();
+        } else {
+            return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
+        }
     }
 }
