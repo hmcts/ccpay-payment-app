@@ -8,6 +8,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.util.AccountStatus;
+
+import java.math.BigDecimal;
 
 @Service
 @Profile("!liberataMock")
@@ -24,6 +27,15 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
         @HystrixProperty(name = "execution.timeout.enabled", value = "false")
     })
     public AccountDto retrieve(String pbaCode) {
+        if(pbaCode.equals("PBAFUNC123")){
+            return AccountDto.accountDtoWith()
+                .accountNumber("PBAFUNC123")
+                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                .creditLimit(BigDecimal.valueOf(28879))
+                .availableBalance(BigDecimal.valueOf(30000))
+                .status(AccountStatus.ACTIVE)
+                .build();
+        }
         return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
 }
