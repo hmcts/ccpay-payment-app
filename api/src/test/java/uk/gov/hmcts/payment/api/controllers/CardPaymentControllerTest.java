@@ -795,7 +795,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
                 .withStatus(500)
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"code\":\"P0198\",\"description\":\"GovPayDownstreamSystemErrorException\"}")));
-
         restActions.post("/card-payments/" + paymentDto.getReference() + "/cancel")
             .andExpect(status().isInternalServerError())
             .andReturn();
