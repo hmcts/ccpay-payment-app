@@ -1542,7 +1542,7 @@ public class PaymentGroupControllerTest {
         assertEquals(new BigDecimal(0), savedfees.get(2).getAmountDue());
     }
 
-    //@Test
+    @Test
     public void createBulkScanPaymentWithMultipleFee_ShortfallPayment() throws Exception {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
