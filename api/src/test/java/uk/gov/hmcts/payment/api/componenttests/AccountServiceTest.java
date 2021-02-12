@@ -35,6 +35,9 @@ public class AccountServiceTest {
     @Value("${liberata.api.account.url}")
     private String baseUrl;
 
+    @Value("${liberata.api.functional.test.mock.account}")
+    private String mockAccount;
+
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
@@ -44,6 +47,17 @@ public class AccountServiceTest {
         FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
         AccountDto expectedDto = new AccountDto(pbaCode, "accountName", new BigDecimal(100),
             new BigDecimal(100), AccountStatus.ACTIVE, new Date());
+        when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
+        assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
+    }
+
+    @Test
+    public void retrieveMockAccountReturnsAccountDto() throws Exception {
+        String pbaCode = "PBA1111111";
+        FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
+        FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("mockAccount"),mockAccount);
+        AccountDto expectedDto = new AccountDto(pbaCode, "CAERPHILLY COUNTY BOROUGH COUNCIL", new BigDecimal(28879),
+            new BigDecimal(30000), AccountStatus.ACTIVE,null);
         when(restTemplateMock.getForObject(baseUrl + "/" + pbaCode, AccountDto.class)).thenReturn(expectedDto);
         assertEquals(expectedDto, accountServiceImpl.retrieve(pbaCode));
     }
