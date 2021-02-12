@@ -33,8 +33,9 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
         @HystrixProperty(name = "execution.timeout.enabled", value = "false")
     })
     public AccountDto retrieve(String pbaCode) {
-        LOG.error("Calling liberata account service!!!");
-        if (mockAccount.equalsIgnoreCase(pbaCode)) {
+        LOG.info("Calling liberata account service!!!");
+        if (mockAccount != null && mockAccount.equalsIgnoreCase(pbaCode)) {
+            LOG.info("Returning Mock response for functional tests!!!");
             return AccountDto.accountDtoWith()
                 .accountNumber("PBA1111111")
                 .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
@@ -43,6 +44,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
                 .status(AccountStatus.ACTIVE)
                 .build();
         } else {
+            LOG.info("Call to liberata started!!!");
             return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
         }
     }
