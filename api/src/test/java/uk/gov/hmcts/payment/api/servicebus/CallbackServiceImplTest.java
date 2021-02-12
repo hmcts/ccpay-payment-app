@@ -8,6 +8,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.payment.api.componenttests.CardPaymentComponentTest;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -21,19 +24,17 @@ import java.util.Arrays;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({LoggerFactory.class})
 public class CallbackServiceImplTest {
 
-    @Mock
     private TopicClientProxy topicClient;
 
-    @Mock
-    private FF4j ff4j;
+    private FF4j ff4j = new FF4j();
 
     private CallbackService callbackService;
 
-    @Mock
-    private PaymentDtoMapper paymentDtoMapper;
+    private PaymentDtoMapper paymentDtoMapper = new PaymentDtoMapper();
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -66,11 +67,8 @@ public class CallbackServiceImplTest {
             .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
             .fees(PaymentsDataUtil.getFeesData())
             .build();
-
         paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
-
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
-
         verifyZeroInteractions(topicClient);
 
     }

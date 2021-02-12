@@ -195,7 +195,7 @@ public class CardPaymentController {
         @ApiResponse(code = 404, message = "Payment Not found"),
         @ApiResponse(code = 500, message = "Downstream system error")
     })
-    @PostMapping(value = "/card-payms/{reference}/cancel")
+    @PostMapping(value = "/card-payments/{reference}/cancel")
     public ResponseEntity cancelPayment(@PathVariable("reference") String paymentReference) {
         if (!ff4j.check("payment-cancel")) {
             throw new PaymentException("Payment cancel feature is not available for usage.");
