@@ -27,9 +27,9 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
         @HystrixProperty(name = "execution.timeout.enabled", value = "false")
     })
     public AccountDto retrieve(String pbaCode) {
-        if(pbaCode.equalsIgnoreCase("PBA0081334")){
+        if(pbaCode.equalsIgnoreCase("PBAFUNC12345")){
             return AccountDto.accountDtoWith()
-                .accountNumber("PBA0081334")
+                .accountNumber("PBAFUNC12345")
                 .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
                 .creditLimit(BigDecimal.valueOf(28879))
                 .availableBalance(BigDecimal.valueOf(30000))
