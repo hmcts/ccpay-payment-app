@@ -53,7 +53,7 @@ public class AccountServiceTest {
 
     @Test
     public void retrieveMockAccountReturnsAccountDto() throws Exception {
-        String pbaCode = "PBA1111111";
+        String pbaCode = "PBAFunctional";
         FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("baseUrl"), baseUrl);
         FieldSetter.setField(accountServiceImpl, accountServiceImpl.getClass().getDeclaredField("mockAccount"),mockAccount);
         AccountDto expectedDto = new AccountDto(pbaCode, "CAERPHILLY COUNTY BOROUGH COUNCIL", new BigDecimal(28879),

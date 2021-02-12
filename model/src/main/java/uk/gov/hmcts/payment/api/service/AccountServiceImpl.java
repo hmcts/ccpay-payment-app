@@ -37,7 +37,7 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
         if (mockAccount != null && mockAccount.equalsIgnoreCase(pbaCode)) {
             LOG.info("Returning Mock response for functional tests!!!");
             return AccountDto.accountDtoWith()
-                .accountNumber("PBA1111111")
+                .accountNumber("PBAFunctional")
                 .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
                 .creditLimit(BigDecimal.valueOf(28879))
                 .availableBalance(BigDecimal.valueOf(30000))
