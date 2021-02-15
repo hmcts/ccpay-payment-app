@@ -138,7 +138,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
         List<Payment> mockPaymentList = new ArrayList<>();
-        when(db.findByReference("2021-1613381549549").getPayments()).thenReturn()
+//        when(db.findByReference("2021-1613381549549").getPayments()).thenReturn();
 
         List<Payment> paymentList = db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments();
 
