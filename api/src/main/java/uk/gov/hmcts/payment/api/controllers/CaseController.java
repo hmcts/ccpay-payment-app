@@ -28,7 +28,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @SwaggerDefinition(tags = {@Tag(name = "CaseController", description = "Case REST API")})
 public class CaseController {
 
-
     private final PaymentService<PaymentFeeLink, String> paymentService;
     private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
     private final PaymentDtoMapper paymentDtoMapper;
