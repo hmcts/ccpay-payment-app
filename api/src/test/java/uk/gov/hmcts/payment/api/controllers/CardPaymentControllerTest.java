@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.github.tomakehurst.wiremock.matching.UrlPattern;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -72,7 +73,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
-    @Autowired
+    @MockBean
     private PaymentDbBackdoor db;
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
@@ -99,6 +100,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+
+
 
     }
 
@@ -133,6 +136,11 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        List<Payment> mockPaymentList = new ArrayList<>();
+        when(db.findByReference("2021-1613381549549").getPayments()).thenReturn()
+
+        List<Payment> paymentList = db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments();
 
         assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
 
