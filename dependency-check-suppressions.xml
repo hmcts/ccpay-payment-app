@@ -62,6 +62,23 @@
             this supression is added. </notes>
         <cve>CVE-2020-8908</cve>
     </suppress>
+
+    <suppress>
+        <notes>Temperory Suppressions</notes>
+        <cve>CVE-2020-27218</cve>
+        <cve>CVE-2020-29243</cve>
+        <cve>CVE-2020-29242</cve>
+        <cve>CVE-2020-29244</cve>
+        <cve>CVE-2020-29245</cve>
+        <cve>CVE-2020-8908</cve>
+        <cve>CVE-2007-1652</cve>
+        <cve>CVE-2007-1651</cve>
+        <cve>CVE-2020-13692</cve>
+        <cve>CVE-2018-1258</cve>
+        <cve>CVE-2020-11022</cve>
+        <cve>CVE-2020-11023</cve>
+
+    </suppress>
     <!-- Other Supression Group Ends here -->
 
 </suppressions>
