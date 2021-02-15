@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.service.CcdDataStoreClientServiceImpl;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -20,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,classes=CcdDataStoreClientServiceImpl.class)
 public class CcdDataStoreServiceTest {
     @MockBean
     private CoreCaseDataApi coreCaseDataApi;

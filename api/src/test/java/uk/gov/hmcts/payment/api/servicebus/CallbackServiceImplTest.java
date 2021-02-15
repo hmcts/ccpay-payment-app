@@ -6,11 +6,13 @@ import org.ff4j.FF4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.LoggerFactory;
+import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.componenttests.CardPaymentComponentTest;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -24,40 +26,40 @@ import java.util.Arrays;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
+@RunWith(SpringRunner.class)
 @PrepareForTest({LoggerFactory.class})
 public class CallbackServiceImplTest {
 
+    @Mock
     private TopicClientProxy topicClient;
 
+    @Mock
     private FF4j ff4j = new FF4j();
 
-    private CallbackService callbackService;
-
+    @Mock
     private PaymentDtoMapper paymentDtoMapper = new PaymentDtoMapper();
+
+    @InjectMocks
+    private CallbackServiceImpl callbackService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     public void init() {
         callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, ff4j);
-        when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
+        when(ff4j.check(any(String.class))).thenReturn(true);
     }
 
     @Test
     public void testThatWhenCallbackUriIsProvidedServiceBusIsCalled() throws Exception {
-
+        PaymentDtoMapper paymentDtoMapper = mock(PaymentDtoMapper.class);
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
             .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
             .fees(PaymentsDataUtil.getFeesData())
             .build();
-
         when(paymentDtoMapper.toResponseDto(paymentFeeLink, paymentFeeLink.getPayments().get(0))).thenReturn(new PaymentDto());
-
         callbackService.callback(paymentFeeLink, paymentFeeLink.getPayments().get(0));
-
         verify((topicClient), times(1)).send(any(IMessage.class));
-
     }
 
     @Test

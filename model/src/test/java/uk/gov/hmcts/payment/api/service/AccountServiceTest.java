@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,classes = AccountService.class)
 public class AccountServiceTest {
     @Mock
     private OAuth2RestOperations restTemplateMock;

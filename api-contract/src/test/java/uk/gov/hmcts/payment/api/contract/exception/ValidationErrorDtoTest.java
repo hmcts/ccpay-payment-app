@@ -19,6 +19,8 @@ public class ValidationErrorDtoTest {
     @Test
     public void testHasErrorsWhenNoErrorsArePresent(){
         ValidationErrorDTO validationErrorDTO = new ValidationErrorDTO();
+        validationErrorDTO.addFieldError("payment_method","Invalid payment method requested");
+        validationErrorDTO.addFieldError("service_name","Invalid service name requested");
         assertEquals(true,validationErrorDTO.hasErrors());
     }
 
