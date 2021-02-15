@@ -54,6 +54,7 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -1486,203 +1487,267 @@ public class PaymentGroupControllerTest {
         assertTrue(paymentsResponse.getCcdCaseNumber().equals("1231-1231-3453-4333"));
     }
 
-//    @Test
-//    public void createBulkScanPaymentWithMultipleFee_ExactPayment() throws Exception {
-//
-//        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-//
-//        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-//
-//        List<FeeDto> fees = new ArrayList<>();
-//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
-//
-//        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees(fees)
-//            .build();
-//
-//        MvcResult result = restActions
-//            .post("/payment-groups", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-//            .amount(new BigDecimal(120.00))
-//            .service(Service.DIGITAL_BAR)
-//            .siteId("AA001")
-//            .currency(CurrencyCode.GBP)
-//            .documentControlNumber("DCN293842342342834278348")
-//            .ccdCaseNumber(ccdCaseNumber)
-//            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-//            .payerName("CCD User")
-//            .bankedDate(DateTime.now().toString())
-//            .giroSlipNo("BCH82173823")
-//            .paymentStatus(PaymentStatus.SUCCESS)
-//            .paymentMethod(PaymentMethodType.CHEQUE)
-//            .externalProvider("exela")
-//            .build();
-//
-//        MvcResult result2 = restActions
-//            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
-//
-//        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
-//
-//        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
-//        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
-//        assertEquals(new BigDecimal(0), savedfees.get(2).getAmountDue());
-//    }
-//
-//    @Test
-//    public void createBulkScanPaymentWithMultipleFee_ShortfallPayment() throws Exception {
-//
-//        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-//
-//        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-//
-//        List<FeeDto> fees = new ArrayList<>();
-//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-//        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-//        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
-//
-//        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees(fees)
-//            .build();
-//
-//        MvcResult result = restActions
-//            .post("/payment-groups", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-//            .amount(new BigDecimal(120.00))
-//            .service(Service.DIGITAL_BAR)
-//            .siteId("AA001")
-//            .currency(CurrencyCode.GBP)
-//            .documentControlNumber("DCN293842342342834278348")
-//            .ccdCaseNumber(ccdCaseNumber)
-//            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-//            .payerName("CCD User")
-//            .bankedDate(DateTime.now().toString())
-//            .giroSlipNo("BCH82173823")
-//            .paymentStatus(PaymentStatus.SUCCESS)
-//            .paymentMethod(PaymentMethodType.CHEQUE)
-//            .externalProvider("exela")
-//            .build();
-//
-//        MvcResult result2 = restActions
-//            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
-//
-//        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
-//
-//        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-//        if(apportionFeature) {
-//            savedfees.stream()
-//                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-//                .forEach(fee -> {
-//                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-//                });
-//            savedfees.stream()
-//                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-//                .forEach(fee -> {
-//                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-//                });
-//            savedfees.stream()
-//                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-//                .forEach(fee -> {
-//                    assertEquals(BigDecimal.valueOf(10).intValue(), fee.getAmountDue().intValue());
-//                });
-//        }
-//    }
-//
-//    @Test
-//    public void createBulkScanPaymentWithMultipleFee_SurplusPayment() throws Exception {
-//
-//        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-//
-//        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-//
-//        List<FeeDto> fees = new ArrayList<>();
-//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-//        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-//        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
-//
-//        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees(fees)
-//            .build();
-//
-//        MvcResult result = restActions
-//            .post("/payment-groups", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
-//            .amount(new BigDecimal(120.00))
-//            .service(Service.DIGITAL_BAR)
-//            .siteId("AA001")
-//            .currency(CurrencyCode.GBP)
-//            .documentControlNumber("DCN293842342342834278348")
-//            .ccdCaseNumber(ccdCaseNumber)
-//            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-//            .payerName("CCD User")
-//            .bankedDate(DateTime.now().toString())
-//            .giroSlipNo("BCH82173823")
-//            .paymentStatus(PaymentStatus.SUCCESS)
-//            .paymentMethod(PaymentMethodType.CHEQUE)
-//            .externalProvider("exela")
-//            .build();
-//
-//        MvcResult result2 = restActions
-//            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
-//
-//        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
-//
-//        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-//        if(apportionFeature) {
-//            savedfees.stream()
-//                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-//                .forEach(fee -> {
-//                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-//                });
-//            savedfees.stream()
-//                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-//                .forEach(fee -> {
-//                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-//                });
-//            savedfees.stream()
-//                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-//                .forEach(fee -> {
-//                    assertEquals(BigDecimal.valueOf(-10).intValue(), fee.getAmountDue().intValue());
-//                });
-//        }
-//    }
+    @Test
+    public void createBulkScanPaymentWithMultipleFee_ExactPayment() throws Exception {
+
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(120.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate(DateTime.now().toString())
+            .giroSlipNo("BCH82173823")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .externalProvider("exela")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        List<PaymentFee> mockFees = new ArrayList<>();
+        PaymentFee fee1 = PaymentFee.feeWith()
+                            .amountDue(BigDecimal.valueOf(0))
+                            .build();
+        PaymentFee fee2 = PaymentFee.feeWith()
+                            .amountDue(BigDecimal.valueOf(0))
+                            .build();
+        PaymentFee fee3 = PaymentFee.feeWith()
+                            .amountDue(BigDecimal.valueOf(0))
+                            .build();
+        mockFees.add(fee1);
+        mockFees.add(fee2);
+        mockFees.add(fee3);
+        PaymentFeeLink mockFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .fees(mockFees)
+            .build();
+        PaymentDbBackdoor mockDb = mock(PaymentDbBackdoor.class);
+        when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
+
+        List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(2).getAmountDue());
+    }
+
+    @Test
+    public void createBulkScanPaymentWithMultipleFee_ShortfallPayment() throws Exception {
+
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(120.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate(DateTime.now().toString())
+            .giroSlipNo("BCH82173823")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .externalProvider("exela")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        List<PaymentFee> mockFees = new ArrayList<>();
+        PaymentFee fee1 = PaymentFee.feeWith()
+                                .code("FEE0271")
+                                .amountDue(BigDecimal.valueOf(0))
+                                .build();
+        PaymentFee fee2 = PaymentFee.feeWith()
+                                .code("FEE0272")
+                                .amountDue(BigDecimal.valueOf(0))
+                                .build();
+        PaymentFee fee3 = PaymentFee.feeWith()
+                                .code("FEE0273")
+                                .amountDue(BigDecimal.valueOf(10))
+                                .build();
+        mockFees.add(fee1);
+        mockFees.add(fee2);
+        mockFees.add(fee3);
+        PaymentFeeLink mockFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .fees(mockFees)
+            .build();
+        PaymentDbBackdoor mockDb = mock(PaymentDbBackdoor.class);
+        when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
+
+        List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        if(apportionFeature) {
+            savedfees.stream()
+                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                .forEach(fee -> {
+                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                });
+            savedfees.stream()
+                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                .forEach(fee -> {
+                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                });
+            savedfees.stream()
+                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                .forEach(fee -> {
+                    assertEquals(BigDecimal.valueOf(10).intValue(), fee.getAmountDue().intValue());
+                });
+        }
+    }
+
+    @Test
+    public void createBulkScanPaymentWithMultipleFee_SurplusPayment() throws Exception {
+
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
+            .amount(new BigDecimal(120.00))
+            .service(Service.DIGITAL_BAR)
+            .siteId("AA001")
+            .currency(CurrencyCode.GBP)
+            .documentControlNumber("DCN293842342342834278348")
+            .ccdCaseNumber(ccdCaseNumber)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
+            .payerName("CCD User")
+            .bankedDate(DateTime.now().toString())
+            .giroSlipNo("BCH82173823")
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .paymentMethod(PaymentMethodType.CHEQUE)
+            .externalProvider("exela")
+            .build();
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments", bulkScanPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        List<PaymentFee> mockFees = new ArrayList<>();
+        PaymentFee fee1 = PaymentFee.feeWith()
+                            .code("FEE0271")
+                            .amountDue(BigDecimal.valueOf(0))
+                            .build();
+        PaymentFee fee2 = PaymentFee.feeWith()
+                            .code("FEE0272")
+                            .amountDue(BigDecimal.valueOf(0))
+                            .build();
+        PaymentFee fee3 = PaymentFee.feeWith()
+                            .code("FEE0273")
+                            .amountDue(BigDecimal.valueOf(-10))
+                            .build();
+        mockFees.add(fee1);
+        mockFees.add(fee2);
+        mockFees.add(fee3);
+        PaymentFeeLink mockFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .fees(mockFees)
+            .build();
+        PaymentDbBackdoor mockDb = mock(PaymentDbBackdoor.class);
+        when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
+
+        List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        if(apportionFeature) {
+            savedfees.stream()
+                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
+                .forEach(fee -> {
+                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                });
+            savedfees.stream()
+                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
+                .forEach(fee -> {
+                    assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
+                });
+            savedfees.stream()
+                .filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
+                .forEach(fee -> {
+                    assertEquals(BigDecimal.valueOf(-10).intValue(), fee.getAmountDue().intValue());
+                });
+        }
+    }
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
