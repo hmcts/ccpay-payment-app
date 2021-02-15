@@ -62,7 +62,7 @@ public class FeesService {
     }
 
     public Map<String, Fee2Dto> getFeesDtoMap() {
-        LOG.error("Inside getFeesDtoMap in FeesService");
+        LOG.info("Inside getFeesDtoMap in FeesService!!!");
         return feesRegisterAdapter.getFeesDtoMap();
     }
 
