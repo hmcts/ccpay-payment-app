@@ -1009,50 +1009,50 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(BigDecimal.valueOf(20), savedfees.get(2).getAmountDue());
     }
 
-    @Test
-    public void createCreditAccountPaymentWithMultipleFee_AmountDue_When_Apportion_Flag_Is_True() throws Exception {
-
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-        List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
-            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
-            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
-            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
-
-        CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
-            .amount(new BigDecimal("100"))
-            .description("description")
-            .caseReference("telRefNumber")
-            .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.FPL)
-            .currency(CurrencyCode.GBP)
-            .siteId("ABA3")
-            .customerReference("CUST101")
-            .organisationName("ORG101")
-            .accountNumber("AC101010")
-            .fees(fees)
-            .build();
-
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        MvcResult result = restActions
-            .post("/credit-account-payments", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-
-        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
-
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(0).getAmountDue());
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(1).getAmountDue());
-        assertEquals(BigDecimal.valueOf(20), savedfees.get(2).getAmountDue());
-    }
+//    @Test
+//    public void createCreditAccountPaymentWithMultipleFee_AmountDue_When_Apportion_Flag_Is_True() throws Exception {
+//
+//        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+//        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+//        List<FeeDto> fees = new ArrayList<>();
+//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+//            .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
+//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+//            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+//            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+//
+//        CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
+//            .amount(new BigDecimal("100"))
+//            .description("description")
+//            .caseReference("telRefNumber")
+//            .ccdCaseNumber(ccdCaseNumber)
+//            .service(Service.FPL)
+//            .currency(CurrencyCode.GBP)
+//            .siteId("ABA3")
+//            .customerReference("CUST101")
+//            .organisationName("ORG101")
+//            .accountNumber("AC101010")
+//            .fees(fees)
+//            .build();
+//
+//        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+//            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+//        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+//
+//        MvcResult result = restActions
+//            .post("/credit-account-payments", request)
+//            .andExpect(status().isCreated())
+//            .andReturn();
+//
+//        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
+//
+//        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+//
+//        assertEquals(BigDecimal.valueOf(0), savedfees.get(0).getAmountDue());
+//        assertEquals(BigDecimal.valueOf(0), savedfees.get(1).getAmountDue());
+//        assertEquals(BigDecimal.valueOf(20), savedfees.get(2).getAmountDue());
+//    }
 
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
