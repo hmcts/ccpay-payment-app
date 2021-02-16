@@ -1,0 +1,91 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1554989041318-1
+      author: aravindan
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: payment_id
+                  type: INT
+            tableName: payment_allocation
+  - changeSet:
+      id: 1554989041418-2
+      author: aravindan
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: payment_id
+            baseTableName: payment_allocation
+            constraintName: FK_qhrt9c0pejpl89rkokgo4421n
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: id
+            referencedTableName: payment
+  - changeSet:
+      id: 1554989041418-3
+      author: ayan
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE payment_allocation RENAME COLUMN sending_email_address TO reason;
+              ALTER TABLE payment_allocation RENAME COLUMN receiving_email_address TO explanation;
+              ALTER TABLE payment_allocation ADD COLUMN user_name varchar(255);
+  - changeSet:
+      id: 1554989041418-4
+      author: subroto
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: fee_amount
+                  type: numeric(19, 2)
+            tableName: fee
+  - changeSet:
+      id: 1554989041418-5
+      author: ayan
+      changes:
+        - createIndex:
+            indexName: ix_pay_case_ref_link
+            tableName: payment
+            unique: false
+            columns:
+              - column:
+                  name: case_reference
+                  type: varchar(255)
+              - column:
+                  name: payment_link_id
+                  type: INT
+        - createIndex:
+            indexName: ix_fee_case_reference
+            tableName: fee
+            unique: false
+            columns:
+              - column:
+                  name: payment_link_id
+                  type: INT
+        - createIndex:
+            indexName: ix_remission_pay_link
+            tableName: remission
+            unique: false
+            columns:
+              - column:
+                  name: payment_link_id
+                  type: INT
+        - createIndex:
+            indexName: ix_sts_hist_pay_id
+            tableName: status_history
+            unique: false
+            columns:
+              - column:
+                  name: payment_id
+                  type: INT
+        - createIndex:
+            indexName: ix_pay_allc_pay_id
+            tableName: payment_allocation
+            unique: false
+            columns:
+              - column:
+                  name: payment_id
+                  type: INT
