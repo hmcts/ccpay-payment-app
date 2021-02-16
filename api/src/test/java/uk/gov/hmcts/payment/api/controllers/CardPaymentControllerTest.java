@@ -73,7 +73,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
-    @MockBean
+    @Autowired
     private PaymentDbBackdoor db;
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
