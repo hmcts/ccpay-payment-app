@@ -2,13 +2,13 @@ package uk.gov.hmcts.payment.api.controllers.provider;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.google.common.collect.ImmutableMap;
-import lombok.extern.slf4j.Slf4j;
 import org.ff4j.FF4j;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.fees2.register.data.service.FeeService;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
@@ -56,8 +54,10 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @ExtendWith(SpringExtension.class)
 @Provider("payment_cardPayment")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors={@VersionSelector(tag ="${PACT_BRANCH_NAME:Dev}")})
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
+    @VersionSelector(tag = "${PACT_BRANCH_NAME:Dev}")})
 @Import(CardPaymentProviderTestConfiguration.class)
+@IgnoreNoPactsToVerify
 public class CardPaymentProviderTest {
 
 
@@ -107,7 +107,7 @@ public class CardPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
-                feePayApportionService, featureToggler,referenceDataService));
+                feePayApportionService, featureToggler, referenceDataService));
         context.setTarget(testTarget);
 
     }
@@ -145,7 +145,7 @@ public class CardPaymentProviderTest {
             .caseReference("Reference" + number)
             .ccdCaseNumber("ccdCaseNumber" + number)
             .description("Test payments statuses for " + number)
-            .serviceType(Service.DIVORCE.getName())
+            .serviceType("Divorce")
             .s2sServiceName(s2sServiceName)
             .currency("GBP")
             .siteId("AA0" + number)
