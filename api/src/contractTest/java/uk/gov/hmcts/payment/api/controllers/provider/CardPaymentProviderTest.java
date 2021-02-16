@@ -17,13 +17,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.fees2.register.data.service.FeeService;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
+import uk.gov.hmcts.payment.api.controllers.PaymentController;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -31,22 +34,33 @@ import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.PaymentMethod;
 import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.CardDetailsService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
+import uk.gov.hmcts.payment.api.util.DateUtil;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
+import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
+import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
@@ -73,6 +87,13 @@ public class CardPaymentProviderTest {
     FF4j ff4j;
     @Autowired
     FeePayApportionService feePayApportionService;
+
+    @Autowired
+    PaymentFeeRepository paymentFeeRepositoryMock;
+
+    @Autowired
+    PaymentFeeLinkRepository paymentFeeLinkRepositoryMock;
+
     @Autowired
     LaunchDarklyFeatureToggler featureToggler;
 
@@ -83,13 +104,35 @@ public class CardPaymentProviderTest {
     DelegatingPaymentService<PaymentFeeLink, String> cardDelegatingPaymentService;
 
     @Autowired
+    PaymentServiceImpl paymentService;
+
+    @Autowired
+    PaymentValidator paymentValidator;
+
+    @Autowired
+    DateUtil dateUtil;
+
+    @Autowired
     Payment2Repository payment2RepositoryMock;
+
+    @Autowired
+    PaymentStatusRepository paymentStatusRepositoryMock;
+
+    @Autowired
+    CallbackService callbackServiceMock;
+
 
     @Autowired
     GovPayClient govPayClientMock;
 
     @Autowired
     GovPayAuthUtil govPayAuthUtil;
+
+    @Autowired
+    ReferenceUtil referenceUtil;
+
+    @Autowired
+    GovPayKeyRepository govPayKeyRepositoryMock;
 
     @Value("${PACT_BRANCH_NAME}")
     String branchName;
@@ -107,7 +150,10 @@ public class CardPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
-                feePayApportionService, featureToggler, referenceDataService));
+                feePayApportionService, featureToggler, referenceDataService),
+            new PaymentController(paymentService, paymentStatusRepositoryMock, callbackServiceMock,
+            paymentDtoMapper, paymentValidator, ff4j,
+            dateUtil, paymentFeeRepositoryMock, featureToggler));
         context.setTarget(testTarget);
 
     }
@@ -119,7 +165,24 @@ public class CardPaymentProviderTest {
         when(govPayAuthUtil.getServiceName(null, "ccd_gw")).thenReturn("ccd_gw");
         when(govPayAuthUtil.getServiceToken("ccd_gw")).thenReturn("s2sAuthKey");
         when(govPayClientMock.retrievePayment(anyString(), anyString())).thenReturn(buildGovPaymentDto());
+    }
 
+    @State({"Payments exist for a case"})
+    public void toPaymentsForACasesWithSuccess() throws IOException, JSONException {
+        when(ff4j.check("payment-search")).thenReturn(Boolean.TRUE);
+        PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
+        when(paymentFeeLinkRepositoryMock.findAll(any(Specification.class))).thenReturn(Arrays.asList(paymentLink));
+
+    }
+
+    @State({"A Payment is posted for a case"})
+    public void toPostAPaymentWithSuccess() throws IOException, JSONException {
+
+        when(govPayKeyRepositoryMock.getKey(null)).thenReturn("govePayKey");
+        when(govPayClientMock.createPayment(anyString(), any(CreatePaymentRequest.class))).thenReturn(buildGovPaymentDto());
+
+        PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
+        when(paymentFeeLinkRepositoryMock.save(any(PaymentFeeLink.class))).thenReturn(paymentLink);
 
     }
 
@@ -139,6 +202,7 @@ public class CardPaymentProviderTest {
 
     private Payment populateCardPaymentToDb(String number, String externalReference, String s2sServiceName) {
         //Create a payment in remissionDbBackdoor
+        Date now = new Date();
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
             .amount(new BigDecimal("99.99"))
@@ -156,7 +220,10 @@ public class CardPaymentProviderTest {
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
             .externalReference(externalReference)
             .reference("RC-1519-9028-2432-000" + number)
+            .status("submitted")
             .statusHistories(Arrays.asList(statusHistory))
+            .dateUpdated(now)
+            .dateCreated(now)
             .build();
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
