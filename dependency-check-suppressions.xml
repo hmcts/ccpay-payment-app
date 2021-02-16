@@ -64,4 +64,23 @@
     </suppress>
     <!-- Other Supression Group Ends here -->
 
+    <suppress>
+        <notes>HTTP Client 4.5.11 suppression, root cause and fix needs to be carried out separately</notes>
+        <cve>CVE-2020-13956</cve>
+    </suppress>
+    <suppress>
+        <notes>jackson-databind 2.10.0 suppression, its transitive dependency coming from spring boot</notes>
+        <cve>CVE-2020-25649</cve>
+    </suppress>
+    <suppress>
+        <notes>tomcat-embed-core 9.0.33 suppression, root cause and fix needs to be carried out separately</notes>
+        <cve>CVE-2020-17527</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: guava-20.0.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+        <cpe>cpe:/a:google:guava</cpe>
+    </suppress>
 </suppressions>
