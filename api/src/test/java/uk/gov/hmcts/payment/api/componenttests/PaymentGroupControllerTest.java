@@ -1537,15 +1537,9 @@ public class PaymentGroupControllerTest {
         PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
         List<PaymentFee> mockFees = new ArrayList<>();
-        PaymentFee fee1 = PaymentFee.feeWith()
-                            .amountDue(BigDecimal.valueOf(0))
-                            .build();
-        PaymentFee fee2 = PaymentFee.feeWith()
-                            .amountDue(BigDecimal.valueOf(0))
-                            .build();
-        PaymentFee fee3 = PaymentFee.feeWith()
-                            .amountDue(BigDecimal.valueOf(0))
-                            .build();
+        PaymentFee fee1 = PaymentFee.feeWith().amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee2 = PaymentFee.feeWith().amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee3 = PaymentFee.feeWith().amountDue(BigDecimal.valueOf(0)).build();
         mockFees.add(fee1);
         mockFees.add(fee2);
         mockFees.add(fee3);
@@ -1612,18 +1606,9 @@ public class PaymentGroupControllerTest {
         PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
         List<PaymentFee> mockFees = new ArrayList<>();
-        PaymentFee fee1 = PaymentFee.feeWith()
-                                .code("FEE0271")
-                                .amountDue(BigDecimal.valueOf(0))
-                                .build();
-        PaymentFee fee2 = PaymentFee.feeWith()
-                                .code("FEE0272")
-                                .amountDue(BigDecimal.valueOf(0))
-                                .build();
-        PaymentFee fee3 = PaymentFee.feeWith()
-                                .code("FEE0273")
-                                .amountDue(BigDecimal.valueOf(10))
-                                .build();
+        PaymentFee fee1 = PaymentFee.feeWith().code("FEE0271").amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee2 = PaymentFee.feeWith().code("FEE0272").amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee3 = PaymentFee.feeWith().code("FEE0273").amountDue(BigDecimal.valueOf(10)).build();
         mockFees.add(fee1);
         mockFees.add(fee2);
         mockFees.add(fee3);
@@ -1706,18 +1691,9 @@ public class PaymentGroupControllerTest {
         PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
         List<PaymentFee> mockFees = new ArrayList<>();
-        PaymentFee fee1 = PaymentFee.feeWith()
-                            .code("FEE0271")
-                            .amountDue(BigDecimal.valueOf(0))
-                            .build();
-        PaymentFee fee2 = PaymentFee.feeWith()
-                            .code("FEE0272")
-                            .amountDue(BigDecimal.valueOf(0))
-                            .build();
-        PaymentFee fee3 = PaymentFee.feeWith()
-                            .code("FEE0273")
-                            .amountDue(BigDecimal.valueOf(-10))
-                            .build();
+        PaymentFee fee1 = PaymentFee.feeWith().code("FEE0271").amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee2 = PaymentFee.feeWith().code("FEE0272").amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee3 = PaymentFee.feeWith().code("FEE0273").amountDue(BigDecimal.valueOf(-10)).build();
         mockFees.add(fee1);
         mockFees.add(fee2);
         mockFees.add(fee3);
