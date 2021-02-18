@@ -32,7 +32,10 @@ import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 @Service
 @Primary
@@ -278,6 +281,29 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     @Override
     public List<PaymentFeeLink> search(PaymentSearchCriteria searchCriteria) {
         return paymentFeeLinkRepository.findAll(findPayments(searchCriteria));
+    }
+
+    @Override
+    public List<Payment> search1(PaymentSearchCriteria searchCriteria) {
+        return paymentRespository.findAll(findByDatesBetween(searchCriteria.getStartDate(),searchCriteria.getEndDate()));
+    }
+
+    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
+        return Specification
+            .where(isBetween(fromDate, toDate));
+    }
+
+    private static Specification isBetween(Date startDate, Date endDate) {
+
+        return ((root, query, cb) -> cb.between(root.get("dateUpdated"), startDate, endDate));
+    }
+
+    private Date parseDate(String date) {
+        try {
+            return new SimpleDateFormat("dd.MM.yyyy").parse(date);
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     @Override
