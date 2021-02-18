@@ -129,6 +129,12 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
+    public List<Payment> search1(PaymentSearchCriteria searchCriteria) {
+        return delegatingPaymentService.search1(searchCriteria);
+    }
+
+
+    @Override
     public List<FeePayApportion> findByPaymentId(Integer paymentId)
     {
         return feePayApportionRepository.findByPaymentId(paymentId).orElse(Collections.EMPTY_LIST);

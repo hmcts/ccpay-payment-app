@@ -94,6 +94,16 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
+    public List<Payment> search1(PaymentSearchCriteria searchCriteria) {
+        if (searchCriteria.getStartDate() != null || searchCriteria.getEndDate() != null) {
+            LOG.info("Searching for payments between {} and {}", searchCriteria.getStartDate(), searchCriteria.getEndDate());
+        }
+
+        List<Payment> payments = delegate.search1(searchCriteria);
+        return payments;
+    }
+
+    @Override
     public void cancel(String paymentReference) {
         LOG.info("Cancel payment for supplied payment reference : {}", paymentReference);
     }
