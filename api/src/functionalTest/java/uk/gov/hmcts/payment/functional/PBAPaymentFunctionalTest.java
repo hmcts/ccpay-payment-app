@@ -249,7 +249,7 @@ public class PBAPaymentFunctionalTest {
             assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("family");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("family court");
         }
-        if(liberataResponse.getPayments().get(0).getFees().get(0).getCode().equalsIgnoreCase("FEE0272")) {
+        if(liberataResponse.getPayments().get(0).getFees().get(1).getCode().equalsIgnoreCase("FEE0272")) {
             assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getApportionedPayment()).isEqualTo("40.00");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getCalculatedAmount()).isEqualTo("40.00");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getMemoLine()).isEqualTo("RECEIPT OF FEES - Tribunal issue other");
@@ -257,7 +257,7 @@ public class PBAPaymentFunctionalTest {
             assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getJurisdiction1()).isEqualTo("tribunal");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(1).getJurisdiction2()).isEqualTo("property chamber");
         }
-        if(liberataResponse.getPayments().get(0).getFees().get(0).getCode().equalsIgnoreCase("FEE0273")) {
+        if(liberataResponse.getPayments().get(0).getFees().get(2).getCode().equalsIgnoreCase("FEE0273")) {
             assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getApportionedPayment()).isEqualTo("60.00");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getCalculatedAmount()).isEqualTo("60.00");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getMemoLine()).isEqualTo("RECEIPT OF FEES - Tribunal issue other");
