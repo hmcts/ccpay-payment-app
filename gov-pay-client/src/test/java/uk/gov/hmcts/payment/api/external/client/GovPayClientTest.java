@@ -9,6 +9,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -87,5 +88,17 @@ public class GovPayClientTest {
         );
 
         client.cancelPayment("token", "http://localhost:" + wireMockRule.port() + "/cancel");
+    }
+
+    @Test
+    public void RefundPayment() {
+        stubFor(
+            post(urlEqualTo("/refund"))
+                .withHeader("Authorization", matching("Bearer token"))
+                .willReturn(aResponse().withStatus(204))
+        );
+
+        RefundPaymentRequest request = new RefundPaymentRequest(12000, 200);
+        client.refundPayment("token", "http://localhost:" + wireMockRule.port() + "/refund",request);
     }
 }

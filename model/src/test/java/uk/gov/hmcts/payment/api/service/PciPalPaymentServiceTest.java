@@ -7,7 +7,13 @@ import org.apache.http.client.utils.URIBuilder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.util.UriBuilder;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.net.URISyntaxException;
 
@@ -61,6 +67,34 @@ public class PciPalPaymentServiceTest {
             .build();
 
         String response = pciPalPaymentService.getPciPalLink(request, "cmc");
+
+        URIBuilder uriBuilder = new URIBuilder(url + "?" + sb.toString());
+        HttpGet getRequest = new HttpGet(uriBuilder.build());
+        assertThat(response).isEqualTo(getRequest.getURI().toString());
+    }
+
+    @Test(expected = PaymentException.class)
+    public void getPciPalLinkWithIncorrectServiceType() throws URISyntaxException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ppAccountID&orderAmount=20000&orderReference=orderReference&callbackURL=www.callback.url.com&customData2");
+        stubFor(
+            post(urlEqualTo("/"))
+                .withRequestBody(
+                    new EqualToPattern(sb.toString())
+                )
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBodyFile("pci-pal-response.txt")
+                )
+        );
+
+        PciPalPaymentRequest request = PciPalPaymentRequest.pciPalPaymentRequestWith()
+            .orderAmount("200")
+            .orderCurrency("GBP")
+            .orderReference("orderReference")
+            .build();
+
+        String response = pciPalPaymentService.getPciPalLink(request, "cmc1");
 
         URIBuilder uriBuilder = new URIBuilder(url + "?" + sb.toString());
         HttpGet getRequest = new HttpGet(uriBuilder.build());
