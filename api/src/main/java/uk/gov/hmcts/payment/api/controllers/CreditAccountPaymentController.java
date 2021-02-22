@@ -61,24 +61,20 @@ public class CreditAccountPaymentController {
     private final PBAStatusErrorMapper pbaStatusErrorMapper;
     private final CreditAccountPaymentRequestMapper requestMapper;
     private final List<String> pbaConfig1ServiceNames;
+    private final PaymentService<PaymentFeeLink, String> paymentService;
+    private final ReferenceDataService referenceDataService;
+    private final AuthTokenGenerator authTokenGenerator;
 
-    @Autowired
-    private PaymentService<PaymentFeeLink, String> paymentService;
-
-    @Autowired
-    ReferenceDataService referenceDataService;
-
-    @Autowired
-    private AuthTokenGenerator authTokenGenerator;
-
-    @Autowired
-    public CreditAccountPaymentController(@Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
-                                          CreditAccountDtoMapper creditAccountDtoMapper,
-                                          AccountService<AccountDto, String> accountService,
-                                          DuplicatePaymentValidator paymentValidator,
-                                          FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
-                                          PBAStatusErrorMapper pbaStatusErrorMapper,
-                                          CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames) {
+    public CreditAccountPaymentController(
+        @Qualifier("loggingCreditAccountPaymentService") CreditAccountPaymentService<PaymentFeeLink, String> creditAccountPaymentService,
+        CreditAccountDtoMapper creditAccountDtoMapper,
+        AccountService<AccountDto, String> accountService,
+        DuplicatePaymentValidator paymentValidator,
+        FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
+        PBAStatusErrorMapper pbaStatusErrorMapper,
+        CreditAccountPaymentRequestMapper requestMapper, @Value("#{'${pba.config1.service.names}'.split(',')}") List<String> pbaConfig1ServiceNames,
+        PaymentService<PaymentFeeLink, String> paymentService, ReferenceDataService referenceDataService,
+        AuthTokenGenerator authTokenGenerator) {
         this.creditAccountPaymentService = creditAccountPaymentService;
         this.creditAccountDtoMapper = creditAccountDtoMapper;
         this.accountService = accountService;
@@ -88,6 +84,9 @@ public class CreditAccountPaymentController {
         this.pbaStatusErrorMapper = pbaStatusErrorMapper;
         this.requestMapper = requestMapper;
         this.pbaConfig1ServiceNames = pbaConfig1ServiceNames;
+        this.paymentService = paymentService;
+        this.referenceDataService = referenceDataService;
+        this.authTokenGenerator = authTokenGenerator;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
