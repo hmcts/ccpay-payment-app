@@ -74,7 +74,6 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @IgnoreNoPactsToVerify
 public class CardPaymentProviderTest {
 
-
     @Autowired
     PaymentDtoMapper paymentDtoMapper;
     @Autowired
@@ -159,7 +158,7 @@ public class CardPaymentProviderTest {
     }
 
     @State({"A payment reference exists"})
-    public void toGetCardPaymentDetailsWithSuccess() throws IOException, JSONException {
+    public void toGetCardPaymentDetailsWithSuccess() {
         when(payment2RepositoryMock.findByReference("654321ABC"))
             .thenReturn(Optional.of(populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw")));
         when(govPayAuthUtil.getServiceName(null, "ccd_gw")).thenReturn("ccd_gw");
@@ -168,7 +167,7 @@ public class CardPaymentProviderTest {
     }
 
     @State({"Payments exist for a case"})
-    public void toPaymentsForACasesWithSuccess() throws IOException, JSONException {
+    public void toPaymentsForACasesWithSuccess() {
         when(ff4j.check("payment-search")).thenReturn(Boolean.TRUE);
         PaymentFeeLink paymentLink = populateCardPaymentToDb("1", "e2kkddts5215h9qqoeuth5c0v", "ccd_gw").getPaymentLink();
         when(paymentFeeLinkRepositoryMock.findAll(any(Specification.class))).thenReturn(Arrays.asList(paymentLink));
@@ -176,7 +175,7 @@ public class CardPaymentProviderTest {
     }
 
     @State({"A Payment is posted for a case"})
-    public void toPostAPaymentWithSuccess() throws IOException, JSONException {
+    public void toPostAPaymentWithSuccess() {
 
         when(govPayKeyRepositoryMock.getKey(null)).thenReturn("govePayKey");
         when(govPayClientMock.createPayment(anyString(), any(CreatePaymentRequest.class))).thenReturn(buildGovPaymentDto());

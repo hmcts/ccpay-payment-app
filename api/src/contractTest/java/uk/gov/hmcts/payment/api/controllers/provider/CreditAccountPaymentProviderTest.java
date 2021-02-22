@@ -36,10 +36,13 @@ import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.CreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -56,7 +59,6 @@ import static org.mockito.Mockito.when;
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class CreditAccountPaymentProviderTest {
-
 
     private static final String ACCOUNT_NUMBER_KEY = "accountNumber";
     private static final String ACCOUNT_NAME_KEY = "accountName";
@@ -107,17 +109,24 @@ public class CreditAccountPaymentProviderTest {
     @Autowired
     CreditAccountPaymentRequestMapper requestMapper;
 
+    @Autowired
+    ReferenceDataService referenceDataService;
+    @Autowired
+    AuthTokenGenerator authTokenGenerator;
+    @Autowired
+    PaymentService<PaymentFeeLink, String> paymentService;
+
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
     private final static String PAYMENT_METHOD = "payment by account";
 
-
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
-        context.verifyInteraction();
+        if (context != null) {
+            context.verifyInteraction();
+        }
     }
-
 
     @BeforeEach
     void before(PactVerificationContext context) {
@@ -125,33 +134,33 @@ public class CreditAccountPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
-                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("PROBATE")));
-        context.setTarget(testTarget);
+                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("PROBATE"), paymentService,
+                referenceDataService, authTokenGenerator));
+        if (context != null) {
+            context.setTarget(testTarget);
+        }
     }
 
     @State({"An active account has sufficient funds for a payment"})
-    public void toCreateNewCreditAccountPayment(Map<String, Object> paymentMap) throws IOException, JSONException {
+    public void toCreateNewCreditAccountPayment(Map<String, Object> paymentMap) {
 
         setUpMockInteractions(paymentMap, "Payment Status success", "success", AccountStatus.ACTIVE);
     }
 
 
     @State({"An active account has insufficient funds for a payment"})
-    public void toRefuseCreditAccountPaymentInusfficientFunds(Map<String, Object> paymentMap) throws IOException, JSONException {
-
+    public void toRefuseCreditAccountPaymentInusfficientFunds(Map<String, Object> paymentMap) {
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ACTIVE);
     }
 
     @State({"An on hold account requests a payment"})
-    public void toRefuseCreditAccountPaymenOnHold(Map<String, Object> paymentMap) throws IOException, JSONException {
-
+    public void toRefuseCreditAccountPaymenOnHold(Map<String, Object> paymentMap){
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ON_HOLD);
     }
 
 
     @State({"A deleted account requests a payment"})
-    public void toRefuseCreditAccountPaymenDeleted(Map<String, Object> paymentMap) throws IOException, JSONException {
-
+    public void toRefuseCreditAccountPaymenDeleted(Map<String, Object> paymentMap) {
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.DELETED);
     }
 
