@@ -8,26 +8,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.componenttests.CardPaymentComponentTest;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.service.CallbackService;
-import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
-import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 
 import java.util.Arrays;
 
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
-@PrepareForTest({LoggerFactory.class})
 public class CallbackServiceImplTest {
 
     @Mock
