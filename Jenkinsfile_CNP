@@ -57,4 +57,10 @@ withPipeline(type, product, app) {
                 AppPipelineDsl.PactRoles.PROVIDER
         ])
     }
+    onPR() {
+        enablePactAs([
+                AppPipelineDsl.PactRoles.CONSUMER,
+                AppPipelineDsl.PactRoles.PROVIDER
+        ])
+    }
 }
