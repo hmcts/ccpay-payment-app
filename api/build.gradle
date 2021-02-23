@@ -166,29 +166,41 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
     classpath = sourceSets.functionalTest.runtimeClasspath
 }
 
-task contractTest(type: Test) {
-    logger.lifecycle("Runnning contract Tests")
+task consumerContractTest(type: Test) {
+    logger.lifecycle("Running consumer contract Tests")
     useJUnitPlatform()
+    include "uk/gov/hmcts/payment/api/controllers/consumer/**"
+    testClassesDirs = sourceSets.contractTest.output.classesDirs
+    classpath = sourceSets.contractTest.runtimeClasspath
+
+}
+
+task providerContractTest(type: Test) {
+    logger.lifecycle("Running contract provider Tests")
+    useJUnitPlatform()
+    include "uk/gov/hmcts/payment/api/controllers/provider/**"
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
 
 }
 
 task runProviderPactVerification(type: Test) {
-    logger.lifecycle("Runs pact Tests")
+    logger.lifecycle("Runs pact provider Tests")
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
 }
 
 task runAndPublishConsumerPactTests(type: Test, description: 'Publish pact test to broker.', group: 'Verification') {
-    // Nothing to do here
+    logger.lifecycle("Runs pact consumer Tests")
     testClassesDirs = sourceSets.contractTest.output.classesDirs
     classpath = sourceSets.contractTest.runtimeClasspath
 }
 
+runAndPublishConsumerPactTests.dependsOn consumerContractTest
+
 runAndPublishConsumerPactTests.finalizedBy pactPublish
 
-runProviderPactVerification.dependsOn contractTest
+runProviderPactVerification.dependsOn providerContractTest
 
 runProviderPactVerification.finalizedBy pactVerify
 
