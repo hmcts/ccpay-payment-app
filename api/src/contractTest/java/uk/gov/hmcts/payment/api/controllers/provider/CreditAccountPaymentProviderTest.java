@@ -9,7 +9,6 @@ import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.ff4j.FF4j;
-import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +43,6 @@ import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
@@ -154,7 +152,7 @@ public class CreditAccountPaymentProviderTest {
     }
 
     @State({"An on hold account requests a payment"})
-    public void toRefuseCreditAccountPaymenOnHold(Map<String, Object> paymentMap){
+    public void toRefuseCreditAccountPaymenOnHold(Map<String, Object> paymentMap) {
         setUpMockInteractions(paymentMap, "Payment Status failed", "failed", AccountStatus.ON_HOLD);
     }
 
