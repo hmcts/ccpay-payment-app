@@ -35,6 +35,26 @@ public class PaymentFixture {
             .build();
     }
 
+    public static CardPaymentRequest cardPaymentRequestProbate(String amountString, Service service) {
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        return CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(new BigDecimal(amountString))
+            .description("description")
+            .caseReference("telRefNumber")
+            .ccdCaseNumber(ccdCaseNumber)
+            .service(service)
+            .currency(CurrencyCode.GBP)
+            .siteId("AA08")
+            .fees(Lists.newArrayList(
+                FeeDto.feeDtoWith()
+                    .calculatedAmount(new BigDecimal(amountString))
+                    .code("FEE0001")
+                    .version("1")
+                    .build())
+            )
+            .build();
+    }
+
     public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, Service service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
