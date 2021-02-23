@@ -76,13 +76,13 @@ public class PBAPaymentPerformanceTest {
     public void makeAndRetrievePba500PaymentsByProbateFromLiberata()  {
         // create a PBA payment
         final Integer PaymentCount = 500;
-        final Long responseTime = 30L;
+        final Long responseTime = 10L;
         SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest[] accountPaymentRequest = new CreditAccountPaymentRequest[PaymentCount];
             String accountNumber = testProps.existingAccountNumber;
 
-        String startDate = formatter.format(LocalDateTime.now().toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequestForProbateForSuccessLiberataValidation("215.00", Service.PROBATE);
@@ -106,13 +106,13 @@ public class PBAPaymentPerformanceTest {
     public void makeAndRetrievePba800PaymentsByProbateFromLiberata() {
         // create a PBA payment
         final Integer PaymentCount = 800;
-        final Long responseTime = 45L;
+        final Long responseTime = 10L;
         SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest[] accountPaymentRequest = new CreditAccountPaymentRequest[PaymentCount];
         String accountNumber = testProps.existingAccountNumber;
 
-        String startDate = formatter.format(LocalDateTime.now().toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequestForProbateForSuccessLiberataValidation("215.00", Service.PROBATE);
@@ -136,13 +136,13 @@ public class PBAPaymentPerformanceTest {
     public void makeAndRetrievePba1000PaymentsByProbateFromLiberata() {
         // create a PBA payment
         final Integer PaymentCount = 1000;
-        final Long responseTime = 60L;
+        final Long responseTime = 10L;
         SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest[] accountPaymentRequest = new CreditAccountPaymentRequest[PaymentCount];
         String accountNumber = testProps.existingAccountNumber;
 
-        String startDate = formatter.format(LocalDateTime.now().toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequestForProbateForSuccessLiberataValidation("215.00", Service.PROBATE);
@@ -166,13 +166,13 @@ public class PBAPaymentPerformanceTest {
     public void makeAndRetrievePba1300PaymentsByProbateFromLiberata() {
         // create a PBA payment
         final Integer PaymentCount = 1300;
-        final Long responseTime = 60L;
+        final Long responseTime = 10L;
         SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest[] accountPaymentRequest = new CreditAccountPaymentRequest[PaymentCount];
         String accountNumber = testProps.existingAccountNumber;
 
-        String startDate = formatter.format(LocalDateTime.now().toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequestForProbateForSuccessLiberataValidation("215.00", Service.PROBATE);
@@ -195,13 +195,13 @@ public class PBAPaymentPerformanceTest {
     @Test
     public void makeAndRetrieveResponseTime30PbaPaymentsByProbateFromLiberata() {
         // create PBA payments
-        final Integer PaymentCount = 30;
+        final Integer PaymentCount = 10;
         SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
 
         CreditAccountPaymentRequest[] accountPaymentRequest = new CreditAccountPaymentRequest[PaymentCount];
         String accountNumber = testProps.existingAccountNumber;
 
-        String startDate = formatter.format(LocalDateTime.now().toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequestForProbateForSuccessLiberataValidation("215.00", Service.PROBATE);
