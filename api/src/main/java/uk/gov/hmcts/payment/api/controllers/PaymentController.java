@@ -197,12 +197,12 @@ public class PaymentController {
         for (final Payment payment: filteredPayments) {
             LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
             LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
-            final String paymentReference = payment.getPaymentLink().getPaymentReference();
+            final String paymentReference = payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null;
             //Apportion logic added for pulling allocation amount
             boolean apportionCheck = payment.getPaymentChannel() != null
                 && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName());
             LOG.info("Apportion check value in liberata API: {}", apportionCheck);
-            List<PaymentFee> fees = payment.getPaymentLink().getFees();
+            List<PaymentFee> fees = payment.getPaymentLink() != null ? payment.getPaymentLink().getFees() : new ArrayList<>();
             boolean isPaymentAfterApportionment = false;
             if (apportionCheck && apportionFeature) {
                 LOG.info("Apportion check and feature passed");
