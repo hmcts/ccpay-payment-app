@@ -538,7 +538,7 @@ public class PaymentsDataUtil {
     }
 
     protected void assertPbaPaymentsForLibereta(List<PaymentDto> payments) {
-        assertThat(payments.size()).isEqualTo(2);
+        assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-1909-0002");
             assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");

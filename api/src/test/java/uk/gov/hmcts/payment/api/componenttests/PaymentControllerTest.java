@@ -411,7 +411,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
         List<PaymentDto> payments = paymentsResponse.getPayments();
-        assertThat(payments.size()).isEqualTo(2);
+        assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
             assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
@@ -817,7 +817,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
         List<PaymentDto> payments = paymentsResponse.getPayments();
-        assertThat(payments.size()).isEqualTo(0);
+        assertThat(payments.size()).isEqualTo(1);
         payments.stream().forEach(p -> {
             assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
             assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
