@@ -46,8 +46,7 @@ withNightlyPipeline("java", product, component) {
     after('functionalTest:aat') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
         publishHTML target: [
-            reportDir
-            : "api/target/site/serenity/",
+            reportDir            : "api/target/site/serenity/",
             reportFiles          : "index.html",
             reportName           : "AAT Functional Tests",
             alwaysLinkToLastBuild: true
