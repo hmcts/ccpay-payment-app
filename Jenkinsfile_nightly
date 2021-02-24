@@ -42,5 +42,17 @@ withNightlyPipeline("java", product, component) {
     enableSecurityScan()
     enableMutationTest()
     enableFullFunctionalTest()
+
+    after('functionalTest:aat') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+        publishHTML target: [
+            reportDir
+            : "api/target/site/serenity/",
+            reportFiles          : "index.html",
+            reportName           : "AAT Functional Tests",
+            alwaysLinkToLastBuild: true
+        ]
+
+    }
     enableSlackNotifications('#cc-payments-tech')
 }
