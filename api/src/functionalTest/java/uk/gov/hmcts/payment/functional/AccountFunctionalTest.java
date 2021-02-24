@@ -20,7 +20,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-@Ignore
 public class AccountFunctionalTest {
     @Autowired
     private TestConfigProperties testProps;
@@ -47,7 +46,7 @@ public class AccountFunctionalTest {
         }
     }
 
-    @Test
+    @Test @Ignore
     public void whenAccountExistsTestShouldReturn200() {
         AccountDto existingAccountDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -57,7 +56,7 @@ public class AccountFunctionalTest {
         assertNotNull(existingAccountDto);
     }
 
-    @Test
+    @Test @Ignore
     public void whenAccountFakeTestShouldReturn404() {
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
