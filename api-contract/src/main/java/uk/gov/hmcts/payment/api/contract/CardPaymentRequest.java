@@ -69,8 +69,8 @@ public class CardPaymentRequest {
 
     @AssertFalse(message =  "Invalid value for language attribute.")
     private boolean isValidLanguage() {
-                return !StringUtils.isBlank(language) && !language.equalsIgnoreCase("string")
-                    && Arrays.stream(Language.values()).noneMatch(language1 ->
+                return StringUtils.isBlank(language)
+                    || Arrays.stream(Language.values()).noneMatch(language1 ->
                     language1.getLanguage().equalsIgnoreCase(language));
     }
 }
