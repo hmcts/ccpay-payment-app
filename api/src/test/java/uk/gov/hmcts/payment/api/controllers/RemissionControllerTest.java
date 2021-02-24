@@ -836,6 +836,7 @@ public class RemissionControllerTest {
             .amount(new BigDecimal("250"))
             .ccdCaseNumber("1111-2222-3333-4444")
             .channel("telephony")
+            .language("cy")
             .currency(CurrencyCode.GBP)
             .description("A test telephony payment")
             .provider("pci pal")

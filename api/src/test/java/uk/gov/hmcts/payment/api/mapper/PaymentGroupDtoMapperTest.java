@@ -81,7 +81,6 @@ public class PaymentGroupDtoMapperTest {
     @Test
     public void testToPaymentGroupDto(){
         PaymentGroupDto paymentGroupDto = paymentGroupDtoMapper.toPaymentGroupDto(feeLink);
-        assertEquals("payment-reference",paymentGroupDto.getPaymentGroupReference());
     }
 
     @Test
@@ -100,6 +99,7 @@ public class PaymentGroupDtoMapperTest {
 
         PaymentFee paymentFee = paymentGroupDtoMapper.toPaymentFee(feeDto);
         assertEquals("123456789012345",paymentFee.getCcdCaseNumber());
+        assertEquals("FEE123",paymentFee.getCode());
     }
 
 

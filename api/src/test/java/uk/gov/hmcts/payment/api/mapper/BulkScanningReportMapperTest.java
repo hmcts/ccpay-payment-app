@@ -47,7 +47,7 @@ public class BulkScanningReportMapperTest {
                                 .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
                                 .serviceType("service-type")
                                 .caseReference("case-reference")
-                                .ccdCaseNumber("ccd-case-number")
+                                .ccdCaseNumber("ccd-case-number-1")
                                 .bankedDate(new Date(2021,1,1))
                                 .documentControlNumber("document-control-number")
                                 .paymentMethod(PaymentMethod.paymentMethodWith().name("pay-method").build())
@@ -60,7 +60,7 @@ public class BulkScanningReportMapperTest {
             .paymentChannel(PaymentChannel.paymentChannelWith().name("non-exela").build())
             .serviceType("service-type")
             .caseReference("case-reference")
-            .ccdCaseNumber("ccd-case-number")
+            .ccdCaseNumber("ccd-case-number-2")
             .bankedDate(new Date(2021,1,1))
             .documentControlNumber("document-control-number")
             .paymentMethod(PaymentMethod.paymentMethodWith().name("pay-method").build())
@@ -73,7 +73,7 @@ public class BulkScanningReportMapperTest {
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .serviceType("service-type")
             .caseReference("case-reference")
-            .ccdCaseNumber("ccd-case-number")
+            .ccdCaseNumber("ccd-case-number-3")
             .bankedDate(new Date(2021,1,1))
             .documentControlNumber("document-control-number")
             .paymentMethod(PaymentMethod.paymentMethodWith().name("pay-method").build())
@@ -113,13 +113,16 @@ public class BulkScanningReportMapperTest {
                                                         .build();
         bulkScanningReportDtos.add(bulkScanningReportDto);
         List<BulkScanningReportDto> responseDtos = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payments);
-        assertEquals(responseDtos.get(0).getRespServiceName(),bulkScanningReportDtos.get(0).getRespServiceName());
+        assertEquals("service-type",responseDtos.get(0).getRespServiceName());
+        assertEquals("ccd-case-number-1",responseDtos.get(0).getCcdCaseReference());
     }
 
     @Test
     public void testToBulkScanningUnallocatedReportDtoFilteringExelaPayments() {
         List<BulkScanningReportDto> responseDtos = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payments);
         assertEquals(1,responseDtos.size());
+        assertEquals("ccd-case-number-1",responseDtos.get(0).getCcdCaseReference());
+
     }
 
     @Test
@@ -132,13 +135,15 @@ public class BulkScanningReportMapperTest {
                                                                             .build();
         underOverPaymentDtos.add(bulkScanningUnderOverPaymentDto);
         List<BulkScanningUnderOverPaymentDto> responseOverPaymentDtos = bulkScanningReportMapper.toSurplusAndShortfallReportdto(payments);
-        assertEquals(responseOverPaymentDtos.get(0).getRespServiceName(),underOverPaymentDtos.get(0).getRespServiceName());
+        assertEquals("service-type",responseOverPaymentDtos.get(0).getRespServiceName());
+        assertEquals("case-reference",responseOverPaymentDtos.get(0).getCcdExceptionReference());
     }
 
     @Test
     public void testToSurplusAndShortfallReportdtoFilteringExelaPayments(){
         List<BulkScanningUnderOverPaymentDto> responseDtos = bulkScanningReportMapper.toSurplusAndShortfallReportdto(payments);
         assertEquals(1,responseDtos.size());
+        assertEquals("ccd-case-number-3",responseDtos.get(0).getCcdCaseReference());
     }
 
 }

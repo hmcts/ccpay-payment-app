@@ -93,11 +93,6 @@ public class CreditAccountDtoMapperTest {
 
     }
 
-    @Test
-    public void testToCreateCreditAccountPaymentResponse(){
-        PaymentDto paymentDto = creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(feeLink);
-        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
-    }
 
     @Test
     public void testToPaymentRequest(){
@@ -110,6 +105,7 @@ public class CreditAccountDtoMapperTest {
                                                                 .siteId("site-id").build();
         Payment payment = creditAccountDtoMapper.toPaymentRequest(creditAccountPayment);
         assertEquals("1234567890123",payment.getCcdCaseNumber());
+        assertEquals("site-id",payment.getSiteId());
     }
 
     @Test
@@ -125,12 +121,20 @@ public class CreditAccountDtoMapperTest {
         paymentFees.add(fee);
         PaymentDto paymentDto = creditAccountDtoMapper.toRetrievePaymentResponse(payment1,paymentFees);
         assertEquals(new BigDecimal("100.00"),paymentDto.getAmount());
+        assertEquals("ccd-case-number",paymentDto.getCcdCaseNumber());
+    }
+
+    @Test
+    public void testToCreateCreditAccountPaymentResponse(){
+        PaymentDto paymentDto = creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(feeLink);
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
     }
 
     @Test
     public void testToRetrievePaymentStatusResponse(){
         PaymentDto paymentDto = creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment1);
         assertEquals(new BigDecimal("100.00"),paymentDto.getAmount());
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
     }
 
     @Test
@@ -148,6 +152,7 @@ public class CreditAccountDtoMapperTest {
         when(featureToggler.getBooleanValue(Mockito.any(String.class),Mockito.anyBoolean())).thenReturn(true);
         PaymentFee paymentFee = creditAccountDtoMapper.toFee(feeDto);
         assertEquals("123456789012345",paymentFee.getCcdCaseNumber());
+        assertEquals("FEE123",paymentFee.getCode());
 
     }
 }

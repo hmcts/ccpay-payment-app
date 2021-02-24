@@ -573,7 +573,7 @@ public class PaymentsDataUtil {
             "  \"description\": \"New passport application\",\n" +
             "  \"ccd_case_number\": \"CCD101\",\n" +
             "  \"case_reference\": \"12345\",\n" +
-            "  \"service\": \"PROBATE\",\n" +
+            "  \"service\": \"PROBATE\",\n" +"  \"language\": \"cy\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.moneyclaims.service.gov.uk\",\n" +
             "  \"site_id\": \"AA101\",\n" +

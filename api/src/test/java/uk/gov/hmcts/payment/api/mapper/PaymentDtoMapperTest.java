@@ -97,6 +97,7 @@ public class PaymentDtoMapperTest {
         payments.add(payment1);
         paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
                             .paymentReference("group-reference")
+                            .dateCreated(new Date(2021,1,1))
                             .fees(paymentFees)
                             .payments(payments).build();
         payment1.setPaymentLink(paymentFeeLink);
@@ -106,23 +107,27 @@ public class PaymentDtoMapperTest {
     public void testToCardPaymentDto(){
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(paymentFeeLink);
         assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
+        assertEquals("group-reference",paymentDto.getPaymentGroupReference());
     }
 
     @Test
     public void testToCardPaymentDtoWithPaymentGroupReference(){
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment1,"group-reference");
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
     }
 
     @Test
     public void testToBulkScanPaymentDto(){
         PaymentDto paymentDto = paymentDtoMapper.toBulkScanPaymentDto(payment1,"group-reference");
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
     }
 
     @Test
     public void testToBulkScanPaymentStrategicDto(){
         PaymentDto paymentDto = paymentDtoMapper.toBulkScanPaymentStrategicDto(payment1,"group-reference");
+        assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
     }
 
@@ -130,48 +135,58 @@ public class PaymentDtoMapperTest {
     public void testToPciPalCardPaymentDto(){
         PaymentDto paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentFeeLink,"http://hmcts.internal");
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertEquals("http://hmcts.internal",paymentDto.getLinks().getNextUrl().getHref());
     }
 
     @Test
     public void testToPciPalCardPaymentDtoWithPaymentLink(){
         PaymentDto paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentFeeLink,payment1, "http://hmcts.internal");
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertEquals("http://hmcts.internal",paymentDto.getLinks().getNextUrl().getHref());
     }
 
     @Test
     public void testToResponseDto(){
         PaymentDto paymentDto = paymentDtoMapper.toResponseDto(paymentFeeLink,payment1);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertEquals("service-type",paymentDto.getServiceName());
     }
 
     @Test
     public void testToRetrieveCardPaymentResponseDto(){
         PaymentDto paymentDto = paymentDtoMapper.toRetrieveCardPaymentResponseDto(paymentFeeLink);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertEquals("service-type",paymentDto.getServiceName());
     }
 
     @Test
     public void testToRetrievePaymentStatusesDto(){
         PaymentDto paymentDto = paymentDtoMapper.toRetrievePaymentStatusesDto(paymentFeeLink);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertEquals("100.00",paymentDto.getAmount().toString());
     }
 
     @Test
     public void testToPaymentStatusesDto(){
         PaymentDto paymentDto = paymentDtoMapper.toPaymentStatusesDto(payment1);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertEquals("100.00",paymentDto.getAmount().toString());
+
     }
 
     @Test
     public void testToGetPaymentResponseDtos(){
         PaymentDto paymentDto = paymentDtoMapper.toGetPaymentResponseDtos(payment1);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertEquals("service-type",paymentDto.getServiceName());
     }
 
     @Test
     public void testToReconciliationResponseDto(){
         PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDto(paymentFeeLink);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+
+
     }
 
     @Test
@@ -185,18 +200,21 @@ public class PaymentDtoMapperTest {
     public void testToCreateRecordPaymentResponse(){
         PaymentDto paymentDto = paymentDtoMapper.toCreateRecordPaymentResponse(paymentFeeLink);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
+        assertEquals("group-reference",paymentDto.getPaymentGroupReference());
     }
 
     @Test
     public void testToPaymentAllocationDto(){
         PaymentAllocationDto paymentAllocationDto = paymentDtoMapper.toPaymentAllocationDto(allocation1);
         assertEquals("1",paymentAllocationDto.getId());
+        assertEquals("receiving-office",paymentAllocationDto.getReceivingOffice());
     }
 
     @Test
     public void testToPaymentAllocationDtoForLiberata(){
         PaymentAllocationDto paymentAllocationDto = paymentDtoMapper.toPaymentAllocationDtoForLibereta(allocation1);
         assertEquals("transferred",paymentAllocationDto.getAllocationStatus());
+        assertEquals("receiving-office",paymentAllocationDto.getReceivingOffice());
     }
 
     @Test

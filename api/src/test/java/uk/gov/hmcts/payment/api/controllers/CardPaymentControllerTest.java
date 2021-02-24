@@ -138,11 +138,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
-        List<Payment> mockPaymentList = new ArrayList<>();
-//        when(db.findByReference("2021-1613381549549").getPayments()).thenReturn();
-
-        List<Payment> paymentList = db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments();
-
         assertEquals("http://payments.com", db.findByReference(paymentsResponse.getPaymentGroupReference()).getPayments().get(0).getServiceCallbackUrl());
 
         assertNotNull(paymentDto);
@@ -162,6 +157,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("200.11"))
             .currency(CurrencyCode.GBP)
+            .language("cy")
             .description("Test cross field validation")
             .service(Service.CMC)
             .siteId("siteID")
@@ -368,6 +364,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber("1234")
+            .language("cy")
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
@@ -492,6 +489,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .description("Test cross field validation")
             .service(Service.CMC)
             .siteId("siteID")
+            .language("cy")
             .ccdCaseNumber(testCcdCaseNumber)
             .provider("pci pal")
             .channel("telephony")
@@ -522,6 +520,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("200.11"))
             .currency(CurrencyCode.GBP)
+            .language("cy")
             .description("Test cross field validation")
             .service(Service.CMC)
             .siteId("siteID")
@@ -556,6 +555,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .amount(new BigDecimal("200.11"))
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
+            .language("cy")
             .service(Service.CMC)
             .siteId("siteID")
             .ccdCaseNumber(testCcdCaseNumber)
@@ -594,6 +594,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .amount(new BigDecimal("200.11"))
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
+            .language("cy")
             .service(Service.CMC)
             .siteId("siteID")
             .ccdCaseNumber(testccdCaseNumber)
@@ -620,6 +621,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .amount(new BigDecimal("200.11"))
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
+            .language("cy")
             .service(Service.CMC)
             .siteId("siteID")
             .ccdCaseNumber(testccdCaseNumber)
@@ -835,6 +837,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
+            .language("cy")
             .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
@@ -895,6 +898,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
+            .language("cy")
             .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
@@ -955,6 +959,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
+            .language("cy")
             .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
@@ -1013,6 +1018,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .amount(new BigDecimal("120"))
             .description("description")
             .caseReference("telRefNumber")
+            .language("cy")
             .ccdCaseNumber(ccdCaseNumber)
             .service(Service.PROBATE)
             .currency(CurrencyCode.GBP)
@@ -1116,7 +1122,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             "  \"amount\": 101.89,\n" +
             "  \"description\": \"New passport application\",\n" +
             "  \"case_reference\": \"caseReference\",\n" +
-            "  \"service\": \"CMC\",\n" +
+            "  \"service\": \"CMC\",\n" +"  \"language\": \"cy\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"return_url\": \"https://www.moneyclaims.service.gov.uk\",\n" +
             "  \"site_id\": \"siteId\",\n" +

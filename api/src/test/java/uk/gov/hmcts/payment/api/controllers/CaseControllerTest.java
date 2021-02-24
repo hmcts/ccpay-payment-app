@@ -427,6 +427,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal("250.00"))
+            .language("cy")
             .description("description")
             .ccdCaseNumber("ccdCaseNumber1")
             .service(Service.DIVORCE)
@@ -534,6 +535,7 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .description("description")
             .ccdCaseNumber("ccdCaseNumber1")
             .service(Service.DIVORCE)
+            .language("cy")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")

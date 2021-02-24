@@ -88,6 +88,7 @@ public class RemissionDtoMapperTest {
         feeDtos.add(feeDto);
         List<PaymentFee> fees = remissionDtoMapper.toFees(feeDtos);
         assertEquals("1234123412341324",fees.get(0).getCcdCaseNumber());
+        assertEquals("RC-1612-3710-5335-6484",fees.get(0).getReference());
     }
 
 }

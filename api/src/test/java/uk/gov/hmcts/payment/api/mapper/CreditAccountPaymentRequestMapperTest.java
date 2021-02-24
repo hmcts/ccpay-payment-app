@@ -41,7 +41,7 @@ public class CreditAccountPaymentRequestMapperTest {
         creditAccountPaymentRequest = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal("100.00"))
             .description("description")
-            .ccdCaseNumber("ccd-case-number")
+            .ccdCaseNumber("ccd-case-number-1")
             .caseReference("case-reference")
             .fees(fees)
             .currency(CurrencyCode.GBP).service(Service.CMC).customerReference("reference").organisationName("org-name")
@@ -51,14 +51,16 @@ public class CreditAccountPaymentRequestMapperTest {
     @Test
     public void testMapPBARequest(){
         Payment payment = creditAccountPaymentRequestMapper.mapPBARequest(creditAccountPaymentRequest);
-        assertEquals("ccd-case-number",payment.getCcdCaseNumber());
+        assertEquals("ccd-case-number-1",payment.getCcdCaseNumber());
+        assertEquals("case-reference",payment.getCaseReference());
     }
 
     @Test
     public void testMapPBAFeesFromRequest(){
-        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").build();
+        PaymentFee fee = PaymentFee.feeWith().code("FEE123").feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").build();
         when(creditAccountDtoMapper.toFee(Mockito.any(FeeDto.class))).thenReturn(fee);
         List<PaymentFee> paymentFees = creditAccountPaymentRequestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);
         assertEquals("ccd-case-number",paymentFees.get(0).getCcdCaseNumber());
+        assertEquals("FEE123",paymentFees.get(0).getCode());
     }
 }
