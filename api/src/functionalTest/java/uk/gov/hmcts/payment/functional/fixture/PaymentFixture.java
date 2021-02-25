@@ -20,6 +20,7 @@ public class PaymentFixture {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
+            .language("cy")
             .ccdCaseNumber(ccdCaseNumber)
             .caseReference("aCaseReference")
             .service(Service.CMC)

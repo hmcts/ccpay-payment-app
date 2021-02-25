@@ -121,6 +121,7 @@ public class RemissionFunctionalTest {
             .ccdCaseNumber("1111-2222-3333-4444")
             .channel("telephony")
             .currency(CurrencyCode.GBP)
+            .language("cy")
             .description("A test telephony payment")
             .provider("pci pal")
             .service(Service.DIVORCE)
