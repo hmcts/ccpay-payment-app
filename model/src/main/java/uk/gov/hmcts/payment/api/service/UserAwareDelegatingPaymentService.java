@@ -284,7 +284,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
     }
 
     @Override
-    public List<Payment> search1(PaymentSearchCriteria searchCriteria) {
+    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
         return paymentRespository.findAll(constructPaymentSpecification(searchCriteria));
     }
 

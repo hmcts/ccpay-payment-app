@@ -138,7 +138,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     public void cancel(String paymentReference) {}
 
     @Override
-    public List<Payment> search1(PaymentSearchCriteria searchCriteria) {
+    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
         return null;
     }
 

@@ -26,6 +26,6 @@ public interface DelegatingPaymentService<T, ID> {
 
     void cancel(String paymentReference);
 
-    List<Payment> search1(PaymentSearchCriteria searchCriteria);
+    List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria);
 
 }
