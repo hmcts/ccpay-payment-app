@@ -132,9 +132,9 @@ public class PaymentController {
         @ApiResponse(code = 200, message = "Payments retrieved"),
         @ApiResponse(code = 400, message = "Bad request")
     })
-    @GetMapping(value = "/payments-approach1")
+    @GetMapping(value = "/payments-improvements")
     @PaymentExternalAPI
-    public PaymentsResponse retrievePaymentsByApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+    public PaymentsResponse retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                                         @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                                         @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -149,7 +149,7 @@ public class PaymentController {
         Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
 
         List<Payment> payments = paymentService
-            .search1(
+            .searchByCriteria(
                 getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
             );
 

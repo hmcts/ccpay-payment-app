@@ -129,8 +129,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
     }
 
     @Override
-    public List<Payment> search1(PaymentSearchCriteria searchCriteria) {
-        return delegatingPaymentService.search1(searchCriteria);
+    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
+        return delegatingPaymentService.searchByCriteria(searchCriteria);
     }
 
 
