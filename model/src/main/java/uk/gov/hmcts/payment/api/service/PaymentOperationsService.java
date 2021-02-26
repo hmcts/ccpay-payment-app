@@ -56,7 +56,7 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
     }
 
     @Override
-    public List<Payment> search1(PaymentSearchCriteria searchCriteria) {
+    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
         return null;
     }
 

@@ -71,7 +71,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
-    public List<Payment> search1(PaymentSearchCriteria searchCriteria) {
+    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
         return null;
     }
 
