@@ -201,6 +201,18 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl searchPaymentsBetweenDatesPaymentMethodServiceName(String startDate, String endDate, String paymentMethod) {
+            if (startDate != null && endDate != null) {
+                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            } else if (startDate != null) {
+                response = newRequest().get("/payments?start_date=" + startDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            } else if (endDate != null) {
+                response = newRequest().get("/payments?end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            }
+
+            return this;
+        }
+
         public PaymentWhenDsl searchPaymentsByServiceBetweenDates(Service serviceName, String startDate, String endDate) {
             StringBuilder sb = new StringBuilder("/payments?");
             sb.append("start_date=").append(startDate);
