@@ -132,7 +132,7 @@ public class PaymentController {
         @ApiResponse(code = 200, message = "Payments retrieved"),
         @ApiResponse(code = 400, message = "Bad request")
     })
-    @GetMapping(value = "/payments-approach1")
+    @GetMapping(value = "/payments-reconciliation")
     @PaymentExternalAPI
     public PaymentsResponse retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
