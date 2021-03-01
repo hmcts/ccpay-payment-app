@@ -1626,7 +1626,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/payments-approach1?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
