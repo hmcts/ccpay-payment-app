@@ -26,16 +26,14 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+
+
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
@@ -86,15 +84,15 @@ public class CMCCardPaymentPerformanceTest {
     }
 
     @Test
-    public void makeAndRetrieve500CardPaymentsByProbateFromLiberata() {
+    public void makeAndRetrieve500CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 500;
-        final Long responseTime = 10L;
+        final Long responseTime = 30L;
         SimpleDateFormat formatter= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.PROBATE);
@@ -103,30 +101,55 @@ public class CMCCardPaymentPerformanceTest {
                 .then()
                 .statusCode(CREATED.value())
                 .body("status", equalTo("Initiated"));
+
         }
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        // Get card payments liberate pull with start and end date
-        PaymentsResponse liberataResponse = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime)
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-        assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+        //Comparing the response size of old and new approach
+        assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+
+        //Comparing the response of old and new approach
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        assertThat(compareResult).isEqualTo(true);
+        LOG.info("Comparison of old and new api end point response of 500 card payments is same");
+
+
+//         Get card payments liberate pull response time
+        Thread.sleep(5000);
+        Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds old api 500 card payment is : {}",liberataResponseTimeOld.getTime());
+
+        Thread.sleep(5000);
+        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds approach 1 api 500 card payment is : {}",liberataResponseTimeApproach1.getTime());
+
+
     }
 
     @Test
-    public void makeAndRetrieve800CardPaymentsByProbateFromLiberata() {
+    public void makeAndRetrieve800CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 800;
-        final Long responseTime = 10L;
+        final Long responseTime = 30L;
         SimpleDateFormat formatter= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
-            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.PROBATE);
+            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.CMC);
 
             paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, cardPaymentRequest[i])
                 .then()
@@ -136,26 +159,48 @@ public class CMCCardPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        // Get card payments liberate pull with start and end date
-        PaymentsResponse liberataResponse = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime)
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-        assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+        //Comparing the response size of old and new approach
+        assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+
+        //Comparing the response of old and new approach
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        assertThat(compareResult).isEqualTo(true);
+        LOG.info("Comparison of old and new api end point response of 800 card payment is same");
+
+
+//         Get card payments liberate pull response time
+        Thread.sleep(5000);
+        Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds old api 800 card payment is : {}",liberataResponseTimeOld.getTime());
+
+        Thread.sleep(5000);
+        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds approach 1 api 800 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
     @Test
-    public void makeAndRetrieve1000CardPaymentsByProbateFromLiberata() {
+    public void makeAndRetrieve1000CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 1000;
-        final Long responseTime = 10L;
+        final Long responseTime = 30L;
         SimpleDateFormat formatter= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
-            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.PROBATE);
+            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.FINREM);
 
             paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, cardPaymentRequest[i])
                 .then()
@@ -165,26 +210,48 @@ public class CMCCardPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        // Get card payments liberate pull with start and end date
-        PaymentsResponse liberataResponse = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime)
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-        assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+        //Comparing the response size of old and new approach
+        assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+
+        //Comparing the response of old and new approach
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        assertThat(compareResult).isEqualTo(true);
+        LOG.info("Comparison of old and new api end point response of 1000 card payment is same");
+
+
+//         Get card payments liberate pull response time
+        Thread.sleep(5000);
+        Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds old api 1000 card payment is : {}",liberataResponseTimeOld.getTime());
+
+        Thread.sleep(5000);
+        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds approach 1 api 1000 card payemnt is : {}",liberataResponseTimeApproach1.getTime());
     }
 
     @Test
-    public void makeAndRetrieve1300CardPaymentsByProbateFromLiberata() {
+    public void makeAndRetrieve1300CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 1300;
-        final Long responseTime = 10L;
+        final Long responseTime = 30L;
         SimpleDateFormat formatter= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
-            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.PROBATE);
+            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.DIVORCE);
 
             paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, cardPaymentRequest[i])
                 .then()
@@ -194,22 +261,44 @@ public class CMCCardPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        // Get card payments liberate pull with start and end date
-        PaymentsResponse liberataResponse = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime)
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-        assertThat(liberataResponse.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+        //Comparing the response size of old and new approach
+        assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+
+        //Comparing the response of old and new approach
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        assertThat(compareResult).isEqualTo(true);
+        LOG.info("Comparison of old and new api end point response of 1300 card payment is same");
+
+
+//         Get card payments liberate pull response time
+        Thread.sleep(5000);
+        Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds old api 1300 card payment is : {}",liberataResponseTimeOld.getTime());
+
+        Thread.sleep(5000);
+        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds approach 1 api 1300 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
     @Test
-    public void makeAndRetrieveResponseTime30CardPaymentsByProbateFromLiberata() {
+    public void makeAndRetrieveResponseTime30CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
-        final Integer PaymentCount = 10;
+        final Integer PaymentCount = 30;
         SimpleDateFormat formatter= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(90).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.PROBATE);
@@ -222,10 +311,29 @@ public class CMCCardPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        // Get card payments liberate pull response time
-        Response liberataResponse = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
-        assertThat(liberataResponse.statusCode()).isEqualTo(200);
-        LOG.info("Response time in milliseconds is : {}",liberataResponse.getTime());
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, 30L)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        Thread.sleep(5000);
+        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, 30L)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        assertThat(compareResult).isEqualTo(true);
+        LOG.info("Comparison of old and new api end point response for 30 card payment is same");
+
+
+//         Get card payments liberate pull response time
+        Thread.sleep(5000);
+        Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds old api for 30 card payment is : {}",liberataResponseTimeOld.getTime());
+
+        Thread.sleep(5000);
+        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds approach 1 api for 30 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
 

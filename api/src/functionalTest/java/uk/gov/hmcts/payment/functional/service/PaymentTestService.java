@@ -78,10 +78,25 @@ public class PaymentTestService {
             .then().time(lessThan(responseTime),TimeUnit.SECONDS);
     }
 
+    public ValidatableResponse getLiberatePullPaymentsByStartAndEndDateApproach1(String serviceToken, String startDate, String endDate, Long responseTime) {
+        return givenWithServiceHeaders(serviceToken)
+            .when()
+            .get("/payments-approach1?end_date={endDate}&start_date={startDate}", endDate,startDate)
+            .then().time(lessThan(responseTime),TimeUnit.SECONDS);
+    }
+
+
     public Response getLiberatePullPaymentsTimeByStartAndEndDate(String serviceToken, String startDate, String endDate) {
         return givenWithServiceHeaders(serviceToken)
             .when()
             .get("/payments?end_date={endDate}&start_date={startDate}", endDate,startDate);
+
+    }
+
+    public Response getLiberatePullPaymentsTimeByStartAndEndDateApproach1(String serviceToken, String startDate, String endDate) {
+        return givenWithServiceHeaders(serviceToken)
+            .when()
+            .get("/payments-approach1?end_date={endDate}&start_date={startDate}", endDate,startDate);
 
     }
 
