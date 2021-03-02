@@ -71,6 +71,12 @@ public class PaymentTestService {
             .get("/payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
     }
 
+    public Response getPbaPaymentsByCCDCaseNumberApproach1(String serviceToken, String ccdCaseNumber) {
+        return givenWithServiceHeaders(serviceToken)
+            .when()
+            .get("/payments-approach1?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
+    }
+
     public ValidatableResponse getLiberatePullPaymentsByStartAndEndDate(String serviceToken, String startDate, String endDate, Long responseTime) {
         return givenWithServiceHeaders(serviceToken)
             .when()

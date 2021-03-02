@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,7 +66,8 @@ public class PaymentBarPerformanceLiberataTest {
 
     @Test
     public void createPaymentRecordAndValidateSearchResults() throws Exception {
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -73,11 +75,18 @@ public class PaymentBarPerformanceLiberataTest {
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
 
-            String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+            String endDate = formatter.format(LocalDateTime.now().toDate());
             // search payment and assert the result
+
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cash")
+                .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
                 .then().getPayments((paymentsResponse -> {
                 LOG.info("paymentsResponse: {}",paymentsResponse.getPayments().size());
                 assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
@@ -134,7 +143,8 @@ public class PaymentBarPerformanceLiberataTest {
 
     @Test
     public void createBarPostalOrderPaymentRecordAndValidateSearchResults() throws Exception {
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -142,11 +152,17 @@ public class PaymentBarPerformanceLiberataTest {
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
 
-            String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+            String endDate = formatter.format(LocalDateTime.now().toDate());
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             // search payment and assert the result
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "postal_order")
+                .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
                 .then().getPayments((paymentsResponse -> {
                 LOG.info("paymentsResponse: {}",paymentsResponse.getPayments().size());
                 assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
@@ -206,19 +222,26 @@ public class PaymentBarPerformanceLiberataTest {
     }
     @Test
     public void createBarChequePaymentRecordAndValidateSearchResults() throws Exception {
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createTelephonyPayment(getPaymentRecordRequestForCheque())
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
+            String endDate = formatter.format(LocalDateTime.now().toDate());
 
-            String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             // search payment and assert the result
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cheque")
+                .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cheque")
                 .then().getPayments((paymentsResponse -> {
                 LOG.info("paymentsResponse: {}",paymentsResponse.getPayments().size());
                 assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
@@ -279,7 +302,8 @@ public class PaymentBarPerformanceLiberataTest {
 
     @Test
     public void createBarCardPaymentRecordAndValidateSearchResults() throws Exception {
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+        SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
+        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -287,11 +311,18 @@ public class PaymentBarPerformanceLiberataTest {
             .then().created(paymentDto -> {
             assertNotNull(paymentDto.getReference());
 
-            String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+            String endDate = formatter.format(LocalDateTime.now().toDate());
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+
             // search payment and assert the result
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "card")
+                .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "card")
                 .then().getPayments((paymentsResponse -> {
                 LOG.info("paymentsResponse: {}",paymentsResponse.getPayments().size());
                 assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
