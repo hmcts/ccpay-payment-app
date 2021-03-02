@@ -12,12 +12,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -28,7 +29,10 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,36 +77,32 @@ public class PaymentBulkscanLiberataPerformanceTest {
 
     @Test
     public void givenAFeeInPG_WhenABulkScanPaymentNeedsMappingthenPaymentShouldBeAddedToExistingGroup() throws Exception {
-//        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
-        String ccdCaseNumber = "5643213213000700";
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         String ccdCaseNumber1 = "1111-CC12-" + RandomUtils.nextInt();
-//        String dcn = "3456908723459" + RandomUtils.nextInt();
-        String dcn = "700000000000100000699";
+        String dcn = "3456908723459" + RandomUtils.nextInt();
 
-        BulkScanPaymentRequestStrategic bulkScanPaymentRequest = BulkScanPaymentRequestStrategic.createBulkScanPaymentStrategicWith()
+        BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
             .service(Service.DIVORCE)
-            .siteId("AA08")
+            .siteId("AA01")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(dcn)
             .ccdCaseNumber(ccdCaseNumber)
-            .externalProvider("exela")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
             .payerName("CCD User1")
             .bankedDate(DateTime.now().toString())
             .paymentMethod(PaymentMethodType.CHEQUE)
             .paymentStatus(PaymentStatus.SUCCESS)
             .giroSlipNo("GH716376")
-            .paymentAllocationDTO(getPaymentAllocationDto("Allocated","bulk scan allocation",null))
             .build();
 
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("550.00"))
-                .code("FEE0002")
-                .version("4")
+                .calculatedAmount(new BigDecimal("450.00"))
+                .code("FEE3132")
+                .version("1")
                 .reference("testRef1")
-                .volume(4)
+                .volume(2)
                 .ccdCaseNumber(ccdCaseNumber1)
                 .build())).build();
 
@@ -117,7 +117,7 @@ public class PaymentBulkscanLiberataPerformanceTest {
 
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createBulkScanPaymentStrategic(bulkScanPaymentRequest,paymentGroupFeeDto.getPaymentGroupReference())
+                .when().createBulkScanPayment(bulkScanPaymentRequest,paymentGroupFeeDto.getPaymentGroupReference())
                 .then().gotCreated(PaymentDto.class, paymentDto -> {
                     assertThat(paymentDto.getReference()).isNotNull();
                     assertThat(paymentDto.getStatus()).isEqualToIgnoringCase("success");
@@ -126,19 +126,5 @@ public class PaymentBulkscanLiberataPerformanceTest {
 
         });
 
-    }
-
-    private PaymentAllocationDto getPaymentAllocationDto(String paymentAllocationStatus, String paymentAllocationDescription, String unidentifiedReason) {
-        return PaymentAllocationDto.paymentAllocationDtoWith()
-            .dateCreated(new Date())
-            .explanation("test explanation")
-            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith()
-                .description(paymentAllocationDescription).name(paymentAllocationStatus).build())
-            .reason("testReason")
-            .receivingOffice("testReceivingOffice")
-            .unidentifiedReason(unidentifiedReason)
-            .userId("AA08")
-            .userName("testname")
-            .build();
     }
 }
