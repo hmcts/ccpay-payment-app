@@ -136,7 +136,7 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createBulkScanPaymentStrategic(BulkScanPaymentRequest bulkScanPaymentRequest, String paymentGroupReference) {
+        public PaymentWhenDsl createBulkScanPaymentStrategic(BulkScanPaymentRequestStrategic bulkScanPaymentRequest, String paymentGroupReference) {
             response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequest)
                 .post("/payment-groups/{payment-group-reference}/bulk-scan-payments-strategic", paymentGroupReference );
             return this;
@@ -214,6 +214,18 @@ public class PaymentsTestDsl {
                 response = newRequest().get("/payments?start_date=" + startDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
             } else if (endDate != null) {
                 response = newRequest().get("/payments?end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            }
+
+            return this;
+        }
+
+        public PaymentWhenDsl searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(String startDate, String endDate, String paymentMethod) {
+            if (startDate != null && endDate != null) {
+                response = newRequest().get("/payments-approach1?start_date=" + startDate + "&end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            } else if (startDate != null) {
+                response = newRequest().get("/payments-approach1?start_date=" + startDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            } else if (endDate != null) {
+                response = newRequest().get("/payments-approach1?end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
             }
 
             return this;
