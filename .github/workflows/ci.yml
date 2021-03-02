@@ -1,4 +1,4 @@
-# This workflow will have a CI flow for Bulkscan Java(Gradle) project
+# This workflow will have a CI flow for Payment Java(Gradle) project
 name: payment - CI
 on:
   push:
