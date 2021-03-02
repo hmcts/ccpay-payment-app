@@ -66,12 +66,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -1707,7 +1704,20 @@ public class PaymentGroupControllerTest {
 
         PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
-        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+        List<PaymentFee> mockFees = new ArrayList<>();
+        PaymentFee fee1 = PaymentFee.feeWith().amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee2 = PaymentFee.feeWith().amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee3 = PaymentFee.feeWith().amountDue(BigDecimal.valueOf(0)).build();
+        mockFees.add(fee1);
+        mockFees.add(fee2);
+        mockFees.add(fee3);
+        PaymentFeeLink mockFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .fees(mockFees)
+            .build();
+        PaymentDbBackdoor mockDb = mock(PaymentDbBackdoor.class);
+        when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
+
+        List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
         assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
         assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
@@ -1763,7 +1773,21 @@ public class PaymentGroupControllerTest {
 
         PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
-        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+        List<PaymentFee> mockFees = new ArrayList<>();
+        PaymentFee fee1 = PaymentFee.feeWith().code("FEE0271").amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee2 = PaymentFee.feeWith().code("FEE0272").amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee3 = PaymentFee.feeWith().code("FEE0273").amountDue(BigDecimal.valueOf(10)).build();
+        mockFees.add(fee1);
+        mockFees.add(fee2);
+        mockFees.add(fee3);
+        PaymentFeeLink mockFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .fees(mockFees)
+            .build();
+        PaymentDbBackdoor mockDb = mock(PaymentDbBackdoor.class);
+        when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
+
+        List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+
 
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         if(apportionFeature) {
@@ -1834,7 +1858,20 @@ public class PaymentGroupControllerTest {
 
         PaymentDto paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
 
-        List<PaymentFee> savedfees = db.findByReference(paymentDto.getPaymentGroupReference()).getFees();
+        List<PaymentFee> mockFees = new ArrayList<>();
+        PaymentFee fee1 = PaymentFee.feeWith().code("FEE0271").amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee2 = PaymentFee.feeWith().code("FEE0272").amountDue(BigDecimal.valueOf(0)).build();
+        PaymentFee fee3 = PaymentFee.feeWith().code("FEE0273").amountDue(BigDecimal.valueOf(-10)).build();
+        mockFees.add(fee1);
+        mockFees.add(fee2);
+        mockFees.add(fee3);
+        PaymentFeeLink mockFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+            .fees(mockFees)
+            .build();
+        PaymentDbBackdoor mockDb = mock(PaymentDbBackdoor.class);
+        when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
+
+        List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         if(apportionFeature) {
