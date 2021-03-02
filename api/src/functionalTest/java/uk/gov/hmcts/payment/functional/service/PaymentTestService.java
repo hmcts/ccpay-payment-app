@@ -74,7 +74,7 @@ public class PaymentTestService {
     public Response getPbaPaymentsByCCDCaseNumberApproach1(String serviceToken, String ccdCaseNumber) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/payments-approach1?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
+            .get("/reconciliation-payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
     }
 
     public ValidatableResponse getLiberatePullPaymentsByStartAndEndDate(String serviceToken, String startDate, String endDate, Long responseTime) {
@@ -87,7 +87,7 @@ public class PaymentTestService {
     public ValidatableResponse getLiberatePullPaymentsByStartAndEndDateApproach1(String serviceToken, String startDate, String endDate, Long responseTime) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/payments-approach1?end_date={endDate}&start_date={startDate}", endDate,startDate)
+            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate)
             .then().time(lessThan(responseTime),TimeUnit.SECONDS);
     }
 
@@ -102,7 +102,7 @@ public class PaymentTestService {
     public Response getLiberatePullPaymentsTimeByStartAndEndDateApproach1(String serviceToken, String startDate, String endDate) {
         return givenWithServiceHeaders(serviceToken)
             .when()
-            .get("/payments-approach1?end_date={endDate}&start_date={startDate}", endDate,startDate);
+            .get("/reconciliation-payments?end_date={endDate}&start_date={startDate}", endDate,startDate);
 
     }
 
