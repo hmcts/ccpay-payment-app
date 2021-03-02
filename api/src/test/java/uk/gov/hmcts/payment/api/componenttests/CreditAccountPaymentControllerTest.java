@@ -901,19 +901,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(2).getAmountDue());
 
     }
 
@@ -972,19 +962,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(10).intValue(), fee.getAmountDue().intValue());
-            });
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(10), savedfees.get(2).getAmountDue());
     }
 
     @Test
@@ -1042,19 +1022,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(-10).intValue(), fee.getAmountDue().intValue());
-            });
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(-10), savedfees.get(2).getAmountDue());
     }
 
     @Test
@@ -1112,18 +1082,9 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
-            });
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(20), savedfees.get(2).getAmountDue());
     }
 
     @Test
@@ -1178,19 +1139,10 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
 
         List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
-
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0271"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0272"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(0).intValue(), fee.getAmountDue().intValue());
-            });
-        savedfees.stream().filter(fee -> fee.getCode().equalsIgnoreCase("FEE0273"))
-            .forEach(fee -> {
-                assertEquals(BigDecimal.valueOf(20).intValue(), fee.getAmountDue().intValue());
-            });
+        
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(20), savedfees.get(2).getAmountDue());
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
