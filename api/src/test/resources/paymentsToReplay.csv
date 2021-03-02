@@ -1,0 +1,3 @@
+index_col,impacted.payment.reference,payment.amount,payment.ccd_case_number,payment.pba_number,payment.description,payment.case_reference,payment.service,payment.currency,payment.customer_reference,payment.organisation_name,payment.site_id,fee.code,fee.calculated_amount,fee.version
+,RC-1212-1232-1232-2131,120,ccdCaseNumber,accountNumber,New passport application,aCaseReference,CMC,GBP,CUST101,ORG101,ABA6,FEE0271,20,1
+,RC-1212-1232-1232-2130,120,ccdCaseNumber,accountNumber,New passport application,aCaseReference,CMC,GBP,CUST101,ORG101,ABA6,FEE0271,20,1
