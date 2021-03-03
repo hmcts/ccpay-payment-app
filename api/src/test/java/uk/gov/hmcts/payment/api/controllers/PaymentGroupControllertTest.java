@@ -155,7 +155,7 @@ public class PaymentGroupControllertTest {
     public void testRetrievePayment() throws Exception {
 
         MvcResult result = restActions
-            .get("/payment-groups/RC-1234-1233-2131-2132")
+            .get("/payment-groups/2021-1614709196068")
             .andExpect(status().isOk())
             .andReturn();
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
