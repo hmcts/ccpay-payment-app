@@ -80,19 +80,19 @@ public class ReplayCreditAccountPaymentControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    ReplayCreditAccountPaymentUtils replayCreditAccountPaymentUtils;
+    private ReplayCreditAccountPaymentUtils replayCreditAccountPaymentUtils;
 
     @MockBean
-    LaunchDarklyFeatureToggler featureToggler;
+    private LaunchDarklyFeatureToggler featureToggler;
 
     @MockBean
-    ReplayCreditAccountPaymentService replayCreditAccountPaymentService;
+    private ReplayCreditAccountPaymentService replayCreditAccountPaymentService;
 
     @MockBean
-    CreditAccountPaymentController creditAccountPaymentController;
+    private CreditAccountPaymentController creditAccountPaymentController;
 
     @MockBean
-    AccountService<AccountDto, String> accountService;
+    private AccountService<AccountDto, String> accountService;
 
     RestActions restActions;
 
@@ -121,7 +121,7 @@ public class ReplayCreditAccountPaymentControllerTest {
         try{
              paymentsToReplayCSV = newFile("src/test/resources/mockPaymentsToReplay.csv");
             Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
-            createCreditAccountPayments(csvParseMap, 2);
+            createCreditAccountPayments(csvParseMap);
             replayCreditAccountPaymentUtils.createCSV(csvParseMap,"mockPaymentsToReplay.csv");
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "mockPaymentsToReplay.csv", "text/csv",
                 new FileInputStream(new File("src/test/resources/mockPaymentsToReplay.csv")));
@@ -142,9 +142,9 @@ public class ReplayCreditAccountPaymentControllerTest {
 
     @Test
     public void shouldReturnBadRequestWhenRequestMadeWithEmptyFile() throws Exception {
-        File paymentsToReplayCSV =null;
+        File emptyCSV =null;
         try {
-            paymentsToReplayCSV = newFile("src/test/resources/emptyCSV.csv");
+            emptyCSV = newFile("src/test/resources/emptyCSV.csv");
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "emptyCSV.csv", "text/csv",
                 new FileInputStream(new File("src/test/resources/emptyCSV.csv")));
             restActions
@@ -153,7 +153,7 @@ public class ReplayCreditAccountPaymentControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn();
         }finally {
-            Files.delete(paymentsToReplayCSV);
+            Files.delete(emptyCSV);
         }
     }
 
@@ -163,7 +163,7 @@ public class ReplayCreditAccountPaymentControllerTest {
         try{
             paymentsToReplayCSV = newFile("src/test/resources/mockPaymentsToReplay.csv");
             Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
-            createCreditAccountPayments(csvParseMap, 2);
+            createCreditAccountPayments(csvParseMap);
             replayCreditAccountPaymentUtils.createCSV(csvParseMap,"mockPaymentsToReplay.csv");
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "mockPaymentsToReplay.csv", "text/csv",
                 new FileInputStream(new File("src/test/resources/mockPaymentsToReplay.csv")));
@@ -179,8 +179,7 @@ public class ReplayCreditAccountPaymentControllerTest {
     }
 
 
-    private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap , int noOfPayments) throws Exception {
-        for (int i = 0; i < noOfPayments; i++) {
+    private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap) throws Exception {
             List<FeeDto> fees = new ArrayList<>();
             fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber("ccdCaseNumber").feeAmount(new BigDecimal(20))
                 .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
@@ -201,7 +200,7 @@ public class ReplayCreditAccountPaymentControllerTest {
                 .accountNumber("accountNumber")
                 .fees(fees)
                 .build();
-            csvParseMap.put("RC-1212-1232-1232-213"+i, request);
-        }
+            csvParseMap.put("RC-1212-1232-1232-2131", request);
+
     }
 }
