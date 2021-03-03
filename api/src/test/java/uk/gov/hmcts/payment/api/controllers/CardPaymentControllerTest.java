@@ -85,16 +85,16 @@ public class CardPaymentControllerTest {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @MockBean
-    CardDetailsService<CardDetails, String> cardDetailsService;
+    private CardDetailsService<CardDetails, String> cardDetailsService;
 
     @MockBean
-    PciPalPaymentService pciPalPaymentService;
+    private PciPalPaymentService pciPalPaymentService;
 
     @MockBean
-    FeePayApportionService feePayApportionService;
+    private FeePayApportionService feePayApportionService;
 
     @MockBean
-    DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @MockBean
     private FF4j ff4j;
