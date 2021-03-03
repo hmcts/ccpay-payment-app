@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -83,6 +84,7 @@ public class CreditAccountPaymentControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
+        Mockito.reset(accountService);
     }
 
     @Test
@@ -107,7 +109,6 @@ public class CreditAccountPaymentControllerTest {
                                                                             .accountNumber("AC101010")
                                                                             .fees(feeDtoList)
                                                                             .build();
-        accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
         AccountDto accountDto = AccountDto.accountDtoWith()
                                     .accountName("accountName")
                                     .accountNumber("AC101010")
