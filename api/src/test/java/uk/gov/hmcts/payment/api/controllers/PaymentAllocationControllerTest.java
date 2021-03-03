@@ -24,6 +24,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,12 +62,11 @@ public class PaymentAllocationControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
-    public PaymentAllocationControllerTest() {
-    }
+    MockMvc mvc;
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -75,6 +75,7 @@ public class PaymentAllocationControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
     }
+
 
     @Test
     public void testAddNewFee() throws Exception {
@@ -88,10 +89,8 @@ public class PaymentAllocationControllerTest {
                                                     .dateCreated(Date.valueOf("2020-02-21"))
                                                     .userName("user123")
                                                     .build();
-        List<PaymentAllocation> paymentAllocationList = new ArrayList<>();
-        paymentAllocationList.add(paymentAllocation);
         Payment payment = Payment.paymentWith()
-                            .paymentAllocation(paymentAllocationList)
+                            .paymentAllocation(Arrays.asList(paymentAllocation))
                             .build();
         when(paymentRepository.save(Mockito.any(Payment.class))).thenReturn(payment);
         MvcResult mvcResult = restActions
@@ -113,33 +112,28 @@ public class PaymentAllocationControllerTest {
     }
 
     private PaymentFeeLink getPaymentFeeLink(){
-        List<PaymentFee> paymentFees = new ArrayList<>();
         PaymentFee fee = PaymentFee.feeWith()
             .feeAmount(BigDecimal.valueOf(30))
             .calculatedAmount(BigDecimal.valueOf(10))
             .code("FEE-123")
             .build();
-        paymentFees.add(fee);
-        Payment payment = Payment.paymentWith()
-            .paymentStatus(PaymentStatus.SUCCESS)
-            .status("success")
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("card").build())
-            .currency("GBP")
-            .caseReference("case-reference")
-            .ccdCaseNumber("ccd-number")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("cash").build())
-            .dateCreated(Date.valueOf("2020-02-01"))
-            .externalReference("external-reference")
-            .reference("RC-1234-1234-1234-1234")
-            .build();
-        List<Payment> paymentList = new ArrayList<>();
-        paymentList.add(payment);
         return PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference("RC-1234-1234-1234-1234")
             .dateCreated(Date.valueOf("2020-01-20"))
             .dateUpdated(Date.valueOf("2020-01-21"))
-            .fees(paymentFees)
-            .payments(paymentList)
+            .fees(Arrays.asList(fee))
+            .payments(Arrays.asList( Payment.paymentWith()
+                .paymentStatus(PaymentStatus.SUCCESS)
+                .status("success")
+                .paymentChannel(PaymentChannel.paymentChannelWith().name("card").build())
+                .currency("GBP")
+                .caseReference("case-reference")
+                .ccdCaseNumber("ccd-number")
+                .paymentMethod(PaymentMethod.paymentMethodWith().name("cash").build())
+                .dateCreated(Date.valueOf("2020-02-01"))
+                .externalReference("external-reference")
+                .reference("RC-1234-1234-1234-1234")
+                .build()))
             .build();
     }
 
