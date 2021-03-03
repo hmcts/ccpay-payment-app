@@ -63,7 +63,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringRunner.class)
-@PrepareForTest({LoggerFactory.class})
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 public class ReplayCreditAccountPaymentControllerTest {
@@ -93,10 +92,7 @@ public class ReplayCreditAccountPaymentControllerTest {
     CreditAccountPaymentController creditAccountPaymentController;
 
     @MockBean
-    protected AccountService<AccountDto, String> accountService;
-
-
-
+    AccountService<AccountDto, String> accountService;
 
     RestActions restActions;
 
@@ -123,12 +119,12 @@ public class ReplayCreditAccountPaymentControllerTest {
         File paymentsToReplayCSV =null;
         MvcResult result;
         try{
-             paymentsToReplayCSV = newFile("src/test/resources/paymenToReplay.csv");
+             paymentsToReplayCSV = newFile("src/test/resources/mockPaymentsToReplay.csv");
             Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
             createCreditAccountPayments(csvParseMap, 2);
-            replayCreditAccountPaymentUtils.createCSV(csvParseMap,"paymentsToReplay.csv");
-            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
-                new FileInputStream(new File("src/test/resources/paymentsToReplay.csv")));
+            replayCreditAccountPaymentUtils.createCSV(csvParseMap,"mockPaymentsToReplay.csv");
+            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "mockPaymentsToReplay.csv", "text/csv",
+                new FileInputStream(new File("src/test/resources/mockPaymentsToReplay.csv")));
             doNothing().when(replayCreditAccountPaymentService).updatePaymentStatusByReference(anyString(),any(PaymentStatus.class), anyString());
             PaymentDto mockPaymentDto = PaymentDto.payment2DtoWith().build();
             ResponseEntity<PaymentDto> responseEntity = ResponseEntity.of(Optional.of(mockPaymentDto));
@@ -149,7 +145,7 @@ public class ReplayCreditAccountPaymentControllerTest {
         File paymentsToReplayCSV =null;
         try {
             paymentsToReplayCSV = newFile("src/test/resources/emptyCSV.csv");
-            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
+            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "emptyCSV.csv", "text/csv",
                 new FileInputStream(new File("src/test/resources/emptyCSV.csv")));
             restActions
                 .postWithMultiPartFileData("/replay-credit-account-payments",
@@ -165,12 +161,12 @@ public class ReplayCreditAccountPaymentControllerTest {
     public void shouldSendOkWhenAnExceptionOccuredInPayment() throws Exception {
         File paymentsToReplayCSV =null;
         try{
-            paymentsToReplayCSV = newFile("src/test/resources/paymenToReplay.csv");
+            paymentsToReplayCSV = newFile("src/test/resources/mockPaymentsToReplay.csv");
             Map<String, CreditAccountPaymentRequest> csvParseMap = new HashMap<>();
             createCreditAccountPayments(csvParseMap, 2);
-            replayCreditAccountPaymentUtils.createCSV(csvParseMap,"paymentsToReplay.csv");
-            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
-                new FileInputStream(new File("src/test/resources/paymentsToReplay.csv")));
+            replayCreditAccountPaymentUtils.createCSV(csvParseMap,"mockPaymentsToReplay.csv");
+            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "mockPaymentsToReplay.csv", "text/csv",
+                new FileInputStream(new File("src/test/resources/mockPaymentsToReplay.csv")));
             doThrow(PaymentException.class).when(replayCreditAccountPaymentService).updatePaymentStatusByReference(anyString(),any(PaymentStatus.class), anyString());
             restActions
                 .postWithMultiPartFileData("/replay-credit-account-payments",
