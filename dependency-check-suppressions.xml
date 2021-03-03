@@ -48,6 +48,7 @@
     <suppress until="2021-03-15">
         <notes>Transitive dependency of spring boot version</notes>
         <cve>CVE-2020-5421</cve>
+        <cve>CVE-2021-22112</cve>
     </suppress>
 
     <suppress until="2021-03-15">
