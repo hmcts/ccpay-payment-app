@@ -125,7 +125,7 @@ public class PaymentsSearchFunctionalTest {
     }
 
     @Test
-    public void givenTwoPaymentsInPeriodWhensearchPaymentsWithStartDateEndDateThenShouldPass() {
+    public void givenTwoPaymentsInPeriodWhensearchPaymentsWithStartDateEndDateThenShouldPass() throws InterruptedException {
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
 
         dsl.given().userToken(USER_TOKEN)
@@ -145,6 +145,8 @@ public class PaymentsSearchFunctionalTest {
             assertNotNull(paymentDto.getReference());
             assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
         });
+
+        Thread.sleep(1000);
 
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
