@@ -58,7 +58,7 @@ public class PBAPaymentPerformanceTest {
     private static boolean TOKENS_INITIALIZED = false;
 
     private static final String DATE_TIME_FORMAT = "dd-MM-yyyy HH:mm:ss";
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentRecordFunctionalTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PBAPaymentPerformanceTest.class);
 
 
 
@@ -96,10 +96,9 @@ public class PBAPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-        Thread.sleep(5000);
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
@@ -114,12 +113,11 @@ public class PBAPaymentPerformanceTest {
 
 
 //         Get card payments liberate pull response time
-        Thread.sleep(5000);
+
         Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds old api for 500 PBA payment is : {}",liberataResponseTimeOld.getTime());
 
-        Thread.sleep(5000);
         Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds approach 1 api for 500 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
@@ -148,10 +146,10 @@ public class PBAPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-        Thread.sleep(5000);
+
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
@@ -166,12 +164,11 @@ public class PBAPaymentPerformanceTest {
 
 
 //         Get card payments liberate pull response time
-        Thread.sleep(5000);
+
         Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds old api for 800 PBA payment is : {}",liberataResponseTimeOld.getTime());
 
-        Thread.sleep(5000);
         Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds approach 1 api for 800 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
@@ -200,10 +197,10 @@ public class PBAPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-        Thread.sleep(5000);
+
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
@@ -218,12 +215,11 @@ public class PBAPaymentPerformanceTest {
 
 
 //         Get card payments liberate pull response time
-        Thread.sleep(5000);
+
         Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds old api for 1000 PBA payment is : {}",liberataResponseTimeOld.getTime());
 
-        Thread.sleep(5000);
         Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds approach 1 api for 1000 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
@@ -252,10 +248,10 @@ public class PBAPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-        Thread.sleep(5000);
+
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
@@ -270,12 +266,10 @@ public class PBAPaymentPerformanceTest {
 
 
 //         Get card payments liberate pull response time
-        Thread.sleep(5000);
         Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds old api for 1300 PBA payment is : {}",liberataResponseTimeOld.getTime());
 
-        Thread.sleep(5000);
         Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds approach 1 api for 1300 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
@@ -303,10 +297,10 @@ public class PBAPaymentPerformanceTest {
 
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, 30L)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-        Thread.sleep(5000);
+
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, 30L)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
@@ -321,12 +315,11 @@ public class PBAPaymentPerformanceTest {
 
 
 //         Get card payments liberate pull response time
-        Thread.sleep(5000);
         Response liberataResponseTimeOld = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDate(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeOld.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds old api for 30 PBA payment is : {}",liberataResponseTimeOld.getTime());
 
-        Thread.sleep(5000);
+
         Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
         assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
         LOG.info("Response time in milliseconds approach 1 api for 30 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
