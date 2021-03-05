@@ -104,10 +104,10 @@ public class CMCCardPaymentPerformanceTest {
 
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
-        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
@@ -138,7 +138,7 @@ public class CMCCardPaymentPerformanceTest {
     }
 
     @Test
-    public void makeAndRetrieve800CardPaymentsByProbateFromLiberata() throws InterruptedException {
+    public void makeAndRetrieve800CardPaymentsByCmcFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 800;
         final Long responseTime = 30L;
@@ -157,10 +157,10 @@ public class CMCCardPaymentPerformanceTest {
                 .body("status", equalTo("Initiated"));
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
-        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
@@ -189,7 +189,7 @@ public class CMCCardPaymentPerformanceTest {
     }
 
     @Test
-    public void makeAndRetrieve1000CardPaymentsByProbateFromLiberata() throws InterruptedException {
+    public void makeAndRetrieve1000CardPaymentsByFinremFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 1000;
         final Long responseTime = 30L;
@@ -208,10 +208,10 @@ public class CMCCardPaymentPerformanceTest {
                 .body("status", equalTo("Initiated"));
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
-        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
@@ -240,7 +240,7 @@ public class CMCCardPaymentPerformanceTest {
     }
 
     @Test
-    public void makeAndRetrieve1300CardPaymentsByProbateFromLiberata() throws InterruptedException {
+    public void makeAndRetrieve1300CardPaymentsByDivorceFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 1300;
         final Long responseTime = 30L;
@@ -259,10 +259,10 @@ public class CMCCardPaymentPerformanceTest {
                 .body("status", equalTo("Initiated"));
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
-        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
@@ -309,9 +309,9 @@ public class CMCCardPaymentPerformanceTest {
                 .body("status", equalTo("Initiated"));
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, 30L)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 

@@ -94,10 +94,11 @@ public class PBAPaymentPerformanceTest {
                 .body("status", equalTo("Success"));
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
-        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -144,10 +145,10 @@ public class PBAPaymentPerformanceTest {
                 .body("status", equalTo("Success"));
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
-        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
@@ -175,7 +176,7 @@ public class PBAPaymentPerformanceTest {
     }
 
     @Test
-    public void makeAndRetrievePba1000PaymentsByProbateFromLiberata() throws InterruptedException {
+    public void makeAndRetrievePba1000PaymentsByDivorceFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 1000;
         final Long responseTime = 30L;
@@ -195,10 +196,10 @@ public class PBAPaymentPerformanceTest {
                 .body("status", equalTo("Success"));
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
-        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
@@ -226,7 +227,7 @@ public class PBAPaymentPerformanceTest {
     }
 
     @Test
-    public void makeAndRetrievePba1300PaymentsByProbateFromLiberata() throws InterruptedException {
+    public void makeAndRetrievePba1300PaymentsByCmcFromLiberata() throws InterruptedException {
         // create a PBA payment
         final Integer PaymentCount = 1300;
         final Long responseTime = 30L;
@@ -246,10 +247,10 @@ public class PBAPaymentPerformanceTest {
                 .body("status", equalTo("Pending"));
         }
 
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        Thread.sleep(5000);
 
-        Thread.sleep(2000);
-        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 2)
+        String endDate = formatter.format(LocalDateTime.now().toDate());
+        PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
@@ -276,7 +277,7 @@ public class PBAPaymentPerformanceTest {
     }
 
     @Test
-    public void makeAndRetrieveResponseTime30PbaPaymentsByProbateFromLiberata() throws InterruptedException {
+    public void makeAndRetrieveResponseTime30PbaPaymentsByBarFromLiberata() throws InterruptedException {
         // create PBA payments
         final Integer PaymentCount = 30;
         SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
@@ -295,9 +296,9 @@ public class PBAPaymentPerformanceTest {
                 .body("status", equalTo("Success"));
         }
 
+        Thread.sleep(5000);
         String endDate = formatter.format(LocalDateTime.now().toDate());
 
-        Thread.sleep(2000);
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, 30L)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
