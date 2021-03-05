@@ -33,7 +33,8 @@ jobs:
       - name: Generate code coverage report
         run: ./gradlew codeCoverageReport
       - name: Publish report to Codecov
-        run: bash <(curl -s https://codecov.io/bash)
+        uses: codecov/codecov-action@v1
+#        run: bash <(curl -s https://codecov.io/bash)
       - name: Cleanup Gradle Cache
         run: |
           rm -f ~/.gradle/caches/modules-2/modules-2.lock
