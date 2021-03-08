@@ -109,11 +109,6 @@ public class CardPaymentControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
-        Mockito.reset(featureToggler);
-        Mockito.reset(cardDetailsService);
-        Mockito.reset(feePayApportionService);
-        Mockito.reset(pciPalPaymentService);
-        Mockito.reset(delegatingPaymentService);
     }
 
 
