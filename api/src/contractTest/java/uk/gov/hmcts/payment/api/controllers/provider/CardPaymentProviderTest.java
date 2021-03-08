@@ -10,7 +10,6 @@ import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.google.common.collect.ImmutableMap;
 import org.ff4j.FF4j;
-import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,14 +46,13 @@ import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
@@ -140,7 +138,9 @@ public class CardPaymentProviderTest {
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
-        context.verifyInteraction();
+        if (context != null) {
+            context.verifyInteraction();
+        }
     }
 
     @BeforeEach
@@ -151,9 +151,11 @@ public class CardPaymentProviderTest {
             new CardPaymentController(cardDelegatingPaymentService, paymentDtoMapper, cardDetailsService, pciPalPaymentService, ff4j,
                 feePayApportionService, featureToggler, referenceDataService),
             new PaymentController(paymentService, paymentStatusRepositoryMock, callbackServiceMock,
-            paymentDtoMapper, paymentValidator, ff4j,
-            dateUtil, paymentFeeRepositoryMock, featureToggler));
-        context.setTarget(testTarget);
+                paymentDtoMapper, paymentValidator, ff4j,
+                dateUtil, paymentFeeRepositoryMock, featureToggler));
+        if (context != null) {
+            context.setTarget(testTarget);
+        }
 
     }
 
