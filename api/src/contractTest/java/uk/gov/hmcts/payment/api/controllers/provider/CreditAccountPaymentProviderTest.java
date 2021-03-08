@@ -132,7 +132,7 @@ public class CreditAccountPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
-                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("PROBATE"), paymentService,
+                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("CMC"), paymentService,
                 referenceDataService, authTokenGenerator));
         if (context != null) {
             context.setTarget(testTarget);
