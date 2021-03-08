@@ -79,7 +79,7 @@
     </suppress>
 
     <suppress until="2021-05-05">
-        <notes>its because of jetty package : 9.4.34 and it has transitive  dependency of wiremock and we are on latest wiremock version : 2.27.2</notes>
+        <notes>Transitive  dependency of wiremock and we are on latest wiremock version : 2.27.2</notes>
         <cve>CVE-2020-27223</cve>
     </suppress>
 
