@@ -267,7 +267,7 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByFinrem() {
+    public void makeAndRetrievePbaPaymentByFinrem() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
         String accountNumber = testProps.existingAccountNumber;
@@ -277,7 +277,7 @@ public class PBAPaymentFunctionalTest {
             .then()
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
-
+        Thread.sleep(1000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -289,7 +289,7 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByUnspecService() {
+    public void makeAndRetrievePbaPaymentByUnspecService() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
         String accountNumber = testProps.existingAccountNumber;
@@ -299,7 +299,7 @@ public class PBAPaymentFunctionalTest {
             .then()
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
-
+        Thread.sleep(1000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -311,7 +311,7 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByIACService() {
+    public void makeAndRetrievePbaPaymentByIACService() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
         String accountNumber = testProps.existingAccountNumber;
@@ -322,6 +322,7 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
+        Thread.sleep(1000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -333,7 +334,7 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByFPLService() {
+    public void makeAndRetrievePbaPaymentByFPLService() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
         String accountNumber = testProps.existingAccountNumber;
@@ -344,6 +345,7 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
+        Thread.sleep(1000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
