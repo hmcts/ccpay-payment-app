@@ -102,13 +102,6 @@ public class ReplayCreditAccountPaymentControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
-        Mockito.reset(accountService);
-        Mockito.reset(replayCreditAccountPaymentService);
-        Mockito.reset(creditAccountPaymentController);
-        Mockito.reset(replayCreditAccountPaymentService);
-        Mockito.reset(featureToggler);
-
-
     }
 
     @Test

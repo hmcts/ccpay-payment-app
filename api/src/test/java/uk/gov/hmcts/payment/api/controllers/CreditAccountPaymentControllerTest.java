@@ -84,7 +84,6 @@ public class CreditAccountPaymentControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
-        Mockito.reset(accountService);
     }
 
     @Test
