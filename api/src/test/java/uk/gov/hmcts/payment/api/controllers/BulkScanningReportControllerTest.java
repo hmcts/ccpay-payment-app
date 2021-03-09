@@ -98,39 +98,7 @@ public class BulkScanningReportControllerTest {
             .andReturn();
     }
 
-    public List<Payment> getTransferedPaymentList(){
-        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000")
-            .paymentReference("RC-1519-9028-2432-000")
-            .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
-            .receivingOffice("Home office")
-            .reason("receiver@receiver.com")
-            .explanation("sender@sender.com")
-            .userId("userId")
-            .build();
-        Payment payment = Payment.paymentWith()
-            .amount(new BigDecimal("99.99"))
-            .caseReference("Reference")
-            .ccdCaseNumber("ccdCaseNumber")
-            .description("Test payments statuses for ")
-            .serviceType("PROBATE")
-            .currency("GBP")
-            .siteId("AA0")
-            .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .externalReference("e2kkddts5215h9qqoeuth5c0v")
-            .reference("RC-1519-9028-2432-000")
-            .paymentAllocation(Arrays.asList(paymentAllocation))
-            .build();
-        List<Payment> paymentList = new ArrayList<>();
-        paymentList.add(payment);
-        return  paymentList;
-    }
-
     public List<Payment> getAllocatedPaymentList(){
-
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000")
             .paymentReference("RC-1519-9028-2432-000")
@@ -153,7 +121,7 @@ public class BulkScanningReportControllerTest {
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("exela").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .externalReference("e2kkddts5215h9qqoeuth5c0v")
+            .externalReference("ext-reference")
             .reference("RC-1519-9028-2432-000")
             .statusHistories(Arrays.asList(statusHistory))
             .paymentAllocation(Arrays.asList(paymentAllocation))

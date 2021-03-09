@@ -140,38 +140,7 @@ public class CardPaymentControllerTest {
 
     @Test
     public void shouldGetPaymentForValidReference() throws Exception {
-        Payment payment1 = Payment.paymentWith()
-            .siteId("siteId")
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
-            .serviceType("service-type")
-            .caseReference("case-reference")
-            .reference("RC-1612-3710-5335-6484")
-            .ccdCaseNumber("ccd-case-number")
-            .status("success")
-            .bankedDate(new Date(2021,1,1))
-            .documentControlNumber("document-control-number")
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("pay-method").build())
-            .amount(new BigDecimal("100.00"))
-            .paymentStatus(PaymentStatus.SUCCESS)
-            .dateCreated(new Date(2020,10,1))
-            .currency("GBP")
-            .id(1).build();
-        PaymentFee fee = PaymentFee.feeWith()
-            .feeAmount(new BigDecimal("100.00"))
-            .ccdCaseNumber("ccd-case-number")
-            .calculatedAmount(new BigDecimal("100.00"))
-            .code("FEE123")
-            .version("1")
-            .volume(1)
-            .build();
-        List<PaymentFee> feeList = new ArrayList<>();
-        feeList.add(fee);
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-            .paymentReference(PaymentReference.getInstance().getNext())
-            .payments(Collections.singletonList(payment1))
-            .fees(feeList)
-            .build();
-        when(delegatingPaymentService.retrieve(Mockito.anyString())).thenReturn(paymentFeeLink);
+        when(delegatingPaymentService.retrieve(Mockito.anyString())).thenReturn(getPaymentFeeLink());
         restActions
             .get("/card-payments/123123123123123")
             .andExpect(status().isOk())
@@ -192,6 +161,34 @@ public class CardPaymentControllerTest {
 
     @Test
     public void shouldRetrievePaymentStatus() throws Exception {
+        when(delegatingPaymentService.retrieve(Mockito.anyString())).thenReturn(getPaymentFeeLink());
+        restActions
+            .get("/card-payments/RC-1612-3710-5335-6484/statuses")
+            .andExpect(status().isOk())
+            .andReturn();
+    }
+
+    @Test
+    public void shouldCallPaymentCancelFunction() throws Exception {
+        when(ff4j.check(anyString())).thenReturn(true);
+        doNothing().when(delegatingPaymentService).cancel(anyString());
+        restActions
+            .post("/card-payments/RC-1612-3710-5335-6484/cancel")
+            .andExpect(status().isNoContent())
+            .andReturn();
+    }
+
+    @Test
+    public void shouldCallPaymentCancelFunction_ThrowsPaymentException() throws Exception {
+        when(ff4j.check(anyString())).thenReturn(false);
+        doNothing().when(delegatingPaymentService).cancel(anyString());
+        restActions
+            .post("/card-payments/RC-1612-3710-5335-6484/cancel")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    private PaymentFeeLink getPaymentFeeLink(){
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment1 = Payment.paymentWith()
             .siteId("siteId")
@@ -221,44 +218,14 @@ public class CardPaymentControllerTest {
             .build();
         List<PaymentFee> feeList = new ArrayList<>();
         feeList.add(fee);
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
+        return PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(PaymentReference.getInstance().getNext())
             .payments(Collections.singletonList(payment1))
             .fees(feeList)
             .build();
-        when(delegatingPaymentService.retrieve(Mockito.anyString())).thenReturn(paymentFeeLink);
-        restActions
-            .get("/card-payments/RC-1612-3710-5335-6484/statuses")
-            .andExpect(status().isOk())
-            .andReturn();
+
     }
 
-    @Test
-    public void shouldCallPaymentCancelFunction() throws Exception {
-        when(ff4j.check(anyString())).thenReturn(true);
-        doNothing().when(delegatingPaymentService).cancel(anyString());
-        restActions
-            .post("/card-payments/RC-1612-3710-5335-6484/cancel")
-            .andExpect(status().isNoContent())
-            .andReturn();
-    }
-
-    @Test
-    public void shouldCallPaymentCancelFunction_ThrowsPaymentException() throws Exception {
-        when(ff4j.check(anyString())).thenReturn(false);
-        doNothing().when(delegatingPaymentService).cancel(anyString());
-        restActions
-            .post("/card-payments/RC-1612-3710-5335-6484/cancel")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-    }
-
-
-    @SneakyThrows
-    protected String contentsOf(String fileName) {
-        String content = new String(Files.readAllBytes(Paths.get(ResourceUtils.getURL("classpath:" + fileName).toURI())));
-        return resolvePlaceholders(content);
-    }
 
     private CardPaymentRequest cardPaymentRequest() throws Exception {
         return objectMapper.readValue(requestJson().getBytes(), CardPaymentRequest.class);
