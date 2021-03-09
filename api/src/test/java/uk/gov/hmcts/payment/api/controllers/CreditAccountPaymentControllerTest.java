@@ -129,7 +129,6 @@ public class CreditAccountPaymentControllerTest {
 
     @Test
     public void testRetrieve() throws Exception {
-
         when(creditAccountPaymentService.retrieveByPaymentReference(anyString())).thenReturn(getPaymentFeeLink());
         MvcResult result =   restActions
                                 .get("/credit-account-payments/2021-1614709196068")

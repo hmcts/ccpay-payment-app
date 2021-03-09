@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
 import uk.gov.hmcts.payment.api.controllers.utils.ReplayCreditAccountPaymentUtils;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
@@ -87,9 +88,6 @@ public class ReplayCreditAccountPaymentControllerTest {
     RestActions restActions;
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
-    private static Logger mockLOG;
-
 
     @Before
     public void setup() {

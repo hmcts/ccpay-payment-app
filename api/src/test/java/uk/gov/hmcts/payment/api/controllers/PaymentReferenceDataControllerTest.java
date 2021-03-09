@@ -166,8 +166,6 @@ public class PaymentReferenceDataControllerTest {
             .andReturn();
         List<LinkedHashMap> actualResponse = objectMapper.readValue(result.getResponse().getContentAsString(),List.class);
         assertEquals("legacy-site-id",actualResponse.get(0).get("siteId"));
-
-
     }
 
 }
