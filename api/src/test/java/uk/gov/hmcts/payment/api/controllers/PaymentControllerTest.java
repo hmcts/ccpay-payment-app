@@ -99,7 +99,6 @@ public class PaymentControllerTest {
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
-        System.out.println(result.getResponse().getContentAsString());
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(),PaymentsResponse.class);
         assertEquals("ccd-number",paymentsResponse.getPayments().get(0).getCcdCaseNumber());
     }
@@ -121,7 +120,6 @@ public class PaymentControllerTest {
             .get("/payments/RC-1234-1234-1234-1234")
             .andExpect(status().isOk())
             .andReturn();
-        System.out.println(result.getResponse().getContentAsString());
     }
 
     private PaymentFeeLink getPaymentFeeLink(){
