@@ -135,7 +135,6 @@ public class CreditAccountPaymentControllerTest {
                                 .andExpect(status().isOk())
                                 .andReturn();
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsString(),PaymentDto.class);
-        System.out.println(result.getResponse().getContentAsString());
         assertEquals("ccd-number",paymentDto.getCcdCaseNumber());
     }
 

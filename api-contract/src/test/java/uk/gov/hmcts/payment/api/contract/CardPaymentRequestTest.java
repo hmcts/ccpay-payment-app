@@ -47,7 +47,6 @@ public class CardPaymentRequestTest {
         request.setAmount(BigDecimal.valueOf(-100.12));
         Set<ConstraintViolation<CardPaymentRequest>> violations = validator.validate(request);
         violations.stream().forEach(v->{
-                System.out.println(v.getMessage());
                 if(v.getMessage().equals("must be greater than 0")){
                     assertEquals("must be greater than 0",v.getMessage());
                 }
