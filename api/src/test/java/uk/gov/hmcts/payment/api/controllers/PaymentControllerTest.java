@@ -92,8 +92,8 @@ public class PaymentControllerTest {
 
     @Test
     public void  testRetrievePayments() throws Exception {
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
+        String startDate = LocalDate.parse("2020-01-20").toString(DATE_FORMAT);
+        String endDate = LocalDate.parse("2020-01-23").toString(DATE_FORMAT);
         when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(getPaymentFeeLinkList());
         MvcResult result = restActions
             .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
@@ -138,7 +138,8 @@ public class PaymentControllerTest {
             .caseReference("case-reference")
             .ccdCaseNumber("ccd-number")
             .paymentMethod(PaymentMethod.paymentMethodWith().name("cash").build())
-            .dateCreated(Date.valueOf("2020-02-01"))
+            .dateCreated(Date.valueOf("2020-01-20"))
+            .dateUpdated(Date.valueOf("2020-01-21"))
             .externalReference("external-reference")
             .reference("RC-1234-1234-1234-1234")
             .build();
