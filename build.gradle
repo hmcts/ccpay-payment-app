@@ -1,14 +1,14 @@
 plugins {
     id 'application'
     id "org.sonarqube" version "3.0"
-    id 'org.springframework.boot' version '2.2.6.RELEASE'
+    id 'org.springframework.boot' version '2.3.6.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id "uk.gov.hmcts.java" version '0.12.0'
     id "com.gorylenko.gradle-git-properties" version "1.4.21"
     id 'jacoco'
 }
 
-def springBootVersion = '2.2.6.RELEASE'
+def springBootVersion = '2.3.6.RELEASE'
 def springCloudVersion = 'Finchley.SR2'
 
 
@@ -17,7 +17,6 @@ def versions = [
         javaVersion: '11',
         jacocoVersion: '0.8.5'
 ]
-
 allprojects {
     apply plugin: 'maven'
     apply plugin: 'io.spring.dependency-management'
@@ -39,6 +38,9 @@ allprojects {
         jcenter()
         maven { url 'https://repo.spring.io/libs-milestone' }
     }
+
+    apply from: "${rootDir}/cve-resolution-strategy.gradle"
+
     dependencyManagement {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
@@ -101,7 +103,6 @@ subprojects {
             exceptionFormat = 'full'
         }
     }
-
     dependencies {
         compile ('com.sun.xml.bind:jaxb-osgi:2.3.1')
         testCompile 'io.github.openfeign:feign-jackson:9.7.0'
@@ -118,7 +119,8 @@ subprojects {
         compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-        compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.6.4') {
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        compile(group: 'uk.gov.hmcts.reform', name: 'core-case-data-store-client', version: '4.7.3') {
             sourceSets {
                 main {
                     java {
