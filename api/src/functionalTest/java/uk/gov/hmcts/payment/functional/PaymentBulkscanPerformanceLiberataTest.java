@@ -41,7 +41,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class PaymentBulkscanLiberataPerformanceTest {
+public class PaymentBulkscanPerformanceLiberataTest {
 
     @Autowired
     private TestConfigProperties testProps;
