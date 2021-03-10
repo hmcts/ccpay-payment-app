@@ -77,5 +77,11 @@
         <notes>spring-security jars cannot be upgraded, this supression is added. </notes>
         <cve>CVE-2021-22112</cve>
     </suppress>
+
+    <suppress until="2021-03-14">
+        <notes>Transitive  dependency of wiremock and we are on latest wiremock version : 2.27.2</notes>
+        <cve>CVE-2020-27223</cve>
+    </suppress>
+
     <!-- Other Supression Group Ends here -->
 </suppressions>
