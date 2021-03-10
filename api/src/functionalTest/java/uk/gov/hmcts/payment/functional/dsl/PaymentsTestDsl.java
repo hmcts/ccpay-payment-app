@@ -314,6 +314,11 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentsResponse getPayments() {
+            PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
+            return paymentsResponse;
+        }
+
         public PaymentThenDsl getPaymentGroups(Consumer<PaymentGroupResponse> paymentGroupsResponseAssertions) {
             PaymentGroupResponse paymentGroupsResponse = response.then().statusCode(200).extract().as(PaymentGroupResponse.class);
             paymentGroupsResponseAssertions.accept(paymentGroupsResponse);
