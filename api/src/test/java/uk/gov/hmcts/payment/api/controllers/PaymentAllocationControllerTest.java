@@ -57,9 +57,6 @@ public class PaymentAllocationControllerTest {
     @MockBean
     private Payment2Repository paymentRepository;
 
-    @MockBean
-    PaymentDtoMapper paymentDtoMapper;
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -111,7 +108,6 @@ public class PaymentAllocationControllerTest {
             .post("/payment-allocations",getPaymentAllocationDto())
             .andExpect(status().isNotFound())
             .andReturn();
-        Mockito.reset(paymentService);
     }
 
     private PaymentFeeLink getPaymentFeeLink(){
@@ -133,7 +129,8 @@ public class PaymentAllocationControllerTest {
                 .caseReference("case-reference")
                 .ccdCaseNumber("ccd-number")
                 .paymentMethod(PaymentMethod.paymentMethodWith().name("cash").build())
-                .dateCreated(Date.valueOf("2020-02-01"))
+                .dateCreated(Date.valueOf("2020-02-20"))
+                .dateUpdated(Date.valueOf("2020-02-21"))
                 .externalReference("external-reference")
                 .reference("RC-1234-1234-1234-1234")
                 .build()))
