@@ -26,7 +26,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-@Ignore
 public class PaymentsSearchFunctionalTest {
 
     private static final String DATE_FORMAT_DD_MM_YYYY = "dd-MM-yyyy";
