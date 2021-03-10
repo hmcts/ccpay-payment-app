@@ -35,7 +35,6 @@ public class CreditAccountPaymentRequestMapperTest {
 
     @Before
     public void initiate(){
-
         List<FeeDto> fees = new ArrayList<>();
         FeeDto fee = FeeDto.feeDtoWith().ccdCaseNumber("ccd-case-number").build();
         fees.add(fee);
