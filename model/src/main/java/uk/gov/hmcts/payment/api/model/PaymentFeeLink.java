@@ -52,6 +52,11 @@ public class PaymentFeeLink {
     @ToString.Exclude
     private List<FeePayApportion> apportions;
 
+    @ToString.Exclude
+    //@Column(name = "ccd_case_number")
+    @Transient
+    private String ccdCaseNumber;
+
     @Override
     public int hashCode(){
         return super.hashCode();
