@@ -183,12 +183,12 @@ public class PaymentBarPerformanceLiberataTest {
 
         PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cash")
+            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "postal_order")
             .then().getPayments();
 
         PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
+            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
             .then().getPayments();
 
         //Comparing the response size of old and new approach
@@ -285,12 +285,12 @@ public class PaymentBarPerformanceLiberataTest {
 
         PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cash")
+            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cheque")
             .then().getPayments();
 
         PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
+            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cheque")
             .then().getPayments();
 
         //Comparing the response size of old and new approach
@@ -376,21 +376,21 @@ public class PaymentBarPerformanceLiberataTest {
             assertNotNull(paymentDto.getReference());
         });
 
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        String endDate = formatter.format(LocalDateTime.now().toDate());
         PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cash")
+            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "card")
             .then().getPayments();
 
         PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
+            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "card")
             .then().getPayments();
 
         //Comparing the response size of old and new approach
