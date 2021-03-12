@@ -65,7 +65,7 @@ public class PaymentBarPerformanceLiberataTest {
     @Test
     public void createPaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusSeconds(3).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -163,7 +163,7 @@ public class PaymentBarPerformanceLiberataTest {
     @Test
     public void createBarPostalOrderPaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusSeconds(3).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -265,7 +265,7 @@ public class PaymentBarPerformanceLiberataTest {
     @Test
     public void createBarChequePaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusSeconds(3).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -367,7 +367,7 @@ public class PaymentBarPerformanceLiberataTest {
     @Test
     public void createBarCardPaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now().minusSeconds(3).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
