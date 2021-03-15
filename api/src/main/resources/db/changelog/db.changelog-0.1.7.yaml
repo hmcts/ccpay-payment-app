@@ -68,3 +68,19 @@ databaseChangeLog:
             referencedColumnNames: id
             referencedTableName: payment_fee_link
 
+        - createIndex:
+            indexName: ix_case_details_ccd_case_number
+            tableName: case_details
+            unique: true
+            columns:
+              - column:
+                  name: ccd_case_number
+                  type: varchar(255)
+        - createIndex:
+            indexName: ix_case_details_case_reference
+            tableName: case_details
+            unique: false
+            columns:
+              - column:
+                  name: case_reference
+                  type: varchar(255)
