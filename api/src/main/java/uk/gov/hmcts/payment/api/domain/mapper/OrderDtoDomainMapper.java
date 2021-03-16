@@ -1,9 +1,11 @@
-package uk.gov.hmcts.payment.api.domain;
+package uk.gov.hmcts.payment.api.domain.mapper;
 
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.OrderFeeDto;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
-import uk.gov.hmcts.payment.api.dto.OrderDto;
+import uk.gov.hmcts.payment.api.domain.model.OrderBo;
+import uk.gov.hmcts.payment.api.domain.model.OrderFeeBo;
+import uk.gov.hmcts.payment.api.dto.order.OrderDto;
+import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 
 import java.util.stream.Collectors;
 
@@ -15,7 +17,7 @@ public class OrderDtoDomainMapper {
         String orderReference = PaymentReference.getInstance().getNext();
 
         return OrderBo.orderBoWith()
-            .ccdCaseNo(orderDto.getCcdCaseNo())
+            .ccdCaseNumber(orderDto.getCcdCaseNumber())
             .reference(orderReference)
             .fees(orderDto.getFees()
                 .stream()
@@ -33,5 +35,13 @@ public class OrderDtoDomainMapper {
             .build();
 
         //return Optional.of(orderFeeDto).map(OrderFeeBo :: );
+    }
+
+    public static void main(String[] args) {
+        System.out.println("test!!!!!");
+        int x = 2;
+        x = ~ (x << 1);
+        System.out.println(x);
+        new Thread();
     }
 }
