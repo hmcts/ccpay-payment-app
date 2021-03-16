@@ -1,30 +1,29 @@
-package uk.gov.hmcts.payment.api.domain;
+package uk.gov.hmcts.payment.api.dto.order;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "orderBoWith")
+@Builder(builderMethodName = "orderDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderBo {
+public class OrderDto {
 
-    private String reference;
-    private String ccdCaseNo;
-    private List<OrderFeeBo> fees;
+    //--16 digit check
+    @NotNull
+    private String ccdCaseNumber;
 
-    public void validate(){
-        //--fee validation logic for duplicate Fees in Request
-        //--CCD Case 16 digit check
-    }
+    @NotNull
+    private List<OrderFeeDto> fees;
 
 }
