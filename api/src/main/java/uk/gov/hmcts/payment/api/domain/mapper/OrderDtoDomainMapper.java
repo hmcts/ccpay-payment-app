@@ -36,12 +36,4 @@ public class OrderDtoDomainMapper {
 
         //return Optional.of(orderFeeDto).map(OrderFeeBo :: );
     }
-
-    public static void main(String[] args) {
-        System.out.println("test!!!!!");
-        int x = 2;
-        x = ~ (x << 1);
-        System.out.println(x);
-        new Thread();
-    }
 }
