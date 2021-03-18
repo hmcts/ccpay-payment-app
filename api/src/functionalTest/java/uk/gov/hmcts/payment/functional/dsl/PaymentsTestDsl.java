@@ -136,6 +136,12 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl createBulkScanPaymentStrategic(BulkScanPaymentRequest bulkScanPaymentRequest, String paymentGroupReference) {
+            response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequest)
+                .post("/payment-groups/{payment-group-reference}/bulk-scan-payments-strategic", paymentGroupReference );
+            return this;
+        }
+
         public PaymentWhenDsl createBulkScanPaymentWithPaymentGroup(BulkScanPaymentRequest bulkScanPaymentRequest) {
             response = newRequest().contentType(ContentType.JSON).body(bulkScanPaymentRequest)
                 .post("/payment-groups/bulk-scan-payments" );
@@ -196,6 +202,30 @@ public class PaymentsTestDsl {
                 response = newRequest().get("/payments?start_date=" + startDate);
             } else if (endDate != null) {
                 response = newRequest().get("/payments?end_date=" + endDate);
+            }
+
+            return this;
+        }
+
+        public PaymentWhenDsl searchPaymentsBetweenDatesPaymentMethodServiceName(String startDate, String endDate, String paymentMethod) {
+            if (startDate != null && endDate != null) {
+                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            } else if (startDate != null) {
+                response = newRequest().get("/payments?start_date=" + startDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            } else if (endDate != null) {
+                response = newRequest().get("/payments?end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            }
+
+            return this;
+        }
+
+        public PaymentWhenDsl searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(String startDate, String endDate, String paymentMethod) {
+            if (startDate != null && endDate != null) {
+                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            } else if (startDate != null) {
+                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
+            } else if (endDate != null) {
+                response = newRequest().get("/reconciliation-payments?end_date=" + endDate + "&service_name=DIGITAL_BAR" + "&payment_method=" + paymentMethod);
             }
 
             return this;
@@ -282,6 +312,11 @@ public class PaymentsTestDsl {
             PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
             paymentsResponseAssertions.accept(paymentsResponse);
             return this;
+        }
+
+        public PaymentsResponse getPayments() {
+            PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
+            return paymentsResponse;
         }
 
         public PaymentThenDsl getPaymentGroups(Consumer<PaymentGroupResponse> paymentGroupsResponseAssertions) {
