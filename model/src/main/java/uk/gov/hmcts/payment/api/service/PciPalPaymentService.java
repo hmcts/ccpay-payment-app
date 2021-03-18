@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 
 import java.io.IOException;
@@ -135,5 +136,10 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     @Override
     public void cancel(String paymentReference) {}
+
+    @Override
+    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
+        return null;
+    }
 
 }
