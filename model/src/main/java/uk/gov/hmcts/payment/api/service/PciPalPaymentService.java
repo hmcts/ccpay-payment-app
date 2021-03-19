@@ -28,7 +28,7 @@ import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisati
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdResponse;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
-
+import uk.gov.hmcts.payment.api.model.Payment;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
@@ -234,6 +234,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     }
     private Header authorizationHeader(String authorizationKey) {
         return new BasicHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authorizationKey);
+
     }
 
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {
@@ -278,5 +279,10 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     @Override
     public void cancel(String paymentReference) {}
+
+    @Override
+    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
+        return null;
+    }
 
 }
