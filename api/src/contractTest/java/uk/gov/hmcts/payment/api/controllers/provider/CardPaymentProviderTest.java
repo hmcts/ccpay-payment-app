@@ -67,7 +67,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @ExtendWith(SpringExtension.class)
 @Provider("payment_cardPayment")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
-    @VersionSelector(tag = "${PACT_BRANCH_NAME:Dev}")})
+    @VersionSelector(tag = "master")})
 @Import(CardPaymentProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class CardPaymentProviderTest {
