@@ -55,6 +55,7 @@
         <cve>CVE-2020-27216</cve>
         <cve>CVE-2020-27218</cve>
         <cve>CVE-2019-17638</cve>
+        <cve>CVE-2020-27223</cve>
     </suppress>
 
     <suppress until="2021-05-05">
