@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
@@ -35,7 +34,7 @@ public class OrderPaymentDto {
     private String caseReference;
 
     @NotNull
-    private Service service;
+    private String service;
 
     private CurrencyCode currency;
 
