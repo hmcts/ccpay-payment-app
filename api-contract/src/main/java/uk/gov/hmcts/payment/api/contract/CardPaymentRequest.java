@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.With;
 import lombok.experimental.Wither;
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
@@ -21,14 +22,13 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-@SuppressWarnings("unused")
+@With
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(builderMethodName = "createCardPaymentRequestDtoWith")
-@Wither
 public class CardPaymentRequest {
 
     @NotNull
