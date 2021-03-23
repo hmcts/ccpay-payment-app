@@ -14,7 +14,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -141,7 +140,7 @@ public class PaymentBarPerformanceLiberataTest {
             .paymentMethod(PaymentMethodType.CASH)
             .reference("REF_123")
             .externalProvider("middle office provider")
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .giroSlipNo("312131")
             .reportedDateOffline(DateTime.now().toString())
@@ -243,7 +242,7 @@ public class PaymentBarPerformanceLiberataTest {
             .paymentMethod(PaymentMethodType.POSTAL_ORDER)
             .reference("REF_123")
             .externalProvider("middle office provider")
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .giroSlipNo("312131")
             .reportedDateOffline(DateTime.now().toString())
@@ -345,7 +344,7 @@ public class PaymentBarPerformanceLiberataTest {
             .paymentMethod(PaymentMethodType.CHEQUE)
             .reference("REF_123")
             .externalProvider("middle office provider")
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .giroSlipNo("312131")
             .reportedDateOffline(DateTime.now().toString())
@@ -445,7 +444,7 @@ public class PaymentBarPerformanceLiberataTest {
             .paymentMethod(PaymentMethodType.CARD)
             .reference("REF_123")
             .externalProvider("middle office provider")
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .reportedDateOffline(DateTime.now().toString())
             .siteId("Y431")

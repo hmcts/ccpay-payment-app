@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
@@ -240,7 +241,7 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(Service serviceName, String startDate, String endDate) {
+        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(String  serviceName, String startDate, String endDate) {
             StringBuilder sb = new StringBuilder("/payments?");
             sb.append("start_date=").append(startDate);
             sb.append("&end_date=").append(endDate);
