@@ -1932,7 +1932,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA07")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
@@ -2005,7 +2005,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA08")
-            .serviceDescription("Money Claims")
+            .serviceDescription("Specified Money Claims")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
@@ -2079,7 +2079,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA11")
-            .serviceDescription("PROBATE")
+            .serviceDescription("Probate")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
@@ -2088,7 +2088,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .caseType("Probate")
+            .caseType("probate")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();

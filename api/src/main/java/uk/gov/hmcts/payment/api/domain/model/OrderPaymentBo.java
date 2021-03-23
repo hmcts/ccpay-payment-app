@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 
@@ -33,7 +32,7 @@ public class OrderPaymentBo {
 
     private String caseReference;
 
-    private Service service;
+    private String service;
 
     private CurrencyCode currency;
 
