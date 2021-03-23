@@ -26,20 +26,31 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
+import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -47,7 +58,12 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationHealthApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
@@ -56,6 +72,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -74,7 +91,6 @@ public class PaymentGroupControllerTest {
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
-
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private RestActions restActions;
@@ -88,7 +104,7 @@ public class PaymentGroupControllerTest {
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
 
-    @Autowired
+    @MockBean
     private SiteService<Site, String> siteServiceMock;
 
     @InjectMocks
@@ -97,6 +113,12 @@ public class PaymentGroupControllerTest {
     @MockBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
+
+    @MockBean
+    private RestTemplate restTemplate;
+
+    @MockBean
+    private ReferenceDataService referenceDataService;
 
     @Autowired
     private PaymentDbBackdoor db;
@@ -146,8 +168,7 @@ public class PaymentGroupControllerTest {
                 .build()
         );
 
-        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
-
+        when(referenceDataService.getSiteIDs()).thenReturn(SiteDTO.fromSiteList(serviceReturn));
     }
 
     @Test
@@ -168,6 +189,14 @@ public class PaymentGroupControllerTest {
         // Get fee id
         PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
+
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         // create a partial remission
         MvcResult result2 = restActions
@@ -524,6 +553,14 @@ public class PaymentGroupControllerTest {
 
     @Test
     public void retrievePaymentsAndFeesByPaymentGroupReferenceAfterFeeAdditionTest() throws Exception {
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -535,7 +572,6 @@ public class PaymentGroupControllerTest {
             .post("/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
-
 
         PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
 
@@ -609,19 +645,25 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.DIVORCE)
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -636,9 +678,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -649,20 +691,26 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.FINREM)
-            .siteId("AA07")
+            .caseType("FinancialRemedyContested")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -677,9 +725,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -722,20 +770,26 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.DIVORCE)
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -750,9 +804,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -763,20 +817,26 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.PROBATE)
-            .siteId("AA07")
+            .caseType("PROBATE_ExceptionRecord")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("Probate")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -791,9 +851,9 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
@@ -804,20 +864,26 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.CMC)
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -832,16 +898,32 @@ public class PaymentGroupControllerTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals(cardPaymentRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals(telephonyPaymentRequest.getAmount(), paymentsResponse.getAmount());
         assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
     @Test
-    public void shouldThrowPaymentExceptionWhilePassingUnsupportedServiceType() throws Exception {
-        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+    public void addnewPaymentgroupWithCaseTypeShouldReturnSuccess() throws Exception {
 
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         BigDecimal amount = new BigDecimal("200");
 
@@ -849,20 +931,68 @@ public class PaymentGroupControllerTest {
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.FPL)
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .provider("pci pal")
             .channel("telephony")
             .build();
 
-        MvcResult result3 = restActions
+        restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
+            .andExpect(status().isCreated());
     }
+
+    @Test
+    public void shouldThrowNoServiceExceptionWithCaseType() throws Exception {
+
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .caseType("tax_exception")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenThrow(new NoServiceFoundException("No Service found for given CaseType"));
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("No Service found for given CaseType"));
+    }
+
+    @Test
+    public void shouldThrowGatewyTimeOutExceptionWithCaseType() throws Exception {
+
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+        BigDecimal amount = new BigDecimal("200");
+
+        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .description("Test cross field validation")
+            .caseType("tax_exception")
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .provider("pci pal")
+            .channel("telephony")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenThrow(new GatewayTimeoutException("Unable to retrieve service information. Please try again later"));
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Unable to retrieve service information. Please try again later"));
+    }
+
 
     @Test
     public void addNewPaymenttoExistingPaymentGroupTestWhenChannelAndProviderIsEmpty() throws Exception {
@@ -871,17 +1001,24 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
+        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
             .description("Test cross field validation")
-            .service(Service.DIVORCE)
-            .siteId("AA07")
+            .caseType("tax_exception")
             .ccdCaseNumber("2154-2343-5634-2357")
             .build();
 
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result3 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
@@ -901,7 +1038,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA07")
             .build();
 
@@ -926,7 +1063,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -960,7 +1097,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -994,7 +1131,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .ccdCaseNumber("1231-1231-3453-4333")
@@ -1060,7 +1197,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1105,6 +1242,13 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isCreated())
@@ -1128,6 +1272,12 @@ public class PaymentGroupControllerTest {
     @Test
     public void testValidAndDuplicateTransferredBulkScanPayments() throws Exception{
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
         MvcResult result2 = restActions
             .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isCreated())
@@ -1147,6 +1297,12 @@ public class PaymentGroupControllerTest {
     @Test
     public void testUnidentifiedBulkScanPayments() throws Exception{
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
         MvcResult result2 = restActions
             .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Unidentified","Unidentified bulk scan payments", "Test Unidentified Reason", "DCN293842342342834278348"))
             .andExpect(status().isCreated())
@@ -1177,6 +1333,13 @@ public class PaymentGroupControllerTest {
             .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
@@ -1243,6 +1406,13 @@ public class PaymentGroupControllerTest {
             .thenThrow(new RestClientException("Connection failed for bulk scan api"));
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference()  + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
@@ -1273,7 +1443,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("aaaa")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1308,7 +1478,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1338,7 +1508,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA07")
             .build();
 
@@ -1353,7 +1523,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1382,7 +1552,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1413,7 +1583,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("aaaaa")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1437,7 +1607,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA07")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1460,7 +1630,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1513,7 +1683,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1582,7 +1752,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -1667,7 +1837,7 @@ public class PaymentGroupControllerTest {
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber("DCN293842342342834278348")
@@ -2394,7 +2564,7 @@ public class PaymentGroupControllerTest {
             .amount(new BigDecimal("250.00"))
             .description("description")
             .ccdCaseNumber("1111-2222-2222-1111")
-            .service(Service.DIVORCE)
+            .service("DIVORCE")
             .currency(CurrencyCode.GBP)
             .provider("pci pal")
             .channel("telephony")
@@ -2409,7 +2579,7 @@ public class PaymentGroupControllerTest {
             .ccdCaseNumber("1111-2222-2222-1111")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(getFee())
             .build();
     }
@@ -2502,7 +2672,7 @@ public class PaymentGroupControllerTest {
     private BulkScanPaymentRequest getInvalidBulkScanRequest(){
         return BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
+            .service("DIGITAL_BAR")
             .siteId("AA07")
             .build();
     }
@@ -2524,8 +2694,6 @@ public class PaymentGroupControllerTest {
     private BulkScanPaymentRequestStrategic getBulkScanPaymentStrategic(String paymentAllocationStatus, String paymentAllocationDescription, String unIdentifiedReason, String documentControlNumber) {
         return BulkScanPaymentRequestStrategic.createBulkScanPaymentStrategicWith()
             .amount(new BigDecimal(100.00))
-            .service(Service.DIGITAL_BAR)
-            .siteId("AA001")
             .currency(CurrencyCode.GBP)
             .documentControlNumber(documentControlNumber)
             .ccdCaseNumber("1231-1231-3453-4333")
@@ -2536,6 +2704,7 @@ public class PaymentGroupControllerTest {
             .paymentStatus(PaymentStatus.SUCCESS)
             .paymentMethod(PaymentMethodType.CHEQUE)
             .paymentAllocationDTO(getPaymentAllocationDto(paymentAllocationStatus,paymentAllocationDescription, unIdentifiedReason))
+            .caseType("MoneyClaimCase")
             .build();
     }
 }

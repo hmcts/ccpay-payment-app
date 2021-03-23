@@ -27,7 +27,6 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -170,7 +169,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
                 Assert.assertEquals(entry.getValue().getAccountNumber().replace("\"", ""), newPayment.getPbaNumber());
                 Assert.assertEquals(entry.getValue().getDescription(), newPayment.getDescription());
                 Assert.assertEquals(entry.getValue().getCaseReference().replace("\"", ""), newPayment.getCaseReference());
-                Assert.assertEquals(entry.getValue().getService().getName(), newPayment.getServiceType());
+                Assert.assertEquals(entry.getValue().getService(), newPayment.getServiceType());
                 Assert.assertEquals(entry.getValue().getCurrency().getCode(), newPayment.getCurrency());
                 Assert.assertEquals(entry.getValue().getCustomerReference(), newPayment.getCustomerReference());
                 Assert.assertEquals(entry.getValue().getOrganisationName().replace("\"", ""), newPayment.getOrganisationName());
@@ -370,6 +369,9 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
                 .andExpect(status().isCreated())
                 .andReturn();
 
+            //Overwrite for response validation
+            request.setService("Civil Money Claims");
+
             PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
             csvParseMap.put(paymentDto.getReference(), request);
         }
@@ -382,7 +384,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
                 .accountNumber("\"PBA0073" + RandomUtils.nextInt(999) + "\"")
                 .description("Money Claim issue fee")
                 .caseReference("\"9eb95270-7fee-48cf-afa2-e6c58ee" + RandomUtils.nextInt(999) + "ba\"")
-                .service(Service.CMC)
+                .service("CMC")
                 .currency(CurrencyCode.GBP)
                 .customerReference("DEA2682/1/SWG" + RandomUtils.nextInt(999))
                 .organisationName("\"Slater & Gordon" + RandomUtils.nextInt(999) + "\"")

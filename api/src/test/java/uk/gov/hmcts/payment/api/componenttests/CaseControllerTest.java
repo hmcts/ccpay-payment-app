@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -14,26 +16,24 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -73,8 +73,14 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
 
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
+
     @Autowired
     private SiteService<Site, String> siteServiceMock;
+
+    @MockBean(answer = Answers.RETURNS_DEEP_STUBS)
+    private ReferenceDataServiceImpl referenceDataService;
 
     @Autowired
     private FeesService feesService;
@@ -419,53 +425,39 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(feeRequest)
             .build();
-
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("250.00"))
-            .description("description")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .service(Service.DIVORCE)
-            .currency(CurrencyCode.GBP)
-            .provider("pci pal")
-            .channel("telephony")
-            .siteId("AA001")
-            .fees(Collections.singletonList(feeRequest))
-            .build();
-
-        MvcResult result1 = restActions
-            .withHeader("service-callback-url", "http://payments.com")
-            .post("/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
 
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(consecutiveFeeRequest))
             .build();
+
+        MvcResult result1 = restActions
+            .post("/payment-groups", paymentGroupDto)
+            .andReturn();
 
         PaymentGroupDto newPaymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
             .build();
 
 
-        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        PaymentGroupDto createPaymentGroupResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         // Create a remission
         // Get fee id
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentGroupResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
+            .post("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
         // Adding another fee to the exisitng payment group
         restActions
-            .put("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference(), paymentGroupDto)
+            .put("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference(), paymentGroupDto)
             .andReturn();
 
         // create new payment which inturns creates a payment group
@@ -523,39 +515,29 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .ccdCaseNumber("ccdCaseNumber1")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
-            .siteId("AA001")
+            .caseType("tax_exception")
             .fee(feeRequest)
             .build();
 
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("250.00"))
-            .description("description")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .service(Service.DIVORCE)
-            .currency(CurrencyCode.GBP)
-            .provider("pci pal")
-            .channel("telephony")
-            .siteId("AA001")
-            .fees(Collections.singletonList(feeRequest))
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeRequest))
             .build();
 
         MvcResult result1 = restActions
-            .withHeader("service-callback-url", "http://payments.com")
-            .post("/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated())
+            .post("/payment-groups", paymentGroupDto)
             .andReturn();
 
 
-        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        PaymentGroupDto createPaymentGroupResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         // Create a remission
         // Get fee id
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentResponseDto.getPaymentGroupReference());
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.findByReference(createPaymentGroupResponseDto.getPaymentGroupReference());
         PaymentFee fee = paymentFeeDbBackdoor.findByPaymentLinkId(paymentFeeLink.getId());
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
+            .post("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 

@@ -45,9 +45,10 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 public class PciPalPaymentService implements DelegatingPaymentService<PciPalPayment, String> {
     private static final Logger LOG = LoggerFactory.getLogger(PciPalPaymentService.class);
     private static final String SERVICE_TYPE_PROBATE = "probate";
-    private static final String SERVICE_TYPE_CMC = "cmc";
+    private static final String SERVICE_TYPE_CMC= "Specified Money Claims";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
-    private static final String SERVICE_TYPE_FINREM = "finrem";
+    private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
+
     private static final String PROBATE = "PROBATE";
     private static final String DIVORCE = "DIVORCE";
     private static final String CMC = "CMC";

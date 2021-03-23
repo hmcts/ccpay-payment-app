@@ -25,30 +25,47 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static java.lang.String.format;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
@@ -60,32 +77,24 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
-
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     protected PaymentDbBackdoor db;
-
     @Autowired
     protected Payment2Repository paymentRepository;
-
     @Autowired
     protected AccountService<AccountDto, String> accountService;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
+    @MockBean
+    ReferenceDataService referenceDataService;
     RestActions restActions;
-
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -333,6 +342,70 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         assertEquals("eitherOneRequired: Either ccdCaseNumber or caseReference is required.", res.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void validateCreateCreditAccountPayment_withoutSiteIdAndCaseType() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithoutSiteIdAndCaseType().getBytes(), CreditAccountPaymentRequest.class);
+
+        MvcResult res = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        assertEquals("eitherIdOrTypeRequired: Either of Site ID or Case Type is mandatory as part of the request.", res.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void CreateCreditAccountPayment_withCaseType() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("Divorce")
+            .ccdCaseTypes(Collections.singletonList("DIVORCE"))
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenReturn(organisationalServiceDto);
+
+        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
+            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
+        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
+
+
+        MvcResult res = restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentDto paymentDto = objectMapper.readValue(res.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertEquals("Success", paymentDto.getStatus());
+        assertNotNull(paymentDto.getPaymentGroupReference());
+    }
+
+    @Test
+    public void CreateCreditAccountPayment_withCaseTypereturn404() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
+
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+
+        restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void CreateCreditAccountPayment_withCaseTypeReturn504() throws Exception {
+        CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
+
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
+        restActions
+            .post("/credit-account-payments", request)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Test Error"));
     }
 
     @Test
@@ -736,20 +809,6 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void checkPBAPaymentsErrorWithDifferentSiteIdFor_Unspec_Service() throws Exception {
-
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithDifferentSiteIdForUnSpec_Json().getBytes(), CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        MvcResult result = restActions
-            .post("/credit-account-payments", request)
-            .andExpect(status().isUnprocessableEntity())
-            .andReturn();
-    }
-
-    @Test
     public void checkPBAPaymentsErrorWithNoServiceNameFor_Unspec_Service() throws Exception {
 
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithNoServiceNameForUnSpec_Json().getBytes(), CreditAccountPaymentRequest.class);
@@ -776,45 +835,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCreditAccountPaymentTest_FPLService_InvalidSiteId() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithFPLJsonInvalidSiteId().getBytes(), CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
-    public void createCreditAccountPaymentTest_ProbateService_InvalidSiteId() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithInvalidSiteIdForProbateJson().getBytes(), CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
     public void createCreditAccountPaymentTest_ProbateService_NoSiteId() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithNoSiteIdForProbateJson().getBytes(), CreditAccountPaymentRequest.class);
-        AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
-            new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
-        Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
-
-        restActions
-            .post(format("/credit-account-payments"), request)
-            .andExpect(status().isUnprocessableEntity());
-    }
-
-
-    @Test
-    public void createCreditAccountPaymentTest_IACService_InvalidSiteId() throws Exception {
-        CreditAccountPaymentRequest request = objectMapper.readValue(creditAccountPaymentRequestJsonWithIACLJsonInvalidSiteId().getBytes(), CreditAccountPaymentRequest.class);
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
         Mockito.when(accountService.retrieve(request.getAccountNumber())).thenReturn(accountActiveDto);
@@ -829,14 +851,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -844,7 +866,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .siteId("ABA6")
             .customerReference("CUST101")
@@ -882,6 +904,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
         assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
         assertEquals(new BigDecimal(0), savedfees.get(2).getAmountDue());
+
     }
 
     @Test
@@ -889,14 +912,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(30))
             .volume(1).version("1").calculatedAmount(new BigDecimal(30)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -904,7 +927,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .siteId("ABA6")
             .fees(fees)
@@ -949,14 +972,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
             .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -964,7 +987,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.PROBATE)
+            .service("PROBATE")
             .currency(CurrencyCode.GBP)
             .siteId("ABA6")
             .fees(fees)
@@ -1009,14 +1032,14 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -1024,7 +1047,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.FPL)
+            .service("FPL")
             .currency(CurrencyCode.GBP)
             .siteId("ABA3")
             .customerReference("CUST101")
@@ -1059,22 +1082,22 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
         List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
 
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(0).getAmountDue());
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(1).getAmountDue());
-        assertEquals(BigDecimal.valueOf(20), savedfees.get(2).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(20), savedfees.get(2).getAmountDue());
     }
 
     @Test
     public void createCreditAccountPaymentWithMultipleFee_AmountDue_When_Apportion_Flag_Is_True() throws Exception {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         List<FeeDto> fees = new ArrayList<>();
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
+        fees.add(0, FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(20))
             .volume(1).version("1").calculatedAmount(new BigDecimal(20)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+        fees.add(1, FeeDto.feeDtoWith().code("FEE0272").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
             .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+        fees.add(2, FeeDto.feeDtoWith().code("FEE0273").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
             .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
 
         CreditAccountPaymentRequest request = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
@@ -1082,7 +1105,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.FPL)
+            .service("FPL")
             .currency(CurrencyCode.GBP)
             .siteId("ABA3")
             .customerReference("CUST101")
@@ -1116,10 +1139,10 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
 
         List<PaymentFee> savedfees = mockDb.findByReference(paymentDto.getPaymentGroupReference()).getFees();
-
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(0).getAmountDue());
-        assertEquals(BigDecimal.valueOf(0), savedfees.get(1).getAmountDue());
-        assertEquals(BigDecimal.valueOf(20), savedfees.get(2).getAmountDue());
+        
+        assertEquals(new BigDecimal(0), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(0), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(20), savedfees.get(2).getAmountDue());
     }
 
     private String jsonRequestWithoutCcdCaseRefAndCaseRef() {
@@ -1129,6 +1152,49 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             "  \"service\": \"PROBATE\",\n" +
             "  \"currency\": \"GBP\",\n" +
             "  \"site_id\": \"ABA6\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String jsonRequestWithoutSiteIdAndCaseType() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"PROBATE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
+            "  \"customer_reference\": \"CUST101\",\n" +
+            "  \"organisation_name\": \"ORG101\",\n" +
+            "  \"account_number\": \"AC101010\",\n" +
+            "  \"fees\": [\n" +
+            "    {\n" +
+            "      \"calculated_amount\": 101.89,\n" +
+            "      \"code\": \"X0101\",\n" +
+            "      \"version\": \"1\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+    }
+
+    private String jsonRequestWithCaseType() {
+        return "{\n" +
+            "  \"amount\": 101.89,\n" +
+            "  \"case_type\": \"Caveat\",\n" +
+            "  \"description\": \"New passport application\",\n" +
+            "  \"ccd_case_number\": \"CCD101\",\n" +
+            "  \"case_reference\": \"12345\",\n" +
+            "  \"service\": \"DIVORCE\",\n" +
+            "  \"currency\": \"GBP\",\n" +
             "  \"customer_reference\": \"CUST101\",\n" +
             "  \"organisation_name\": \"ORG101\",\n" +
             "  \"account_number\": \"AC101010\",\n" +
