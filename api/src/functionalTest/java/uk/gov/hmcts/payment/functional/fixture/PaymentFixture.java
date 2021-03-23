@@ -34,7 +34,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CardPaymentRequest cardPaymentRequestProbate(String amountString, Service service) {
+    public static CardPaymentRequest cardPaymentRequestProbate(String amountString, String  service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -54,7 +54,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CardPaymentRequest cardPaymentRequestall(String amountString, Service service) {
+    public static CardPaymentRequest cardPaymentRequestall(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -74,7 +74,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequest(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -120,7 +120,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForDivorce(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForDivorce(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -143,7 +143,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForIAC(String amountString, Service service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForIAC(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))

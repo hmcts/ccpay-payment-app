@@ -29,6 +29,8 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
@@ -1927,11 +1929,18 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA07")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.DIVORCE)
-            .siteId("AA07")
+            .caseType("divorce")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -1993,11 +2002,19 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("120");
 
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Money Claims")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.CMC)
-            .siteId("AA07")
+            .caseType("cmc_exception")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2059,11 +2076,19 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA11")
+            .serviceDescription("PROBATE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.PROBATE)
-            .siteId("AA07")
+            .caseType("Probate")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2125,11 +2150,19 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA10")
+            .serviceDescription("Digital Bar")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.DIGITAL_BAR)
-            .siteId("AA07")
+            .caseType("DigitalBar")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2175,11 +2208,19 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.FINREM)
-            .siteId("AA07")
+            .caseType("finrem")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2241,11 +2282,17 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.FINREM)
-            .siteId("AA07")
+            .caseType("finrem")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2293,10 +2340,16 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
-            .service(Service.FINREM)
-            .siteId("AA07")
+            .caseType("finrem")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2343,11 +2396,18 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("0");
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.FINREM)
-            .siteId("AA07")
+            .caseType("finrem")
             .returnURL("http://localhost")
             .ccdCaseNumber("2154234356342357")
             .build();
@@ -2394,61 +2454,18 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .service(Service.FINREM)
-            .siteId("AA07")
-            .returnURL("http://localhost")
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
             .build();
 
-        MvcResult result3 = restActions
-            .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-            .andExpect(status().isUnprocessableEntity())
-            .andReturn();
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
-    }
-
-    @Test
-    public void throwExceptionWhenSiteIdIsEmpty() throws Exception {
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
-            .build();
-        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(false);
-        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getConsecutiveFee())).build();
-
-        MvcResult result = restActions
-            .post("/payment-groups", request)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-
-        MvcResult result2 = restActions
-            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-
-        assertThat(paymentGroupFeeDto).isNotNull();
-        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
-
-
-        BigDecimal amount = new BigDecimal("200");
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.FINREM)
-            .ccdCaseNumber("2154234356342357")
+            .caseType("finrem")
             .returnURL("http://localhost")
             .build();
 
@@ -2494,12 +2511,18 @@ public class PaymentGroupControllerTest {
 
         BigDecimal amount = new BigDecimal("200");
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.FINREM)
+            .caseType("finrem")
             .ccdCaseNumber("2154234356342357")
-            .siteId("AA07")
             .build();
 
         MvcResult result3 = restActions
@@ -2536,11 +2559,18 @@ public class PaymentGroupControllerTest {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
         BigDecimal amount = new BigDecimal("120");
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA08")
+            .serviceDescription("Financial Remedy")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service(Service.FINREM)
-            .siteId("AA07")
+            .caseType("finrem")
             .ccdCaseNumber(ccdCaseNumber)
             .returnURL("http://localhost")
             .build();
