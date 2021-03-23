@@ -209,7 +209,7 @@ public class PaymentController {
             .ccdCaseNumber(ccdCaseNumber)
             .pbaNumber(pbaNumber)
             .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
-            .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
+            .serviceType(serviceType.orElse(null))
             .build();
     }
 
@@ -224,7 +224,7 @@ public class PaymentController {
             throw new PaymentException("Payment search feature is not available for usage.");
         }
 
-        validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
+        validator.validate(paymentMethodType, startDateTimeString, endDateTimeString);
     }
 
     private Date getToDateTime(@RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString, Date fromDateTime) {
@@ -283,7 +283,7 @@ public class PaymentController {
 
     private void populateApportionedFees(List<PaymentDto> paymentDtos, PaymentFeeLink paymentFeeLink, boolean apportionFeature, Payment payment, String paymentReference) {
         boolean apportionCheck = payment.getPaymentChannel() != null
-            && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName());
+            && !payment.getPaymentChannel().getName().equalsIgnoreCase(paymentService.getServiceNameByCode("DIGITAL_BAR"));
         LOG.info("Apportion check value in liberata API: {}", apportionCheck);
         List<PaymentFee> fees = paymentFeeLink.getFees();
         boolean isPaymentAfterApportionment = false;
