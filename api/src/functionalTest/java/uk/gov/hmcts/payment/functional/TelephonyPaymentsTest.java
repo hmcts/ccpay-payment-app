@@ -53,12 +53,6 @@ public class TelephonyPaymentsTest {
     @Autowired
     private S2sTokenService s2sTokenService;
 
-    private static String USER_TOKEN;
-    private static String SERVICE_TOKEN;
-    private static boolean TOKENS_INITIALIZED = false;
-    private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
-
     private static final Logger LOG = LoggerFactory.getLogger(TelephonyPaymentsTest.class);
 
     @Before

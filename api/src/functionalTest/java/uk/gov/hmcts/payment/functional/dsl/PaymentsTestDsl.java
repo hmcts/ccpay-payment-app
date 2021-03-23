@@ -235,7 +235,7 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(Service serviceName, String startDate, String endDate) {
+        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(String  serviceName, String startDate, String endDate) {
             StringBuilder sb = new StringBuilder("/payments?");
             sb.append("start_date=").append(startDate);
             sb.append("&end_date=").append(endDate);
