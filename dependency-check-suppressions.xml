@@ -31,7 +31,7 @@
     <!-- False Positive CVE supressions ends here-->
 
     <!-- Below are the supressions that are made for the CVEs which occur in the latest version -->
-    <suppress until="2020-05-05">
+    <suppress until="2021-05-05">
         <notes>
             <![CDATA[This CVE appears in the latest version of wiremock, WireMock 2.27.2 JRE 8 embeds jquery-3.4.1.min.js. see(https://github.com/tomakehurst/wiremock/issues/1417)]]></notes>
         <cve>CVE-2020-11022</cve>
@@ -42,5 +42,6 @@
     <!-- Other Supressions -->
 
     <!-- Other Supressions ends here-->
+
 
 </suppressions>
