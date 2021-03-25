@@ -182,6 +182,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             HttpResponse response = httpClient.execute(httpPost);
             if(response != null && response.getStatusLine() !=null && response.getStatusLine().getStatusCode() == 200)
             {
+                LOG.info("Success Response from PCI PAL!!!");
                 TelephonyProviderLinkIdResponse telephonyProviderLinkIdResponse = objectMapper.readValue(response.getEntity().getContent(), TelephonyProviderLinkIdResponse.class);
                 telephonyProviderAuthorisationResponse.setNextUrl(viewIdURL + telephonyProviderLinkIdResponse.getId()+"/framed");
             }
@@ -217,7 +218,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
     public TelephonyProviderAuthorisationResponse getPaymentProviderAutorisationTokens() {
         return withIOExceptionHandling(() -> {
-            LOG.info("grant_type: {} tenantname: {} username: {} client_id: {} client_secret: {} tokensURL: {}", grantType, tenantName, userName, clientId, clientSecret, tokensURL);
+            LOG.info("tokensURL: {}", tokensURL);
             List<NameValuePair> params = new ArrayList<>();
             params.add(new BasicNameValuePair("grant_type", grantType));
             params.add(new BasicNameValuePair("tenantname", tenantName));
@@ -228,7 +229,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             HttpPost httpPost = new HttpPost(tokensURL);
             httpPost.setEntity(new UrlEncodedFormEntity(params));
             HttpResponse response1 = httpClient.execute(httpPost);
-
+            LOG.info("After 1st PCI PAL call!!!");
             return objectMapper.readValue(response1.getEntity().getContent(), TelephonyProviderAuthorisationResponse.class);
         });
     }
