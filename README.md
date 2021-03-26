@@ -4,46 +4,58 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/0cb10a161dc24d0092470cda7c304c87)](https://app.codacy.com/app/HMCTS/ccpay-payment-app)
 [![codecov](https://codecov.io/gh/hmcts/ccpay-payment-app/branch/master/graph/badge.svg)](https://codecov.io/gh/hmcts/ccpay-payment-app)
 
-HMCTS Payment Gateway is a small wrapper around GOV.UK Pay service adding some basic user/service authorization, 
-enforcing useful payment reference structure and collecting data across multiple GOV.UK Pay accounts that will allow 
-better financial reporting and reconciliation.   
- 
+HMCTS Payment Gateway is a small wrapper around GOV.UK Pay service adding some basic user/service authorization,
+enforcing useful payment reference structure and collecting data across multiple GOV.UK Pay accounts that will allow
+better financial reporting and reconciliation.
+
 ### Integration prerequisites
 
 
 For a successful integration with HMCTS Payment Gateway you will require the following:
-* **GOV.UK Pay API key**. Before you start, you should get a dedicated GOV.UK Pay account created for you. Once it is done, 
-you should use GOV.UK Pay admin console to create your API key(-s) and provide them to us.
-* **IDAM**. All requests to Payment Gateway require a valid user JWT token to be passed in "Authorization" header. 
-Please make sure your application is integrated with IDAM before you start.  
-* **service-auth-provider**. All requests to Payment Gateway require a valid service JWT token to be passed in 
-"ServiceAuthorization" header. Please make sure your application is registered in service-auth-provider-app and you are 
-able to acquire service JWT tokens.
+* **GOV.UK Pay API key**. Before you start, you should get a dedicated GOV.UK Pay account created for you. Once it is done,
+  you should use GOV.UK Pay admin console to create your API key(-s) and provide them to us.
+* **IDAM**. All requests to Payment Gateway require a valid user JWT token to be passed in "Authorization" header.
+  Please make sure your application is integrated with IDAM before you start.
+* **service-auth-provider**. All requests to Payment Gateway require a valid service JWT token to be passed in
+  "ServiceAuthorization" header. Please make sure your application is registered in service-auth-provider-app and you are
+  able to acquire service JWT tokens.
 
 ### Integration GOTCHAs
 
-* **Stale Payment Status**. Neither HMCTS Payment Gateway, nor GOV.UK Pay support "PUSH" notifications for payment status update. 
-Therefore, a situation where a user has made a payment but his redirection back to the "return" url failed (e.g. due to interrupted 
-internet connection), would lead to a payment status not being reflected in your application until you query its status again.
-You should take this into consideration and if necessary implement some background job for refreshing payment status.
-* **Access authorization**. Payment gateway implements a simple url based authorization rule. User with id 999, will only be granted 
-access to urls /users/999/payments/\*, any request to /users/{OTHER_ID}/payments/\* will result in 403.
+* **Stale Payment Status**. Neither HMCTS Payment Gateway, nor GOV.UK Pay support "PUSH" notifications for payment status update.
+  Therefore, a situation where a user has made a payment but his redirection back to the "return" url failed (e.g. due to interrupted
+  internet connection), would lead to a payment status not being reflected in your application until you query its status again.
+  You should take this into consideration and if necessary implement some background job for refreshing payment status.
+* **Access authorization**. Payment gateway implements a simple url based authorization rule. User with id 999, will only be granted
+  access to urls /users/999/payments/\*, any request to /users/{OTHER_ID}/payments/\* will result in 403.
 * **Refunds**. Although, both HMCTS Payment Gateway and GOV.UK Pay implement refund endpoints, they **WILL NOT WORK** due to limitations
-of MoJ financial arrangements  & back-office systems.
+  of MoJ financial arrangements  & back-office systems.
 
 ### Building
 The project uses [Gradle](https://gradle.org) as a build tool but you don't have install it locally since there is a
-`./gradlew` wrapper script.  
+`./gradlew` wrapper script.
 
 To build project please execute the following command:
 
 ```bash
 $ ./gradlew build
 ```
+
+### Run the Application Locally
+1. Add spring_profiles_active=local in the PaymentApiApplication configuration settings
+2. Enable annotation processing under settings/compiler in development environment
+3. Setup a postgre database called 'payment' and create login group for it. Set the username and password as 'payment'. Enable can login under login group/privileges
+4. Edit the application-local.properties file, add the database connection details  and add the followings on this file (if not already present):
+   auth.idam.client.baseUrl=http://localhost:23443
+   auth.provider.service.client.baseUrl=http://localhost:23443
+
+5. Ensure that bar-idam-mock is already running, run the application
+6. Open  http://localhost:8000/swagger-ui.html to check if the api is running.
+
 ### Tests
 
 This project uses [TestContainers](https://www.testcontainers.org/usage/database_containers.html#jdbc-url) for database support.
-Docker must be installed on the machine you are running tests on and docker environment should have more than 2GB free disk space. 
+Docker must be installed on the machine you are running tests on and docker environment should have more than 2GB free disk space.
 
 Windows users may need to enable this [setting](https://github.com/testcontainers/testcontainers-java/issues/350)
 Linux users may need to add their current user to the docker group:
@@ -72,7 +84,7 @@ Please refer to Swagger UI and Gov.UK Pay for more details.
 * https://github.com/hmcts/ccpay-reference-web
 
 ## How to generate Liquibase yaml file
-Liquibase is used to update the database changes. Perform following steps to create and update the new yaml file. 
+Liquibase is used to update the database changes. Perform following steps to create and update the new yaml file.
 
 1. cd model
 2. run command $mvn liquibase:diff
