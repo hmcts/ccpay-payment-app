@@ -41,7 +41,7 @@ To build project please execute the following command:
 $ ./gradlew build
 ```
 
-### Run the Application Locally
+### Run the Application on IntelliJ
 1. Add spring_profiles_active=local in the PaymentApiApplication configuration settings
 2. Enable annotation processing under settings/compiler in development environment
 3. Setup a postgre database called 'payment' and create login group for it. Set the username and password as 'payment'. Enable can login under login group/privileges
@@ -49,7 +49,9 @@ $ ./gradlew build
    auth.idam.client.baseUrl=http://localhost:23443
    auth.provider.service.client.baseUrl=http://localhost:23443
 
-5. Ensure that bar-idam-mock is already running, run the application
+5. Ensure that bar-idam-mock is already running, run the application:
+https://github.com/hmcts/bar-idam-mock
+
 6. Open  http://localhost:8000/swagger-ui.html to check if the api is running.
 
 ### Tests
