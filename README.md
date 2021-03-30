@@ -44,7 +44,7 @@ $ ./gradlew build
 ### Run the Application on IntelliJ
 1. Add spring_profiles_active=local in the PaymentApiApplication configuration settings
 2. Enable annotation processing under settings/compiler in development environment
-3. Setup a postgre database called 'payment' and create login group for it. Set the username and password as 'payment'. Enable can login under login group/privileges
+3. Setup a postgre database called 'payment' and create login group for it. Set the username and password. Enable can login under login group/privileges
 4. Edit the application-local.properties file, add the database connection details  and add the followings on this file (if not already present):
    auth.idam.client.baseUrl=http://localhost:23443
    auth.provider.service.client.baseUrl=http://localhost:23443
