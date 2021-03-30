@@ -36,5 +36,17 @@ java:
         - gov-pay-keys-cmc
         - launch-darkly-sdk-key
         - payment-s2s-secret
+        - pci-pal-antenna-tenant-name
+        - pci-pal-antenna-user-name
+        - pci-pal-antenna-client-id
+        - pci-pal-antenna-client-secret
+        - pci-pal-antenna-get-tokens-url
+        - pci-pal-antenna-launch-url
+        - pci-pal-antenna-view-id-url
+        - pci-pal-antenna-return-url
+        - pci-pal-antenna-cmc-flow-id
+        - pci-pal-antenna-probate-flow-id
+        - pci-pal-antenna-divorce-flow-id
+        - pci-pal-antenna-financial-remedy-flow-id
   postgresql:
     enabled: true
