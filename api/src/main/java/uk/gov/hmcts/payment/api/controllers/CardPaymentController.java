@@ -74,6 +74,7 @@ public class CardPaymentController {
         this.feePayApportionService = feePayApportionService;
         this.featureToggler = featureToggler;
     }
+    
 
     @ApiOperation(value = "Create card payment", notes = "Create card payment")
     @ApiResponses(value = {
