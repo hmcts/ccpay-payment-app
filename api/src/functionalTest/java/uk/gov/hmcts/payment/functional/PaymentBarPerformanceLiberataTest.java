@@ -123,7 +123,7 @@ public class PaymentBarPerformanceLiberataTest {
             assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("312131");
+            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("12345");
             FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
             assertThat(feeDto.getCode()).isEqualTo("FEE0002");
             assertThat(feeDto.getVersion()).isEqualTo("4");
@@ -143,7 +143,7 @@ public class PaymentBarPerformanceLiberataTest {
             .externalProvider("middle office provider")
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
-            .giroSlipNo("312131")
+            .giroSlipNo("12345")
             .reportedDateOffline(DateTime.now().toString())
             .siteId("AA01")
             .fees(
@@ -221,7 +221,7 @@ public class PaymentBarPerformanceLiberataTest {
             assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("312131");
+            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("12345");
             FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
             assertThat(feeDto.getCode()).isEqualTo("FEE0002");
             assertThat(feeDto.getVersion()).isEqualTo("4");
@@ -245,7 +245,7 @@ public class PaymentBarPerformanceLiberataTest {
             .externalProvider("middle office provider")
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
-            .giroSlipNo("312131")
+            .giroSlipNo("12345")
             .reportedDateOffline(DateTime.now().toString())
             .siteId("Y431")
             .fees(
@@ -323,7 +323,7 @@ public class PaymentBarPerformanceLiberataTest {
             assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("312131");
+            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("12345");
             FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
             assertThat(feeDto.getCode()).isEqualTo("FEE0002");
             assertThat(feeDto.getVersion()).isEqualTo("4");
@@ -347,7 +347,7 @@ public class PaymentBarPerformanceLiberataTest {
             .externalProvider("middle office provider")
             .service(Service.DIGITAL_BAR)
             .currency(CurrencyCode.GBP)
-            .giroSlipNo("312131")
+            .giroSlipNo("12345")
             .reportedDateOffline(DateTime.now().toString())
             .siteId("Y431")
             .fees(
