@@ -11,10 +11,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -45,7 +42,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class PaymentGroupFunctionalTest {
-
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
     private static String USER_TOKEN;
@@ -572,6 +568,56 @@ public class PaymentGroupFunctionalTest {
 
     }
 
+    @Test
+    public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForPCIPALAntennaChanges() throws Exception {
+
+        String ccdCaseNumber = "1345678912345678";
+        FeeDto feeDto = FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("110.00"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .version("1")
+            .code("FEE0123")
+            .description("Application for a third party debt order")
+            .jurisdiction1("civil")
+            .jurisdiction2("Country")
+            .memoLine("Receipt of Fees")
+            .naturalAccountCode("4481102145")
+            .build();
+
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(new BigDecimal("110"))
+            .ccdCaseNumber(ccdCaseNumber)
+            .currency(CurrencyCode.GBP)
+            .service("DIVORCE")
+            .siteId("AA007")
+            .returnURL("https://google.co.uk")
+            .build();
+
+        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(feeDto)).build();
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().addNewFeeAndPaymentGroup(groupDto)
+            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
+            assertThat(paymentGroupFeeDto).isNotNull();
+
+            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://google.co.uk")
+                .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupReference)
+                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
+                assertThat(telephonyCardPaymentsResponse).isNotNull();
+                assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
+                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
+
+            });
+        });
+
+    }
+
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -617,6 +663,4 @@ public class PaymentGroupFunctionalTest {
             .code("FEE0123")
             .build();
     }
-
-
 }

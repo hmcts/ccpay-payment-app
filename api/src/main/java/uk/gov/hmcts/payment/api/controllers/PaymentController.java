@@ -209,7 +209,7 @@ public class PaymentController {
             .ccdCaseNumber(ccdCaseNumber)
             .pbaNumber(pbaNumber)
             .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
-            .serviceType(serviceType.orElse(null))
+            .serviceType(Optional.of(paymentService.getServiceNameByCode(serviceType.get())).orElse(null))
             .build();
     }
 

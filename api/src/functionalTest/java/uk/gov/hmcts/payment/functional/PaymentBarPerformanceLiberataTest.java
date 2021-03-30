@@ -54,9 +54,9 @@ public class PaymentBarPerformanceLiberataTest {
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
-            USER_TOKEN = "eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoiMWVyMFdSd2dJT1RBRm9qRTRyQy9mYmVLdTNJPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJwcm9iYXRlYmFja29mZmljZUBnbWFpbC5jb20iLCJjdHMiOiJPQVVUSDJfU1RBVEVMRVNTX0dSQU5UIiwiYXV0aF9sZXZlbCI6MCwiYXVkaXRUcmFja2luZ0lkIjoiZGI4YmNjNTItYzA5NC00ZmZlLTkwMWEtZDIzNjBhYzRlMDA3LTE1MzA0MzQwIiwiaXNzIjoiaHR0cHM6Ly9mb3JnZXJvY2stYW0uc2VydmljZS5jb3JlLWNvbXB1dGUtaWRhbS1hYXQyLmludGVybmFsOjg0NDMvb3BlbmFtL29hdXRoMi9yZWFsbXMvcm9vdC9yZWFsbXMvaG1jdHMiLCJ0b2tlbk5hbWUiOiJhY2Nlc3NfdG9rZW4iLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiYXV0aEdyYW50SWQiOiJ4aEM3a21qdkhGclZNSEh3WUtOd2VQQ3B1ckkiLCJhdWQiOiJwYXlidWJibGUiLCJuYmYiOjE2MTY3NTgwNjYsImdyYW50X3R5cGUiOiJhdXRob3JpemF0aW9uX2NvZGUiLCJzY29wZSI6WyJvcGVuaWQiLCJwcm9maWxlIiwicm9sZXMiXSwiYXV0aF90aW1lIjoxNjE2NzU4MDY2LCJyZWFsbSI6Ii9obWN0cyIsImV4cCI6MTYxNjc4Njg2NiwiaWF0IjoxNjE2NzU4MDY2LCJleHBpcmVzX2luIjoyODgwMCwianRpIjoiMzdjdFdRMWNGNnVObXdzVC1KNi1jXzdmcHdvIn0.ZCcTd8Sce8ZkTlgAs6Moo_HktGcM6vvZU6Mde405gw6g6s5UayWNMzU5mYaFypTY37rLNroj82aX1JK1DG1eHNJpKZz4XxjTAms-BeP2ehqCtMGmU9VSdcdSg_gH97C_Ns8UxcdoIQTnJfh_Ad4u9a6I_aXv0byK72eeSCxCXXizJyB2YzuT4uvR4CO-wJDulHE_RuGbfSOQf77X63_X2nIo6iG4tcAfmaORqJyoEpJQ2gvxshHq9Spl7J-N1897ge8oT23qHBzv9zA5PfTTKZkhbUUiHkRQGJ7M9S8UOx4hGa6QZXXKVhgL5ek7DS6UbwwVbgHx5Rc3QjMUdP1JQg";//idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-            SERVICE_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE2MTY3NzI1NTF9.0T5ACA2dfv7ui1AUhjFmNDQOiLw_-Q70ifcvTUoVS_DoiTEAIMbJaTXeibWAwO2vNd9HK5P3jcDJhfAXWOn-5w";//s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-            TOKENS_INITIALIZED = true;
+            USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
+            SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
+           TOKENS_INITIALIZED = true;
         }
     }
 
