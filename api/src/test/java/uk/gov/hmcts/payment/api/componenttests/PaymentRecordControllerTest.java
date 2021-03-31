@@ -200,7 +200,7 @@ public class PaymentRecordControllerTest {
 
 
         MvcResult result = restActions
-            .get("/payments?payment_method=cheque&service_name=Digital Bar"+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR"+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -531,7 +531,7 @@ public class PaymentRecordControllerTest {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result2 = restActions
-            .get("/payments?service_name=Digital Bar&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?service_name=DIGITAL_BAR&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -564,7 +564,7 @@ public class PaymentRecordControllerTest {
 
         String endDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
         MvcResult result = restActions
-            .get("/payments?service_name=Digital Bar&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?service_name=DIGITAL_BAR&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
@@ -601,7 +601,7 @@ public class PaymentRecordControllerTest {
 
         String endDate = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
         MvcResult result = restActions
-            .get("/payments?service_name=Digital Bar&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?service_name=DIGITAL_BAR&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
