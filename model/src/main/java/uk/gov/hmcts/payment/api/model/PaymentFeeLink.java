@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -23,6 +24,16 @@ public class PaymentFeeLink {
 
     @Column(name = "payment_reference")
     private String paymentReference;
+
+    @Column(name = "enterprise_service_name")
+    private String enterpriseServiceName;
+
+    @Column(name = "org_id")
+    private String orgId;
+
+    @ToString.Exclude
+    @ManyToMany(mappedBy = "orders")
+    private Set<CaseDetails> caseDetails;
 
     @CreationTimestamp
     @Column(name = "date_created", nullable = false)
@@ -53,8 +64,9 @@ public class PaymentFeeLink {
     @ToString.Exclude
     private List<FeePayApportion> apportions;
 
+    //Need to remove after all services onboarded order integration
     @ToString.Exclude
-    //@Column(name = "ccd_case_number")
+    @Column(name = "ccd_case_number")
     @Transient
     private String ccdCaseNumber;
 

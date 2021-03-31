@@ -3,23 +3,37 @@ package uk.gov.hmcts.payment.api.domain.mapper;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.domain.model.OrderBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderFeeBo;
+import uk.gov.hmcts.payment.api.model.CaseDetails;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 public class OrderDomainDataEntityMapper {
 
-    public PaymentFeeLink toEntity(OrderBo orderBo){
+    public PaymentFeeLink toOrderEntity(OrderBo orderBo) {
 
         return PaymentFeeLink.paymentFeeLinkWith()
-            .ccdCaseNumber(orderBo.getCcdCaseNumber())
+            .orgId(orderBo.getOrgId())
+            .enterpriseServiceName(orderBo.getEnterpriseServiceName())
             .paymentReference(orderBo.getReference())
             .fees(orderBo.getFees()
                 .stream()
                 .map(feeBo -> toEntity(feeBo))
                 .collect(Collectors.toList()))
+            .build();
+    }
+
+    public CaseDetails toOrderCaseDetailsEntity(OrderBo orderBo) {
+
+        return CaseDetails.caseDetailsWith()
+            .orders(new HashSet<>())
+            .caseReference(orderBo.getCaseReference())
+            .ccdCaseNumber(orderBo.getCcdCaseNumber())
             .build();
     }
 
@@ -30,14 +44,17 @@ public class OrderDomainDataEntityMapper {
             .code(orderFeeBo.getCode())
             .version(orderFeeBo.getVersion())
             .volume(orderFeeBo.getVolume())
+            .dateCreated(new Timestamp(System.currentTimeMillis()))
             .build();
 
         //return Optional.of(orderFeeDto).map(OrderFeeBo :: );
     }
 
-    public OrderBo toDomain(PaymentFeeLink paymentFeeLink){
+    public OrderBo toDomain(PaymentFeeLink paymentFeeLink) {
 
         return OrderBo.orderBoWith()
+            .orgId(paymentFeeLink.getOrgId())
+            .enterpriseServiceName(paymentFeeLink.getEnterpriseServiceName())
             .ccdCaseNumber(paymentFeeLink.getCcdCaseNumber())
             .reference(paymentFeeLink.getPaymentReference())
             .fees(paymentFeeLink.getFees()

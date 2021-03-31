@@ -3,20 +3,26 @@ package uk.gov.hmcts.payment.api.domain.service;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.OrderBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.exception.OrderReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.model.CaseDetails;
+import uk.gov.hmcts.payment.api.model.CaseDetailsRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,24 +48,43 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Autowired
     private Payment2Repository paymentRepository;
 
+    @Autowired
+    private CaseDetailsRepository caseDetailsRepository;
+
+    @Autowired
+    private ReferenceDataService referenceDataService;
+
     @Override
     public PaymentFeeLink find(String orderReference) {
         return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(orderReference);
     }
 
+
     @Override
-    public OrderBo create(OrderDto orderDto) {
-        PaymentFeeLink paymentFeeLink = orderDomainDataEntityMapper.toEntity(orderDtoDomainMapper.toDomain(orderDto));
+    public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
 
-        PaymentFeeLink link = paymentFeeLink;
-        paymentFeeLink.getFees().stream().forEach(fee -> fee.setPaymentLink(link));
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
 
-        OrderBo orderBo = orderDomainDataEntityMapper.toDomain((PaymentFeeLink) paymentGroupService.addNewFeeWithPaymentGroup(paymentFeeLink));
+//        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
+
+        OrderBo orderBo = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
+
+        PaymentFeeLink paymentFeeLink = orderDomainDataEntityMapper.toOrderEntity(orderBo);
+        PaymentFeeLink pfSave = (PaymentFeeLink) paymentGroupService.addNewFeeWithPaymentGroup(paymentFeeLink);
+
+        CaseDetails caseDetails = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toOrderCaseDetailsEntity(orderBo));
+
+        caseDetails.getOrders().add(paymentFeeLink);
+
+        CaseDetails caseDetails1 = caseDetailsRepository.save(caseDetails);
 
         // TODO: 12/03/2021 Order Status to be calculated and retrieved through OrderBO
-        orderBo.setStatus(PaymentStatus.CREATED);
+//        orderBo.setStatus(PaymentStatus.CREATED);
 
-        return orderBo;
+        return pfSave.getPaymentReference();
     }
 
     @Override

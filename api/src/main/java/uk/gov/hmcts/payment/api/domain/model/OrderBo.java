@@ -24,11 +24,18 @@ public class OrderBo {
 
     private String ccdCaseNumber;
 
+    private String caseReference;
+
+    private String orgId;
+
+    private String enterpriseServiceName;
+
     private List<OrderFeeBo> fees;
 
     private PaymentStatus status;
 
     private BigDecimal orderBalance;
+
 
     //-- All CRUD & Validation operations for Orders to be implemented
 
