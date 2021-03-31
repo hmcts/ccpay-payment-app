@@ -103,6 +103,7 @@ public class SpringSecurityConfiguration {
                 .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/case-payment-orders**").hasAnyAuthority(PAYMENTS_ROLE) // TODO: check if this is ok
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
                 .anyRequest().authenticated();
         }
