@@ -572,8 +572,6 @@ public class PaymentGroupController {
                 .channel(PaymentChannel.TELEPHONY.getName())
                 .provider(PaymentProvider.PCI_PAL.getName())
                 .build();
-            LOG.info("Access Token Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getAccessToken());
-            LOG.info("Refresh Token Value in CardPaymentController : {}", telephonyProviderAuthorisationResponse.getRefreshToken());
             PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
             Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
 
