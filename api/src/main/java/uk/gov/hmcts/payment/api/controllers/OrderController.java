@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.domain.model.OrderBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
@@ -43,8 +44,8 @@ public class OrderController {
     })
     @PostMapping(value = "/order")
     @Transactional
-    public ResponseEntity<OrderBo> create(@Valid @RequestBody OrderDto orderDto) {
-        return new ResponseEntity<>(orderDomainService.create(orderDto), HttpStatus.CREATED);
+    public ResponseEntity<String> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+        return new ResponseEntity<>(orderDomainService.create(orderDto,headers), HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.model.OrderBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
@@ -14,7 +15,7 @@ public interface OrderDomainService {
 
     PaymentFeeLink find(String orderReference);
 
-    OrderBo create (OrderDto orderDto);
+    String create (OrderDto orderDto, MultiValueMap<String, String> headers);
 
     void addFees (OrderBo orderBo, List<OrderFeeDto> feeDtos);
 
