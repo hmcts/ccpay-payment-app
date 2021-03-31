@@ -152,7 +152,9 @@ public class PaymentGroupController {
 
         PaymentFeeLink paymentFeeLink = paymentGroupService.addNewFeeWithPaymentGroup(feeLink);
 
-        return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.CREATED);
+        PaymentGroupDto responsePaymentGroupDto = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
+
+        return new ResponseEntity<>(responsePaymentGroupDto, HttpStatus.CREATED);
     }
 
 
