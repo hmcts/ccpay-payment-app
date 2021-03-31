@@ -140,23 +140,21 @@ public class PaymentGroupControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+        List<SiteDTO> serviceReturn = Arrays.asList(SiteDTO.siteDTOwith()
                 .sopReference("sop")
-                .siteId("AA99")
+                .siteID("AA99")
                 .name("name")
                 .service("service")
-                .id(1)
                 .build(),
-            Site.siteWith()
+            SiteDTO.siteDTOwith()
                 .sopReference("sop")
-                .siteId("AA001")
+                .siteID("AA001")
                 .name("name")
                 .service("service")
-                .id(1)
                 .build()
         );
 
-        when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
+        when(referenceDataService.getSiteIDs()).thenReturn(serviceReturn);
 
     }
 
@@ -1822,7 +1820,7 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
