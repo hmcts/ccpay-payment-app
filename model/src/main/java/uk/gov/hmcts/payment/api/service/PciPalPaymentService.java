@@ -49,7 +49,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
     private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
 
-//    private static final String SERVICE_TYPE_FINREM = "finrem";
     private static final String PROBATE = "PROBATE";
     private static final String DIVORCE = "DIVORCE";
     private static final String CMC = "CMC";
