@@ -14,8 +14,6 @@ java:
     LAUNCH_DARKLY_USER_NAME_PREFIX: aat
     SPRING_PROFILES_ACTIVE: "liberataMock,callbackMock,ccdMock"
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 0
-
-    #Below key required for preview pipeline
     CCPAY_BULK_SCANNING_API_URL: http://ccpay-bulkscanning-api-aat.service.core-compute-aat.internal
   keyVaults:
     "ccpay":
