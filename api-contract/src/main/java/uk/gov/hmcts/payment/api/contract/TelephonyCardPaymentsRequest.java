@@ -11,8 +11,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
+import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -48,6 +50,15 @@ public class TelephonyCardPaymentsRequest {
 
     @NotEmpty
     private String returnURL;
+
+    /*
+    Following attribute to be removed once all Services are on-boarded to Enterprise ORG ID
+    */
+
+    @JsonProperty("case_type")
+    private String caseType;
+
+
 
 
 }

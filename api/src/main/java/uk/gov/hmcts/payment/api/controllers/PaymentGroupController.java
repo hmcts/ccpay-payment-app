@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
@@ -549,12 +550,25 @@ public class PaymentGroupController {
     @ResponseBody
     @Transactional
     public ResponseEntity<TelephonyCardPaymentsResponse> createTelephonyCardPayment(
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @PathVariable("payment-group-reference") String paymentGroupReference,
         @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature",false);
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
         if(antennaFeature) {
+
+            if (StringUtils.isNotBlank(telephonyCardPaymentsRequest.getCaseType())) {
+                OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(telephonyCardPaymentsRequest.getCaseType(), headers);
+                telephonyCardPaymentsRequest.setSiteId(organisationalServiceDto.getServiceCode());
+                telephonyCardPaymentsRequest.setService(organisationalServiceDto.getServiceDescription());
+            } else {
+            /*
+            Following piece of code to be removed once all Services are on-boarded to Enterprise ORG ID
+            */
+                telephonyCardPaymentsRequest.setService(paymentService.getServiceNameByCode(telephonyCardPaymentsRequest.getService()));
+            }
+
             LOG.info("Inside Telephony check!!!");
             TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService.getPaymentProviderAutorisationTokens();
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
