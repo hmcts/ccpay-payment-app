@@ -892,7 +892,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void addnewPaymentgroupWithCaseTypeShouldReturnSuccess() throws Exception {
+    public void addnewCardPaymentgroupWithCaseTypeShouldReturnSuccess() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -929,9 +929,129 @@ public class PaymentGroupControllerTest {
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
             .andExpect(status().isCreated());
     }
+//////////////////
 
     @Test
-    public void shouldThrowNoServiceExceptionWithCaseType() throws Exception {
+    public void addTelephonyPaymentWithValidCaseTypeReturnSuccess() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
+        BigDecimal amount = new BigDecimal("200");
+
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("DIVORCE")
+            .amount(amount)
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void addTelephonyPaymentWithEmptyCaseTypeReturn422() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        MvcResult resultWithEmptyValues = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        assertEquals(resultWithEmptyValues.getResponse().getContentAsString(), "eitherIdOrTypeRequired: Either of Site ID or Case Type is mandatory as part of the request.");
+    }
+
+
+    @Test
+    public void TelephonyPaymentThrowNoServiceExceptionWithCaseType() throws Exception {
+
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("DIVORCE999")
+            .amount(amount)
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenThrow(new NoServiceFoundException("No Service found for given CaseType"));
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("No Service found for given CaseType"));
+    }
+
+    @Test
+    public void telephonyPaymentThrowGatewayTimeOutExceptionWithCaseType() throws Exception {
+
+        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("DIVORCE")
+            .amount(amount)
+            .ccdCaseNumber("2154-2343-5634-2357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenThrow(new GatewayTimeoutException("Unable to retrieve service information. Please try again later"));
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Unable to retrieve service information. Please try again later"));
+    }
+
+    /////////////////////
+
+    @Test
+    public void cardPaymentShouldThrowNoServiceExceptionWithCaseType() throws Exception {
 
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
@@ -956,7 +1076,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void shouldThrowGatewyTimeOutExceptionWithCaseType() throws Exception {
+    public void shouldThrowGatewayTimeOutExceptionWithCaseType() throws Exception {
 
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
