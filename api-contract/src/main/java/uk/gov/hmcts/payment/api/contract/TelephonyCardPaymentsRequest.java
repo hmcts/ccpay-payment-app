@@ -39,21 +39,10 @@ public class TelephonyCardPaymentsRequest {
     private String ccdCaseNumber;
 
     @NotNull
-    private String service;
-
-    @NotNull
     private CurrencyCode currency;
 
     @NotEmpty
-    @JsonProperty("site_id")
-    private String siteId;
-
-    @NotEmpty
     private String returnURL;
-
-    /*
-    Following attribute to be removed once all Services are on-boarded to Enterprise ORG ID
-    */
 
     @JsonProperty("case_type")
     private String caseType;

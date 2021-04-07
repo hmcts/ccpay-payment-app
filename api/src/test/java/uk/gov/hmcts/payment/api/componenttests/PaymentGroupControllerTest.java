@@ -1005,7 +1005,16 @@ public class PaymentGroupControllerTest {
     @Test
     public void TelephonyPaymentThrowNoServiceExceptionWithCaseType() throws Exception {
 
-        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BigDecimal amount = new BigDecimal("200");
 
@@ -1028,7 +1037,16 @@ public class PaymentGroupControllerTest {
     @Test
     public void telephonyPaymentThrowGatewayTimeOutExceptionWithCaseType() throws Exception {
 
-        PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BigDecimal amount = new BigDecimal("200");
 
@@ -1047,8 +1065,6 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Unable to retrieve service information. Please try again later"));
     }
-
-    /////////////////////
 
     @Test
     public void cardPaymentShouldThrowNoServiceExceptionWithCaseType() throws Exception {
@@ -2453,8 +2469,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("FINREM")
-            .siteId("AA07")
+            .caseType("divorce")
             .returnURL("http://localhost")
             .ccdCaseNumber("2154234356342357")
             .build();
