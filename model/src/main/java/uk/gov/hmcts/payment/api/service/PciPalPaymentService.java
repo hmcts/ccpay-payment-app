@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedCaseInsensitiveMap;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
@@ -196,7 +195,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     {
         String flowId;
 
-        Map<String, String> flowIdHashMap = new LinkedCaseInsensitiveMap<>();
+        Map<String, String> flowIdHashMap = new HashMap<>();
         flowIdHashMap.put(SERVICE_TYPE_DIVORCE, divorceFlowId);
         flowIdHashMap.put(SERVICE_TYPE_CMC, cmcFlowId);
         flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateFlowId);
