@@ -2053,8 +2053,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("DIVORCE")
-            .siteId("AA07")
+            .caseType("DIVORCE")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2119,8 +2118,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("CMC")
-            .siteId("AA07")
+            .caseType("CMC")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2185,8 +2183,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("PROBATE")
-            .siteId("AA07")
+            .caseType("PROBATE")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2251,8 +2248,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("DIGITAL_BAR")
-            .siteId("AA07")
+            .caseType("DIGITAL_BAR")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2301,8 +2297,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("FINREM")
-            .siteId("AA07")
+            .caseType("FINREM")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2367,8 +2362,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("FINREM")
-            .siteId("AA07")
+            .caseType("FINREM")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2418,8 +2412,7 @@ public class PaymentGroupControllerTest {
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
-            .service("FINREM")
-            .siteId("AA07")
+            .caseType("FINREM")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2519,8 +2512,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("FINREM")
-            .siteId("AA07")
+            .caseType("FINREM")
             .returnURL("http://localhost")
             .build();
 
@@ -2569,7 +2561,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("FINREM")
+            .caseType("FINREM")
             .ccdCaseNumber("2154234356342357")
             .returnURL("http://localhost")
             .build();
@@ -2619,9 +2611,8 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("FINREM")
+            .caseType("FINREM")
             .ccdCaseNumber("2154234356342357")
-            .siteId("AA07")
             .build();
 
         MvcResult result3 = restActions
@@ -2661,8 +2652,7 @@ public class PaymentGroupControllerTest {
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
             .currency(CurrencyCode.GBP)
-            .service("FINREM")
-            .siteId("AA07")
+            .caseType("FINREM")
             .ccdCaseNumber(ccdCaseNumber)
             .returnURL("http://localhost")
             .build();
