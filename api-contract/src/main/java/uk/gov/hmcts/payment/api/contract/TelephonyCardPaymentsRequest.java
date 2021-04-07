@@ -45,6 +45,7 @@ public class TelephonyCardPaymentsRequest {
     private String returnURL;
 
     @JsonProperty("case_type")
+    @NotBlank
     private String caseType;
 
 
