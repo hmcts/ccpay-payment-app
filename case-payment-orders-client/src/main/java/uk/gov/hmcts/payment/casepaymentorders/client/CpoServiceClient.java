@@ -33,13 +33,14 @@ public class CpoServiceClient {
 
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization"; // TODO: add this header
     public static final String AUTHORIZATION = "Authorization";
+    public static final String GET_CPO = "/api/case-payment-orders";
 
     private final String url;
     private final RestTemplate restTemplateCpoClient;
     private final AuthTokenGenerator authTokenGenerator;
 
     @Autowired
-    public CpoServiceClient(@Value("${cpo.get-case-payment-orders.url}") String url,
+    public CpoServiceClient(@Value("${case-payment-orders.api.url}") String url,
                             @Qualifier("restTemplateCpoClient") RestTemplate restTemplateCpoClient,
                             AuthTokenGenerator authTokenGenerator) {
         this.url = url;
@@ -50,7 +51,7 @@ public class CpoServiceClient {
     public CpoGetResponse getCasePaymentOrders(String ids, String caseIds, String page, String size,
                                                String authorization) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url + GET_CPO)
             .queryParam("ids", ids)
             .queryParam("caseIds", caseIds)
             .queryParam("page", page)
