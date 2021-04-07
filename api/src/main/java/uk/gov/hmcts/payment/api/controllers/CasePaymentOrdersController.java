@@ -52,7 +52,8 @@ public class CasePaymentOrdersController {
     @ApiOperation(value = "Get payment orders for a case", notes = "Get payment orders for a case")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment orders retrieved"),
-        @ApiResponse(code = 400, message = "Bad request")
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 403, message = "Case Payment Orders info forbidden")
     })
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(@RequestParam(name = "ids", required = false) String ids,
