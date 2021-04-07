@@ -160,8 +160,6 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         if(serviceNameMap.containsKey(serviceCode))
         {
             return serviceNameMap.get(serviceCode);
-        } else if (serviceNameMap.containsValue(serviceCode)){
-            return serviceCode;
         }
         else throw new PaymentException("Service in Request is Invalid !!!");
     }
