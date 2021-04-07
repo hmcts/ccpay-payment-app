@@ -588,8 +588,7 @@ public class PaymentGroupFunctionalTest {
             .amount(new BigDecimal("110"))
             .ccdCaseNumber(ccdCaseNumber)
             .currency(CurrencyCode.GBP)
-            .service("DIVORCE")
-            .siteId("AA007")
+            .caseType("DIVORCE")
             .returnURL("https://google.co.uk")
             .build();
 
