@@ -531,7 +531,7 @@ public class PaymentRecordControllerTest {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result2 = restActions
-            .get("/payments?service_name=DIGITAL_BAR&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?service_name=Digital Bar&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
