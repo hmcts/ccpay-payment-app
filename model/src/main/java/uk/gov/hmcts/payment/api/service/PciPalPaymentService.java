@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
@@ -48,11 +49,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     private static final String SERVICE_TYPE_CMC= "Specified Money Claims";
     private static final String SERVICE_TYPE_DIVORCE = "divorce";
     private static final String SERVICE_TYPE_FINREM = "Financial Remedy";
-
-    private static final String PROBATE = "PROBATE";
-    private static final String DIVORCE = "DIVORCE";
-    private static final String CMC = "CMC";
-    private static final String FINREM = "FINREM";
 
     @Value("${pci-pal.account.id.cmc}")
     private String ppAccountIDCmc;
@@ -200,12 +196,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
     {
         String flowId;
 
-        Map<String, String> flowIdHashMap = new HashMap<>();
-        flowIdHashMap.put(DIVORCE, divorceFlowId);
-        flowIdHashMap.put(CMC, cmcFlowId);
-        flowIdHashMap.put(PROBATE, probateFlowId);
-        flowIdHashMap.put(FINREM, financialRemedyFlowId);
-
+        Map<String, String> flowIdHashMap = new LinkedCaseInsensitiveMap<>();
+        flowIdHashMap.put(SERVICE_TYPE_DIVORCE, divorceFlowId);
+        flowIdHashMap.put(SERVICE_TYPE_CMC, cmcFlowId);
+        flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateFlowId);
+        flowIdHashMap.put(SERVICE_TYPE_FINREM, financialRemedyFlowId);
         if(flowIdHashMap.containsKey(serviceType))
         {
             flowId = flowIdHashMap.get(serviceType);
