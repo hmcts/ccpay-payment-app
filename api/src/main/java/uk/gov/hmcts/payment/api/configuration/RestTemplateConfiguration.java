@@ -20,9 +20,4 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplatePaymentGroup() {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
-
-    @Bean (value = "restTemplateCpoClient")
-    public RestTemplate restTemplateCpoClient() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-    }
 }
