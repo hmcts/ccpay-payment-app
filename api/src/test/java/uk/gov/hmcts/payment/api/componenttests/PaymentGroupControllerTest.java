@@ -165,7 +165,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -528,7 +528,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -629,7 +629,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -754,7 +754,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -848,7 +848,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -892,7 +892,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -933,7 +933,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("divorce")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenReturn(organisationalServiceDto);
@@ -1122,7 +1122,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -1354,7 +1354,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -1384,7 +1384,7 @@ public class PaymentGroupControllerTest {
         when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(true);
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -1409,7 +1409,7 @@ public class PaymentGroupControllerTest {
         when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(true);
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -1446,7 +1446,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -1518,7 +1518,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -2047,7 +2047,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("divorce")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
@@ -2191,7 +2191,7 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("probate")
+            .serviceDescription("Probate")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
