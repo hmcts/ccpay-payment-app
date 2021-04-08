@@ -175,7 +175,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         payment.setPaymentLink(paymentFeeLink);
 
         if(paymentFeeLink.getPayments() != null){
-            LOG.info("-----b"+paymentFeeLink.getPayments().size());
             paymentFeeLink.getPayments().addAll(Lists.newArrayList(payment));
         } else {
             paymentFeeLink.setPayments(Lists.newArrayList(payment));
