@@ -57,7 +57,6 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     @Override
     public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException, MethodNotSupportedException {
         PaymentFeeLink paymentFeeLink = delegate.update(paymentServiceRequest);
-        LOG.info("delegate update");
         LOG.info("Logging service"+paymentFeeLink.getPayments().size());
         Payment payment = paymentFeeLink.getPayments().get(0);
         LOG.info("Payment event", StructuredArguments.entries(ImmutableMap.of(
