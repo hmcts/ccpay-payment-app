@@ -133,7 +133,7 @@ public class BulkScanningReportControllerTest {
             .ccdCaseNumber("1111-2222-2222-1111")
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
-            .siteId("AA001")
+            .caseType("DIVORCE")
             .build();
         Remission remission= Remission.remissionWith()
             .remissionReference("12345")
