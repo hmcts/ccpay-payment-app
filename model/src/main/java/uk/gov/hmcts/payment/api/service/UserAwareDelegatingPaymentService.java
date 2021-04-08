@@ -185,6 +185,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         }
 
         auditRepository.trackPaymentEvent("CREATE_CARD_PAYMENT", payment, paymentFeeLink.getFees());
+        LOG.info("trackPaymentEvent done");
         return paymentFeeLink;
     }
 
