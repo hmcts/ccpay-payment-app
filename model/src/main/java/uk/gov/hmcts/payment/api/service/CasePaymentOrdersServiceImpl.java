@@ -4,18 +4,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.casepaymentorders.client.CpoServiceClient;
 import uk.gov.hmcts.payment.casepaymentorders.client.dto.CpoGetResponse;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 @Service
 public class CasePaymentOrdersServiceImpl implements CasePaymentOrdersService {
     private final CpoServiceClient cpoServiceClient;
+    private final AuthTokenGenerator authTokenGenerator;
 
     @Autowired
-    public CasePaymentOrdersServiceImpl(CpoServiceClient cpoServiceClient) {
+    public CasePaymentOrdersServiceImpl(CpoServiceClient cpoServiceClient,
+                                        AuthTokenGenerator authTokenGenerator) {
         this.cpoServiceClient = cpoServiceClient;
+        this.authTokenGenerator = authTokenGenerator;
     }
 
     @Override
-    public CpoGetResponse getCasePaymentOrders(String ids, String caseIds, String page, String size, String authorization) {
-        return cpoServiceClient.getCasePaymentOrders(ids, caseIds, page, size, authorization);
+    public CpoGetResponse getCasePaymentOrders(String ids, String caseIds, String pageNumber, String pageSize,
+                                               String authorization) {
+        return cpoServiceClient.getCasePaymentOrders(ids, caseIds, pageNumber, pageSize, authorization,
+                                                     authTokenGenerator.generate());
     }
 }

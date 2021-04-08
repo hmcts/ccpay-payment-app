@@ -87,15 +87,16 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
 
         stubFor(get(urlPathMatching("/api/case-payment-orders"))
                     .withQueryParam("ids", containing("29b192ed-675d-4c60-ab10-c7e1619da34e"))
-                    .withQueryParam("page", containing("1"))
-                    .withQueryParam("size", containing("2"))
+                    .withQueryParam("pageNumber", containing("1"))
+                    .withQueryParam("pageSize", containing("2"))
                     .willReturn(aResponse()
                                     .withStatus(200)
                                     .withHeader("Content-Type", "application/json")
-                                    .withBody(contentsOf("case-payment-orders-responses/get-case-payment-orders-response.json"))));
+                                    .withBody(contentsOf(
+                                        "case-payment-orders-responses/get-case-payment-orders-response.json"))));
 
         MvcResult result = restActions
-            .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&page=1&size=2")
+            .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&pageNumber=1&pageSize=2")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -119,9 +120,9 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
                                     .withBody("Error - InternalServerError")));
 
         restActions
-            .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&page=1&size=2")
+            .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e")
             .andExpect(status().isInternalServerError())
-            .andExpect(content().string(containsString("Error - InternalServerError"))) // TODO: test with the real API
+            .andExpect(content().string(containsString("Error - InternalServerError")))
             .andReturn();
 
     }
@@ -132,7 +133,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
 
         stubFor(get(urlPathMatching("/api/case-payment-orders"))
                     .withQueryParam("ids", containing("29b192ed-675d-4c60-ab10-c7e1619da34e"))
-                    .withQueryParam("caseIds", containing("1709243447569253"))
+                    .withQueryParam("case-ids", containing("1709243447569253"))
                     .willReturn(aResponse()
                                     .withStatus(400)
                                     .withHeader("Content-Type", "application/json")
@@ -141,7 +142,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
         restActions
             .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&case-ids=1709243447569253")
             .andExpect(status().isBadRequest())
-            .andExpect(content().string(containsString("Error - BadRequest"))) // TODO: test with the real API
+            .andExpect(content().string(containsString("Error - BadRequest")))
             .andReturn();
     }
 
@@ -151,7 +152,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
 
         stubFor(get(urlPathMatching("/api/case-payment-orders"))
                     .withQueryParam("ids", containing("29b192ed-675d-4c60-ab10-c7e1619da34e"))
-                    .withQueryParam("caseIds", containing("1709243447569253"))
+                    .withQueryParam("case-ids", containing("1709243447569253"))
                     .willReturn(aResponse()
                                     .withStatus(403)
                                     .withHeader("Content-Type", "application/json")
@@ -160,7 +161,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
         restActions
             .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&case-ids=1709243447569253")
             .andExpect(status().isForbidden())
-            .andExpect(content().string(containsString("Error - Forbidden"))) // TODO: test with the real API
+            .andExpect(content().string(containsString("Error - Forbidden")))
             .andReturn();
     }
 }
