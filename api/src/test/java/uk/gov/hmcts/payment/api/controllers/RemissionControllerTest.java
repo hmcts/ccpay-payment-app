@@ -19,12 +19,14 @@ import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.PaymentFeeDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.RemissionDbBackdoor;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.RemissionService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -39,6 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,29 +51,24 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class RemissionControllerTest {
-    private RestActions restActions;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
+    RemissionRequest remission;
+    private RestActions restActions;
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @MockBean
     private RemissionService remissionService;
-
+    @MockBean
+    private ReferenceDataService referenceDataService;
     @MockBean
     private SiteService<Site, String> siteServiceMock;
 
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
-
-    RemissionRequest remission;
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -88,7 +86,7 @@ public class RemissionControllerTest {
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
             .hwfReference("HWFref")
-            .siteId("AA001")
+            .caseType("DIVORCE")
             .fee(getFee())
             .build();
 
@@ -116,58 +114,86 @@ public class RemissionControllerTest {
 
         List<Remission> remissionList = new ArrayList<>();
         Remission remission1 = Remission.remissionWith()
-                                    .remissionReference("remission-reference")
-                                    .build();
+            .remissionReference("remission-reference")
+            .build();
         remissionList.add(remission1);
         PaymentFee fee = PaymentFee.feeWith().build();
         List<PaymentFee> paymentFees = new ArrayList<>();
         paymentFees.add(fee);
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-                                            .remissions(remissionList)
-                                            .payments(null)
-                                            .paymentReference("payment-reference")
-                                            .fees(paymentFees)
-                                            .build();
+            .remissions(remissionList)
+            .payments(null)
+            .paymentReference("payment-reference")
+            .fees(paymentFees)
+            .build();
         when(remissionService.createRemission(Mockito.any(RemissionServiceRequest.class))).thenReturn(paymentFeeLink);
-        MvcResult mvcResult = restActions
-                            .post("/remission", remission)
-                            .andExpect(status().isCreated())
-                            .andReturn();
-        RemissionDto remissionDto = (RemissionDto) objectMapper.readValue(mvcResult.getResponse().getContentAsString(),RemissionDto.class);
-        assertEquals("remission-reference",remissionDto.getRemissionReference());
-    }
 
-    @Test
-    public void shouldSendRemissionCreatedForRemissio() throws Exception {
-        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
-        when(remissionService.createRemission(Mockito.any(RemissionServiceRequest.class))).thenReturn(paymentFeeLink);
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
         MvcResult mvcResult = restActions
             .post("/remissions", remission)
             .andExpect(status().isCreated())
             .andReturn();
-        RemissionDto remissionDto = (RemissionDto) objectMapper.readValue(mvcResult.getResponse().getContentAsString(),RemissionDto.class);
-        assertEquals("remission-reference",remissionDto.getRemissionReference());
+        RemissionDto remissionDto = (RemissionDto) objectMapper.readValue(mvcResult.getResponse().getContentAsString(), RemissionDto.class);
+        assertEquals("remission-reference", remissionDto.getRemissionReference());
+    }
+
+    @Test
+    public void shouldSendRemissionCreatedForRemission() throws Exception {
+        PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+        when(remissionService.createRemission(Mockito.any(RemissionServiceRequest.class))).thenReturn(paymentFeeLink);
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        MvcResult mvcResult = restActions
+            .post("/remissions", remission)
+            .andExpect(status().isCreated())
+            .andReturn();
+        RemissionDto remissionDto = (RemissionDto) objectMapper.readValue(mvcResult.getResponse().getContentAsString(), RemissionDto.class);
+        assertEquals("remission-reference", remissionDto.getRemissionReference());
     }
 
     @Test
     public void shouldSendBadRequestWhenDataIntegrityViolationException() throws Exception {
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+
         when(remissionService.createRemission(Mockito.any(RemissionServiceRequest.class))).thenThrow(DataIntegrityViolationException.class);
         MvcResult mvcResult = restActions
-            .post("/remission", remission)
+            .post("/remissions", remission)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
 
     @Test
-    public void  shouldSendBadRequestWhenInvalidPaymentGroupReferenceException() throws Exception {
+    public void shouldSendBadRequestWhenInvalidPaymentGroupReferenceException() throws Exception {
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        
         when(remissionService.createRemission(Mockito.any(RemissionServiceRequest.class))).thenThrow(InvalidPaymentGroupReferenceException.class);
         MvcResult mvcResult = restActions
-            .post("/remission", remission)
+            .post("/remissions", remission)
             .andExpect(status().isNotFound())
             .andReturn();
     }
 
-    private PaymentFeeLink getPaymentFeeLink(){
+    private PaymentFeeLink getPaymentFeeLink() {
         List<Remission> remissionList = new ArrayList<>();
         Remission remission1 = Remission.remissionWith()
             .remissionReference("remission-reference")
