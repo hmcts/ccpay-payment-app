@@ -56,13 +56,15 @@ public class CasePaymentOrdersController {
         @ApiResponse(code = 403, message = "Case Payment Orders info forbidden")
     })
     @RequestMapping(value = "/case-payment-orders", method = GET)
-    public CasePaymentOrdersDto retrieveCasePaymentOrders(@RequestParam(name = "ids", required = false) String ids,
-                                                          @RequestParam(name = "case-ids", required = false) String caseIds,
-                                                          @RequestParam(name = "page", required = false) String page,
-                                                          @RequestParam(name = "size", required = false) String size,
-                                                          @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+    public CasePaymentOrdersDto retrieveCasePaymentOrders(
+        @RequestParam(name = "ids", required = false) String ids,
+        @RequestParam(name = "case-ids", required = false) String caseIds,
+        @RequestParam(name = "pageNumber", required = false) String pageNumber,
+        @RequestParam(name = "pageSize", required = false) String pageSize,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+
         CpoGetResponse casePaymentOrders = casePaymentOrdersService
-            .getCasePaymentOrders(ids, caseIds, page, size, authorization);
+            .getCasePaymentOrders(ids, caseIds, pageNumber, pageSize, authorization);
 
         return casePaymentOrdersMapper.toCasePaymentOrdersDto(casePaymentOrders);
     }
