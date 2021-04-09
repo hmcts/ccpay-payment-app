@@ -21,6 +21,7 @@ public class OrderDomainDataEntityMapper {
             .orgId(orderBo.getOrgId())
             .enterpriseServiceName(orderBo.getEnterpriseServiceName())
             .paymentReference(orderBo.getReference())
+            .ccdCaseNumber(orderBo.getCcdCaseNumber())
             .fees(orderBo.getFees()
                 .stream()
                 .map(feeBo -> toEntity(feeBo))
@@ -28,7 +29,7 @@ public class OrderDomainDataEntityMapper {
             .build();
     }
 
-    public CaseDetails toOrderCaseDetailsEntity(OrderBo orderBo) {
+    public CaseDetails toCaseDetailsEntity(OrderBo orderBo) {
 
         return CaseDetails.caseDetailsWith()
             .orders(new HashSet<>())
@@ -48,20 +49,6 @@ public class OrderDomainDataEntityMapper {
             .build();
 
         //return Optional.of(orderFeeDto).map(OrderFeeBo :: );
-    }
-
-    public OrderBo toDomain(PaymentFeeLink paymentFeeLink) {
-
-        return OrderBo.orderBoWith()
-            .orgId(paymentFeeLink.getOrgId())
-            .enterpriseServiceName(paymentFeeLink.getEnterpriseServiceName())
-            .ccdCaseNumber(paymentFeeLink.getCcdCaseNumber())
-            .reference(paymentFeeLink.getPaymentReference())
-            .fees(paymentFeeLink.getFees()
-                .stream()
-                .map(fee -> toDomain(fee))
-                .collect(Collectors.toList()))
-            .build();
     }
 
     public OrderFeeBo toDomain(PaymentFee paymentFee) {
