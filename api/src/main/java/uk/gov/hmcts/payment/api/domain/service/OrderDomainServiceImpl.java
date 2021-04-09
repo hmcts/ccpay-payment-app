@@ -34,31 +34,30 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     private OrderDtoDomainMapper orderDtoDomainMapper;
 
     @Autowired
-    private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
-
-    @Autowired
     private OrderPaymentDtoDomainMapper orderPaymentDtoDomainMapper;
 
     @Autowired
     private OrderPaymentDomainDataEntityMapper orderPaymentDomainDataEntityMapper;
 
     @Autowired
-    private PaymentGroupService paymentGroupService;
-
-    @Autowired
     private Payment2Repository paymentRepository;
 
     @Autowired
-    private CaseDetailsRepository caseDetailsRepository;
+    private ReferenceDataService referenceDataService;
 
     @Autowired
-    private ReferenceDataService referenceDataService;
+    private PaymentGroupService paymentGroupService;
+
+    @Autowired
+    private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
+
+    @Autowired
+    private CaseDetailsRepository caseDetailsRepository;
 
     @Override
     public PaymentFeeLink find(String orderReference) {
         return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(orderReference);
     }
-
 
     @Override
     public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
@@ -72,19 +71,17 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
         OrderBo orderBo = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
 
-        PaymentFeeLink paymentFeeLink = orderDomainDataEntityMapper.toOrderEntity(orderBo);
-        PaymentFeeLink pfSave = (PaymentFeeLink) paymentGroupService.addNewFeeWithPaymentGroup(paymentFeeLink);
+        PaymentFeeLink paymentFeeLinkEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);
 
-        CaseDetails caseDetails = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toOrderCaseDetailsEntity(orderBo));
+        PaymentFeeLink OrderSavedWithFees = (PaymentFeeLink) paymentGroupService.addNewFeeWithPaymentGroup(paymentFeeLinkEntity);
 
-        caseDetails.getOrders().add(paymentFeeLink);
+        CaseDetails caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo));
 
-        CaseDetails caseDetails1 = caseDetailsRepository.save(caseDetails);
+        caseDetailsEntity.getOrders().add(paymentFeeLinkEntity);
 
-        // TODO: 12/03/2021 Order Status to be calculated and retrieved through OrderBO
-//        orderBo.setStatus(PaymentStatus.CREATED);
+        caseDetailsRepository.save(caseDetailsEntity);
 
-        return pfSave.getPaymentReference();
+        return OrderSavedWithFees.getPaymentReference();
     }
 
     @Override

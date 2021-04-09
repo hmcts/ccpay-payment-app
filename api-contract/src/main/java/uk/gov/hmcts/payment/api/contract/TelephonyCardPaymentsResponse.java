@@ -40,7 +40,7 @@ public class TelephonyCardPaymentsResponse {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     @JsonInclude(NON_NULL)
     public static class NextURLDtos {
         private NextURLDto nextUrl;
