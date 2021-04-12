@@ -96,7 +96,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
                                         "case-payment-orders-responses/get-case-payment-orders-response.json"))));
 
         MvcResult result = restActions
-            .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&pageNumber=1&pageSize=2")
+            .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&page-number=1&page-size=2")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -116,14 +116,12 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
         stubFor(get(urlPathMatching("/case-payment-orders"))
                     .willReturn(aResponse()
                                     .withStatus(500)
-                                    .withHeader("Content-Type", "application/json")
                                     .withBody("Error - InternalServerError")));
 
         restActions
             .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e")
             .andExpect(status().isInternalServerError())
-            .andExpect(content().string(containsString("Error - InternalServerError")))
-            .andReturn();
+            .andExpect(content().string(containsString("Error - InternalServerError")));
     }
 
     @Test
@@ -136,13 +134,33 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
                     .willReturn(aResponse()
                                     .withStatus(400)
                                     .withHeader("Content-Type", "application/json")
-                                    .withBody("Error - BadRequest")));
+                                    .withBody("{\"exception\":\"CasePaymentOrdersFilterException\","
+                                                  + "\"timestamp\":\"2021-04-12T21:04:26.471639\","
+                                                  + "\"status\":400,"
+                                                  + "\"error\":\"Bad Request\","
+                                                  + "\"message\":\"CPOs cannot be filtered by both id and case id.\","
+                                                  + "\"path\":\"/case-payment-orders\","
+                                                  + "\"details\":null}")));
 
         restActions
             .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&case-ids=1709243447569253")
             .andExpect(status().isBadRequest())
-            .andExpect(content().string(containsString("Error - BadRequest")))
-            .andReturn();
+            .andExpect(content().string(containsString("CPOs cannot be filtered by both id and case id.")));
+    }
+
+    @Test
+    @Transactional
+    public void getCasePaymentOrdersForbidden_shouldReturn401Test() throws Exception {
+
+        stubFor(get(urlPathMatching("/case-payment-orders"))
+                    .withQueryParam("ids", containing("29b192ed-675d-4c60-ab10-c7e1619da34e"))
+                    .withQueryParam("case-ids", containing("1709243447569253"))
+                    .willReturn(aResponse()
+                                    .withStatus(401)));
+
+        restActions
+            .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&case-ids=1709243447569253")
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -154,13 +172,11 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
                     .withQueryParam("case-ids", containing("1709243447569253"))
                     .willReturn(aResponse()
                                     .withStatus(403)
-                                    .withHeader("Content-Type", "application/json")
-                                    .withBody("Error - Forbidden")));
+                                    .withBody("Unauthorised S2S service.")));
 
         restActions
             .get("/case-payment-orders?ids=29b192ed-675d-4c60-ab10-c7e1619da34e&case-ids=1709243447569253")
             .andExpect(status().isForbidden())
-            .andExpect(content().string(containsString("Error - Forbidden")))
-            .andReturn();
+            .andExpect(content().string(containsString("Unauthorised S2S service.")));
     }
 }
