@@ -33,9 +33,11 @@ allprojects {
     targetCompatibility = versions.javaVersion
 
     repositories {
+        mavenCentral()
         mavenLocal()
         maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
         jcenter()
+        mavenCentral()
         maven { url 'https://repo.spring.io/libs-milestone' }
         maven { url 'https://jitpack.io' }
     }
@@ -105,7 +107,6 @@ subprojects {
         }
     }
     dependencies {
-        implementation('com.github.hmcts:ccpay-payment-app:2.0')
         compile ('com.sun.xml.bind:jaxb-osgi:2.3.1')
         testCompile 'io.github.openfeign:feign-jackson:9.7.0'
         compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.0'
