@@ -5,7 +5,6 @@
       "created_timestamp": "2021-03-26T15:24:34.968706",
       "effective_from": "2021-03-26T15:24:34.967432",
       "case_id": 1709243447569253,
-      "case_type_id": "setCaseTypeId",
       "action": "action",
       "responsible_party": "setResponsibleParty",
       "order_reference": "action1",

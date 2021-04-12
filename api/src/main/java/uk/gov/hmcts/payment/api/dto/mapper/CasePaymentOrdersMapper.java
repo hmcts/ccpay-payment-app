@@ -28,7 +28,6 @@ public class CasePaymentOrdersMapper {
             .createdTimestamp(cpo.getCreatedTimestamp())
             .effectiveFrom(cpo.getEffectiveFrom())
             .caseId(cpo.getCaseId())
-            .caseTypeId(cpo.getCaseTypeId())
             .action(cpo.getAction())
             .responsibleParty(cpo.getResponsibleParty())
             .orderReference(cpo.getOrderReference())

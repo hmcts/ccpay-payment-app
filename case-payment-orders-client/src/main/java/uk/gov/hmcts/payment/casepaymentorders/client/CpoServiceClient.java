@@ -31,9 +31,9 @@ import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 public class CpoServiceClient {
     private static final Logger LOG = LoggerFactory.getLogger(CpoServiceClient.class);
 
-    public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
-    public static final String AUTHORIZATION = "Authorization";
-    public static final String GET_CPO = "/api/case-payment-orders";
+    private static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
+    private static final String AUTHORIZATION = "Authorization";
+    protected static final String GET_CPO = "/case-payment-orders";
 
     private final String url;
     private final RestTemplate restTemplateCpoClient;

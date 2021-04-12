@@ -85,7 +85,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     @Transactional
     public void getCasePaymentOrdersWithValidInputData_shouldReturn200Test() throws Exception {
 
-        stubFor(get(urlPathMatching("/api/case-payment-orders"))
+        stubFor(get(urlPathMatching("/case-payment-orders"))
                     .withQueryParam("ids", containing("29b192ed-675d-4c60-ab10-c7e1619da34e"))
                     .withQueryParam("pageNumber", containing("1"))
                     .withQueryParam("pageSize", containing("2"))
@@ -113,7 +113,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     @Transactional
     public void getCasePaymentOrdersInternalServerError_shouldReturn500Test() throws Exception {
 
-        stubFor(get(urlPathMatching("/api/case-payment-orders"))
+        stubFor(get(urlPathMatching("/case-payment-orders"))
                     .willReturn(aResponse()
                                     .withStatus(500)
                                     .withHeader("Content-Type", "application/json")
@@ -124,14 +124,13 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
             .andExpect(status().isInternalServerError())
             .andExpect(content().string(containsString("Error - InternalServerError")))
             .andReturn();
-
     }
 
     @Test
     @Transactional
     public void getCasePaymentOrdersBadRequestException_shouldReturn400Test() throws Exception {
 
-        stubFor(get(urlPathMatching("/api/case-payment-orders"))
+        stubFor(get(urlPathMatching("/case-payment-orders"))
                     .withQueryParam("ids", containing("29b192ed-675d-4c60-ab10-c7e1619da34e"))
                     .withQueryParam("case-ids", containing("1709243447569253"))
                     .willReturn(aResponse()
@@ -150,7 +149,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     @Transactional
     public void getCasePaymentOrdersForbidden_shouldReturn403Test() throws Exception {
 
-        stubFor(get(urlPathMatching("/api/case-payment-orders"))
+        stubFor(get(urlPathMatching("/case-payment-orders"))
                     .withQueryParam("ids", containing("29b192ed-675d-4c60-ab10-c7e1619da34e"))
                     .withQueryParam("case-ids", containing("1709243447569253"))
                     .willReturn(aResponse()
