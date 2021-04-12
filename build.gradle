@@ -34,8 +34,8 @@ allprojects {
 
     repositories {
         mavenLocal()
-        maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
         jcenter()
+        maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
         maven { url 'https://repo.spring.io/libs-milestone' }
     }
 

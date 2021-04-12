@@ -20,7 +20,6 @@ public class CasePaymentOrder implements Serializable {
     private LocalDateTime createdTimestamp;
     private LocalDateTime effectiveFrom;
     private Long caseId;
-    private String caseTypeId;
     private String action;
     private String responsibleParty;
     private String orderReference;
