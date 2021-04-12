@@ -53,14 +53,16 @@ public class CasePaymentOrdersController {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment orders retrieved"),
         @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 403, message = "Case Payment Orders info forbidden")
+        @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
+        @ApiResponse(code = 403, message = "Case Payment Orders info forbidden"),
+        @ApiResponse(code = 500, message = "Downstream system error")
     })
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
         @RequestParam(name = "ids", required = false) String ids,
         @RequestParam(name = "case-ids", required = false) String caseIds,
-        @RequestParam(name = "pageNumber", required = false) String pageNumber,
-        @RequestParam(name = "pageSize", required = false) String pageSize,
+        @RequestParam(name = "page-number", required = false) String pageNumber,
+        @RequestParam(name = "page-size", required = false) String pageSize,
         @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
 
         CpoGetResponse casePaymentOrders = casePaymentOrdersService
