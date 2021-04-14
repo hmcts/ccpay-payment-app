@@ -15,10 +15,8 @@ import java.util.UUID;
 public class CasePaymentOrderDto {
     private UUID id;
     private LocalDateTime createdTimestamp;
-    private LocalDateTime effectiveFrom;
     private Long caseId;
     private String action;
     private String responsibleParty;
     private String orderReference;
-    private String createdBy;
 }

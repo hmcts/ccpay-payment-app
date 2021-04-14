@@ -88,31 +88,31 @@ class CpoServiceClientTest {
     @Test
     public void getCasePaymentOrdersThrowsCpoBadRequestExceptionWhen400Received() {
         this.mockRestServiceServer
-            .expect(requestTo(HOST_URL + GET_CPO + "?ids=id1&pageNumber=1&pageSize=2"))
+            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&pageNumber=1&pageSize=2"))
             .andRespond(MockRestResponseCreators.withStatus(HttpStatus.BAD_REQUEST));
 
         assertThrows(CpoBadRequestException.class, () -> client
-            .getCasePaymentOrders("id1", "", "1", "2", "authToken", "s2sToken"));
+            .getCasePaymentOrders("", "caseId1", "1", "2", "authToken", "s2sToken"));
     }
 
     @Test
     public void getCasePaymentOrdersThrowsCpoClientExceptionWhen403Received() {
         this.mockRestServiceServer
-            .expect(requestTo(HOST_URL + GET_CPO + "?ids=id1&pageNumber=1&pageSize=2"))
+            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&pageNumber=1&pageSize=2"))
             .andRespond(MockRestResponseCreators.withStatus(HttpStatus.FORBIDDEN));
 
         assertThrows(CpoClientException.class, () -> client
-            .getCasePaymentOrders("id1", "", "1", "2", "authToken", "s2sToken"));
+            .getCasePaymentOrders("", "caseId1", "1", "2", "authToken", "s2sToken"));
     }
 
     @Test
     public void getCasePaymentOrdersThrowsCpoInternalServerErrorExceptionWhen502Received() {
         this.mockRestServiceServer
-            .expect(requestTo(HOST_URL + GET_CPO + "?ids=id1&pageNumber=1&pageSize=2"))
+            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&pageNumber=1&pageSize=2"))
             .andRespond(MockRestResponseCreators.withStatus(HttpStatus.BAD_GATEWAY));
 
         assertThrows(CpoInternalServerErrorException.class, () -> client
-            .getCasePaymentOrders("id1", "", "1", "2", "authToken", "s2sToken"));
+            .getCasePaymentOrders("", "caseId1", "1", "2", "authToken", "s2sToken"));
     }
 
     private static CpoGetResponse createCpoGetResponse() {
