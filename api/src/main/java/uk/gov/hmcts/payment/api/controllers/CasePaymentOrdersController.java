@@ -59,14 +59,13 @@ public class CasePaymentOrdersController {
     })
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
-        @RequestParam(name = "ids", required = false) String ids,
         @RequestParam(name = "case-ids", required = false) String caseIds,
         @RequestParam(name = "page-number", required = false) String pageNumber,
         @RequestParam(name = "page-size", required = false) String pageSize,
         @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
 
         CpoGetResponse casePaymentOrders = casePaymentOrdersService
-            .getCasePaymentOrders(ids, caseIds, pageNumber, pageSize, authorization);
+            .getCasePaymentOrders(caseIds, pageNumber, pageSize, authorization);
 
         return casePaymentOrdersMapper.toCasePaymentOrdersDto(casePaymentOrders);
     }
