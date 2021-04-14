@@ -33,13 +33,11 @@ allprojects {
     targetCompatibility = versions.javaVersion
 
     repositories {
-        mavenCentral()
         mavenLocal()
-        maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
-        jcenter()
         mavenCentral()
-        maven { url 'https://repo.spring.io/libs-milestone' }
+        jcenter()
         maven { url 'https://jitpack.io' }
+        maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
     }
 
     apply from: "${rootDir}/cve-resolution-strategy.gradle"
