@@ -40,13 +40,13 @@ public class CasePaymentOrdersServiceImplTest {
     public void getCasePaymentOrdersShouldDelegateToCpoServiceClient() {
         CpoGetResponse clientResponse = new CpoGetResponse();
         given(authTokenGenerator.generate()).willReturn(S2S_TOKEN);
-        given(cpoServiceClient.getCasePaymentOrders(IDS, CASE_IDS, PAGE_NUMBER, PAGE_SIZE, AUTH_TOKEN, S2S_TOKEN))
+        given(cpoServiceClient.getCasePaymentOrders(null, CASE_IDS, PAGE_NUMBER, PAGE_SIZE, AUTH_TOKEN, S2S_TOKEN))
             .willReturn(clientResponse);
 
         CpoGetResponse response = casePaymentOrdersService
-            .getCasePaymentOrders(IDS, CASE_IDS, PAGE_NUMBER, PAGE_SIZE, AUTH_TOKEN);
+            .getCasePaymentOrders(CASE_IDS, PAGE_NUMBER, PAGE_SIZE, AUTH_TOKEN);
 
-        verify(cpoServiceClient).getCasePaymentOrders(IDS, CASE_IDS, PAGE_NUMBER, PAGE_SIZE, AUTH_TOKEN, S2S_TOKEN);
+        verify(cpoServiceClient).getCasePaymentOrders(null, CASE_IDS, PAGE_NUMBER, PAGE_SIZE, AUTH_TOKEN, S2S_TOKEN);
         assertEquals(response, clientResponse);
     }
 }
