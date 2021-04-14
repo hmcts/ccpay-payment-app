@@ -19,9 +19,9 @@ public class CasePaymentOrdersServiceImpl implements CasePaymentOrdersService {
     }
 
     @Override
-    public CpoGetResponse getCasePaymentOrders(String ids, String caseIds, String pageNumber, String pageSize,
+    public CpoGetResponse getCasePaymentOrders(String caseIds, String pageNumber, String pageSize,
                                                String authorization) {
-        return cpoServiceClient.getCasePaymentOrders(ids, caseIds, pageNumber, pageSize, authorization,
+        return cpoServiceClient.getCasePaymentOrders(null, caseIds, pageNumber, pageSize, authorization,
                                                      authTokenGenerator.generate());
     }
 }
