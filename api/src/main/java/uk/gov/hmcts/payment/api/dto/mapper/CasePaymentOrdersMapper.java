@@ -26,12 +26,10 @@ public class CasePaymentOrdersMapper {
         return CasePaymentOrderDto.builder()
             .id(cpo.getId())
             .createdTimestamp(cpo.getCreatedTimestamp())
-            .effectiveFrom(cpo.getEffectiveFrom())
             .caseId(cpo.getCaseId())
             .action(cpo.getAction())
             .responsibleParty(cpo.getResponsibleParty())
             .orderReference(cpo.getOrderReference())
-            .createdBy(cpo.getCreatedBy())
             .build();
     }
 }
