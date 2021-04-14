@@ -18,7 +18,6 @@ public class CasePaymentOrder implements Serializable {
 
     private UUID id;
     private LocalDateTime createdTimestamp;
-    private LocalDateTime effectiveFrom;
     private Long caseId;
     private String action;
     private String responsibleParty;

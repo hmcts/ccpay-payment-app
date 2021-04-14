@@ -18,7 +18,6 @@ public class CasePaymentOrdersServiceImplTest {
 
     public static final String S2S_TOKEN = "s2sToken";
     public static final String AUTH_TOKEN = "authToken";
-    public static final String IDS = "id1,id2";
     public static final String CASE_IDS = "caseId1, caseId2";
     public static final String PAGE_NUMBER = "2";
     public static final String PAGE_SIZE = "5";
