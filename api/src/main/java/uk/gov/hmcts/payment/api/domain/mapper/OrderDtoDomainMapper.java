@@ -25,12 +25,12 @@ public class OrderDtoDomainMapper {
             .reference(orderReference)
             .fees(orderDto.getFees()
                 .stream()
-                .map(feeDto -> toDomain(feeDto))
+                .map(feeDto -> toFeeDomain(feeDto))
                 .collect(Collectors.toList()))
             .build();
     }
 
-    public OrderFeeBo toDomain(OrderFeeDto orderFeeDto) {
+    public OrderFeeBo toFeeDomain(OrderFeeDto orderFeeDto) {
         return OrderFeeBo.orderFeeBoWith()
             .calculatedAmount(orderFeeDto.getCalculatedAmount())
             .code(orderFeeDto.getCode())

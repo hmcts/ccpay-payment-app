@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.DomainEvents;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
@@ -29,7 +30,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderBo {
+public class OrderBo{
     //-- All CRUD & Validation operations for Orders to be implemented
 
     private String reference;
@@ -48,10 +49,29 @@ public class OrderBo {
 
     private BigDecimal orderBalance;
 
-    @Transactional
-    public OrderBo createOrder(OrderBo orderBo){
 
-        return orderBo;
+    @Autowired
+    private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
+
+    @Autowired
+    private CaseDetailsRepository caseDetailsRepository;
+
+    @Autowired
+    private PaymentGroupService paymentGroupService;
+
+    public String createOrder(OrderBo orderBo){
+
+        PaymentFeeLink paymentFeeLinkAliasOrderEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);
+
+        PaymentFeeLink orderSavedWithFees = (PaymentFeeLink) paymentGroupService.addNewFeeWithPaymentGroup(paymentFeeLinkAliasOrderEntity);
+
+        CaseDetails caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo));
+
+        caseDetailsEntity.getOrders().add(paymentFeeLinkAliasOrderEntity);
+
+        caseDetailsRepository.save(caseDetailsEntity);
+
+        return orderSavedWithFees.getPaymentReference();
     }
 
 

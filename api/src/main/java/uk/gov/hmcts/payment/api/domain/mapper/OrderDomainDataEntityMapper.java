@@ -24,7 +24,7 @@ public class OrderDomainDataEntityMapper {
             .ccdCaseNumber(orderBo.getCcdCaseNumber())
             .fees(orderBo.getFees()
                 .stream()
-                .map(feeBo -> toEntity(feeBo))
+                .map(feeBo -> toPaymentFeeEntity(feeBo))
                 .collect(Collectors.toList()))
             .build();
     }
@@ -38,7 +38,7 @@ public class OrderDomainDataEntityMapper {
             .build();
     }
 
-    public PaymentFee toEntity(OrderFeeBo orderFeeBo) {
+    public PaymentFee toPaymentFeeEntity(OrderFeeBo orderFeeBo) {
 
         return PaymentFee.feeWith()
             .calculatedAmount(orderFeeBo.getCalculatedAmount())
