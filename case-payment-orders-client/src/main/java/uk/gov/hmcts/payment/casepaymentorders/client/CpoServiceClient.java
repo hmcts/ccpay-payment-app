@@ -56,10 +56,10 @@ public class CpoServiceClient {
             builder.queryParam("case-ids", caseIds);
         }
         if (StringUtils.isNotBlank(pageNumber)) {
-            builder.queryParam("pageNumber", pageNumber);
+            builder.queryParam("page", pageNumber);
         }
         if (StringUtils.isNotBlank(pageSize)) {
-            builder.queryParam("pageSize", pageSize);
+            builder.queryParam("size", pageSize);
         }
         HttpHeaders headers = prepareHeaders(userAuthToken, s2sToken);
         HttpEntity<?> entity = new HttpEntity<>(headers);
