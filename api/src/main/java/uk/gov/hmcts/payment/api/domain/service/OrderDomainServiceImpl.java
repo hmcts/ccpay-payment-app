@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.domain.service;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDtoDomainMapper;
@@ -48,11 +49,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Autowired
     private PaymentGroupService paymentGroupService;
 
-    @Autowired
-    private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
-
-    @Autowired
-    private CaseDetailsRepository caseDetailsRepository;
+    private OrderBo orderBo;
 
     @Override
     public PaymentFeeLink find(String orderReference) {
@@ -60,6 +57,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     }
 
     @Override
+    @Transactional
     public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
@@ -69,19 +67,9 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
 //        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
 
-        OrderBo orderBo = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
+        OrderBo orderBoValue = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
 
-        PaymentFeeLink paymentFeeLinkEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);
-
-        PaymentFeeLink OrderSavedWithFees = (PaymentFeeLink) paymentGroupService.addNewFeeWithPaymentGroup(paymentFeeLinkEntity);
-
-        CaseDetails caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo));
-
-        caseDetailsEntity.getOrders().add(paymentFeeLinkEntity);
-
-        caseDetailsRepository.save(caseDetailsEntity);
-
-        return OrderSavedWithFees.getPaymentReference();
+        return orderBo.createOrder(orderBoValue);
     }
 
     @Override
