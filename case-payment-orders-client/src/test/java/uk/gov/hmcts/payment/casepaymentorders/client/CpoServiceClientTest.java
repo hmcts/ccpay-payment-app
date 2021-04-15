@@ -61,7 +61,7 @@ class CpoServiceClientTest {
             .writeValueAsString(createCpoGetResponse());
 
         this.mockRestServiceServer
-            .expect(requestTo(HOST_URL + GET_CPO + "?ids=id1&pageNumber=1&pageSize=2"))
+            .expect(requestTo(HOST_URL + GET_CPO + "?ids=id1&page=1&size=2"))
             .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
 
         CpoGetResponse result = client.getCasePaymentOrders("id1", "", "1", "2", "authToken", "s2sToken");
@@ -88,7 +88,7 @@ class CpoServiceClientTest {
     @Test
     public void getCasePaymentOrdersThrowsCpoBadRequestExceptionWhen400Received() {
         this.mockRestServiceServer
-            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&pageNumber=1&pageSize=2"))
+            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&page=1&size=2"))
             .andRespond(MockRestResponseCreators.withStatus(HttpStatus.BAD_REQUEST));
 
         assertThrows(CpoBadRequestException.class, () -> client
@@ -98,7 +98,7 @@ class CpoServiceClientTest {
     @Test
     public void getCasePaymentOrdersThrowsCpoClientExceptionWhen403Received() {
         this.mockRestServiceServer
-            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&pageNumber=1&pageSize=2"))
+            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&page=1&size=2"))
             .andRespond(MockRestResponseCreators.withStatus(HttpStatus.FORBIDDEN));
 
         assertThrows(CpoClientException.class, () -> client
@@ -108,7 +108,7 @@ class CpoServiceClientTest {
     @Test
     public void getCasePaymentOrdersThrowsCpoInternalServerErrorExceptionWhen502Received() {
         this.mockRestServiceServer
-            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&pageNumber=1&pageSize=2"))
+            .expect(requestTo(HOST_URL + GET_CPO + "?case-ids=caseId1&page=1&size=2"))
             .andRespond(MockRestResponseCreators.withStatus(HttpStatus.BAD_GATEWAY));
 
         assertThrows(CpoInternalServerErrorException.class, () -> client
