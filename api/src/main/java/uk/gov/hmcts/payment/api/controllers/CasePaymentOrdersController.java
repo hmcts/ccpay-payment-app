@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.SwaggerDefinition;
@@ -59,8 +60,11 @@ public class CasePaymentOrdersController {
     })
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
+        @ApiParam(value = "Coma separated list of case ids.")
         @RequestParam(name = "case-ids", required = false) String caseIds,
+        @ApiParam(value = "Page number - 1-based indexed page number to be served.")
         @RequestParam(name = "page-number", required = false) String pageNumber,
+        @ApiParam(value = "Page size - number of elements on the page.")
         @RequestParam(name = "page-size", required = false) String pageSize,
         @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
 
