@@ -48,5 +48,6 @@ java:
         - pci-pal-antenna-probate-flow-id
         - pci-pal-antenna-divorce-flow-id
         - pci-pal-antenna-financial-remedy-flow-id
+        - spring-mail-password
   postgresql:
     enabled: true
