@@ -21,10 +21,10 @@ public class OrderDomainDataEntityMapper {
             .orgId(orderBo.getOrgId())
             .enterpriseServiceName(orderBo.getEnterpriseServiceName())
             .paymentReference(orderBo.getReference())
-            .ccdCaseNumber(orderBo.getCcdCaseNumber())
+            .ccdCaseNumber(orderBo.getCcdCaseNumber()) // Will be removed after get api's work without ccd no dependency
             .fees(orderBo.getFees()
                 .stream()
-                .map(feeBo -> toPaymentFeeEntity(feeBo))
+                .map(feeBo -> toPaymentFeeEntity(feeBo,orderBo.getCcdCaseNumber()))
                 .collect(Collectors.toList()))
             .build();
     }
@@ -38,11 +38,12 @@ public class OrderDomainDataEntityMapper {
             .build();
     }
 
-    public PaymentFee toPaymentFeeEntity(OrderFeeBo orderFeeBo) {
+    public PaymentFee toPaymentFeeEntity(OrderFeeBo orderFeeBo, String ccdCaseNumber) {
 
         return PaymentFee.feeWith()
             .calculatedAmount(orderFeeBo.getCalculatedAmount())
             .code(orderFeeBo.getCode())
+            .ccdCaseNumber(ccdCaseNumber) // Will be removed after get api's work without ccd no dependency
             .version(orderFeeBo.getVersion())
             .volume(orderFeeBo.getVolume())
             .dateCreated(new Timestamp(System.currentTimeMillis()))
