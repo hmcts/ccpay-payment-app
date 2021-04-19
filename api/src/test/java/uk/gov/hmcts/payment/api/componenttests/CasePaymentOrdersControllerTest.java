@@ -87,8 +87,8 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
                     .withQueryParam("case-ids", containing("1709243447569253"))
-                    .withQueryParam("pageNumber", containing("1"))
-                    .withQueryParam("pageSize", containing("2"))
+                    .withQueryParam("page", containing("1"))
+                    .withQueryParam("size", containing("2"))
                     .willReturn(aResponse()
                                     .withStatus(200)
                                     .withHeader("Content-Type", "application/json")
