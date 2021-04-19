@@ -25,15 +25,16 @@ public class OrderDtoDomainMapper {
             .reference(orderReference)
             .fees(orderDto.getFees()
                 .stream()
-                .map(feeDto -> toFeeDomain(feeDto))
+                .map(feeDto -> toFeeDomain(feeDto,orderDto.getCcdCaseNumber())) // Will be removed after get api's work without ccd dependency
                 .collect(Collectors.toList()))
             .build();
     }
 
-    public OrderFeeBo toFeeDomain(OrderFeeDto orderFeeDto) {
+    public OrderFeeBo toFeeDomain(OrderFeeDto orderFeeDto, String ccdCaseNumber) {
         return OrderFeeBo.orderFeeBoWith()
             .calculatedAmount(orderFeeDto.getCalculatedAmount())
             .code(orderFeeDto.getCode())
+            .ccdCaseNumber(ccdCaseNumber)
             .version(orderFeeDto.getVersion())
             .volume(orderFeeDto.getVolume())
             .build();
