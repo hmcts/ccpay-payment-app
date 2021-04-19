@@ -27,6 +27,8 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.controllers.utils.ReplayCreditAccountPaymentUtils;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -83,6 +85,9 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected AccountService<AccountDto, String> accountService;
 
+    @Autowired
+    protected ReplayCreditAccountPaymentUtils replayCreditAccountPaymentUtils;
+
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     RestActions restActions;
@@ -126,7 +131,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             createCreditAccountPayments(csvParseMap, 10);
 
             //Create CSV
-            createCSV(csvParseMap,"paymentsToReplay.csv");
+            replayCreditAccountPaymentUtils.createCSV(csvParseMap,"paymentsToReplay.csv");
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
@@ -200,7 +205,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             createCreditAccountPayments(csvParseMap, 5);
 
             //Create CSV
-            createCSV(csvParseMap ,"paymentsToFailed.csv");
+            replayCreditAccountPaymentUtils.createCSV(csvParseMap ,"paymentsToFailed.csv");
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToFailed.csv", "text/csv",
@@ -277,7 +282,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             });
 
             //Create CSV
-            createCSV(csvParseMapWithIncorrectPayRef,"paymentsToReplay.csv");
+            replayCreditAccountPaymentUtils.createCSV(csvParseMapWithIncorrectPayRef,"paymentsToReplay.csv");
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
@@ -304,61 +309,22 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         }
     }
 
-    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap , String fileName) throws IOException {
-        String csvFile = "src/test/resources/" +fileName;
-        FileWriter writer = new FileWriter(csvFile);
-
-        //for header
-        CSVUtil.writeLine
-            (writer, Arrays.asList("index_col", "impacted.payment.reference", "payment.amount", "payment.ccd_case_number",
-                "payment.pba_number", "payment.description", "payment.case_reference", "payment.service",
-                "payment.currency", "payment.customer_reference", "payment.organisation_name", "payment.site_id",
-                "fee.code", "fee.calculated_amount", "fee.version"));
-
-        csvParseMap.entrySet().stream().forEach(paymentRequestEntry ->
-            {
-                CreditAccountPaymentRequest request = paymentRequestEntry.getValue();
-                List<String> list = new ArrayList<>();
-                list.add("");
-                list.add(paymentRequestEntry.getKey());
-                list.add(request.getAmount().toString());
-                list.add(request.getCcdCaseNumber());
-                list.add(request.getAccountNumber());
-                list.add(request.getDescription());
-                list.add(request.getCaseReference());
-                list.add("CMC");
-                list.add("GBP");
-                list.add(request.getCustomerReference());
-                list.add(request.getOrganisationName());
-                list.add(request.getSiteId());
-                list.add(request.getFees().get(0).getCode());
-                list.add(request.getFees().get(0).getCalculatedAmount().toString());
-                list.add(request.getFees().get(0).getVersion());
-
-                try {
-                    CSVUtil.writeLine(writer, list);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        );
-
-        writer.flush();
-        writer.close();
-    }
 
     private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap , int noOfPayments) throws Exception {
         for (int i = 0; i < noOfPayments; i++) {
             //create PBA payment
-            setCreditAccountPaymentLiberataCheckFeature(true);
+            String url = replayCreditAccountPaymentUtils.setCreditAccountPaymentLiberataCheckFeature(true);
+            restActions
+                .post(url)
+                .andExpect(status().isAccepted());
 
             when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
             Double calculatedAmount = Double.parseDouble(Integer.toString(RandomUtils.nextInt(99) + 1));
 
-            List<FeeDto> fees = getFees(calculatedAmount);
+            List<FeeDto> fees = replayCreditAccountPaymentUtils.getFees(calculatedAmount);
 
-            CreditAccountPaymentRequest request = getPBAPayment(calculatedAmount, fees);
+            CreditAccountPaymentRequest request = replayCreditAccountPaymentUtils.getPBAPayment(calculatedAmount, fees);
 
             AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
                 new BigDecimal(calculatedAmount), new BigDecimal(calculatedAmount), AccountStatus.ACTIVE, new Date());
