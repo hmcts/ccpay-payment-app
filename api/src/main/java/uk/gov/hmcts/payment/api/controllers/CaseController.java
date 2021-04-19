@@ -13,6 +13,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.CaseDetails;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
@@ -102,18 +103,22 @@ public class CaseController {
         @ApiResponse(code = 404, message = "Payment Groups not found")
     })
     @RequestMapping(value = "/orderpoc/cases/{ccdcasenumber}/paymentgroups", method = GET)
-    public PaymentGroupResponse retrieveCasePaymentGroups_NewAPI(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
+    public List<PaymentFee> retrieveCasePaymentGroups_NewAPI(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
 
         CaseDetails caseDetails = caseDetailsService.findByCcdCaseNumber(ccdCaseNumber);
         Set<PaymentFeeLink> paymentFeeLinks  = caseDetails.getOrders();
-        List<PaymentGroupDto> paymentGroups = paymentFeeLinks.stream()
-                                                .map(paymentGroupDtoMapper::toPaymentGroupDto)
-                                                .collect(Collectors.toList());
-        if(paymentGroups == null || paymentGroups.isEmpty()) {
-            throw new PaymentGroupNotFoundException();
-        }
+        List<PaymentFee> paymentFees = paymentFeeLinks.stream().flatMap(paymentFeeLink -> paymentFeeLink.getFees().stream()).collect(Collectors.toList());
 
-        return new PaymentGroupResponse(paymentGroups);
+        return  paymentFees;
+
+//        List<PaymentGroupDto> paymentGroups = paymentFeeLinks.stream()
+//                                                .map(paymentGroupDtoMapper::toPaymentGroupDto)
+//                                                .collect(Collectors.toList());
+//        if(paymentGroups == null || paymentGroups.isEmpty()) {
+//            throw new PaymentGroupNotFoundException();
+//        }
+//
+//        return new PaymentGroupResponse(paymentGroups);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
