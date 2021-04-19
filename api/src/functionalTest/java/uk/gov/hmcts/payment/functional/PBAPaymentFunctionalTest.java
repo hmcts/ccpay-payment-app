@@ -259,10 +259,10 @@ public class PBAPaymentFunctionalTest {
         if(liberataResponse.getPayments().get(0).getFees().get(2).getCode().equalsIgnoreCase("FEE0273")) {
             assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getApportionedPayment()).isEqualTo("60.00");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getCalculatedAmount()).isEqualTo("60.00");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getMemoLine()).isEqualTo("RECEIPT OF FEES - Tribunal issue other");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getNaturalAccountCode()).isEqualTo("4481102178");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getJurisdiction1()).isEqualTo("tribunal");
-            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getJurisdiction2()).isEqualTo("property chamber");
+            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getMemoLine()).isEqualTo("RECEIPT OF FEES - Family enforcement other");
+            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getNaturalAccountCode()).isEqualTo("4481102167");
+            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getJurisdiction1()).isEqualTo("family");
+            assertThat(liberataResponse.getPayments().get(0).getFees().get(2).getJurisdiction2()).isEqualTo("family court");
         }
     }
 
