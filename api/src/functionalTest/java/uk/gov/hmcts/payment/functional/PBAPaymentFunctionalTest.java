@@ -278,7 +278,7 @@ public class PBAPaymentFunctionalTest {
             .then()
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -300,7 +300,7 @@ public class PBAPaymentFunctionalTest {
             .then()
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -323,7 +323,7 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
@@ -346,7 +346,7 @@ public class PBAPaymentFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success"));
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN)
