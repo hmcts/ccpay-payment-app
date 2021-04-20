@@ -86,7 +86,7 @@ dependencies {
   compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.10.0'
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version:'2.9.2'
   compile group: 'io.springfox', name: 'springfox-swagger2', version:'2.9.2'
-  compile group: 'uk.gov.hmcts.reform', name: 'liquibase-core', version:'3.8.1'
+    implementation 'com.github.hmcts.liquibase:liquibase-core:3.8.2'
   compile group: 'com.microsoft.azure', name: 'azure-servicebus-spring-boot-starter', version: '2.1.6'
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
   compile group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.7.0'
@@ -105,8 +105,10 @@ dependencies {
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail'
     compile group: 'org.springframework.retry', name: 'spring-retry'
     compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.1.RELEASE'
-    compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-api-contract', version: '2.3.0'
-    compile group: 'uk.gov.hmcts.reform.fees-register', name: 'fees-register-model', version: '2.3.0'
+
+    compile group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-api-contract', version: '2.3.1'
+    compile group: 'com.github.hmcts.ccfr-fees-register-app', name: 'fees-register-model', version: '2.3.1'
+
     compile group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.0.4'
     //Added this for spring boot upgrade as swagger was not working with the latest version.
     compile group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '1.2.0.RELEASE'
