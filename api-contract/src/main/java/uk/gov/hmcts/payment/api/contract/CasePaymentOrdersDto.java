@@ -15,8 +15,8 @@ import java.util.List;
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CasePaymentOrdersDto {
-    List<CasePaymentOrderDto> content;
-    Integer number;
-    Integer size;
-    Long totalElements;
+    private List<CasePaymentOrderDto> content;
+    private Integer number;
+    private Integer size;
+    private Long totalElements;
 }

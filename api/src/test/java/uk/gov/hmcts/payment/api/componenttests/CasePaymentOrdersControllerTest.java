@@ -111,6 +111,15 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
+    public void getCasePaymentOrdersBadRequestWhenCaseIdsMissing_shouldReturn400Test() throws Exception {
+
+        restActions
+            .get("/case-payment-orders?page-number=1&page-size=2")
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Transactional
     public void getCasePaymentOrdersInternalServerError_shouldReturn500Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
