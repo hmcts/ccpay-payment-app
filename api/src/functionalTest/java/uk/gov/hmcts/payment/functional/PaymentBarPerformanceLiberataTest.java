@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.functional;
 
 import org.assertj.core.api.Java6Assertions;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +34,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 public class PaymentBarPerformanceLiberataTest {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static final String DATE_TIME_FORMAT_T_HH_MM_SS = "yyyy-MM-dd'T'HH:mm:ss";
     private static final Logger LOG = LoggerFactory.getLogger(PaymentBarPerformanceLiberataTest.class);
 
     @Autowired
@@ -51,6 +51,8 @@ public class PaymentBarPerformanceLiberataTest {
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
 
+    private static DateTimeZone zoneUTC = DateTimeZone.UTC;
+
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
@@ -64,7 +66,7 @@ public class PaymentBarPerformanceLiberataTest {
     @Test
     public void createPaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-        String startDate = formatter.format(LocalDateTime.now().minusSeconds(3).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusSeconds(3).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -81,7 +83,7 @@ public class PaymentBarPerformanceLiberataTest {
             e.printStackTrace();
         }
 
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -162,8 +164,8 @@ public class PaymentBarPerformanceLiberataTest {
     @Test
     public void createBarPostalOrderPaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-        String startDate = formatter.format(LocalDateTime.now().minusSeconds(3).toDate());
-        LOG.info(startDate);
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusSeconds(3).toDate());
+
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createTelephonyPayment(getPaymentRecordRequestForPostalOrder())
@@ -178,7 +180,7 @@ public class PaymentBarPerformanceLiberataTest {
             e.printStackTrace();
         }
 
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -264,7 +266,7 @@ public class PaymentBarPerformanceLiberataTest {
     @Test
     public void createBarChequePaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-        String startDate = formatter.format(LocalDateTime.now().minusSeconds(3).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusSeconds(3).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -280,7 +282,7 @@ public class PaymentBarPerformanceLiberataTest {
             e.printStackTrace();
         }
 
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -366,7 +368,7 @@ public class PaymentBarPerformanceLiberataTest {
     @Test
     public void createBarCardPaymentRecordAndValidateSearchResults() throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
-        String startDate = formatter.format(LocalDateTime.now().minusSeconds(3).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusSeconds(3).toDate());
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -381,7 +383,7 @@ public class PaymentBarPerformanceLiberataTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
         PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "card")
