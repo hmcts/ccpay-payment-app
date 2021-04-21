@@ -13,8 +13,8 @@ import java.util.List;
 public class CpoGetResponse implements Serializable {
     private static final long serialVersionUID = -3552426127042849422L;
 
-    List<CasePaymentOrder> content;
-    Integer number;
-    Integer size;
-    Long totalElements;
+    private List<CasePaymentOrder> content;
+    private Integer number;
+    private Integer size;
+    private Long totalElements;
 }
