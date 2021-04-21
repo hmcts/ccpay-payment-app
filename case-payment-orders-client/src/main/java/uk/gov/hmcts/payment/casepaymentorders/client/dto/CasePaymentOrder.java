@@ -22,5 +22,4 @@ public class CasePaymentOrder implements Serializable {
     private String action;
     private String responsibleParty;
     private String orderReference;
-    private String createdBy;
 }

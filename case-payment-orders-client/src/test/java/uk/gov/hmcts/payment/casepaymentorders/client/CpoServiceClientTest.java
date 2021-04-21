@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoBadRequestExc
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoClientException;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoInternalServerErrorException;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -33,9 +34,13 @@ import static uk.gov.hmcts.payment.casepaymentorders.client.CpoServiceClient.GET
 @ContextConfiguration(classes = TestContextConfiguration.class)
 class CpoServiceClientTest {
 
-    public static final String HOST_URL = "http://localhost:4457";
-    public static final UUID CPO_ID = UUID.randomUUID();
-    public static final long CASE_ID = 12345L;
+    private static final String HOST_URL = "http://localhost:4457";
+    private static final UUID CPO_ID = UUID.randomUUID();
+    private static final LocalDateTime CREATED_TIMESTAMP = LocalDateTime.of(2020, 3, 13, 10, 0);
+    private static final long CASE_ID = 12345L;
+    private static final String ACTION = "action1";
+    private static final String RESPONDENT = "respondent";
+    private static final String ORDER_REFERENCE = "orderRef123";
 
     @Autowired
     private RestTemplate restTemplate;
@@ -68,8 +73,13 @@ class CpoServiceClientTest {
         assertEquals(3L, result.getTotalElements());
         assertEquals(1, result.getNumber());
         assertEquals(2, result.getSize());
-        assertEquals(CASE_ID, result.getContent().get(0).getCaseId());
-        assertEquals(CPO_ID, result.getContent().get(0).getId());
+        CasePaymentOrder firstCasePaymentOrder = result.getContent().get(0);
+        assertEquals(CPO_ID, firstCasePaymentOrder.getId());
+        assertEquals(CREATED_TIMESTAMP, firstCasePaymentOrder.getCreatedTimestamp());
+        assertEquals(CASE_ID, firstCasePaymentOrder.getCaseId());
+        assertEquals(ACTION, firstCasePaymentOrder.getAction());
+        assertEquals(RESPONDENT, firstCasePaymentOrder.getResponsibleParty());
+        assertEquals(ORDER_REFERENCE, firstCasePaymentOrder.getOrderReference());
     }
 
     @Test
@@ -126,8 +136,12 @@ class CpoServiceClientTest {
 
     private static CasePaymentOrder createCasePaymentOrder() {
         CasePaymentOrder cpo = new CasePaymentOrder();
-        cpo.setCaseId(CASE_ID);
         cpo.setId(CPO_ID);
+        cpo.setCreatedTimestamp(CREATED_TIMESTAMP);
+        cpo.setCaseId(CASE_ID);
+        cpo.setAction(ACTION);
+        cpo.setResponsibleParty(RESPONDENT);
+        cpo.setOrderReference(ORDER_REFERENCE);
         return cpo;
     }
 

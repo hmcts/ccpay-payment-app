@@ -35,7 +35,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  */
 
 @RestController
-@Api(tags = {"Case Payment Order"})
+@Api(tags = {"Case Payment Orders"})
 @SwaggerDefinition(tags = {@Tag(name = "CasePaymentOrderController", description = "Case Payment Order REST API")})
 public class CasePaymentOrdersController {
     private static final Logger LOG = LoggerFactory.getLogger(CasePaymentOrdersController.class);
