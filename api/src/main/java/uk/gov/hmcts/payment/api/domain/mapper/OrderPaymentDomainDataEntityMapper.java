@@ -47,7 +47,6 @@ public class OrderPaymentDomainDataEntityMapper {
             .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
             .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
             .paymentStatus(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus().getName()))
-            .ccdCaseNumber(paymentBo.getCcdCaseNumber())
             .reference(paymentBo.getReference())
             .status(paymentBo.getStatus().getName())
             .amount(paymentBo.getAmount())
@@ -59,11 +58,11 @@ public class OrderPaymentDomainDataEntityMapper {
             .build();
     }
 
-    public OrderPaymentBo toDomain(Payment payment){
-
+    public OrderPaymentBo toDomain(Payment payment) {
         return OrderPaymentBo.orderPaymentBoWith()
-            .ccdCaseNumber(payment.getCcdCaseNumber())
             .reference(payment.getReference())
+            .status(PaymentStatus.paymentStatusWith().name(payment.getStatus()).build())
+            .dateCreated(payment.getDateCreated().toString())
             .build();
     }
 }
