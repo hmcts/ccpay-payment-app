@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 import io.restassured.response.Response;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -13,7 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -23,13 +26,10 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
-
-
+import java.util.HashSet;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
@@ -69,6 +69,8 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(CMCCardPaymentPerformanceLiberataTest.class);
 
+    private static DateTimeZone zoneUTC = DateTimeZone.UTC;
+
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
@@ -89,7 +91,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", "PROBATE");
@@ -102,7 +104,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -143,7 +145,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", "PROBATE");
@@ -156,7 +158,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -197,7 +199,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.aCardPaymentRequest("215.00");
@@ -209,7 +211,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -248,7 +250,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.aCardPaymentRequest("215.00");
@@ -260,7 +262,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -299,7 +301,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestall("215.00", "FINREM");
@@ -311,7 +313,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -350,7 +352,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestall("215.00", "FINREM");
@@ -362,7 +364,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -401,7 +403,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestall("215.00", "DIVORCE");
@@ -413,7 +415,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -452,7 +454,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestall("455.00", "DIVORCE");
@@ -464,7 +466,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
@@ -502,7 +504,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
 
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
             cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", "PROBATE");
@@ -514,7 +516,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         }
 
         Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, 30L)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
