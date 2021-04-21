@@ -33,7 +33,7 @@ public class OrderPaymentBo {
 
     private String accountNumber;
 
-    private PaymentStatus status;
+    private String status;
 
     private List<StatusHistory> statusHistories;
 
