@@ -27,23 +27,15 @@ public class OrderPaymentBo {
 
     private BigDecimal amount;
 
-    private String description;
-
-    private String ccdCaseNumber;
-
-    private String caseReference;
-
-    private String service;
-
     private CurrencyCode currency;
 
     private String customerReference;
-
-    private String organisationName;
 
     private String accountNumber;
 
     private PaymentStatus status;
 
     private List<StatusHistory> statusHistories;
+
+    private String dateCreated;
 }
