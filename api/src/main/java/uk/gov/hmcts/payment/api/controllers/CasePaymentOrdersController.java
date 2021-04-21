@@ -61,7 +61,7 @@ public class CasePaymentOrdersController {
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
         @ApiParam(value = "Coma separated list of case ids.")
-        @RequestParam(name = "case-ids", required = false) String caseIds,
+        @RequestParam(name = "case-ids") String caseIds,
         @ApiParam(value = "Page number - 1-based indexed page number to be served.")
         @RequestParam(name = "page-number", required = false) String pageNumber,
         @ApiParam(value = "Page size - number of elements on the page.")
@@ -76,19 +76,19 @@ public class CasePaymentOrdersController {
 
     @ExceptionHandler(value = {CpoBadRequestException.class})
     public ResponseEntity<String> cpoBadRequestException(CpoBadRequestException e) {
-        LOG.error("Error while calling case payment orders", e);
+        LOG.error("BadRequest - Error while calling case payment orders", e);
         return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {CpoInternalServerErrorException.class})
     public ResponseEntity<String> cpoInternalServerErrorException(CpoInternalServerErrorException e) {
-        LOG.error("Error while calling case payment orders", e);
+        LOG.error("InternalServerError - Error while calling case payment orders", e);
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(value = {CpoClientException.class})
     public ResponseEntity<String> cpoClientException(CpoClientException e) {
-        LOG.error("Error while calling case payment orders", e);
+        LOG.error("ClientException - Error while calling case payment orders", e);
         return new ResponseEntity<>(e.getMessage(), HttpStatus.valueOf(e.getStatus()));
     }
 }
