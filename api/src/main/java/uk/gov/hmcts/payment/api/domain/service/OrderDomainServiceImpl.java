@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
@@ -28,17 +26,12 @@ import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderAmountMismatchException;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,6 +77,9 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Autowired
     private OrderBo orderBo;
 
+    @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
     @Override
     public PaymentFeeLink find(String orderReference) {
         return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(orderReference);
@@ -114,12 +110,12 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     public OrderPaymentBo addPayments(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException {
 
         OrderPaymentBo orderPaymentBo = orderPaymentDtoDomainMapper.toDomain(orderPaymentDto);
-        orderPaymentBo.setStatus(PaymentStatus.CREATED);
+        orderPaymentBo.setStatus(PaymentStatus.CREATED.getName());
         Payment payment = orderPaymentDomainDataEntityMapper.toEntity(orderPaymentBo);
         payment.setPaymentLink(order);
 
         //2. Account check for PBA-Payment
-        accountCheckForPBAPayment(order, orderPaymentDto, payment);
+        payment = accountCheckForPBAPayment(order, orderPaymentDto, payment);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
@@ -151,7 +147,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         }
     }
 
-    private void accountCheckForPBAPayment(PaymentFeeLink order, OrderPaymentDto orderPaymentDto, Payment payment) {
+    private Payment accountCheckForPBAPayment(PaymentFeeLink order, OrderPaymentDto orderPaymentDto, Payment payment) {
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
         Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(order.getEnterpriseServiceName())
             ? true : false;
@@ -179,8 +175,11 @@ public class OrderDomainServiceImpl implements OrderDomainService {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
-        //save the payment status
-        paymentRepository.save(payment);
+        //save the payment in paymentFeeLink
+        order.getPayments().add(payment);
+        paymentFeeLinkRepository.save(order);
+
+        return order.getPayments().get(0);
     }
 
     @Override
