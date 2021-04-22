@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -23,7 +24,7 @@ import java.util.Set;
 @Data
 @Builder(builderMethodName = "caseDetailsWith")
 @Table(name = "case_details")
-public class CaseDetails{
+public class    CaseDetails{
 
     @ToString.Exclude
     @ManyToMany
@@ -32,6 +33,7 @@ public class CaseDetails{
         joinColumns = @JoinColumn(name = "case_details_id"),
         inverseJoinColumns = @JoinColumn(name = "order_id")
     )
+    @JsonIgnore
     private Set<PaymentFeeLink> orders = new HashSet<>();
 
     @Id

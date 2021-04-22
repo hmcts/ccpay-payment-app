@@ -59,9 +59,14 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
     public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
         return null;
     }
-    
+
     @Override
     public String getServiceNameByCode(String serviceCode) {
+        return null;
+    }
+
+    @Override
+    public Payment getPaymentById(Integer id) {
         return null;
     }
 
