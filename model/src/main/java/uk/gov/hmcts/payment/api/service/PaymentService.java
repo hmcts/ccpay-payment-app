@@ -23,7 +23,9 @@ public interface PaymentService<T, ID> {
     List<FeePayApportion> findByPaymentId(Integer paymentId);
 
     List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria);
-    
+
     String getServiceNameByCode(String serviceCode);
+
+    Payment getPaymentById(Integer id);
 
 }

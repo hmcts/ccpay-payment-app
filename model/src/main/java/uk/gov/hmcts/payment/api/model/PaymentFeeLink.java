@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -33,6 +34,7 @@ public class PaymentFeeLink {
 
     @ToString.Exclude
     @ManyToMany(mappedBy = "orders")
+    @JsonIgnore
     private Set<CaseDetails> caseDetails;
 
     @CreationTimestamp
