@@ -94,6 +94,10 @@ public class CardPaymentController {
         @Valid @RequestBody CardPaymentRequest request) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
+        String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
+
+        LOG.info("user auth  : {} ",userAuthorization);
+
         if (StringUtils.isEmpty(request.getChannel()) || StringUtils.isEmpty(request.getProvider())) {
             request.setChannel("online");
             request.setProvider("gov pay");
