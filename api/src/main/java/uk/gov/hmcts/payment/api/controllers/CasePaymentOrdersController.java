@@ -56,13 +56,14 @@ public class CasePaymentOrdersController {
         @ApiResponse(code = 400, message = "Bad request"),
         @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
         @ApiResponse(code = 403, message = "Case Payment Orders info forbidden"),
+        @ApiResponse(code = 404, message = "Case Payment Order does not exist"),
         @ApiResponse(code = 500, message = "Downstream system error")
     })
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
-        @ApiParam(value = "Coma separated list of case ids.")
+        @ApiParam(value = "Coma separated list of case ids.", required = true)
         @RequestParam(name = "case-ids") String caseIds,
-        @ApiParam(value = "Page number - 1-based indexed page number to be served.")
+        @ApiParam(value = "Page number to be served. 1 based index")
         @RequestParam(name = "page-number", required = false) String pageNumber,
         @ApiParam(value = "Page size - number of elements on the page.")
         @RequestParam(name = "page-size", required = false) String pageSize,
