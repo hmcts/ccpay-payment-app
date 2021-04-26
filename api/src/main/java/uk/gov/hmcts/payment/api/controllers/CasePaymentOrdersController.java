@@ -62,11 +62,11 @@ public class CasePaymentOrdersController {
     @RequestMapping(value = "/case-payment-orders", method = GET)
     public CasePaymentOrdersDto retrieveCasePaymentOrders(
         @ApiParam(value = "Coma separated list of case ids.", required = true)
-        @RequestParam(name = "case-ids") String caseIds,
+        @RequestParam(name = "case_ids") String caseIds,
         @ApiParam(value = "Page number to be served. 1 based index")
-        @RequestParam(name = "page-number", required = false) String pageNumber,
+        @RequestParam(name = "page_number", required = false) String pageNumber,
         @ApiParam(value = "Page size - number of elements on the page.")
-        @RequestParam(name = "page-size", required = false) String pageSize,
+        @RequestParam(name = "page_size", required = false) String pageSize,
         @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
 
         CpoGetResponse casePaymentOrders = casePaymentOrdersService

@@ -86,7 +86,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersWithValidInputData_shouldReturn200Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .withQueryParam("case-ids", containing("1709243447569253"))
+                    .withQueryParam("case_ids", containing("1709243447569253"))
                     .withQueryParam("page", containing("1"))
                     .withQueryParam("size", containing("2"))
                     .willReturn(aResponse()
@@ -96,7 +96,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
                                         "case-payment-orders-responses/get-case-payment-orders-response.json"))));
 
         MvcResult result = restActions
-            .get("/case-payment-orders?case-ids=1709243447569253&page-number=1&page-size=2")
+            .get("/case-payment-orders?case_ids=1709243447569253&page_number=1&page_size=2")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -114,7 +114,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersBadRequestWhenCaseIdsMissing_shouldReturn400Test() throws Exception {
 
         restActions
-            .get("/case-payment-orders?page-number=1&page-size=2")
+            .get("/case-payment-orders?page_number=1&page_size=2")
             .andExpect(status().isBadRequest());
     }
 
@@ -128,7 +128,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
                                     .withBody("Error - InternalServerError")));
 
         restActions
-            .get("/case-payment-orders?case-ids=1709243447569253")
+            .get("/case-payment-orders?case_ids=1709243447569253")
             .andExpect(status().isInternalServerError())
             .andExpect(content().string(containsString("Error - InternalServerError")));
     }
@@ -138,7 +138,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersBadRequestException_shouldReturn400Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .withQueryParam("case-ids", containing("invalidCaseId"))
+                    .withQueryParam("case_ids", containing("invalidCaseId"))
                     .willReturn(aResponse()
                                     .withStatus(400)
                                     .withHeader("Content-Type", "application/json")
@@ -151,7 +151,7 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
                                                   + "\"details\":null}")));
 
         restActions
-            .get("/case-payment-orders?case-ids=invalidCaseId")
+            .get("/case-payment-orders?case_ids=invalidCaseId")
             .andExpect(status().isBadRequest())
             .andExpect(content().string(containsString("CPOs cannot be filtered by both id and case id.")));
     }
@@ -161,12 +161,12 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersForbidden_shouldReturn401Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .withQueryParam("case-ids", containing("1709243447569253"))
+                    .withQueryParam("case_ids", containing("1709243447569253"))
                     .willReturn(aResponse()
                                     .withStatus(401)));
 
         restActions
-            .get("/case-payment-orders?case-ids=1709243447569253")
+            .get("/case-payment-orders?case_ids=1709243447569253")
             .andExpect(status().isUnauthorized());
     }
 
@@ -175,13 +175,13 @@ public class CasePaymentOrdersControllerTest extends PaymentsDataUtil {
     public void getCasePaymentOrdersForbidden_shouldReturn403Test() throws Exception {
 
         stubFor(get(urlPathMatching("/case-payment-orders"))
-                    .withQueryParam("case-ids", containing("1709243447569253"))
+                    .withQueryParam("case_ids", containing("1709243447569253"))
                     .willReturn(aResponse()
                                     .withStatus(403)
                                     .withBody("Unauthorised S2S service.")));
 
         restActions
-            .get("/case-payment-orders?case-ids=1709243447569253")
+            .get("/case-payment-orders?case_ids=1709243447569253")
             .andExpect(status().isForbidden())
             .andExpect(content().string(containsString("Unauthorised S2S service.")));
     }
