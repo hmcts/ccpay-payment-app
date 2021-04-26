@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.domain.model.OrderBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
@@ -23,16 +22,14 @@ import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeysPK;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.*;
+import java.util.function.Function;
 
 @RestController
 @Api(tags = {"Order"})
@@ -48,6 +45,9 @@ public class OrderController {
 
     @Autowired
     private IdempotencyKeysRepository idempotencyKeysRepository;
+
+    @Autowired
+    private Payment2Repository payment2Repository;
 
     @Autowired
     public OrderController(OrderDomainService orderDomainService){
@@ -91,6 +91,9 @@ public class OrderController {
                 if (!idempotencyKeys.getRequest_hashcode().equals(orderPaymentDto.hashCodeWithOrderReference(orderReference))) {
                     return new ResponseEntity("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
                 }
+                if (idempotencyKeys.getResponseCode() >= 500) {
+                    return new ResponseEntity(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
+                }
                 responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), OrderPaymentBo.class);
             } catch (JsonProcessingException e) {
                 return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -105,26 +108,54 @@ public class OrderController {
             return responseEntity;
         }
 
-        //Business validation for amount
-        PaymentFeeLink order = orderDomainService.find(orderReference);
-        BigDecimal totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add).get();
-
-        if (!(totalCalculatedAmount.compareTo(orderPaymentDto.getAmount()) == 0)) {
-            throw new OrderAmountMismatchException("Payment amount not matching with fees");
-        }
+        //business validations for order
+        PaymentFeeLink order = businessValidationForOrders(orderDomainService.find(orderReference), orderPaymentDto);
 
         //PBA Payment
-        OrderPaymentBo orderPaymentBo = orderDomainService.addPayments(order, orderPaymentDto);
+        OrderPaymentBo orderPaymentBo = null;
+        ResponseEntity responseEntity;
+        String responseJson;
+        try {
+            orderPaymentBo = orderDomainService.addPayments(order, orderPaymentDto);
+            responseEntity = new ResponseEntity<>(orderPaymentBo, HttpStatus.CREATED);
+            responseJson = objectMapper.writeValueAsString(orderPaymentBo);
+        } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
+            responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
+            responseJson = liberataServiceTimeoutException.getMessage();
+        }
 
         //Create Idempotency Record
-        return createIdempotencyRecord(objectMapper, idempotencyKey, orderReference, orderPaymentBo, orderPaymentDto);
+        return createIdempotencyRecord(objectMapper, idempotencyKey, orderReference, responseJson, responseEntity, orderPaymentDto);
     }
 
+    private PaymentFeeLink businessValidationForOrders(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) {
+        //Business validation for amount
+        BigDecimal totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add).get();
+        if (!(totalCalculatedAmount.compareTo(orderPaymentDto.getAmount()) == 0)) {
+            throw new OrderException("Payment amount not matching with fees");
+        }
+
+        //Business validation for amount due for fees
+        Optional<List<Payment>> orderPaymentsOptional =  payment2Repository.findByPaymentLinkId(order.getId());
+
+        if(orderPaymentsOptional.isPresent() && orderPaymentsOptional.get().size() > 0) {
+            BigDecimal totalPaymentAmount = orderPaymentsOptional.get().stream()
+                .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success"))
+                .map(payment -> payment.getAmount()).reduce(BigDecimal::add).get();
+
+
+            if (totalPaymentAmount.compareTo(totalCalculatedAmount) == 0) {
+                throw new OrderException("No amount due for payment for this Order");
+            }
+        }
+
+        return order;
+    }
+
+
     private ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String orderReference,
-                                                   OrderPaymentBo orderPaymentBo, OrderPaymentDto orderPaymentDto) throws JsonProcessingException, InterruptedException {
+                                                   String responseJson, ResponseEntity responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException, InterruptedException {
         String requestJson = objectMapper.writeValueAsString(orderPaymentDto);
-        String finalResponseJson = objectMapper.writeValueAsString(orderPaymentBo);
-        ResponseEntity responseEntity = new ResponseEntity<>(orderPaymentBo, HttpStatus.CREATED);
         int requestHashCode = orderPaymentDto.hashCodeWithOrderReference(orderReference);
 
         IdempotencyKeys idempotencyRecord = IdempotencyKeys
@@ -132,18 +163,15 @@ public class OrderController {
             .idempotencyKey(idempotencyKey)
             .requestBody(requestJson)
             .request_hashcode(requestHashCode)   //save the hashcode
-            .responseBody(finalResponseJson)
+            .responseBody(responseJson)
             .responseCode(responseEntity.getStatusCodeValue())
             .build();
 
-        //Scenario for requests at the same time
-        Thread.sleep(30000);
         try {
             Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).request_hashcode(requestHashCode).build());
             if (idempotencyKeysRecord.isPresent()) {
                 return new ResponseEntity(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), OrderPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
             }
-
             idempotencyKeysRepository.save(idempotencyRecord);
 
         } catch (DataIntegrityViolationException exception) {
@@ -185,8 +213,8 @@ public class OrderController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(OrderAmountMismatchException.class)
-    public String return400(OrderAmountMismatchException ex) {
+    @ExceptionHandler(OrderException.class)
+    public String return400(OrderException ex) {
         return ex.getMessage();
     }
 
