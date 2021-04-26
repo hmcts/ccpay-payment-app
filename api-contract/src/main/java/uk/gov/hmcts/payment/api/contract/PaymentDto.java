@@ -93,6 +93,8 @@ public class PaymentDto {
 
     private List<PaymentAllocationDto> paymentAllocation;
 
+    private List<SupplementaryInfoDto> supplementaryInfo;
+
     private String giroSlipNo;
 
     @JsonProperty("_links")

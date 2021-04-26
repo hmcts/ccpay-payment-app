@@ -104,6 +104,7 @@ public class PaymentDtoTest {
         dateUpdated = currentDateTime.plusDays(1).toDate();
         List<StatusHistoryDto> statusHistories = new ArrayList<>();
         List<PaymentAllocationDto> paymentAllocations = new ArrayList<>();
+        List<SupplementaryInfoDto> supplementaryInfo = new ArrayList<>();
         PaymentDto.LinksDto links = new PaymentDto.LinksDto();
 
         amount = new BigDecimal(1);
@@ -136,7 +137,7 @@ public class PaymentDtoTest {
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
             organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,
-            null, statusHistories, paymentAllocations,giroSlipNo, links);
+            null, statusHistories, paymentAllocations,supplementaryInfo,giroSlipNo, links);
     }
 
     @Test
