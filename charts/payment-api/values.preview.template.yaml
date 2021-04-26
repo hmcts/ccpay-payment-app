@@ -15,6 +15,8 @@ java:
     SPRING_PROFILES_ACTIVE: "liberataMock,callbackMock,ccdMock"
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 0
     CCPAY_BULK_SCANNING_API_URL: http://ccpay-bulkscanning-api-aat.service.core-compute-aat.internal
+    #NEED TO CONFIRM THE BELOW IAC PROD URL
+    IAC_SERVICE_API_URL=http://ia-case-access-api-aat.service.core-compute-aat.internal
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
