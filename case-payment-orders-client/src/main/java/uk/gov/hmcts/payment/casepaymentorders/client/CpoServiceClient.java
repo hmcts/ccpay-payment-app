@@ -53,7 +53,7 @@ public class CpoServiceClient {
             builder.queryParam("ids", ids);
         }
         if (StringUtils.isNotBlank(caseIds)) {
-            builder.queryParam("case-ids", caseIds);
+            builder.queryParam("case_ids", caseIds);
         }
         if (StringUtils.isNotBlank(pageNumber)) {
             builder.queryParam("page", pageNumber);
