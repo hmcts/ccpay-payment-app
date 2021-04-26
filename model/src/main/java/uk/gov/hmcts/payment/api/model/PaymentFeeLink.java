@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.model;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -48,7 +49,7 @@ public class PaymentFeeLink {
     @ToString.Exclude
     private List<Payment> payments;
 
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     @ToString.Exclude
     private List<PaymentFee> fees;
@@ -71,7 +72,7 @@ public class PaymentFeeLink {
     private String ccdCaseNumber;
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return super.hashCode();
     }
 
