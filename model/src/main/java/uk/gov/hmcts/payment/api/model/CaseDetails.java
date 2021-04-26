@@ -1,32 +1,43 @@
 package uk.gov.hmcts.payment.api.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
-import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentFeeEntityListener;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.CaseDetailsEntityListener;
 
-import javax.persistence.*;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.ArrayList;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
+@EntityListeners(CaseDetailsEntityListener.class)
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
-@Data
 @Builder(builderMethodName = "caseDetailsWith")
 @Table(name = "case_details")
-public class CaseDetails{
+public class CaseDetails extends Auditable<String> {
 
     @ToString.Exclude
-    @ManyToMany
+    @ManyToMany(cascade =CascadeType.ALL )
     @JoinTable(
         name = "order_cases",
         joinColumns = @JoinColumn(name = "case_details_id"),
