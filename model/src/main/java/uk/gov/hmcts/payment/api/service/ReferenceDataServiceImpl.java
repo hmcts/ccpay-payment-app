@@ -43,7 +43,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Value("${rd.location.url}")
     private String rdBaseUrl;
 
-    @Autowired
+//    @Autowired
 //    private AuthTokenGenerator authTokenGenerator;
 
     private static final String RD_ENDPOINT = "/refdata/location/orgServices";
@@ -56,10 +56,12 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers) {
 
+//        return OrganisationalServiceDto.orgServiceDtoWith().serviceDescription("Divorce").serviceCode("AAD1").build();
+
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
         List<OrganisationalServiceDto> orgServiceResponse;
         try {
-            String serviceAuthorisation = "";//authTokenGenerator.generate();
+            String serviceAuthorisation = "authTokenGenerator.generate();";
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
             String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
             headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
