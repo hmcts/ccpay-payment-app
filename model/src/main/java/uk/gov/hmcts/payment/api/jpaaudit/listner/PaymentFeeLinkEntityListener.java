@@ -25,9 +25,11 @@ public class PaymentFeeLinkEntityListener {
     @Transactional(MANDATORY)
     private void perform(PaymentFeeLink target, Action action, AuditEventsType auditEventsType) {
         EntityManager entityManager = BeanUtil.getBean(EntityManager.class);
-        String ccdCaseNumber =target.getCaseDetails().iterator().next().getCcdCaseNumber();
+
+//        String ccdCaseNumber =target.getCaseDetails().iterator().next().getCcdCaseNumber();
+//        Will be used once all services onboarded orders endpoint
         entityManager.persist(PaymentAuditHistory.paymentAuditHistoryWith()
-            .ccdCaseNo(ccdCaseNumber)
+            .ccdCaseNo(target.getCcdCaseNumber())
             .auditType(auditEventsType)
             .auditPayload(target.toString())
             .auditDescription(auditEventsType.getDescription())

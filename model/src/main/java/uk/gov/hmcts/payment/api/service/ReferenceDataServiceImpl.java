@@ -56,37 +56,37 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers) {
 
-        return OrganisationalServiceDto.orgServiceDtoWith().serviceDescription("Divorce").serviceCode("AAD1").build();
+//        return OrganisationalServiceDto.orgServiceDtoWith().serviceDescription("Divorce").serviceCode("AAD1").build();
 
-//        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
-//        List<OrganisationalServiceDto> orgServiceResponse;
-//        try {
-//            String serviceAuthorisation = "authTokenGenerator.generate();";
-//            headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
-//            String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
-//            headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
-//                ? userAuthorization : "Bearer ".concat(userAuthorization)));
-//            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
-//            HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
-//            final HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
-//
-//            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + RD_ENDPOINT)
-//                .queryParam("ccdCaseType", caseType);
-//            LOG.debug("builder.toUriString() : {}", builder.toUriString());
-//            ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplatePaymentGroup
-//                .exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
-//            });
-//            orgServiceResponse = responseEntity.hasBody() ? responseEntity.getBody() : null;
-//            if (orgServiceResponse == null || orgServiceResponse.isEmpty()) {
-//                throw new NoServiceFoundException("No Service found for given CaseType");
-//            }
-//            return orgServiceResponse.get(0);
-//        } catch (HttpClientErrorException e) {
-//            LOG.error("client err ", e);
-//            throw new NoServiceFoundException("No Service found for given CaseType");
-//        } catch (HttpServerErrorException e) {
-//            LOG.error("server err ", e);
-//            throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
-//        }
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+        List<OrganisationalServiceDto> orgServiceResponse;
+        try {
+            String serviceAuthorisation = "authTokenGenerator.generate();";
+            headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
+            String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
+            headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
+                ? userAuthorization : "Bearer ".concat(userAuthorization)));
+            headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
+            HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+            final HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + RD_ENDPOINT)
+                .queryParam("ccdCaseType", caseType);
+            LOG.debug("builder.toUriString() : {}", builder.toUriString());
+            ResponseEntity<List<OrganisationalServiceDto>> responseEntity = restTemplatePaymentGroup
+                .exchange(builder.toUriString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            });
+            orgServiceResponse = responseEntity.hasBody() ? responseEntity.getBody() : null;
+            if (orgServiceResponse == null || orgServiceResponse.isEmpty()) {
+                throw new NoServiceFoundException("No Service found for given CaseType");
+            }
+            return orgServiceResponse.get(0);
+        } catch (HttpClientErrorException e) {
+            LOG.error("client err ", e);
+            throw new NoServiceFoundException("No Service found for given CaseType");
+        } catch (HttpServerErrorException e) {
+            LOG.error("server err ", e);
+            throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
+        }
     }
 }
