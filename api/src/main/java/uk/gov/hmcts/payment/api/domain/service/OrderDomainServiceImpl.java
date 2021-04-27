@@ -34,6 +34,8 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderDomainServiceImpl implements OrderDomainService {
@@ -85,6 +87,9 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(orderReference);
     }
 
+    private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
+        filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
+
     @Override
     @Transactional
     public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
@@ -130,12 +135,15 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         return orderPaymentBo;
     }
 
+
+
     private void extractApportionmentForPBA(PaymentFeeLink order) {
         // trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
         if (apportionFeature) {
-            Payment pbaPayment = order.getPayments().get(0);
+            //get first successful payment
+            Payment pbaPayment = getFirstSuccessPayment.apply(order);
             pbaPayment.setPaymentLink(order);
             feePayApportionService.processApportion(pbaPayment, true);
 
@@ -179,7 +187,8 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         order.getPayments().add(payment);
         paymentFeeLinkRepository.save(order);
 
-        return order.getPayments().get(0);
+        //Last Payment added in order
+        return order.getPayments().get(order.getPayments().size() - 1);
     }
 
     @Override

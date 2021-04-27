@@ -135,16 +135,17 @@ public class OrderController {
             throw new OrderException("Payment amount not matching with fees");
         }
 
+        //Todo: Check the amount due post integration with order api instead of payments
         //Business validation for amount due for fees
         Optional<List<Payment>> orderPaymentsOptional =  payment2Repository.findByPaymentLinkId(order.getId());
 
         if(orderPaymentsOptional.isPresent() && orderPaymentsOptional.get().size() > 0) {
-            BigDecimal totalPaymentAmount = orderPaymentsOptional.get().stream()
+            Optional<BigDecimal> totalPaymentAmountOptional = orderPaymentsOptional.get().stream()
                 .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success"))
-                .map(payment -> payment.getAmount()).reduce(BigDecimal::add).get();
+                .map(payment -> payment.getAmount()).reduce(BigDecimal::add);
 
-
-            if (totalPaymentAmount.compareTo(totalCalculatedAmount) == 0) {
+            if (totalPaymentAmountOptional.isPresent() &&
+                (totalPaymentAmountOptional.get().compareTo(totalCalculatedAmount) == 0)) {
                 throw new OrderException("No amount due for payment for this Order");
             }
         }
