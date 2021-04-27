@@ -39,7 +39,7 @@ public class OrderPaymentDomainDataEntityMapper {
     @Autowired
     private UserIdSupplier userIdSupplier;
 
-    public Payment toEntity(OrderPaymentBo paymentBo){
+    public Payment toEntity(OrderPaymentBo paymentBo, PaymentFeeLink order){
 
         return Payment.paymentWith()
             .userId(userIdSupplier.get())
@@ -51,6 +51,10 @@ public class OrderPaymentDomainDataEntityMapper {
             .status(paymentBo.getStatus())
             .amount(paymentBo.getAmount())
             .pbaNumber(paymentBo.getAccountNumber())
+            .currency(paymentBo.getCurrency().getCode())
+            .customerReference(paymentBo.getCustomerReference())
+            .caseReference(order.getCaseDetails().stream().findAny().get().getCaseReference())
+            .ccdCaseNumber(order.getCaseDetails().stream().findAny().get().getCcdCaseNumber())
             .statusHistories(paymentBo.getStatusHistories() == null ? Arrays.asList(StatusHistory.statusHistoryWith()
                 .status(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus()).getName())
                 .build())
