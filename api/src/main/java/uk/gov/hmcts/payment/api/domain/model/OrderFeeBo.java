@@ -29,5 +29,7 @@ public class OrderFeeBo {
 
     private BigDecimal calculatedAmount;
 
+    private String ccdCaseNumber; // Will be removed after get api's work without ccd dependency
+
     //private List<RemissionDto> remissions;
 }

@@ -49,6 +49,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Autowired
     private PaymentGroupService paymentGroupService;
 
+    @Autowired
     private OrderBo orderBo;
 
     @Override
