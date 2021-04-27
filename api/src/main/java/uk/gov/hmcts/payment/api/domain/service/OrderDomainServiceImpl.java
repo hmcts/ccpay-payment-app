@@ -116,7 +116,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
         OrderPaymentBo orderPaymentBo = orderPaymentDtoDomainMapper.toDomain(orderPaymentDto);
         orderPaymentBo.setStatus(PaymentStatus.CREATED.getName());
-        Payment payment = orderPaymentDomainDataEntityMapper.toEntity(orderPaymentBo);
+        Payment payment = orderPaymentDomainDataEntityMapper.toEntity(orderPaymentBo, order);
         payment.setPaymentLink(order);
 
         //2. Account check for PBA-Payment
