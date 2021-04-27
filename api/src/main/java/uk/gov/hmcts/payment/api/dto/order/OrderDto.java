@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import org.hibernate.validator.constraints.UniqueElements;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertFalse;
@@ -48,7 +50,7 @@ public class OrderDto {
             .anyMatch(p -> !unique.add(p.getCode()));
     }
 
-    @AssertTrue(message = "ccdCaseNumber should be 16 digit")
+    @AssertTrue(message = "ccd_case_number should be 16 digit")
     private boolean isValidCcdCaseNumber() {
         return (ccdCaseNumber.matches("[0-9]+") && ccdCaseNumber.length() == 16);
     }

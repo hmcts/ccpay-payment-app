@@ -8,13 +8,10 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
-import uk.gov.hmcts.payment.api.jpaaudit.listner.CaseDetailsEntityListener;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -27,23 +24,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@EntityListeners(CaseDetailsEntityListener.class)
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
 @Builder(builderMethodName = "caseDetailsWith")
 @Table(name = "case_details")
-public class CaseDetails extends Auditable<String> {
+public class CaseDetails{
+
 
     @ToString.Exclude
-    @ManyToMany(cascade =CascadeType.ALL )
-    @JoinTable(
-        name = "order_cases",
-        joinColumns = @JoinColumn(name = "case_details_id"),
-        inverseJoinColumns = @JoinColumn(name = "order_id")
-    )
-    private Set<PaymentFeeLink> orders = new HashSet<>();
+    @ManyToMany(mappedBy = "caseDetails")
+    private Set<PaymentFeeLink> orders;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

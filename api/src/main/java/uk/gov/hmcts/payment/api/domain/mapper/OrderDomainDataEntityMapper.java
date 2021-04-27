@@ -21,6 +21,7 @@ public class OrderDomainDataEntityMapper {
             .orgId(orderBo.getOrgId())
             .enterpriseServiceName(orderBo.getEnterpriseServiceName())
             .paymentReference(orderBo.getReference())
+            .caseDetails(new HashSet<>())
             .ccdCaseNumber(orderBo.getCcdCaseNumber()) // Will be removed after get api's work without ccd dependency
             .fees(orderBo.getFees()
                 .stream()
@@ -32,7 +33,6 @@ public class OrderDomainDataEntityMapper {
     public CaseDetails toCaseDetailsEntity(OrderBo orderBo) {
 
         return CaseDetails.caseDetailsWith()
-            .orders(new HashSet<>())
             .caseReference(orderBo.getCaseReference())
             .ccdCaseNumber(orderBo.getCcdCaseNumber())
             .build();

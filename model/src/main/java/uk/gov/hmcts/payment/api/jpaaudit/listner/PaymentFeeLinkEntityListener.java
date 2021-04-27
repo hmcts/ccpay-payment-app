@@ -15,17 +15,17 @@ import static uk.gov.hmcts.payment.api.jpaaudit.listner.Action.INSERTED;
 import static uk.gov.hmcts.payment.api.jpaaudit.listner.Action.UPDATED;
 import static uk.gov.hmcts.payment.api.jpaaudit.model.AuditEventsType.ORDER_CREATED;
 
-public class CaseDetailsEntityListener {
+public class PaymentFeeLinkEntityListener {
 
-    @PostPersist
-    public void postPersist(CaseDetails target) {
+    @PostPersist()
+    public void postPersist(PaymentFeeLink target) {
         perform(target, INSERTED, ORDER_CREATED);
     }
 
     @Transactional(MANDATORY)
-    private void perform(CaseDetails target, Action action, AuditEventsType auditEventsType) {
+    private void perform(PaymentFeeLink target, Action action, AuditEventsType auditEventsType) {
         EntityManager entityManager = BeanUtil.getBean(EntityManager.class);
-        String ccdCaseNumber = target.getCcdCaseNumber();
+        String ccdCaseNumber =target.getCaseDetails().iterator().next().getCcdCaseNumber();
         entityManager.persist(PaymentAuditHistory.paymentAuditHistoryWith()
             .ccdCaseNo(ccdCaseNumber)
             .auditType(auditEventsType)
