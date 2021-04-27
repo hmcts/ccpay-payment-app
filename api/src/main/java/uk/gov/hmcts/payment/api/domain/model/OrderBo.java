@@ -10,18 +10,23 @@ import org.springframework.data.domain.DomainEvents;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
+import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
+import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.model.CaseDetails;
 import uk.gov.hmcts.payment.api.model.CaseDetailsRepository;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -33,7 +38,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Getter
 @Setter
 @Component
-public class OrderBo{
+public class OrderBo {
     //-- All CRUD & Validation operations for Orders to be implemented
 
     private String reference;
@@ -60,31 +65,32 @@ public class OrderBo{
     private CaseDetailsRepository caseDetailsRepository;
 
     @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
+    @Autowired
     private PaymentGroupService paymentGroupService;
 
     @Transactional
-    public String createOrder(OrderBo orderBo){
+    public String createOrder(OrderBo orderBo) {
+
+        CaseDetails caseDetailsEntity;
+        if (!caseDetailsRepository.existsByCcdCaseNumber(orderBo.getCcdCaseNumber())) {
+            caseDetailsEntity = orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo);
+            caseDetailsRepository.save(caseDetailsEntity);
+        } else {
+            caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber());
+        }
 
         PaymentFeeLink paymentFeeLinkAliasOrderEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);
 
-        PaymentFeeLink orderSavedWithFees = (PaymentFeeLink) paymentGroupService.addNewFeeWithPaymentGroup(paymentFeeLinkAliasOrderEntity);
+        paymentFeeLinkAliasOrderEntity.getCaseDetails().add(caseDetailsEntity);
 
-        CaseDetails caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo));
-
-        caseDetailsEntity.getOrders().add(paymentFeeLinkAliasOrderEntity);
-
-        caseDetailsRepository.save(caseDetailsEntity);
+        PaymentFeeLink orderSavedWithFees = paymentFeeLinkRepository.save(paymentFeeLinkAliasOrderEntity);
 
         return orderSavedWithFees.getPaymentReference();
     }
 
-
-    public void validate(){
-        //--fee validation logic for duplicate Fees in Request
-        //--CCD Case 16 digit check
-    }
-
-    public void canAcceptPayment(){
+    public void canAcceptPayment() {
         // Validate if Order has outstanding Balance
         // false : reject Payment
         // true : Continue
