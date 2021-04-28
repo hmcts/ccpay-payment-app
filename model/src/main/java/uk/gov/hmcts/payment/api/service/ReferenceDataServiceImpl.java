@@ -42,6 +42,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
     @Value("${rd.location.url}")
     private String rdBaseUrl;
+    
 
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
