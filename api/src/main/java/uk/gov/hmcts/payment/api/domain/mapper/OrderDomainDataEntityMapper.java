@@ -49,16 +49,5 @@ public class OrderDomainDataEntityMapper {
             .dateCreated(new Timestamp(System.currentTimeMillis()))
             .build();
     }
-
-    public OrderFeeBo toDomain(PaymentFee paymentFee) {
-
-        return OrderFeeBo.orderFeeBoWith()
-            .calculatedAmount(paymentFee.getCalculatedAmount())
-            .code(paymentFee.getCode())
-            .version(paymentFee.getVersion())
-            .volume(paymentFee.getVolume())
-            .build();
-
-        //return Optional.of(orderFeeDto).map(OrderFeeBo :: );
-    }
+    
 }

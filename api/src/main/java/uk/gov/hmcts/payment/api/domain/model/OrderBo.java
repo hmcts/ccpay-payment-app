@@ -50,7 +50,6 @@ public class OrderBo {
 
     private BigDecimal orderBalance;
 
-
     @Autowired
     private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
 
@@ -78,16 +77,5 @@ public class OrderBo {
 
         return orderSavedWithFees.getPaymentReference();
     }
-
-    public void canAcceptPayment() {
-        // Validate if Order has outstanding Balance
-        // false : reject Payment
-        // true : Continue
-    }
-
-    public void getStatus() {
-
-    }
-
 
 }
