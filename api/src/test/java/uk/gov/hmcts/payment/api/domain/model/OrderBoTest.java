@@ -54,7 +54,7 @@ public class OrderBoTest {
 
         String orderReferenceResult = orderBo.createOrder(orderBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReference);
+        assertThat(orderReference).isEqualTo(orderReferenceResult);
 
     }
 
@@ -73,7 +73,7 @@ public class OrderBoTest {
 
         String orderReferenceResult = orderBo.createOrder(orderBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReference);
+        assertThat(orderReference).isEqualTo(orderReferenceResult);
 
     }
 
