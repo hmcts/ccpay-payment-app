@@ -9,7 +9,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -49,5 +48,5 @@ public class OrderDomainDataEntityMapper {
             .dateCreated(new Timestamp(System.currentTimeMillis()))
             .build();
     }
-    
+
 }
