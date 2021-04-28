@@ -69,7 +69,7 @@ public class OrderDomainServiceTest2 {
 
         String orderReferenceResult = orderDomainService.create(orderDto, header);
 
-        assertThat(orderReference).isEqualTo(orderReference);
+        assertThat(orderReference).isEqualTo(orderReferenceResult);
 
     }
 
