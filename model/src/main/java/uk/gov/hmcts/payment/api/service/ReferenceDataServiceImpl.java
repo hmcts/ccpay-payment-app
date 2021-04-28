@@ -23,7 +23,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
-//import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,8 +43,8 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Value("${rd.location.url}")
     private String rdBaseUrl;
 
-//    @Autowired
-//    private AuthTokenGenerator authTokenGenerator;
+    @Autowired
+    private AuthTokenGenerator authTokenGenerator;
 
     private static final String RD_ENDPOINT = "/refdata/location/orgServices";
 
@@ -61,7 +61,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
         List<OrganisationalServiceDto> orgServiceResponse;
         try {
-            String serviceAuthorisation = "authTokenGenerator.generate();";
+            String serviceAuthorisation = authTokenGenerator.generate();
             headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
             String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
             headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
