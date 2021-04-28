@@ -39,31 +39,34 @@ public class OrderPaymentDomainDataEntityMapper {
     @Autowired
     private UserIdSupplier userIdSupplier;
 
-    public Payment toEntity(OrderPaymentBo paymentBo){
+    public Payment toEntity(OrderPaymentBo paymentBo, PaymentFeeLink order){
 
         return Payment.paymentWith()
             .userId(userIdSupplier.get())
             .s2sServiceName(serviceIdSupplier.get())
             .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
             .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
-            .paymentStatus(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus().getName()))
-            .ccdCaseNumber(paymentBo.getCcdCaseNumber())
+            .paymentStatus(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus()))
             .reference(paymentBo.getReference())
-            .status(paymentBo.getStatus().getName())
+            .status(paymentBo.getStatus())
             .amount(paymentBo.getAmount())
             .pbaNumber(paymentBo.getAccountNumber())
+            .currency(paymentBo.getCurrency().getCode())
+            .customerReference(paymentBo.getCustomerReference())
+            .caseReference(order.getCaseDetails().stream().findAny().get().getCaseReference())
+            .ccdCaseNumber(order.getCaseDetails().stream().findAny().get().getCcdCaseNumber())
             .statusHistories(paymentBo.getStatusHistories() == null ? Arrays.asList(StatusHistory.statusHistoryWith()
-                .status(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus().getName()).getName())
+                .status(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus()).getName())
                 .build())
                 : paymentBo.getStatusHistories())
             .build();
     }
 
-    public OrderPaymentBo toDomain(Payment payment){
-
+    public OrderPaymentBo toDomain(Payment payment) {
         return OrderPaymentBo.orderPaymentBoWith()
-            .ccdCaseNumber(payment.getCcdCaseNumber())
             .reference(payment.getReference())
+            .status(payment.getPaymentStatus().getName())
+            .dateCreated(payment.getDateCreated().toString())
             .build();
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderException;
 
 import javax.persistence.criteria.*;
 import java.util.*;
@@ -32,7 +33,7 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
 
     @Override
     public PaymentFeeLink findByPaymentGroupReference(String paymentGroupReference) {
-        return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(InvalidPaymentGroupReferenceException::new);
+        return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(() -> new InvalidPaymentGroupReferenceException("Order reference doesn't exist"));
     }
 
     @Override
