@@ -67,6 +67,19 @@ public class OrderController {
         return new ResponseEntity<>(orderDomainService.addPayments(orderDomainService.find(orderReference), orderPaymentDto), HttpStatus.CREATED);
     }
 
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(value = {NoServiceFoundException.class})
+    public String return404(NoServiceFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return504(GatewayTimeoutException ex) {
+        return ex.getMessage();
+    }
+
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(InvalidPaymentGroupReferenceException.class)
     public String return403(InvalidPaymentGroupReferenceException ex) {
