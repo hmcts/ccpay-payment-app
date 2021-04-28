@@ -61,16 +61,16 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Transactional
     public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
 
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
+//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+//            .serviceCode("AA001")
+//            .serviceDescription("DIVORCE")
+//            .build();
 
-//        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
 
-        OrderBo orderBoValue = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
+        OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
 
-        return orderBo.createOrder(orderBoValue);
+        return orderBo.createOrder(orderBoDomain);
     }
 
     @Override

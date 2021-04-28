@@ -48,8 +48,6 @@ public class OrderDomainDataEntityMapper {
             .volume(orderFeeBo.getVolume())
             .dateCreated(new Timestamp(System.currentTimeMillis()))
             .build();
-
-        //return Optional.of(orderFeeDto).map(OrderFeeBo :: );
     }
 
     public OrderFeeBo toDomain(PaymentFee paymentFee) {
