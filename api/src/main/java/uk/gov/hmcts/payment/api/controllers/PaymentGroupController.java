@@ -237,7 +237,7 @@ public class PaymentGroupController {
         boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE,false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if (apportionFeature) {
-            feePayApportionService.processApportion(payment);
+            feePayApportionService.processApportion(payment, false);
         }
 
         return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
@@ -292,7 +292,7 @@ public class PaymentGroupController {
         boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE,false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if (apportionFeature) {
-            feePayApportionService.processApportion(newPayment);
+            feePayApportionService.processApportion(newPayment, false);
 
             // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
             if (newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
@@ -413,7 +413,7 @@ public class PaymentGroupController {
             boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
             LOG.info("ApportionFeature Flag Value in PaymentGroupController  RecordBulkScanPaymentStrategic: {}", apportionFeature);
             if (apportionFeature) {
-                feePayApportionService.processApportion(newPayment);
+                feePayApportionService.processApportion(newPayment, false);
 
                 // Update Fee Amount Due as Payment Status received from Bulk Scan Payment as SUCCESS
                 if (newPayment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
@@ -585,7 +585,7 @@ public class PaymentGroupController {
             boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
             LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
             if (apportionFeature) {
-                feePayApportionService.processApportion(payment);
+                feePayApportionService.processApportion(payment, false);
             }
             return new ResponseEntity<>(telephonyCardPaymentsResponse, HttpStatus.CREATED);
         } else {
