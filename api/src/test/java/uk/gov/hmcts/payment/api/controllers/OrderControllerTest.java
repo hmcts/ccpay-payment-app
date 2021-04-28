@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -168,6 +169,24 @@ public class OrderControllerTest {
         restActions
             .post("/order", orderDto)
             .andExpect(status().isNotFound())
+            .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void createOrderWithValidCaseTypeReturnsTimeOutException() throws Exception {
+
+        OrderDto orderDto = OrderDto.orderDtoWith()
+            .caseReference("123245677")
+            .caseType("ClaimCase")
+            .ccdCaseNumber("8689869686968696")
+            .fees(Collections.singletonList(getFee()))
+            .build();
+
+        when(orderDomainService.create(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
+        restActions
+            .post("/order", orderDto)
+            .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
     }
 
