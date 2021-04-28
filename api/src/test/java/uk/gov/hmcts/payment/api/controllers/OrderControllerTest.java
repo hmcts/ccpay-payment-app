@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
@@ -51,7 +52,7 @@ public class OrderControllerTest {
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
     private WebApplicationContext webApplicationContext;
-    @MockBean
+    @Mock
     private ReferenceDataService referenceDataService;
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -80,12 +81,6 @@ public class OrderControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceDescription("Specified Money Claims")
-            .serviceCode("AAD1")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
     }
 
 
@@ -156,10 +151,25 @@ public class OrderControllerTest {
             .post("/order", orderDto)
             .andExpect(status().isUnprocessableEntity())
             .andExpect(content().string("feeCodeUnique: Fee code cannot be duplicated"));
-        ;
-
     }
 
+    @Test
+    public void createOrderWithInvalidCaseType() throws Exception {
+
+        OrderDto orderDto = OrderDto.orderDtoWith()
+            .caseReference("123245677")
+            .caseType("ClaimCase")
+            .ccdCaseNumber("8689869686968696")
+            .fees(Collections.singletonList(getFee()))
+            .build();
+
+        when(orderDomainService.create(any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+
+        restActions
+            .post("/order", orderDto)
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Test Error"));
+    }
 
     private OrderFeeDto getFee() {
         return OrderFeeDto.feeDtoWith()
@@ -169,4 +179,5 @@ public class OrderControllerTest {
             .volume(2)
             .build();
     }
+
 }

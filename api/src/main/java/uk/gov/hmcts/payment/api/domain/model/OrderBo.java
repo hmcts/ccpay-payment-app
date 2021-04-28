@@ -2,31 +2,24 @@ package uk.gov.hmcts.payment.api.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.DomainEvents;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.payment.api.audit.AuditRepository;
-import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
-import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
-import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
-import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.model.CaseDetails;
 import uk.gov.hmcts.payment.api.model.CaseDetailsRepository;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -67,12 +60,8 @@ public class OrderBo {
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
-    @Autowired
-    private PaymentGroupService paymentGroupService;
-
     @Transactional
     public String createOrder(OrderBo orderBo) {
-
         CaseDetails caseDetailsEntity;
         if (!caseDetailsRepository.existsByCcdCaseNumber(orderBo.getCcdCaseNumber())) {
             caseDetailsEntity = orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo);
