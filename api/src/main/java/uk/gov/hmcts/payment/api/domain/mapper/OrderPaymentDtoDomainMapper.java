@@ -19,15 +19,10 @@ public class OrderPaymentDtoDomainMapper {
 
         return OrderPaymentBo.orderPaymentBoWith()
             .reference(reference)
-            .ccdCaseNumber(paymentDto.getCcdCaseNumber())
             .accountNumber(paymentDto.getAccountNumber())
             .amount(paymentDto.getAmount())
-            .caseReference(paymentDto.getCaseReference())
             .currency(paymentDto.getCurrency())
             .customerReference(paymentDto.getCustomerReference())
-            .description(paymentDto.getDescription())
-            .organisationName(paymentDto.getOrganisationName())
-            .service(paymentDto.getService())
             .build();
     }
 }
