@@ -8,9 +8,7 @@ public interface CaseDetailsRepository extends CrudRepository<CaseDetails, Integ
 
     <S extends CaseDetails> S save(S entity);
 
-    CaseDetails findByCcdCaseNumber(String ccdCaseNumber);
-
-    Boolean existsByCcdCaseNumber(String ccdCaseNumber);
+    Optional<CaseDetails> findByCcdCaseNumber(String ccdCaseNumber);
 }
 
 

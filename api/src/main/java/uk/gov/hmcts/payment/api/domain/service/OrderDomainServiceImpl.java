@@ -57,11 +57,6 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Transactional
     public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
 
-//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-//            .serviceCode("AA001")
-//            .serviceDescription("DIVORCE")
-//            .build();
-
         OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
 
         OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
