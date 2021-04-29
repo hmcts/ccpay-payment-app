@@ -66,7 +66,7 @@ public class OrderBo {
             caseDetailsEntity = orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo);
             caseDetailsRepository.save(caseDetailsEntity);
         } else {
-            caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).get();
+            caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber());
         }
 
         PaymentFeeLink paymentFeeLinkAliasOrderEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);

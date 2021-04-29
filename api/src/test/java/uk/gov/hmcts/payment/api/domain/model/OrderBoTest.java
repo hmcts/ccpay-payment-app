@@ -48,7 +48,7 @@ public class OrderBoTest {
 
         when(caseDetailsRepository.existsByCcdCaseNumber(anyString())).thenReturn(true);
 
-        when(caseDetailsRepository.findByCcdCaseNumber(anyString()).get()).thenReturn(getCaseDetails());
+        when(caseDetailsRepository.findByCcdCaseNumber(anyString())).thenReturn(getCaseDetails());
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
@@ -67,7 +67,7 @@ public class OrderBoTest {
 
         when(caseDetailsRepository.existsByCcdCaseNumber(anyString())).thenReturn(false);
 
-        when(caseDetailsRepository.findByCcdCaseNumber(anyString()).get()).thenReturn(getCaseDetails());
+        when(caseDetailsRepository.findByCcdCaseNumber(anyString())).thenReturn(getCaseDetails());
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
