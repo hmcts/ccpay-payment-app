@@ -1,19 +1,21 @@
 package uk.gov.hmcts.payment.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
-import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentFeeEntityListener;
 
-import javax.persistence.*;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.ArrayList;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -21,20 +23,14 @@ import java.util.Set;
 @NoArgsConstructor
 @Setter
 @Getter
-@Data
 @Builder(builderMethodName = "caseDetailsWith")
 @Table(name = "case_details")
-public class    CaseDetails{
+public class CaseDetails{
+
 
     @ToString.Exclude
-    @ManyToMany
-    @JoinTable(
-        name = "order_cases",
-        joinColumns = @JoinColumn(name = "case_details_id"),
-        inverseJoinColumns = @JoinColumn(name = "order_id")
-    )
-    @JsonIgnore
-    private Set<PaymentFeeLink> orders = new HashSet<>();
+    @ManyToMany(mappedBy = "caseDetails")
+    private Set<PaymentFeeLink> orders;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

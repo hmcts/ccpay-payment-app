@@ -25,17 +25,13 @@ import javax.validation.Valid;
 @SwaggerDefinition(tags = {@Tag(name = "OrderController", description = "Order REST API")})
 public class OrderController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OrderController.class);
 
-    private final OrderDomainService orderDomainService;
+    @Autowired
+    private OrderDomainService orderDomainService;
 
     @Autowired
     private CreditAccountDtoMapper creditAccountDtoMapper;
-
-    @Autowired
-    public OrderController(OrderDomainService orderDomainService){
-        this.orderDomainService = orderDomainService;
-    }
 
     @ApiOperation(value = "Add Order with Fees", notes = "Add Order with Fees")
     @ApiResponses(value = {
@@ -45,7 +41,7 @@ public class OrderController {
     @PostMapping(value = "/order")
     @Transactional
     public ResponseEntity<String> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        return new ResponseEntity<>(orderDomainService.create(orderDto,headers), HttpStatus.CREATED);
+        return new ResponseEntity<>(orderDomainService.create(orderDto, headers), HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
@@ -69,6 +65,19 @@ public class OrderController {
         }
          */
         return new ResponseEntity<>(orderDomainService.addPayments(orderDomainService.find(orderReference), orderPaymentDto), HttpStatus.CREATED);
+    }
+
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(value = {NoServiceFoundException.class})
+    public String return404(NoServiceFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public String return504(GatewayTimeoutException ex) {
+        return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
