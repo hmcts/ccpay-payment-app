@@ -169,7 +169,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         return paymentRepository.findById(paymentId).orElseThrow(PaymentNotFoundException::new);
     }
 
-    private Payment findSavedPayment(@NotNull String paymentReference) {
+    @Override
+    public Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
     }
 }
