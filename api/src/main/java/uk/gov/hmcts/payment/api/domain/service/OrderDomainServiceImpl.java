@@ -12,7 +12,6 @@ import uk.gov.hmcts.payment.api.domain.model.OrderBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -21,7 +20,6 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -62,11 +60,6 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
 
         return orderBo.createOrder(orderBoDomain);
-    }
-
-    @Override
-    public void addFees(OrderBo orderBo, List<OrderFeeDto> feeDtos) {
-
     }
 
     @Override

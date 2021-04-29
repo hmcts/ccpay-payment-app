@@ -9,13 +9,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import lombok.experimental.Wither;
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Language;
 
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import javax.validation.constraints.AssertFalse;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
@@ -83,7 +87,7 @@ public class CardPaymentRequest {
     @AssertFalse(message = "Invalid value for language attribute.")
     private boolean isValidLanguage() {
         return !StringUtils.isBlank(language) && !language.equalsIgnoreCase("string")
-            && Arrays.stream(Language.values()).noneMatch(language1 ->
-            language1.getLanguage().equalsIgnoreCase(language));
+            && Arrays.stream(Language.values()).noneMatch(lang ->
+            lang.getLanguage().equalsIgnoreCase(language));
     }
 }
