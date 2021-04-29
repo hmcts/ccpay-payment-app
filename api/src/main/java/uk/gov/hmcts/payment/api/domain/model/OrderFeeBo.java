@@ -30,5 +30,4 @@ public class OrderFeeBo {
 
     private String ccdCaseNumber; // Will be removed after get api's work without ccd dependency
 
-    //private List<RemissionDto> remissions;
 }
