@@ -19,7 +19,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
