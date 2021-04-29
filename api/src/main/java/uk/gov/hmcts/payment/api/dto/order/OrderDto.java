@@ -2,20 +2,15 @@ package uk.gov.hmcts.payment.api.dto.order;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
-import org.hibernate.validator.constraints.Range;
-import org.hibernate.validator.constraints.UniqueElements;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import javax.validation.Valid;
 import javax.validation.constraints.AssertFalse;
-import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.HashSet;
