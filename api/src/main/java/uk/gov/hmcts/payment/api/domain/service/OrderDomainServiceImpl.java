@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
@@ -15,9 +14,6 @@ import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
-import uk.gov.hmcts.payment.api.exception.OrderReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.model.CaseDetails;
-import uk.gov.hmcts.payment.api.model.CaseDetailsRepository;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -61,16 +57,16 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Transactional
     public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
 
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
+//        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+//            .serviceCode("AA001")
+//            .serviceDescription("DIVORCE")
+//            .build();
 
-//        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
 
-        OrderBo orderBoValue = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
+        OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
 
-        return orderBo.createOrder(orderBoValue);
+        return orderBo.createOrder(orderBoDomain);
     }
 
     @Override
