@@ -58,7 +58,7 @@ public class OrderController {
         @ApiResponse(code = 403, message = "Forbidden-Access Denied"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute"),
         @ApiResponse(code = 404, message = "No Service found for given CaseType"),
-        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
+        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later"),
         @ApiResponse(code = 500, message = "Internal Server")
     })
     @PostMapping(value = "/order")
