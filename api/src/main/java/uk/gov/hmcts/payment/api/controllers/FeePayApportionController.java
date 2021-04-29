@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import io.swagger.annotations.*;
+import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,8 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @Api(tags = {"PaymentApportion"})
@@ -83,6 +83,25 @@ public class FeePayApportionController {
     }
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.OK);
     }
+
+
+    @ApiOperation(value = "Get apportion details by payment reference", notes = "Get apportion details for supplied payment reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Apportionment Details retrieved"),
+        @ApiResponse(code = 403, message = "Payment info forbidden"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @GetMapping(value = "/orderpoc/payment-groups/fee-pay-apportion/{paymentreference}")
+    public ResponseEntity<PaymentGroupDto> retrieveApportionDetailsForOrders(@PathVariable("paymentreference") String paymentReference) {
+        LOG.info("Invoking new API in FeePayApportionController");
+        final PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith().build();
+        Payment payment = paymentService.findSavedPayment(paymentReference);
+        return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDtoForFeePayApportionment(paymentGroupDto,payment), HttpStatus.OK);
+    }
+
+
+
+
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)

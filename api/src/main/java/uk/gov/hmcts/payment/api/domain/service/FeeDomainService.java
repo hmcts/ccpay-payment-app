@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface FeeDomainService {
     List<FeePayApportion> getFeePayApportionsByFee(PaymentFee fee);
+
+    PaymentFee getPaymentFeeById(Integer id);
 }
