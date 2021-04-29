@@ -57,7 +57,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @TestPropertySource(properties = {"duplicate.payment.check.interval.in.minutes=0", "pba.config1.service.names=PROBATE,CMC"})
-//@Transactional
+@Transactional
 public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
@@ -125,60 +125,60 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             //Create 10 PBA payments
             createCreditAccountPayments(csvParseMap, 50);
 
-//            //Create CSV
-//            createCSV(csvParseMap,"paymentsToReplay.csv");
-//
-//            //Invoke replay-credit-account-payment
-//            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
-//                new FileInputStream(new File("src/test/resources/paymentsToReplay.csv")));
-//
-//            MvcResult result = restActions
-//                .postWithMultiPartFileData("/replay-credit-account-payments",
-//                    csvFile, "isReplayPBAPayments", "true")
-//                .andExpect(status().isOk())
-//                .andReturn();
-//
-//            csvParseMap.entrySet().stream().forEach(entry -> {
-//                List<Payment> paymentList = db.findByCcdCaseNumber(entry.getValue().getCcdCaseNumber());
-//
-//                Assert.assertEquals(2, paymentList.size());
-//
-//                Payment existingPayment = paymentList
-//                    .stream()
-//                    .filter(payment -> payment.getReference().equalsIgnoreCase(entry.getKey())).collect(Collectors.toList())
-//                    .get(0);
-//
-//                Payment newPayment = paymentList
-//                    .stream()
-//                    .filter(payment -> !payment.getReference().equalsIgnoreCase(entry.getKey())).collect(Collectors.toList())
-//                    .get(0);
-//
-//                //existing payment should be failed
-//                Assert.assertEquals("failed", existingPayment.getPaymentStatus().getName());
-//
-//                //Status history should contain message as System Failure. Not charged
-//                Assert.assertEquals("System Failure. Not charged", existingPayment.getStatusHistories().get(0).getMessage());
-//
-//                //new payment should be pending
-//                Assert.assertEquals("pending", newPayment.getPaymentStatus().getName());
-//
-//                //Check for each Request Fields & New Payment Fields
-//
-//                Assert.assertEquals(entry.getValue().getAmount(), newPayment.getAmount());
-//                Assert.assertEquals(entry.getValue().getCcdCaseNumber(), newPayment.getCcdCaseNumber());
-//                Assert.assertEquals(entry.getValue().getAccountNumber().replace("\"", ""), newPayment.getPbaNumber());
-//                Assert.assertEquals(entry.getValue().getDescription(), newPayment.getDescription());
-//                Assert.assertEquals(entry.getValue().getCaseReference().replace("\"", ""), newPayment.getCaseReference());
-//                Assert.assertEquals(entry.getValue().getService(), newPayment.getServiceType());
-//                Assert.assertEquals(entry.getValue().getCurrency().getCode(), newPayment.getCurrency());
-//                Assert.assertEquals(entry.getValue().getCustomerReference(), newPayment.getCustomerReference());
-//                Assert.assertEquals(entry.getValue().getOrganisationName().replace("\"", ""), newPayment.getOrganisationName());
-//                Assert.assertEquals(entry.getValue().getSiteId(), newPayment.getSiteId());
-//                Assert.assertEquals(entry.getValue().getFees().get(0).getCode(), newPayment.getPaymentLink().getFees().get(0).getCode());
-//                Assert.assertEquals(entry.getValue().getFees().get(0).getCalculatedAmount(), newPayment.getPaymentLink().getFees().get(0).getCalculatedAmount());
-//                Assert.assertEquals(entry.getValue().getFees().get(0).getVersion(), newPayment.getPaymentLink().getFees().get(0).getVersion());
+            //Create CSV
+            createCSV(csvParseMap,"paymentsToReplay.csv");
 
-//            });
+            //Invoke replay-credit-account-payment
+            MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
+                new FileInputStream(new File("src/test/resources/paymentsToReplay.csv")));
+
+            MvcResult result = restActions
+                .postWithMultiPartFileData("/replay-credit-account-payments",
+                    csvFile, "isReplayPBAPayments", "true")
+                .andExpect(status().isOk())
+                .andReturn();
+
+            csvParseMap.entrySet().stream().forEach(entry -> {
+                List<Payment> paymentList = db.findByCcdCaseNumber(entry.getValue().getCcdCaseNumber());
+
+                Assert.assertEquals(2, paymentList.size());
+
+                Payment existingPayment = paymentList
+                    .stream()
+                    .filter(payment -> payment.getReference().equalsIgnoreCase(entry.getKey())).collect(Collectors.toList())
+                    .get(0);
+
+                Payment newPayment = paymentList
+                    .stream()
+                    .filter(payment -> !payment.getReference().equalsIgnoreCase(entry.getKey())).collect(Collectors.toList())
+                    .get(0);
+
+                //existing payment should be failed
+                Assert.assertEquals("failed", existingPayment.getPaymentStatus().getName());
+
+                //Status history should contain message as System Failure. Not charged
+                Assert.assertEquals("System Failure. Not charged", existingPayment.getStatusHistories().get(0).getMessage());
+
+                //new payment should be pending
+                Assert.assertEquals("pending", newPayment.getPaymentStatus().getName());
+
+                //Check for each Request Fields & New Payment Fields
+
+                Assert.assertEquals(entry.getValue().getAmount(), newPayment.getAmount());
+                Assert.assertEquals(entry.getValue().getCcdCaseNumber(), newPayment.getCcdCaseNumber());
+                Assert.assertEquals(entry.getValue().getAccountNumber().replace("\"", ""), newPayment.getPbaNumber());
+                Assert.assertEquals(entry.getValue().getDescription(), newPayment.getDescription());
+                Assert.assertEquals(entry.getValue().getCaseReference().replace("\"", ""), newPayment.getCaseReference());
+                Assert.assertEquals(entry.getValue().getService(), newPayment.getServiceType());
+                Assert.assertEquals(entry.getValue().getCurrency().getCode(), newPayment.getCurrency());
+                Assert.assertEquals(entry.getValue().getCustomerReference(), newPayment.getCustomerReference());
+                Assert.assertEquals(entry.getValue().getOrganisationName().replace("\"", ""), newPayment.getOrganisationName());
+                Assert.assertEquals(entry.getValue().getSiteId(), newPayment.getSiteId());
+                Assert.assertEquals(entry.getValue().getFees().get(0).getCode(), newPayment.getPaymentLink().getFees().get(0).getCode());
+                Assert.assertEquals(entry.getValue().getFees().get(0).getCalculatedAmount(), newPayment.getPaymentLink().getFees().get(0).getCalculatedAmount());
+                Assert.assertEquals(entry.getValue().getFees().get(0).getVersion(), newPayment.getPaymentLink().getFees().get(0).getVersion());
+
+            });
         } finally {
             //Delete test csvfile
             Files.delete(paymentsToReplayCSV);
