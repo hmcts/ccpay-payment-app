@@ -22,10 +22,7 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -44,6 +41,8 @@ public class PaymentGroupDtoMapper {
     @Autowired
     private PaymentDomainService paymentDomainService;
 
+    @Autowired
+    private PaymentFeeRepository paymentFeeRepository;
 
     public PaymentGroupDto toPaymentGroupDto(PaymentFeeLink paymentFeeLink) {
         return PaymentGroupDto.paymentGroupDtoWith()
@@ -55,6 +54,36 @@ public class PaymentGroupDtoMapper {
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
             .build();
     }
+
+    public PaymentGroupDto toPaymentGroupDtoForFeePayApportionment(PaymentGroupDto paymentGroupDto, Payment payment){
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+        paymentGroupDto.setPayments(toPaymentDtos(paymentList));
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        LOG.info("apportionFeature value in FeePayApportionController: {}", apportionFeature);
+        if (apportionFeature)
+        {
+            LOG.info("Apportion feature is true and payment is available in FeePayApportionController");
+            List<FeePayApportion> feePayApportionList = paymentDomainService.getFeePayApportionByPaymentId(payment.getId());
+            if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
+                LOG.info("Apportion details available in FeePayApportionController");
+                List<PaymentFee> fees = feePayApportionList.stream().map(feePayApportion ->feeDomainService.getPaymentFeeById(feePayApportion.getFeeId()))
+                    .collect(Collectors.toSet()).stream().collect(Collectors.toList());
+                paymentGroupDto.setFees(toFeeDtos(fees));
+                if(fees.size()>0){
+                    List<Remission> remissions = fees.stream().flatMap(fee -> fee.getRemissions().stream()).collect(Collectors.toList());
+                    paymentGroupDto.setRemissions(toRemissionDtos(remissions));
+                    PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
+                    paymentGroupDto.setPaymentGroupReference(paymentFeeLink.getPaymentReference());
+                    paymentGroupDto.setDateCreated(paymentFeeLink.getDateCreated());
+                    paymentGroupDto.setDateUpdated(paymentFeeLink.getDateUpdated());
+                }
+            }
+        }
+        return paymentGroupDto;
+
+    }
+
 
     private List<PaymentDto> toPaymentDtos(List<Payment> payments) {
         return payments.stream().map(p -> toPaymentDto(p)).collect(Collectors.toList());
