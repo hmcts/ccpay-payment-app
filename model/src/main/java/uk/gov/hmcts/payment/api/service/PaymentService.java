@@ -28,4 +28,6 @@ public interface PaymentService<T, ID> {
 
     Payment getPaymentById(Integer id);
 
+    Payment findSavedPayment(String reference);
+
 }
