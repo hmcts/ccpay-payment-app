@@ -1,23 +1,36 @@
 package uk.gov.hmcts.payment.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
+import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentFeeLinkEntityListener;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Entity
+@EntityListeners(PaymentFeeLinkEntityListener.class)
 @Getter
 @Setter
+@ToString
 @Builder(builderMethodName = "paymentFeeLinkWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "payment_fee_link")
-public class PaymentFeeLink {
+public class PaymentFeeLink{
+
+    @ToString.Exclude
+    @ManyToMany(cascade =CascadeType.ALL )
+    @JoinTable(
+        name = "order_cases",
+        joinColumns = @JoinColumn(name = "order_id"),
+        inverseJoinColumns = @JoinColumn(name = "case_details_id")
+    )
+    private Set<CaseDetails> caseDetails = new HashSet<>();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,11 +44,6 @@ public class PaymentFeeLink {
 
     @Column(name = "org_id")
     private String orgId;
-
-    @ToString.Exclude
-    @ManyToMany(mappedBy = "orders")
-    @JsonIgnore
-    private Set<CaseDetails> caseDetails;
 
     @CreationTimestamp
     @Column(name = "date_created", nullable = false)
@@ -73,7 +81,7 @@ public class PaymentFeeLink {
     private String ccdCaseNumber;
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return super.hashCode();
     }
 

@@ -9,7 +9,6 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -21,6 +20,7 @@ public class OrderDomainDataEntityMapper {
             .orgId(orderBo.getOrgId())
             .enterpriseServiceName(orderBo.getEnterpriseServiceName())
             .paymentReference(orderBo.getReference())
+            .caseDetails(new HashSet<>())
             .ccdCaseNumber(orderBo.getCcdCaseNumber()) // Will be removed after get api's work without ccd dependency
             .fees(orderBo.getFees()
                 .stream()
@@ -32,7 +32,6 @@ public class OrderDomainDataEntityMapper {
     public CaseDetails toCaseDetailsEntity(OrderBo orderBo) {
 
         return CaseDetails.caseDetailsWith()
-            .orders(new HashSet<>())
             .caseReference(orderBo.getCaseReference())
             .ccdCaseNumber(orderBo.getCcdCaseNumber())
             .build();
@@ -48,19 +47,6 @@ public class OrderDomainDataEntityMapper {
             .volume(orderFeeBo.getVolume())
             .dateCreated(new Timestamp(System.currentTimeMillis()))
             .build();
-
-        //return Optional.of(orderFeeDto).map(OrderFeeBo :: );
     }
 
-    public OrderFeeBo toDomain(PaymentFee paymentFee) {
-
-        return OrderFeeBo.orderFeeBoWith()
-            .calculatedAmount(paymentFee.getCalculatedAmount())
-            .code(paymentFee.getCode())
-            .version(paymentFee.getVersion())
-            .volume(paymentFee.getVolume())
-            .build();
-
-        //return Optional.of(orderFeeDto).map(OrderFeeBo :: );
-    }
 }
