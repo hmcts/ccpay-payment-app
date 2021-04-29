@@ -61,13 +61,7 @@ public class OrderBo {
 
     @Transactional
     public String createOrder(OrderBo orderBo) {
-        CaseDetails caseDetailsEntity;
-        if (!caseDetailsRepository.existsByCcdCaseNumber(orderBo.getCcdCaseNumber())) {
-            caseDetailsEntity = orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo);
-            caseDetailsRepository.save(caseDetailsEntity);
-        } else {
-            caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber());
-        }
+        CaseDetails caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo));
 
         PaymentFeeLink paymentFeeLinkAliasOrderEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);
 
