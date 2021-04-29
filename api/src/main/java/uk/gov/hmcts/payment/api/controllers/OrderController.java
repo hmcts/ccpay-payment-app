@@ -54,6 +54,8 @@ public class OrderController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Order Created"),
         @ApiResponse(code = 400, message = "Order Creation Failed"),
+        @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
+        @ApiResponse(code = 403, message = "Forbidden-Access Denied"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute"),
         @ApiResponse(code = 404, message = "No Service found for given CaseType"),
         @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
