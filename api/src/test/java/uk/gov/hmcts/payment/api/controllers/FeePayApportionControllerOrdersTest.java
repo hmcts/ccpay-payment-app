@@ -106,16 +106,6 @@ public class FeePayApportionControllerOrdersTest {
     }
 
     @Test
-    public void testRetrieveApportionDetailsWithUnavailableReference() throws Exception {
-        Mockito.when(paymentDomainService.getPaymentByReference(anyString())).thenThrow(new PaymentFeeNotFoundException());
-        MvcResult result = restActions
-            .get("/orderpoc/payment-groups/fee-pay-apportion/RC-1603-1374-9345-6137")
-            .andExpect(status().isNotFound())
-            .andReturn();
-
-    }
-
-    @Test
     public void testRetrieveApportionDetailsForOrdersWithEmptyApportions() throws Exception {
         Mockito.when(paymentDomainService.getPaymentByReference(anyString())).thenReturn(getPayment());
         Mockito.when(paymentDomainService.getFeePayApportionByPaymentId(anyInt())).thenReturn(Collections.emptyList());
