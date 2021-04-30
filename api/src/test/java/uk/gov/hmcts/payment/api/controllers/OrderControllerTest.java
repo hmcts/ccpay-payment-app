@@ -32,7 +32,9 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -95,23 +97,26 @@ public class OrderControllerTest {
             .build();
 
         String orderReference = "2200-1619524583862";
+
+        Map<String, Object> orderResponse = new HashMap<>();
+        orderResponse.put("order_reference",orderReference);
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
 
-        when(orderDomainService.create(any(), any())).thenReturn(orderReference);
+        when(orderDomainService.create(any(), any())).thenReturn(orderResponse);
 
         MvcResult result = restActions
             .post("/order", orderDto)
             .andExpect(status().isCreated())
             .andReturn();
 
-        String orderReferenceResult = result.getResponse().getContentAsString();
+        Map orderReferenceResult = objectMapper.readValue(result.getResponse().getContentAsByteArray(),Map.class);
 
-        assertThat(orderReferenceResult).isEqualTo(orderReference);
+        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
     }
 
     @Test
-    public void createOrderWithInValidCcdCaseNmber() throws Exception {
+    public void createOrderWithInValidCcdCaseNumber() throws Exception {
 
         OrderDto orderDto = OrderDto.orderDtoWith()
             .caseReference("123245677")
@@ -121,10 +126,7 @@ public class OrderControllerTest {
             .build();
 
 
-        String orderReference = "2200-1619524583862";
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-
-        when(orderDomainService.create(any(), any())).thenReturn(orderReference);
 
         restActions
             .post("/order", orderDto)

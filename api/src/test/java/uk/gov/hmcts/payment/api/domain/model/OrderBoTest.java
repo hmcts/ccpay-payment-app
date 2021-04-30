@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -51,9 +52,9 @@ public class OrderBoTest {
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        String orderReferenceResult = orderBo.createOrder(orderBoDomain);
+        Map<String,Object> orderReferenceResult =  orderBo.createOrder(orderBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReferenceResult);
+        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
     }
 
@@ -68,9 +69,9 @@ public class OrderBoTest {
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        String orderReferenceResult = orderBo.createOrder(orderBoDomain);
+        Map<String,Object> orderReferenceResult =  orderBo.createOrder(orderBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReferenceResult);
+        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
     }
 

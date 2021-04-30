@@ -63,7 +63,7 @@ public class OrderController {
     })
     @PostMapping(value = "/order")
     @Transactional
-    public ResponseEntity<String> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+    public ResponseEntity<?> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
         return new ResponseEntity<>(orderDomainService.create(orderDto, headers), HttpStatus.CREATED);
     }
 
