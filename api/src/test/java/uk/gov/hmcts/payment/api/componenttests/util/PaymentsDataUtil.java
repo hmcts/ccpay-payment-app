@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
@@ -89,6 +89,34 @@ public class PaymentsDataUtil {
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA0" + number)
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    public Payment populateIACCardPaymentToDb(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("99.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .serviceType("Immigration and Asylum Appeals")
+            .currency("GBP")
+            .siteId("BFA1")
             .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
@@ -300,6 +328,86 @@ public class PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
 
         return payment;
+    }
+
+    public Payment populateIACCreditAccountPaymentToDb(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("11.99"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Description" + number)
+            .serviceType("Immigration and Asylum Appeals")
+            .currency("GBP")
+            .siteId("BFA1")
+            .pbaNumber("123456")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference("RC-1519-9028-1909-000" + number)
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        return payment;
+    }
+
+
+    public SupplementaryDetailsResponse populateIACSupplementaryDetails(String number) throws Exception {
+
+        SupplementaryDetailsDto supplementaryDetailsDto = SupplementaryDetailsDto.supplementaryDetailsDtoWith()
+            .surname("Alex").build();
+
+        SupplementaryInfoDto supplementaryInfoDto = SupplementaryInfoDto.supplementaryInfoDtoWith()
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .supplementaryDetails(supplementaryDetailsDto)
+            .build();
+
+        List<SupplementaryInfoDto> supplementaryInfoDtoList = new ArrayList<>();
+        supplementaryInfoDtoList.add(supplementaryInfoDto);
+
+        SupplementaryDetailsResponse supplementaryMainDto = SupplementaryDetailsResponse.supplementaryDetailsResponseWith()
+            .supplementaryInfo(supplementaryInfoDtoList)
+            .build();
+
+        return supplementaryMainDto;
+
+    }
+
+    public SupplementaryDetailsResponse populateIACSupplementaryDetailsWithMissingCCDNumbers(String number) throws Exception {
+
+        SupplementaryDetailsDto supplementaryDetailsDto = SupplementaryDetailsDto.supplementaryDetailsDtoWith()
+            .surname("Alex").build();
+
+        SupplementaryInfoDto supplementaryInfoDto = SupplementaryInfoDto.supplementaryInfoDtoWith()
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .supplementaryDetails(supplementaryDetailsDto)
+            .build();
+
+        List<SupplementaryInfoDto> supplementaryInfoDtoList = new ArrayList<>();
+        supplementaryInfoDtoList.add(supplementaryInfoDto);
+
+
+        //missing_supplementary_info
+        List<String> listMissingSuppInfo = new ArrayList<>();
+        listMissingSuppInfo.add("1234123412341234");
+        listMissingSuppInfo.add("4321432143214321");
+
+        MissingSupplementaryDetailsDto missingSupplementaryDetailsDto = MissingSupplementaryDetailsDto.MissingSupplementaryDetailsDtoWith()
+            .ccdCaseNumbers(listMissingSuppInfo)
+            .build();
+
+        SupplementaryDetailsResponse supplementaryMainDto = SupplementaryDetailsResponse.supplementaryDetailsResponseWith()
+            .supplementaryInfo(supplementaryInfoDtoList)
+            .missingSupplementaryInfo(missingSupplementaryDetailsDto)
+            .build();
+
+        return supplementaryMainDto;
+
     }
 
     public Payment populateCreditAccountPaymentToDbWithNetAmountForFee(String number, BigDecimal calculatedAmount, BigDecimal netAmount) throws Exception {
