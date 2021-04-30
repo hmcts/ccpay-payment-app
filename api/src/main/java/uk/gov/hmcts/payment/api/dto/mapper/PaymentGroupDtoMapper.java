@@ -71,7 +71,8 @@ public class PaymentGroupDtoMapper {
                     .collect(Collectors.toSet()).stream().collect(Collectors.toList());
                 paymentGroupDto.setFees(toFeeDtos(fees));
                 if(fees.size()>0){
-                    List<Remission> remissions = fees.stream().flatMap(fee -> fee.getRemissions().stream()).collect(Collectors.toList());
+                    List<Remission> remissions = fees.stream().flatMap(fee ->
+                        fee.getRemissions()!=null&&fee.getRemissions().size()>0?fee.getRemissions().stream():Collections.<Remission>emptyList().stream()).collect(Collectors.toList());
                     paymentGroupDto.setRemissions(toRemissionDtos(remissions));
                     PaymentFeeLink paymentFeeLink = fees.get(0).getPaymentLink();
                     paymentGroupDto.setPaymentGroupReference(paymentFeeLink.getPaymentReference());
@@ -209,7 +210,9 @@ public class PaymentGroupDtoMapper {
 
 
     private List<Remission> getRemissionsForGivenFees(List<PaymentFee> paymentFees){
-        return paymentFees.stream().flatMap(fee->fee.getRemissions().stream()).collect(Collectors.toList());
+        return paymentFees.stream().flatMap(fee->
+             fee.getRemissions()!=null&&fee.getRemissions().size()>0?fee.getRemissions().stream():Collections.<Remission>emptyList().stream()
+        ).collect(Collectors.toList());
     }
 
     private List<PaymentDto> getPaymentsFromFeesAndApportions(List<PaymentFee> paymentFees){

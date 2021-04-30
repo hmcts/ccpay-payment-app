@@ -16,6 +16,6 @@ public class CaseDetailsDomainServiceImpl implements CaseDetailsDomainService {
     @Override
     public CaseDetails findByCcdCaseNumber(String ccdCaseNumber) {
         Optional<CaseDetails> caseDetails = caseDetailsRepository.findByCcdCaseNumber(ccdCaseNumber);
-        return caseDetails.orElseThrow(()->{return new CaseDetailsNotFoundException("Case Details Not found ");});
+        return caseDetails.orElseThrow(()->{return new CaseDetailsNotFoundException("Case Details Not found for"+ccdCaseNumber);});
     }
 }

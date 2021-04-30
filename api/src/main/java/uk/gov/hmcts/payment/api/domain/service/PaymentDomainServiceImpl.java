@@ -26,13 +26,8 @@ public class PaymentDomainServiceImpl implements PaymentDomainService{
     }
 
     @Override
-    public Payment getPaymentByApportionmentAndSearchCriteria(FeePayApportion feePayApportion, PaymentSearchCriteria searchCriteria) {
-        List<Payment> searchedPayments  = paymentService.searchByCriteria(searchCriteria);
-        List<Payment> filteredPayments = searchedPayments.stream().filter(payment1 -> payment1.getId()==feePayApportion.getPaymentId()).collect(Collectors.toList());
-        if(filteredPayments.size()>0){
-            return filteredPayments.get(0);
-        }
-        throw new PaymentNotFoundException("Payment not found for the apportionment");
+    public Payment getPaymentByReference(String reference) {
+        return paymentService.findSavedPayment(reference);
     }
 
     public List<FeePayApportion> getFeePayApportionByPaymentId(Integer paymentId){
