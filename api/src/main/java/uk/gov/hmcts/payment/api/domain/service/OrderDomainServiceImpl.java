@@ -20,6 +20,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -53,13 +54,13 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     @Override
     @Transactional
-    public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
+    public Map<String ,Object> create(OrderDto orderDto, MultiValueMap<String, String> headers) {
 
         OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
 
-        OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
-
+        OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto, organisationalServiceDto);
         return orderBo.createOrder(orderBoDomain);
+
     }
 
     @Override

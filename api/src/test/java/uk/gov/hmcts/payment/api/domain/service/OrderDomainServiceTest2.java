@@ -18,6 +18,8 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,12 +66,14 @@ public class OrderDomainServiceTest2 {
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         String orderReference = "2200-1619524583862";
+        Map<String, Object> orderResponse = new HashMap<>();
+        orderResponse.put("order_reference",orderReference);
 
-        doReturn(orderReference).when(orderBo).createOrder(any());
+        doReturn(orderResponse).when(orderBo).createOrder(any());
 
-        String orderReferenceResult = orderDomainService.create(orderDto, header);
+        Map orderReferenceResult = orderDomainService.create(orderDto, header);
 
-        assertThat(orderReference).isEqualTo(orderReferenceResult);
+        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
     }
 

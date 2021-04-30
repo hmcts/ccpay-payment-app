@@ -19,7 +19,9 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -60,7 +62,7 @@ public class OrderBo {
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     @Transactional
-    public String createOrder(OrderBo orderBo) {
+    public Map createOrder(OrderBo orderBo) {
         CaseDetails caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo));
 
         PaymentFeeLink paymentFeeLinkAliasOrderEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);
@@ -69,7 +71,10 @@ public class OrderBo {
 
         PaymentFeeLink orderSavedWithFees = paymentFeeLinkRepository.save(paymentFeeLinkAliasOrderEntity);
 
-        return orderSavedWithFees.getPaymentReference();
+        Map<String, Object> orderResponseMap = new HashMap<>();
+        orderResponseMap.put("order_reference",orderSavedWithFees.getPaymentReference());
+
+        return orderResponseMap;
     }
 
 }
