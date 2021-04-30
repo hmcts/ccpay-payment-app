@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -24,6 +25,11 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,6 +39,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RestController
 @Api(tags = {"Case"})
 @SwaggerDefinition(tags = {@Tag(name = "CaseController", description = "Case REST API")})
+@Validated
 public class CaseController {
 
     private final PaymentService<PaymentFeeLink, String> paymentService;
@@ -111,8 +118,8 @@ public class CaseController {
         @ApiResponse(code = 403, message = "Payment Info Forbidden"),
         @ApiResponse(code = 404, message = "Payment Groups not found")
     })
-    @RequestMapping(value = "/orderpoc/cases/{ccdcasenumber}/paymentgroups", method = GET)
-    public  PaymentGroupResponse retrieveCasePaymentGroups_NewAPI(@PathVariable(name = "ccdcasenumber") String ccdCaseNumber) {
+    @GetMapping(value = "/orderpoc/cases/{ccdcasenumber}/paymentgroups")
+    public  PaymentGroupResponse retrieveCasePaymentGroups_NewAPI( @PathVariable(name = "ccdcasenumber") @Size(max = 16,min = 16,message = "CcdCaseNumber should be 16 digits") String ccdCaseNumber) {
 
         CaseDetails caseDetails = caseDetailsDomainService.findByCcdCaseNumber(ccdCaseNumber);
         Set<PaymentFeeLink> paymentFeeLinks  = caseDetails.getOrders();
@@ -131,9 +138,9 @@ public class CaseController {
         @ApiResponse(code = 200, message = "Payments retrieved"),
         @ApiResponse(code = 400, message = "Bad request")
     })
-    @RequestMapping(value = "/orderpoc/cases/{case}/payments", method = GET)
+    @GetMapping(value = "/orderpoc/cases/{case}/payments")
     @PaymentExternalAPI
-    public PaymentsResponse retrieveCasePaymentsByOrders(@PathVariable(name = "case") String ccdCaseNumber) {
+    public PaymentsResponse retrieveCasePaymentsByOrders(@PathVariable(name = "case")  @Size(max = 16,min = 16,message = "CcdCaseNumber should be 16 digits") String ccdCaseNumber) {
         CaseDetails caseDetails = caseDetailsDomainService.findByCcdCaseNumber(ccdCaseNumber);
         Set<PaymentFeeLink> paymentFeeLinks  = caseDetails.getOrders();
         List<PaymentDto> payments = paymentFeeLinks.stream().flatMap(link->toReconciliationResponseDtoForOrders(link).stream())
@@ -176,6 +183,12 @@ public class CaseController {
     @ExceptionHandler(CaseDetailsNotFoundException.class)
     public String notFound(CaseDetailsNotFoundException ex) {
         return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public String handleConstraintViolationException(ConstraintViolationException exception){
+        return exception.getMessage();
     }
 
 }

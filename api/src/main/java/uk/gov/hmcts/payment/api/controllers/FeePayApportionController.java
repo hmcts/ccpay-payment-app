@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -28,6 +29,9 @@ public class FeePayApportionController {
     private final PaymentFeeRepository paymentFeeRepository;
 
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
+
+    @Autowired
+    private PaymentDomainService paymentDomainService;
 
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
@@ -95,13 +99,9 @@ public class FeePayApportionController {
     public ResponseEntity<PaymentGroupDto> retrieveApportionDetailsForOrders(@PathVariable("paymentreference") String paymentReference) {
         LOG.info("Invoking new API in FeePayApportionController");
         final PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith().build();
-        Payment payment = paymentService.findSavedPayment(paymentReference);
+        Payment payment = paymentDomainService.getPaymentByReference(paymentReference);
         return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDtoForFeePayApportionment(paymentGroupDto,payment), HttpStatus.OK);
     }
-
-
-
-
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)

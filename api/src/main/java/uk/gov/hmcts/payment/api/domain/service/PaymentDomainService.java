@@ -10,7 +10,7 @@ import java.util.List;
 public interface PaymentDomainService {
     Payment getPaymentByApportionment(FeePayApportion feePayApportion);
 
-    Payment getPaymentByApportionmentAndSearchCriteria(FeePayApportion feePayApportion, PaymentSearchCriteria searchCriteria);
+    Payment getPaymentByReference(String reference);
 
     List<FeePayApportion> getFeePayApportionByPaymentId(Integer id);
 }
