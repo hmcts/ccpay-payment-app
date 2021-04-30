@@ -76,7 +76,6 @@ public class CMCCardPaymentPerformanceLiberataTest {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-
             TOKENS_INITIALIZED = true;
         }
     }
@@ -156,7 +155,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
@@ -260,7 +259,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
                 .body("status", equalTo("Initiated"));
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
@@ -362,7 +361,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
                 .body("status", equalTo("Initiated"));
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
@@ -464,7 +463,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
                 .body("status", equalTo("Initiated"));
         }
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, responseTime * 3)
