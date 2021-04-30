@@ -35,26 +35,6 @@ public class PaymentsDataUtil {
 
     private static final String USER_ID = "user-id";
 
-    public void createOrder(String ccdCaseNumber){
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-            .id(1)
-            .orgId("org-id")
-            .enterpriseServiceName("enterprise-service-name")
-            .paymentReference("payment-ref")
-            .ccdCaseNumber("ccdCaseNumber"+ccdCaseNumber)
-            .fees(Arrays.asList(feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
-            .build();
-        CaseDetails caseDetailsEntity = CaseDetails.caseDetailsWith()
-            .id(1)
-            .ccdCaseNumber("ccdCaseNumber"+ccdCaseNumber)
-            .dateCreated(DateUtil.convertToDateViaInstant(LocalDateTime.now()))
-            .dateUpdated(DateUtil.convertToDateViaInstant(LocalDateTime.now()))
-            .orders(Arrays.asList(paymentFeeLink).stream().collect(Collectors.toSet()))
-            .build();
-        paymentFeeLink.setCaseDetails( Collections.singleton(caseDetailsEntity));
-        db.createOrder(caseDetailsEntity);
-
-    }
 
 
     public List<Payment> getCreditAccountPaymentsData() {
@@ -129,48 +109,6 @@ public class PaymentsDataUtil {
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         return payment;
-    }
-
-    public Payment populateCardPaymentToDbForOrders(String number) throws Exception {
-        StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
-        Payment payment = Payment.paymentWith()
-            .amount(new BigDecimal("99.99"))
-            .caseReference("Reference" + number)
-            .ccdCaseNumber("1607065108455502")
-            .description("Test payments statuses for " + number)
-            .serviceType("PROBATE")
-            .currency("GBP")
-            .siteId("AA0" + number)
-            .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
-            .reference("RC-1519-9028-2432-000" + number)
-            .statusHistories(Arrays.asList(statusHistory))
-            .build();
-        Payment savedPayment = db.createPayment(payment);
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-            .id(1)
-            .orgId("org-id")
-            .enterpriseServiceName("enterprise-service-name")
-            .paymentReference("payment-ref")
-            .ccdCaseNumber("1607065108455502")
-            .fees(Arrays.asList(feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
-            .build();
-        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
-            .apportionAmount(payment.getAmount())
-            .apportionType("AUTO")
-            .feeId(Integer.parseInt(number))
-            .paymentId(payment.getId())
-            .feeAmount(payment.getAmount())
-            .paymentId(savedPayment.getId())
-            .paymentLink(paymentFeeLink)
-            .build();;
-        db.createApportionment(feePayApportion);
-        return savedPayment;
-
     }
 
 
