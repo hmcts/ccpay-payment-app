@@ -7,11 +7,13 @@ import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
+import java.util.Map;
+
 public interface OrderDomainService {
 
     PaymentFeeLink find(String orderReference);
 
-    String create (OrderDto orderDto, MultiValueMap<String, String> headers);
+    Map create (OrderDto orderDto, MultiValueMap<String, String> headers);
 
     OrderPaymentBo addPayments (PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException;
 
