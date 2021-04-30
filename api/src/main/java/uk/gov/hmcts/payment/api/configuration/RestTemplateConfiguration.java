@@ -20,4 +20,9 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplatePaymentGroup() {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
+
+    @Bean (value = "restTemplateIacSupplementaryInfo")
+    public RestTemplate restTemplateIacSupplementaryInfo() {
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 }

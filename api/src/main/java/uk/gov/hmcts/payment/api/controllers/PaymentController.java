@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
@@ -7,15 +8,18 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -27,7 +31,8 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
-
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,14 +54,26 @@ public class PaymentController {
     private final DateTimeFormatter formatter;
     private final PaymentFeeRepository paymentFeeRepository;
 
+
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @Autowired
+    private AuthTokenGenerator authTokenGenerator;
+
+    @Autowired()
+    @Qualifier("restTemplateIacSupplementaryInfo")
+    private RestTemplate restTemplateIacSupplementaryInfo;
+
+
+    @Value("${iac.supplementary.info.url}")
+    private String iacSupplementaryInfoUrl;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
-                             DateUtil dateUtil,PaymentFeeRepository paymentFeeRepository) {
+                             DateUtil dateUtil, PaymentFeeRepository paymentFeeRepository) {
         this.paymentService = paymentService;
         this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
@@ -89,6 +106,46 @@ public class PaymentController {
         }
 
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+
+    @ApiOperation(value = "GET Supplementary Details", notes = "Get the supplementary details for the associate ccd case numbers")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Supplementary details completely retrieved"),
+        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 403, message = "Access denied or unauthorised"),
+        @ApiResponse(code = 404, message = "Supplementary details not found for all the case numbers given"),
+        @ApiResponse(code = 500, message = "Unexpected or Run time exception")
+
+    })
+    @PostMapping(value = "/supplementary-details")
+    public ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryDetails(
+        @RequestBody IacSupplementaryRequest iacSupplementaryRequest) throws IOException {
+
+        SupplementaryDetailsResponse supplementaryDetailsResponse = new SupplementaryDetailsResponse();
+        List<SupplementaryInfoDto> responselistAdded = new ArrayList<>();
+
+        for(int i=0;i<iacSupplementaryRequest.getCcdCaseNumbers().size();i++){
+            SupplementaryInfoDto supplementaryInfoDto= new SupplementaryInfoDto();
+            SupplementaryDetailsDto supplementaryDetailsDto = new SupplementaryDetailsDto();
+            supplementaryInfoDto.setCcdCaseNumber(iacSupplementaryRequest.getCcdCaseNumbers().get(i));
+            supplementaryDetailsDto.setSurname("Alex - " +i );
+            supplementaryInfoDto.setSupplementaryDetails(supplementaryDetailsDto);
+            responselistAdded.add(supplementaryInfoDto);
+        }
+        supplementaryDetailsResponse.setSupplementaryInfo(responselistAdded);
+
+        //missing_supplementary_info
+        List<String> listMissingSuppInfo = new ArrayList<>();
+        listMissingSuppInfo.add("1234123412341234");
+        listMissingSuppInfo.add("4321432143214321");
+        MissingSupplementaryDetailsDto missingSupplementaryDetailsDto1 = new MissingSupplementaryDetailsDto();
+        missingSupplementaryDetailsDto1.setCcdCaseNumbers(listMissingSuppInfo);
+        supplementaryDetailsResponse.setMissingSupplementaryInfo(missingSupplementaryDetailsDto1);
+
+        //return new ResponseEntity(supplementaryDetailsResponse, HttpStatus.OK);
+        return new ResponseEntity(supplementaryDetailsResponse, HttpStatus.PARTIAL_CONTENT);
     }
 
     @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
@@ -130,11 +187,12 @@ public class PaymentController {
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request")
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
     })
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
-    public PaymentsResponse retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+    public ResponseEntity<PaymentsResponse> retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                                         @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                                         @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -155,10 +213,98 @@ public class PaymentController {
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
-
         populatePaymentDtos(paymentDtos, payments);
-        return new PaymentsResponse(paymentDtos);
+
+        boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
+        LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
+        HttpStatus paymentResponseHttpStatus = HttpStatus.OK;
+
+        if(iacSupplementaryDetailsFeature) {
+
+            //Map of IAC Payments
+            Map<String, PaymentDto> iacPaymentDtosMap = new HashMap<>();
+
+            paymentDtos.stream()
+                .filter(paymentIac -> (paymentIac.getServiceName().equalsIgnoreCase(Service.IAC.getName())))
+                .forEach(paymentDto ->  iacPaymentDtosMap.put(paymentDto.getCcdCaseNumber(), paymentDto));
+
+            if(iacPaymentDtosMap != null && !iacPaymentDtosMap.isEmpty()) {
+                LOG.info("No of Iac payments retrieved  : {}", iacPaymentDtosMap.size());
+                List<String> iacCcdCaseNos = new ArrayList<>(iacPaymentDtosMap.keySet());
+                LOG.info("No of Iac Ccd case numbers  : {}", iacCcdCaseNos.size());
+
+                if (iacCcdCaseNos != null && !iacCcdCaseNos.isEmpty()) {
+                    LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
+                    ResponseEntity responseEntitySupplementaryInfo = getIacSupplementaryInfo(iacCcdCaseNos);
+                    paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
+                    populateSupplementaryInfoToPaymentDtos(iacPaymentDtosMap, responseEntitySupplementaryInfo);
+                }
+            }else{
+                LOG.info("No Iac payments retrieved");
+            }
+        }
+                PaymentsResponse paymentsResponse = new PaymentsResponse(paymentDtos);
+                return new ResponseEntity(paymentsResponse,paymentResponseHttpStatus);
     }
+
+    private void populateSupplementaryInfoToPaymentDtos(Map<String, PaymentDto> iacPaymentMap, ResponseEntity responseEntitySupplementaryInfo) {
+
+        LOG.info("Response received from IAC supplementary Info Endpoint : {}",responseEntitySupplementaryInfo.getStatusCode() );
+
+        if(responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.OK.value() || responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value()) {
+
+            ObjectMapper objectMapperSupplementaryInfo = new ObjectMapper();
+            SupplementaryDetailsResponse supplementaryDetailsResponse = objectMapperSupplementaryInfo.convertValue(responseEntitySupplementaryInfo.getBody(), SupplementaryDetailsResponse.class);
+            List<SupplementaryInfoDto> lstSupplementaryInfoDto = supplementaryDetailsResponse.getSupplementaryInfo();
+            MissingSupplementaryDetailsDto lstMissingSupplementaryInfoDto = supplementaryDetailsResponse.getMissingSupplementaryInfo();
+
+            if(responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfoDto == null)
+                LOG.info("No missing supplementary info received from IAC for any CCD case numbers, however response is 206");
+
+            if(lstMissingSupplementaryInfoDto != null && lstMissingSupplementaryInfoDto.getCcdCaseNumbers() != null)
+                LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfoDto.getCcdCaseNumbers().toString());
+
+            if(lstSupplementaryInfoDto != null && !lstSupplementaryInfoDto.isEmpty()) {
+                lstSupplementaryInfoDto.stream().
+                    forEach(supplementaryInfoDto -> {
+                        PaymentDto iacPaymentDTO = iacPaymentMap.get(supplementaryInfoDto.getCcdCaseNumber());
+                        iacPaymentDTO.setSupplementaryInfo(Arrays.asList(supplementaryInfoDto));
+                    });
+            }else{
+                LOG.info("No supplementary info received from IAC Endpoint for any of CCD Case No");
+            }
+        }
+  }
+
+    public ResponseEntity getIacSupplementaryInfo(List<String> iacCcdCaseNos) throws RestClientException {
+
+        IacSupplementaryRequest iacSupplementaryRequest = IacSupplementaryRequest.createIacSupplementaryRequestWith()
+            .ccdCaseNumbers(iacCcdCaseNos).build();
+
+        MultiValueMap<String, String> headerMultiValueMapForIacSuppInfo = new LinkedMultiValueMap<String, String>();
+        //Below code for auth token will not required as iac need only S2S and not the Auth token : need to remove it later
+            List<String> authTokenPaymentList = new ArrayList<>();
+            authTokenPaymentList.add("krishnakn00@gmail.com");
+            headerMultiValueMapForIacSuppInfo.put("Authorization", authTokenPaymentList);
+
+
+            List<String> serviceAuthTokenPaymentList = new ArrayList<>();
+            //Below code need to be added , it is commented as its not working on local so hardcoded for test
+            //Generate token for payment api and replace
+            //serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+
+            //Hard coded need to remove it
+                serviceAuthTokenPaymentList.add("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1MzMyMzc3NjN9.3iwg2cCa1_G9-TAMupqsQsIVBMWg9ORGir5xZyPhDabk09Ldk0-oQgDQq735TjDQzPI8AxL1PgjtOPDKeKyxfg[akiss@reformMgmtDevBastion02");
+
+                headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+
+        HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
+        final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
+        ResponseEntity  responseEntity = restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl+"/supplementary-details",HttpMethod.POST,entity,SupplementaryDetailsResponse.class);
+
+        return responseEntity;
+    }
+
 
     @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
     @ApiResponses(value = {
@@ -182,6 +328,8 @@ public class PaymentController {
 
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+
+
 
     @ApiOperation(value = "Get payment details by payment reference", notes = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
@@ -212,6 +360,8 @@ public class PaymentController {
             .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
             .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
             .build();
+
+
     }
 
     private Date getFromDateTime(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString) {
@@ -302,8 +452,6 @@ public class PaymentController {
         final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
         paymentDtos.add(paymentDto);
     }
-
-
 
     private void getApportionedDetails(List<PaymentFee> fees, List<FeePayApportion> feePayApportionList) {
         LOG.info("Getting Apportionment Details!!!");

@@ -83,6 +83,7 @@ public class SpringSecurityConfiguration {
                 "/info",
                 "/favicon.ico",
                 "/mock-api/**",
+                "/supplementary-details",
                 "/");
         }
 
