@@ -7,7 +7,6 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,12 +23,10 @@ import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
-import uk.gov.hmcts.payment.api.model.CaseDetails;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -38,16 +35,13 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -67,7 +61,7 @@ public class OrderControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @Mock
+    @MockBean
     private ReferenceDataService referenceDataService;
 
     @MockBean
@@ -106,27 +100,20 @@ public class OrderControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AA001")
+            .serviceDescription("DIVORCE")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+
     }
-
-
 
     @Test
     public void createPBAPaymentWithOrderSuccessTest() throws Exception {
 
         //Creation of Order-reference
-        OrderDto orderDto = OrderDto.orderDtoWith()
-            .caseReference("123245677")
-            .caseType("MoneyClaimCase")
-            .ccdCaseNumber("8689869686968696")
-            .fees(getMultipleFees())
-            .build();
-
-        MvcResult result = restActions
-            .post("/order", orderDto)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        String orderReferenceResult = result.getResponse().getContentAsString();
+        String orderReferenceResult = getOrderReference();
 
         //Order Payment DTO
         OrderPaymentDto orderPaymentDto = OrderPaymentDto
@@ -209,25 +196,28 @@ public class OrderControllerTest {
             .andReturn();
     }
 
+
     @Test
     public void createPBAPaymentWithOrderTimeOutTest() throws Exception {
         when(accountService.retrieve("PBA12346")).thenThrow(
             new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "Unable to retrieve account information", null, null));
 
+        String orderReference = getOrderReference();
+
         //Order Payment DTO
         OrderPaymentDto orderPaymentDto = OrderPaymentDto
             .paymentDtoWith().accountNumber("PBA12346")
-            .amount(BigDecimal.valueOf(100))
+            .amount(BigDecimal.valueOf(300))
             .currency(CurrencyCode.valueOf("GBP"))
             .customerReference("testCustReference").
                 build();
 
-        //Order
+        //Order reference creation
         String idempotencyKey = UUID.randomUUID().toString();
 
         MvcResult result = restActions
             .withHeader("idempotency_key", idempotencyKey)
-            .post("/order/" + "2020-1619524583861" + "/credit-account-payment", orderPaymentDto)
+            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andReturn();
 
@@ -238,7 +228,7 @@ public class OrderControllerTest {
         //Duplicate request for timeout
         MvcResult result1 = restActions
             .withHeader("idempotency_key", idempotencyKey)
-            .post("/order/" + "2020-1619524583861" + "/credit-account-payment", orderPaymentDto)
+            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andReturn();
 
@@ -259,112 +249,17 @@ public class OrderControllerTest {
             .customerReference("testCustReference").
                 build();
 
-        //Order
-        PaymentFee fee1 = PaymentFee.feeWith().code("X101")
-            .version("1")
-            .calculatedAmount(BigDecimal.valueOf(100))
-            .volume(1).build();
-
-        PaymentFee fee2 = PaymentFee.feeWith().code("X102")
-            .version("1")
-            .calculatedAmount(BigDecimal.valueOf(200))
-            .volume(1).build();
-
-        CaseDetails caseDetails = CaseDetails.caseDetailsWith()
-            .caseReference("testCaseReference")
-            .ccdCaseNumber("1111222233334444")
-            .build();
-
-        PaymentFeeLink order = PaymentFeeLink
-            .paymentFeeLinkWith().fees(Arrays.asList(fee1,fee2))
-            .caseDetails(Stream.of(caseDetails).collect(Collectors.toSet()))
-            .ccdCaseNumber("1111222233334444")
-            .build();
-
-
-        when(orderDomainService.find("2020-1619524583862")).thenReturn(order);
+        //Order reference creation
+        String orderReference = getOrderReference();
 
         //Payment amount should not be matching with fees
         MvcResult result = restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
-            .post("/order/" + "2020-1619524583862" + "/credit-account-payment", orderPaymentDto)
-            .andExpect(status().isBadRequest())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderException))
+            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .andExpect(status().isExpectationFailed())
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoMatchingAmount))
             .andExpect(orderException -> assertEquals("Payment amount not matching with fees", orderException.getResolvedException().getMessage()))
             .andReturn();
-
-    }
-
-    @Test
-    public void createPBAPaymentNoAmountDueTest() throws Exception {
-
-        //Order Payment DTO
-        OrderPaymentDto orderPaymentDto = OrderPaymentDto
-            .paymentDtoWith().accountNumber("PBA12345")
-            .amount(BigDecimal.valueOf(100))
-            .currency(CurrencyCode.valueOf("GBP"))
-            .customerReference("testCustReference").
-                build();
-
-        //Amount Due 0
-        PaymentFee fee1 = PaymentFee.feeWith().code("X101")
-            .version("1")
-            .calculatedAmount(BigDecimal.valueOf(100))
-            .amountDue(BigDecimal.ZERO)
-            .volume(1).build();
-
-
-        CaseDetails caseDetails = CaseDetails.caseDetailsWith()
-            .caseReference("testCaseReference")
-            .ccdCaseNumber("1111222233334444")
-            .build();
-
-        PaymentFeeLink order = PaymentFeeLink
-            .paymentFeeLinkWith().fees(Arrays.asList(fee1))
-            .caseDetails(Stream.of(caseDetails).collect(Collectors.toSet()))
-            .ccdCaseNumber("1111222233334444")
-            .build();
-
-
-        when(orderDomainService.find("2020-1619524583863")).thenReturn(order);
-
-        //No Amount due check
-        MvcResult result = restActions
-            .withHeader("idempotency_key", UUID.randomUUID().toString())
-            .post("/order/" + "2020-1619524583863" + "/credit-account-payment", orderPaymentDto)
-            .andExpect(status().isBadRequest())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderException))
-            .andExpect(orderException -> assertEquals("No fee amount due for payment for this order", orderException.getResolvedException().getMessage()))
-            .andReturn();
-
-    }
-
-    @Test
-    public void createOrderWithValidRequest() throws Exception {
-
-        OrderDto orderDto = OrderDto.orderDtoWith()
-            .caseReference("123245677")
-            .caseType("MoneyClaimCase")
-            .ccdCaseNumber("8689869686968696")
-            .fees(Collections.singletonList(getFee()))
-            .build();
-
-        String orderReference = "2200-1619524583862";
-
-        Map<String, Object> orderResponse = new HashMap<>();
-        orderResponse.put("order_reference",orderReference);
-        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-
-        when(orderDomainService.create(any(), any())).thenReturn(orderResponse);
-
-        MvcResult result = restActions
-            .post("/order", orderDto)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        Map orderReferenceResult = objectMapper.readValue(result.getResponse().getContentAsByteArray(),Map.class);
-
-        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
     }
 
@@ -418,7 +313,7 @@ public class OrderControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(orderDomainService.create(any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/order", orderDto)
@@ -436,7 +331,7 @@ public class OrderControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(orderDomainService.create(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/order", orderDto)
@@ -469,6 +364,25 @@ public class OrderControllerTest {
             .build();
 
         return Arrays.asList(fee1, fee2);
+    }
+
+    private String getOrderReference() throws Exception {
+        OrderDto orderDto = OrderDto.orderDtoWith()
+            .caseReference("123245677")
+            .caseType("MoneyClaimCase")
+            .ccdCaseNumber("8689869686968696")
+            .fees(getMultipleFees())
+            .build();
+
+        MvcResult result = restActions
+            .post("/order", orderDto)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        Map orderReferenceResultMaps = objectMapper.readValue(result.getResponse().getContentAsByteArray(),Map.class);
+        String orderReferenceResult = orderReferenceResultMaps.get("order_reference").toString();
+        assertNotNull(orderReferenceResult);
+        return orderReferenceResult;
     }
 
 }
