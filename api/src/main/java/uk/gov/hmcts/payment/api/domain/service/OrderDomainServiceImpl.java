@@ -36,6 +36,8 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -187,6 +189,8 @@ public class OrderDomainServiceImpl implements OrderDomainService {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
+        List<Payment> paymentList = new ArrayList<>();
+
         //save the payment in paymentFeeLink
         order.getPayments().add(payment);
         paymentFeeLinkRepository.save(order);
