@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.model;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentFeeLinkEntityListener;
 
 import javax.persistence.*;

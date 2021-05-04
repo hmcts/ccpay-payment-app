@@ -16,8 +16,6 @@ public class OrderPaymentDomainDataEntityMapper {
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
-    private final static String PAYMENT_METHOD = "payment by account";
-
     private final static String PAYMENT_METHOD_BY_ACCOUNT = "payment by account";
 
     @Autowired
