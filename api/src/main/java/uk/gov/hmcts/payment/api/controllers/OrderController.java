@@ -27,7 +27,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -52,12 +51,18 @@ public class OrderController {
 
     @ApiOperation(value = "Add Order with Fees", notes = "Add Order with Fees")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = "Payment group with fee(s) created"),
-        @ApiResponse(code = 400, message = "Payment group creation failed")
+        @ApiResponse(code = 201, message = "Order Created"),
+        @ApiResponse(code = 400, message = "Order Creation Failed"),
+        @ApiResponse(code = 401, message = "Credentials are required to access this resource"),
+        @ApiResponse(code = 403, message = "Forbidden-Access Denied"),
+        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
+        @ApiResponse(code = 404, message = "No Service found for given CaseType"),
+        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later"),
+        @ApiResponse(code = 500, message = "Internal Server")
     })
     @PostMapping(value = "/order")
     @Transactional
-    public ResponseEntity<String> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+    public ResponseEntity<?> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
         return new ResponseEntity<>(orderDomainService.create(orderDto, headers), HttpStatus.CREATED);
     }
 
