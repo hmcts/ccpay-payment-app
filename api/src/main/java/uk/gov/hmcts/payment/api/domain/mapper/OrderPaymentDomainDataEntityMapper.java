@@ -7,7 +7,9 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
-import java.util.Arrays;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Component
 public class OrderPaymentDomainDataEntityMapper {
@@ -47,7 +49,7 @@ public class OrderPaymentDomainDataEntityMapper {
             .paymentChannel(paymentChannelRepository.findByNameOrThrow(PAYMENT_CHANNEL_ONLINE))
             .paymentMethod(paymentMethodRepository.findByNameOrThrow(PAYMENT_METHOD_BY_ACCOUNT))
             .paymentStatus(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus()))
-            .reference(paymentBo.getReference())
+            .reference(paymentBo.getPaymentReference())
             .status(paymentBo.getStatus())
             .amount(paymentBo.getAmount())
             .pbaNumber(paymentBo.getAccountNumber())
@@ -63,9 +65,25 @@ public class OrderPaymentDomainDataEntityMapper {
     }
 
     public OrderPaymentBo toDomain(Payment payment) {
+        AtomicReference<String> errorCode = null;
+        AtomicReference<String> errorMessage = null;
+
+        if (Optional.ofNullable(payment.getStatusHistories()).isPresent()) {
+            Optional<StatusHistory> statusHistoryOptional =
+                payment.getStatusHistories().stream()
+                    .filter(statusHistory -> statusHistory.getErrorCode() != null).findFirst();
+
+            statusHistoryOptional.ifPresent(statusHistory -> {
+                errorCode.set(statusHistory.getErrorCode());
+                errorMessage.set(statusHistory.getMessage());
+            });
+        }
+
         return OrderPaymentBo.orderPaymentBoWith()
-            .reference(payment.getReference())
+            .paymentReference(payment.getReference())
             .status(payment.getPaymentStatus().getName())
+            .errorCode(errorCode != null ? errorCode.get() : null)
+            .errorMessage(errorMessage != null ? errorMessage.get() : null)
             .dateCreated(payment.getDateCreated().toString())
             .build();
     }
