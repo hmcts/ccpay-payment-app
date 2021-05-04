@@ -33,6 +33,7 @@ public class OrderDtoDomainMapper {
     public OrderFeeBo toFeeDomain(OrderFeeDto orderFeeDto, String ccdCaseNumber) {
         return OrderFeeBo.orderFeeBoWith()
             .calculatedAmount(orderFeeDto.getCalculatedAmount())
+            .amountDue(orderFeeDto.getCalculatedAmount()) //amount due = calculated amount
             .code(orderFeeDto.getCode())
             .ccdCaseNumber(ccdCaseNumber)
             .version(orderFeeDto.getVersion())

@@ -128,12 +128,17 @@ public class OrderController {
         //Business validation for amount
         BigDecimal totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add).get();
         if (!(totalCalculatedAmount.compareTo(orderPaymentDto.getAmount()) == 0)) {
-            throw new OrderException("Payment amount not matching with fees");
+            throw new OrderExceptionForNoMatchingAmount("Payment amount not matching with fees");
         }
 
-        //Todo: Check the amount due post integration with order api instead of payments
+
         //Business validation for amount due for fees
-        Optional<List<Payment>> orderPaymentsOptional =  payment2Repository.findByPaymentLinkId(order.getId());
+        BigDecimal totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add).get();
+        if (totalAmountDue.compareTo(BigDecimal.ZERO) == 0) {
+            throw new OrderExceptionForNoAmountDue("No fee amount due for payment for this order");
+        }
+
+        /*Optional<List<Payment>> orderPaymentsOptional =  payment2Repository.findByPaymentLinkId(order.getId());
 
         if(orderPaymentsOptional.isPresent() && orderPaymentsOptional.get().size() > 0) {
             Optional<BigDecimal> totalPaymentAmountOptional = orderPaymentsOptional.get().stream()
@@ -144,7 +149,7 @@ public class OrderController {
                 (totalPaymentAmountOptional.get().compareTo(totalCalculatedAmount) == 0)) {
                 throw new OrderException("No amount due for payment for this Order");
             }
-        }
+        }*/
 
         return order;
     }
@@ -243,6 +248,18 @@ public class OrderController {
     @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
     @ExceptionHandler(LiberataServiceTimeoutException.class)
     public String return504(LiberataServiceTimeoutException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
+    @ExceptionHandler(OrderExceptionForNoMatchingAmount.class)
+    public String return400(OrderExceptionForNoMatchingAmount ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
+    @ExceptionHandler(OrderExceptionForNoAmountDue.class)
+    public String return400(OrderExceptionForNoAmountDue ex) {
         return ex.getMessage();
     }
 }

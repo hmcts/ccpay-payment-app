@@ -18,7 +18,7 @@ public class OrderPaymentDtoDomainMapper {
         String reference = referenceUtil.getNext("RC");
 
         return OrderPaymentBo.orderPaymentBoWith()
-            .reference(reference)
+            .paymentReference(reference)
             .accountNumber(paymentDto.getAccountNumber())
             .amount(paymentDto.getAmount())
             .currency(paymentDto.getCurrency())

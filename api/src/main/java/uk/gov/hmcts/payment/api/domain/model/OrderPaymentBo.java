@@ -26,7 +26,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 public class OrderPaymentBo {
 
-    private String reference;
+    private String paymentReference;
 
     private BigDecimal amount;
 
@@ -41,4 +41,9 @@ public class OrderPaymentBo {
     private List<StatusHistory> statusHistories;
 
     private String dateCreated;
+
+    //Error message
+    private String errorCode;
+
+    private String errorMessage;
 }
