@@ -58,6 +58,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers) {
 
 //        return OrganisationalServiceDto.orgServiceDtoWith().serviceDescription("Divorce").serviceCode("AAD1").build();
+
         LOG.info("RD base url {}",rdBaseUrl);
         MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
         List<OrganisationalServiceDto> orgServiceResponse;
