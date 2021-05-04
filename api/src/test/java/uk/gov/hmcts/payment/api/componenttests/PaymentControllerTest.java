@@ -51,6 +51,8 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
@@ -89,6 +91,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @MockBean
     @Qualifier("restTemplateIacSupplementaryInfo")
     private RestTemplate restTemplateIacSupplementaryInfo;
+
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
@@ -1730,7 +1735,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Test
     @Transactional
-    public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetailsAndMissingCCDNumbers_206() throws Exception {
+    public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetailsAndMissingInfo_206() throws Exception {
 
         populateIACCardPaymentToDb("1");
         populateCreditAccountPaymentToDb("2");
