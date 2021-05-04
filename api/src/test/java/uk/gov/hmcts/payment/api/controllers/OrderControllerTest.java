@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,7 +28,6 @@ import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.model.CaseDetails;
-import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.AccountService;
@@ -58,7 +56,6 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
-import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
@@ -108,30 +105,6 @@ public class OrderControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
-
-
-       /* PaymentFee fee1 = PaymentFee.feeWith().code("X101")
-            .version("1")
-            .calculatedAmount(BigDecimal.valueOf(100))
-            .amountDue(BigDecimal.valueOf(100))
-            .volume(1).build();
-
-        PaymentFee fee2 = PaymentFee.feeWith().code("X102")
-            .version("1")
-            .calculatedAmount(BigDecimal.valueOf(200))
-            .amountDue(BigDecimal.valueOf(200))
-            .volume(1).build();
-
-
-        CaseDetails caseDetails = CaseDetails.caseDetailsWith()
-            .caseReference("testCaseReference")
-            .ccdCaseNumber("1111222233334444")
-            .build();
-
-        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1619524583860")
-            .fees(Arrays.asList(fee1, fee2))
-            .caseDetails(Stream.of(caseDetails).collect(Collectors.toSet()))
-            .ccdCaseNumber("1111222233334444"));*/
 
     }
 
@@ -377,23 +350,26 @@ public class OrderControllerTest {
             .build();
 
         String orderReference = "2200-1619524583862";
+
+        Map<String, Object> orderResponse = new HashMap<>();
+        orderResponse.put("order_reference",orderReference);
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
 
-        when(orderDomainService.create(any(), any())).thenReturn(orderReference);
+        when(orderDomainService.create(any(), any())).thenReturn(orderResponse);
 
         MvcResult result = restActions
             .post("/order", orderDto)
             .andExpect(status().isCreated())
             .andReturn();
 
-        String orderReferenceResult = result.getResponse().getContentAsString();
+        Map orderReferenceResult = objectMapper.readValue(result.getResponse().getContentAsByteArray(),Map.class);
 
-        assertThat(orderReferenceResult).isEqualTo(orderReference);
+        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
     }
 
     @Test
-    public void createOrderWithInValidCcdCaseNmber() throws Exception {
+    public void createOrderWithInValidCcdCaseNumber() throws Exception {
 
         OrderDto orderDto = OrderDto.orderDtoWith()
             .caseReference("123245677")
@@ -403,10 +379,7 @@ public class OrderControllerTest {
             .build();
 
 
-        String orderReference = "2200-1619524583862";
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-
-        when(orderDomainService.create(any(), any())).thenReturn(orderReference);
 
         restActions
             .post("/order", orderDto)
@@ -473,7 +446,7 @@ public class OrderControllerTest {
 
     private OrderFeeDto getFee() {
         return OrderFeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("300"))
+            .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
             .volume(2)

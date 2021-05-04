@@ -20,7 +20,6 @@ import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
@@ -36,6 +35,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -98,22 +98,16 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     @Override
     @Transactional
-    public String create(OrderDto orderDto, MultiValueMap<String, String> headers) {
+    public Map<String ,Object> create(OrderDto orderDto, MultiValueMap<String, String> headers) {
 
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+        /*OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
             .serviceDescription("DIVORCE")
-            .build();
+            .build();*/
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
 
-//        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
-
-        OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto,organisationalServiceDto);
-
+        OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto, organisationalServiceDto);
         return orderBo.createOrder(orderBoDomain);
-    }
-
-    @Override
-    public void addFees(OrderBo orderBo, List<OrderFeeDto> feeDtos) {
 
     }
 

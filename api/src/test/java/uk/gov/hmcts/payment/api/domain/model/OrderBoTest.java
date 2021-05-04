@@ -17,6 +17,8 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -46,15 +48,13 @@ public class OrderBoTest {
 
         OrderBo orderBoDomain = getOrderBoDomain(orderReference);
 
-        when(caseDetailsRepository.existsByCcdCaseNumber(anyString())).thenReturn(true);
-
         when(caseDetailsRepository.findByCcdCaseNumber(anyString())).thenReturn(getCaseDetails());
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        String orderReferenceResult = orderBo.createOrder(orderBoDomain);
+        Map<String,Object> orderReferenceResult =  orderBo.createOrder(orderBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReference);
+        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
     }
 
@@ -65,15 +65,13 @@ public class OrderBoTest {
 
         OrderBo orderBoDomain = getOrderBoDomain(orderReference);
 
-        when(caseDetailsRepository.existsByCcdCaseNumber(anyString())).thenReturn(false);
-
-        when(caseDetailsRepository.findByCcdCaseNumber(anyString())).thenReturn(getCaseDetails());
+        when(caseDetailsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        String orderReferenceResult = orderBo.createOrder(orderBoDomain);
+        Map<String,Object> orderReferenceResult =  orderBo.createOrder(orderBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReference);
+        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
     }
 
@@ -93,11 +91,11 @@ public class OrderBoTest {
     }
 
 
-    private CaseDetails getCaseDetails() {
-        return CaseDetails.caseDetailsWith()
+    private Optional<CaseDetails> getCaseDetails() {
+        return Optional.ofNullable(CaseDetails.caseDetailsWith()
             .caseReference("rertyuilkjhcxdfgh")
             .ccdCaseNumber("8696869686968696")
-            .build();
+            .build());
     }
 
 
