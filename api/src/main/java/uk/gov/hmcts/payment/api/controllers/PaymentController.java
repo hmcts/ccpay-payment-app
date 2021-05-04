@@ -109,45 +109,6 @@ public class PaymentController {
     }
 
 
-    @ApiOperation(value = "GET Supplementary Details", notes = "Get the supplementary details for the associate ccd case numbers")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Supplementary details completely retrieved"),
-        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
-        @ApiResponse(code = 400, message = "Bad Request"),
-        @ApiResponse(code = 403, message = "Access denied or unauthorised"),
-        @ApiResponse(code = 404, message = "Supplementary details not found for all the case numbers given"),
-        @ApiResponse(code = 500, message = "Unexpected or Run time exception")
-
-    })
-    @PostMapping(value = "/supplementary-details")
-    public ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryDetails(
-        @RequestBody IacSupplementaryRequest iacSupplementaryRequest) throws IOException {
-
-        SupplementaryDetailsResponse supplementaryDetailsResponse = new SupplementaryDetailsResponse();
-        List<SupplementaryInfoDto> responselistAdded = new ArrayList<>();
-
-        for(int i=0;i<iacSupplementaryRequest.getCcdCaseNumbers().size();i++){
-            SupplementaryInfoDto supplementaryInfoDto= new SupplementaryInfoDto();
-            SupplementaryDetailsDto supplementaryDetailsDto = new SupplementaryDetailsDto();
-            supplementaryInfoDto.setCcdCaseNumber(iacSupplementaryRequest.getCcdCaseNumbers().get(i));
-            supplementaryDetailsDto.setSurname("Alex - " +i );
-            supplementaryInfoDto.setSupplementaryDetails(supplementaryDetailsDto);
-            responselistAdded.add(supplementaryInfoDto);
-        }
-        supplementaryDetailsResponse.setSupplementaryInfo(responselistAdded);
-
-        //missing_supplementary_info
-        List<String> listMissingSuppInfo = new ArrayList<>();
-        listMissingSuppInfo.add("1234123412341234");
-        listMissingSuppInfo.add("4321432143214321");
-        MissingSupplementaryDetailsDto missingSupplementaryDetailsDto1 = new MissingSupplementaryDetailsDto();
-        missingSupplementaryDetailsDto1.setCcdCaseNumbers(listMissingSuppInfo);
-        supplementaryDetailsResponse.setMissingSupplementaryInfo(missingSupplementaryDetailsDto1);
-
-        //return new ResponseEntity(supplementaryDetailsResponse, HttpStatus.OK);
-        return new ResponseEntity(supplementaryDetailsResponse, HttpStatus.PARTIAL_CONTENT);
-    }
-
     @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
@@ -228,12 +189,12 @@ public class PaymentController {
                 .filter(paymentIac -> (paymentIac.getServiceName().equalsIgnoreCase(Service.IAC.getName())))
                 .forEach(paymentDto ->  iacPaymentDtosMap.put(paymentDto.getCcdCaseNumber(), paymentDto));
 
-            if(iacPaymentDtosMap != null && !iacPaymentDtosMap.isEmpty()) {
+            if(!iacPaymentDtosMap.isEmpty()) {
                 LOG.info("No of Iac payments retrieved  : {}", iacPaymentDtosMap.size());
                 List<String> iacCcdCaseNos = new ArrayList<>(iacPaymentDtosMap.keySet());
                 LOG.info("No of Iac Ccd case numbers  : {}", iacCcdCaseNos.size());
 
-                if (iacCcdCaseNos != null && !iacCcdCaseNos.isEmpty()) {
+                if (!iacCcdCaseNos.isEmpty()) {
                     LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
                     ResponseEntity responseEntitySupplementaryInfo = getIacSupplementaryInfo(iacCcdCaseNos);
                     paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
@@ -276,31 +237,22 @@ public class PaymentController {
         }
   }
 
-    public ResponseEntity getIacSupplementaryInfo(List<String> iacCcdCaseNos) throws RestClientException {
+    public ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryInfo(List<String> iacCcdCaseNos) throws RestClientException {
 
         IacSupplementaryRequest iacSupplementaryRequest = IacSupplementaryRequest.createIacSupplementaryRequestWith()
             .ccdCaseNumbers(iacCcdCaseNos).build();
 
         MultiValueMap<String, String> headerMultiValueMapForIacSuppInfo = new LinkedMultiValueMap<String, String>();
-        //Below code for auth token will not required as iac need only S2S and not the Auth token : need to remove it later
-            List<String> authTokenPaymentList = new ArrayList<>();
-            authTokenPaymentList.add("krishnakn00@gmail.com");
-            headerMultiValueMapForIacSuppInfo.put("Authorization", authTokenPaymentList);
-
 
             List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-            //Below code need to be added , it is commented as its not working on local so hardcoded for test
             //Generate token for payment api and replace
-            //serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+            serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
 
-            //Hard coded need to remove it
-                serviceAuthTokenPaymentList.add("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjbWMiLCJleHAiOjE1MzMyMzc3NjN9.3iwg2cCa1_G9-TAMupqsQsIVBMWg9ORGir5xZyPhDabk09Ldk0-oQgDQq735TjDQzPI8AxL1PgjtOPDKeKyxfg[akiss@reformMgmtDevBastion02");
-
-                headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+            headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
 
         HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
         final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
-        ResponseEntity  responseEntity = restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl+"/supplementary-details",HttpMethod.POST,entity,SupplementaryDetailsResponse.class);
+        ResponseEntity<SupplementaryDetailsResponse>  responseEntity = restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl+"/supplementary-details",HttpMethod.POST,entity,SupplementaryDetailsResponse.class);
 
         return responseEntity;
     }
