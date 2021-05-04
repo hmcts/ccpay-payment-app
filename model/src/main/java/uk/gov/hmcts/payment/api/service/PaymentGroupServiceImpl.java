@@ -3,10 +3,12 @@ package uk.gov.hmcts.payment.api.service;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 
@@ -24,6 +26,9 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     private final PaymentStatusRepository paymentStatusRepository;
+
+    @Autowired
+    private OrderCaseUtil orderCaseUtil;
 
     public PaymentGroupServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository, PaymentStatusRepository paymentStatusRepository) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
@@ -61,6 +66,8 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(PaymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + PaymentGroupReference + " does not exists."));
 
+        orderCaseUtil.updateOrderCaseDetails(paymentFeeLink, payment);
+
         payment.setPaymentStatus(paymentStatusRepository.findByNameOrThrow(payment.getPaymentStatus().getName()));
         payment.setStatus(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus());
         payment.setStatusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
@@ -92,7 +99,7 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
             .payments(Arrays.asList(payment))
             .build();
 
-        return  paymentFeeLinkRepository.save(paymentFeeLink);
+        return  paymentFeeLinkRepository.save(orderCaseUtil.enhanceWithOrderCaseDetails(paymentFeeLink, payment));
     }
 
 

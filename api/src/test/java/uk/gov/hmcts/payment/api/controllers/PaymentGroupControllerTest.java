@@ -27,25 +27,10 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.PaymentFeeDbBackdoor;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
-import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.controllers.PaymentGroupController;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.RemissionRequest;
-import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -62,12 +47,7 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationHealthApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
@@ -2002,7 +1982,7 @@ public class PaymentGroupControllerTest {
         assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
 
 
-        BigDecimal amount = new BigDecimal("120");
+        BigDecimal amount = new BigDecimal("120.00");
 
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
