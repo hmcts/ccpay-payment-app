@@ -3,7 +3,6 @@ package uk.gov.hmcts.payment.api.model;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import uk.gov.hmcts.payment.api.jpaaudit.listner.Auditable;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentFeeLinkEntityListener;
 
 import javax.persistence.*;
@@ -30,6 +29,7 @@ public class PaymentFeeLink{
         joinColumns = @JoinColumn(name = "order_id"),
         inverseJoinColumns = @JoinColumn(name = "case_details_id")
     )
+    @Builder.Default
     private Set<CaseDetails> caseDetails = new HashSet<>();
 
     @Id
