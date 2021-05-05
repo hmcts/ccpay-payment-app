@@ -46,13 +46,13 @@ public class OrderCaseUtil {
     public PaymentFeeLink enhanceWithOrderCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
 
         if(payment.getCcdCaseNumber() != null) {
-            if(!caseDetailsRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).isPresent()) {
+            if(caseDetailsRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).isPresent()) {
+                paymentFeeLink.setCaseDetails(Collections.singleton(caseDetailsRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).get()));
+            } else {
                 paymentFeeLink.setCaseDetails(Collections.singleton(CaseDetails.caseDetailsWith()
                     .ccdCaseNumber(payment.getCcdCaseNumber())
                     .caseReference(payment.getCaseReference())
                     .build()));
-            } else {
-                paymentFeeLink.setCaseDetails(Collections.singleton(caseDetailsRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).get()));
             }
         }
 
@@ -64,13 +64,13 @@ public class OrderCaseUtil {
 
     public PaymentFeeLink enhanceWithOrderCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
         if(remission.getCcdCaseNumber() != null) {
-            if(!caseDetailsRepository.findByCcdCaseNumber(remission.getCcdCaseNumber()).isPresent()) {
+            if(caseDetailsRepository.findByCcdCaseNumber(remission.getCcdCaseNumber()).isPresent()) {
+                paymentFeeLink.setCaseDetails(Collections.singleton(caseDetailsRepository.findByCcdCaseNumber(remission.getCcdCaseNumber()).get()));
+            } else {
                 paymentFeeLink.setCaseDetails(Collections.singleton(CaseDetails.caseDetailsWith()
                     .ccdCaseNumber(remission.getCcdCaseNumber())
                     .caseReference(remission.getCaseReference())
                     .build()));
-            } else {
-                paymentFeeLink.setCaseDetails(Collections.singleton(caseDetailsRepository.findByCcdCaseNumber(remission.getCcdCaseNumber()).get()));
             }
         }
 
