@@ -56,7 +56,7 @@ public class PaymentFeeLink{
     @Builder.Default
     private List<Payment> payments = new LinkedList<>();
 
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     @ToString.Exclude
     private List<PaymentFee> fees;
