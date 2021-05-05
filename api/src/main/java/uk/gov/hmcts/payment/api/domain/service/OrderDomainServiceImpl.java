@@ -75,7 +75,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    private FeePayApportionService feePayApportionService;
+    private FeePayApportionService<?,?> feePayApportionService;
 
     @Autowired
     private OrderBo orderBo;
@@ -139,7 +139,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
             if (Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
-                LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as {}" + pbaPayment.getPaymentStatus().getName());
+                LOG.info("Update Fee Amount Due as Payment Status received from PBA Payment as %s" + pbaPayment.getPaymentStatus().getName());
                 feePayApportionService.updateFeeAmountDue(pbaPayment);
             }
         }
@@ -147,8 +147,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     private Payment accountCheckForPBAPayment(PaymentFeeLink order, OrderPaymentDto orderPaymentDto, Payment payment) {
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
-        Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(order.getEnterpriseServiceName())
-            ? true : false;
+        Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(order.getEnterpriseServiceName());
 
         if (!isPBAConfig1Journey) {
             LOG.info("Checking with Liberata for Service : {}", order.getEnterpriseServiceName());
@@ -173,7 +172,6 @@ public class OrderDomainServiceImpl implements OrderDomainService {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
-        List<Payment> paymentList = new ArrayList<>();
 
         //save the payment in paymentFeeLink
         order.getPayments().add(payment);
