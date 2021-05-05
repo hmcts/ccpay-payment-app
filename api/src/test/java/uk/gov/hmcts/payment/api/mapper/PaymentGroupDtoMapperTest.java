@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
+import uk.gov.hmcts.fees2.register.data.service.FeeService;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -19,29 +21,25 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PaymentGroupDtoMapperTest {
-
     @Mock
     FeesService feesService;
+
 
     @Mock
     LaunchDarklyFeatureToggler featureToggler;
 
-    @MockBean
+    @Mock
     FeeDomainService feeDomainService;
 
-    @MockBean
+    @Mock
     PaymentDomainService paymentDomainService;
 
     @InjectMocks
@@ -51,7 +49,6 @@ public class PaymentGroupDtoMapperTest {
 
     @Before
     public void initiate(){
-
         List<Payment> payments = new ArrayList<Payment>();
         payments.add(getPayment());
         PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").calculatedAmount(new BigDecimal("100.00")).build();
@@ -72,8 +69,24 @@ public class PaymentGroupDtoMapperTest {
             .build();
     }
 
+
+    @Test
+    public void testToPaymentGroupDtoForFeePayApportionment(){
+        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith().build();
+        Payment payment = getPayment();
+        FeeVersionDto feeVersionDto = FeeVersionDto.feeVersionDtoWith().build();
+        Mockito.when(feesService.getFeeVersion(anyString(), anyString())).thenReturn(getPaymentFeeDto());
+        Mockito.when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(true);
+        Mockito.when(paymentDomainService.getFeePayApportionByPaymentId(anyInt())).thenReturn(Arrays.asList(getFeePayApportion()));
+        when(feeDomainService.getPaymentFeeById(anyInt())).thenReturn(getPaymentFee());
+        PaymentGroupDto resultPaymentGroupDto = paymentGroupDtoMapper.toPaymentGroupDtoForFeePayApportionment(paymentGroupDto,payment);
+        assertEquals(resultPaymentGroupDto.getPayments().get(0).getAmount(),new BigDecimal("100.00"));
+
+    }
+
     @Test
     public void testToPaymentFee(){
+        Mockito.when(featureToggler.getBooleanValue(anyString(),anyBoolean())).thenReturn(false);
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal(("100.00")))
             .code("FEE123")
@@ -115,5 +128,50 @@ public class PaymentGroupDtoMapperTest {
             .id(1).build();
     }
 
+
+    private FeePayApportion getFeePayApportion(){
+        return FeePayApportion.feePayApportionWith()
+            .apportionAmount(new BigDecimal("99.99"))
+            .apportionType("AUTO")
+            .feeId(1)
+            .paymentId(1)
+            .feeAmount(new BigDecimal("99.99"))
+            .paymentId(1)
+            .build();
+    }
+
+    private PaymentFee getPaymentFee(){
+        return PaymentFee.feeWith()
+            .calculatedAmount(new BigDecimal("99.99"))
+            .version("1").code("FEE0001").volume(1)
+            .paymentLink(PaymentFeeLink.paymentFeeLinkWith()
+                            .paymentReference("payment-reference")
+                            .dateCreated(new Date(2021,1,1))
+                            .dateUpdated(new Date(2021,1,1))
+                            .build())
+            .remissions(Arrays.asList(
+                Remission.remissionWith()
+                    .remissionReference("remission-reference")
+                    .beneficiaryName("beneficiary-name")
+                    .ccdCaseNumber("ccd_case_number")
+                    .caseReference("case_reference")
+                    .hwfReference("hwf-reference")
+                    .hwfAmount(new BigDecimal("100.00"))
+                    .fee(PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).build())
+                    .dateCreated(new Date(2021,1,1))
+                    .build()
+                ))
+            .build();
+    }
+
+    private Optional<FeeVersionDto> getPaymentFeeDto(){
+        FeeVersionDto feeVersionDto = FeeVersionDto.feeVersionDtoWith()
+                                        .memoLine("Memo Line")
+                                        .naturalAccountCode("acc-code")
+                                        .description("description")
+                                        .build();
+
+        return Optional.of(feeVersionDto);
+    }
 
 }
