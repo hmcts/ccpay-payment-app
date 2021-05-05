@@ -247,6 +247,8 @@ public class PaymentController {
             List<String> serviceAuthTokenPaymentList = new ArrayList<>();
             //Generate token for payment api and replace
             serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
+            LOG.info("S2S Token To Test : {}", authTokenGenerator.generate());
+
 
             headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
 
