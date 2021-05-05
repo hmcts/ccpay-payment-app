@@ -505,7 +505,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
-
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(3);
 
     }

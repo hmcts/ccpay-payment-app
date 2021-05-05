@@ -1,10 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -16,21 +13,24 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.domain.service.CaseDetailsDomainService;
 import uk.gov.hmcts.payment.api.domain.service.FeeDomainService;
 import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -45,13 +45,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
-public class FeePayApportionControllerOrdersTest {
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
-
-    @Rule
-    public WireMockClassRule instanceRule = wireMockRule;
-
+public class FeePayApportionControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -70,36 +64,77 @@ public class FeePayApportionControllerOrdersTest {
     @MockBean
     private FeeDomainService feeDomainService;
 
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
 
     RestActions restActions;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+
     @MockBean
     private PaymentService<PaymentFeeLink, String> paymentService;
 
+    @MockBean
+    private LaunchDarklyFeatureToggler featureToggler;
+
+    @MockBean
+    private PaymentFeeRepository paymentFeeRepository;
+
     @Before
-    public void setup() {
+    public void setup(){
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
+
         restActions
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
-            .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+            .withReturnUrl("https://www.gooooogle.com");
     }
 
     @Test
     public void testRetrieveApportionDetails() throws Exception {
+        FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
+                                            .feeId(123)
+                                            .feeAmount(BigDecimal.valueOf(100))
+                                            .build();
+        List<FeePayApportion> feePayApportionList= new ArrayList<>();
+        feePayApportionList.add(feePayApportion);
+        PaymentFee paymentFee = PaymentFee.feeWith()
+                                    .code("FEE123")
+                                    .feeAmount(BigDecimal.valueOf(100))
+                                    .build();
+        when(paymentService.retrieve(anyString())).thenReturn(getPaymentFeeLink());
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(paymentService.findByPaymentId(anyInt())).thenReturn(feePayApportionList);
+        when(paymentFeeRepository.findById(anyInt())).thenReturn(java.util.Optional.ofNullable(paymentFee));
+        MvcResult result = restActions
+            .get("/payment-groups/fee-pay-apportion/RC-1234-1234-1234-1234")
+            .andExpect(status().isOk())
+            .andReturn();
+//        PaymentGroupDto paymentGroupDto  = objectMapper.readValue(result.getResponse().getContentAsString(),PaymentGroupDto.class);
+//        assertEquals("RC-1234-1234-1234-1234",paymentGroupDto.getPaymentGroupReference());
+    }
+
+    @Test
+    public void testRetrieveApportionDetailsThrowsException_WhenPaymentNotFound() throws Exception {
+        when(paymentService.retrieve(anyString())).thenThrow(PaymentNotFoundException.class);
+        MvcResult result = restActions
+            .get("/payment-groups/fee-pay-apportion/RC-1519-9028-2432-0001")
+            .andExpect(status().isNotFound())
+            .andReturn();
+    }
+
+    @Test
+    public void testRetrieveApportionDetailsForOrders() throws Exception {
         Mockito.when(paymentDomainService.getPaymentByReference(anyString())).thenReturn(getPayment());
         Mockito.when(paymentDomainService.getFeePayApportionByPaymentId(anyInt())).thenReturn(Arrays.asList(getFeePayApportion()));
         when(feeDomainService.getPaymentFeeById(anyInt())).thenReturn(getPaymentFee());
         MvcResult result = restActions
-                            .get("/orderpoc/payment-groups/fee-pay-apportion/RC-1603-1374-9345-6197")
-                            .andExpect(status().isOk())
-                            .andReturn();
+            .get("/orderpoc/payment-groups/fee-pay-apportion/RC-1603-1374-9345-6197")
+            .andExpect(status().isOk())
+            .andReturn();
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsString(),PaymentGroupDto.class);
         assertEquals(paymentGroupDto.getPayments().get(0).getCcdCaseNumber(),"ccdCaseNumber");
         assertEquals(paymentGroupDto.getPayments().get(0).getAmount(),new BigDecimal("99.99"));
@@ -117,6 +152,36 @@ public class FeePayApportionControllerOrdersTest {
         assertNull(paymentGroupDto.getFees());
     }
 
+    private PaymentFeeLink getPaymentFeeLink(){
+        List<PaymentFee> paymentFees = new ArrayList<>();
+        PaymentFee fee = PaymentFee.feeWith()
+            .feeAmount(BigDecimal.valueOf(30))
+            .calculatedAmount(BigDecimal.valueOf(10))
+            .code("FEE-123")
+            .build();
+        paymentFees.add(fee);
+        Payment payment = Payment.paymentWith()
+            .paymentStatus(PaymentStatus.SUCCESS)
+            .status("success")
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("card").build())
+            .currency("GBP")
+            .caseReference("case-reference")
+            .ccdCaseNumber("ccd-number")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("cash").build())
+            .dateCreated(Date.valueOf("2020-02-01"))
+            .externalReference("external-reference")
+            .reference("RC-1234-1234-1234-1234")
+            .build();
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+        return PaymentFeeLink.paymentFeeLinkWith()
+            .paymentReference("RC-1234-1234-1234-1234")
+            .dateCreated(Date.valueOf("2020-01-20"))
+            .dateUpdated(Date.valueOf("2020-01-21"))
+            .fees(paymentFees)
+            .payments(paymentList)
+            .build();
+    }
 
     private Payment getPayment(){
         return Payment.paymentWith()
@@ -150,7 +215,7 @@ public class FeePayApportionControllerOrdersTest {
 
     private PaymentFee getPaymentFee(){
         return PaymentFee.feeWith()
-                .calculatedAmount(new BigDecimal("99.99"))
-                .version("1").code("FEE0001").volume(1).build();
+            .calculatedAmount(new BigDecimal("99.99"))
+            .version("1").code("FEE0001").volume(1).build();
     }
 }
