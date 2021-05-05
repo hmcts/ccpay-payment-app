@@ -22,6 +22,7 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
+import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -48,6 +49,9 @@ public class PaymentController {
     private final DateTimeFormatter formatter;
     private final PaymentFeeRepository paymentFeeRepository;
     private final LaunchDarklyFeatureToggler featureToggler;
+
+    @Autowired
+    private OrderCaseUtil orderCaseUtil;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -84,6 +88,9 @@ public class PaymentController {
             if (request.getCcdCaseNumber() != null) {
                 payment.get().setCcdCaseNumber(request.getCcdCaseNumber());
             }
+
+            orderCaseUtil.updateOrderCaseDetails(payment.get().getPaymentLink(), payment.get());
+
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
