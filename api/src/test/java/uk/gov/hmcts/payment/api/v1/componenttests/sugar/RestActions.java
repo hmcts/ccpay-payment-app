@@ -51,6 +51,12 @@ public class RestActions {
         return this;
     }
 
+    //If header is present this replaces the value
+    public RestActions withHeaderIfpresent(String header, String value) {
+        httpHeaders.set(header, value);
+        return this;
+    }
+
     public RestActions withAuthorizedUser(String userId) {
         String token = UUID.randomUUID().toString();
         userRequestAuthorizer.registerToken(token, userId);

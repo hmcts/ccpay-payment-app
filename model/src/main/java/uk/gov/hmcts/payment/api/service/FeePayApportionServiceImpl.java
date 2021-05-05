@@ -73,9 +73,13 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     @Override
-    public void processApportion(Payment payment) {
+    public void processApportion(Payment payment, boolean isOrderTrue) {
         try {
-            Optional<List<PaymentFee>> savedFees = paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber());
+            Optional<List<PaymentFee>> savedFees;
+
+            //Fees against order
+            savedFees = (isOrderTrue) ? paymentFeeRepository.findByPaymentLinkId(payment.getPaymentLink().getId()) : paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber());
+
             if (savedFees.isPresent()) {
 
                 List<PaymentFee> sortedFees = savedFees.get()

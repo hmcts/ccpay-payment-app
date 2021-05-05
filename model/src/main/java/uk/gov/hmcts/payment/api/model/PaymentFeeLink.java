@@ -6,10 +6,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.payment.api.jpaaudit.listner.PaymentFeeLinkEntityListener;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @EntityListeners(PaymentFeeLinkEntityListener.class)
@@ -56,7 +53,8 @@ public class PaymentFeeLink{
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     @ToString.Exclude
-    private List<Payment> payments;
+    @Builder.Default
+    private List<Payment> payments = new LinkedList<>();
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
