@@ -32,18 +32,6 @@ public class PaymentDbBackdoor {
     @Autowired
     private CaseDetailsRepository caseDetailsRepository;
 
-    public void createOrder(CaseDetails caseDetailsEntity){
-         caseDetailsRepository.save(caseDetailsEntity);
-    }
-
-
-    public  Payment createPayment(Payment payment){
-        return paymentRepository.save(payment);
-    }
-
-    public FeePayApportion createApportionment(FeePayApportion feePayApportion) {
-        return feePayApportionRepository.save(feePayApportion);
-    }
 
     public PaymentFeeLink create(PaymentFeeLinkBuilder paymentFeeLink) {
         return paymentFeeLinkRepository.save(paymentFeeLink.build());
