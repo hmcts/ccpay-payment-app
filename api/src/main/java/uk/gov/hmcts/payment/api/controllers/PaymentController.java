@@ -251,6 +251,7 @@ public class PaymentController {
 
 
             headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+            LOG.info("IAC Supplementary info URL: {}",iacSupplementaryInfoUrl+"/supplementary-details");
 
         HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
         final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
