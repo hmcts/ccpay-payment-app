@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.domain.mapper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
@@ -7,9 +8,9 @@ import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @Component
 public class OrderPaymentDomainDataEntityMapper {
@@ -39,7 +40,8 @@ public class OrderPaymentDomainDataEntityMapper {
     @Autowired
     private UserIdSupplier userIdSupplier;
 
-    public Payment toEntity(OrderPaymentBo paymentBo, PaymentFeeLink order){
+    public Payment toEntity(OrderPaymentBo paymentBo, PaymentFeeLink order) {
+        CaseDetails caseDetails = order.getCaseDetails().stream().findAny().orElse(new CaseDetails());
 
         return Payment.paymentWith()
             .userId(userIdSupplier.get())
@@ -53,8 +55,8 @@ public class OrderPaymentDomainDataEntityMapper {
             .pbaNumber(paymentBo.getAccountNumber())
             .currency(paymentBo.getCurrency().getCode())
             .customerReference(paymentBo.getCustomerReference())
-            .caseReference(order.getCaseDetails().stream().findAny().get().getCaseReference())
-            .ccdCaseNumber(order.getCaseDetails().stream().findAny().get().getCcdCaseNumber())
+            .caseReference(StringUtils.isNotEmpty(caseDetails.getCaseReference()) ? caseDetails.getCaseReference() : null)
+            .ccdCaseNumber(StringUtils.isNotEmpty(caseDetails.getCcdCaseNumber()) ? caseDetails.getCcdCaseNumber() : null)
             .statusHistories(paymentBo.getStatusHistories() == null ? Arrays.asList(StatusHistory.statusHistoryWith()
                 .status(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus()).getName())
                 .build())
@@ -63,8 +65,8 @@ public class OrderPaymentDomainDataEntityMapper {
     }
 
     public OrderPaymentBo toDomain(Payment payment) {
-        AtomicReference<String> errorCode = null;
-        AtomicReference<String> errorMessage = null;
+        AtomicReference<String> errorCode = new AtomicReference<>();
+        AtomicReference<String> errorMessage = new AtomicReference<>();
 
         if (Optional.ofNullable(payment.getStatusHistories()).isPresent()) {
             Optional<StatusHistory> statusHistoryOptional =
@@ -80,8 +82,8 @@ public class OrderPaymentDomainDataEntityMapper {
         return OrderPaymentBo.orderPaymentBoWith()
             .paymentReference(payment.getReference())
             .status(payment.getPaymentStatus().getName())
-            .errorCode(errorCode != null ? errorCode.get() : null)
-            .errorMessage(errorMessage != null ? errorMessage.get() : null)
+            .errorCode(StringUtils.isNotEmpty(errorCode.get()) ? errorCode.get() : null)
+            .errorMessage(StringUtils.isNotEmpty(errorMessage.get()) ? errorMessage.get() : null)
             .dateCreated(payment.getDateCreated().toString())
             .build();
     }
