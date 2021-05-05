@@ -18,16 +18,11 @@ public class OrderPaymentDtoDomainMapper {
         String reference = referenceUtil.getNext("RC");
 
         return OrderPaymentBo.orderPaymentBoWith()
-            .reference(reference)
-            .ccdCaseNumber(paymentDto.getCcdCaseNumber())
+            .paymentReference(reference)
             .accountNumber(paymentDto.getAccountNumber())
             .amount(paymentDto.getAmount())
-            .caseReference(paymentDto.getCaseReference())
             .currency(paymentDto.getCurrency())
             .customerReference(paymentDto.getCustomerReference())
-            .description(paymentDto.getDescription())
-            .organisationName(paymentDto.getOrganisationName())
-            .service(paymentDto.getService())
             .build();
     }
 }

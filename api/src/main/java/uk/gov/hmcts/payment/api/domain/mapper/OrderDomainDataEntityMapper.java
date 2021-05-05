@@ -41,6 +41,7 @@ public class OrderDomainDataEntityMapper {
 
         return PaymentFee.feeWith()
             .calculatedAmount(orderFeeBo.getCalculatedAmount())
+            .amountDue(orderFeeBo.getAmountDue())
             .code(orderFeeBo.getCode())
             .ccdCaseNumber(orderFeeBo.getCcdCaseNumber()) // Will be removed after get api's work without ccd dependency
             .version(orderFeeBo.getVersion())
