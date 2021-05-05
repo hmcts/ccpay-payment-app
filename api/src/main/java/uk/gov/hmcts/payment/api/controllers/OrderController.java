@@ -80,26 +80,26 @@ public class OrderController {
     @Transactional
     public ResponseEntity<OrderPaymentBo> createCreditAccountPayment(@RequestHeader(value = "idempotency_key") String idempotencyKey,
                                                                      @PathVariable("order-reference") String orderReference,
-                                                                     @Valid @RequestBody OrderPaymentDto orderPaymentDto) throws CheckDigitException, InterruptedException, JsonProcessingException, JsonMappingException {
+                                                                     @Valid @RequestBody OrderPaymentDto orderPaymentDto) throws CheckDigitException, InterruptedException, JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();
-        Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = (idempotencyKeyToCheck) -> idempotencyKeysRepository.findByIdempotencyKey(idempotencyKeyToCheck);
+        Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyKeysRepository.findByIdempotencyKey(idempotencyKeyToCheck);
 
-        Function<IdempotencyKeys, ResponseEntity> validateHashcodeForRequest = (idempotencyKeys) -> {
+        Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
             OrderPaymentBo responseBO;
             try {
                 if (!idempotencyKeys.getRequest_hashcode().equals(orderPaymentDto.hashCodeWithOrderReference(orderReference))) {
-                    return new ResponseEntity("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
+                    return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
                 }
                 if (idempotencyKeys.getResponseCode() >= 500) {
-                    return new ResponseEntity(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
+                    return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
                 }
                 responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), OrderPaymentBo.class);
             } catch (JsonProcessingException e) {
-                return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            return new ResponseEntity(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
+            return new ResponseEntity<>(responseBO, HttpStatus.valueOf(idempotencyKeys.getResponseCode())); // if hashcode matched
         };
 
         //Idempotency Check
@@ -131,37 +131,24 @@ public class OrderController {
 
     private PaymentFeeLink businessValidationForOrders(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) {
         //Business validation for amount
-        BigDecimal totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add).get();
-        if (!(totalCalculatedAmount.compareTo(orderPaymentDto.getAmount()) == 0)) {
-            throw new OrderExceptionForNoMatchingAmount("Payment amount not matching with fees");
+        Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
+        if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(orderPaymentDto.getAmount()) != 0)) {
+            throw new OrderExceptionForNoMatchingAmount("The order amount should be equal to order balance");
         }
 
 
         //Business validation for amount due for fees
-        BigDecimal totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add).get();
-        if (totalAmountDue.compareTo(BigDecimal.ZERO) == 0) {
-            throw new OrderExceptionForNoAmountDue("No fee amount due for payment for this order");
+        Optional<BigDecimal> totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add);
+        if (totalAmountDue.isPresent() && totalAmountDue.get().compareTo(BigDecimal.ZERO) == 0) {
+            throw new OrderExceptionForNoAmountDue("The order has already been paid");
         }
-
-        /*Optional<List<Payment>> orderPaymentsOptional =  payment2Repository.findByPaymentLinkId(order.getId());
-
-        if(orderPaymentsOptional.isPresent() && orderPaymentsOptional.get().size() > 0) {
-            Optional<BigDecimal> totalPaymentAmountOptional = orderPaymentsOptional.get().stream()
-                .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success"))
-                .map(payment -> payment.getAmount()).reduce(BigDecimal::add);
-
-            if (totalPaymentAmountOptional.isPresent() &&
-                (totalPaymentAmountOptional.get().compareTo(totalCalculatedAmount) == 0)) {
-                throw new OrderException("No amount due for payment for this Order");
-            }
-        }*/
 
         return order;
     }
 
 
     private ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String orderReference,
-                                                   String responseJson, ResponseEntity responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException, InterruptedException {
+                                                   String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException {
         String requestJson = objectMapper.writeValueAsString(orderPaymentDto);
         int requestHashCode = orderPaymentDto.hashCodeWithOrderReference(orderReference);
 
@@ -177,7 +164,7 @@ public class OrderController {
         try {
             Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).request_hashcode(requestHashCode).build());
             if (idempotencyKeysRecord.isPresent()) {
-                return new ResponseEntity(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), OrderPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
+                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), OrderPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
             }
             idempotencyKeysRepository.save(idempotencyRecord);
 

@@ -147,7 +147,7 @@ public class OrderControllerTest {
         OrderPaymentBo orderPaymentBo = objectMapper.readValue(successOrderPaymentResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
 
         // 1. PBA Payment was successful
-        assertTrue(orderPaymentBo.getPaymentReference().contains("RC-"));
+        assertTrue(orderPaymentBo.getPaymentReference().startsWith("RC-"));
         assertEquals("success", orderPaymentBo.getStatus());
         assertNotNull(orderPaymentBo.getDateCreated());
         assertNull(orderPaymentBo.getErrorCode());
@@ -192,7 +192,7 @@ public class OrderControllerTest {
             .post("/order/" + orderReferenceResult + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isPreconditionFailed())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoAmountDue))
-            .andExpect(orderException -> assertEquals("No fee amount due for payment for this order", orderException.getResolvedException().getMessage()))
+            .andExpect(orderException -> assertEquals("The order has already been paid", orderException.getResolvedException().getMessage()))
             .andReturn();
     }
 
@@ -216,7 +216,7 @@ public class OrderControllerTest {
         String idempotencyKey = UUID.randomUUID().toString();
 
         MvcResult result = restActions
-            .withHeader("idempotency_key", idempotencyKey)
+            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andReturn();
@@ -227,7 +227,7 @@ public class OrderControllerTest {
 
         //Duplicate request for timeout
         MvcResult result1 = restActions
-            .withHeader("idempotency_key", idempotencyKey)
+            .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andReturn();
@@ -235,6 +235,76 @@ public class OrderControllerTest {
         assertTrue(result1.getResponse().
             getContentAsString().
             contains("Unable to retrieve account information due to timeout"));
+    }
+
+    @Test
+    public void createPBAPaymentLiberataAccountFirstFailSuccessTest() throws Exception {
+        AccountDto accountOnHoldResponse = AccountDto.accountDtoWith()
+            .accountNumber("PBA12347")
+            .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL - Account on Hold")
+            .creditLimit(BigDecimal.valueOf(28879))
+            .availableBalance(BigDecimal.valueOf(30000))
+            .status(AccountStatus.ON_HOLD)
+            .build();
+
+        AccountDto accountSuccessResponse = AccountDto.accountDtoWith()
+            .accountNumber("PBAFUNC12345")
+            .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+            .creditLimit(BigDecimal.valueOf(28879))
+            .availableBalance(BigDecimal.valueOf(30000))
+            .status(AccountStatus.ACTIVE)
+            .build();
+
+        when(accountService.retrieve("PBAFUNC12345")).thenReturn(accountSuccessResponse);
+
+        when(accountService.retrieve("PBA12347")).thenReturn(accountOnHoldResponse);
+
+        String orderReference = getOrderReference();
+
+        //Order Payment DTO
+        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+            .paymentDtoWith().accountNumber("PBA12347")
+            .amount(BigDecimal.valueOf(300))
+            .currency(CurrencyCode.valueOf("GBP"))
+            .customerReference("testCustReference").
+                build();
+
+        //Order reference creation
+        String idempotencyKey = UUID.randomUUID().toString();
+
+        MvcResult accountOnHoldResult = restActions
+            .withHeaderIfpresent("idempotency_key", idempotencyKey)
+            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+
+        OrderPaymentBo orderPaymentBo = objectMapper.readValue(accountOnHoldResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
+
+        // 1. Account On Hold scenario
+        String paymentReference = orderPaymentBo.getPaymentReference();
+        assertTrue(paymentReference.startsWith("RC-"));
+        assertEquals("failed", orderPaymentBo.getStatus());
+        assertNotNull(orderPaymentBo.getDateCreated());
+        assertEquals("CA-E0003", orderPaymentBo.getErrorCode());
+        assertEquals("Your account is on hold", orderPaymentBo.getErrorMessage());
+
+
+        // 2. Payment success scenario - request with Correct account details & Same Order reference
+        orderPaymentDto.setAccountNumber("PBAFUNC12345");
+        String newIdempotencyKey = UUID.randomUUID().toString(); //changed idempotency Key
+
+        MvcResult accountSuccessResult = restActions
+            .withHeaderIfpresent("idempotency_key", newIdempotencyKey)
+            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        OrderPaymentBo duplicateRequestOrderPaymentBO = objectMapper.readValue(accountSuccessResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
+
+        //Response should be success this time
+        assertNotEquals(paymentReference, duplicateRequestOrderPaymentBO.getPaymentReference());
+        assertEquals("success", duplicateRequestOrderPaymentBO.getStatus());
     }
 
 
@@ -258,7 +328,7 @@ public class OrderControllerTest {
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isExpectationFailed())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoMatchingAmount))
-            .andExpect(orderException -> assertEquals("Payment amount not matching with fees", orderException.getResolvedException().getMessage()))
+            .andExpect(orderException -> assertEquals("The order amount should be equal to order balance", orderException.getResolvedException().getMessage()))
             .andReturn();
 
     }
