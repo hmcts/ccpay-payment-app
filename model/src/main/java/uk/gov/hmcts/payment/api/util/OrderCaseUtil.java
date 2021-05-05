@@ -9,6 +9,7 @@ import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.util.Collections;
+import java.util.Optional;
 
 @Component
 public class OrderCaseUtil {
@@ -46,8 +47,9 @@ public class OrderCaseUtil {
     public PaymentFeeLink enhanceWithOrderCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
 
         if(payment.getCcdCaseNumber() != null) {
-            if(caseDetailsRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).isPresent()) {
-                paymentFeeLink.setCaseDetails(Collections.singleton(caseDetailsRepository.findByCcdCaseNumber(payment.getCcdCaseNumber()).get()));
+            Optional<CaseDetails> existingCaseDetails = caseDetailsRepository.findByCcdCaseNumber(payment.getCcdCaseNumber());
+            if(existingCaseDetails.isPresent()) {
+                paymentFeeLink.setCaseDetails(Collections.singleton(existingCaseDetails.get()));
             } else {
                 paymentFeeLink.setCaseDetails(Collections.singleton(CaseDetails.caseDetailsWith()
                     .ccdCaseNumber(payment.getCcdCaseNumber())
@@ -63,9 +65,11 @@ public class OrderCaseUtil {
     }
 
     public PaymentFeeLink enhanceWithOrderCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
+
         if(remission.getCcdCaseNumber() != null) {
-            if(caseDetailsRepository.findByCcdCaseNumber(remission.getCcdCaseNumber()).isPresent()) {
-                paymentFeeLink.setCaseDetails(Collections.singleton(caseDetailsRepository.findByCcdCaseNumber(remission.getCcdCaseNumber()).get()));
+            Optional<CaseDetails> existingCaseDetails = caseDetailsRepository.findByCcdCaseNumber(remission.getCcdCaseNumber());
+            if(existingCaseDetails.isPresent()) {
+                paymentFeeLink.setCaseDetails(Collections.singleton(existingCaseDetails.get()));
             } else {
                 paymentFeeLink.setCaseDetails(Collections.singleton(CaseDetails.caseDetailsWith()
                     .ccdCaseNumber(remission.getCcdCaseNumber())
