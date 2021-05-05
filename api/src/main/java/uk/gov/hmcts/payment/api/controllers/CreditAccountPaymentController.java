@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -167,7 +166,7 @@ public class CreditAccountPaymentController {
         if (apportionFeature) {
             Payment pbaPayment = paymentFeeLink.getPayments().get(0);
             pbaPayment.setPaymentLink(paymentFeeLink);
-            feePayApportionService.processApportion(pbaPayment);
+            feePayApportionService.processApportion(pbaPayment, false);
 
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
             if (Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
