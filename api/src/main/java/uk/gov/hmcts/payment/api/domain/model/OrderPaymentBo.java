@@ -26,27 +26,24 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 public class OrderPaymentBo {
 
-    private String reference;
+    private String paymentReference;
 
     private BigDecimal amount;
-
-    private String description;
-
-    private String ccdCaseNumber;
-
-    private String caseReference;
-
-    private String service;
 
     private CurrencyCode currency;
 
     private String customerReference;
 
-    private String organisationName;
-
     private String accountNumber;
 
-    private PaymentStatus status;
+    private String status;
 
     private List<StatusHistory> statusHistories;
+
+    private String dateCreated;
+
+    //Error message
+    private String errorCode;
+
+    private String errorMessage;
 }
