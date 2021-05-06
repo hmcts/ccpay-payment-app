@@ -1674,8 +1674,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_without_supplementaryDetails() throws Exception {
 
         populateIACCardPaymentToDb("1");
-        populateIACCreditAccountPaymentToDb("2");
-
         when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(false);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
@@ -1692,10 +1690,9 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
         List<PaymentDto> paymetdtoList = paymentsResponse.getPayments();
-        paymetdtoList.get(0).getSupplementaryInfo();
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+        //As feature flag of false
         assertNull(paymetdtoList.get(0).getSupplementaryInfo());
-        assertNull(paymetdtoList.get(1).getSupplementaryInfo());
     }
 
     @Test
@@ -1738,7 +1735,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetailsAndMissingInfo_206() throws Exception {
 
         populateIACCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -1760,13 +1756,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
         List<PaymentDto> paymetdtoList = paymentsResponse.getPayments();
         //As this is IAC payment so supplementary details should present however it has missing CCD no but it should not
         //append in the payment response
         assertNotNull(paymetdtoList.get(0).getSupplementaryInfo());
-        //As this is Probate payment so supplementary details should not present
-        assertNull(paymetdtoList.get(1).getSupplementaryInfo());
     }
 
     @Test

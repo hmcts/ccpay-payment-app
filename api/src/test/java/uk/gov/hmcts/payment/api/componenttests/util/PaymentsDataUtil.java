@@ -107,10 +107,9 @@ public class PaymentsDataUtil {
     }
 
     public Payment populateIACCardPaymentToDb(String number) throws Exception {
-        //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         Payment payment = Payment.paymentWith()
-            .amount(new BigDecimal("99.99"))
+            .amount(new BigDecimal("77.77"))
             .caseReference("Reference" + number)
             .ccdCaseNumber("ccdCaseNumber" + number)
             .description("Test payments statuses for " + number)
@@ -127,7 +126,7 @@ public class PaymentsDataUtil {
             .statusHistories(Arrays.asList(statusHistory))
             .build();
 
-        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("77.77")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
@@ -314,32 +313,6 @@ public class PaymentsDataUtil {
             .serviceType("Probate")
             .currency("GBP")
             .siteId("AA0" + number)
-            .pbaNumber("123456")
-            .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .reference("RC-1519-9028-1909-000" + number)
-            .build();
-
-        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
-
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
-        payment.setPaymentLink(paymentFeeLink);
-
-        return payment;
-    }
-
-    public Payment populateIACCreditAccountPaymentToDb(String number) throws Exception {
-        //Create a payment in remissionDbBackdoor
-        Payment payment = Payment.paymentWith()
-            .amount(new BigDecimal("11.99"))
-            .caseReference("Reference" + number)
-            .ccdCaseNumber("ccdCaseNumber" + number)
-            .description("Description" + number)
-            .serviceType("Immigration and Asylum Appeals")
-            .currency("GBP")
-            .siteId("BFA1")
             .pbaNumber("123456")
             .userId(USER_ID)
             .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
