@@ -101,7 +101,7 @@ public class PaymentBarPerformanceLiberataTest {
             isEqualTo(liberataResponseApproach1.getPayments().size());
 
         //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
         Java6Assertions.assertThat(compareResult).isEqualTo(true);
         LOG.info("Comparison of old and new api end point response BAR Cash payment is same");
 
@@ -198,7 +198,7 @@ public class PaymentBarPerformanceLiberataTest {
             isEqualTo(liberataResponseApproach1.getPayments().size());
 
         //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
         Java6Assertions.assertThat(compareResult).isEqualTo(true);
         LOG.info("Comparison of old and new api end point response BAR Postal Order payment is same");
 
@@ -400,7 +400,7 @@ public class PaymentBarPerformanceLiberataTest {
             isEqualTo(liberataResponseApproach1.getPayments().size());
 
         //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
         Java6Assertions.assertThat(compareResult).isEqualTo(true);
         LOG.info("Comparison of old and new api end point response BAR Card payment is same");
 

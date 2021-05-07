@@ -171,7 +171,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
 
         //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
         assertThat(compareResult).isEqualTo(true);
         LOG.info("Comparison of old and new api end point response of 5 card payments is same");
 
@@ -275,7 +275,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
 
         //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
         assertThat(compareResult).isEqualTo(true);
         LOG.info("Comparison of old and new api end point response of 5 card payment is same");
 
@@ -377,7 +377,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
 
         //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
         assertThat(compareResult).isEqualTo(true);
         LOG.info("Comparison of old and new api end point response of 5 card payment is same");
 
@@ -479,7 +479,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
 
         //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
         assertThat(compareResult).isEqualTo(true);
         LOG.info("Comparison of old and new api end point response of 5 card payment is same");
 
