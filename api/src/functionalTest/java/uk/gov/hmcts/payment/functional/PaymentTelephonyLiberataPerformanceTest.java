@@ -150,7 +150,7 @@ public class PaymentTelephonyLiberataPerformanceTest {
             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
 
             //Comparing the response of old and new approach
-            Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+            Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
             Java6Assertions.assertThat(compareResult).isEqualTo(true);
             LOG.info("Comparison of old and new api end point response of telephony payment is same");
 
