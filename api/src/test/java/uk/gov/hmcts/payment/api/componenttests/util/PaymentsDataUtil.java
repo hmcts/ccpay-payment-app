@@ -121,8 +121,8 @@ public class PaymentsDataUtil {
             .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
             .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
-            .reference("RC-1519-9028-2432-000" + number)
+            .externalReference("e2kkddts5215h9qqoeuth5A01" + number)
+            .reference("RC-1519-9028-2432-999" + number)
             .statusHistories(Arrays.asList(statusHistory))
             .build();
 
@@ -322,6 +322,32 @@ public class PaymentsDataUtil {
             .build();
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+
+        return payment;
+    }
+
+    public Payment populateCreditAccountPaymentToDbForIAC(String number) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("66.66"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Description" + number)
+            .serviceType("Probate")
+            .currency("GBP")
+            .siteId("AA0" + number)
+            .pbaNumber("123457")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
+            .reference("RC-1519-9028-1909-777" + number)
+            .build();
+
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("66.66")).version("1").code("FEE000" + number).volume(1).build();
 
         PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);

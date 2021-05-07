@@ -1699,15 +1699,15 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetails_200() throws Exception {
 
-        populateIACCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
+        populateIACCardPaymentToDb("3");
+        populateCreditAccountPaymentToDbForIAC("3");
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
 
-        SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetails("1");
+        SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetails("3");
 
         when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class)))
             .thenReturn(new ResponseEntity(supplementaryDetailsResponse,HttpStatus.OK));
