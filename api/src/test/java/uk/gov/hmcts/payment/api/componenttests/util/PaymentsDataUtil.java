@@ -7,6 +7,10 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.dto.MissingSupplementaryDetailsDto;
+import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsDto;
+import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
+import uk.gov.hmcts.payment.api.dto.SupplementaryInfoDto;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
