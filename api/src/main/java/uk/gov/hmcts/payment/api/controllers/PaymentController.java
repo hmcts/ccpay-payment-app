@@ -36,7 +36,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -201,7 +200,7 @@ public class PaymentController {
                 ResponseEntity responseEntitySupplementaryInfo = null;
 
                 if (!iacCcdCaseNos.isEmpty()) {
-                    LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
+                    LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos);
                     try {
                         responseEntitySupplementaryInfo = getIacSupplementaryInfo(iacCcdCaseNos);
                     }catch (HttpClientErrorException ex) {
@@ -260,7 +259,7 @@ public class PaymentController {
   }
 
     @HystrixCommand(commandKey = "retrieveIacSupplementaryInfo", commandProperties = {
-        @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10000"),
+            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10000"),
         @HystrixProperty(name = "fallback.enabled", value = "false")
     })
     public ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryInfo(List<String> iacCcdCaseNos) throws RestClientException {
