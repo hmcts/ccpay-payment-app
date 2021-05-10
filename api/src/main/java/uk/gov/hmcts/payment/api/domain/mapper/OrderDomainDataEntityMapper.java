@@ -3,12 +3,10 @@ package uk.gov.hmcts.payment.api.domain.mapper;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.domain.model.OrderBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderFeeBo;
-import uk.gov.hmcts.payment.api.model.CaseDetails;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Component
@@ -20,20 +18,12 @@ public class OrderDomainDataEntityMapper {
             .orgId(orderBo.getOrgId())
             .enterpriseServiceName(orderBo.getEnterpriseServiceName())
             .paymentReference(orderBo.getReference())
-            .caseDetails(new HashSet<>())
-            .ccdCaseNumber(orderBo.getCcdCaseNumber()) // Will be removed after get api's work without ccd dependency
+            .ccdCaseNumber(orderBo.getCcdCaseNumber())
+            .caseReference(orderBo.getCaseReference())// Will be removed after get api's work without ccd dependency
             .fees(orderBo.getFees()
                 .stream()
                 .map(feeBo -> toPaymentFeeEntity(feeBo)) // Will be removed after get api's work without ccd dependency
                 .collect(Collectors.toList()))
-            .build();
-    }
-
-    public CaseDetails toCaseDetailsEntity(OrderBo orderBo) {
-
-        return CaseDetails.caseDetailsWith()
-            .caseReference(orderBo.getCaseReference())
-            .ccdCaseNumber(orderBo.getCcdCaseNumber())
             .build();
     }
 
