@@ -30,6 +30,7 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
