@@ -1,8 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import io.swagger.annotations.*;
 import org.ff4j.FF4j;
@@ -11,24 +9,21 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.Service;
-import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CallbackService;
+import uk.gov.hmcts.payment.api.service.IACService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -64,13 +59,10 @@ public class PaymentController {
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
-    @Autowired()
-    @Qualifier("restTemplateIacSupplementaryInfo")
-    private RestTemplate restTemplateIacSupplementaryInfo;
+    @Autowired
+    private IACService iacService;
 
 
-    @Value("${iac.supplementary.info.url}")
-    private String iacSupplementaryInfoUrl;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -202,7 +194,7 @@ public class PaymentController {
                 if (!iacCcdCaseNos.isEmpty()) {
                     LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos);
                     try {
-                        responseEntitySupplementaryInfo = getIacSupplementaryInfo(iacCcdCaseNos);
+                        responseEntitySupplementaryInfo = iacService.getIacSupplementaryInfo(iacCcdCaseNos,authTokenGenerator.generate());
                     }catch (HttpClientErrorException ex) {
                         LOG.info("IAC Supplementary information could not be found, exception: {}", ex.getMessage());
                         paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
@@ -257,32 +249,6 @@ public class PaymentController {
             }
         }
   }
-
-    @HystrixCommand(commandKey = "retrieveIacSupplementaryInfo", commandProperties = {
-            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10000"),
-        @HystrixProperty(name = "fallback.enabled", value = "false")
-    })
-    public ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryInfo(List<String> iacCcdCaseNos) throws RestClientException {
-
-        IacSupplementaryRequest iacSupplementaryRequest = IacSupplementaryRequest.createIacSupplementaryRequestWith()
-            .ccdCaseNumbers(iacCcdCaseNos).build();
-
-        MultiValueMap<String, String> headerMultiValueMapForIacSuppInfo = new LinkedMultiValueMap<String, String>();
-
-            List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-            //Generate token for payment api and replace
-            serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
-            LOG.info("S2S Token To Test : {}", authTokenGenerator.generate());
-
-
-            headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
-            LOG.info("IAC Supplementary info URL: {}",iacSupplementaryInfoUrl+"/supplementary-details");
-
-        HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
-        final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
-        return restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl + "/supplementary-details", HttpMethod.POST, entity, SupplementaryDetailsResponse.class);
-   }
-
 
     @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
     @ApiResponses(value = {

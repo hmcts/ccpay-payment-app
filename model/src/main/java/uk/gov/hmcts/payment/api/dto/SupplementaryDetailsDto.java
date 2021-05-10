@@ -1,5 +1,6 @@
-package uk.gov.hmcts.payment.api.contract;
+package uk.gov.hmcts.payment.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -8,23 +9,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotNull;
-import java.util.List;
-
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "supplementaryDetailsResponseWith")
+@Builder(builderMethodName = "supplementaryDetailsDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SupplementaryDetailsResponse {
+public class SupplementaryDetailsDto {
 
     @NotNull
-    private List<SupplementaryInfoDto> supplementaryInfo;
-
-    @NotNull
-    private MissingSupplementaryDetailsDto missingSupplementaryInfo;
+    private String surname;
 }
-
-
