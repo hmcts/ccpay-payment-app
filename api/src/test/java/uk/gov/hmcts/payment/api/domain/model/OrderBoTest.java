@@ -8,22 +8,17 @@ import org.mockito.Spy;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
-import uk.gov.hmcts.payment.api.model.CaseDetails;
-import uk.gov.hmcts.payment.api.model.CaseDetailsRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
 import java.math.BigDecimal;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -31,9 +26,6 @@ public class OrderBoTest {
 
     @InjectMocks
     private OrderBo orderBo;
-
-    @Mock
-    private CaseDetailsRepository caseDetailsRepository;
 
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -48,11 +40,9 @@ public class OrderBoTest {
 
         OrderBo orderBoDomain = getOrderBoDomain(orderReference);
 
-        when(caseDetailsRepository.findByCcdCaseNumber(anyString())).thenReturn(getCaseDetails());
-
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        Map<String,Object> orderReferenceResult =  orderBo.createOrder(orderBoDomain);
+        Map<String, Object> orderReferenceResult = orderBo.createOrder(orderBoDomain);
 
         assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
@@ -65,11 +55,9 @@ public class OrderBoTest {
 
         OrderBo orderBoDomain = getOrderBoDomain(orderReference);
 
-        when(caseDetailsRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.empty());
-
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        Map<String,Object> orderReferenceResult =  orderBo.createOrder(orderBoDomain);
+        Map<String, Object> orderReferenceResult = orderBo.createOrder(orderBoDomain);
 
         assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
 
@@ -90,21 +78,12 @@ public class OrderBoTest {
             .build();
     }
 
-
-    private Optional<CaseDetails> getCaseDetails() {
-        return Optional.ofNullable(CaseDetails.caseDetailsWith()
-            .caseReference("rertyuilkjhcxdfgh")
-            .ccdCaseNumber("8696869686968696")
-            .build());
-    }
-
-
     private PaymentFeeLink getPaymentFeeLink() {
         return PaymentFeeLink.paymentFeeLinkWith()
             .orgId("AA001")
             .enterpriseServiceName("DIVORCE")
             .paymentReference("2200-1619524583862")
-            .caseDetails(new HashSet<>())
+            .caseReference("rertyuilkjhcxdfgh")
             .ccdCaseNumber("8696869686968696")
             .fees(Collections.singletonList(getFee()))
             .build();

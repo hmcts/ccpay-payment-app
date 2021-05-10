@@ -59,23 +59,17 @@ public class OrderControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
+    PaymentDbBackdoor paymentDbBackdoor;
+    @Autowired
     private WebApplicationContext webApplicationContext;
-
     @MockBean
     private ReferenceDataService referenceDataService;
-
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
-
     @Autowired
     private OrderDomainService orderDomainService;
-
     @Autowired
     private AccountService<AccountDto, String> accountService;
-
-    @Autowired
-    PaymentDbBackdoor paymentDbBackdoor;
-
     private RestActions restActions;
 
     @Autowired
@@ -105,7 +99,7 @@ public class OrderControllerTest {
             .serviceDescription("DIVORCE")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
     }
 
@@ -383,7 +377,7 @@ public class OrderControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/order", orderDto)
@@ -401,7 +395,7 @@ public class OrderControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/order", orderDto)
@@ -449,7 +443,7 @@ public class OrderControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        Map orderReferenceResultMaps = objectMapper.readValue(result.getResponse().getContentAsByteArray(),Map.class);
+        Map orderReferenceResultMaps = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
         String orderReferenceResult = orderReferenceResultMaps.get("order_reference").toString();
         assertNotNull(orderReferenceResult);
         return orderReferenceResult;

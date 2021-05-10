@@ -175,7 +175,6 @@ public class OrderController {
     }
 
 
-
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
     public String return404(NoServiceFoundException ex) {
