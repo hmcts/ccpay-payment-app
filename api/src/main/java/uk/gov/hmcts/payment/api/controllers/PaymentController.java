@@ -1,6 +1,9 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import io.swagger.annotations.*;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
@@ -16,6 +19,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -184,6 +188,7 @@ public class PaymentController {
 
             //Map of IAC Payments
             Map<String, PaymentDto> iacPaymentDtosMap = new HashMap<>();
+            boolean isExceptionOccure=false;
 
             paymentDtos.stream()
                 .filter(paymentIac -> (paymentIac.getServiceName().equalsIgnoreCase(Service.IAC.getName())))
@@ -193,12 +198,29 @@ public class PaymentController {
                 LOG.info("No of Iac payments retrieved  : {}", iacPaymentDtosMap.size());
                 List<String> iacCcdCaseNos = new ArrayList<>(iacPaymentDtosMap.keySet());
                 LOG.info("No of Iac Ccd case numbers  : {}", iacCcdCaseNos.size());
+                ResponseEntity responseEntitySupplementaryInfo = null;
 
                 if (!iacCcdCaseNos.isEmpty()) {
                     LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
-                    ResponseEntity responseEntitySupplementaryInfo = getIacSupplementaryInfo(iacCcdCaseNos);
-                    paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
-                    populateSupplementaryInfoToPaymentDtos(iacPaymentDtosMap, responseEntitySupplementaryInfo);
+                    try {
+                        responseEntitySupplementaryInfo = getIacSupplementaryInfo(iacCcdCaseNos);
+                    }catch (HttpClientErrorException ex) {
+                        LOG.info("IAC Supplementary information could not be found, exception: {}", ex.getMessage());
+                        paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
+                        isExceptionOccure=true;
+                    } catch (HystrixRuntimeException hystrixRuntimeException) {
+                        LOG.info("IAC Supplementary Info response not received in time, exception: {}", hystrixRuntimeException.getMessage());
+                        paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
+                        isExceptionOccure=true;
+                    } catch (Exception ex) {
+                        LOG.info("Unable to retrieve IAC Supplementary Info information, exception: {}", ex.getMessage());
+                        paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
+                        isExceptionOccure=true;
+                    }
+                    if(!isExceptionOccure) {
+                        paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
+                        populateSupplementaryInfoToPaymentDtos(iacPaymentDtosMap, responseEntitySupplementaryInfo);
+                    }
                 }
             }else{
                 LOG.info("No Iac payments retrieved");
@@ -237,6 +259,10 @@ public class PaymentController {
         }
   }
 
+    @HystrixCommand(commandKey = "retrieveIacSupplementaryInfo", commandProperties = {
+        @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10000"),
+        @HystrixProperty(name = "fallback.enabled", value = "false")
+    })
     public ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryInfo(List<String> iacCcdCaseNos) throws RestClientException {
 
         IacSupplementaryRequest iacSupplementaryRequest = IacSupplementaryRequest.createIacSupplementaryRequestWith()
@@ -255,10 +281,8 @@ public class PaymentController {
 
         HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
         final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
-        ResponseEntity<SupplementaryDetailsResponse>  responseEntity = restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl+"/supplementary-details",HttpMethod.POST,entity,SupplementaryDetailsResponse.class);
-
-        return responseEntity;
-    }
+        return restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl + "/supplementary-details", HttpMethod.POST, entity, SupplementaryDetailsResponse.class);
+   }
 
 
     @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
