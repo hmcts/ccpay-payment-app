@@ -206,15 +206,15 @@ public class PaymentController {
                     }catch (HttpClientErrorException ex) {
                         LOG.info("IAC Supplementary information could not be found, exception: {}", ex.getMessage());
                         paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                        isExceptionOccure=true;
+                        isExceptionOccure = true;
                     } catch (HystrixRuntimeException hystrixRuntimeException) {
                         LOG.info("IAC Supplementary Info response not received in time, exception: {}", hystrixRuntimeException.getMessage());
                         paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                        isExceptionOccure=true;
+                        isExceptionOccure = true;
                     } catch (Exception ex) {
                         LOG.info("Unable to retrieve IAC Supplementary Info information, exception: {}", ex.getMessage());
                         paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                        isExceptionOccure=true;
+                        isExceptionOccure = true;
                     }
                     if(!isExceptionOccure) {
                         paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
