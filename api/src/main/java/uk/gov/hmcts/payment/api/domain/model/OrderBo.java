@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
-import uk.gov.hmcts.payment.api.model.CaseDetails;
-import uk.gov.hmcts.payment.api.model.CaseDetailsRepository;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
@@ -56,23 +54,17 @@ public class OrderBo {
     private OrderDomainDataEntityMapper orderDomainDataEntityMapper;
 
     @Autowired
-    private CaseDetailsRepository caseDetailsRepository;
-
-    @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     @Transactional
     public Map createOrder(OrderBo orderBo) {
-        CaseDetails caseDetailsEntity = caseDetailsRepository.findByCcdCaseNumber(orderBo.getCcdCaseNumber()).orElse(orderDomainDataEntityMapper.toCaseDetailsEntity(orderBo));
 
         PaymentFeeLink paymentFeeLinkAliasOrderEntity = orderDomainDataEntityMapper.toOrderEntity(orderBo);
-
-        paymentFeeLinkAliasOrderEntity.getCaseDetails().add(caseDetailsEntity);
 
         PaymentFeeLink orderSavedWithFees = paymentFeeLinkRepository.save(paymentFeeLinkAliasOrderEntity);
 
         Map<String, Object> orderResponseMap = new HashMap<>();
-        orderResponseMap.put("order_reference",orderSavedWithFees.getPaymentReference());
+        orderResponseMap.put("order_reference", orderSavedWithFees.getPaymentReference());
 
         return orderResponseMap;
     }

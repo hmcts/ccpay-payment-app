@@ -17,17 +17,7 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "payment_fee_link")
-public class PaymentFeeLink{
-
-    @ToString.Exclude
-    @ManyToMany(cascade =CascadeType.ALL )
-    @JoinTable(
-        name = "order_cases",
-        joinColumns = @JoinColumn(name = "order_id"),
-        inverseJoinColumns = @JoinColumn(name = "case_details_id")
-    )
-    @Builder.Default
-    private Set<CaseDetails> caseDetails = new HashSet<>();
+public class PaymentFeeLink {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -72,11 +62,15 @@ public class PaymentFeeLink{
     @ToString.Exclude
     private List<FeePayApportion> apportions;
 
-    //Need to remove after all services onboarded order integration
     @ToString.Exclude
     @Column(name = "ccd_case_number")
     @Transient
     private String ccdCaseNumber;
+
+    @ToString.Exclude
+    @Column(name = "case_reference")
+    @Transient
+    private String caseReference;
 
     @Override
     public int hashCode() {
