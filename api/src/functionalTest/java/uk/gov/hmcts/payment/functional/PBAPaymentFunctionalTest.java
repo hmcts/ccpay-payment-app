@@ -240,7 +240,6 @@ public class PBAPaymentFunctionalTest {
         assertThat(liberataResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
 
         if(liberataResponse.getPayments().get(0).getFees().get(0).getCode().equalsIgnoreCase("FEE0271")) {
-            System.out.println("here ya go "+ liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine());
             assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("20.00");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("20.00");
             assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("RECEIPT OF FEES - Tribunal issue other");
@@ -289,11 +288,11 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByUnspecService() throws InterruptedException {
+    public void makeAndRetrievePbaPaymentByCivilService() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
         String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForUnspec("90.00", "UNSPEC");
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForCivil("90.00", "CIVIL");
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
@@ -304,7 +303,7 @@ public class PBAPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsByServiceBetweenDates("Unspecified Claim", startDate, endDate)
+            .when().searchPaymentsByServiceBetweenDates("Civil", startDate, endDate)
             .then().getPayments((paymentsResponse -> {
             Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
         }));

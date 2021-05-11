@@ -79,6 +79,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         serviceNameMap.put("FPL", "Family Public Law");
         serviceNameMap.put("IAC", "Immigration and Asylum Appeals");
         serviceNameMap.put("UNSPEC", "Unspecified Claim");
+        serviceNameMap.put("CIVIL", "Civil");
     }
 
     @Override
