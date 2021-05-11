@@ -72,7 +72,9 @@ public class OrderController {
         @ApiResponse(code = 403, message = "Payment failed due to insufficient funds or the account being on hold"),
         @ApiResponse(code = 404, message = "Account information could not be found"),
         @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
+        @ApiResponse(code = 412, message = "The order has already been paid"),
+        @ApiResponse(code = 417, message = "The order amount should be equal to order balance")
     })
     @PostMapping(value = "/order/{order-reference}/credit-account-payment")
     @ResponseBody

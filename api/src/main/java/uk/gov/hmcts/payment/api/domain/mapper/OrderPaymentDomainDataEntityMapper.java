@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.domain.mapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.payment.api.domain.model.Error;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
@@ -65,8 +66,7 @@ public class OrderPaymentDomainDataEntityMapper {
     }
 
     public OrderPaymentBo toDomain(Payment payment) {
-        AtomicReference<String> errorCode = new AtomicReference<>();
-        AtomicReference<String> errorMessage = new AtomicReference<>();
+        AtomicReference<Error> error = new AtomicReference<>();
 
         if (Optional.ofNullable(payment.getStatusHistories()).isPresent()) {
             Optional<StatusHistory> statusHistoryOptional =
@@ -74,16 +74,14 @@ public class OrderPaymentDomainDataEntityMapper {
                     .filter(statusHistory -> statusHistory.getErrorCode() != null).findFirst();
 
             statusHistoryOptional.ifPresent(statusHistory -> {
-                errorCode.set(statusHistory.getErrorCode());
-                errorMessage.set(statusHistory.getMessage());
+                error.set(Error.errorWith().errorCode(statusHistory.getErrorCode()).errorMessage(statusHistory.getMessage()).build());
             });
         }
 
         return OrderPaymentBo.orderPaymentBoWith()
             .paymentReference(payment.getReference())
             .status(payment.getPaymentStatus().getName())
-            .errorCode(StringUtils.isNotEmpty(errorCode.get()) ? errorCode.get() : null)
-            .errorMessage(StringUtils.isNotEmpty(errorMessage.get()) ? errorMessage.get() : null)
+            .error(error.get() != null ? error.get() : null)
             .dateCreated(payment.getDateCreated().toString())
             .build();
     }
