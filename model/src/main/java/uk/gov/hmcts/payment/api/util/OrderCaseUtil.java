@@ -9,6 +9,9 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 public class OrderCaseUtil {
 
     public void updateOrderCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
+
+//        Add null chekcer for paymentfeelink
+
 //        if (paymentFeeLink.getCaseDetails().isEmpty() && payment.getCcdCaseNumber() != null) {
 //            paymentFeeLink.setCaseDetails(Collections.singleton(CaseDetails.caseDetailsWith()
 //                .ccdCaseNumber(payment.getCcdCaseNumber())
@@ -22,8 +25,6 @@ public class OrderCaseUtil {
 
         paymentFeeLink.setEnterpriseServiceName(payment.getServiceType());
         paymentFeeLink.setOrgId(payment.getSiteId());
-        paymentFeeLink.setCcdCaseNumber(payment.getCcdCaseNumber());
-        paymentFeeLink.setCaseReference(payment.getCaseReference());
     }
 
     public void updateOrderCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
