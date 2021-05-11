@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.ff4j.services.domain.FeatureApiBean;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -24,6 +25,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
@@ -37,12 +39,10 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
@@ -1670,15 +1670,15 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(payments.size()).isEqualTo(1);
     }
 
+
     @Test
-    @Transactional
-    public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_without_supplementaryDetails() throws Exception {
-
-        populateIACCardPaymentToDb("1");
-        when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(false);
-
+    public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetails_checkException() throws Exception {
+        populateIACCardPaymentToDb("6");
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
+
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class))).thenThrow(HttpClientErrorException.class);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1686,18 +1686,23 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         MvcResult result = restActions
             .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
+            .andExpect(status().isPartialContent())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> paymetdtoList = paymentsResponse.getPayments();
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-        //As feature flag of false
-        assertNull(paymetdtoList.get(0).getSupplementaryInfo());
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class))).thenThrow(HystrixRuntimeException.class);
+        MvcResult result1 = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isPartialContent())
+            .andReturn();
+
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class))).thenThrow(NullPointerException.class);
+        MvcResult result2 = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isPartialContent())
+            .andReturn();
     }
 
     @Test
-    @Transactional
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetails_200() throws Exception {
 
         populateIACCardPaymentToDb("3");
@@ -1732,7 +1737,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    @Transactional
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetailsAndMissingInfo_206() throws Exception {
 
         populateIACCardPaymentToDb("1");
