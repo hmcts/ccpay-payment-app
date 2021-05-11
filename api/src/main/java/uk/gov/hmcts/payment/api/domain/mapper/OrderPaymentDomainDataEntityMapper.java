@@ -41,7 +41,6 @@ public class OrderPaymentDomainDataEntityMapper {
     private UserIdSupplier userIdSupplier;
 
     public Payment toEntity(OrderPaymentBo paymentBo, PaymentFeeLink order) {
-//        CaseDetails caseDetails = order.getCaseDetails().stream().findAny().orElse(new CaseDetails());
 
         return Payment.paymentWith()
             .userId(userIdSupplier.get())
@@ -55,8 +54,6 @@ public class OrderPaymentDomainDataEntityMapper {
             .pbaNumber(paymentBo.getAccountNumber())
             .currency(paymentBo.getCurrency().getCode())
             .customerReference(paymentBo.getCustomerReference())
-//            .caseReference(StringUtils.isNotEmpty(caseDetails.getCaseReference()) ? caseDetails.getCaseReference() : null)
-//            .ccdCaseNumber(StringUtils.isNotEmpty(caseDetails.getCcdCaseNumber()) ? caseDetails.getCcdCaseNumber() : null)
             .caseReference(order.getCaseReference())
             .ccdCaseNumber(order.getCcdCaseNumber())
             .statusHistories(paymentBo.getStatusHistories() == null ? Arrays.asList(StatusHistory.statusHistoryWith()
