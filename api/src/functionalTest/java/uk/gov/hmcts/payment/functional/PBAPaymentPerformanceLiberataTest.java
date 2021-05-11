@@ -607,12 +607,8 @@ public class PBAPaymentPerformanceLiberataTest {
         PaymentsResponse liberataResponseOld = paymentTestService.getLiberatePullPaymentsByStartAndEndDate(SERVICE_TOKEN, startDate,endDate, 30L)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-        LOG.info("liberataResponseOld size-----> : {}", liberataResponseOld.getPayments().size());
-
         PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, 30L)
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        LOG.info("liberataResponseApproach1 size-----> : {}", liberataResponseApproach1.getPayments().size());
 
         //Comparing the response size of old and new approach
         assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
@@ -620,8 +616,6 @@ public class PBAPaymentPerformanceLiberataTest {
 
         //Comparing the response of old and new approach
         Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
-
-        LOG.info("compareResult -----> : {}", compareResult);
 
         assertThat(compareResult).isEqualTo(true);
         LOG.info("Comparison of old and new api end point response for 5 PBA payment is same");
