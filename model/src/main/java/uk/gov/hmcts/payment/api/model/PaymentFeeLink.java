@@ -51,7 +51,6 @@ public class PaymentFeeLink {
     @ToString.Exclude
     private List<PaymentFee> fees;
 
-
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_link_id", referencedColumnName = "id", nullable = false)
     @ToString.Exclude
@@ -64,12 +63,10 @@ public class PaymentFeeLink {
 
     @ToString.Exclude
     @Column(name = "ccd_case_number")
-    @Transient
     private String ccdCaseNumber;
 
     @ToString.Exclude
     @Column(name = "case_reference")
-    @Transient
     private String caseReference;
 
     @Override
