@@ -150,9 +150,7 @@ public class OrderControllerTest {
         assertTrue(orderPaymentBo.getPaymentReference().startsWith("RC-"));
         assertEquals("success", orderPaymentBo.getStatus());
         assertNotNull(orderPaymentBo.getDateCreated());
-        assertNull(orderPaymentBo.getErrorCode());
-        assertNull(orderPaymentBo.getErrorMessage());
-
+        assertNull(orderPaymentBo.getError());
 
         // 2.Duplicate request with same Idempotency key, same request content, same order reference
         MvcResult duplicatePBAPaymentResult = restActions
@@ -286,8 +284,8 @@ public class OrderControllerTest {
         assertTrue(paymentReference.startsWith("RC-"));
         assertEquals("failed", orderPaymentBo.getStatus());
         assertNotNull(orderPaymentBo.getDateCreated());
-        assertEquals("CA-E0003", orderPaymentBo.getErrorCode());
-        assertEquals("Your account is on hold", orderPaymentBo.getErrorMessage());
+        assertEquals("CA-E0003", orderPaymentBo.getError().getErrorCode());
+        assertEquals("Your account is on hold", orderPaymentBo.getError().getErrorMessage());
 
 
         // 2. Payment success scenario - request with Correct account details & Same Order reference

@@ -42,8 +42,5 @@ public class OrderPaymentBo {
 
     private String dateCreated;
 
-    //Error message
-    private String errorCode;
-
-    private String errorMessage;
+    private Error error;
 }
