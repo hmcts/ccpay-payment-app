@@ -1179,6 +1179,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckApportionNewFieldsNotPopulatedWhenApportionFeatureIsToggledOffForBulkScanPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         populatePaymentToDbForExelaPayments(paymentReference);
@@ -1206,6 +1207,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckApportionNewFieldsPopulatedWhenApportionFeatureIsToggledONForBulkScanPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         populatePaymentToDbForExelaPayments(paymentReference);
@@ -1233,6 +1235,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckApportionNewFieldsNotPopulatedWhenApportionFeatureIsToggledOffForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         populateTelephonyPaymentToDb(paymentReference,false);
@@ -1260,6 +1263,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckApportionNewFieldsPopulatedWhenApportionFeatureIsToggledONForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         populateTelephonyPaymentToDb(paymentReference,false);
@@ -1287,6 +1291,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledONForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
@@ -1313,6 +1318,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenCallSurplusAmountIsNotNull() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
@@ -1338,6 +1344,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(payments.size()).isEqualTo(1);
     }
     @Test
+    @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenFeeIdIsDifferent() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
@@ -1405,6 +1412,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsBeforeApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
@@ -1442,6 +1450,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsEqualToApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
@@ -1469,6 +1478,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsAfterApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
@@ -1496,6 +1506,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void shouldCheckExelaPaymentsWhenBulkScanIsToggledOff() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         populatePaymentToDbForExelaPayments(paymentReference);
@@ -1524,6 +1535,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     // if callback URL does not exist make sure not to call callback service
     @Test
+    @Transactional
     public void updatePaymentStatusForPaymentReferenceWithoutCallbackURLShouldNotUseCallbackService() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1436";
         Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
@@ -1554,6 +1566,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void retrievePaymentByReference() throws Exception {
         Payment payment = populateCardPaymentToDb("1");
 
@@ -1572,6 +1585,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void retrievePaymentByReferenceWithApportionmentDetails() throws Exception {
         Payment payment = populateCardPaymentToDbWithApportionmentDetails("1");
 
@@ -1595,6 +1609,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void retrievePaymentByReference_shouldThrow404_whenReferenceIsUnknown() throws Exception {
         populateCardPaymentToDb("1");
 
@@ -1606,6 +1621,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void duplicateBSPPaymentsShouldNotAppearLiberata() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
         populatePaymentToDbForBulkScanPayment(paymentReference, "2018-00000000001");
@@ -1654,8 +1670,32 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(payments.size()).isEqualTo(1);
     }
 
+    @Test
+    @Transactional
+    public void searchPaymentsByApportion_withValidDates_shouldReturnPayments() throws Exception {
+
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+
+    }
 
     @Test
+    @Transactional
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetails_checkException() throws Exception {
         populateIACCardPaymentToDb("6");
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
@@ -1687,6 +1727,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetails_200() throws Exception {
 
         populateIACCardPaymentToDb("3");
@@ -1721,6 +1762,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
+    @Transactional
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetailsAndMissingInfo_206() throws Exception {
 
         populateIACCardPaymentToDb("1");
@@ -1750,29 +1792,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         //As this is IAC payment so supplementary details should present however it has missing CCD no but it should not
         //append in the payment response
         assertNotNull(paymetdtoList.get(0).getSupplementaryInfo());
-    }
-
-    @Test
-    public void searchPaymentsByApportion_withValidDates_shouldReturnPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-
     }
 
     private Date parseDate(String date) {
