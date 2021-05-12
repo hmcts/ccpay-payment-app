@@ -7,15 +7,18 @@ import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
+import java.util.List;
 import java.util.Map;
 
 public interface OrderDomainService {
 
     PaymentFeeLink find(String orderReference);
 
-    Map create (OrderDto orderDto, MultiValueMap<String, String> headers);
+    List<PaymentFeeLink> findByCcdCaseNumber(String ccdCaseNumber);
 
-    OrderPaymentBo addPayments (PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException;
+    Map create(OrderDto orderDto, MultiValueMap<String, String> headers);
+
+    OrderPaymentBo addPayments(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException;
 
     Boolean isDuplicate(String orderReference);
 }

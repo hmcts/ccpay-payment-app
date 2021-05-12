@@ -1,14 +1,24 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.domain.service.CaseDetailsDomainService;
 import uk.gov.hmcts.payment.api.domain.service.FeeDomainService;
+import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
 import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
@@ -16,7 +26,6 @@ import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.exception.CaseDetailsNotFoundException;
-import uk.gov.hmcts.payment.api.model.CaseDetails;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
@@ -26,9 +35,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundExceptio
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 
 import javax.validation.ConstraintViolationException;
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +54,7 @@ public class CaseController {
     private final PaymentGroupDtoMapper paymentGroupDtoMapper;
 
     @Autowired
-    private CaseDetailsDomainService caseDetailsDomainService;
+    private OrderDomainService orderDomainService;
 
     @Autowired
     private FeeDomainService feeDomainService;
@@ -80,7 +86,7 @@ public class CaseController {
             .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());
 
-        if(payments == null || payments.isEmpty()) {
+        if (payments == null || payments.isEmpty()) {
             throw new PaymentNotFoundException();
         }
 
@@ -104,7 +110,7 @@ public class CaseController {
             .map(paymentGroupDtoMapper::toPaymentGroupDto)
             .collect(Collectors.toList());
 
-        if(paymentGroups == null || paymentGroups.isEmpty()) {
+        if (paymentGroups == null || paymentGroups.isEmpty()) {
             throw new PaymentGroupNotFoundException();
         }
 
@@ -119,14 +125,12 @@ public class CaseController {
         @ApiResponse(code = 404, message = "Payment Groups not found")
     })
     @GetMapping(value = "/orderpoc/cases/{ccdcasenumber}/paymentgroups")
-    public  PaymentGroupResponse retrieveCasePaymentGroups_NewAPI( @PathVariable(name = "ccdcasenumber") @Size(max = 16,min = 16,message = "CcdCaseNumber should be 16 digits") String ccdCaseNumber) {
-
-        CaseDetails caseDetails = caseDetailsDomainService.findByCcdCaseNumber(ccdCaseNumber);
-        Set<PaymentFeeLink> paymentFeeLinks  = caseDetails.getOrders();
+    public PaymentGroupResponse retrieveCasePaymentGroups_NewAPI(@PathVariable(name = "ccdcasenumber") @Size(max = 16, min = 16, message = "CcdCaseNumber should be 16 digits") String ccdCaseNumber) {
+        List<PaymentFeeLink> paymentFeeLinks = orderDomainService.findByCcdCaseNumber(ccdCaseNumber);
         List<PaymentGroupDto> paymentGroupDtoList = paymentFeeLinks.stream().map(paymentGroupDtoMapper::toPaymentGroupDtoForOrders)
             .collect(Collectors.toList());
 
-        if(paymentGroupDtoList == null || paymentGroupDtoList.isEmpty()) {
+        if (paymentGroupDtoList == null || paymentGroupDtoList.isEmpty()) {
             throw new PaymentGroupNotFoundException();
         }
 
@@ -140,28 +144,27 @@ public class CaseController {
     })
     @GetMapping(value = "/orderpoc/cases/{case}/payments")
     @PaymentExternalAPI
-    public PaymentsResponse retrieveCasePaymentsByOrders(@PathVariable(name = "case")  @Size(max = 16,min = 16,message = "CcdCaseNumber should be 16 digits") String ccdCaseNumber) {
-        CaseDetails caseDetails = caseDetailsDomainService.findByCcdCaseNumber(ccdCaseNumber);
-        Set<PaymentFeeLink> paymentFeeLinks  = caseDetails.getOrders();
-        List<PaymentDto> payments = paymentFeeLinks.stream().flatMap(link->toReconciliationResponseDtoForOrders(link).stream())
-                                                        .collect(Collectors.toList());
-        if(payments == null || payments.isEmpty()) {
+    public PaymentsResponse retrieveCasePaymentsByOrders(@PathVariable(name = "case") @Size(max = 16, min = 16, message = "CcdCaseNumber should be 16 digits") String ccdCaseNumber) {
+        List<PaymentFeeLink> paymentFeeLinks = orderDomainService.findByCcdCaseNumber(ccdCaseNumber);
+        List<PaymentDto> payments = paymentFeeLinks.stream().flatMap(link -> toReconciliationResponseDtoForOrders(link).stream())
+            .collect(Collectors.toList());
+        if (payments == null || payments.isEmpty()) {
             throw new PaymentNotFoundException();
         }
 
         return new PaymentsResponse(payments);
     }
 
-    private List<PaymentDto> toReconciliationResponseDtoForOrders(PaymentFeeLink paymentFeeLink){
-        List<FeePayApportion> feePayApportions =  paymentFeeLink.getFees()
+    private List<PaymentDto> toReconciliationResponseDtoForOrders(PaymentFeeLink paymentFeeLink) {
+        List<FeePayApportion> feePayApportions = paymentFeeLink.getFees()
             .stream()
-            .flatMap(fee->
+            .flatMap(fee ->
                 feeDomainService.getFeePayApportionsByFee(fee).stream())
             .collect(Collectors.toList());
         Set<PaymentDto> paymentDtos = feePayApportions
             .stream()
             .map(feePayApportion ->
-                paymentDtoMapper.toPaymentDto(paymentDomainService.getPaymentByApportionment(feePayApportion),paymentFeeLink))
+                paymentDtoMapper.toPaymentDto(paymentDomainService.getPaymentByApportionment(feePayApportion), paymentFeeLink))
             .collect(Collectors.toSet());
         return paymentDtos.stream().collect(Collectors.toList());
     }
@@ -187,7 +190,7 @@ public class CaseController {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ConstraintViolationException.class)
-    public String handleConstraintViolationException(ConstraintViolationException exception){
+    public String handleConstraintViolationException(ConstraintViolationException exception) {
         return exception.getMessage();
     }
 
