@@ -8,14 +8,17 @@ import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.util.DateUtil;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
@@ -31,6 +34,8 @@ public class PaymentsDataUtil {
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
 
     private static final String USER_ID = "user-id";
+
+
 
     public List<Payment> getCreditAccountPaymentsData() {
         List<Payment> payments = new ArrayList<>();
@@ -105,6 +110,7 @@ public class PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
         return payment;
     }
+
 
     public Payment populateCardPaymentToDb(String number, String reference) throws Exception {
         //Create a payment in remissionDbBackdoor
