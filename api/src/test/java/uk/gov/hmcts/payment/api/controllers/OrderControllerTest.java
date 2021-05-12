@@ -267,7 +267,7 @@ public class OrderControllerTest {
         MvcResult accountOnHoldResult = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
-            .andExpect(status().isCreated())
+            .andExpect(status().isPaymentRequired())
             .andReturn();
 
 
