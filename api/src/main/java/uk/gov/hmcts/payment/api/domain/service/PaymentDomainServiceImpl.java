@@ -65,6 +65,21 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
     @Autowired
     private FeesService feesService;
 
+    @Override
+    public Payment getPaymentByApportionment(FeePayApportion feePayApportion) {
+        return paymentService.getPaymentById(feePayApportion.getPaymentId());
+    }
+
+    @Override
+    public Payment getPaymentByReference(String reference) {
+        return paymentService.findSavedPayment(reference);
+    }
+
+    public List<FeePayApportion> getFeePayApportionByPaymentId(Integer paymentId){
+        return paymentService.findByPaymentId(paymentId);
+
+    }
+
     public List<ReconcilePaymentDto> retrievePayments(Optional<String> startDateTimeString, Optional<String> endDateTimeString, Optional<String> paymentMethodType, Optional<String> serviceType, String pbaNumber, String ccdCaseNumber) {
 
         validator.validate(paymentMethodType, startDateTimeString, endDateTimeString);
@@ -325,5 +340,3 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
             .dateCreated(paymentAllocation.getDateCreated())
             .receivingOffice(paymentAllocation.getReceivingOffice())
             .build();
-    }
-}

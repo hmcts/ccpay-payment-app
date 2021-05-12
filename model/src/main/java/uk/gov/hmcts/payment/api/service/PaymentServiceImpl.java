@@ -163,7 +163,14 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         } else throw new PaymentException("Service in Request is Invalid !!!");
     }
 
-    private Payment findSavedPayment(@NotNull String paymentReference) {
+
+    @Override
+    public Payment getPaymentById(Integer paymentId) {
+        return paymentRepository.findById(paymentId).orElseThrow(PaymentNotFoundException::new);
+    }
+
+    @Override
+    public Payment findSavedPayment(@NotNull String paymentReference) {
         return paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
     }
 }
