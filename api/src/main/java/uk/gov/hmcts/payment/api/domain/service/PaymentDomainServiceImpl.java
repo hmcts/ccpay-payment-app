@@ -75,7 +75,7 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
         return paymentService.findSavedPayment(reference);
     }
 
-    public List<FeePayApportion> getFeePayApportionByPaymentId(Integer paymentId){
+    public List<FeePayApportion> getFeePayApportionByPaymentId(Integer paymentId) {
         return paymentService.findByPaymentId(paymentId);
 
     }
@@ -340,3 +340,6 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
             .dateCreated(paymentAllocation.getDateCreated())
             .receivingOffice(paymentAllocation.getReceivingOffice())
             .build();
+
+    }
+}
