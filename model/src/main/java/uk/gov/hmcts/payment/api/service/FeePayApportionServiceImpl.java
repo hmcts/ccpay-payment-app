@@ -73,6 +73,11 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     @Override
+    public List<FeePayApportion> getFeePayApportionByFeeId(Integer feeId) {
+        return this.feePayApportionRepository.findByFeeId(feeId).orElse(Arrays.asList());
+    }
+
+    @Override
     public void processApportion(Payment payment, boolean isOrderTrue) {
         try {
             Optional<List<PaymentFee>> savedFees;
