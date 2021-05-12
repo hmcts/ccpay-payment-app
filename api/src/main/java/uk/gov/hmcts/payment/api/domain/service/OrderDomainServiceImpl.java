@@ -25,13 +25,17 @@ import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -75,25 +79,30 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    private FeePayApportionService<?,?> feePayApportionService;
+    private FeePayApportionService feePayApportionService;
 
     @Autowired
     private OrderBo orderBo;
 
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
+    private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
+        filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
+
+    @Override
+    public List<PaymentFeeLink> findByCcdCaseNumber(String ccdCaseNumber) {
+        Optional<List<PaymentFeeLink>> paymentFeeLinks = paymentFeeLinkRepository.findByCcdCaseNumber(ccdCaseNumber);
+        return paymentFeeLinks.orElseThrow(() -> new PaymentGroupNotFoundException("Order detail not found for given ccdcasenumber " + ccdCaseNumber));
+    }
 
     @Override
     public PaymentFeeLink find(String orderReference) {
         return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(orderReference);
     }
 
-    private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
-        filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
-
     @Override
     @Transactional
-    public Map<String ,Object> create(OrderDto orderDto, MultiValueMap<String, String> headers) {
+    public Map<String, Object> create(OrderDto orderDto, MultiValueMap<String, String> headers) {
         OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
 
         OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto, organisationalServiceDto);
@@ -124,7 +133,6 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         orderPaymentBo = orderPaymentDomainDataEntityMapper.toDomain(payment);
         return orderPaymentBo;
     }
-
 
 
     private void extractApportionmentForPBA(PaymentFeeLink order) {
