@@ -47,8 +47,9 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
 
     @Autowired
     Payment2Repository payment2Repository;
-    List<ReconcilePaymentDto> reconcilePaymentDtos = new ArrayList<>();
+
     private DateTimeFormatter formatter = new DateUtil().getIsoDateTimeFormatter();
+
     @Autowired
     private PaymentValidator validator;
     @Autowired
@@ -74,12 +75,20 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
 
         List<Payment> payments = paymentService
             .searchByCriteria(
-                getSearchCriteria(paymentMethodType, serviceType, pbaNumber, fromDateTime, toDateTime)
+                getSearchCriteria(paymentMethodType, pbaNumber, fromDateTime, toDateTime)
             );
 
-        List<Payment> filteredPayments = ccdCaseNumber != null ?
+        List<ReconcilePaymentDto> reconcilePaymentDtos = new ArrayList<>();
+
+        List<Payment> filteredPayments = (serviceType.isPresent() && ccdCaseNumber != null) ?
             payments.stream()
-                .filter(payment -> payment.getCcdCaseNumber().equals(ccdCaseNumber))
+                .filter(payment -> payment.getPaymentLink().getCcdCaseNumber().equals(ccdCaseNumber) && payment.getPaymentLink().getEnterpriseServiceName().equalsIgnoreCase(serviceType.get()))
+                .collect(Collectors.toList()) : ccdCaseNumber != null ?
+            payments.stream()
+                .filter(payment -> payment.getPaymentLink().getCcdCaseNumber().equals(ccdCaseNumber))
+                .collect(Collectors.toList()) : serviceType.isPresent() ?
+            payments.stream()
+                .filter(payment -> payment.getPaymentLink().getEnterpriseServiceName().equalsIgnoreCase(serviceType.get()))
                 .collect(Collectors.toList()) : payments;
 
         populatePaymentDtos(reconcilePaymentDtos, filteredPayments);
@@ -99,14 +108,13 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
             .orElse(null);
     }
 
-    private PaymentSearchCriteria getSearchCriteria(Optional<String> paymentMethodType, Optional<String> serviceType, String pbaNumber, Date fromDateTime, Date toDateTime) {
+    private PaymentSearchCriteria getSearchCriteria(Optional<String> paymentMethodType, String pbaNumber, Date fromDateTime, Date toDateTime) {
         return PaymentSearchCriteria
             .searchCriteriaWith()
             .startDate(fromDateTime)
             .endDate(toDateTime)
             .pbaNumber(pbaNumber)
             .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
-            .serviceType(serviceType.orElse(null))
             .build();
     }
 
@@ -201,11 +209,11 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
         ReconcilePaymentDto paymentDto = ReconcilePaymentDto.reconcilePaymentDtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(apportionCheck ? null : paymentReference)
-            .serviceName(payment.getServiceType())
-            .siteId(payment.getSiteId())
+            .serviceName(payment.getPaymentLink().getEnterpriseServiceName())
+            .siteId(payment.getPaymentLink().getOrgId())
             .amount(payment.getAmount())
-            .caseReference(payment.getCaseReference())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .caseReference(payment.getPaymentLink().getCaseReference())
+            .ccdCaseNumber(payment.getPaymentLink().getCcdCaseNumber())
             .accountNumber(payment.getPbaNumber())
             .organisationName(payment.getOrganisationName())
             .customerReference(payment.getCustomerReference())

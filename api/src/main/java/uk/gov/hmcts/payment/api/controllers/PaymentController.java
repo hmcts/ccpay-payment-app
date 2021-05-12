@@ -194,10 +194,6 @@ public class PaymentController {
 
         List<ReconcilePaymentDto> payments = paymentDomainService.retrievePayments(startDateTimeString, endDateTimeString, paymentMethodType, serviceType, pbaNumber, ccdCaseNumber);
 
-        final List<PaymentDto> paymentDtos = new ArrayList<>();
-        LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
-
-//        populatePaymentDtos(paymentDtos, payments);
         return payments;
     }
 
