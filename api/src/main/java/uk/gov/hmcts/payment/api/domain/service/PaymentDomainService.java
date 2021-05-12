@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import uk.gov.hmcts.payment.api.dto.ReconcilePaymentDto;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
 
 import java.util.List;
 import java.util.Optional;
