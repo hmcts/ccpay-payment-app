@@ -75,7 +75,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    private FeePayApportionService<?,?> feePayApportionService;
+    private FeePayApportionService feePayApportionService;
 
     @Autowired
     private OrderBo orderBo;
@@ -113,7 +113,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         payment = accountCheckForPBAPayment(order, orderPaymentDto, payment);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
-            LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             orderPaymentBo = orderPaymentDomainDataEntityMapper.toDomain(payment);
             return orderPaymentBo;
         }

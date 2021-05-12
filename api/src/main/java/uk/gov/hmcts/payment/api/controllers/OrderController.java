@@ -35,6 +35,7 @@ import java.util.function.Function;
 public class OrderController {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrderController.class);
+    private static final String FAILED = "failed";
 
     @Autowired
     private OrderDomainService orderDomainService;
@@ -119,7 +120,8 @@ public class OrderController {
         String responseJson;
         try {
             orderPaymentBo = orderDomainService.addPayments(order, orderPaymentDto);
-            responseEntity = new ResponseEntity<>(orderPaymentBo, HttpStatus.CREATED);
+            HttpStatus httpStatus = orderPaymentBo.getStatus().equalsIgnoreCase(FAILED) ? HttpStatus.PAYMENT_REQUIRED : HttpStatus.CREATED; //402 for failed Payment scenarios
+            responseEntity = new ResponseEntity<>(orderPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(orderPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
@@ -170,7 +172,7 @@ public class OrderController {
             idempotencyKeysRepository.save(idempotencyRecord);
 
         } catch (DataIntegrityViolationException exception) {
-            responseEntity = new ResponseEntity<>("First PBA Payment record currently in progress", HttpStatus.TOO_EARLY);
+            responseEntity = new ResponseEntity<>("Too many requests.PBA Payment currently is in progress for this order", HttpStatus.TOO_EARLY);
         }
 
         return responseEntity;
@@ -192,7 +194,7 @@ public class OrderController {
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(InvalidPaymentGroupReferenceException.class)
-    public String return403(InvalidPaymentGroupReferenceException ex) {
+    public String return404(InvalidPaymentGroupReferenceException ex) {
         return ex.getMessage();
     }
 
@@ -211,12 +213,6 @@ public class OrderController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(DuplicatePaymentException.class)
-    public String return400DuplicatePaymentException(DuplicatePaymentException ex) {
         return ex.getMessage();
     }
 
@@ -246,13 +242,13 @@ public class OrderController {
 
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
     @ExceptionHandler(OrderExceptionForNoMatchingAmount.class)
-    public String return400(OrderExceptionForNoMatchingAmount ex) {
+    public String return417(OrderExceptionForNoMatchingAmount ex) {
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler(OrderExceptionForNoAmountDue.class)
-    public String return400(OrderExceptionForNoAmountDue ex) {
+    public String return412(OrderExceptionForNoAmountDue ex) {
         return ex.getMessage();
     }
 }
