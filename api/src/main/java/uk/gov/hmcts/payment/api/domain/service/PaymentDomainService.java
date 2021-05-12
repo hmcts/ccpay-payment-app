@@ -8,4 +8,10 @@ import java.util.Optional;
 public interface PaymentDomainService {
 
     List<ReconcilePaymentDto> retrievePayments(Optional<String> startDateTimeString, Optional<String> endDateTimeString, Optional<String> paymentMethodType, Optional<String> serviceType, String pbaNumber, String ccdCaseNumber);
+
+    Payment getPaymentByApportionment(FeePayApportion feePayApportion);
+
+    Payment getPaymentByReference(String reference);
+
+    List<FeePayApportion> getFeePayApportionByPaymentId(Integer id);
 }
