@@ -16,7 +16,9 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
+import uk.gov.hmcts.payment.api.dto.ReconcilePaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CallbackService;
@@ -52,6 +54,9 @@ public class PaymentController {
 
     @Autowired
     private OrderCaseUtil orderCaseUtil;
+
+    @Autowired
+    private PaymentDomainService paymentDomainService;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -164,6 +169,32 @@ public class PaymentController {
 
         populatePaymentDtos(paymentDtos, payments);
         return new PaymentsResponse(paymentDtos);
+    }
+
+
+    @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
+        "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payments retrieved"),
+        @ApiResponse(code = 400, message = "Bad request")
+    })
+    @GetMapping(value = "/orders/reconciliation-payments")
+    @PaymentExternalAPI
+    public List<ReconcilePaymentDto> retrievePaymentsWithApportionAfterOrders(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+                                                                     @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
+                                                                     @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
+                                                                     @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
+                                                                     @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
+                                                                     @RequestParam(name = "pba_number", required = false) String pbaNumber
+    ) {
+
+        if (!ff4j.check("payment-search")) {
+            throw new PaymentException("Payment search feature is not available for usage.");
+        }
+
+        List<ReconcilePaymentDto> payments = paymentDomainService.retrievePayments(startDateTimeString, endDateTimeString, paymentMethodType, serviceType, pbaNumber, ccdCaseNumber);
+
+        return payments;
     }
 
     @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")

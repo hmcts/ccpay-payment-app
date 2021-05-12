@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.v1.componenttests.sugar;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -79,6 +80,15 @@ public class RestActions {
     public ResultActions post(String urlTemplate, Object requestBody) {
         return translateException(() -> mvc.perform(MockMvcRequestBuilders.post(urlTemplate)
             .headers(httpHeaders)
+            .content(toJson(requestBody))
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)));
+    }
+
+    public ResultActions post(String urlTemplate, Object requestBody, MultiValueMap map) {
+        return translateException(() -> mvc.perform(MockMvcRequestBuilders.post(urlTemplate)
+            .headers(httpHeaders)
+            .header("Key","Value")
             .content(toJson(requestBody))
             .contentType(APPLICATION_JSON)
             .accept(APPLICATION_JSON)));
