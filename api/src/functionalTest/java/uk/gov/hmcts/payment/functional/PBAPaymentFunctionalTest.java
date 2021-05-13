@@ -313,7 +313,7 @@ public class PBAPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsByServiceBetweenDates(Service.CIVIL, startDate, endDate)
             .then().getPayments((paymentsResponse -> {
-            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+            Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
         }));
     }
 
@@ -372,7 +372,7 @@ public class PBAPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsByServiceBetweenDates(Service.IAC, startDate, endDate)
             .then().getPayments((paymentsResponse -> {
-            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+            Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
         }));
     }
 
@@ -395,7 +395,7 @@ public class PBAPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsByServiceBetweenDates(Service.FPL, startDate, endDate)
             .then().getPayments((paymentsResponse -> {
-            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+            Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
         }));
     }
 
