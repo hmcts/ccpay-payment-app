@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import io.swagger.annotations.*;
 import org.ff4j.FF4j;
@@ -171,14 +170,14 @@ public class PaymentController {
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
         populatePaymentDtos(paymentDtos, payments);
 
-        boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
+        var iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
         LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
         HttpStatus paymentResponseHttpStatus = HttpStatus.OK;
 
         ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryInfo = null;
 
         if(iacSupplementaryDetailsFeature) {
-            boolean isExceptionOccure = false;
+            var isExceptionOccure = false;
             payments = payments.stream().filter(payment -> (payment.getServiceType().
                 equalsIgnoreCase(Service.IAC.getName()) )).collect(Collectors.toList());
             LOG.info("No of Iac payment retrieved : {}", payments.size());
@@ -188,7 +187,7 @@ public class PaymentController {
             LOG.info("No iacCcdCaseNos : {}", iacCcdCaseNos.size() + " contents +++++"+iacCcdCaseNos);
 
             if (!iacCcdCaseNos.isEmpty()) {
-                LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
+                LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos);
                 try {
                         responseEntitySupplementaryInfo = iacService.getIacSupplementaryInfo(iacCcdCaseNos,authTokenGenerator.generate());
                         iacCcdCaseNos=null;
@@ -216,7 +215,8 @@ public class PaymentController {
                         SupplementaryPaymentDto supplementaryPaymentDto = null;
                         if (supplementaryDetailsResponse.isPresent()){
                         supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                                supplementaryInfo(supplementaryDetailsResponse.get().getSupplementaryInfo()).build(); }
+                                supplementaryInfo(supplementaryDetailsResponse.get().getSupplementaryInfo()).build();
+                        }
                         responseEntitySupplementaryInfo =null;
                          responseEntitySupplementaryInfo=null;
                          return new ResponseEntity(supplementaryPaymentDto,paymentResponseHttpStatus);
