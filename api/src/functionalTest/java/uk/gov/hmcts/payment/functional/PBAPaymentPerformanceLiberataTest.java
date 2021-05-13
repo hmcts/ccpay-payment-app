@@ -582,7 +582,10 @@ public class PBAPaymentPerformanceLiberataTest {
 
     }*/
 
-    /*@Test
+
+   
+
+   /* @Test
     public void makeAndRetrieveResponseTime5PbaPaymentsByCivilFromLiberata() throws InterruptedException {
         // create PBA payments
         final Integer PaymentCount = 5;
