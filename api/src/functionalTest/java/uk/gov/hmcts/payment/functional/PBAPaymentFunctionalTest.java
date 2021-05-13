@@ -291,7 +291,7 @@ public class PBAPaymentFunctionalTest {
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsByServiceBetweenDates(Service.FINREM, startDate, endDate)
             .then().getPayments((paymentsResponse -> {
-            Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+            Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
         }));
     }
 
