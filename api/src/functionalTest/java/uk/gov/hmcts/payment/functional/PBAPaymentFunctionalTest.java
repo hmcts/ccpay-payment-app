@@ -289,7 +289,7 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrievePbaPaymentByUnspecService() throws InterruptedException {
+    public void makeAndRetrievePbaPaymentByCivilService() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
         String accountNumber = testProps.existingAccountNumber;

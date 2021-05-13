@@ -81,5 +81,4 @@ public class CreditAccountPaymentRequest {
         return ((StringUtils.isNotBlank(caseType) && StringUtils.isNotBlank(siteId)) ||
             (StringUtils.isBlank(caseType) && StringUtils.isBlank(siteId)));
     }
-
 }
