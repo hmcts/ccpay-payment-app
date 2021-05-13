@@ -582,7 +582,7 @@ public class PBAPaymentPerformanceLiberataTest {
     }
 
     @Test
-    public void makeAndRetrieveResponseTime5PbaPaymentsByUnspecFromLiberata() throws InterruptedException {
+    public void makeAndRetrieveResponseTime5PbaPaymentsByCivilFromLiberata() throws InterruptedException {
         // create PBA payments
         final Integer PaymentCount = 5;
         SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
