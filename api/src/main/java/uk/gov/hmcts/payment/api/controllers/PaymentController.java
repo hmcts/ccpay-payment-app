@@ -216,6 +216,7 @@ public class PaymentController {
                         SupplementaryPaymentDto supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
                                 supplementaryInfo(supplementaryDetailsResponse.get().getSupplementaryInfo()).build();
                         responseEntitySupplementaryInfo =null;
+
                         responseEntitySupplementaryInfo=null;
                          return new ResponseEntity(supplementaryPaymentDto,paymentResponseHttpStatus);
                     }
