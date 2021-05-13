@@ -1,6 +1,11 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -11,16 +16,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
-import uk.gov.hmcts.payment.api.dto.ReconcilePaymentDto;
+import uk.gov.hmcts.payment.api.dto.ReconcilePaymentResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
@@ -31,7 +49,12 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
@@ -180,19 +203,14 @@ public class PaymentController {
     })
     @GetMapping(value = "/orders/reconciliation-payments")
     @PaymentExternalAPI
-    public List<ReconcilePaymentDto> retrievePaymentsWithApportionAfterOrders(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
-                                                                     @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
-                                                                     @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
-                                                                     @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
-                                                                     @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
-                                                                     @RequestParam(name = "pba_number", required = false) String pbaNumber
+    public ReconcilePaymentResponse retrievePaymentsWithApportionAfterOrders(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+                                                                              @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
+                                                                              @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
+                                                                              @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
+                                                                              @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
+                                                                              @RequestParam(name = "pba_number", required = false) String pbaNumber
     ) {
-
-        if (!ff4j.check("payment-search")) {
-            throw new PaymentException("Payment search feature is not available for usage.");
-        }
-
-        List<ReconcilePaymentDto> payments = paymentDomainService.retrievePayments(startDateTimeString, endDateTimeString, paymentMethodType, serviceType, pbaNumber, ccdCaseNumber);
+        ReconcilePaymentResponse payments = paymentDomainService.retrievePayments(startDateTimeString, endDateTimeString, paymentMethodType, serviceType, pbaNumber, ccdCaseNumber);
 
         return payments;
     }
