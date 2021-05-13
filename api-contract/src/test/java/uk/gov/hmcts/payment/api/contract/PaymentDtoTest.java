@@ -5,7 +5,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.SupplementaryInfoDto;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -105,7 +104,6 @@ public class PaymentDtoTest {
         dateUpdated = currentDateTime.plusDays(1).toDate();
         List<StatusHistoryDto> statusHistories = new ArrayList<>();
         List<PaymentAllocationDto> paymentAllocations = new ArrayList<>();
-        List<SupplementaryInfoDto> supplementaryInfo = new ArrayList<>();
         PaymentDto.LinksDto links = new PaymentDto.LinksDto();
 
         amount = new BigDecimal(1);
@@ -138,7 +136,7 @@ public class PaymentDtoTest {
             gbp, ccdNumber, caseReference, paymentReference, channel, method, externalProvider,
             status, externalReference, siteId, serviceName, customerReference, accountNumber,
             organisationName, paymentGroupReference, reportedDateOffline,documentControlNumber,bankedDate,payerName,
-            null, statusHistories, paymentAllocations,supplementaryInfo,giroSlipNo, links);
+            null, statusHistories, paymentAllocations,giroSlipNo, links);
     }
 
     @Test
