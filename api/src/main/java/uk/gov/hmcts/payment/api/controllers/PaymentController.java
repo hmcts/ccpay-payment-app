@@ -168,7 +168,7 @@ public class PaymentController {
             );
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
-        LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
+        LOG.info("No of paymentFeeLinks retrieved for Liberata Pull ******************************************* : {}", payments.size());
         populatePaymentDtos(paymentDtos, payments);
 
         boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
@@ -179,11 +179,13 @@ public class PaymentController {
 
         if(iacSupplementaryDetailsFeature) {
             boolean isExceptionOccure = false;
-            List<Payment> iacPayments = payments.stream().filter(payment -> (payment.getServiceType().
+            payments = payments.stream().filter(payment -> (payment.getServiceType().
                 equalsIgnoreCase(Service.IAC.getName()) )).collect(Collectors.toList());
-            LOG.info("No of Iac payment retrieved  : {}", iacPayments.size());
+            LOG.info("No of Iac payment retrieved  ******************************************* : {}", payments.size());
 
-            List<String> iacCcdCaseNos = iacPayments.stream().map(Payment::getCcdCaseNumber).collect(Collectors.toList());
+            List<String> iacCcdCaseNos = payments.stream().map(Payment::getCcdCaseNumber).collect(Collectors.toList());
+
+            LOG.info("No iacCcdCaseNos  ******************************************* : {}", iacCcdCaseNos.size() + " contents +++++"+iacCcdCaseNos);
 
             if (!iacCcdCaseNos.isEmpty()) {
                 LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
@@ -204,19 +206,29 @@ public class PaymentController {
                     }
                     if(!isExceptionOccure) {
                         paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
-                        ObjectMapper objectMapperSupplementaryInfo = new ObjectMapper();
-                        SupplementaryDetailsResponse supplementaryDetailsResponse = objectMapperSupplementaryInfo.convertValue(responseEntitySupplementaryInfo.getBody(), SupplementaryDetailsResponse.class);
-                        List<SupplementaryInfo> lstSupplementaryInfo = supplementaryDetailsResponse.getSupplementaryInfo();
-                        MissingSupplementaryInfo lstMissingSupplementaryInfo = supplementaryDetailsResponse.getMissingSupplementaryInfo();
 
-                        if(responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null)
+                      //  SupplementaryDetailsResponse
+                     //   ObjectMapper objectMapperSupplementaryInfo = new ObjectMapper();
+                     //   SupplementaryDetailsResponse supplementaryDetailsResponse = objectMapperSupplementaryInfo.convertValue(responseEntitySupplementaryInfo.getBody(), SupplementaryDetailsResponse.class);
+                        SupplementaryDetailsResponse supplementaryDetailsResponse = responseEntitySupplementaryInfo.getBody();
+
+                       /* List<SupplementaryInfo> lstSupplementaryInfo = supplementaryDetailsResponse.getSupplementaryInfo();
+                       LOG.info("supplementaryDetailsResponse  ******************************************* : {}", supplementaryDetailsResponse);*/
+
+
+                       // MissingSupplementaryInfo lstMissingSupplementaryInfo = supplementaryDetailsResponse.getMissingSupplementaryInfo();
+
+                       // LOG.info("lstMissingSupplementaryInfo  ******************************************* : {}", lstMissingSupplementaryInfo);
+
+
+                        if(responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && supplementaryDetailsResponse.getMissingSupplementaryInfo() == null)
                             LOG.info("No missing supplementary info received from IAC for any CCD case numbers, however response is 206");
 
-                        if(lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null)
-                            LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
+                        if(supplementaryDetailsResponse.getMissingSupplementaryInfo() != null && supplementaryDetailsResponse.getMissingSupplementaryInfo().getCcdCaseNumbers() != null)
+                            LOG.info("missing supplementary info from IAC for CCD case numbers : {}", supplementaryDetailsResponse.getMissingSupplementaryInfo().getCcdCaseNumbers().toString());
 
                         SupplementaryPaymentDto supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                                supplementaryInfo(lstSupplementaryInfo).build();
+                                supplementaryInfo(supplementaryDetailsResponse.getSupplementaryInfo()).build();
 
                          return new ResponseEntity(supplementaryPaymentDto,paymentResponseHttpStatus);
                     }
