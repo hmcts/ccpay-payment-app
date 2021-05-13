@@ -50,10 +50,13 @@ public class IACServiceImpl implements IACService {
 
 
         headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
+        serviceAuthTokenPaymentList=null;
         LOG.info("IAC Supplementary info URL: {}",iacSupplementaryInfoUrl+"/supplementary-details");
 
         HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
+        headerMultiValueMapForIacSuppInfo=null;
         final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
+        headers=null;
         return restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl + "/supplementary-details", HttpMethod.POST, entity, SupplementaryDetailsResponse.class);
     }
 }

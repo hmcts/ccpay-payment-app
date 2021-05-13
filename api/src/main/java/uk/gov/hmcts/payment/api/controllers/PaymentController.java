@@ -184,13 +184,14 @@ public class PaymentController {
             LOG.info("No of Iac payment retrieved  ******************************************* : {}", payments.size());
 
             List<String> iacCcdCaseNos = payments.stream().map(Payment::getCcdCaseNumber).collect(Collectors.toList());
-
+            payments=null;
             LOG.info("No iacCcdCaseNos  ******************************************* : {}", iacCcdCaseNos.size() + " contents +++++"+iacCcdCaseNos);
 
             if (!iacCcdCaseNos.isEmpty()) {
                 LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
                 try {
                         responseEntitySupplementaryInfo = iacService.getIacSupplementaryInfo(iacCcdCaseNos,authTokenGenerator.generate());
+                        iacCcdCaseNos=null;
                     }catch (HttpClientErrorException ex) {
                         LOG.info("IAC Supplementary information could not be found, exception: {}", ex.getMessage());
                         paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
@@ -230,6 +231,8 @@ public class PaymentController {
                         SupplementaryPaymentDto supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
                                 supplementaryInfo(supplementaryDetailsResponse.getSupplementaryInfo()).build();
 
+                        responseEntitySupplementaryInfo =null;
+                        responseEntitySupplementaryInfo=null;
                          return new ResponseEntity(supplementaryPaymentDto,paymentResponseHttpStatus);
                     }
             }else{
