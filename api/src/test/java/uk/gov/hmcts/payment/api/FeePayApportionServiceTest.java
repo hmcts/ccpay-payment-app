@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -42,7 +41,6 @@ public class FeePayApportionServiceTest extends TestUtil {
     @MockBean
     private PaymentFeeRepository paymentFeeRepository;
 
-    @Ignore
     @Test(expected = PaymentException.class)
     public void updateFeeAmountDueTest() {
         Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
@@ -62,7 +60,6 @@ public class FeePayApportionServiceTest extends TestUtil {
         feePayApportionService.updateFeeAmountDue(paymentFeeLink.getPayments().get(0));
     }
 
-    @Ignore
     @Test(expected = PaymentException.class)
     public void processApportionTest() {
         Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
@@ -82,7 +79,6 @@ public class FeePayApportionServiceTest extends TestUtil {
         feePayApportionService.processApportion(paymentFeeLink.getPayments().get(0));
     }
 
-    @Ignore
     @Test(expected = PaymentException.class)
     public void processFeePayApportionTest() {
         Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
