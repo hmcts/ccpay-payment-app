@@ -7,10 +7,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.FieldSetter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,18 +17,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.service.AccountServiceImpl;
 import uk.gov.hmcts.payment.api.service.IACServiceImpl;
-import uk.gov.hmcts.payment.api.util.AccountStatus;
-
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -65,7 +55,6 @@ public class IACServiceTest {
             .ccdCaseNumbers(iacCcdCaseNos).build();
 
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-        //Generate token for payment api and replace
         serviceAuthTokenPaymentList.add("S2SToken");
         MultiValueMap<String, String> headerMultiValueMapForIacSuppInfo = new LinkedMultiValueMap<String, String>();
         headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);

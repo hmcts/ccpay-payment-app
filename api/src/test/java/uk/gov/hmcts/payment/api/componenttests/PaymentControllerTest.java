@@ -32,9 +32,7 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.dto.MissingSupplementaryInfo;
 import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
-import uk.gov.hmcts.payment.api.dto.SupplementaryInfo;
 import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
@@ -1700,11 +1698,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetails_checkException() throws Exception {
+
         populateIACCardPaymentToDb("6");
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
-
         when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class))).thenThrow(HttpClientErrorException.class);
 
         restActions
@@ -1735,14 +1733,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         populateIACCardPaymentToDb("3");
         populateCreditAccountPaymentToDbForIAC("3");
-
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
-
         when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
-
         SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetails("3");
-
         when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class)))
             .thenReturn(new ResponseEntity(supplementaryDetailsResponse,HttpStatus.OK));
 
@@ -1755,7 +1749,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-         SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
+        SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
         assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(2);
         assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
         assertNull(supplementaryPaymentDto.getMissingSupplementaryInfo());
@@ -1766,21 +1760,17 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetailsAndMissingInfo_206() throws Exception {
 
         populateIACCardPaymentToDb("1");
-
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
-
         when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
-
         SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetailsWithMissingCCDNumbers("1");
-
         when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class)))
             .thenReturn(new ResponseEntity(supplementaryDetailsResponse,HttpStatus.PARTIAL_CONTENT));
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
-        //As IAC supplementary response is 206 so paymmnet response should be 206
+        //As IAC supplementary response is 206 so Payment response should be 206
         MvcResult result = restActions
             .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isPartialContent())
@@ -1789,7 +1779,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
         assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(1);
         assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
-        //getMissingSupplementaryInfo is present but no need to add in response
+        //MissingSupplementaryInfo is present but no need to add in response
         assertNull(supplementaryPaymentDto.getMissingSupplementaryInfo());
     }
 

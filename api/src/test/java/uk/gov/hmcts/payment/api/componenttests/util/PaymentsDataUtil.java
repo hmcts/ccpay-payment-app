@@ -12,7 +12,6 @@ import uk.gov.hmcts.payment.api.dto.SupplementaryDetails;
 import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
 import uk.gov.hmcts.payment.api.dto.SupplementaryInfo;
 import uk.gov.hmcts.payment.api.model.*;
-
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.api.model.Payment.paymentWith;
 import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
