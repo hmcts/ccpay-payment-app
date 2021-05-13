@@ -1,10 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
-
 import org.apache.commons.lang3.RandomUtils;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Java6Assertions;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,28 +17,22 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
-
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class PaymentTelephonyLiberataPerformanceTest {
+public class TelephonyPaymentFunctionalTest {
 
     @Autowired
     private TestConfigProperties testProps;
@@ -137,22 +128,12 @@ public class PaymentTelephonyLiberataPerformanceTest {
                 .then().noContent();
 
             // Get pba payments by ccdCaseNumber
-            PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, cardPaymentRequest.getCcdCaseNumber())
+             PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, cardPaymentRequest.getCcdCaseNumber())
                 .then()
                 .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-            PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, cardPaymentRequest.getCcdCaseNumber())
-                .then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-            //Comparing the response size of old and new approach
-            Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
-
-            //Comparing the response of old and new approach
-            Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments().size()).equals(new HashSet<>(liberataResponseApproach1.getPayments().size()));
-            Java6Assertions.assertThat(compareResult).isEqualTo(true);
-            LOG.info("Comparison of old and new api end point response of telephony payment is same");
+            //Get size and compare
+             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
 
             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
