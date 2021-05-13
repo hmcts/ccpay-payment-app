@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.functional;
 
-import org.assertj.core.api.Java6Assertions;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
@@ -25,17 +23,17 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.HashSet;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class PaymentBarPerformanceLiberataTest {
+public class BarPaymentFunctionalTest {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentBarPerformanceLiberataTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BarPaymentFunctionalTest.class);
 
     @Autowired
     private TestConfigProperties testProps;
@@ -86,28 +84,9 @@ public class PaymentBarPerformanceLiberataTest {
 
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
-        PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cash")
-            .then().getPayments();
-
-        PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
-            .then().getPayments();
-
-        //Comparing the response size of old and new approach
-        Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
-            isEqualTo(liberataResponseApproach1.getPayments().size());
-
-        //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-        Java6Assertions.assertThat(compareResult).isEqualTo(true);
-        LOG.info("Comparison of old and new api end point response BAR Cash payment is same");
-
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cash")
+            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
             .then().getPayments((paymentsResponse -> {
             LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
             assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
@@ -182,25 +161,6 @@ public class PaymentBarPerformanceLiberataTest {
         }
 
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
-
-        PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "postal_order")
-            .then().getPayments();
-
-        PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
-            .then().getPayments();
-
-        //Comparing the response size of old and new approach
-        Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
-            isEqualTo(liberataResponseApproach1.getPayments().size());
-
-        //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-        Java6Assertions.assertThat(compareResult).isEqualTo(true);
-        LOG.info("Comparison of old and new api end point response BAR Postal Order payment is same");
 
         // search payment and assert the result
         dsl.given().userToken(USER_TOKEN)
@@ -285,25 +245,6 @@ public class PaymentBarPerformanceLiberataTest {
 
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
-        PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cheque")
-            .then().getPayments();
-
-        PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cheque")
-            .then().getPayments();
-
-        //Comparing the response size of old and new approach
-        Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
-            isEqualTo(liberataResponseApproach1.getPayments().size());
-
-        //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-        Java6Assertions.assertThat(compareResult).isEqualTo(true);
-        LOG.info("Comparison of old and new api end point response BAR Cheque payment is same");
-
         // search payment and assert the result
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
@@ -385,24 +326,6 @@ public class PaymentBarPerformanceLiberataTest {
             e.printStackTrace();
         }
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
-        PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "card")
-            .then().getPayments();
-
-        PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "card")
-            .then().getPayments();
-
-        //Comparing the response size of old and new approach
-        Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
-            isEqualTo(liberataResponseApproach1.getPayments().size());
-
-        //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-        Java6Assertions.assertThat(compareResult).isEqualTo(true);
-        LOG.info("Comparison of old and new api end point response BAR Card payment is same");
 
         // search payment and assert the result
         dsl.given().userToken(USER_TOKEN)
