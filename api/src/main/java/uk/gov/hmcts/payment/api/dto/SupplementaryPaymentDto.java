@@ -18,6 +18,4 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class SupplementaryPaymentDto {
     private List<PaymentDto> payments;
     private List<SupplementaryInfo> supplementaryInfo;
-    private MissingSupplementaryInfo missingSupplementaryInfo;
-
-}
+ }
