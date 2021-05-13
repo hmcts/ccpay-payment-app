@@ -171,28 +171,23 @@ public class PaymentController {
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
         populatePaymentDtos(paymentDtos, payments);
 
-        //return new PaymentsResponse(paymentDtos);
-
         boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
         LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
         HttpStatus paymentResponseHttpStatus = HttpStatus.OK;
 
         ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryInfo = null;
-        //PaymentsResponse paymentsResponse = new PaymentsResponse(paymentDtos);
 
         if(iacSupplementaryDetailsFeature) {
-
             boolean isExceptionOccure = false;
             List<Payment> iacPayments = payments.stream().filter(payment -> (payment.getServiceType().
                 equalsIgnoreCase(Service.IAC.getName()) )).collect(Collectors.toList());
             LOG.info("No of Iac payment retrieved  : {}", iacPayments.size());
 
             List<String> iacCcdCaseNos = iacPayments.stream().map(Payment::getCcdCaseNumber).collect(Collectors.toList());
-            LOG.info("No of Iac CCD No  : {}", iacCcdCaseNos.size());
 
-                if (iacCcdCaseNos != null && !iacCcdCaseNos.isEmpty()) {
-                    LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
-                    try {
+            if (iacCcdCaseNos != null && !iacCcdCaseNos.isEmpty()) {
+                LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
+                try {
                         responseEntitySupplementaryInfo = iacService.getIacSupplementaryInfo(iacCcdCaseNos,authTokenGenerator.generate());
                     }catch (HttpClientErrorException ex) {
                         LOG.info("IAC Supplementary information could not be found, exception: {}", ex.getMessage());
@@ -224,7 +219,6 @@ public class PaymentController {
                                 supplementaryInfo(lstSupplementaryInfo).build();
 
                          return new ResponseEntity(supplementaryPaymentDto,paymentResponseHttpStatus);
-
                     }
 
             }else{
