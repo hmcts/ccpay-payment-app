@@ -185,7 +185,7 @@ public class PaymentController {
 
             List<String> iacCcdCaseNos = iacPayments.stream().map(Payment::getCcdCaseNumber).collect(Collectors.toList());
 
-            if (iacCcdCaseNos != null && !iacCcdCaseNos.isEmpty()) {
+            if (!iacCcdCaseNos.isEmpty()) {
                 LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
                 try {
                         responseEntitySupplementaryInfo = iacService.getIacSupplementaryInfo(iacCcdCaseNos,authTokenGenerator.generate());
@@ -220,7 +220,6 @@ public class PaymentController {
 
                          return new ResponseEntity(supplementaryPaymentDto,paymentResponseHttpStatus);
                     }
-
             }else{
                 LOG.info("No Iac payments retrieved");
             }
