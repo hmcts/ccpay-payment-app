@@ -1,9 +1,14 @@
 package uk.gov.hmcts.payment.functional;
 
+import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomUtils;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -13,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -22,13 +28,20 @@ import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
+import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
@@ -48,6 +61,9 @@ public class CMCCardPaymentFunctionalTest {
     @Autowired
     private LaunchDarklyFeature featureToggler;
 
+    @Autowired
+    private PaymentTestService paymentTestService;
+
     private RestTemplate restTemplate;
 
     @Value("${gov.pay.url}")
@@ -60,6 +76,10 @@ public class CMCCardPaymentFunctionalTest {
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
+
+    private static final Logger LOG = LoggerFactory.getLogger(CMCCardPaymentFunctionalTest.class);
+
+    private static DateTimeZone zoneUTC = DateTimeZone.UTC;
 
     @Before
     public void setUp() throws Exception {
@@ -265,6 +285,114 @@ public class CMCCardPaymentFunctionalTest {
                 });
         }));
     }
+
+    @Test
+    public void makeAndRetrieve5CardPaymentsByProbateFromLiberata() throws InterruptedException {
+        // create Card payments
+        final Integer PaymentCount = 5;
+        final Long responseTime = 30L;
+        SimpleDateFormat formatter= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+        CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
+
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
+
+        for(int i=0; i<PaymentCount;i++) {
+            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestProbate("215.00", Service.PROBATE);
+
+            paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, cardPaymentRequest[i])
+                .then()
+                .statusCode(CREATED.value())
+                .body("status", equalTo("Initiated"));
+
+        }
+
+        Thread.sleep(5000);
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
+
+        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        //getting size
+        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+
+        //Get card payments liberate pull response time
+        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds approach 1 api 5 card payment is : {}",liberataResponseTimeApproach1.getTime());
+    }
+
+    @Test
+    public void makeAndRetrieve5CardPaymentsByFinremFromLiberata() throws InterruptedException {
+        // create Card payments
+        final Integer PaymentCount = 5;
+        final Long responseTime = 30L;
+        SimpleDateFormat formatter= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+        CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
+
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
+
+        for(int i=0; i<PaymentCount;i++) {
+            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestall("215.00", Service.FINREM);
+
+            paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, cardPaymentRequest[i])
+                .then()
+                .statusCode(CREATED.value())
+                .body("status", equalTo("Initiated"));
+        }
+
+        Thread.sleep(5000);
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
+
+       PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        //Getting size
+        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+
+        //Get card payments liberate pull response time
+        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds approach 1 api 5 card payemnt is : {}",liberataResponseTimeApproach1.getTime());
+    }
+
+    @Test
+    public void makeAndRetrieve5CardPaymentsByDivorceFromLiberata() throws InterruptedException {
+        // create Card payments
+        final Integer PaymentCount = 5;
+        final Long responseTime = 30L;
+        SimpleDateFormat formatter= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+        CardPaymentRequest[] cardPaymentRequest = new CardPaymentRequest[PaymentCount];
+
+        String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
+
+        for(int i=0; i<PaymentCount;i++) {
+            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestall("455.00", Service.DIVORCE);
+
+            paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, cardPaymentRequest[i])
+                .then()
+                .statusCode(CREATED.value())
+                .body("status", equalTo("Initiated"));
+        }
+
+        Thread.sleep(5000);
+        String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
+
+        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        //Getting size
+        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
+
+        //Get card payments liberate pull response time
+        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
+        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
+        LOG.info("Response time in milliseconds approach 1 api 5 card payment is : {}",liberataResponseTimeApproach1.getTime());
+    }
+
+
 
     private CardPaymentRequest getCardPaymentRequest() {
         return PaymentFixture.aCardPaymentRequest("20.99");
