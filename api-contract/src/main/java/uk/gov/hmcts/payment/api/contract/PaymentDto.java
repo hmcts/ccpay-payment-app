@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.SupplementaryInfoDto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -93,8 +92,6 @@ public class PaymentDto {
     private List<StatusHistoryDto> statusHistories;
 
     private List<PaymentAllocationDto> paymentAllocation;
-
-    private List<SupplementaryInfoDto> supplementaryInfo;
 
     private String giroSlipNo;
 

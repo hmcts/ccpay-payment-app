@@ -7,10 +7,10 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.contract.*;
-import uk.gov.hmcts.payment.api.dto.MissingSupplementaryDetailsDto;
-import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsDto;
+import uk.gov.hmcts.payment.api.dto.MissingSupplementaryInfo;
+import uk.gov.hmcts.payment.api.dto.SupplementaryDetails;
 import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
-import uk.gov.hmcts.payment.api.dto.SupplementaryInfoDto;
+import uk.gov.hmcts.payment.api.dto.SupplementaryInfo;
 import uk.gov.hmcts.payment.api.model.*;
 
 import java.math.BigDecimal;
@@ -362,19 +362,19 @@ public class PaymentsDataUtil {
 
     public SupplementaryDetailsResponse populateIACSupplementaryDetails(String number) throws Exception {
 
-        SupplementaryDetailsDto supplementaryDetailsDto = SupplementaryDetailsDto.supplementaryDetailsDtoWith()
+        SupplementaryDetails supplementaryDetails = SupplementaryDetails.supplementaryDetailsWith()
             .surname("Alex").build();
 
-        SupplementaryInfoDto supplementaryInfoDto = SupplementaryInfoDto.supplementaryInfoDtoWith()
+        SupplementaryInfo supplementaryInfo = SupplementaryInfo.supplementaryInfoWith()
             .ccdCaseNumber("ccdCaseNumber" + number)
-            .supplementaryDetails(supplementaryDetailsDto)
+            .supplementaryDetails(supplementaryDetails)
             .build();
 
-        List<SupplementaryInfoDto> supplementaryInfoDtoList = new ArrayList<>();
-        supplementaryInfoDtoList.add(supplementaryInfoDto);
+        List<SupplementaryInfo> supplementaryInfoList = new ArrayList<>();
+        supplementaryInfoList.add(supplementaryInfo);
 
         SupplementaryDetailsResponse supplementaryMainDto = SupplementaryDetailsResponse.supplementaryDetailsResponseWith()
-            .supplementaryInfo(supplementaryInfoDtoList)
+            .supplementaryInfo(supplementaryInfoList)
             .build();
 
         return supplementaryMainDto;
@@ -383,15 +383,15 @@ public class PaymentsDataUtil {
 
     public SupplementaryDetailsResponse populateIACSupplementaryDetailsWithMissingCCDNumbers(String number) throws Exception {
 
-        SupplementaryDetailsDto supplementaryDetailsDto = SupplementaryDetailsDto.supplementaryDetailsDtoWith()
+        SupplementaryDetails supplementaryDetails = SupplementaryDetails.supplementaryDetailsWith()
             .surname("Alex").build();
 
-        SupplementaryInfoDto supplementaryInfoDto = SupplementaryInfoDto.supplementaryInfoDtoWith()
+        SupplementaryInfo supplementaryInfoDto = SupplementaryInfo.supplementaryInfoWith()
             .ccdCaseNumber("ccdCaseNumber" + number)
-            .supplementaryDetails(supplementaryDetailsDto)
+            .supplementaryDetails(supplementaryDetails)
             .build();
 
-        List<SupplementaryInfoDto> supplementaryInfoDtoList = new ArrayList<>();
+        List<SupplementaryInfo> supplementaryInfoDtoList = new ArrayList<>();
         supplementaryInfoDtoList.add(supplementaryInfoDto);
 
 
@@ -400,16 +400,16 @@ public class PaymentsDataUtil {
         listMissingSuppInfo.add("1234123412341234");
         listMissingSuppInfo.add("4321432143214321");
 
-        MissingSupplementaryDetailsDto missingSupplementaryDetailsDto = MissingSupplementaryDetailsDto.MissingSupplementaryDetailsDtoWith()
+        MissingSupplementaryInfo missingSupplementaryInfo = MissingSupplementaryInfo.missingSupplementaryInfoWith()
             .ccdCaseNumbers(listMissingSuppInfo)
             .build();
 
-        SupplementaryDetailsResponse supplementaryMainDto = SupplementaryDetailsResponse.supplementaryDetailsResponseWith()
+        SupplementaryDetailsResponse supplementaryDetailsResponse = SupplementaryDetailsResponse.supplementaryDetailsResponseWith()
             .supplementaryInfo(supplementaryInfoDtoList)
-            .missingSupplementaryInfo(missingSupplementaryDetailsDto)
+            .missingSupplementaryInfo(missingSupplementaryInfo)
             .build();
 
-        return supplementaryMainDto;
+        return supplementaryDetailsResponse;
 
     }
 
