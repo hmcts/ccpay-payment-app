@@ -41,7 +41,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class PaymentTelephonyLiberataPerformanceTest {
+public class TelephonyPaymentFunctionalTest {
 
     @Autowired
     private TestConfigProperties testProps;
@@ -137,22 +137,12 @@ public class PaymentTelephonyLiberataPerformanceTest {
                 .then().noContent();
 
             // Get pba payments by ccdCaseNumber
-            PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, cardPaymentRequest.getCcdCaseNumber())
+             PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, cardPaymentRequest.getCcdCaseNumber())
                 .then()
                 .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-            PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, cardPaymentRequest.getCcdCaseNumber())
-                .then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-            //Comparing the response size of old and new approach
-            Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
-
-            //Comparing the response of old and new approach
-            Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-            Java6Assertions.assertThat(compareResult).isEqualTo(true);
-            LOG.info("Comparison of old and new api end point response of telephony payment is same");
+            //Get size and compare
+             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
 
             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
