@@ -81,15 +81,15 @@ public class IACServiceTest {
 
     public SupplementaryDetailsResponse populateIACSupplementaryDetails(String ccdCaseNo) throws Exception {
 
-        SupplementaryDetailsDto supplementaryDetailsDto = SupplementaryDetailsDto.supplementaryDetailsDtoWith()
+        SupplementaryDetails supplementaryDetailsDto = SupplementaryDetails.supplementaryDetailsWith()
             .surname("Alex").build();
 
-        SupplementaryInfoDto supplementaryInfoDto = SupplementaryInfoDto.supplementaryInfoDtoWith()
+        SupplementaryInfo supplementaryInfoDto = SupplementaryInfo.supplementaryInfoWith()
             .ccdCaseNumber(ccdCaseNo)
             .supplementaryDetails(supplementaryDetailsDto)
             .build();
 
-        List<SupplementaryInfoDto> supplementaryInfoDtoList = new ArrayList<>();
+        List<SupplementaryInfo> supplementaryInfoDtoList = new ArrayList<>();
         supplementaryInfoDtoList.add(supplementaryInfoDto);
 
         SupplementaryDetailsResponse supplementaryDetailsResponse = SupplementaryDetailsResponse.supplementaryDetailsResponseWith()

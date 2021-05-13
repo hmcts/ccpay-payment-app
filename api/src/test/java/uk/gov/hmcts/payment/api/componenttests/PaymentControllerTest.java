@@ -32,7 +32,10 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.MissingSupplementaryInfo;
 import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
+import uk.gov.hmcts.payment.api.dto.SupplementaryInfo;
+import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -1752,13 +1755,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-        List<PaymentDto> paymetdtoList = paymentsResponse.getPayments();
-        //As this is IAC payment so supplementary details should present
-        assertNotNull(paymetdtoList.get(0).getSupplementaryInfo());
-        //As this is Probate payment so supplementary details should not present
-        assertNull(paymetdtoList.get(1).getSupplementaryInfo());
+         SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
+        assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(2);
+        assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
+        assertNull(supplementaryPaymentDto.getMissingSupplementaryInfo());
     }
 
     @Test
@@ -1786,12 +1786,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isPartialContent())
             .andReturn();
 
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-        List<PaymentDto> paymetdtoList = paymentsResponse.getPayments();
-        //As this is IAC payment so supplementary details should present however it has missing CCD no but it should not
-        //append in the payment response
-        assertNotNull(paymetdtoList.get(0).getSupplementaryInfo());
+        SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
+        assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(1);
+        assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
+        //getMissingSupplementaryInfo is present but no need to add in response
+        assertNull(supplementaryPaymentDto.getMissingSupplementaryInfo());
     }
 
     private Date parseDate(String date) {
