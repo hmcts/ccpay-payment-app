@@ -213,8 +213,10 @@ public class PaymentController {
                         if(responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && supplementaryDetailsResponse.isPresent() )
                             LOG.info("No missing supplementary info received from IAC for any CCD case numbers, however response is 206");
 
-                        SupplementaryPaymentDto supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                                supplementaryInfo(supplementaryDetailsResponse.get().getSupplementaryInfo()).build();
+                        SupplementaryPaymentDto supplementaryPaymentDto = null;
+                        if (supplementaryDetailsResponse.isPresent()){
+                        supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
+                                supplementaryInfo(supplementaryDetailsResponse.get().getSupplementaryInfo()).build(); }
                         responseEntitySupplementaryInfo =null;
                          responseEntitySupplementaryInfo=null;
                          return new ResponseEntity(supplementaryPaymentDto,paymentResponseHttpStatus);
