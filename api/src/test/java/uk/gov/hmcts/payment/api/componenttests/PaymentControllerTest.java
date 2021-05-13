@@ -1752,7 +1752,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
         assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(2);
         assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
-        assertNull(supplementaryPaymentDto.getMissingSupplementaryInfo());
+
     }
 
     @Test
@@ -1779,8 +1779,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
         assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(1);
         assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
-        //MissingSupplementaryInfo is present but no need to add in response
-        assertNull(supplementaryPaymentDto.getMissingSupplementaryInfo());
     }
 
     private Date parseDate(String date) {
