@@ -15,6 +15,7 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.ReconcilePaymentDto;
+import uk.gov.hmcts.payment.api.dto.ReconcilePaymentResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
 
 import java.math.BigDecimal;
@@ -80,7 +82,13 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
 
     }
 
-    public List<ReconcilePaymentDto> retrievePayments(Optional<String> startDateTimeString, Optional<String> endDateTimeString, Optional<String> paymentMethodType, Optional<String> serviceType, String pbaNumber, String ccdCaseNumber) {
+
+    public ReconcilePaymentResponse retrievePayments(Optional<String> startDateTimeString, Optional<String> endDateTimeString, Optional<String> paymentMethodType, Optional<String> serviceType, String pbaNumber, String ccdCaseNumber) {
+
+
+        if (!ff4j.check("payment-search")) {
+            throw new PaymentException("Payment search feature is not available for usage.");
+        }
 
         validator.validate(paymentMethodType, startDateTimeString, endDateTimeString);
 
@@ -108,7 +116,7 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
 
         populatePaymentDtos(reconcilePaymentDtos, filteredPayments);
 
-        return reconcilePaymentDtos;
+        return new ReconcilePaymentResponse(reconcilePaymentDtos);
     }
 
     private Date getFromDateTime(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString) {

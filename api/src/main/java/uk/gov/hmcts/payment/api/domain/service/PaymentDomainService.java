@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
-import uk.gov.hmcts.payment.api.dto.ReconcilePaymentDto;
+import uk.gov.hmcts.payment.api.dto.ReconcilePaymentResponse;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 
@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface PaymentDomainService {
 
-    List<ReconcilePaymentDto> retrievePayments(Optional<String> startDateTimeString, Optional<String> endDateTimeString, Optional<String> paymentMethodType, Optional<String> serviceType, String pbaNumber, String ccdCaseNumber);
+    ReconcilePaymentResponse retrievePayments(Optional<String> startDateTimeString, Optional<String> endDateTimeString, Optional<String> paymentMethodType, Optional<String> serviceType, String pbaNumber, String ccdCaseNumber);
 
     Payment getPaymentByApportionment(FeePayApportion feePayApportion);
 
