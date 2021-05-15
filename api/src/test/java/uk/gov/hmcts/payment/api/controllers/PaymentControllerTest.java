@@ -90,18 +90,7 @@ public class PaymentControllerTest {
             .andReturn();
     }
 
-    @Test
-    public void  testRetrievePayments() throws Exception {
-        String startDate = LocalDate.parse("2020-01-20").toString(DATE_FORMAT);
-        String endDate = LocalDate.parse("2020-01-23").toString(DATE_FORMAT);
-        when(paymentService.search(any(PaymentSearchCriteria.class))).thenReturn(getPaymentFeeLinkList());
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(),PaymentsResponse.class);
-        assertEquals("ccd-number",paymentsResponse.getPayments().get(0).getCcdCaseNumber());
-    }
+
 
     @Test
     public void testUpdatePaymentStatus() throws Exception {
@@ -110,15 +99,6 @@ public class PaymentControllerTest {
         MvcResult result = restActions
             .patch("/payments/RC-1234-1234-1234-1234/status/failed")
             .andExpect(status().isNoContent())
-            .andReturn();
-    }
-
-    @Test
-    public void testRetrievePayment() throws Exception {
-        when(paymentService.retrieve(anyString())).thenReturn(getPaymentFeeLink());
-        MvcResult result = restActions
-            .get("/payments/RC-1234-1234-1234-1234")
-            .andExpect(status().isOk())
             .andReturn();
     }
 

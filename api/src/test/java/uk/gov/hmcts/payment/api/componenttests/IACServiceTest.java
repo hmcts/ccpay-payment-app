@@ -1,26 +1,21 @@
 package uk.gov.hmcts.payment.api.componenttests;
-
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.*;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.service.IACServiceImpl;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -32,43 +27,26 @@ public class IACServiceTest {
     private RestTemplate restTemplateIacSupplementaryInfo;
 
     @Mock
-    private OAuth2RestOperations restTemplateMock;
+    private AuthTokenGenerator authTokenGenerator;
 
     @InjectMocks
     private IACServiceImpl iacServiceImpl;
 
-    @Value("${iac.supplementary.info.url}")
-    private String iacSupplementaryInfoUrl;
-
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
     @Test
     public void retrieveSupplementaryInfo() throws Exception {
-
-        FieldSetter.setField(iacServiceImpl, iacServiceImpl.getClass().getDeclaredField("iacSupplementaryInfoUrl"), iacSupplementaryInfoUrl);
-
+        SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetails("ccdCaseNo1");
         List<String> iacCcdCaseNos = new ArrayList<String>();
         iacCcdCaseNos.add("ccdCaseNo1");
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class)))
+            .thenReturn(new ResponseEntity(supplementaryDetailsResponse,HttpStatus.OK));
 
-        IacSupplementaryRequest iacSupplementaryRequest = IacSupplementaryRequest.createIacSupplementaryRequestWith()
-            .ccdCaseNumbers(iacCcdCaseNos).build();
-
-        List<String> serviceAuthTokenPaymentList = new ArrayList<>();
-        serviceAuthTokenPaymentList.add("S2SToken");
-        MultiValueMap<String, String> headerMultiValueMapForIacSuppInfo = new LinkedMultiValueMap<String, String>();
-        headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
-        HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
-        final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
-        SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetails("ccdCaseNo1");
-       when(restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl +  "/supplementary-details" , HttpMethod.POST, entity, SupplementaryDetailsResponse.class)).thenReturn(new ResponseEntity(supplementaryDetailsResponse, HttpStatus.OK));
-        ResponseEntity<SupplementaryDetailsResponse> responseEntity = iacServiceImpl.getIacSupplementaryInfo(iacCcdCaseNos,"S2SToken");
+        ResponseEntity<SupplementaryDetailsResponse> responseEntity = iacServiceImpl.getIacSupplementaryInfoResponse(iacCcdCaseNos);
         assertEquals(supplementaryDetailsResponse.getSupplementaryInfo(), responseEntity.getBody().getSupplementaryInfo());
         assertEquals(supplementaryDetailsResponse.getMissingSupplementaryInfo(), responseEntity.getBody().getMissingSupplementaryInfo());
-
     }
 
-    public SupplementaryDetailsResponse populateIACSupplementaryDetails(String ccdCaseNo) throws Exception {
+    public SupplementaryDetailsResponse populateIACSupplementaryDetails(String ccdCaseNo)  {
 
         SupplementaryDetails supplementaryDetailsDto = SupplementaryDetails.supplementaryDetailsWith()
             .surname("Alex").build();
