@@ -1,7 +1,5 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
 import io.swagger.annotations.*;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
@@ -13,7 +11,6 @@ import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -30,7 +27,6 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,17 +48,11 @@ public class PaymentController {
     private final DateTimeFormatter formatter;
     private final PaymentFeeRepository paymentFeeRepository;
 
-
     @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    private AuthTokenGenerator authTokenGenerator;
-
-    @Autowired
     private IACService iacService;
-
-
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -102,7 +92,6 @@ public class PaymentController {
 
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
 
     @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
@@ -148,7 +137,7 @@ public class PaymentController {
     })
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
-    public ResponseEntity<PaymentsResponse> retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+    public ResponseEntity retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                                         @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                                         @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                                         @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -171,60 +160,17 @@ public class PaymentController {
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
         populatePaymentDtos(paymentDtos, payments);
 
+        Optional<Payment> iacPaymentAny = payments.stream()
+            .filter(p -> p.getServiceType().equalsIgnoreCase(Service.IAC.getName())).findAny();
         boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
         LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
-        HttpStatus paymentResponseHttpStatus = HttpStatus.OK;
 
-        ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryInfo = null;
-
-        if(iacSupplementaryDetailsFeature) {
-            boolean isExceptionOccure = false;
-            List<Payment> iacPayments = payments.stream().filter(payment -> (payment.getServiceType().
-                equalsIgnoreCase(Service.IAC.getName()) )).collect(Collectors.toList());
-            LOG.info("No of Iac payment retrieved  : {}", iacPayments.size());
-
-            List<String> iacCcdCaseNos = iacPayments.stream().map(Payment::getCcdCaseNumber).collect(Collectors.toList());
-
-            if (!iacCcdCaseNos.isEmpty()) {
-                LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
-                try {
-                        responseEntitySupplementaryInfo = iacService.getIacSupplementaryInfo(iacCcdCaseNos,authTokenGenerator.generate());
-                    }catch (HttpClientErrorException ex) {
-                        LOG.info("IAC Supplementary information could not be found, exception: {}", ex.getMessage());
-                        paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                        isExceptionOccure = true;
-                    } catch (HystrixRuntimeException hystrixRuntimeException) {
-                        LOG.info("IAC Supplementary Info response not received in time, exception: {}", hystrixRuntimeException.getMessage());
-                        paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                        isExceptionOccure = true;
-                    } catch (Exception ex) {
-                        LOG.info("Unable to retrieve IAC Supplementary Info information, exception: {}", ex.getMessage());
-                        paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                        isExceptionOccure = true;
-                    }
-                    if(!isExceptionOccure) {
-                        paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
-                        ObjectMapper objectMapperSupplementaryInfo = new ObjectMapper();
-                        SupplementaryDetailsResponse supplementaryDetailsResponse = objectMapperSupplementaryInfo.convertValue(responseEntitySupplementaryInfo.getBody(), SupplementaryDetailsResponse.class);
-                        List<SupplementaryInfo> lstSupplementaryInfo = supplementaryDetailsResponse.getSupplementaryInfo();
-                        MissingSupplementaryInfo lstMissingSupplementaryInfo = supplementaryDetailsResponse.getMissingSupplementaryInfo();
-
-                        if(responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null)
-                            LOG.info("No missing supplementary info received from IAC for any CCD case numbers, however response is 206");
-
-                        if(lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null)
-                            LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
-
-                        SupplementaryPaymentDto supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                                supplementaryInfo(lstSupplementaryInfo).build();
-
-                         return new ResponseEntity(supplementaryPaymentDto,paymentResponseHttpStatus);
-                    }
-            }else{
-                LOG.info("No Iac payments retrieved");
-            }
+        if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
+            return iacService.getIacSupplementaryInfo(paymentDtos,Service.IAC.getName());
         }
-                return new ResponseEntity(new PaymentsResponse(paymentDtos),paymentResponseHttpStatus);
+
+        return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
+
     }
 
     @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")
@@ -249,8 +195,6 @@ public class PaymentController {
 
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
-
 
     @ApiOperation(value = "Get payment details by payment reference", notes = "Get payment details for supplied payment reference")
     @ApiResponses(value = {
@@ -281,8 +225,6 @@ public class PaymentController {
             .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
             .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
             .build();
-
-
     }
 
     private Date getFromDateTime(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString) {
@@ -373,6 +315,8 @@ public class PaymentController {
         final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
         paymentDtos.add(paymentDto);
     }
+
+
 
     private void getApportionedDetails(List<PaymentFee> fees, List<FeePayApportion> feePayApportionList) {
         LOG.info("Getting Apportionment Details!!!");
