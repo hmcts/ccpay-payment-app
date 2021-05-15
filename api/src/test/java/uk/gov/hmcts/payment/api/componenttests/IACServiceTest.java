@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class IACServiceTest {
 
-    @Mock
+    /*@Mock
     private RestTemplate restTemplateIacSupplementaryInfo;
 
     @Mock
@@ -64,6 +64,11 @@ public class IACServiceTest {
             .build();
 
         return supplementaryDetailsResponse;
+
+    }*/
+
+    @Test
+    public void retrieveSupplementaryInfo() throws Exception {
 
     }
 }
