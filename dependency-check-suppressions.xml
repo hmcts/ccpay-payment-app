@@ -37,7 +37,7 @@
             <![CDATA[This CVE appears in the latest version of wiremock, WireMock 2.27.2 JRE 8 embeds jquery-3.4.1.min.js. see(https://github.com/tomakehurst/wiremock/issues/1417)]]></notes>
         <cve>CVE-2020-11022</cve>
         <cve>CVE-2020-11023</cve>
-        <cve>CVE-2021-28165</cve>>
+        <cve>CVE-2021-28165</cve>
     </suppress>
     <!-- Supression Group ends here -->
 
