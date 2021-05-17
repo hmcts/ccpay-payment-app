@@ -582,7 +582,7 @@ public class PBAPaymentPerformanceLiberataTest {
     }
 
     @Test
-    public void makeAndRetrieveResponseTime5PbaPaymentsByUnspecFromLiberata() throws InterruptedException {
+    public void makeAndRetrieveResponseTime5PbaPaymentsByCivilFromLiberata() throws InterruptedException {
         // create PBA payments
         final Integer PaymentCount = 5;
         SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
@@ -593,7 +593,7 @@ public class PBAPaymentPerformanceLiberataTest {
         String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
-            accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequestForUnspec("215.00", "UNSPEC");
+            accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequestForCivil("215.00", "CIVIL");
             accountPaymentRequest[i].setAccountNumber(accountNumber);
             paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest[i])
                 .then()
