@@ -20,7 +20,7 @@ import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.CallbackService;
-import uk.gov.hmcts.payment.api.service.IACService;
+import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -52,7 +52,7 @@ public class PaymentController {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    private IACService iacService;
+    private IacService iacService;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,

@@ -4,6 +4,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import java.util.List;
 
-public interface IACService {
+public interface IacService {
     ResponseEntity<SupplementaryPaymentDto> getIacSupplementaryInfo(List<PaymentDto> paymentDtos, String serviceName);
 }

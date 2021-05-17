@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.ff4j.services.domain.FeatureApiBean;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -1714,17 +1713,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isPartialContent())
             .andReturn();
 
-        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class))).thenThrow(HystrixRuntimeException.class);
-        MvcResult result1 = restActions
-            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isPartialContent())
-            .andReturn();
-
         when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class))).thenThrow(NullPointerException.class);
         MvcResult result2 = restActions
             .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isPartialContent())
             .andReturn();
+
     }
 
     @Test
