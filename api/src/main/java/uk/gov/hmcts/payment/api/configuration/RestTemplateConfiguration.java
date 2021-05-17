@@ -23,6 +23,9 @@ public class RestTemplateConfiguration {
 
     @Bean (value = "restTemplateIacSupplementaryInfo")
     public RestTemplate restTemplateIacSupplementaryInfo() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+        var factory = new HttpComponentsClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(10000);
+        return new RestTemplate(factory);
     }
 }
