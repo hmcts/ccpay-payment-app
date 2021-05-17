@@ -291,7 +291,7 @@ public class PBAPaymentFunctionalTest {
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
-                .searchPaymentsByServiceBetweenDates("CIVIL", startDate, endDate).then()
+                .searchPaymentsByServiceBetweenDates("Civil", startDate, endDate).then()
                 .getPayments((paymentsResponse -> {
                     Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
                 }));
