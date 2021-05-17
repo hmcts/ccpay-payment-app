@@ -315,42 +315,6 @@ public class PBAPaymentFunctionalTest {
     }
 
     @Test
-    public void makeAndRetrieveResponseTime5PbaPaymentsByUnspecFromLiberata() throws InterruptedException {
-        // create PBA payments
-        final Integer PaymentCount = 5;
-        SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
-
-        CreditAccountPaymentRequest[] accountPaymentRequest = new CreditAccountPaymentRequest[PaymentCount];
-        String accountNumber = testProps.existingAccountNumber;
-
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
-
-        for(int i=0; i<PaymentCount;i++) {
-            accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequestForCivil("215.00", Service.UNSPEC);
-            accountPaymentRequest[i].setAccountNumber(accountNumber);
-            paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest[i])
-                .then()
-                .statusCode(CREATED.value())
-                .body("status", equalTo("Success"));
-        }
-
-        Thread.sleep(5000);
-        String endDate = formatter.format(LocalDateTime.now().toDate());
-
-        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, 30L)
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        //getting size
-        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
-
-       //         Get card payments liberate pull response time
-        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
-        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
-        LOG.info("Response time in milliseconds approach 1 api for 5 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
-
-    }
-
-    @Test
     public void makeAndRetrievePbaPaymentByIACService() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
@@ -394,42 +358,6 @@ public class PBAPaymentFunctionalTest {
             .then().getPayments((paymentsResponse -> {
             Assertions.assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
         }));
-    }
-
-    @Test
-    public void makeAndRetrievePba5PaymentsByCmcFromLiberata() throws InterruptedException {
-        // create a PBA payment
-        final Integer PaymentCount = 5;
-        final Long responseTime = 30L;
-        SimpleDateFormat formatter= new SimpleDateFormat(DATE_TIME_FORMAT);
-
-        CreditAccountPaymentRequest[] accountPaymentRequest = new CreditAccountPaymentRequest[PaymentCount];
-        String accountNumber = testProps.existingAccountNumber;
-
-        String startDate = formatter.format(LocalDateTime.now().minusMinutes(5).toDate());
-
-        for(int i=0; i<PaymentCount;i++) {
-            accountPaymentRequest[i] = PaymentFixture.aPbaPaymentRequest("215.00", Service.CMC);
-            accountPaymentRequest[i].setAccountNumber(accountNumber);
-            paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest[i])
-                .then()
-                .statusCode(CREATED.value())
-                .body("status", equalTo("Pending"));
-        }
-
-        Thread.sleep(5000);
-
-        String endDate = formatter.format(LocalDateTime.now().toDate());
-
-        PaymentsResponse liberataResponseApproach1 = paymentTestService.getLiberatePullPaymentsByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate, responseTime)
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        //getting the size
-        assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(PaymentCount);
-
-        Response liberataResponseTimeApproach1 = paymentTestService.getLiberatePullPaymentsTimeByStartAndEndDateApproach1(SERVICE_TOKEN, startDate,endDate);
-        assertThat(liberataResponseTimeApproach1.statusCode()).isEqualTo(200);
-        LOG.info("Response time in milliseconds approach 1 api for 5 PBA payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
     @Test
