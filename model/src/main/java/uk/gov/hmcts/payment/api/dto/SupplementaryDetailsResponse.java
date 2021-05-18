@@ -13,7 +13,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "supplementaryDetailsResponseWith")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 public class SupplementaryDetailsResponse {
 
     @NotNull
