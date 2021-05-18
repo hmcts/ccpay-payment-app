@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
+import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
@@ -36,6 +37,7 @@ import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.mapper.TelephonyDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
+
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,29 +52,17 @@ import java.util.stream.Collectors;
 public class PaymentGroupController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentGroupController.class);
-
-    private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
-
-    private final PaymentGroupDtoMapper paymentGroupDtoMapper;
-
-    private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
-
-    private final PaymentDtoMapper paymentDtoMapper;
-
-    private final PciPalPaymentService pciPalPaymentService;
-
-    private final ReferenceUtil referenceUtil;
-
-    private final ReferenceDataService<SiteDTO> referenceDataService;
-
-    private final PaymentProviderRepository paymentProviderRepository;
-
-    private final FeePayApportionService feePayApportionService;
-
-    private final LaunchDarklyFeatureToggler featureToggler;
-
     private static final String APPORTION_FEATURE = "apportion-feature";
-
+    private final PaymentGroupService<PaymentFeeLink, String> paymentGroupService;
+    private final PaymentGroupDtoMapper paymentGroupDtoMapper;
+    private final DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+    private final PaymentDtoMapper paymentDtoMapper;
+    private final PciPalPaymentService pciPalPaymentService;
+    private final ReferenceUtil referenceUtil;
+    private final ReferenceDataService<SiteDTO> referenceDataService;
+    private final PaymentProviderRepository paymentProviderRepository;
+    private final FeePayApportionService feePayApportionService;
+    private final LaunchDarklyFeatureToggler featureToggler;
     private final Payment2Repository payment2Repository;
 
     private final TelephonyDtoMapper telephonyDtoMapper;
@@ -101,7 +91,7 @@ public class PaymentGroupController {
                                   LaunchDarklyFeatureToggler featureToggler,
                                   FeePayApportionRepository feePayApportionRepository,
                                   Payment2Repository payment2Repository,
-                                  TelephonyDtoMapper telephonyDtoMapper){
+                                  TelephonyDtoMapper telephonyDtoMapper) {
 
 
         this.paymentGroupService = paymentGroupService;
@@ -234,7 +224,7 @@ public class PaymentGroupController {
         }
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE,false);
+        boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if (apportionFeature) {
             feePayApportionService.processApportion(payment, false);
@@ -289,7 +279,7 @@ public class PaymentGroupController {
         Payment newPayment = getPayment(paymentFeeLink, payment.getReference());
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE,false);
+        boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if (apportionFeature) {
             feePayApportionService.processApportion(newPayment, false);
@@ -605,6 +595,13 @@ public class PaymentGroupController {
     public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(value = {OrderReferenceNotFoundException.class})
+    public String return404(OrderReferenceNotFoundException ex) {
+        return ex.getMessage();
+    }
+
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(InvalidPaymentGroupReferenceException.class)
