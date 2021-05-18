@@ -22,9 +22,11 @@ import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
