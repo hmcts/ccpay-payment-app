@@ -86,6 +86,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 

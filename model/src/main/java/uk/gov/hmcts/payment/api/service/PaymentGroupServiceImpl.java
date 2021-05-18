@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -51,7 +52,7 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
 
     @Override
     public PaymentFeeLink findByPaymentGroupReference(String paymentGroupReference) {
-        return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(() -> new InvalidPaymentGroupReferenceException("Order reference doesn't exist"));
+        return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(() -> new OrderReferenceNotFoundException("Order reference doesn't exist"));
     }
 
     @Override
