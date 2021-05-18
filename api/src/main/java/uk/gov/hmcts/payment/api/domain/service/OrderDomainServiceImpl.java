@@ -1,5 +1,7 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
@@ -7,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
@@ -25,20 +30,17 @@ import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrderDomainServiceImpl.class);
     private static final String FAILED = "failed";
+    private static final String SUCCESS = "success";
 
     @Autowired
     private OrderDtoDomainMapper orderDtoDomainMapper;
@@ -86,6 +89,9 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
+
+    @Autowired
+    private IdempotencyKeysRepository idempotencyKeysRepository;
 
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
@@ -182,12 +188,65 @@ public class OrderDomainServiceImpl implements OrderDomainService {
             LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
 
+        //status history from created -> success
+        if (payment.getPaymentStatus().getName().equalsIgnoreCase(SUCCESS)) {
+            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .status(payment.getPaymentStatus().getName())
+                .build()));
+        }
+
         //save the payment in paymentFeeLink
         order.getPayments().add(payment);
         paymentFeeLinkRepository.save(order);
 
         //Last Payment added in order
         return order.getPayments().get(order.getPayments().size() - 1);
+    }
+
+    public PaymentFeeLink businessValidationForOrders(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) {
+        //Business validation for amount
+        Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
+        if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(orderPaymentDto.getAmount()) != 0)) {
+            throw new OrderExceptionForNoMatchingAmount("The order amount should be equal to order balance");
+        }
+
+
+        //Business validation for amount due for fees
+        Optional<BigDecimal> totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add);
+        if (totalAmountDue.isPresent() && totalAmountDue.get().compareTo(BigDecimal.ZERO) == 0) {
+            throw new OrderExceptionForNoAmountDue("The order has already been paid");
+        }
+
+        return order;
+    }
+
+
+    public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String orderReference,
+                                                  String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException {
+        String requestJson = objectMapper.writeValueAsString(orderPaymentDto);
+        int requestHashCode = orderPaymentDto.hashCodeWithOrderReference(orderReference);
+
+        IdempotencyKeys idempotencyRecord = IdempotencyKeys
+            .idempotencyKeysWith()
+            .idempotencyKey(idempotencyKey)
+            .requestBody(requestJson)
+            .request_hashcode(requestHashCode)   //save the hashcode
+            .responseBody(responseJson)
+            .responseCode(responseEntity.getStatusCodeValue())
+            .build();
+
+        try {
+            Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).request_hashcode(requestHashCode).build());
+            if (idempotencyKeysRecord.isPresent()) {
+                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), OrderPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
+            }
+            idempotencyKeysRepository.save(idempotencyRecord);
+
+        } catch (DataIntegrityViolationException exception) {
+            responseEntity = new ResponseEntity<>("Too many requests.PBA Payment currently is in progress for this order", HttpStatus.TOO_EARLY);
+        }
+
+        return responseEntity;
     }
 
     @Override
