@@ -68,8 +68,6 @@ public class CMCCardPaymentFunctionalTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(CMCCardPaymentFunctionalTest.class);
 
-    private static DateTimeZone zoneUTC = DateTimeZone.UTC;
-
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
