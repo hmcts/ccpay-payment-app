@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,16 +18,20 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
-import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
+import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
+import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -68,6 +73,8 @@ public class OrderControllerTest {
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
     private OrderDomainService orderDomainService;
+    @Autowired
+    private IdempotencyService idempotencyService;
     @Autowired
     private AccountService<AccountDto, String> accountService;
     private RestActions restActions;
@@ -113,7 +120,7 @@ public class OrderControllerTest {
         OrderPaymentDto orderPaymentDto = OrderPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(300))
-            .currency(CurrencyCode.valueOf("GBP"))
+            .currency("GBP")
             .customerReference("testCustReference").
                 build();
 
@@ -200,7 +207,7 @@ public class OrderControllerTest {
         OrderPaymentDto orderPaymentDto = OrderPaymentDto
             .paymentDtoWith().accountNumber("PBA12346")
             .amount(BigDecimal.valueOf(300))
-            .currency(CurrencyCode.valueOf("GBP"))
+            .currency("GBP")
             .customerReference("testCustReference").
                 build();
 
@@ -257,7 +264,7 @@ public class OrderControllerTest {
         OrderPaymentDto orderPaymentDto = OrderPaymentDto
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
-            .currency(CurrencyCode.valueOf("GBP"))
+            .currency("GBP")
             .customerReference("testCustReference").
                 build();
 
@@ -299,6 +306,75 @@ public class OrderControllerTest {
         assertEquals("success", duplicateRequestOrderPaymentBO.getStatus());
     }
 
+    @Test
+    public void createPBALiberataFailureAndAccountNotFoundScenarioTest() throws Exception {
+
+        when(accountService.retrieve("PBA1111")).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        when(accountService.retrieve("PBA2222")).thenThrow(new RuntimeException("Runtime exception"));
+
+        String orderReference = getOrderReference();
+
+        //Order Payment DTO
+        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+            .paymentDtoWith().accountNumber("PBA1111")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .customerReference("testCustReference").
+                build();
+
+        // 1. Account not found exception
+        restActions
+            .withHeader("idempotency_key", UUID.randomUUID().toString())
+            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .andExpect(status().isNotFound())
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof AccountNotFoundException))
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException().getMessage().contains("Account information could not be found")))
+            .andReturn();
+
+        //AccountServiceUnAvailableException
+        orderPaymentDto.setAccountNumber("PBA2222"); //Account for runtime exception
+
+        restActions
+            .withHeader("idempotency_key", UUID.randomUUID().toString())
+            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof AccountServiceUnavailableException))
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException().getMessage().contains("Unable to retrieve account information, please try again later")))
+            .andReturn();
+    }
+
+    @Test
+    public void orderReferenceNotFoundExceptionOrderDTOEqualsTest() throws Exception {
+        String orderReferenceNotPresent = "2021-1621352111111";
+
+        //Order Payment DTO
+        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+            .paymentDtoWith().accountNumber("PBA12345")
+            .amount(BigDecimal.valueOf(100))
+            .currency("GBP")
+            .customerReference("testCustReference").
+                build();
+
+        //Payment amount should not be matching with fees
+        MvcResult result = restActions
+            .withHeader("idempotency_key", UUID.randomUUID().toString())
+            .post("/order/" + orderReferenceNotPresent + "/credit-account-payment", orderPaymentDto)
+            .andExpect(status().isNotFound())
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderReferenceNotFoundException))
+            .andExpect(orderException -> assertEquals("Order reference doesn't exist", orderException.getResolvedException().getMessage()))
+            .andReturn();
+
+        //Equality test
+        OrderPaymentDto orderPaymentDto2 = OrderPaymentDto
+            .paymentDtoWith().accountNumber("PBA12346") //changed the account no
+            .amount(BigDecimal.valueOf(100))
+            .currency("GBP")
+            .customerReference("testCustReference").
+                build();
+
+        assertFalse(orderPaymentDto.equals(orderPaymentDto2));
+    }
+
 
     @Test
     public void createPBAPaymentNonMatchAmountTest() throws Exception {
@@ -307,7 +383,7 @@ public class OrderControllerTest {
         OrderPaymentDto orderPaymentDto = OrderPaymentDto
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
-            .currency(CurrencyCode.valueOf("GBP"))
+            .currency("GBP")
             .customerReference("testCustReference").
                 build();
 
