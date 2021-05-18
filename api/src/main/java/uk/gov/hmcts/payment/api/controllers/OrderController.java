@@ -21,6 +21,7 @@ import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 
@@ -192,8 +193,8 @@ public class OrderController {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(InvalidPaymentGroupReferenceException.class)
-    public String return404(InvalidPaymentGroupReferenceException ex) {
+    @ExceptionHandler(OrderReferenceNotFoundException.class)
+    public String return404(OrderReferenceNotFoundException ex) {
         return ex.getMessage();
     }
 
