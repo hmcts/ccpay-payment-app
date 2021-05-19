@@ -155,7 +155,7 @@ public class CardPaymentController {
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
         if (apportionFeature) {
-            feePayApportionService.processApportion(paymentLink.getPayments().get(0), true);
+            feePayApportionService.processApportion(paymentLink.getPayments().get(0));
         }
         return new ResponseEntity<>(paymentDto, CREATED);
     }

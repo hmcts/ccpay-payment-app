@@ -15,18 +15,6 @@ public class OrderCaseUtil {
 
     public void updateOrderCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
 
-//        Add null chekcer for paymentfeelink
-
-//        if (paymentFeeLink.getCaseDetails().isEmpty() && payment.getCcdCaseNumber() != null) {
-//            paymentFeeLink.setCaseDetails(Collections.singleton(CaseDetails.caseDetailsWith()
-//                .ccdCaseNumber(payment.getCcdCaseNumber())
-//                .caseReference(payment.getCaseReference())
-//                .build()));
-//        } else {
-//            paymentFeeLink.getCaseDetails().stream().forEach(caseDetails -> {
-//                caseDetails.setCcdCaseNumber(payment.getCcdCaseNumber());
-//            });
-//        }
         if (payment.getCcdCaseNumber() != null) {
             paymentFeeLink.setCcdCaseNumber(payment.getCcdCaseNumber());
         }
@@ -59,18 +47,6 @@ public class OrderCaseUtil {
     }
 
     public PaymentFeeLink enhanceWithOrderCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
-
-//        if (remission.getCcdCaseNumber() != null) {
-//            Optional<CaseDetails> existingCaseDetails = caseDetailsRepository.findByCcdCaseNumber(remission.getCcdCaseNumber());
-//            if (existingCaseDetails.isPresent()) {
-//                paymentFeeLink.setCaseDetails(Collections.singleton(existingCaseDetails.get()));
-//            } else {
-//                paymentFeeLink.setCaseDetails(Collections.singleton(CaseDetails.caseDetailsWith()
-//                    .ccdCaseNumber(remission.getCcdCaseNumber())
-//                    .caseReference(remission.getCaseReference())
-//                    .build()));
-//            }
-//        }
 
         paymentFeeLink.setOrgId(remission.getSiteId());
         if (remission.getCcdCaseNumber() != null) {
