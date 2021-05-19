@@ -572,7 +572,7 @@ public class PaymentGroupController {
             TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
 
             // trigger Apportion based on the launch darkly feature flag
-            boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, true);
+            boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
             LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
             if (apportionFeature) {
                 feePayApportionService.processApportion(payment);
