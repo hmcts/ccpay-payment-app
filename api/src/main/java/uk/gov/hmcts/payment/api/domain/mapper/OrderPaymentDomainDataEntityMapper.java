@@ -57,10 +57,8 @@ public class OrderPaymentDomainDataEntityMapper {
             .customerReference(paymentBo.getCustomerReference())
             .caseReference(order.getCaseReference())
             .ccdCaseNumber(order.getCcdCaseNumber())
-            .statusHistories(paymentBo.getStatusHistories() == null ? Arrays.asList(StatusHistory.statusHistoryWith()
-                .status(paymentStatusRepository.findByNameOrThrow(paymentBo.getStatus()).getName())
-                .build())
-                : paymentBo.getStatusHistories())
+            .siteId(order.getOrgId())
+            .serviceType(order.getEnterpriseServiceName())
             .build();
     }
 
