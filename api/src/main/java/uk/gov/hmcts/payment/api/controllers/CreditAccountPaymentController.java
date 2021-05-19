@@ -161,12 +161,12 @@ public class CreditAccountPaymentController {
         }
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", true);
         LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
         if (apportionFeature) {
             Payment pbaPayment = paymentFeeLink.getPayments().get(0);
             pbaPayment.setPaymentLink(paymentFeeLink);
-            feePayApportionService.processApportion(pbaPayment, false);
+            feePayApportionService.processApportion(pbaPayment, true);
 
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
             if (Lists.newArrayList("success", "pending").contains(pbaPayment.getPaymentStatus().getName().toLowerCase())) {
