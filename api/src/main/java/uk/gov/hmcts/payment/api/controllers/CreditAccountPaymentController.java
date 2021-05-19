@@ -161,7 +161,7 @@ public class CreditAccountPaymentController {
         }
 
         // trigger Apportion based on the launch darkly feature flag
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", true);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
         if (apportionFeature) {
             Payment pbaPayment = paymentFeeLink.getPayments().get(0);
