@@ -1,12 +1,17 @@
 package uk.gov.hmcts.payment.api.util;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
 @Component
 public class OrderCaseUtil {
+
+    @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     public void updateOrderCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
 
@@ -22,7 +27,12 @@ public class OrderCaseUtil {
 //                caseDetails.setCcdCaseNumber(payment.getCcdCaseNumber());
 //            });
 //        }
-
+        if (payment.getCcdCaseNumber() != null) {
+            paymentFeeLink.setCcdCaseNumber(payment.getCcdCaseNumber());
+        }
+        if (payment.getCaseReference() != null) {
+            paymentFeeLink.setCaseReference(payment.getCaseReference());
+        }
         paymentFeeLink.setEnterpriseServiceName(payment.getServiceType());
         paymentFeeLink.setOrgId(payment.getSiteId());
     }
@@ -37,23 +47,14 @@ public class OrderCaseUtil {
 
     public PaymentFeeLink enhanceWithOrderCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
 
-//        if (payment.getCcdCaseNumber() != null) {
-//            Optional<CaseDetails> existingCaseDetails = caseDetailsRepository.findByCcdCaseNumber(payment.getCcdCaseNumber());
-//            if (existingCaseDetails.isPresent()) {
-//                paymentFeeLink.setCaseDetails(Collections.singleton(existingCaseDetails.get()));
-//            } else {
-//                paymentFeeLink.setCaseDetails(Collections.singleton(CaseDetails.caseDetailsWith()
-//                    .ccdCaseNumber(payment.getCcdCaseNumber())
-//                    .caseReference(payment.getCaseReference())
-//                    .build()));
-//            }
-//        }
-
-        paymentFeeLink.setEnterpriseServiceName(payment.getServiceType());
         paymentFeeLink.setOrgId(payment.getSiteId());
-        paymentFeeLink.setCcdCaseNumber(payment.getCcdCaseNumber());
-        paymentFeeLink.setCaseReference(payment.getCaseReference());
-
+        paymentFeeLink.setEnterpriseServiceName(payment.getServiceType());
+        if (payment.getCcdCaseNumber() != null) {
+            paymentFeeLink.setCcdCaseNumber(payment.getCcdCaseNumber());
+        }
+        if (payment.getCaseReference() != null) {
+            paymentFeeLink.setCaseReference(payment.getCaseReference());
+        }
         return paymentFeeLink;
     }
 

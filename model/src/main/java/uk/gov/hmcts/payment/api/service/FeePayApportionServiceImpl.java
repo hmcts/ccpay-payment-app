@@ -102,7 +102,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
                     }
                 });
                 this.processFeePayApportion(FeePayApportionCCDCase.feePayApportionCCDCaseWith()
-                    .ccdCaseNo(payment.getCcdCaseNumber())
+                    .ccdCaseNo(payment.getPaymentLink().getCcdCaseNumber())
                     .feePayGroups(Collections.singletonList(payment.getPaymentLink()))
                     .fees(sortedFees)
                     .payments(Lists.newArrayList(payment))
@@ -182,7 +182,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
             .paymentLink(payment.getPaymentLink())
             .feeAmount(fee.getNetAmount())
             .paymentAmount(payment.getAmount())
-            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .ccdCaseNumber(payment.getPaymentLink().getCcdCaseNumber())
             .createdBy("SYSTEM")
             .apportionType(ApportionType.AUTO.getName())
             .dateCreated(payment.getDateCreated())
