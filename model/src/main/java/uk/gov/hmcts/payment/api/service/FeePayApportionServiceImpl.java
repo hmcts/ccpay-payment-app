@@ -44,20 +44,20 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     public void updateFeeAmountDue(Payment payment) {
         try {
             Optional<List<FeePayApportion>> apportions = feePayApportionRepository.findByPaymentId(payment.getId());
-            if(apportions.isPresent()) {
+            if (apportions.isPresent()) {
                 apportions.get().stream()
                     .forEach(feePayApportion -> {
                         PaymentFee fee = paymentFeeRepository.findById(feePayApportion.getFeeId()).get();
-                        if(feePayApportion.getCallSurplusAmount() == null) {
+                        if (feePayApportion.getCallSurplusAmount() == null) {
                             feePayApportion.setCallSurplusAmount(BigDecimal.valueOf(0));
                         }
                         fee.setAmountDue(fee.getAmountDue().subtract(feePayApportion.getApportionAmount()
                             .add(feePayApportion.getCallSurplusAmount())));
 
-                        if(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName() != null &&
+                        if (payment.getPaymentChannel() != null && payment.getPaymentChannel().getName() != null &&
                             (payment.getPaymentChannel().getName().equalsIgnoreCase("telephony") ||
                                 payment.getPaymentChannel().getName().equalsIgnoreCase("online"))) {
-                            if(fee.getAmountDue() != null && fee.getAmountDue().compareTo(BigDecimal.valueOf(0)) < 0) {
+                            if (fee.getAmountDue() != null && fee.getAmountDue().compareTo(BigDecimal.valueOf(0)) < 0) {
                                 feePayApportion.setCallSurplusAmount(feePayApportion.getCallSurplusAmount().subtract(fee.getAmountDue()));
                                 feePayApportionRepository.save(feePayApportion);
                             }
@@ -78,12 +78,12 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
     }
 
     @Override
-    public void processApportion(Payment payment, boolean isOrderTrue) {
+    public void processApportion(Payment payment) {
         try {
             Optional<List<PaymentFee>> savedFees;
 
             //Fees against order
-            savedFees = (isOrderTrue) ? paymentFeeRepository.findByPaymentLinkId(payment.getPaymentLink().getId()) : paymentFeeRepository.findByCcdCaseNumber(payment.getCcdCaseNumber());
+            savedFees = paymentFeeRepository.findByPaymentLinkId(payment.getPaymentLink().getId());
 
             if (savedFees.isPresent()) {
 
@@ -137,7 +137,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
 
                             if (remainingPaymentAmount.compareTo(fee.getAmountDue()) > 0) {
                                 remainingPaymentAmount = remainingPaymentAmount.subtract(fee.getAmountDue());
-                            }else {
+                            } else {
                                 remainingPaymentAmount = BigDecimal.valueOf(0);
                             }
 
