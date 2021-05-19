@@ -10,7 +10,7 @@ public interface FeePayApportionService {
 
     FeePayApportionCCDCase processFeePayApportion(FeePayApportionCCDCase feePayApportionCCDCase);
 
-    void processApportion(Payment payment, boolean isOrderTrue);
+    void processApportion(Payment payment);
 
     void updateFeeAmountDue(Payment payment);
 
