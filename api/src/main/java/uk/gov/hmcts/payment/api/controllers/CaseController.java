@@ -114,5 +114,5 @@ public class CaseController {
     public String notFound(PaymentGroupNotFoundException ex) {
         return ex.getMessage();
     }
-    
+
 }
