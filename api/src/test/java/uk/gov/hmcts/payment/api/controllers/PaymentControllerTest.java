@@ -27,7 +27,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.dto.ReconcilePaymentResponse;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
@@ -1659,99 +1658,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
 
-    }
-
-    @Test
-    @Transactional
-    public void searchOrderPaymentsByApportion_withValidDates_shouldReturnPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/orders/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        ReconcilePaymentResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReconcilePaymentResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-
-    }
-
-    @Test
-    @Transactional
-    public void searchOrderPaymentsByApportion_withValidDates_validServiceName_shouldReturnPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/orders/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=" + "Probate")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        ReconcilePaymentResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReconcilePaymentResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-    }
-
-    @Test
-    @Transactional
-    public void searchOrderPaymentsByApportion_withValidDates_validServiceName_validccdCaseNumber_shouldReturnPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/orders/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate + "&ccd_case_number=ccdCaseNumber1" + "&service_name=" + "Probate")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        ReconcilePaymentResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReconcilePaymentResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-    }
-
-    @Test
-    @Transactional
-    public void searchOrderPaymentsByApportion_withValidDates_validccdCaseNumber_shouldReturnPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/orders/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate + "&ccd_case_number=ccdCaseNumber1")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        ReconcilePaymentResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReconcilePaymentResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
     }
 
     private Date parseDate(String date) {

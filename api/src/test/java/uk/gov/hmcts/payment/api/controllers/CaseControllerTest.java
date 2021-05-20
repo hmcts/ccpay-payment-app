@@ -10,7 +10,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -46,15 +45,12 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.referencedata.model.Site;
 import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -67,8 +63,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -603,112 +597,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isNotFound())
             .andReturn();
     }
-
-    @Test
-    public void testGettingPaymentGroupDetailsWithValidCcdCaseNumber() throws Exception {
-
-        when(orderDomainService.findByCcdCaseNumber(anyString())).thenReturn(Collections.singletonList(getPaymentFeeLink()));
-
-        when(feeDomainService.getFeePayApportionsByFee(Mockito.any(PaymentFee.class))).thenReturn(Arrays.asList(getFeePayApportion()));
-
-        when(paymentDomainService.getPaymentByApportionment(Mockito.any(FeePayApportion.class))).thenReturn(getPayment());
-
-        MvcResult result2 = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/orderpoc/cases/1607065108455502/paymentgroups")
-            .andExpect(status().isOk())
-            .andReturn();
-        PaymentGroupResponse paymentGroupResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentGroupResponse.class);
-
-        BigDecimal actualAmount = paymentGroupResponse.getPaymentGroups().get(0).getPayments().get(0).getAmount();
-        String actualFeeCode = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getCode();
-
-        assertEquals(BigDecimal.valueOf(99.99), actualAmount);
-        assertEquals("FEE0001", actualFeeCode);
-    }
-
-    @Test
-    public void testGettingPaymentGroupDetailsWithInValidCcdCaseNumberSendsBadRequest() throws Exception {
-        MvcResult result2 = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/orderpoc/cases/11/paymentgroups")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-    }
-
-    @Test
-    public void testGettingPaymentGroupWithUnavailableCcdCaseNumber_ThrowPaymentGroupNotFoundException() throws Exception {
-        when(orderDomainService.findByCcdCaseNumber(anyString())).thenThrow(new PaymentGroupNotFoundException("Case Details Not found for 1607065108000002"));
-
-        MvcResult result2 = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/orderpoc/cases/1607065108000002/paymentgroups")
-            .andExpect(status().isNotFound())
-            .andReturn();
-    }
-
-    @Test
-    public void testGettingEmptyPaymentGroupThrowPaymentNotFoundException() throws Exception {
-
-        when(orderDomainService.findByCcdCaseNumber(anyString())).thenReturn(new ArrayList<>());
-        MvcResult result2 = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/orderpoc/cases/1607065108000002/paymentgroups")
-            .andExpect(status().isNotFound())
-            .andReturn();
-    }
-
-    @Test
-    public void testGettingPaymentDetailsWithInValidCcdCaseNumberSendsBadRequest() throws Exception {
-        MvcResult result2 = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/orderpoc/cases/11/paymentgroups")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-    }
-
-
-    @Test
-    public void testGettingEmptyPaymentThrowPaymentNotFoundException() throws Exception {
-
-        when(orderDomainService.findByCcdCaseNumber(anyString())).thenReturn(new ArrayList<>());
-        MvcResult result2 = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/orderpoc/cases/1607065108000002/payments")
-            .andExpect(status().isNotFound())
-            .andReturn();
-    }
-
-    @Test
-    public void testGettingPaymentDetailsWithValidCcdCaseNumber() throws Exception {
-
-        when(orderDomainService.findByCcdCaseNumber(anyString())).thenReturn(Collections.singletonList(getPaymentFeeLink()));
-
-        when(feeDomainService.getFeePayApportionsByFee(Mockito.any(PaymentFee.class))).thenReturn(Arrays.asList(getFeePayApportion()));
-
-        when(paymentDomainService.getPaymentByApportionment(Mockito.any(FeePayApportion.class))).thenReturn(getPayment());
-
-        MvcResult result2 = restActions
-            .withAuthorizedUser(USER_ID)
-            .withUserId(USER_ID)
-            .get("/orderpoc/cases/1607065108455502/payments")
-            .andExpect(status().isOk())
-            .andReturn();
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentsResponse.class);
-
-        BigDecimal actualAmount = paymentsResponse.getPayments().get(0).getAmount();
-        String actualCaseReference = paymentsResponse.getPayments().get(0).getCaseReference();
-
-        assertEquals(BigDecimal.valueOf(99.99), actualAmount);
-        assertEquals("Reference1", actualCaseReference);
-    }
-
 
     private FeePayApportion getFeePayApportion() {
         return FeePayApportion.feePayApportionWith()
