@@ -20,8 +20,6 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.domain.service.FeeDomainService;
-import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -86,12 +84,6 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil{
 
     @MockBean
     ReferenceDataService referenceDataService;
-
-    @MockBean
-    private PaymentDomainService paymentDomainService;
-
-    @MockBean
-    private FeeDomainService feeDomainService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
