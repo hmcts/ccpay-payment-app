@@ -383,7 +383,10 @@ public class OrderControllerTest {
         //assert different class scenario
         OrderDto orderDto = OrderDto.orderDtoWith().build();
         assertFalse(orderPaymentDto.equals(orderDto));
-        
+
+        //Hashcode coverage
+        assertTrue(Integer.valueOf(orderPaymentDto.hashCode()) instanceof Integer);
+
     }
 
     @Test
