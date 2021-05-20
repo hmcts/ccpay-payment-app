@@ -366,13 +366,44 @@ public class OrderControllerTest {
 
         //Equality test
         OrderPaymentDto orderPaymentDto2 = OrderPaymentDto
-            .paymentDtoWith().accountNumber("PBA12346") //changed the account no
+            .paymentDtoWith().accountNumber("PBA12345") //changed the account no
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
+            .customerReference("testCustReference1").
+                build();
+
+        //assert not equal scenario
+        assertFalse(orderPaymentDto.equals(orderPaymentDto2));
+
+        orderPaymentDto2.setCustomerReference("testCustReference");
+        //assert equal scenario
+        assertTrue(orderPaymentDto.equals(orderPaymentDto)); //same Object
+        assertTrue(orderPaymentDto.equals(orderPaymentDto2)); //Different Object
+
+        //assert different class scenario
+        OrderDto orderDto = OrderDto.orderDtoWith().build();
+        assertFalse(orderPaymentDto.equals(orderDto));
+
+        //Hashcode coverage
+        assertNotNull(orderPaymentDto.hashCode());
+
+    }
+
+    @Test
+    public void createPBAInvalidCurrencyScenario() throws Exception {
+        //Order Payment DTO
+        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+            .paymentDtoWith().accountNumber("PBA12345")
+            .amount(BigDecimal.valueOf(100))
+            .currency("INR") //instead of GBP
             .customerReference("testCustReference").
                 build();
 
-        assertFalse(orderPaymentDto.equals(orderPaymentDto2));
+        restActions
+            .withHeader("idempotency_key", UUID.randomUUID().toString())
+            .post("/order/" + "2021-1621352112222" + "/credit-account-payment", orderPaymentDto)
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().string("validCurrency: Invalid currency. Accepted value GBP"));
     }
 
 
