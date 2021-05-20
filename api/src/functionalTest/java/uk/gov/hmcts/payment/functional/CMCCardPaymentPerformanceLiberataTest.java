@@ -352,7 +352,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         String startDate = formatter.format(LocalDateTime.now(zoneUTC).minusMinutes(5).toDate());
 
         for(int i=0; i<PaymentCount;i++) {
-            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestall("215.00", "finrem");
+            cardPaymentRequest[i] = PaymentFixture.cardPaymentRequestall("215.00", "FINREM");
 
             paymentTestService.postcardPayment(USER_TOKEN, SERVICE_TOKEN, cardPaymentRequest[i])
                 .then()
