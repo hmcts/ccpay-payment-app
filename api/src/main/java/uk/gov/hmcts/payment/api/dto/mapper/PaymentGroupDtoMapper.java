@@ -10,11 +10,8 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.domain.service.FeeDomainService;
-import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
-import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
@@ -26,10 +23,8 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -40,13 +35,7 @@ public class PaymentGroupDtoMapper {
     private FeesService feesService;
 
     @Autowired
-    private FeeDomainService feeDomainService;
-
-    @Autowired
     private LaunchDarklyFeatureToggler featureToggler;
-
-    @Autowired
-    private PaymentDomainService paymentDomainService;
 
     @Autowired
     private PaymentFeeRepository paymentFeeRepository;
@@ -169,39 +158,4 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-
-    public PaymentGroupDto toPaymentGroupDtoForOrders(PaymentFeeLink paymentFeeLink){
-        List<FeeDto> feeDtos = toFeeDtos(paymentFeeLink.getFees());
-        PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
-                                                .paymentGroupReference(paymentFeeLink.getPaymentReference())
-                                                .dateCreated(paymentFeeLink.getDateCreated())
-                                                .dateUpdated(paymentFeeLink.getDateUpdated())
-                                                .fees(feeDtos)
-                                                .remissions(toRemissionDtos(getRemissionsForGivenFees(paymentFeeLink.getFees())))
-                                                .payments(getPaymentsFromFeesAndApportions(paymentFeeLink.getFees()))
-                                                .build();
-        return paymentGroupDto;
-    }
-
-
-
-    private List<Remission> getRemissionsForGivenFees(List<PaymentFee> paymentFees){
-        return paymentFees.stream().flatMap(fee->
-             fee.getRemissions()!=null&&fee.getRemissions().size()>0?fee.getRemissions().stream():Collections.<Remission>emptyList().stream()
-        ).collect(Collectors.toList());
-    }
-
-    private List<PaymentDto> getPaymentsFromFeesAndApportions(List<PaymentFee> paymentFees){
-        List<FeePayApportion> feePayApportions =  paymentFees
-                                                    .stream()
-                                                    .flatMap(fee->
-                                                        feeDomainService.getFeePayApportionsByFee(fee).stream())
-                                                    .collect(Collectors.toList());
-        Set<PaymentDto> paymentDtos = feePayApportions
-                                        .stream()
-                                        .map(feePayApportion ->
-                                            toPaymentDto(paymentDomainService.getPaymentByApportionment(feePayApportion)))
-                                        .collect(Collectors.toSet());
-        return paymentDtos.stream().collect(Collectors.toList());
-    }
 }

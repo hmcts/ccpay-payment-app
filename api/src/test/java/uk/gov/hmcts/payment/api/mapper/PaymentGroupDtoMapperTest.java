@@ -10,8 +10,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.domain.service.FeeDomainService;
-import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -41,15 +39,8 @@ public class PaymentGroupDtoMapperTest {
     @Mock
     FeesService feesService;
 
-
     @Mock
     LaunchDarklyFeatureToggler featureToggler;
-
-    @Mock
-    FeeDomainService feeDomainService;
-
-    @Mock
-    PaymentDomainService paymentDomainService;
 
     @InjectMocks
     PaymentGroupDtoMapper paymentGroupDtoMapper = new PaymentGroupDtoMapper();
