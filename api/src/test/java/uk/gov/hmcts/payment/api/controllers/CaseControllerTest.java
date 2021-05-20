@@ -25,9 +25,7 @@ import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.domain.service.FeeDomainService;
 import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
-import uk.gov.hmcts.payment.api.domain.service.PaymentDomainService;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
@@ -106,10 +104,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     private ObjectMapper objectMapper;
     @MockBean
     private OrderDomainService orderDomainService;
-    @MockBean
-    private FeeDomainService feeDomainService;
-    @MockBean
-    private PaymentDomainService paymentDomainService;
 
     @Before
     public void setup() {
