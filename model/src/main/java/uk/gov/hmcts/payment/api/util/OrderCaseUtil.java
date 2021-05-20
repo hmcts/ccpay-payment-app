@@ -28,6 +28,8 @@ public class OrderCaseUtil {
     public void updateOrderCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
         if (remission.getCcdCaseNumber() != null) {
             paymentFeeLink.setCcdCaseNumber(remission.getCcdCaseNumber());
+        }
+        if (remission.getCaseReference() != null) {
             paymentFeeLink.setCaseReference(remission.getCaseReference());
         }
         paymentFeeLink.setOrgId(remission.getSiteId());
@@ -51,6 +53,8 @@ public class OrderCaseUtil {
         paymentFeeLink.setOrgId(remission.getSiteId());
         if (remission.getCcdCaseNumber() != null) {
             paymentFeeLink.setCcdCaseNumber(remission.getCcdCaseNumber());
+        }
+        if (remission.getCaseReference() != null) {
             paymentFeeLink.setCaseReference(remission.getCaseReference());
         }
         return paymentFeeLink;
