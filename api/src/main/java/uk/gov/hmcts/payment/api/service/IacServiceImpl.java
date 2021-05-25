@@ -97,7 +97,6 @@ public class IacServiceImpl implements IacService {
 
         //Generate token for payment api and replace
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
-        LOG.info("S2S Token To Test : {}", authTokenGenerator.generate());
 
         headerMultiValueMapForIacSuppInfo.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         LOG.info("IAC Supplementary info URL: {}", iacSupplementaryInfoUrl + "/supplementary-details");
