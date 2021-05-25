@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 1559991099418-7
+      id: 1559991099418-8
       author: arbab
       changes:
         - insert:
