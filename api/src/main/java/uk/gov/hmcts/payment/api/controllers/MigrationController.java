@@ -37,7 +37,7 @@ public class MigrationController {
         @ApiResponse(code = 204, message = "Data updated successfully"),
     })
     @PatchMapping(value = "/migrate-data/{orderId}")
-    public ResponseEntity<String> updateWithGivenData(@PathVariable int orderId, @RequestBody MigrationSingleDataDto migratingRequestData) {
+    public ResponseEntity<String> updateWithGivenData(@PathVariable int orderId, @Valid @RequestBody MigrationSingleDataDto migratingRequestData) {
         MigratingDataDto migratingDataDto = MigratingDataDto.ccdLinkWith()
                                                 .paymentLinkId(orderId)
                                                 .ccdCaseNumber(migratingRequestData.getCcdCaseNumber())
@@ -46,8 +46,7 @@ public class MigrationController {
                                                 .siteId(migratingRequestData.getSiteId())
                                                 .build();
         String status = migrationService.updatePaymentFeeLinkWithMigratingData(migratingDataDto);
-        LOG.info(status);
-        return new ResponseEntity<>(status, HttpStatus.OK);
+        return new ResponseEntity<>(status, HttpStatus.ACCEPTED);
     }
 
     @ApiOperation(value = "Migrating ccd_case_num, case_ref, site_id, service_type data from payment to order table",
@@ -55,22 +54,29 @@ public class MigrationController {
     @ApiResponses(value = {
         @ApiResponse(code = 204, message = "Data updated successfully"),
     })
-    @PostMapping(value = "/apply-migration-multiple-records/{paymentType}")
+    @PutMapping(value = "/apply-migration-multiple-records/{paymentType}")
     public ResponseEntity<String> migrateData(@PathVariable String paymentType) {
         if(paymentType.equals("multiple")){
             List<MigratingDataDto> migratingDataDtos = migrationService.findMigrationDataByPaymentLinkIdAndDateCreatedForMultiRecords();
             LOG.info("No of records received: "+migratingDataDtos.size());
-            int count=0;
+            int successCount=0;
+            int failCount=0;
+
             for(MigratingDataDto migratingData: migratingDataDtos){
-                migrationService.updatePaymentFeeLinkWithMigratingData(migratingData);
-                count+=1;
+                String status = migrationService.updatePaymentFeeLinkWithMigratingData(migratingData);
+                if(status.equals("COMPLETE")){
+                    successCount+=1;
+                }else{
+                    failCount+=1;
+                }
             }
-            if(migratingDataDtos.size()==count){
+            if(migratingDataDtos.size()==successCount){
                 LOG.info("Migration complete for multiple records");
-                return new ResponseEntity<>("Status: COMPLETE; No of records updated: "+count, HttpStatus.ACCEPTED);
+                return new ResponseEntity<>("Status: COMPLETE; No of records updated: "+successCount, HttpStatus.ACCEPTED);
             }
             LOG.info("Migration Incomplete for multiple records");
-            return new ResponseEntity<>("Status: INCOMPLETE; No of records updated: "+count, HttpStatus.ACCEPTED);
+            return new ResponseEntity<>("Status: INCOMPLETE; No of records updated: "+successCount +"\n " +
+                "No of records failed: "+failCount, HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST);
     }
