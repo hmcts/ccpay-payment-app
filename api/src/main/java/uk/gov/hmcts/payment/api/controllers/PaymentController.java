@@ -1,13 +1,19 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.ff4j.FF4j;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +29,7 @@ import uk.gov.hmcts.payment.api.service.CallbackService;
 import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
+import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -47,9 +54,10 @@ public class PaymentController {
     private final FF4j ff4j;
     private final DateTimeFormatter formatter;
     private final PaymentFeeRepository paymentFeeRepository;
+    private final LaunchDarklyFeatureToggler featureToggler;
 
     @Autowired
-    private LaunchDarklyFeatureToggler featureToggler;
+    private OrderCaseUtil orderCaseUtil;
 
     @Autowired
     private IacService iacService;
@@ -58,7 +66,8 @@ public class PaymentController {
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
                              PaymentStatusRepository paymentStatusRepository, CallbackService callbackService,
                              PaymentDtoMapper paymentDtoMapper, PaymentValidator paymentValidator, FF4j ff4j,
-                             DateUtil dateUtil, PaymentFeeRepository paymentFeeRepository) {
+                             DateUtil dateUtil, PaymentFeeRepository paymentFeeRepository,
+                             LaunchDarklyFeatureToggler featureToggler) {
         this.paymentService = paymentService;
         this.callbackService = callbackService;
         this.paymentStatusRepository = paymentStatusRepository;
@@ -67,6 +76,7 @@ public class PaymentController {
         this.ff4j = ff4j;
         this.formatter = dateUtil.getIsoDateTimeFormatter();
         this.paymentFeeRepository = paymentFeeRepository;
+        this.featureToggler = featureToggler;
     }
 
     @ApiOperation(value = "Update case reference by payment reference", notes = "Update case reference by payment reference")
@@ -87,6 +97,9 @@ public class PaymentController {
             if (request.getCcdCaseNumber() != null) {
                 payment.get().setCcdCaseNumber(request.getCcdCaseNumber());
             }
+
+            orderCaseUtil.updateOrderCaseDetails(payment.get().getPaymentLink(), payment.get());
+
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
@@ -122,7 +135,7 @@ public class PaymentController {
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", paymentFeeLinks.size());
-        for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
+        for (final PaymentFeeLink paymentFeeLink : paymentFeeLinks) {
             populatePaymentDtos(paymentDtos, paymentFeeLink, fromDateTime, toDateTime);
         }
         return new PaymentsResponse(paymentDtos);
@@ -137,12 +150,12 @@ public class PaymentController {
     })
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
-    public ResponseEntity retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
-                                                        @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
-                                                        @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
-                                                        @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
-                                                        @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
-                                                        @RequestParam(name = "pba_number", required = false) String pbaNumber
+    public PaymentsResponse retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+                                                          @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
+                                                          @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
+                                                          @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
+                                                          @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
+                                                          @RequestParam(name = "pba_number", required = false) String pbaNumber
     ) {
 
         validatePullRequest(startDateTimeString, endDateTimeString, paymentMethodType, serviceType);
@@ -169,7 +182,7 @@ public class PaymentController {
             return iacService.getIacSupplementaryInfo(paymentDtos,Service.IAC.getName());
         }
 
-        return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
+        return new PaymentsResponse(paymentDtos);
 
     }
 
@@ -223,7 +236,7 @@ public class PaymentController {
             .ccdCaseNumber(ccdCaseNumber)
             .pbaNumber(pbaNumber)
             .paymentMethod(paymentMethodType.map(value -> PaymentMethodType.valueOf(value.toUpperCase()).getType()).orElse(null))
-            .serviceType(serviceType.map(value -> Service.valueOf(value.toUpperCase()).getName()).orElse(null))
+            .serviceType(serviceType.orElse(null))
             .build();
     }
 
@@ -238,7 +251,7 @@ public class PaymentController {
             throw new PaymentException("Payment search feature is not available for usage.");
         }
 
-        validator.validate(paymentMethodType, serviceType, startDateTimeString, endDateTimeString);
+        validator.validate(paymentMethodType, startDateTimeString, endDateTimeString);
     }
 
     private Date getToDateTime(@RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString, Date fromDateTime) {
@@ -260,21 +273,21 @@ public class PaymentController {
         //Additional filter to retrieve payments within specified Date Range for Liberata Pull
         if (null != fromDateTime && null != toDateTime) {
             payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0
-                && payment.getDateUpdated().compareTo(toDateTime) <= 0 ))
+                && payment.getDateUpdated().compareTo(toDateTime) <= 0))
                 .collect(Collectors.toList());
         } else if (null != fromDateTime) {
             payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0))
                 .collect(Collectors.toList());
         } else if (null != toDateTime) {
-            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(toDateTime) <= 0 ))
+            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(toDateTime) <= 0))
                 .collect(Collectors.toList());
         }
 
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
 
         LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
         LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
-        for (final Payment payment: payments) {
+        for (final Payment payment : payments) {
             final String paymentReference = paymentFeeLink.getPaymentReference();
             //Apportion logic added for pulling allocation amount
             populateApportionedFees(paymentDtos, paymentFeeLink, apportionFeature, payment, paymentReference);
@@ -284,11 +297,11 @@ public class PaymentController {
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final List<Payment> payments) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> filteredPayments = getFilteredListBasedOnBulkScanToggleFeature(payments);
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
 
         LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
         LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
-        for (final Payment payment: filteredPayments) {
+        for (final Payment payment : filteredPayments) {
             final String paymentReference = payment.getPaymentLink() != null ? payment.getPaymentLink().getPaymentReference() : null;
             //Apportion logic added for pulling allocation amount
             populateApportionedFees(paymentDtos, payment.getPaymentLink(), apportionFeature, payment, paymentReference);
@@ -297,14 +310,14 @@ public class PaymentController {
 
     private void populateApportionedFees(List<PaymentDto> paymentDtos, PaymentFeeLink paymentFeeLink, boolean apportionFeature, Payment payment, String paymentReference) {
         boolean apportionCheck = payment.getPaymentChannel() != null
-            && !payment.getPaymentChannel().getName().equalsIgnoreCase(Service.DIGITAL_BAR.getName());
+            && !payment.getPaymentChannel().getName().equalsIgnoreCase(paymentService.getServiceNameByCode("DIGITAL_BAR"));
         LOG.info("Apportion check value in liberata API: {}", apportionCheck);
         List<PaymentFee> fees = paymentFeeLink.getFees();
         boolean isPaymentAfterApportionment = false;
         if (apportionCheck && apportionFeature) {
             LOG.info("Apportion check and feature passed");
             final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
-            if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
+            if (feePayApportionList != null && !feePayApportionList.isEmpty()) {
                 LOG.info("Apportion details available in PaymentController");
                 fees = new ArrayList<>();
                 getApportionedDetails(fees, feePayApportionList);
@@ -312,22 +325,19 @@ public class PaymentController {
             }
         }
         //End of Apportion logic
-        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
+        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees, ff4j, isPaymentAfterApportionment);
         paymentDtos.add(paymentDto);
     }
 
 
-
     private void getApportionedDetails(List<PaymentFee> fees, List<FeePayApportion> feePayApportionList) {
         LOG.info("Getting Apportionment Details!!!");
-        for (FeePayApportion feePayApportion : feePayApportionList)
-        {
+        for (FeePayApportion feePayApportion : feePayApportionList) {
             Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
-            if(apportionedFee.isPresent())
-            {
+            if (apportionedFee.isPresent()) {
                 LOG.info("Apportioned fee is present");
                 PaymentFee fee = apportionedFee.get();
-                if(feePayApportion.getApportionAmount() != null) {
+                if (feePayApportion.getApportionAmount() != null) {
                     LOG.info("Apportioned Amount is available!!!");
                     BigDecimal allocatedAmount = feePayApportion.getApportionAmount()
                         .add(feePayApportion.getCallSurplusAmount() != null
