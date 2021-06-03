@@ -40,7 +40,7 @@ public class MigrationServiceImpl implements MigrationService{
     @Transactional
     public String updatePaymentFeeLinkWithMigratingData(MigratingDataDto migratingDataDto) {
         String status = "INCOMPLETE";
-        LOG.info("PaymentLinkId: "+migratingDataDto.getPaymentLinkId()+" CcdCaseNumber: "+migratingDataDto.getCcdCaseNumber()+" " +
+        LOG.info("Data Migration in Progress for: PaymentLinkId: "+migratingDataDto.getPaymentLinkId()+" CcdCaseNumber: "+migratingDataDto.getCcdCaseNumber()+" " +
             "CaseReference: "+ migratingDataDto.getCaseReference()+ "serviceType: "+migratingDataDto.getServiceType()+"" +
             "siteId: "+migratingDataDto.getSiteId());
         try{
