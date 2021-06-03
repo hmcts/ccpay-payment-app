@@ -30,6 +30,8 @@ java:
     pba.fpl.payments.email.to: Krishna.Nuthalapati@hmcts.net
 
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
+
+    PBA_CONFIG1_SERVICE_NAMES: dummy
   keyVaults:
     "ccpay":
       resourceGroup: ccpay
