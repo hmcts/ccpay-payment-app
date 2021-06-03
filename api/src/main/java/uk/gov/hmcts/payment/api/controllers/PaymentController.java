@@ -21,7 +21,6 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -150,7 +149,7 @@ public class PaymentController {
     })
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
-    public PaymentsResponse retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+    public ResponseEntity<SupplementaryPaymentDto> retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                                           @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                                           @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                                           @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -174,15 +173,17 @@ public class PaymentController {
         populatePaymentDtos(paymentDtos, payments);
 
         Optional<Payment> iacPaymentAny = payments.stream()
-            .filter(p -> p.getServiceType().equalsIgnoreCase(Service.IAC.getName())).findAny();
+            .filter(p -> p.getServiceType().equalsIgnoreCase("IAC")).findAny();
         boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
         LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
 
         if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
-            return iacService.getIacSupplementaryInfo(paymentDtos,Service.IAC.getName());
+            return iacService.getIacSupplementaryInfo(paymentDtos,"IAC");
         }
-
-        return new PaymentsResponse(paymentDtos);
+        SupplementaryPaymentDto responsePaymentDtos = SupplementaryPaymentDto.supplementaryPaymentDtoWith()
+                                                .payments(paymentDtos)
+                                                .build();
+        return new ResponseEntity<>(responsePaymentDtos,HttpStatus.OK);
 
     }
 

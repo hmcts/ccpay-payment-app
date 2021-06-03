@@ -50,24 +50,24 @@ public class DateUtilTest {
     @Test
     public void atStartOfDayTest() {
         Date Result = DateUtil.atStartOfDay(SampleDate);
-        assertEquals("Wed Feb 20 00:00:00 UTC 2019", Result.toString());
+        assertEquals("Wed Feb 20 00:00:00 GMT 2019", Result.toString());
     }
 
     @Test
     public void atEndOfDayTest() {
         Date Result = DateUtil.atEndOfDay(SampleDate);
-        assertEquals("Wed Feb 20 23:59:59 UTC 2019", Result.toString());
+        assertEquals("Wed Feb 20 23:59:59 GMT 2019", Result.toString());
     }
 
     @Test
     public void localDateTimeToDateTest() {
         Date Result = DateUtil.localDateTimeToDate(SampleDateTime);
-        assertEquals("Sat Jul 20 18:09:22 UTC 2019", Result.toString());
+        assertEquals("Sat Jul 20 18:09:22 BST 2019", Result.toString());
     }
 
     @Test
     public void convertToDateViaInstantTest() {
         Date Result = DateUtil.convertToDateViaInstant(SampleDateTime);
-        assertEquals("Sat Jul 20 18:09:22 UTC 2019", Result.toString());
+        assertEquals("Sat Jul 20 18:09:22 BST 2019", Result.toString());
     }
 }

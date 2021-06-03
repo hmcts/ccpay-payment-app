@@ -99,9 +99,6 @@ public class PaymentGroupControllerTest {
     private RestTemplate restTemplatePaymentGroup;
 
     @MockBean
-    private RestTemplate restTemplate;
-
-    @MockBean
     private ReferenceDataService referenceDataService;
 
     @Autowired
