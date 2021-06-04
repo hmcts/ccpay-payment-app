@@ -81,24 +81,4 @@ public class MigrationController {
         return new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST);
     }
 
-
-
-
-//
-//    @ApiOperation(value = "Migrating ccd_case_num, case_ref, site_id, service_type data from payment to order table",
-//        notes = "Migrating ccd_case_num, case_ref, site_id, service_type data from payment to order table")
-//    @ApiResponses(value = {
-//        @ApiResponse(code = 204, message = "Data updated successfully"),
-//    })
-//    @PostMapping(value = "/apply-migration-single-records/{paymentType}")
-//    @Transactional
-//    public ResponseEntity<String> migrateSingleData(@PathVariable String paymentType) {
-//        if(paymentType.equals("single")){
-//            int recordsUpdatedCount = migrationService.updatePaymentLinkWithSinglePaymentRecords();
-//            return new ResponseEntity<>("No of records updated: "+recordsUpdatedCount, HttpStatus.OK);
-//        }
-//        return new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST);
-//    }
-
-
 }

@@ -31,10 +31,6 @@ public class MigrationServiceImpl implements MigrationService{
         return payment2Repository.findMigrationDataByPaymentLinkIdAndDateCreatedForMultiRecords();
     }
 
-    @Override
-    public int updatePaymentLinkWithSinglePaymentRecords() {
-        return payment2Repository.updatePaymentLinkWithSinglePaymentRecords();
-    }
 
     @Override
     @Transactional

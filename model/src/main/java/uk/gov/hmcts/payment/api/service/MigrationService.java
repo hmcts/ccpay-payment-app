@@ -7,7 +7,5 @@ import java.util.List;
 public interface MigrationService {
     List<MigratingDataDto> findMigrationDataByPaymentLinkIdAndDateCreatedForMultiRecords();
 
-    int updatePaymentLinkWithSinglePaymentRecords();
-
     String updatePaymentFeeLinkWithMigratingData(MigratingDataDto migratingData);
 }

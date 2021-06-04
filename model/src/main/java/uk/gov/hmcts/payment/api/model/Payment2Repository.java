@@ -37,33 +37,4 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
         "\tSELECT p.paymentLink.id, MAX(p.dateCreated) from Payment p GROUP BY p.paymentLink.id HAVING count(*)>1)")
     List<MigratingDataDto> findMigrationDataByPaymentLinkIdAndDateCreatedForMultiRecords();
 
-
-    @Modifying
-    @Query(value = "" +
-        "WITH audit_record as ( UPDATE payment_fee_link as pfl SET ccd_case_number = p.ccd_case_number, case_reference = p.case_reference, org_id = p.site_id, enterprise_service_name = p.service_type FROM payment p WHERE pfl.id = p.payment_link_id AND p.payment_link_id  IN ( SELECT p1.payment_link_id FROM payment p1 GROUP BY p1.payment_link_id HAVING count( p1.id ) = 1 )" +
-        " RETURNING pfl.ccd_case_number AS ccd_case_no," +
-        "'order_updated' AS audit_type," +
-        "CONCAT('PaymentFeeLink( id =', pfl.id , ', caseReference=', pfl.case_reference, ', ccdCaseNumber=' , pfl.ccd_case_number, ', orgId=' , pfl.org_id, ', enterpriseServiceName=', pfl.enterprise_service_name, ')') as audit_payload," +
-        "'Order Updated successfully' AS audit_description," +
-        "current_date AS date_created," +
-        "current_date AS date_updated )" +
-        "insert" +
-        "       into" +
-        "       payment_audit_history (ccd_case_no," +
-        "       audit_type," +
-        "       audit_payload," +
-        "       audit_description," +
-        "       date_created," +
-        "       date_updated) ((" +
-        "       select" +
-        "              ccd_case_no," +
-        "              audit_type," +
-        "              audit_payload," +
-        "              audit_description," +
-        "              date_created," +
-        "              date_updated" +
-        "       from" +
-        "              audit_record));",nativeQuery = true)
-    int updatePaymentLinkWithSinglePaymentRecords();
-
 }
