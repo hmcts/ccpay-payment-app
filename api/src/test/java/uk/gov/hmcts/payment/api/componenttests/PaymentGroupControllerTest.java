@@ -2375,6 +2375,7 @@ public class PaymentGroupControllerTest {
             .returnURL("http://localhost")
             .build();
 
+
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
             .andExpect(status().isCreated())
