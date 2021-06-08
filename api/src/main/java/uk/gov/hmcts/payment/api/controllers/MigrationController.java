@@ -36,10 +36,10 @@ public class MigrationController {
     @ApiResponses(value = {
         @ApiResponse(code = 204, message = "Data updated successfully"),
     })
-    @PatchMapping(value = "/migrate-data/{orderId}")
-    public ResponseEntity<String> updateWithGivenData(@PathVariable int orderId, @Valid @RequestBody MigrationSingleDataDto migratingRequestData) {
+    @PatchMapping(value = "/migrate-data/{paymentGroupReference}")
+    public ResponseEntity<String> updateWithGivenData(@PathVariable String paymentGroupReference, @Valid @RequestBody MigrationSingleDataDto migratingRequestData) {
         MigratingDataDto migratingDataDto = MigratingDataDto.ccdLinkWith()
-                                                .paymentLinkId(orderId)
+                                                .paymentGroupReference(paymentGroupReference)
                                                 .ccdCaseNumber(migratingRequestData.getCcdCaseNumber())
                                                 .caseReference(migratingRequestData.getCaseReference())
                                                 .serviceType(migratingRequestData.getServiceType())

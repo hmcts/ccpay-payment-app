@@ -44,7 +44,7 @@ public class MigrationControllerTest {
                                                     .serviceType("Divorce")
                                                     .build();
         when(migrationService.updatePaymentFeeLinkWithMigratingData(any(MigratingDataDto.class))).thenReturn("COMPLETE");
-        ResponseEntity<String> response = migrationController.updateWithGivenData(1,mockRequestDto);
+        ResponseEntity<String> response = migrationController.updateWithGivenData("1",mockRequestDto);
         assertEquals(response.getBody(),"COMPLETE");
     }
 
@@ -55,7 +55,7 @@ public class MigrationControllerTest {
             .caseReference("case-reference")
             .siteId("AA07")
             .serviceType("Divorce")
-            .paymentLinkId(1)
+            .paymentGroupReference("1")
             .build()
         ));
         when(migrationService.updatePaymentFeeLinkWithMigratingData(any(MigratingDataDto.class))).thenReturn("COMPLETE");
@@ -71,7 +71,7 @@ public class MigrationControllerTest {
             .caseReference("case-reference")
             .siteId("AA07")
             .serviceType("Divorce")
-            .paymentLinkId(1)
+            .paymentGroupReference("1")
             .build()
         ));
         when(migrationService.updatePaymentFeeLinkWithMigratingData(any(MigratingDataDto.class))).thenReturn("INCOMPLETE");

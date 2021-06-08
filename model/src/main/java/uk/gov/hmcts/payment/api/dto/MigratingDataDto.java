@@ -19,7 +19,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Builder(builderMethodName = "ccdLinkWith")
 @Data
 public class MigratingDataDto {
-    private Integer paymentLinkId;
+    private String paymentGroupReference;
     private String ccdCaseNumber;
     private String caseReference;
     private String siteId;

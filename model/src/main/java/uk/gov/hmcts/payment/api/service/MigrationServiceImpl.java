@@ -36,23 +36,23 @@ public class MigrationServiceImpl implements MigrationService{
     @Transactional
     public String updatePaymentFeeLinkWithMigratingData(MigratingDataDto migratingDataDto) {
         String status = "INCOMPLETE";
-        LOG.info("Data Migration in Progress for: PaymentLinkId: "+migratingDataDto.getPaymentLinkId()+" CcdCaseNumber: "+migratingDataDto.getCcdCaseNumber()+" " +
+        LOG.info("Data Migration in Progress for: Payment Group Ref: "+migratingDataDto.getPaymentGroupReference()+" CcdCaseNumber: "+migratingDataDto.getCcdCaseNumber()+" " +
             "CaseReference: "+ migratingDataDto.getCaseReference()+ "serviceType: "+migratingDataDto.getServiceType()+"" +
             "siteId: "+migratingDataDto.getSiteId());
         try{
-            PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findById(migratingDataDto.getPaymentLinkId()).orElseThrow(PaymentGroupNotFoundException::new);
+            PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(migratingDataDto.getPaymentGroupReference()).orElseThrow(PaymentGroupNotFoundException::new);
             paymentFeeLink.setCcdCaseNumber(migratingDataDto.getCcdCaseNumber()!=null?migratingDataDto.getCcdCaseNumber():paymentFeeLink.getCcdCaseNumber());
             paymentFeeLink.setCaseReference(migratingDataDto.getCaseReference()!=null?migratingDataDto.getCaseReference():paymentFeeLink.getCaseReference());
             paymentFeeLink.setOrgId(migratingDataDto.getSiteId()!=null?migratingDataDto.getSiteId():paymentFeeLink.getOrgId());
             paymentFeeLink.setEnterpriseServiceName(migratingDataDto.getServiceType()!=null?migratingDataDto.getServiceType():paymentFeeLink.getEnterpriseServiceName());
             paymentFeeLinkRepository.save(paymentFeeLink);
             status = "COMPLETE";
-            LOG.info("Migration Success for "+migratingDataDto.getPaymentLinkId() );
+            LOG.info("Migration Success for "+migratingDataDto.getPaymentGroupReference() );
 
         }catch (PaymentGroupNotFoundException exception){
-            LOG.info("Migration Failed for "+migratingDataDto.getPaymentLinkId()+"due to "+ exception.toString());
+            LOG.info("Migration Failed for "+migratingDataDto.getPaymentGroupReference()+"due to "+ exception.toString());
         }catch (Exception exception){
-            LOG.info("Migration Failed for "+migratingDataDto.getPaymentLinkId()+"due to "+ exception.toString());
+            LOG.info("Migration Failed for "+migratingDataDto.getPaymentGroupReference()+"due to "+ exception.toString());
         }
         return status;
     }

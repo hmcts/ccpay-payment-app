@@ -32,7 +32,7 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
     Optional<List<Payment>> findByPaymentLinkId(Integer id);
 
 
-    @Query("SELECT new uk.gov.hmcts.payment.api.dto.MigratingDataDto(p.paymentLink.id, p.ccdCaseNumber, p.caseReference, p.siteId, p.serviceType) from Payment p " +
+    @Query("SELECT new uk.gov.hmcts.payment.api.dto.MigratingDataDto(p.paymentLink.paymentReference, p.ccdCaseNumber, p.caseReference, p.siteId, p.serviceType) from Payment p " +
         "WHERE (p.paymentLink.id,p.dateCreated ) in (" +
         "\tSELECT p.paymentLink.id, MAX(p.dateCreated) from Payment p GROUP BY p.paymentLink.id HAVING count(*)>1)")
     List<MigratingDataDto> findMigrationDataByPaymentLinkIdAndDateCreatedForMultiRecords();
