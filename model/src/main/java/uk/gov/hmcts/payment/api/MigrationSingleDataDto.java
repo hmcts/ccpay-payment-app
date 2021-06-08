@@ -18,6 +18,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder(builderMethodName = "migrationSingleDataDto")
 public class MigrationSingleDataDto {
 
     @Size(min = 16, max = 16,message = "ccdcase_number should be of size 16")

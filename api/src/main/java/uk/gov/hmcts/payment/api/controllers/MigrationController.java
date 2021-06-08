@@ -75,8 +75,7 @@ public class MigrationController {
                 return new ResponseEntity<>("Status: COMPLETE; No of records updated: "+successCount, HttpStatus.ACCEPTED);
             }
             LOG.info("Migration Incomplete for multiple records");
-            return new ResponseEntity<>("Status: INCOMPLETE; No of records updated: "+successCount +"\n " +
-                "No of records failed: "+failCount, HttpStatus.ACCEPTED);
+            return new ResponseEntity<>("Status: INCOMPLETE; No of records updated: "+successCount +" No of records failed: "+failCount, HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST);
     }
