@@ -1723,203 +1723,203 @@ public class PaymentGroupControllerTest {
         }
     }
 
-//    @Test
-//    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithDivorce() throws Exception {
-//        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees( Arrays.asList(getNewFee()))
-//            .build();
-//
-//        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees(Arrays.asList(getConsecutiveFee())).build();
-//        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
-//        MvcResult result = restActions
-//            .post("/payment-groups", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        assertThat(paymentGroupDto).isNotNull();
-//        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-//        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-//
-//        MvcResult result2 = restActions
-//            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        assertThat(paymentGroupFeeDto).isNotNull();
-//        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-//        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
-//
-//
-//        BigDecimal amount = new BigDecimal("200");
-//
-//        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-//            .amount(amount)
-//            .currency(CurrencyCode.GBP)
-//            .service(Service.DIVORCE)
-//            .siteId("AA07")
-//            .ccdCaseNumber("2154234356342357")
-//            .returnURL("http://localhost")
-//            .build();
-//
-//        MvcResult result3 = restActions
-//            .withReturnUrl("https://www.google.com")
-//            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
-//
-//        MvcResult result4 = restActions
-//            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
-//
-//        assertNotNull(paymentsResponse);
-//        assertEquals("Initiated", paymentsResponse.getStatus());
-//        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-//        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-//        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-//        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
-//    }
+    @Test
+  public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithDivorce() throws Exception {
+       PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+          .fees( Arrays.asList(getNewFee()))
+           .build();
 
-//    @Test
-//    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithCMC() throws Exception {
-//        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees( Arrays.asList(getNewFee()))
-//            .build();
-//        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
-//        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees(Arrays.asList(getConsecutiveFee())).build();
-//
-//        MvcResult result = restActions
-//            .post("/payment-groups", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        assertThat(paymentGroupDto).isNotNull();
-//        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-//        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-//
-//        MvcResult result2 = restActions
-//            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        assertThat(paymentGroupFeeDto).isNotNull();
-//        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-//        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
-//
-//
-//        BigDecimal amount = new BigDecimal("120");
-//
-//        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-//            .amount(amount)
-//            .currency(CurrencyCode.GBP)
-//            .service(Service.CMC)
-//            .siteId("AA07")
-//            .ccdCaseNumber("2154234356342357")
-//            .returnURL("http://localhost")
-//            .build();
-//
-//        MvcResult result3 = restActions
-//            .withReturnUrl("https://www.google.com")
-//            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        TelephonyCardPaymentsResponse paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
-//
-//        MvcResult result4 = restActions
-//            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
-//
-//        assertNotNull(paymentsResponse);
-//        assertEquals("Initiated", paymentsResponse.getStatus());
-//        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-//        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-//        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-//        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
-//    }
+       PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+           .fees(Arrays.asList(getConsecutiveFee())).build();
+      when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
 
-//    @Test
-//    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithProbate() throws Exception {
-//        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees( Arrays.asList(getNewFee()))
-//            .build();
-//        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
-//        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees(Arrays.asList(getConsecutiveFee())).build();
-//
-//        MvcResult result = restActions
-//            .post("/payment-groups", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        assertThat(paymentGroupDto).isNotNull();
-//        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-//        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-//
-//        MvcResult result2 = restActions
-//            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        assertThat(paymentGroupFeeDto).isNotNull();
-//        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-//        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
-//
-//
-//        BigDecimal amount = new BigDecimal("200");
-//
-//        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-//            .amount(amount)
-//            .currency(CurrencyCode.GBP)
-//            .service(Service.PROBATE)
-//            .siteId("AA07")
-//            .ccdCaseNumber("2154234356342357")
-//            .returnURL("http://localhost")
-//            .build();
-//
-//        MvcResult result3 = restActions
-//            .withReturnUrl("https://www.google.com")
-//            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
-//
-//        MvcResult result4 = restActions
-//            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
-//
-//        assertNotNull(paymentsResponse);
-//        assertEquals("Initiated", paymentsResponse.getStatus());
-//        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-//        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-//        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-//        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
-//    }
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+           .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .service(Service.DIVORCE)
+            .siteId("AA07")
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("http://localhost")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+   }
+
+    @Test
+    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithCMC() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+
+        BigDecimal amount = new BigDecimal("120");
+
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .service(Service.CMC)
+            .siteId("AA07")
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("http://localhost")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        TelephonyCardPaymentsResponse paymentDtoResult = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + paymentDtoResult.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+    }
+
+    @Test
+    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithProbate() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .service(Service.PROBATE)
+            .siteId("AA07")
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("http://localhost")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+    }
 
     @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithUnSupportedServiceName() throws Exception {
@@ -1971,71 +1971,71 @@ public class PaymentGroupControllerTest {
             .andReturn();
     }
 
-//    @Test
-//    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithFinrem() throws Exception {
-//        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees( Arrays.asList(getNewFee()))
-//            .build();
-//        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
-//        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees(Arrays.asList(getConsecutiveFee())).build();
-//
-//        MvcResult result = restActions
-//            .post("/payment-groups", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        assertThat(paymentGroupDto).isNotNull();
-//        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-//        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
-//
-//        MvcResult result2 = restActions
-//            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//
-//        assertThat(paymentGroupFeeDto).isNotNull();
-//        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
-//        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
-//
-//
-//        BigDecimal amount = new BigDecimal("200");
-//
-//        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-//            .amount(amount)
-//            .currency(CurrencyCode.GBP)
-//            .service(Service.FINREM)
-//            .siteId("AA07")
-//            .ccdCaseNumber("2154234356342357")
-//            .returnURL("http://localhost")
-//            .build();
-//
-//        MvcResult result3 = restActions
-//            .withReturnUrl("https://www.google.com")
-//            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
-//
-//        MvcResult result4 = restActions
-//            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
-//
-//        assertNotNull(paymentsResponse);
-//        assertEquals("Initiated", paymentsResponse.getStatus());
-//        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-//        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-//        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-//        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
-//    }
+    @Test
+    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithFinrem() throws Exception {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+        MvcResult result2 = restActions
+            .put("/payment-groups/" + paymentGroupDto.getPaymentGroupReference(), consecutiveRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        assertThat(paymentGroupFeeDto).isNotNull();
+        assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupFeeDto.getFees().size()).isEqualTo(2);
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .service(Service.FINREM)
+            .siteId("AA07")
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("http://localhost")
+            .build();
+
+        MvcResult result3 = restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), TelephonyCardPaymentsResponse.class);
+
+        MvcResult result4 = restActions
+            .get("/card-payments/" + telephonyCardPaymentsResponse.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentDto paymentsResponse = objectMapper.readValue(result4.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+    }
 
     @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaThrowsExceptionWhenFlagIsOff() throws Exception {
