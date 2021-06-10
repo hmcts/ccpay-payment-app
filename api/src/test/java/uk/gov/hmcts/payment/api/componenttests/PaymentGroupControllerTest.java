@@ -2345,55 +2345,56 @@ public class PaymentGroupControllerTest {
 
     }
 
-//    @Test
-//    public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
-//
-//        String ccdCaseNumber = "1111111122222222";
-//        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
-//        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
-//
-//        List<FeeDto> fees = new ArrayList<>();
-//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
-//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
-//        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
-//            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
-//
-//        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-//            .fees(fees)
-//            .build();
-//
-//        MvcResult result = restActions
-//            .post("/payment-groups", request)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-//        BigDecimal amount = new BigDecimal("120");
-//        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-//            .amount(amount)
-//            .currency(CurrencyCode.GBP)
-//            .service(Service.FINREM)
-//            .siteId("AA07")
-//            .ccdCaseNumber(ccdCaseNumber)
-//            .returnURL("http://localhost")
-//            .build();
-//
-//
-//        MvcResult result2 = restActions
-//            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-//            .andExpect(status().isCreated())
-//            .andReturn();
-//
-//        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), TelephonyCardPaymentsResponse.class);
-//
-//        List<PaymentFee> savedfees = db.findByReference(telephonyCardPaymentsResponse.getPaymentGroupReference()).getFees();
-//
-//        assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
-//        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
-//        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
-//    }
+    @Test
+    @Ignore("PCI PAL - Removal")
+    public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
+
+        String ccdCaseNumber = "1111111122222222";
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(fees)
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        BigDecimal amount = new BigDecimal("120");
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .service(Service.FINREM)
+            .siteId("AA07")
+            .ccdCaseNumber(ccdCaseNumber)
+            .returnURL("http://localhost")
+            .build();
+
+
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), TelephonyCardPaymentsResponse.class);
+
+        List<PaymentFee> savedfees = db.findByReference(telephonyCardPaymentsResponse.getPaymentGroupReference()).getFees();
+
+        assertEquals(new BigDecimal(10), savedfees.get(0).getAmountDue());
+        assertEquals(new BigDecimal(40), savedfees.get(1).getAmountDue());
+        assertEquals(new BigDecimal(60), savedfees.get(2).getAmountDue());
+    }
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
