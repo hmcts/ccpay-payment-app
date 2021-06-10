@@ -337,6 +337,10 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public TelephonyCardPaymentsResponse createdTelephoneCardPaymentsResponse() {
+            TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = response.then().statusCode(200).extract().as(TelephonyCardPaymentsResponse.class);
+            return telephonyCardPaymentsResponse;
+        }
         public PaymentsResponse getPayments() {
             PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
             return paymentsResponse;
