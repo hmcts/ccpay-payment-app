@@ -19,6 +19,7 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -31,6 +32,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
@@ -284,6 +286,24 @@ public class TelephonyPaymentsTest {
         });
     }
 
+    @Test
+    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithDivorce() {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees( Arrays.asList(getNewFee()))
+            .build();
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        PaymentGroupDto paymentGroupDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().addNewPaymentGroup(request).then().createdWithContent(201);
+        assertThat(paymentGroupDto).isNotNull();
+        assertThat(paymentGroupDto.getFees().size()).isNotZero();
+        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+
+    }
+
     private PaymentRecordRequest getTelephonyPayment(String reference) {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .externalProvider("pci pal")
@@ -308,5 +328,29 @@ public class TelephonyPaymentsTest {
             )
             .reportedDateOffline(DateTime.now().toString())
             .build();
+    }
+
+    private FeeDto getConsecutiveFee(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("100.19"))
+            .code("FEE313")
+            .id(1)
+            .version("1")
+            .volume(2)
+            .reference("BXsd11253")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+    }
+
+    private FeeDto getNewFee(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+
     }
 }
