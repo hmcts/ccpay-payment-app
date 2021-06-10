@@ -126,6 +126,12 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl addNewPaymentGroup(PaymentGroupDto paymentGroupFeeRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
+                .post("/payment-groups");
+            return this;
+        }
+
         public PaymentWhenDsl addNewFeeAndPaymentGroup(PaymentGroupDto paymentGroupFeeRequest) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .post("/payment-groups/");
@@ -267,6 +273,15 @@ public class PaymentsTestDsl {
         public PaymentThenDsl ok() {
             response.then().statusCode(200);
             return this;
+        }
+
+        public PaymentThenDsl created() {
+            response.then().statusCode(201);
+            return this;
+        }
+
+        public PaymentGroupDto createdWithContent(int statusCode) {
+            return response.then().statusCode(statusCode).extract().as(PaymentGroupDto.class);
         }
 
         public PaymentThenDsl created(Consumer<PaymentDto> payment) {
