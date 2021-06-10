@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.math.RandomUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -1724,6 +1725,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @Ignore("For the purposes of PCI - PAL checks are done at the Functional Layer....")
   public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithDivorce() throws Exception {
        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
           .fees( Arrays.asList(getNewFee()))
@@ -1790,6 +1792,7 @@ public class PaymentGroupControllerTest {
    }
 
     @Test
+    @Ignore("For the purposes of PCI - PAL checks are done at the Functional Layer....")
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithCMC() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -1856,6 +1859,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @Ignore("For the purposes of PCI - PAL checks are done at the Functional Layer....")
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithProbate() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
@@ -1972,6 +1976,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
+    @Ignore("For the purposes of PCI - PAL checks are done at the Functional Layer....")
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithFinrem() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
