@@ -294,13 +294,21 @@ public class TelephonyPaymentsTest {
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
-        PaymentGroupDto paymentGroupDto = dsl.given().userToken(USER_TOKEN)
+        PaymentGroupDto paymentGroupDtoForNewGroup = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().addNewPaymentGroup(request).then().createdWithContent(201);
-        assertThat(paymentGroupDto).isNotNull();
-        assertThat(paymentGroupDto.getFees().size()).isNotZero();
-        assertThat(paymentGroupDto.getFees().size()).isEqualTo(1);
+        assertThat(paymentGroupDtoForNewGroup).isNotNull();
+        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isNotZero();
+        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isEqualTo(1);
+
+        PaymentGroupDto paymentGroupDtoFornewFees = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().addNewPaymentGroup(consecutiveRequest).then().createdWithContent(201);
+        assertThat(paymentGroupDtoFornewFees).isNotNull();
+        assertThat(paymentGroupDtoFornewFees.getFees().size()).isNotZero();
+        assertThat(paymentGroupDtoFornewFees.getFees().size()).isEqualTo(1);
 
     }
 

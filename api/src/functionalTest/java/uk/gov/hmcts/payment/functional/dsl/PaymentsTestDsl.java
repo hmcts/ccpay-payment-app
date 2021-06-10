@@ -132,6 +132,12 @@ public class PaymentsTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl addNewFeeToPaymentGroup(PaymentGroupDto paymentGroupFeeRequest) {
+            response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
+                .put("/payment-groups");
+            return this;
+        }
+
         public PaymentWhenDsl addNewFeeAndPaymentGroup(PaymentGroupDto paymentGroupFeeRequest) {
             response = newRequest().contentType(ContentType.JSON).body(paymentGroupFeeRequest)
                 .post("/payment-groups/");
