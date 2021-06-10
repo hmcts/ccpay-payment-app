@@ -17,6 +17,8 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -33,7 +35,9 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
@@ -120,8 +124,11 @@ public class TelephonyPaymentsTest {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
                         .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
-                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                PaymentDto paymentRetrieved =
+                    paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber))
+                        .findFirst().get();
+                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(),
+                    paymentRecordRequest.getReference());
                 assertEquals("payment status is properly set", "success", paymentRetrieved.getStatus());
             });
         });
@@ -166,9 +173,12 @@ public class TelephonyPaymentsTest {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
                         .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+                PaymentDto paymentRetrieved =
+                    paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber))
+                        .findFirst().get();
 
-                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(),
+                    paymentRecordRequest.getReference());
                 assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
             });
         });
@@ -214,8 +224,11 @@ public class TelephonyPaymentsTest {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
                         .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
-                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                PaymentDto paymentRetrieved =
+                    paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber))
+                        .findFirst().get();
+                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(),
+                    paymentRecordRequest.getReference());
                 assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
             });
         });
@@ -289,7 +302,7 @@ public class TelephonyPaymentsTest {
     @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithDivorce() {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
@@ -310,6 +323,33 @@ public class TelephonyPaymentsTest {
         assertThat(paymentGroupDtoFornewFees.getFees().size()).isNotZero();
         assertThat(paymentGroupDtoFornewFees.getFees().size()).isEqualTo(1);
 
+        BigDecimal amount = new BigDecimal("200");
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest =
+            TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                .amount(amount)
+                .currency(CurrencyCode.GBP)
+                .service(Service.DIVORCE)
+                .siteId("AA07")
+                .ccdCaseNumber("2154234356342357")
+                .returnURL("http://localhost")
+                .build();
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupDtoForNewGroup.getPaymentGroupReference())
+            .then().createdTelephoneCardPaymentsResponse();
+
+        PaymentDto paymentsResponse = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().getCardPayment(telephonyCardPaymentsResponse.getPaymentReference()).then().ok().get();
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
     private PaymentRecordRequest getTelephonyPayment(String reference) {
@@ -338,7 +378,7 @@ public class TelephonyPaymentsTest {
             .build();
     }
 
-    private FeeDto getConsecutiveFee(){
+    private FeeDto getConsecutiveFee() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("100.19"))
             .code("FEE313")
@@ -350,7 +390,7 @@ public class TelephonyPaymentsTest {
             .build();
     }
 
-    private FeeDto getNewFee(){
+    private FeeDto getNewFee() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
