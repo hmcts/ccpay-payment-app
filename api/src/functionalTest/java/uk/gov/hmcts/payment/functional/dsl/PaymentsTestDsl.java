@@ -327,6 +327,10 @@ public class PaymentsTestDsl {
             return response.then().statusCode(statusCode).extract().as(PaymentDto.class);
         }
 
+        public PaymentGroupDto getPaymentGroupDtoByStatusCode(int statusCode) {
+            return response.then().statusCode(statusCode).extract().as(PaymentGroupDto.class);
+        }
+
         public AccountDto getAccount() {
             return response.then().statusCode(200).extract().as(AccountDto.class);
         }

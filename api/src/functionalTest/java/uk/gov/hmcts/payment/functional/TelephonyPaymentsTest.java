@@ -318,7 +318,7 @@ public class TelephonyPaymentsTest {
         PaymentGroupDto paymentGroupDtoFornewFees = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().addNewPaymentGroup(consecutiveRequest).then().createdWithContent(201);
+            .when().addNewPaymentGroup(consecutiveRequest).then().getPaymentGroupDtoByStatusCode(200);
         assertThat(paymentGroupDtoFornewFees).isNotNull();
         assertThat(paymentGroupDtoFornewFees.getFees().size()).isNotZero();
         assertThat(paymentGroupDtoFornewFees.getFees().size()).isEqualTo(1);
