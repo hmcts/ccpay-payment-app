@@ -323,7 +323,7 @@ public class TelephonyPaymentsTest {
         assertThat(paymentGroupDtoFornewFees.getFees().size()).isNotZero();
         assertThat(paymentGroupDtoFornewFees.getFees().size()).isEqualTo(1);
 
-        /*BigDecimal amount = new BigDecimal("200");
+        BigDecimal amount = new BigDecimal("200");
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest =
             TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
                 .amount(amount)
@@ -339,7 +339,7 @@ public class TelephonyPaymentsTest {
             .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupDtoForNewGroup.getPaymentGroupReference())
             .then().createdTelephoneCardPaymentsResponse();
 
-        PaymentDto paymentsResponse = dsl.given().userToken(USER_TOKEN)
+        /*PaymentDto paymentsResponse = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().getCardPayment(telephonyCardPaymentsResponse.getPaymentReference()).then().ok().get();
