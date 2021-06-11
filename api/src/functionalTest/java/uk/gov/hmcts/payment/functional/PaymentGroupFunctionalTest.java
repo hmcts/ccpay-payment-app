@@ -621,10 +621,12 @@ public class PaymentGroupFunctionalTest {
             .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupDtoForNewGroup.getPaymentGroupReference())
             .then().createdTelephoneCardPaymentsResponse();
 
-        dsl.given().userToken(USER_TOKEN)
+        PaymentGroupDto paymentGroupDto = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().getPaymentByReference(telephonyCardPaymentsResponse.getPaymentGroupReference()).then().ok();
+            .when().getPaymentGroupByReference(telephonyCardPaymentsResponse.getPaymentGroupReference())
+            .then().getPaymentGroupDtoByStatusCode(200);
+        assertEquals(3, paymentGroupDto.getFees().size());
 
     }
 
