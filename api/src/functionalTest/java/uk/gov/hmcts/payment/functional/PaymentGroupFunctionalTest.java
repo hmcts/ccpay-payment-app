@@ -27,6 +27,7 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +36,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
@@ -560,55 +563,75 @@ public class PaymentGroupFunctionalTest {
     }
 
     @Test
-    public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForPCIPALAntennaChanges() throws Exception {
-
-        String ccdCaseNumber = "1345678912345678";
-        FeeDto feeDto = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("110.00"))
-            .ccdCaseNumber(ccdCaseNumber)
-            .version("1")
-            .code("FEE0123")
-            .description("Application for a third party debt order")
-            .jurisdiction1("civil")
-            .jurisdiction2("Country")
-            .memoLine("Receipt of Fees")
-            .naturalAccountCode("4481102145")
-            .build();
-
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-            .amount(new BigDecimal("110"))
-            .ccdCaseNumber(ccdCaseNumber)
-            .currency(CurrencyCode.GBP)
-            .service(Service.DIVORCE)
-            .siteId("AA007")
-            .returnURL("https://google.co.uk")
-            .build();
-
-        PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(feeDto)).build();
-
-        dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().addNewFeeAndPaymentGroup(groupDto)
-            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
-
-            dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://google.co.uk")
-                .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupReference)
-                .then().gotCreated(TelephonyCardPaymentsResponse.class, telephonyCardPaymentsResponse -> {
-                assertThat(telephonyCardPaymentsResponse).isNotNull();
-                assertThat(telephonyCardPaymentsResponse.getPaymentReference().matches(PAYMENT_REFERENCE_REGEX)).isTrue();
-                assertThat(telephonyCardPaymentsResponse.getStatus()).isEqualTo("Initiated");
-
-            });
-        });
-
+    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithDivorce() {
+        this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.DIVORCE);
     }
 
+    @Test
+    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithCMC() {
+        this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.CMC);
+    }
+
+    @Test
+    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithProbate() {
+        this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.PROBATE);
+    }
+
+    @Test
+    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithFinancialRemedy() {
+        this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.FINREM);
+    }
+
+    private void addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service service) {
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getConsecutiveFee())).build();
+
+        PaymentGroupDto paymentGroupDtoForNewGroup = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().addNewPaymentGroup(request).then().createdWithContent(201);
+        assertThat(paymentGroupDtoForNewGroup).isNotNull();
+        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isNotZero();
+        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isEqualTo(1);
+
+        PaymentGroupDto paymentGroupDtoFornewFees = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().addNewPaymentGroup(consecutiveRequest).then().getPaymentGroupDtoByStatusCode(201);
+        assertThat(paymentGroupDtoFornewFees).isNotNull();
+        assertThat(paymentGroupDtoFornewFees.getFees().size()).isNotZero();
+        assertThat(paymentGroupDtoFornewFees.getFees().size()).isEqualTo(1);
+
+        BigDecimal amount = new BigDecimal("200");
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest =
+            TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+                .amount(amount)
+                .currency(CurrencyCode.GBP)
+                .service(service)
+                .siteId("AA07")
+                .ccdCaseNumber("2154234356342357")
+                .returnURL("http://localhost")
+                .build();
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupDtoForNewGroup.getPaymentGroupReference())
+            .then().createdTelephoneCardPaymentsResponse();
+
+        PaymentDto paymentsResponse = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().getCardPayment(telephonyCardPaymentsResponse.getPaymentReference()).then().ok().get();
+
+        assertNotNull(paymentsResponse);
+        assertEquals("Initiated", paymentsResponse.getStatus());
+        assertEquals(telephonyCardPaymentsRequest.getAmount().setScale(2, RoundingMode.CEILING), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount.setScale(2, RoundingMode.CEILING), paymentsResponse.getAmount());
+    }
 
     private CardPaymentRequest getCardPaymentRequest() {
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
@@ -656,5 +679,27 @@ public class PaymentGroupFunctionalTest {
             .build();
     }
 
+    private FeeDto getNewFee(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("92.19"))
+            .code("FEE312")
+            .version("1")
+            .volume(2)
+            .reference("BXsd1123")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
 
+    }
+
+    private FeeDto getConsecutiveFee(){
+        return FeeDto.feeDtoWith()
+            .calculatedAmount(new BigDecimal("100.19"))
+            .code("FEE313")
+            .id(1)
+            .version("1")
+            .volume(2)
+            .reference("BXsd11253")
+            .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+    }
 }
