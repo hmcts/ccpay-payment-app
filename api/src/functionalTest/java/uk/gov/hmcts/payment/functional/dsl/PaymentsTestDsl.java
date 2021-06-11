@@ -81,7 +81,7 @@ public class PaymentsTestDsl {
         }
 
         public PaymentWhenDsl getPaymentByReference(String reference) {
-            response = newRequest().get("/payments/{reference}", userId);
+            response = newRequest().get("/payments/{reference}", reference);
             return this;
         }
 
