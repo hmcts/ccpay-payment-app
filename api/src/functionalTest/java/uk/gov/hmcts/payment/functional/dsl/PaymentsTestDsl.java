@@ -80,8 +80,8 @@ public class PaymentsTestDsl {
             return RestAssured.given().relaxedHTTPSValidation().baseUri(baseURL).contentType(ContentType.JSON).headers(headers);
         }
 
-        public PaymentWhenDsl getPaymentByReference(String reference) {
-            response = newRequest().get("/payments/{reference}", reference);
+        public PaymentWhenDsl getPaymentGroupByReference(String reference) {
+            response = newRequest().get("/payment-groups/{reference}", reference);
             return this;
         }
 
