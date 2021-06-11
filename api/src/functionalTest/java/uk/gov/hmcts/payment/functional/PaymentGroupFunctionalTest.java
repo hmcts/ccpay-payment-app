@@ -573,7 +573,7 @@ public class PaymentGroupFunctionalTest {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.CMC);
     }
 
-    /*
+
     @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithProbate() {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.PROBATE);
@@ -582,7 +582,7 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithFinancialRemedy() {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.FINREM);
-    }*/
+    }
 
     @Test
     public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
