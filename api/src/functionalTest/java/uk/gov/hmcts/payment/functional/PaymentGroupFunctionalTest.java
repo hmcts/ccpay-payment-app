@@ -568,7 +568,7 @@ public class PaymentGroupFunctionalTest {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.DIVORCE);
     }
 
-    @Test
+    /*@Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithCMC() {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.CMC);
     }
@@ -581,7 +581,7 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithFinancialRemedy() {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.FINREM);
-    }
+    }*/
 
     @Test
     public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
@@ -604,7 +604,7 @@ public class PaymentGroupFunctionalTest {
 
         assertThat(paymentGroupDtoForNewGroup).isNotNull();
         assertThat(paymentGroupDtoForNewGroup.getFees().size()).isNotZero();
-        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isEqualTo(1);
+        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isEqualTo(3);
 
         BigDecimal amount = new BigDecimal("120");
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -620,7 +620,11 @@ public class PaymentGroupFunctionalTest {
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupDtoForNewGroup.getPaymentGroupReference())
             .then().createdTelephoneCardPaymentsResponse();
-        //Have to check the Fees persistence with the Payment Reference from the Telephony Card Payment Request.
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().getPaymentByReference(telephonyCardPaymentsResponse.getPaymentGroupReference()).then().ok();
 
     }
 
