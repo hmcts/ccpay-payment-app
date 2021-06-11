@@ -31,6 +31,7 @@ import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -346,9 +347,9 @@ public class TelephonyPaymentsTest {
 
         assertNotNull(paymentsResponse);
         assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-        //assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        //assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+        assertEquals(telephonyCardPaymentsRequest.getAmount().setScale(2, RoundingMode.CEILING), paymentsResponse.getAmount());
+        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
     private PaymentRecordRequest getTelephonyPayment(String reference) {
