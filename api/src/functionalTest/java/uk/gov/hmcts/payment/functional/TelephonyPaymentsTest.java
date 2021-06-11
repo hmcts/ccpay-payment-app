@@ -339,7 +339,7 @@ public class TelephonyPaymentsTest {
             .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupDtoForNewGroup.getPaymentGroupReference())
             .then().createdTelephoneCardPaymentsResponse();
 
-        /*PaymentDto paymentsResponse = dsl.given().userToken(USER_TOKEN)
+        PaymentDto paymentsResponse = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .returnUrl("https://www.moneyclaims.service.gov.uk")
             .when().getCardPayment(telephonyCardPaymentsResponse.getPaymentReference()).then().ok().get();
@@ -349,7 +349,7 @@ public class TelephonyPaymentsTest {
         assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
         assertEquals(telephonyCardPaymentsRequest.getAmount(), paymentsResponse.getAmount());
-        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());*/
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
     }
 
     private PaymentRecordRequest getTelephonyPayment(String reference) {
