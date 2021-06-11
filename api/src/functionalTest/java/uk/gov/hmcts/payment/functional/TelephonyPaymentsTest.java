@@ -349,7 +349,7 @@ public class TelephonyPaymentsTest {
         assertEquals("Initiated", paymentsResponse.getStatus());
         assertEquals(telephonyCardPaymentsRequest.getAmount().setScale(2, RoundingMode.CEILING), paymentsResponse.getAmount());
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount, paymentsResponse.getAmount());
+        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount.setScale(2, RoundingMode.CEILING), paymentsResponse.getAmount());
     }
 
     private PaymentRecordRequest getTelephonyPayment(String reference) {
