@@ -2493,19 +2493,6 @@ public class PaymentGroupControllerTest {
             .build();
     }
 
-
-    private FeeDto getConsecutiveFee(){
-        return FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("100.19"))
-            .code("FEE313")
-            .id(1)
-            .version("1")
-            .volume(2)
-            .reference("BXsd11253")
-            .ccdCaseNumber("1111-2222-2222-1111")
-            .build();
-    }
-
     private BulkScanPaymentRequest getInvalidBulkScanRequest(){
         return BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))

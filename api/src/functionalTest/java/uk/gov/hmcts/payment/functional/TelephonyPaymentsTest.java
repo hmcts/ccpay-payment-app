@@ -300,57 +300,6 @@ public class TelephonyPaymentsTest {
         });
     }
 
-    @Test
-    public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithDivorce() {
-        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getNewFee()))
-            .build();
-        PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getConsecutiveFee())).build();
-
-        PaymentGroupDto paymentGroupDtoForNewGroup = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().addNewPaymentGroup(request).then().createdWithContent(201);
-        assertThat(paymentGroupDtoForNewGroup).isNotNull();
-        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isNotZero();
-        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isEqualTo(1);
-
-        PaymentGroupDto paymentGroupDtoFornewFees = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().addNewPaymentGroup(consecutiveRequest).then().getPaymentGroupDtoByStatusCode(201);
-        assertThat(paymentGroupDtoFornewFees).isNotNull();
-        assertThat(paymentGroupDtoFornewFees.getFees().size()).isNotZero();
-        assertThat(paymentGroupDtoFornewFees.getFees().size()).isEqualTo(1);
-
-        BigDecimal amount = new BigDecimal("200");
-        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest =
-            TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
-                .amount(amount)
-                .currency(CurrencyCode.GBP)
-                .service(Service.DIVORCE)
-                .siteId("AA07")
-                .ccdCaseNumber("2154234356342357")
-                .returnURL("http://localhost")
-                .build();
-        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupDtoForNewGroup.getPaymentGroupReference())
-            .then().createdTelephoneCardPaymentsResponse();
-
-        PaymentDto paymentsResponse = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .returnUrl("https://www.moneyclaims.service.gov.uk")
-            .when().getCardPayment(telephonyCardPaymentsResponse.getPaymentReference()).then().ok().get();
-
-        assertNotNull(paymentsResponse);
-        assertEquals("Initiated", paymentsResponse.getStatus());
-        assertEquals(telephonyCardPaymentsRequest.getAmount().setScale(2, RoundingMode.CEILING), paymentsResponse.getAmount());
-        assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
-        assertEquals("Amount saved in remissionDbBackdoor is equal to the on inside the request", amount.setScale(2, RoundingMode.CEILING), paymentsResponse.getAmount());
-    }
 
     private PaymentRecordRequest getTelephonyPayment(String reference) {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
