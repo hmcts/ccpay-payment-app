@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Service;
@@ -580,6 +581,47 @@ public class PaymentGroupFunctionalTest {
     @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithFinancialRemedy() {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.FINREM);
+    }
+
+    @Test
+    public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
+        String ccdCaseNumber = "1111111122222222";
+        List<FeeDto> fees = new ArrayList<>();
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(10)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(40))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(40)).build());
+        fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(60))
+            .volume(1).version("1").calculatedAmount(new BigDecimal(60)).build());
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(fees)
+            .build();
+
+        PaymentGroupDto paymentGroupDtoForNewGroup = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().addNewFeeAndPaymentGroup(request).then().createdWithContent(201);
+
+        assertThat(paymentGroupDtoForNewGroup).isNotNull();
+        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isNotZero();
+        assertThat(paymentGroupDtoForNewGroup.getFees().size()).isEqualTo(1);
+
+        BigDecimal amount = new BigDecimal("120");
+        TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .currency(CurrencyCode.GBP)
+            .service(Service.FINREM)
+            .siteId("AA07")
+            .ccdCaseNumber(ccdCaseNumber)
+            .returnURL("http://localhost")
+            .build();
+        TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createTelephonyPayment(telephonyCardPaymentsRequest, paymentGroupDtoForNewGroup.getPaymentGroupReference())
+            .then().createdTelephoneCardPaymentsResponse();
+        //Have to check the Fees persistence with the Payment Reference from the Telephony Card Payment Request.
+
     }
 
     private void addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service service) {
