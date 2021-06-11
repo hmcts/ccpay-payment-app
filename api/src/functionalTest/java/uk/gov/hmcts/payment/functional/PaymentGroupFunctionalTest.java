@@ -568,11 +568,12 @@ public class PaymentGroupFunctionalTest {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.DIVORCE);
     }
 
-    /*@Test
+    @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithCMC() {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.CMC);
     }
 
+    /*
     @Test
     public void addNewPaymentToExistingPaymentGroupForPCIPALAntennaWithProbate() {
         this.addNewPaymentToExistingPaymentGroupForPCIPALAntenna(Service.PROBATE);
