@@ -57,10 +57,10 @@ withPipeline(type, product, app) {
     //installCharts()
     enableSlackNotifications('#cc-payments-tech')
     disableLegacyDeployment()
-    //Sync demo,ithc and perftest with master branch
-    syncBranchesWithMaster(branchesToSync)
-
     onMaster() {
         enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
     }
+
+    //Sync demo,ithc and perftest with master branch
+    syncBranchesWithMaster(branchesToSync)
 }
