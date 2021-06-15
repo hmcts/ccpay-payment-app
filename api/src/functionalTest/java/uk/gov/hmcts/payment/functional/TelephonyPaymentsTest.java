@@ -321,28 +321,4 @@ public class TelephonyPaymentsTest {
             .reportedDateOffline(DateTime.now().toString())
             .build();
     }
-
-    private FeeDto getConsecutiveFee() {
-        return FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("100.19"))
-            .code("FEE313")
-            .id(1)
-            .version("1")
-            .volume(2)
-            .reference("BXsd11253")
-            .ccdCaseNumber("1111-2222-2222-1111")
-            .build();
-    }
-
-    private FeeDto getNewFee() {
-        return FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("92.19"))
-            .code("FEE312")
-            .version("1")
-            .volume(2)
-            .reference("BXsd1123")
-            .ccdCaseNumber("1111-2222-2222-1111")
-            .build();
-
-    }
 }
