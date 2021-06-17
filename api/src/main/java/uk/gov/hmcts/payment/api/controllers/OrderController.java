@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
+import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
@@ -62,7 +63,7 @@ public class OrderController {
     @PostMapping(value = "/order")
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+    public ResponseEntity<OrderResponseDto> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
         return new ResponseEntity<>(orderDomainService.create(orderDto, headers), HttpStatus.CREATED);
     }
 
