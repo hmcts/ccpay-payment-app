@@ -61,6 +61,7 @@ public class OrderController {
     })
     @PostMapping(value = "/order")
     @Transactional
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
         return new ResponseEntity<>(orderDomainService.create(orderDto, headers), HttpStatus.CREATED);
     }
@@ -78,6 +79,7 @@ public class OrderController {
     })
     @PostMapping(value = "/order/{order-reference}/credit-account-payment")
     @ResponseBody
+    @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     public ResponseEntity<OrderPaymentBo> createCreditAccountPayment(@RequestHeader(value = "idempotency_key") String idempotencyKey,
                                                                      @PathVariable("order-reference") String orderReference,
