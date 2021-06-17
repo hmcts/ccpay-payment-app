@@ -94,11 +94,11 @@ public class PaymentGroupControllerTest {
     private SiteService<Site, String> siteServiceMock;
     @InjectMocks
     private PaymentGroupController paymentGroupController;
+
     @MockBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
-    @MockBean
-    private RestTemplate restTemplate;
+
     @MockBean
     private ReferenceDataService referenceDataService;
     @Autowired
