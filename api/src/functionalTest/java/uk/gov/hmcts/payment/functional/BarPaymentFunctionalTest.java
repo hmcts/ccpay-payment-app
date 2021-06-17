@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -108,7 +109,7 @@ public class PaymentBarPerformanceLiberataTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "cash")
+            .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
             .then().getPayments((paymentsResponse -> {
             LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
             assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
@@ -172,7 +173,6 @@ public class PaymentBarPerformanceLiberataTest {
             .s2sToken(SERVICE_TOKEN)
             .when().createTelephonyPayment(getPaymentRecordRequestForPostalOrder())
             .then().created(paymentDto -> {
-                LOG.info(paymentDto.getReference());
             assertNotNull(paymentDto.getReference());
         });
 
@@ -197,7 +197,7 @@ public class PaymentBarPerformanceLiberataTest {
         //Comparing the response size of old and new approach
         Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
             isEqualTo(liberataResponseApproach1.getPayments().size());
-        LOG.info(""+liberataResponseApproach1.getPayments().size());
+
         //Comparing the response of old and new approach
         Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
         Java6Assertions.assertThat(compareResult).isEqualTo(true);
