@@ -56,11 +56,20 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationHealthApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -83,32 +92,44 @@ public class PaymentGroupControllerTest {
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
     @Autowired
     private WebApplicationContext webApplicationContext;
+
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
+
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
+
     private RestActions restActions;
+
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
     private SiteService<Site, String> siteServiceMock;
+
     @InjectMocks
     private PaymentGroupController paymentGroupController;
+
     @MockBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
+
     @MockBean
     private RestTemplate restTemplate;
+
     @MockBean
     private ReferenceDataService referenceDataService;
     @Autowired
     private PaymentDbBackdoor db;
+
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
+
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
+
     @MockBean
     private ServiceAuthorisationHealthApi serviceAuthorisationHealthApi;
+
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
 
@@ -157,7 +178,8 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
 
-        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        PaymentDto createPaymentResponseDto =
+            objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         // Create a remission
         // Get fee id
@@ -174,7 +196,9 @@ public class PaymentGroupControllerTest {
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
+            .post(
+                "/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions",
+                getRemissionRequest())
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -184,7 +208,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
         PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
@@ -206,7 +231,8 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
 
-        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        PaymentDto createPaymentResponseDto =
+            objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         // Retrieve payment by payment group reference
         MvcResult result3 = restActions
@@ -214,7 +240,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
         PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
@@ -233,7 +260,8 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
 
-        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        PaymentDto createPaymentResponseDto =
+            objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         // Retrieve payment by payment group reference
         MvcResult result3 = restActions
@@ -241,7 +269,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
         PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
         FeeDto feeDto = paymentGroupDto.getFees().get(0);
 
@@ -261,7 +290,7 @@ public class PaymentGroupControllerTest {
     @Test
     public void addNewFeewithNoPaymentGroupTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getNewFee()))
+            .fees( Arrays.asList(getNewFee()))
             .build();
 
         MvcResult result = restActions
@@ -291,9 +320,9 @@ public class PaymentGroupControllerTest {
     @Test
     public void addNewFeewithPaymentGroupWhenApportionFlagIsOn() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getNewFee()))
+            .fees( Arrays.asList(getNewFee()))
             .build();
-        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         MvcResult result = restActions
             .post("/payment-groups", request)
             .andExpect(status().isCreated())
@@ -310,7 +339,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto1 =
+            objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto1).isNotNull();
         assertThat(paymentGroupDto1.getFees().size()).isNotZero();
@@ -334,7 +364,7 @@ public class PaymentGroupControllerTest {
     @Test
     public void addNewFeetoExistingPaymentGroupTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getNewFee()))
+            .fees( Arrays.asList(getNewFee()))
             .build();
 
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
@@ -345,7 +375,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -356,7 +387,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupFeeDto =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
@@ -368,7 +400,7 @@ public class PaymentGroupControllerTest {
     public void addNewFeewithNoCaseDetailsTest() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees(Arrays.asList(getNewFeeWithOutCaseDetails()))
+            .fees( Arrays.asList(getNewFeeWithOutCaseDetails()))
             .build();
 
         MvcResult result = restActions
@@ -419,7 +451,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -447,7 +480,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -474,7 +508,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -502,21 +537,24 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupFeeDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         MvcResult result2 = restActions
             .put("/payment-groups/" + paymentGroupFeeDto.getPaymentGroupReference(), consecutiveRequest)
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         MvcResult result3 = restActions
             .get("/payment-groups/" + paymentGroupDto.getPaymentGroupReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto1 =
+            objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto1).isNotNull();
         assertThat(paymentGroupDto1.getFees().size()).isNotZero();
@@ -547,7 +585,9 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentDto createPaymentResponseDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        PaymentDto createPaymentResponseDto =
+            objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
 
         // Create a remission
         // Get fee id
@@ -556,7 +596,9 @@ public class PaymentGroupControllerTest {
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", getRemissionRequest())
+            .post(
+                "/payment-groups/" + createPaymentResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions",
+                getRemissionRequest())
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -572,7 +614,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
         PaymentDto paymentDto = paymentGroupDto.getPayments().get(0);
 
         assertThat(paymentGroupDto).isNotNull();
@@ -599,7 +642,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -610,7 +654,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupFeeDto =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
@@ -718,7 +763,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -729,7 +775,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupFeeDto =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
@@ -1171,7 +1218,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
@@ -1205,7 +1253,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
@@ -1239,7 +1288,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
@@ -1271,7 +1321,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .ccdCaseNumber("1231-1231-3453-4333")
@@ -1305,7 +1356,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
@@ -1352,7 +1404,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
@@ -1362,7 +1415,8 @@ public class PaymentGroupControllerTest {
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic",
+                getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -1371,14 +1425,16 @@ public class PaymentGroupControllerTest {
         assertTrue(paymentsResponse.getReference().matches(PAYMENT_REFERENCE_REGEX));
         assertEquals("1231-1231-3453-4333", paymentsResponse.getCcdCaseNumber());
         assertNotNull(paymentsResponse.getPaymentAllocation());
-        assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Allocated"));
+        assertTrue(
+            paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Allocated"));
 
         MvcResult duplicateRequest = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertTrue(duplicateRequest.getResponse().getContentAsString().contains("Bulk scan payment already exists for DCN = DCN293842342342834278348"));
+        assertTrue(duplicateRequest.getResponse().getContentAsString()
+            .contains("Bulk scan payment already exists for DCN = DCN293842342342834278348"));
     }
 
     @Test
@@ -1399,7 +1455,7 @@ public class PaymentGroupControllerTest {
         assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Transferred"));
 
         MvcResult duplicateRequest = restActions
-            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred", "Transferred bulk scan payments", null, "DCN293842342342834278348"))
+            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Transferred","Transferred bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -1421,8 +1477,10 @@ public class PaymentGroupControllerTest {
             .andReturn();
 
         PaymentDto paymentsResponse = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
-        assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Unidentified"));
-        assertTrue(paymentsResponse.getPaymentAllocation().get(0).getUnidentifiedReason().equalsIgnoreCase("Test Unidentified Reason"));
+        assertTrue(paymentsResponse.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName()
+            .equalsIgnoreCase("Unidentified"));
+        assertTrue(
+            paymentsResponse.getPaymentAllocation().get(0).getUnidentifiedReason().equalsIgnoreCase("Test Unidentified Reason"));
     }
 
     @Test
@@ -1436,7 +1494,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         when(this.restTemplatePaymentGroup.exchange(anyString(),
             eq(HttpMethod.PATCH),
@@ -1454,18 +1513,22 @@ public class PaymentGroupControllerTest {
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic",
+                getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertTrue(result2.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278348 Due to response status code as  = 404 NOT_FOUND"));
+        assertTrue(result2.getResponse().getContentAsString().contains(
+            "Bulk scan payment can't be marked as processed for DCN DCN293842342342834278348 Due to response status code as  = 404 NOT_FOUND"));
 
         MvcResult result3 = restActions
-            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .post("/payment-groups/bulk-scan-payments-strategic",
+                getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278349"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertTrue(result3.getResponse().getContentAsString().contains("Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
+        assertTrue(result3.getResponse().getContentAsString().contains(
+            "Bulk scan payment can't be marked as processed for DCN DCN293842342342834278349 Due to response status code as  = 404 NOT_FOUND"));
     }
 
     @Test
@@ -1479,19 +1542,22 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         when(featureToggler.getBooleanValue("prod-strategic-fix", false)).thenReturn(false);
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic",
+                getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
         assertTrue(result2.getResponse().getContentAsString().contains("This feature is not available to use !!!"));
 
         MvcResult result3 = restActions
-            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .post("/payment-groups/bulk-scan-payments-strategic",
+                getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278349"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -1509,7 +1575,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         when(this.restTemplatePaymentGroup.exchange(anyString(),
             eq(HttpMethod.PATCH),
@@ -1526,18 +1593,22 @@ public class PaymentGroupControllerTest {
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic",
+                getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278348"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertTrue(result2.getResponse().getContentAsString().contains("Error occurred while processing bulk scan payments with DCN DCN293842342342834278348"));
+        assertTrue(result2.getResponse().getContentAsString()
+            .contains("Error occurred while processing bulk scan payments with DCN DCN293842342342834278348"));
 
         MvcResult result3 = restActions
-            .post("/payment-groups/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278349"))
+            .post("/payment-groups/bulk-scan-payments-strategic",
+                getBulkScanPaymentStrategic("Allocated", "Allocated bulk scan payments", null, "DCN293842342342834278349"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
-        assertTrue(result3.getResponse().getContentAsString().contains("Error occurred while processing bulk scan payments with DCN DCN293842342342834278349"));
+        assertTrue(result3.getResponse().getContentAsString()
+            .contains("Error occurred while processing bulk scan payments with DCN DCN293842342342834278349"));
     }
 
     @Test
@@ -1551,7 +1622,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
@@ -1586,7 +1658,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(100.00))
@@ -1791,7 +1864,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
@@ -1860,7 +1934,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         BulkScanPaymentRequest bulkScanPaymentRequest = BulkScanPaymentRequest.createBulkScanPaymentWith()
             .amount(new BigDecimal(120.00))
@@ -2320,7 +2395,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupFeeDto =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
@@ -2339,12 +2415,12 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments",
+                telephonyCardPaymentsRequest)
             .andExpect(status().isBadRequest())
             .andReturn();
 
     }
-
 
     @Test
     public void throwExceptionWhenCurrencyIsEmpty() throws Exception {
@@ -2360,7 +2436,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -2371,7 +2448,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupFeeDto =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
@@ -2409,7 +2487,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -2420,7 +2499,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupFeeDto =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
@@ -2439,7 +2519,8 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments",
+                telephonyCardPaymentsRequest)
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
@@ -2459,7 +2540,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -2470,7 +2552,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupDto paymentGroupFeeDto = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupFeeDto =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupFeeDto).isNotNull();
         assertThat(paymentGroupFeeDto.getFees().size()).isNotZero();
@@ -2488,7 +2571,8 @@ public class PaymentGroupControllerTest {
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments",
+                telephonyCardPaymentsRequest)
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
@@ -2508,7 +2592,8 @@ public class PaymentGroupControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
         assertThat(paymentGroupDto).isNotNull();
         assertThat(paymentGroupDto.getFees().size()).isNotZero();
@@ -2685,7 +2770,7 @@ public class PaymentGroupControllerTest {
 
     }
 
-    private FeeDto getInvalidFee() {
+    private FeeDto getInvalidFee(){
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .version("1")
@@ -2716,7 +2801,8 @@ public class PaymentGroupControllerTest {
             .build();
     }
 
-    private PaymentAllocationDto getPaymentAllocationDto(String paymentAllocationStatus, String paymentAllocationDescription, String unidentifiedReason) {
+    private PaymentAllocationDto getPaymentAllocationDto(String paymentAllocationStatus, String paymentAllocationDescription,
+                                                         String unidentifiedReason) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .dateCreated(new Date())
             .explanation("test explanation")
