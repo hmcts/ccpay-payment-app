@@ -11,6 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.OrderBo;
+import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
@@ -77,14 +78,14 @@ public class OrderDomainServiceTest2 {
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         String orderReference = "2200-1619524583862";
-        Map<String, Object> orderResponse = new HashMap<>();
-        orderResponse.put("order_reference", orderReference);
-
+        OrderResponseDto orderResponse = OrderResponseDto.orderResponseDtoWith()
+                                            .orderReference(orderReference)
+                                            .build();
         doReturn(orderResponse).when(orderBo).createOrder(any());
 
-        Map orderReferenceResult = orderDomainService.create(orderDto, header);
+        OrderResponseDto orderReferenceResult = orderDomainService.create(orderDto, header);
 
-        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
+        assertThat(orderReference).isEqualTo(orderReferenceResult.getOrderReference());
 
     }
 
