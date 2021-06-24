@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
+import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.OrderDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
@@ -61,7 +62,8 @@ public class OrderController {
     })
     @PostMapping(value = "/order")
     @Transactional
-    public ResponseEntity<?> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<OrderResponseDto> create(@Valid @RequestBody OrderDto orderDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
         return new ResponseEntity<>(orderDomainService.create(orderDto, headers), HttpStatus.CREATED);
     }
 
@@ -78,6 +80,7 @@ public class OrderController {
     })
     @PostMapping(value = "/order/{order-reference}/credit-account-payment")
     @ResponseBody
+    @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     public ResponseEntity<OrderPaymentBo> createCreditAccountPayment(@RequestHeader(value = "idempotency_key") String idempotencyKey,
                                                                      @PathVariable("order-reference") String orderReference,
