@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +31,10 @@ import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -84,6 +88,9 @@ public class PaymentGroupControllerTest {
 
     @Autowired
     protected PaymentDbBackdoor paymentDbBackdoor;
+
+    @MockBean
+    private PciPalPaymentService pciPalPaymentService;
 
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
@@ -157,6 +164,10 @@ public class PaymentGroupControllerTest {
     public void retrievePaymentsRemissionsAndFeeByGroupReferenceTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
@@ -206,6 +217,10 @@ public class PaymentGroupControllerTest {
     public void retrievePaymentsAndFeesByPaymentGroupReferenceTest() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
@@ -232,6 +247,10 @@ public class PaymentGroupControllerTest {
     @Test
     public void retrievePaymentsAndFeesByPaymentGroupReferenceWithApportionmentDetails() throws Exception {
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
 
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
@@ -542,6 +561,10 @@ public class PaymentGroupControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+
         CardPaymentRequest cardPaymentRequest = getCardPaymentRequest();
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -643,6 +666,10 @@ public class PaymentGroupControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+
         MvcResult result3 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
             .andExpect(status().isCreated())
@@ -671,6 +698,10 @@ public class PaymentGroupControllerTest {
 
 
         BigDecimal amount = new BigDecimal("200");
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
 
         TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(amount)
@@ -768,6 +799,10 @@ public class PaymentGroupControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
@@ -807,6 +842,10 @@ public class PaymentGroupControllerTest {
             .provider("pci pal")
             .channel("telephony")
             .build();
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
@@ -862,6 +901,10 @@ public class PaymentGroupControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
@@ -891,6 +934,10 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
 
         MvcResult result = restActions
             .post("/payment-groups", request)
@@ -1914,6 +1961,14 @@ public class PaymentGroupControllerTest {
             .serviceDescription("Divorce")
             .build();
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            ,any(TelephonyProviderAuthorisationResponse.class),anyString(),anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -1986,6 +2041,14 @@ public class PaymentGroupControllerTest {
             .serviceCode("AA08")
             .serviceDescription("Specified Money Claims")
             .build();
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            ,any(TelephonyProviderAuthorisationResponse.class),anyString(),anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2063,6 +2126,13 @@ public class PaymentGroupControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            ,any(TelephonyProviderAuthorisationResponse.class),anyString(),anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
             .amount(amount)
@@ -2135,7 +2205,7 @@ public class PaymentGroupControllerTest {
             .serviceDescription("Digital Bar")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new NoServiceFoundException("No Service found for given CaseType"));
 
 
         TelephonyCardPaymentsRequest telephonyCardPaymentsRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
@@ -2149,7 +2219,7 @@ public class PaymentGroupControllerTest {
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyCardPaymentsRequest)
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isNotFound())
             .andReturn();
     }
 
@@ -2192,6 +2262,14 @@ public class PaymentGroupControllerTest {
             .serviceCode("AA08")
             .serviceDescription("Financial Remedy")
             .build();
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            ,any(TelephonyProviderAuthorisationResponse.class),anyString(),anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2543,6 +2621,13 @@ public class PaymentGroupControllerTest {
             .serviceCode("AA08")
             .serviceDescription("Financial Remedy")
             .build();
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            ,any(TelephonyProviderAuthorisationResponse.class),anyString(),anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
@@ -2714,6 +2799,32 @@ public class PaymentGroupControllerTest {
             .paymentMethod(PaymentMethodType.CHEQUE)
             .paymentAllocationDTO(getPaymentAllocationDto(paymentAllocationStatus,paymentAllocationDescription, unIdentifiedReason))
             .caseType("MoneyClaimCase")
+            .build();
+    }
+
+    private TelephonyProviderAuthorisationResponse getTelephonyProviderAuthorisationResponse(){
+
+        return  new TelephonyProviderAuthorisationResponse(
+            "accessToken",
+            "bearer",
+            "299",
+            "refreshTokeb",
+            "HMCTSStage",
+            "HMCTS",
+            "2021-06-23T12:57:10Z",
+            "2021-06-23T13:02:10Z",
+            "https://nextUrl.com"
+        );
+
+
+    }
+    private PaymentFeeLink getPaymentFeeLink(){
+        return PaymentFeeLink.paymentFeeLinkWith()
+            .payments(Arrays.asList(
+                Payment.paymentWith()
+                    .reference("reference")
+                    .build()
+            ))
             .build();
     }
 }
