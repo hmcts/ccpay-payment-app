@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
+import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
@@ -42,9 +43,9 @@ public class OrderBoTest {
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        Map<String, Object> orderReferenceResult = orderBo.createOrder(orderBoDomain);
+        OrderResponseDto orderReferenceResult = orderBo.createOrder(orderBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
+        assertThat(orderReference).isEqualTo(orderReferenceResult.getOrderReference());
 
     }
 
@@ -57,9 +58,9 @@ public class OrderBoTest {
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
-        Map<String, Object> orderReferenceResult = orderBo.createOrder(orderBoDomain);
+        OrderResponseDto orderReferenceResult = orderBo.createOrder(orderBoDomain);
 
-        assertThat(orderReference).isEqualTo(orderReferenceResult.get("order_reference"));
+        assertThat(orderReference).isEqualTo(orderReferenceResult.getOrderReference());
 
     }
 
