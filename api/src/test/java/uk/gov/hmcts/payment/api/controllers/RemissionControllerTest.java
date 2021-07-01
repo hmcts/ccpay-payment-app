@@ -95,9 +95,6 @@ public class RemissionControllerTest {
     @MockBean
     private ReferenceDataService referenceDataService;
 
-    @Autowired
-    protected PaymentDbBackdoor db;
-
     @Before
     public void setUp() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -814,7 +811,7 @@ public class RemissionControllerTest {
     public void createRetroRemissionFullSuccessPaymentTest() throws Exception {
 
         PaymentFee fee = PaymentFee.feeWith().amountDue(new BigDecimal("10.00")).netAmount(new BigDecimal("10.00")).calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000123").build();
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2021-1625063858253").payments(Arrays.asList(populateCardPaymentToDb("555",true))).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2021-1625063858253").payments(Arrays.asList(populateCardPaymentToDb("555",true))).fees(Arrays.asList(fee)));
         MvcResult result = restActions
             .post("/payment-groups/" + paymentFeeLink.getPaymentReference() + "/fees/" + fee.getId() + "/remissions", getRetroRemissionRequest())
             .andExpect(status().isCreated())
@@ -829,7 +826,7 @@ public class RemissionControllerTest {
     public void createRetroRemissionFullFailedPaymentTest() throws Exception {
 
         PaymentFee fee2 = PaymentFee.feeWith().amountDue(new BigDecimal("10.00")).netAmount(new BigDecimal("10.00")).calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000124").build();
-        PaymentFeeLink paymentFeeLink2 = db.create(paymentFeeLinkWith().paymentReference("2020-1625063858786").payments(Arrays.asList(populateCardPaymentToDb("345",false))).fees(Arrays.asList(fee2)));
+        PaymentFeeLink paymentFeeLink2 = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1625063858786").payments(Arrays.asList(populateCardPaymentToDb("345",false))).fees(Arrays.asList(fee2)));
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/remissions", getRetroRemissionRequest())
             .andExpect(status().isCreated())
@@ -843,7 +840,7 @@ public class RemissionControllerTest {
     public void createRetroRemissionPartialSuccessPaymentTest() throws Exception {
 
         PaymentFee fee2 = PaymentFee.feeWith().amountDue(new BigDecimal("20.00")).netAmount(new BigDecimal("20.00")).calculatedAmount(new BigDecimal("20.00")).version("1").code("FEE000456").build();
-        PaymentFeeLink paymentFeeLink2 = db.create(paymentFeeLinkWith().paymentReference("2020-1625063858456").payments(Arrays.asList(populateCardPaymentToDb("456",true))).fees(Arrays.asList(fee2)));
+        PaymentFeeLink paymentFeeLink2 = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1625063858456").payments(Arrays.asList(populateCardPaymentToDb("456",true))).fees(Arrays.asList(fee2)));
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/remissions", getRetroRemissionRequest())
             .andExpect(status().isCreated())
@@ -857,7 +854,7 @@ public class RemissionControllerTest {
     public void createRetroRemissionPartialFailedPaymentTest() throws Exception {
 
         PaymentFee fee2 = PaymentFee.feeWith().amountDue(new BigDecimal("20.00")).netAmount(new BigDecimal("20.00")).calculatedAmount(new BigDecimal("20.00")).version("1").code("FEE000567").build();
-        PaymentFeeLink paymentFeeLink2 = db.create(paymentFeeLinkWith().paymentReference("2020-1625063858567").payments(Arrays.asList(populateCardPaymentToDb("567",false))).fees(Arrays.asList(fee2)));
+        PaymentFeeLink paymentFeeLink2 = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1625063858567").payments(Arrays.asList(populateCardPaymentToDb("567",false))).fees(Arrays.asList(fee2)));
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/remissions", getRetroRemissionRequest())
             .andExpect(status().isCreated())
@@ -1046,7 +1043,7 @@ public class RemissionControllerTest {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith()
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.create(paymentFeeLinkWith()
             .paymentReference("2018-0000000000" + number)
             .caseReference("Reference" + number)
             .ccdCaseNumber("ccdCaseNumber" + number)
