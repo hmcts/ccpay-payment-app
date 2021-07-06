@@ -1,9 +1,11 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -818,7 +820,12 @@ public class RemissionControllerTest {
             .andReturn();
         RemissionDto createRemissionResponseDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
         assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
-
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentFeeLink.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        assertEquals(paymentGroupDto.getFees().get(0).getAmountDue().longValue(),-10);
     }
 
     @Test
@@ -833,6 +840,12 @@ public class RemissionControllerTest {
             .andReturn();
         RemissionDto createRemissionResponseDto1 = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), RemissionDto.class);
         assertThat(createRemissionResponseDto1.getRemissionReference()).isNotNull();
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentFeeLink2.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        assertEquals(paymentGroupDto.getFees().get(0).getAmountDue().longValue(),0);
     }
 
     @Test
@@ -847,6 +860,12 @@ public class RemissionControllerTest {
             .andReturn();
         RemissionDto createRemissionResponseDto1 = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), RemissionDto.class);
         assertThat(createRemissionResponseDto1.getRemissionReference()).isNotNull();
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentFeeLink2.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        assertEquals(paymentGroupDto.getFees().get(0).getAmountDue().longValue(),0);
     }
 
     @Test
@@ -861,6 +880,12 @@ public class RemissionControllerTest {
             .andReturn();
         RemissionDto createRemissionResponseDto1 = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), RemissionDto.class);
         assertThat(createRemissionResponseDto1.getRemissionReference()).isNotNull();
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentFeeLink2.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        assertEquals(paymentGroupDto.getFees().get(0).getAmountDue().longValue(),10);
     }
 
     @Test
