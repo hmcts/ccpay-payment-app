@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -155,26 +156,27 @@ public class RemissionFunctionalTest {
     public void create_retrospective_remission_is_retrospective_remission_true() throws Exception {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForProbate("90.00", "PROBATE");
+        final CreditAccountPaymentRequest accountPaymentRequest
+            = PaymentFixture.aPbaPaymentRequestForProbate("90.00", "CMC");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
+
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
             .then()
             .statusCode(CREATED.value())
-            .body("status", equalTo("Success"));
+            .body("status", equalTo("Success")).extract().body().as(PaymentDto.class);
 
-        // TEST create telephony card payment
+        String paymentGroupReference = paymentDto.getPaymentGroupReference();
+        Integer feeId = paymentDto.getFees().get(0).getId();
+
+        // TEST create retrospective remission
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().addNewFeeAndPaymentGroup(getPaymentFeeGroupRequest())
-            .then().gotCreated(PaymentGroupDto.class, paymentGroupFeeDto -> {
-            assertThat(paymentGroupFeeDto).isNotNull();
-            assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
-            assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
-
-            String paymentGroupReference = paymentGroupFeeDto.getPaymentGroupReference();
-            FeeDto feeDto = paymentGroupFeeDto.getFees().get(0);
-            Integer feeId = feeDto.getId();
-            });
+            .when().createRetrospectiveRemission(getRemissionRequest(), paymentGroupReference, feeId)
+            .then().gotCreated(RemissionDto.class, remissionDto -> {
+            assertThat(remissionDto).isNotNull();
+            assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+            assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+        });
     }
 
 
