@@ -166,7 +166,7 @@ public class RemissionFunctionalTest {
             .body("status", equalTo("Success")).extract().body().as(PaymentDto.class);
 
         String paymentGroupReference = paymentDto.getPaymentGroupReference();
-        Integer feeId = paymentDto.getFees().get(0).getId();
+        Integer feeId = accountPaymentRequest.getFees().get(0).getId();
 
         // TEST create retrospective remission
         dsl.given().userToken(USER_TOKEN)
