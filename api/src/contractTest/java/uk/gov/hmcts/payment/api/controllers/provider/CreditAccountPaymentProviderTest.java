@@ -13,7 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.controllers.CreditAccountPaymentController;
@@ -43,6 +45,7 @@ import uk.gov.hmcts.payment.api.validators.DuplicatePaymentValidator;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -53,6 +56,7 @@ import static org.mockito.Mockito.when;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:80}", consumerVersionSelectors = {
     @VersionSelector(tag = "${PACT_BRANCH_NAME:Dev}")})
 @Import(CreditAccountPaymentProviderTestConfiguration.class)
+@TestPropertySource(locations = {"/application.properties"})
 public class CreditAccountPaymentProviderTest {
 
 
@@ -109,6 +113,9 @@ public class CreditAccountPaymentProviderTest {
 
     private final static String PAYMENT_METHOD = "payment by account";
 
+    @Value("#{'${pba.config1.service.names}'.split(',')}")
+    List<String> pbaConfig1ServiceNames;
+
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -123,7 +130,7 @@ public class CreditAccountPaymentProviderTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(
             new CreditAccountPaymentController(creditAccountPaymentService, creditAccountDtoMapper, accountServiceMock, paymentValidator,
-                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper, Arrays.asList("PROBATE")));
+                feePayApportionService, featureToggler, pbaStatusErrorMapper, requestMapper,pbaConfig1ServiceNames));
         context.setTarget(testTarget);
     }
 
