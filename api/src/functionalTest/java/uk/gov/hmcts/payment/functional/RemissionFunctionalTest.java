@@ -70,7 +70,7 @@ public class RemissionFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createUpfrontRemission(getRemissionRequest())
+            .when().createUpfrontRemission(getRemissionRequest(false))
             .then().gotCreated(RemissionDto.class, remissionDto -> {
             assertThat(remissionDto).isNotNull();
             assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee());
@@ -127,7 +127,7 @@ public class RemissionFunctionalTest {
             // TEST create retrospective remission
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createRetrospectiveRemission(getRemissionRequest(), paymentGroupReference, feeId)
+                .when().createRetrospectiveRemission(getRemissionRequest(false), paymentGroupReference, feeId)
                 .then().gotCreated(RemissionDto.class, remissionDto -> {
                 assertThat(remissionDto).isNotNull();
                 assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
@@ -141,7 +141,7 @@ public class RemissionFunctionalTest {
                 .then().got(PaymentGroupDto.class, paymentGroupDto -> {
                 assertThat(paymentGroupDto).isNotNull();
                 assertThat(paymentGroupDto.getPayments().get(0)).isEqualToComparingOnlyGivenFields(telephonyPaymentRequest);
-                assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest());
+                assertThat(paymentGroupDto.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(false));
                 assertThat(paymentGroupDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee());
 
                 BigDecimal netAmount = paymentGroupDto.getFees().get(0).getCalculatedAmount()
@@ -149,6 +149,57 @@ public class RemissionFunctionalTest {
                 assertThat(netAmount).isEqualTo(paymentGroupDto.getFees().get(0).getNetAmount());
             });
 
+        });
+    }
+
+    @Test
+    public void create_retrospective_remission_is_retrospective_remission_false() throws Exception {
+        // create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        final CreditAccountPaymentRequest accountPaymentRequest
+            = PaymentFixture.aPbaPaymentRequestForProbate("90.00", "CMC");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+
+        PaymentDto paymentDto = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest)
+            .then()
+            .statusCode(CREATED.value())
+            .body("status", equalTo("Success")).extract().body().as(PaymentDto.class);
+
+        //Retrieve the PaymentGroupDto For the purpose of getting the Fees.
+        String paymentGroupReference = paymentDto.getPaymentGroupReference();
+        PaymentGroupDto paymentGroupDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getPaymentGroup(paymentGroupReference)
+            .then().getPaymentGroupDtoByStatusCode(200);
+        Integer feeId =  paymentGroupDto.getFees().get(0).getId();
+
+        // TEST create retrospective remission
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemission(getRemissionRequest(false), paymentGroupReference, feeId)
+            .then().gotCreated(RemissionDto.class, remissionDto -> {
+            assertThat(remissionDto).isNotNull();
+            assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
+            assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+        });
+
+        // TEST retrieve payments, remissions and fees by payment-group-reference
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getRemissions(paymentGroupReference)
+            .then().got(PaymentGroupDto.class, paymentGroupDto1 -> {
+            assertThat(paymentGroupDto1).isNotNull();
+            assertThat(paymentGroupDto1.getPayments().get(0)).isEqualToComparingOnlyGivenFields(accountPaymentRequest);
+            assertThat(paymentGroupDto1.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(false));
+            assertThat(paymentGroupDto1.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee());
+
+            BigDecimal netAmount = paymentGroupDto1.getFees().get(0).getCalculatedAmount()
+                .subtract(paymentGroupDto1.getRemissions().get(0).getHwfAmount());
+            assertThat(netAmount).isEqualTo(paymentGroupDto1.getFees().get(0).getNetAmount());
+
+            BigDecimal amountDue = paymentGroupDto1.getFees().get(0).getCalculatedAmount()
+                .subtract(paymentGroupDto1.getRemissions().get(0).getHwfAmount());
+            assertThat(amountDue).isEqualTo(paymentGroupDto1.getFees().get(0).getAmountDue());
         });
     }
 
@@ -165,17 +216,41 @@ public class RemissionFunctionalTest {
             .statusCode(CREATED.value())
             .body("status", equalTo("Success")).extract().body().as(PaymentDto.class);
 
+        //Retrieve the PaymentGroupDto For the purpose of getting the Fees.
         String paymentGroupReference = paymentDto.getPaymentGroupReference();
-        Integer feeId = accountPaymentRequest.getFees().get(0).getId();
+        PaymentGroupDto paymentGroupDto = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getPaymentGroup(paymentGroupReference)
+            .then().getPaymentGroupDtoByStatusCode(200);
+        Integer feeId =  paymentGroupDto.getFees().get(0).getId();
 
         // TEST create retrospective remission
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createRetrospectiveRemission(getRemissionRequest(), paymentGroupReference, feeId)
+            .when().createRetrospectiveRemission(getRemissionRequest(true), paymentGroupReference, feeId)
             .then().gotCreated(RemissionDto.class, remissionDto -> {
             assertThat(remissionDto).isNotNull();
             assertThat(remissionDto.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
             assertThat(remissionDto.getRemissionReference().matches(REMISSION_REFERENCE_REGEX)).isTrue();
+        });
+
+        // TEST retrieve payments, remissions and fees by payment-group-reference
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().getRemissions(paymentGroupReference)
+            .then().got(PaymentGroupDto.class, paymentGroupDto1 -> {
+            assertThat(paymentGroupDto1).isNotNull();
+            assertThat(paymentGroupDto1.getPayments().get(0)).isEqualToComparingOnlyGivenFields(accountPaymentRequest);
+            assertThat(paymentGroupDto1.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(false));
+            assertThat(paymentGroupDto1.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee());
+
+            BigDecimal netAmount = paymentGroupDto1.getFees().get(0).getCalculatedAmount()
+                .subtract(paymentGroupDto1.getRemissions().get(0).getHwfAmount());
+            assertThat(netAmount).isEqualTo(paymentGroupDto1.getFees().get(0).getNetAmount());
+
+            BigDecimal amountDue = paymentGroupDto1.getFees().get(0).getCalculatedAmount()
+                .subtract(paymentGroupDto1.getRemissions().get(0).getHwfAmount()).subtract(paymentGroupDto1.getPayments().get(0).getAmount());
+            assertThat(amountDue).isEqualTo(paymentGroupDto1.getFees().get(0).getAmountDue());
         });
     }
 
@@ -194,7 +269,7 @@ public class RemissionFunctionalTest {
             .build();
     }
 
-    private RemissionRequest getRemissionRequest() {
+    private RemissionRequest getRemissionRequest(final boolean retroRemissionFlag) {
         return RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
             .ccdCaseNumber("1111-2222-3333-4444")
@@ -202,6 +277,7 @@ public class RemissionFunctionalTest {
             .hwfReference("HR1111")
             .caseType("DIVORCE_ExceptionRecord")
             .fee(getFee())
+            .isRetroRemission(retroRemissionFlag)
             .build();
     }
 
