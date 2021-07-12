@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.functional;
 
-
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Java6Assertions;
 import org.junit.Before;
@@ -25,19 +24,17 @@ import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class PaymentTelephonyLiberataPerformanceTest {
+public class TelephonyPaymentFunctionalTest {
 
     @Autowired
     private TestConfigProperties testProps;

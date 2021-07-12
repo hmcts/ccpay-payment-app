@@ -22,16 +22,14 @@ import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class PaymentBulkscanPerformanceLiberataTest {
+public class BulkscanPaymentFunctionalTest {
 
     @Autowired
     private TestConfigProperties testProps;
