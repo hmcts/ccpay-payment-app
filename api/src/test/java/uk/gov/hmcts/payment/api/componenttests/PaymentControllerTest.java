@@ -11,47 +11,49 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
+import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
+import java.util.*;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
@@ -86,6 +88,13 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
+
+    @MockBean
+    @Qualifier("restTemplateIacSupplementaryInfo")
+    private RestTemplate restTemplateIacSupplementaryInfo;
+
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
@@ -1683,6 +1692,115 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
         assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
 
+    }
+
+    @Test
+    @Transactional
+    public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetails_checkException() throws Exception {
+
+        populateIACCardPaymentToDb("6");
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class))).thenThrow(HttpClientErrorException.class);
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isPartialContent())
+            .andReturn();
+
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class))).thenThrow(NullPointerException.class);
+        MvcResult result2 = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isPartialContent())
+            .andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetails_200() throws Exception {
+
+        populateIACCardPaymentToDb("3");
+        populateCreditAccountPaymentToDbForIAC("3");
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
+        SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetails("3");
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class)))
+            .thenReturn(new ResponseEntity(supplementaryDetailsResponse,HttpStatus.OK));
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
+        assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(2);
+        assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
+
+    }
+
+    @Test
+    @Transactional
+    public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetailsAndMissingInfo_206() throws Exception {
+
+        populateIACCardPaymentToDb("1");
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
+        SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetailsWithMissingCCDNumbers("1");
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class)))
+            .thenReturn(new ResponseEntity(supplementaryDetailsResponse,HttpStatus.PARTIAL_CONTENT));
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+        //As IAC supplementary response is 206 so Payment response should be 206
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isPartialContent())
+            .andReturn();
+
+        SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
+        assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(1);
+        assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
+    }
+
+    @Test
+    @Transactional
+    public void iacSupplementaryDetails_withValidDates_shouldReturnPayments_with_supplementaryDetailsAndMissingInfoNull() throws Exception {
+
+        populateIACCardPaymentToDb("1");
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+        when(featureToggler.getBooleanValue("iac-supplementary-details-feature",false)).thenReturn(true);
+        SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetailsWithMissingCCDNumbers("1");
+        supplementaryDetailsResponse.setMissingSupplementaryInfo(null);
+
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class)))
+            .thenReturn(new ResponseEntity(supplementaryDetailsResponse,HttpStatus.PARTIAL_CONTENT));
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+        //As IAC supplementary response is 206 so Payment response should be 206
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isPartialContent())
+            .andReturn();
+
+        SupplementaryPaymentDto supplementaryPaymentDto = objectMapper.readValue(result.getResponse().getContentAsString(), SupplementaryPaymentDto.class);
+        assertThat(supplementaryPaymentDto.getPayments().size()).isEqualTo(1);
+        assertNotNull(supplementaryPaymentDto.getSupplementaryInfo());
     }
 
     private Date parseDate(String date) {
