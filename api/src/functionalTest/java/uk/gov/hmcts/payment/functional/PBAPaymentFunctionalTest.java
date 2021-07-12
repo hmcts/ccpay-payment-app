@@ -332,6 +332,28 @@ public class PBAPaymentFunctionalTest {
             .then().getPayments((paymentsResponse -> {
             Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
         }));
+
+        // Get pba payments by accountNumber
+        PaymentsResponse paymentsResponse = paymentTestService.getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+
+        // Get pba payments by ccdCaseNumber
+        PaymentsResponse liberataResponse = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber())
+            .then()
+            .statusCode(PARTIAL_CONTENT.value()).extract().as(PaymentsResponse.class);
+
+
+
+        assertThat(liberataResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("90.00");
+        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount()).isEqualTo("90.00");
+        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getMemoLine()).isEqualTo("GOV - Paper fees - Money claim >£200,000");
+        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getNaturalAccountCode()).isEqualTo("4481102133");
+        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction1()).isEqualTo("civil");
+        assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getJurisdiction2()).isEqualTo("county court");
     }
 
     @Test
