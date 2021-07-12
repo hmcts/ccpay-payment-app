@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.functional;
 
 import org.apache.commons.lang3.RandomUtils;
-import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,7 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
@@ -17,7 +20,6 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.contract.util.Service;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -26,9 +28,11 @@ import uk.gov.hmcts.payment.functional.fixture.PaymentFixture;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP;
@@ -74,7 +78,6 @@ public class CMCCardPaymentFunctionalTest {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-
             TOKENS_INITIALIZED = true;
         }
     }
@@ -98,7 +101,7 @@ public class CMCCardPaymentFunctionalTest {
             .amount(new BigDecimal("29.34"))
             .description("New passport application")
             .caseReference("aCaseReference")
-            .service(Service.CMC)
+            .service("CMC")
             .currency(CurrencyCode.GBP)
             .siteId("AA101")
             .build();
@@ -211,7 +214,7 @@ public class CMCCardPaymentFunctionalTest {
             .description("description")
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
-            .service(Service.CMC)
+            .service("CMC")
             .currency(CurrencyCode.GBP)
             .siteId("AA08")
             .fees(fees)
