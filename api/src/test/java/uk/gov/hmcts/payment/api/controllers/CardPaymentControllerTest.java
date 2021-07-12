@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
@@ -33,10 +34,16 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -51,11 +58,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -111,6 +125,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @MockBean
+    @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
 
     protected CustomResultMatcher body() {
@@ -619,115 +634,6 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals("Initiated", paymentDto.getStatus());
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
-
-    /*
-    @Test
-    public void creatingCardPaymentWithCcdCaseNumberInsideFeeGetsSavedProperly() throws Exception {
-        String testCcdCaseNumber = "test_case_number_1234";
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("200.11"))
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .service("CMC")
-            .siteId("siteID")
-            .ccdCaseNumber(testCcdCaseNumber)
-            .provider("pci pal")
-            .channel("telephony")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("200.11"))
-                .code("X0001")
-                .version("1")
-                .ccdCaseNumber(testCcdCaseNumber)
-                .build())).build();
-
-
-        MvcResult result = restActions
-            .post("/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-        assertNotNull(paymentDto);
-        assertEquals("Ccd case number inside fee is correct in the response", testCcdCaseNumber, paymentDto.getFees().get(0).getCcdCaseNumber());
-        PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
-        assertNotNull(paymentFeeLink);
-        assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber, paymentFeeLink.getFees().get(0).getCcdCaseNumber());
-    }
-    */
-
-    /*
-    @Test
-    public void creatingCardPaymentWithCcdCaseNumberOnPaymentLevelOnlySavesCcdCaseNumberInsideFees() throws Exception {
-        String testCcdCaseNumber = "test_case_number_1234";
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("200.11"))
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .service("CMC")
-            .siteId("siteID")
-            .ccdCaseNumber(testCcdCaseNumber)
-            .provider("pci pal")
-            .channel("telephony")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("200.11"))
-                .code("X0001")
-                .version("1")
-                .build())).build();
-
-
-        MvcResult result = restActions
-            .post("/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-        assertNotNull(paymentDto);
-        assertEquals("Ccd case number inside fee is correct in the response", testCcdCaseNumber, paymentDto.getFees().get(0).getCcdCaseNumber());
-        PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
-        assertNotNull(paymentFeeLink);
-        assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber, paymentFeeLink.getFees().get(0).getCcdCaseNumber());
-    }
-
-
-    @Test
-    public void creatingCardPaymentWithCcdCaseNumberOnPaymentLevelOnlySavesCcdCaseNumberInsideFeesAndDoesNotOverwriteAlreadySetCcdCaseNumberInFee() throws Exception {
-        String testCcdCaseNumber = "test_case_number_1234";
-        String testCcdCaseNumber2 = "test_case_number_4321";
-        CardPaymentRequest cardPaymentRequest = CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("200.11"))
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .service("CMC")
-            .siteId("siteID")
-            .ccdCaseNumber(testCcdCaseNumber)
-            .provider("pci pal")
-            .channel("telephony")
-            .fees(Arrays.asList(FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("200.11"))
-                .code("X0001")
-                .version("1")
-                .build(), FeeDto.feeDtoWith()
-                .calculatedAmount(new BigDecimal("300.11"))
-                .code("X0002")
-                .ccdCaseNumber(testCcdCaseNumber2)
-                .version("1")
-                .build())).build();
-
-
-        MvcResult result = restActions
-            .post("/card-payments", cardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
-        assertNotNull(paymentDto);
-        assertEquals("Ccd case number inside fee is correct in the response", testCcdCaseNumber, paymentDto.getFees().get(0).getCcdCaseNumber());
-        PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
-        assertNotNull(paymentFeeLink);
-        assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber, paymentFeeLink.getFees().get(0).getCcdCaseNumber());
-        assertEquals("Ccd case number inside fee is correct taken from DB", testCcdCaseNumber2, paymentFeeLink.getFees().get(1).getCcdCaseNumber());
-    }
-    */
 
     @Test
     public void creatingCardPaymentWithoutFees() throws Exception {
