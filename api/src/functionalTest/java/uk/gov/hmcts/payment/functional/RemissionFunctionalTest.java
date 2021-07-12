@@ -196,7 +196,6 @@ public class RemissionFunctionalTest {
             BigDecimal netAmount = paymentGroupDto1.getFees().get(0).getCalculatedAmount()
                 .subtract(paymentGroupDto1.getRemissions().get(0).getHwfAmount());
             assertThat(netAmount).isEqualTo(paymentGroupDto1.getFees().get(0).getNetAmount());
-            assertThat(netAmount).isEqualTo(paymentGroupDto1.getFees().get(0).getAmountDue());
         });
     }
 
@@ -238,7 +237,7 @@ public class RemissionFunctionalTest {
             .then().got(PaymentGroupDto.class, paymentGroupDto1 -> {
             assertThat(paymentGroupDto1).isNotNull();
             assertThat(paymentGroupDto1.getPayments().get(0)).isEqualToComparingOnlyGivenFields(accountPaymentRequest);
-            assertThat(paymentGroupDto1.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(false));
+            assertThat(paymentGroupDto1.getRemissions().get(0)).isEqualToComparingOnlyGivenFields(getRemissionRequest(true));
             assertThat(paymentGroupDto1.getFees().get(0)).isEqualToComparingOnlyGivenFields(getFee());
 
             BigDecimal netAmount = paymentGroupDto1.getFees().get(0).getCalculatedAmount()

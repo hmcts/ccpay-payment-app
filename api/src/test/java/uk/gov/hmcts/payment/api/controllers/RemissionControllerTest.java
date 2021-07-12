@@ -849,6 +849,7 @@ public class RemissionControllerTest {
             .andReturn();
         PaymentGroupDto paymentGroupDto =
             objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        assertEquals(paymentGroupDto.getFees().get(0).getNetAmount().longValue(), 0);
         assertEquals(paymentGroupDto.getFees().get(0).getAmountDue().longValue(), -10);
     }
 
@@ -880,7 +881,6 @@ public class RemissionControllerTest {
             .andReturn();
         PaymentGroupDto paymentGroupDto =
             objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
-        assertEquals(10, paymentGroupDto.getFees().get(0).getAmountDue().longValue());
         assertEquals(0, paymentGroupDto.getFees().get(0).getNetAmount().longValue());
     }
 
@@ -906,8 +906,35 @@ public class RemissionControllerTest {
             .andReturn();
         PaymentGroupDto paymentGroupDto =
             objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        assertEquals(paymentGroupDto.getFees().get(0).getNetAmount().longValue(), 0);
         assertEquals(paymentGroupDto.getFees().get(0).getAmountDue().longValue(), 0);
     }
+
+    @Test
+    @Transactional
+    public void createNoRetroRemissionFullFailedPaymentFalse() throws Exception {
+
+        PaymentFee fee2 = PaymentFee.feeWith().amountDue(new BigDecimal("10.00")).netAmount(new BigDecimal("10.00"))
+            .calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000124").build();
+        PaymentFeeLink paymentFeeLink2 = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1625063858786")
+            .payments(Arrays.asList(populateCardPaymentToDb("345", false))).fees(Arrays.asList(fee2)));
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/remissions",
+                getRetroRemissionRequest(false))
+            .andExpect(status().isCreated())
+            .andReturn();
+        RemissionDto createRemissionResponseDto1 =
+            objectMapper.readValue(result2.getResponse().getContentAsByteArray(), RemissionDto.class);
+        assertThat(createRemissionResponseDto1.getRemissionReference()).isNotNull();
+        MvcResult result3 = restActions
+            .get("/payment-groups/" + paymentFeeLink2.getPaymentReference())
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentGroupDto paymentGroupDto =
+            objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+        assertEquals(paymentGroupDto.getFees().get(0).getNetAmount().longValue(), 0);
+    }
+
 
     @Test
     @Transactional
