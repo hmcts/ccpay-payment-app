@@ -34,7 +34,7 @@ public enum PaymentReportType {
     }
 
     private static String getServiceTypeEnum(String serviceType) {
-       if(serviceType != null && serviceType.equalsIgnoreCase("Specified Money Claims")) {
+        if(serviceType != null && serviceType.equalsIgnoreCase("Specified Money Claims")) {
             return "CMC";
         }
         if(serviceType != null && serviceType.equalsIgnoreCase("Financial Remedy")) {
