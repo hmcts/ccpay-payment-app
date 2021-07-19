@@ -79,6 +79,7 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         serviceNameMap.put("FPL", "Family Public Law");
         serviceNameMap.put("IAC", "Immigration and Asylum Appeals");
         serviceNameMap.put("UNSPEC", "Unspecified Claim");
+        serviceNameMap.put("CIVIL", "Civil");
     }
 
     @Override
@@ -160,7 +161,8 @@ public class PaymentServiceImpl implements PaymentService<PaymentFeeLink, String
         if(serviceNameMap.containsKey(serviceCode))
         {
             return serviceNameMap.get(serviceCode);
-        } else throw new PaymentException("Service in Request is Invalid !!!");
+        }
+        else throw new PaymentException("Service in Request is Invalid !!!");
     }
 
 

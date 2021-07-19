@@ -200,7 +200,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         flowIdHashMap.put(SERVICE_TYPE_CMC, cmcFlowId);
         flowIdHashMap.put(SERVICE_TYPE_PROBATE, probateFlowId);
         flowIdHashMap.put(SERVICE_TYPE_FINREM, financialRemedyFlowId);
-
         if(flowIdHashMap.containsKey(serviceType))
         {
             flowId = flowIdHashMap.get(serviceType);
