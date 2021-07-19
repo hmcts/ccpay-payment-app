@@ -166,7 +166,7 @@ public class PaymentController {
     })
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
-    public PaymentsResponse retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+    public ResponseEntity retrievePaymentsWithApportion(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                                           @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                                           @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                                           @RequestParam(name = "service_name", required = false) Optional<String> serviceType,

@@ -77,4 +77,26 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
             throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
         }
     }
+
+    private ResponseEntity<List<OrganisationalServiceDto>> getResponseEntity(String caseType,MultiValueMap<String, String> headers){
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rdBaseUrl + RD_ENDPOINT)
+            .queryParam("ccdCaseType", caseType);
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        return restTemplatePaymentGroup
+            .exchange(builder.toUriString(), HttpMethod.GET, getEntity(headers), new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            });
+    }
+
+    private HttpEntity<String> getEntity(MultiValueMap<String, String> headers){
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
+        String serviceAuthorisation = authTokenGenerator.generate();
+        headerMultiValueMapForOrganisationalDetail.put("Content-Type", headers.get("content-type"));
+        String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
+        headerMultiValueMapForOrganisationalDetail.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
+            ? userAuthorization : "Bearer ".concat(userAuthorization)));
+        headerMultiValueMapForOrganisationalDetail.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
+        HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMapForOrganisationalDetail);
+        return new HttpEntity<>(httpHeaders);
+    }
+
 }

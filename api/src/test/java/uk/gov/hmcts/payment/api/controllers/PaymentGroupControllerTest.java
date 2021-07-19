@@ -117,9 +117,6 @@ public class PaymentGroupControllerTest {
     @MockBean
     private SiteService<Site, String> siteServiceMock;
 
-    @MockBean
-    private PciPalPaymentService pciPalPaymentService;
-
     @InjectMocks
     private PaymentGroupController paymentGroupController;
 
@@ -2804,7 +2801,7 @@ public class PaymentGroupControllerTest {
             .serviceCode("AA08")
             .serviceDescription("Financial Remedy")
             .build();
-            
+
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
