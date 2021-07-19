@@ -36,7 +36,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 public class BarPaymentFunctionalTest {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static final Logger LOG = LoggerFactory.getLogger(PaymentBarPerformanceLiberataTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BarPaymentFunctionalTest.class);
     private static String USER_TOKEN;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
