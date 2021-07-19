@@ -46,8 +46,10 @@ public class TelephonyPaymentsTest {
     private static boolean TOKENS_INITIALIZED = false;
     @Autowired
     private TestConfigProperties testProps;
+
     @Autowired
     private PaymentsTestDsl dsl;
+
     @Autowired
     private IdamService idamService;
     @Autowired
@@ -328,6 +330,4 @@ public class TelephonyPaymentsTest {
                 .volume(2)
                 .build())).build();
     }
-
 }
-

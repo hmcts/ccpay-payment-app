@@ -49,7 +49,6 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class PaymentGroupFunctionalTest {
-
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
     private static String USER_TOKEN;
@@ -58,12 +57,16 @@ public class PaymentGroupFunctionalTest {
     private static boolean TOKENS_INITIALIZED = false;
     @Autowired
     private TestConfigProperties testProps;
+
     @Autowired
     private PaymentsTestDsl dsl;
+
     @Autowired
     private IdamService idamService;
+
     @Autowired
     private S2sTokenService s2sTokenService;
+
     @Autowired
     private LaunchDarklyFeature featureToggler;
 

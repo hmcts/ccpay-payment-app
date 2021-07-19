@@ -133,7 +133,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
 
     }
 
-    @Test
+    @Test @Ignore
     public void makeAndRetrieve5CardPaymentsByProbateFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 5;
@@ -238,7 +238,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 800 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test
+    @Test @Ignore
     public void makeAndRetrieve5CardPaymentsByCmcFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 5;
@@ -340,7 +340,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 1000 card payemnt is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test
+    @Test @Ignore
     public void makeAndRetrieve5CardPaymentsByFinremFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 5;
@@ -442,7 +442,7 @@ public class CMCCardPaymentPerformanceLiberataTest {
         LOG.info("Response time in milliseconds approach 1 api 1300 card payment is : {}",liberataResponseTimeApproach1.getTime());
     }
 
-    @Test
+    @Test @Ignore
     public void makeAndRetrieve5CardPaymentsByDivorceFromLiberata() throws InterruptedException {
         // create Card payments
         final Integer PaymentCount = 5;
