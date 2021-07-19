@@ -97,7 +97,7 @@ public class PaymentRecordController {
             .currency(paymentRecordRequest.getCurrency().getCode())
             .paymentProvider(paymentProvider)
             .externalReference(paymentRecordRequest.getExternalReference())
-            .serviceType(paymentService.getServiceNameByCode(paymentRecordRequest.getService()))
+            .serviceType(paymentService.getServiceNameByCode(paymentRecordRequest.getService())) /* Once all the services are onboarded the method will be removed */
             .paymentMethod(PaymentMethod.paymentMethodWith().name(paymentRecordRequest.getPaymentMethod().getType()).build())
             .siteId(paymentRecordRequest.getSiteId())
             .giroSlipNo(paymentRecordRequest.getGiroSlipNo())

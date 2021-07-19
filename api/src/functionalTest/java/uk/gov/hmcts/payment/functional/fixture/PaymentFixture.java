@@ -34,7 +34,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CardPaymentRequest cardPaymentRequestProbate(String amountString, String  service) {
+    public static CardPaymentRequest cardPaymentRequestProbate(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
@@ -55,7 +55,7 @@ public class PaymentFixture {
     }
 
     public static CardPaymentRequest cardPaymentRequestall(String amountString, String service) {
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CardPaymentRequest.createCardPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("description")
@@ -97,7 +97,7 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForUnspec(String amountString, String service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForCivil(String amountString, String service) {
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
