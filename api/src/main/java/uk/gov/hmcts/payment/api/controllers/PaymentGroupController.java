@@ -1,7 +1,12 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.google.common.collect.Lists;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import org.joda.time.DateTime;
@@ -11,32 +16,69 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
-import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
-import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.*;
-import uk.gov.hmcts.payment.api.util.ReferenceUtil;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
-import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
 import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.TelephonyDtoMapper;
+import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentAllocation;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentProviderRepository;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
+import uk.gov.hmcts.payment.api.service.PaymentGroupService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.referencedata.dto.SiteDTO;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -44,7 +86,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 
 @RestController
 @Api(tags = {"Payment group"})
@@ -89,11 +130,8 @@ public class PaymentGroupController {
                                   PaymentProviderRepository paymentProviderRespository,
                                   FeePayApportionService feePayApportionService,
                                   LaunchDarklyFeatureToggler featureToggler,
-                                  FeePayApportionRepository feePayApportionRepository,
                                   Payment2Repository payment2Repository,
                                   TelephonyDtoMapper telephonyDtoMapper) {
-
-
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -148,7 +186,8 @@ public class PaymentGroupController {
 
         PaymentFeeLink paymentFeeLink = paymentGroupService.addNewFeeWithPaymentGroup(feeLink);
 
-        return new ResponseEntity<>(paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink), HttpStatus.CREATED);
+        PaymentGroupDto responsePaymentGroupDto = paymentGroupDtoMapper.toPaymentGroupDto(paymentFeeLink);
+        return new ResponseEntity<>(responsePaymentGroupDto, HttpStatus.CREATED);
     }
 
 
@@ -179,7 +218,9 @@ public class PaymentGroupController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
+        @ApiResponse(code = 404, message = "No Service found for given CaseType"),
+        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/card-payments")
     @ResponseBody
@@ -351,7 +392,9 @@ public class PaymentGroupController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Bulk Scan Payment created"),
         @ApiResponse(code = 400, message = "Bulk Scan Payment creation failed"),
-        @ApiResponse(code = 422, message = "Invalid or missing attribute")
+        @ApiResponse(code = 422, message = "Invalid or missing attribute"),
+        @ApiResponse(code = 404, message = "No Service found for given CaseType"),
+        @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
     })
     @PostMapping(value = "/payment-groups/{payment-group-reference}/bulk-scan-payments-strategic")
     @ResponseBody
@@ -541,9 +584,9 @@ public class PaymentGroupController {
     @ResponseBody
     @Transactional
     public ResponseEntity<TelephonyCardPaymentsResponse> createTelephonyCardPayment(
+        @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @PathVariable("payment-group-reference") String paymentGroupReference,
-        @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest,
-        @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException, MethodNotSupportedException {
+        @Valid @RequestBody TelephonyCardPaymentsRequest telephonyCardPaymentsRequest) throws CheckDigitException, MethodNotSupportedException {
 
         boolean antennaFeature = featureToggler.getBooleanValue("pci-pal-antenna-feature", false);
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
@@ -582,7 +625,6 @@ public class PaymentGroupController {
             throw new MethodNotSupportedException("This feature is not available to use or invalid request!!!");
         }
     }
-
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})

@@ -28,12 +28,30 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.PaymentFeeDbBackdoor;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.*;
+import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsRequest;
+import uk.gov.hmcts.payment.api.contract.TelephonyCardPaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequestStrategic;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.dto.PciPalPayment;
+import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -70,6 +88,9 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class PaymentGroupControllerTest {
 
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
+    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -78,8 +99,6 @@ public class PaymentGroupControllerTest {
 
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private RestActions restActions;
 
@@ -107,7 +126,6 @@ public class PaymentGroupControllerTest {
 
     @MockBean
     private ReferenceDataService referenceDataService;
-
     @Autowired
     private PaymentDbBackdoor db;
 
@@ -122,8 +140,6 @@ public class PaymentGroupControllerTest {
 
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-
-    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -140,23 +156,22 @@ public class PaymentGroupControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+        List<SiteDTO> serviceReturn = Arrays.asList(SiteDTO.siteDTOwith()
                 .sopReference("sop")
-                .siteId("AA99")
+                .siteID("AA99")
                 .name("name")
                 .service("service")
-                .id(1)
                 .build(),
-            Site.siteWith()
+            SiteDTO.siteDTOwith()
                 .sopReference("sop")
-                .siteId("AA001")
+                .siteID("AA001")
                 .name("name")
                 .service("service")
-                .id(1)
                 .build()
         );
 
-        when(referenceDataService.getSiteIDs()).thenReturn(SiteDTO.fromSiteList(serviceReturn));
+        when(referenceDataService.getSiteIDs()).thenReturn(serviceReturn);
+
     }
 
     @Test
@@ -166,7 +181,6 @@ public class PaymentGroupControllerTest {
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
 
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
@@ -185,10 +199,10 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         // create a partial remission
         MvcResult result2 = restActions
@@ -220,7 +234,6 @@ public class PaymentGroupControllerTest {
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
-
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
             .post("/card-payments", cardPaymentRequest)
@@ -250,7 +263,6 @@ public class PaymentGroupControllerTest {
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
-
 
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
@@ -556,10 +568,10 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -570,6 +582,9 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getConsecutiveFee()))
             .build();
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         MvcResult result1 = restActions
             .withHeader("service-callback-url", "http://payments.com")
@@ -661,10 +676,13 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -718,7 +736,10 @@ public class PaymentGroupControllerTest {
             .serviceDescription("Financial Remedy")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
@@ -794,10 +815,13 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -830,6 +854,8 @@ public class PaymentGroupControllerTest {
     public void addNewPaymenttoExistingPaymentGroupWhenServiceTypeIsProbate() throws Exception {
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         BigDecimal amount = new BigDecimal("200");
 
@@ -852,7 +878,7 @@ public class PaymentGroupControllerTest {
             .serviceDescription("Probate")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
             .withReturnUrl("https://www.google.com")
@@ -896,10 +922,13 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
@@ -929,10 +958,10 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void addnewPaymentgroupWithCaseTypeShouldReturnSuccess() throws Exception {
+    public void addnewCardPaymentgroupWithCaseTypeShouldReturnSuccess() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
@@ -948,10 +977,13 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
         BigDecimal amount = new BigDecimal("200");
 
@@ -972,7 +1004,155 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void shouldThrowNoServiceExceptionWithCaseType() throws Exception {
+    public void addTelephonyPaymentWithValidCaseTypeReturnSuccess() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
+
+        when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
+            .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
+
+        Mockito.when(pciPalPaymentService.getPaymentProviderAutorisationTokens()).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+        Mockito.when(pciPalPaymentService.getTelephonyProviderLink(any(PciPalPaymentRequest.class)
+            ,any(TelephonyProviderAuthorisationResponse.class),anyString(),anyString())).thenReturn(getTelephonyProviderAuthorisationResponse());
+
+
+        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+            .serviceCode("AAD7")
+            .serviceDescription("Divorce")
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenReturn(organisationalServiceDto);
+
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("DIVORCE")
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void addTelephonyPaymentWithEmptyCaseTypeReturn422() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .caseType("")
+            .build();
+
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isUnprocessableEntity());
+    }
+
+
+    @Test
+    public void TelephonyPaymentThrowNoServiceExceptionWithCaseType() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("DIVORCE999")
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
+
+        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenThrow(new NoServiceFoundException("No Service found for given CaseType"));
+
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(content().string("No Service found for given CaseType"));
+    }
+
+    @Test
+    public void telephonyPaymentThrowGatewayTimeOutExceptionWithCaseType() throws Exception {
+
+        PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
+            .fees(Arrays.asList(getNewFee()))
+            .build();
+
+        MvcResult result = restActions
+            .post("/payment-groups", request)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
+        PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
+
+        BigDecimal amount = new BigDecimal("200");
+
+        TelephonyCardPaymentsRequest telephonyPaymentRequest = TelephonyCardPaymentsRequest.telephonyCardPaymentsRequestWith()
+            .caseType("DIVORCE")
+            .amount(amount)
+            .ccdCaseNumber("2154234356342357")
+            .returnURL("https://www.google.com")
+            .currency(CurrencyCode.GBP)
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
+        restActions
+            .withReturnUrl("https://www.google.com")
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/telephony-card-payments", telephonyPaymentRequest)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void cardPaymentShouldThrowNoServiceExceptionWithCaseType() throws Exception {
 
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
@@ -988,7 +1168,7 @@ public class PaymentGroupControllerTest {
             .channel("telephony")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenThrow(new NoServiceFoundException("No Service found for given CaseType"));
+        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenThrow(new NoServiceFoundException("No Service found for given CaseType"));
         restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
@@ -997,7 +1177,7 @@ public class PaymentGroupControllerTest {
     }
 
     @Test
-    public void shouldThrowGatewyTimeOutExceptionWithCaseType() throws Exception {
+    public void shouldThrowGatewayTimeOutExceptionWithCaseType() throws Exception {
 
         PaymentGroupDto paymentGroupDto = addNewPaymentToExistingPaymentGroup();
 
@@ -1013,7 +1193,7 @@ public class PaymentGroupControllerTest {
             .channel("telephony")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(anyString(),any())).thenThrow(new GatewayTimeoutException("Unable to retrieve service information. Please try again later"));
+        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenThrow(new GatewayTimeoutException("Unable to retrieve service information. Please try again later"));
         restActions
             .withReturnUrl("https://www.google.com")
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", cardPaymentRequest)
@@ -1040,10 +1220,10 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result3 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/card-payments", telephonyPaymentRequest)
@@ -1272,10 +1452,10 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
@@ -1302,7 +1482,7 @@ public class PaymentGroupControllerTest {
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
@@ -1327,7 +1507,7 @@ public class PaymentGroupControllerTest {
         when(featureToggler.getBooleanValue("prod-strategic-fix",false)).thenReturn(true);
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
@@ -1364,10 +1544,10 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
@@ -1436,10 +1616,10 @@ public class PaymentGroupControllerTest {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference()  + "/bulk-scan-payments-strategic", getBulkScanPaymentStrategic("Allocated","Allocated bulk scan payments", null, "DCN293842342342834278348"))
@@ -2368,7 +2548,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(false);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -2482,7 +2662,7 @@ public class PaymentGroupControllerTest {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
             .fees( Arrays.asList(getNewFee()))
             .build();
-        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(getConsecutiveFee())).build();
 
@@ -2594,8 +2774,8 @@ public class PaymentGroupControllerTest {
     public void createCardPaymentPaymentWithMultipleFee_SurplusPayment_ForPCIPALAntenna() throws Exception {
 
         String ccdCaseNumber = "1111111122222222";
-        when(featureToggler.getBooleanValue("pci-pal-antenna-feature",false)).thenReturn(true);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("pci-pal-antenna-feature", false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         List<FeeDto> fees = new ArrayList<>();
         fees.add(FeeDto.feeDtoWith().code("FEE0271").ccdCaseNumber(ccdCaseNumber).feeAmount(new BigDecimal(10))
@@ -2621,6 +2801,7 @@ public class PaymentGroupControllerTest {
             .serviceCode("AA08")
             .serviceDescription("Financial Remedy")
             .build();
+
         when(pciPalPaymentService.create(any(PaymentServiceRequest.class)))
             .thenReturn(PciPalPayment.pciPalPaymentWith().paymentId("1").state(State.stateWith().status("created").build()).build());
 
@@ -2803,7 +2984,6 @@ public class PaymentGroupControllerTest {
     }
 
     private TelephonyProviderAuthorisationResponse getTelephonyProviderAuthorisationResponse(){
-
         return  new TelephonyProviderAuthorisationResponse(
             "accessToken",
             "bearer",
