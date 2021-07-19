@@ -12,8 +12,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,6 +37,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeRepository;
 import uk.gov.hmcts.payment.api.model.PaymentStatusRepository;
 import uk.gov.hmcts.payment.api.service.CallbackService;
+import uk.gov.hmcts.payment.api.service.IacService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
 import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
@@ -45,7 +45,6 @@ import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.validators.PaymentValidator;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +74,9 @@ public class PaymentController {
 
     @Autowired
     private OrderCaseUtil orderCaseUtil;
+
+    @Autowired
+    private IacService iacService;
 
     @Autowired
     public PaymentController(PaymentService<PaymentFeeLink, String> paymentService,
@@ -159,7 +161,8 @@ public class PaymentController {
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request")
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 206, message = "Supplementary details partially retrieved"),
     })
     @GetMapping(value = "/reconciliation-payments")
     @PaymentExternalAPI
@@ -184,9 +187,20 @@ public class PaymentController {
 
         final List<PaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
-
         populatePaymentDtos(paymentDtos, payments);
-        return new PaymentsResponse(paymentDtos);
+
+        Optional<Payment> iacPaymentAny = payments.stream()
+            .filter(p -> p.getServiceType().equalsIgnoreCase(paymentService.getServiceNameByCode("IAC"))).findAny();
+        boolean iacSupplementaryDetailsFeature = featureToggler.getBooleanValue("iac-supplementary-details-feature",false);
+        LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
+        LOG.info("Is any IAC payment present: {}", iacPaymentAny.isPresent());
+
+        if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
+            return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
+        }
+
+        return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
+
     }
 
     @ApiOperation(value = "Update payment status by payment reference", notes = "Update payment status by payment reference")

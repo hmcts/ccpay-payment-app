@@ -85,7 +85,7 @@ public class CreditAccountPaymentRequestTest {
     @Test
     public void testValidateSiteIdForFpl() {
         CreditAccountPaymentRequest request = new CreditAccountPaymentRequest();
-        request.setService("IAC");
+        request.setService("FPL");
         request.setSiteId("invalid-site-id");
         Set<ConstraintViolation<CreditAccountPaymentRequest>> violations = validator.validate(request);
         violations.stream().forEach(v->{
