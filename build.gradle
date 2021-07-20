@@ -131,7 +131,10 @@ subprojects {
                 }
             }
         }
-
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        testImplementation group: 'uk.gov.hmcts.reform', name: 'logging', version: '5.1.1'
     }
 }
 

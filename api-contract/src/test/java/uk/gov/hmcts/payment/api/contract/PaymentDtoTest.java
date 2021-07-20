@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.contract;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Slf4j
 public class PaymentDtoTest {
 
     private final String feeWithVolumeCode;
@@ -166,6 +168,7 @@ public class PaymentDtoTest {
             .add(volume.toString());
 
         assertThat(testDto.toCardPaymentCsv()).isEqualTo(joiner.toString());
+        log.info("The cardPaymentCsvFillsVolumeAmountWhenExists() has been completed...");
     }
 
     @Test

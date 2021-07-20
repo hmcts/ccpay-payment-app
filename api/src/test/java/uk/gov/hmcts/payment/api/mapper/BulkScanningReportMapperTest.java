@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.mapper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@Slf4j
 @RunWith(MockitoJUnitRunner.class)
 public class BulkScanningReportMapperTest {
 
@@ -35,6 +37,7 @@ public class BulkScanningReportMapperTest {
         List<BulkScanningReportDto> responseDtos = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(getPayments());
         assertEquals("service-type",responseDtos.get(0).getRespServiceName());
         assertEquals("ccd-case-number-1",responseDtos.get(0).getCcdCaseReference());
+        log.info("The testToBulkScanningUnallocatedReportDto() has been completed...");
     }
 
     @Test
