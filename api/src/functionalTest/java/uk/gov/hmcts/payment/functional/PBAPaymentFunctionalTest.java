@@ -313,8 +313,8 @@ public class PBAPaymentFunctionalTest {
 
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
                 .searchPaymentsByServiceBetweenDates("Immigration and Asylum Appeals", startDate, endDate).then()
-                .getPayments((reconciliationPaymentResponse -> {
-                    Assertions.assertThat(reconciliationPaymentResponse.getPayments().size()).isEqualTo(1);
+                .getPayments((paymentsResponse -> {
+                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
                 }));
     }
 
