@@ -77,15 +77,15 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
 
     private ResponseEntity<List<OrganisationalServiceDto>> getResponseEntity(Optional<String> caseType, Optional<String> serviceCode, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = null;
-        if (caseType != null && caseType.isPresent()) {
+        if (caseType.isPresent()) {
             builder = UriComponentsBuilder.fromUriString(rdBaseUrl + RD_ENDPOINT)
                 .queryParam("ccdCaseType", caseType);
         }
-        if (serviceCode != null && serviceCode.isPresent()) {
+        if (serviceCode.isPresent()) {
             builder = UriComponentsBuilder.fromUriString(rdBaseUrl + RD_ENDPOINT)
                 .queryParam("serviceCode", serviceCode);
         }
-        if (serviceCode == null && caseType == null) {
+        if (serviceCode.isEmpty() && caseType.isEmpty()) {
             throw new NullPointerException("Either ServiceCode or caseType should be passed");
         }
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
