@@ -50,7 +50,7 @@ public class RemissionController {
                                                         @RequestHeader(required = false) MultiValueMap<String, String> headers)
         throws CheckDigitException {
 
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(remissionRequest.getCaseType(), headers);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(java.util.Optional.ofNullable(remissionRequest.getCaseType()),null, headers);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest, organisationalServiceDto);
         remissionRequest.getFee().setCcdCaseNumber(remissionRequest.getCcdCaseNumber());
@@ -75,7 +75,7 @@ public class RemissionController {
         @RequestHeader(required = false) MultiValueMap<String, String> headers,
         @Valid @RequestBody RemissionRequest remissionRequest) throws CheckDigitException {
 
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(remissionRequest.getCaseType(), headers);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(java.util.Optional.ofNullable(remissionRequest.getCaseType()),null, headers);
 
         RemissionServiceRequest remissionServiceRequest = populateRemissionServiceRequest(remissionRequest, organisationalServiceDto);
         PaymentFeeLink paymentFeeLink = remissionService.createRetrospectiveRemission(remissionServiceRequest, paymentGroupReference, feeId);
