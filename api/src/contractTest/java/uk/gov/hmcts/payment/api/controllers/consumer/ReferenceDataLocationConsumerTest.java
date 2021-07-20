@@ -27,6 +27,7 @@ import uk.gov.hmcts.payment.referencedata.service.SiteServiceImpl;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonArray;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -105,7 +106,7 @@ public class ReferenceDataLocationConsumerTest {
         header.put("ServiceAuthorization", Collections.singletonList(SOME_SERVICE_AUTHORIZATION_TOKEN));
         header.put("content-type", Collections.singletonList(MediaType.APPLICATION_JSON_VALUE));
         given(authTokenGenerator.generate()).willReturn(SOME_SERVICE_AUTHORIZATION_TOKEN);
-        OrganisationalServiceDto organisationalDetail = referenceDataService.getOrganisationalDetail("Divorce", header);
+        OrganisationalServiceDto organisationalDetail = referenceDataService.getOrganisationalDetail(Optional.of("Divorce"),null, header);
         assertOrganisationalDetails(organisationalDetail);
 
     }
