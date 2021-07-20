@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -16,6 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@Slf4j
 public class RemissionServiceTest {
 
     @InjectMocks
@@ -67,6 +69,7 @@ public class RemissionServiceTest {
         });
 
         verify(paymentFeeLinkRepository, times(1)).save(any(PaymentFeeLink.class));
+        log.info("The unit Test for createRemissionTest() has completed.");
     }
 
     @Test(expected = InvalidPaymentGroupReferenceException.class)

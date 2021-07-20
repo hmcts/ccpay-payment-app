@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
+@Slf4j
 public class RemissionFunctionalTest {
 
     private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
@@ -67,6 +69,7 @@ public class RemissionFunctionalTest {
             assertThat(remissionDto).isNotNull();
             assertThat(remissionDto.getFee()).isEqualToComparingOnlyGivenFields(getFee());
         });
+        log.info("The upfront remission test has been completed......");
     }
 
     @Test
