@@ -298,6 +298,7 @@ public class BarPaymentFunctionalTest {
 
     }
 
+    
     private PaymentRecordRequest getPaymentRecordRequestForCheque() {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
             .amount(new BigDecimal("550.00"))
