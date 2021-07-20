@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.referencedata.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -18,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@Slf4j
 @RunWith(SpringRunner.class)
 public class SiteServiceTest {
 
@@ -38,6 +40,7 @@ public class SiteServiceTest {
        when(siteRepository.findBySiteId(any(String.class))).thenReturn(java.util.Optional.ofNullable(site1));
        Site result = siteService.retrieve("1");
        assertEquals("site-1",result.getName());
+       log.info("The test testRetrieve() has completed.....");
     }
 
     @Test(expected = ReferenceDataNotFoundException.class)
