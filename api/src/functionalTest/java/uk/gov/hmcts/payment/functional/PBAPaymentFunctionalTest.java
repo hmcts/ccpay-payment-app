@@ -13,6 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -168,9 +169,9 @@ public class PBAPaymentFunctionalTest {
         assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
 
         // Get pba payments by ccdCaseNumber
-        PaymentsResponse liberataResponse = paymentTestService
-                .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        ReconciliationPaymentResponse liberataResponse = paymentTestService
+                .getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
+                .statusCode(OK.value()).extract().as(ReconciliationPaymentResponse.class);
 
         assertThat(liberataResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
         assertThat(liberataResponse.getPayments().get(0).getFees().get(0).getApportionedPayment()).isEqualTo("215.00");
@@ -214,9 +215,9 @@ public class PBAPaymentFunctionalTest {
         assertThat(paymentsResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
 
         // Get pba payments by ccdCaseNumber
-        PaymentsResponse liberataResponse = paymentTestService
-                .getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+        ReconciliationPaymentResponse liberataResponse = paymentTestService
+                .getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, accountPaymentRequest.getCcdCaseNumber()).then()
+                .statusCode(OK.value()).extract().as(ReconciliationPaymentResponse.class);
 
         assertThat(liberataResponse.getPayments().get(0).getAccountNumber()).isEqualTo(accountNumber);
 
@@ -297,7 +298,7 @@ public class PBAPaymentFunctionalTest {
                 }));
     }
 
-    @Test
+    //@Test
     public void makeAndRetrievePbaPaymentByIACService() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
