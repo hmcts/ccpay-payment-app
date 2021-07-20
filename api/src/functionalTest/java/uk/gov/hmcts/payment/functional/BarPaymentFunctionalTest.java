@@ -128,7 +128,7 @@ public class BarPaymentFunctionalTest {
             .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now(zoneUTC).toString())
             .siteId("AA01")
             .fees(
                 Arrays.asList(
@@ -230,7 +230,7 @@ public class BarPaymentFunctionalTest {
             .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .giroSlipNo("312131")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now(zoneUTC).toString())
             .siteId("Y431")
             .fees(
                 Arrays.asList(
@@ -320,7 +320,7 @@ public class BarPaymentFunctionalTest {
                     FeeDto.feeDtoWith()
                         .calculatedAmount(new BigDecimal("550.00"))
                         .code("FEE0002")
-                        .version("")
+                        .version("4")
                         .volume(1)
                         .reference("REF_123")
                         .build()
