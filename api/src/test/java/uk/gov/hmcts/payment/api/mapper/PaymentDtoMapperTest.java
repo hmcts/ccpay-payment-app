@@ -11,6 +11,7 @@ import uk.gov.hmcts.fees2.register.data.model.Fee;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.reports.FeesService;
@@ -193,7 +194,7 @@ public class PaymentDtoMapperTest {
     @Test
     public void testToReconciliationResponseDtoForLibereta(){
         when(ff4j.check(any(String.class))).thenReturn(true);
-        PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment1,"group-reference",paymentFees,ff4j,true);
+        ReconciliationPaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment1,"group-reference",paymentFees,ff4j,true);
         assertEquals("group-reference",paymentDto.getPaymentGroupReference());
     }
 

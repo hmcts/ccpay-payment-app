@@ -12,9 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -92,6 +90,7 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+
     @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
@@ -100,7 +99,7 @@ public class PaymentController {
     })
     @GetMapping(value = "/payments")
     @PaymentExternalAPI
-    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+    public ReconciliationPaymentResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
                                              @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
                                              @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
                                              @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
@@ -119,12 +118,12 @@ public class PaymentController {
                 getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
             );
 
-        final List<PaymentDto> paymentDtos = new ArrayList<>();
+        final List<ReconciliationPaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", paymentFeeLinks.size());
         for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
             populatePaymentDtos(paymentDtos, paymentFeeLink, fromDateTime, toDateTime);
         }
-        return new PaymentsResponse(paymentDtos);
+        return new ReconciliationPaymentResponse(paymentDtos);
     }
 
     @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
@@ -155,7 +154,7 @@ public class PaymentController {
                 getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
             );
 
-        final List<PaymentDto> paymentDtos = new ArrayList<>();
+        final List<ReconciliationPaymentDto> paymentDtos = new ArrayList<>();
         LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", payments.size());
         populatePaymentDtos(paymentDtos, payments);
 
@@ -169,7 +168,7 @@ public class PaymentController {
             return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
         }
 
-        return new ResponseEntity(new PaymentsResponse(paymentDtos),HttpStatus.OK);
+        return new ResponseEntity(new ReconciliationPaymentResponse(paymentDtos),HttpStatus.OK);
 
     }
 
@@ -253,7 +252,7 @@ public class PaymentController {
             .filter(p -> p.getReference().equals(reference)).findAny();
     }
 
-    private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink, Date fromDateTime, Date toDateTime) {
+    private void populatePaymentDtos(final List<ReconciliationPaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink, Date fromDateTime, Date toDateTime) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
 
@@ -281,7 +280,7 @@ public class PaymentController {
         }
     }
 
-    private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final List<Payment> payments) {
+    private void populatePaymentDtos(final List<ReconciliationPaymentDto> paymentDtos, final List<Payment> payments) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> filteredPayments = getFilteredListBasedOnBulkScanToggleFeature(payments);
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -295,7 +294,7 @@ public class PaymentController {
         }
     }
 
-    private void populateApportionedFees(List<PaymentDto> paymentDtos, PaymentFeeLink paymentFeeLink, boolean apportionFeature, Payment payment, String paymentReference) {
+    private void populateApportionedFees(List<ReconciliationPaymentDto> paymentDtos, PaymentFeeLink paymentFeeLink, boolean apportionFeature, Payment payment, String paymentReference) {
         boolean apportionCheck = payment.getPaymentChannel() != null
             && !payment.getPaymentChannel().getName().equalsIgnoreCase(paymentService.getServiceNameByCode("DIGITAL_BAR"));
         LOG.info("Apportion check value in liberata API: {}", apportionCheck);
@@ -312,7 +311,7 @@ public class PaymentController {
             }
         }
         //End of Apportion logic
-        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
+        final ReconciliationPaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
         paymentDtos.add(paymentDto);
     }
 
