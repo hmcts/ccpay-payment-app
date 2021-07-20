@@ -24,9 +24,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundExceptio
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -63,19 +61,19 @@ public class OrderDomainServiceTest2 {
 
         OrderDto orderDto = OrderDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("ClaimCase")
+            .siteId("AAA6")
             .ccdCaseNumber("8689869686968696")
             .fees(Collections.singletonList(getOrderFee()))
             .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
+            .serviceCode("AAA6")
             .serviceDescription("DIVORCE")
             .build();
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         String orderReference = "2200-1619524583862";
         OrderResponseDto orderResponse = OrderResponseDto.orderResponseDtoWith()

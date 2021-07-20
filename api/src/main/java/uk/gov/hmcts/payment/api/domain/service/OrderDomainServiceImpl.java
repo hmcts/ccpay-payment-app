@@ -111,7 +111,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     @Override
     @Transactional
     public OrderResponseDto create(OrderDto orderDto, MultiValueMap<String, String> headers) {
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(null, Optional.ofNullable(orderDto.getSiteId()), headers);
 
         OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto, organisationalServiceDto);
         return orderBo.createOrder(orderBoDomain);

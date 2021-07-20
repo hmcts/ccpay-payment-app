@@ -106,7 +106,7 @@ public class OrderControllerTest {
             .serviceDescription("DIVORCE")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(organisationalServiceDto);
 
     }
 
@@ -437,7 +437,7 @@ public class OrderControllerTest {
 
         OrderDto orderDto = OrderDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("MoneyClaimCase")
+            .siteId("AAA6")
             .ccdCaseNumber("689869686968696")
             .fees(Collections.singletonList(getFee()))
             .build();
@@ -461,7 +461,7 @@ public class OrderControllerTest {
 
         OrderDto orderDto = OrderDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("MoneyClaimCase")
+            .siteId("AAA6")
             .ccdCaseNumber("8689869686968696")
             .fees(orderFeeDtoList)
             .build();
@@ -473,16 +473,16 @@ public class OrderControllerTest {
     }
 
     @Test
-    public void createOrderWithInvalidCaseType() throws Exception {
+    public void createOrderWithInvalidsiteId() throws Exception {
 
         OrderDto orderDto = OrderDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("ClaimCase")
+            .siteId("AA123A6")
             .ccdCaseNumber("8689869686968696")
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/order", orderDto)
@@ -495,12 +495,12 @@ public class OrderControllerTest {
 
         OrderDto orderDto = OrderDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("ClaimCase")
+            .siteId("AAA6")
             .ccdCaseNumber("8689869686968696")
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/order", orderDto)
@@ -538,7 +538,7 @@ public class OrderControllerTest {
     private String getOrderReference() throws Exception {
         OrderDto orderDto = OrderDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("MoneyClaimCase")
+            .siteId("AAA6")
             .ccdCaseNumber("8689869686968696")
             .fees(getMultipleFees())
             .build();

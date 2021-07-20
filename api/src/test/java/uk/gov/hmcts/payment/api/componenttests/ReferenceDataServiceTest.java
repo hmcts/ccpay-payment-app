@@ -25,9 +25,12 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 
@@ -69,7 +72,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.of("VPAA"),null, header);
         assertEquals("VPAA", res.getServiceCode());
     }
 
@@ -90,7 +93,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.of("VPAA"),null, header);
     }
 
     @Test(expected = NoServiceFoundException.class)
@@ -109,7 +112,7 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.of("VPAA"), null,header);
     }
 
 }

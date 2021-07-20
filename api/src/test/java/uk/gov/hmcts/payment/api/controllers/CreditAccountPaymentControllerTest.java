@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
@@ -60,8 +59,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -367,7 +364,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .ccdCaseTypes(Collections.singletonList("DIVORCE"))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(organisationalServiceDto);
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
@@ -389,7 +386,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypereturn404() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -401,7 +398,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypeReturn504() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -1134,8 +1131,8 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
         mockFees.add(fee2);
         mockFees.add(fee3);
         PaymentFeeLink mockFeeLink = PaymentFeeLink.paymentFeeLinkWith()
-                                        .fees(mockFees)
-                                        .build();
+            .fees(mockFees)
+            .build();
         PaymentDbBackdoor mockDb = mock(PaymentDbBackdoor.class);
         when(mockDb.findByReference(paymentDto.getPaymentGroupReference())).thenReturn(mockFeeLink);
 

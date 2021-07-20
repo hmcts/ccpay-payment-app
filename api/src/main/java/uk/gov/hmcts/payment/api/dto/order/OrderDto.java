@@ -40,7 +40,7 @@ public class OrderDto {
     private String caseReference;
 
     @NotBlank
-    private String caseType;
+    private String siteId;
 
     @AssertFalse(message = "Fee code cannot be duplicated")
     private boolean isFeeCodeUnique() {
