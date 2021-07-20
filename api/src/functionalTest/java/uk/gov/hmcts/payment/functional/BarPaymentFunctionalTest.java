@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.ReconciliationFeeDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentResponse;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -166,12 +167,12 @@ public class BarPaymentFunctionalTest {
 
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
-        PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
+        ReconciliationPaymentResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "postal_order")
             .then().getPayments();
 
-        PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
+        ReconciliationPaymentResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
             .then().getPayments();
