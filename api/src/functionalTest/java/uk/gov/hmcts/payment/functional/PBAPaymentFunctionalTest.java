@@ -298,7 +298,7 @@ public class PBAPaymentFunctionalTest {
                 }));
     }
 
-    @Test
+    //@Test
     public void makeAndRetrievePbaPaymentByIACService() throws InterruptedException {
 
         String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
