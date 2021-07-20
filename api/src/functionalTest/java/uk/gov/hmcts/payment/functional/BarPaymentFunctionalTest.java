@@ -103,7 +103,7 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("12345");
             FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-            assertThat(feeDto.getCode()).isEqualTo("FEE0002");
+            assertThat(feeDto.getCode()).isEqualTo("FEE0333");
             assertThat(feeDto.getVersion()).isEqualTo("4");
             assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
             assertThat(feeDto.getReference()).isNotNull();
@@ -128,7 +128,7 @@ public class BarPaymentFunctionalTest {
                 Arrays.asList(
                     FeeDto.feeDtoWith()
                         .calculatedAmount(new BigDecimal("550.00"))
-                        .code("FEE0002")
+                        .code("FEE0333")
                         .version("4")
                         .volume(1)
                         .reference("REF_123")
