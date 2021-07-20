@@ -106,7 +106,7 @@ public class ReferenceDataLocationConsumerTest {
         header.put("ServiceAuthorization", Collections.singletonList(SOME_SERVICE_AUTHORIZATION_TOKEN));
         header.put("content-type", Collections.singletonList(MediaType.APPLICATION_JSON_VALUE));
         given(authTokenGenerator.generate()).willReturn(SOME_SERVICE_AUTHORIZATION_TOKEN);
-        OrganisationalServiceDto organisationalDetail = referenceDataService.getOrganisationalDetail(Optional.of("Divorce"),null, header);
+        OrganisationalServiceDto organisationalDetail = referenceDataService.getOrganisationalDetail(Optional.of("Divorce"),Optional.empty(), header);
         assertOrganisationalDetails(organisationalDetail);
 
     }
