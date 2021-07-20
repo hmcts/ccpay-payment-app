@@ -33,6 +33,7 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.govpay.GovPayDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.util.DateUtil;
+import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -80,7 +81,8 @@ public class CardPaymentProviderTestConfiguration {
             feePayApportionRepository,
             paymentFeeRepository,
             feePayApportionService,
-            launchDarklyFeatureToggler);
+            launchDarklyFeatureToggler,
+            orderCaseUtil);
     }
 
     @Bean
@@ -179,5 +181,8 @@ public class CardPaymentProviderTestConfiguration {
     public FeePayApportionRepository feePayApportionRepository;
     @MockBean
     public TelephonyRepository telephonyRepository;
+
+    @MockBean
+    OrderCaseUtil orderCaseUtil;
 
 }

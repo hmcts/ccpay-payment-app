@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.controllers;
+package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +28,15 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentAllocation;
+import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -47,7 +55,9 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,41 +70,28 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class PaymentControllerTest extends PaymentsDataUtil {
 
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormat.forPattern("dd-MM-yyyy");
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_TIME_FORMAT_T_HH_MM_SS = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     @MockBean
     protected CallbackServiceImpl callbackServiceImplMock;
-
     @Autowired
     protected PaymentDbBackdoor db;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
     RestActions restActions;
-
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
-
-    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormat.forPattern("dd-MM-yyyy");
-
-    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-
-    private static final DateTimeFormatter DATE_TIME_FORMAT_T_HH_MM_SS = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -368,7 +365,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=ccdCaseNumber1"+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?ccd_case_number=ccdCaseNumber1" + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -571,7 +568,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?pba_number=123456"+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?pba_number=123456" + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -598,7 +595,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber() + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -748,7 +745,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate+ "&payment_method=CARD")
+            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -789,7 +786,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result = restActions
-            .get("/payments?end_date=" + endDate +"&start_date=" + startDate +"&payment_method=CARD")
+            .get("/payments?end_date=" + endDate + "&start_date=" + startDate + "&payment_method=CARD")
             .andExpect(status().isOk())
             .andReturn();
 
@@ -1154,7 +1151,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populatePaymentToDbForExelaPayments(paymentReference);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1182,7 +1179,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         populatePaymentToDbForExelaPayments(paymentReference);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1207,10 +1204,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionNewFieldsNotPopulatedWhenApportionFeatureIsToggledOffForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populateTelephonyPaymentToDb(paymentReference,false);
+        populateTelephonyPaymentToDb(paymentReference, false);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1235,10 +1232,10 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionNewFieldsPopulatedWhenApportionFeatureIsToggledONForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populateTelephonyPaymentToDb(paymentReference,false);
+        populateTelephonyPaymentToDb(paymentReference, false);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1263,11 +1260,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledONForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetails(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
@@ -1290,11 +1287,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenCallSurplusAmountIsNotNull() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
@@ -1312,15 +1309,16 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
+    
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenFeeIdIsDifferent() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithDifferentFeeId(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
@@ -1344,8 +1342,8 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledOFFForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
-        PaymentFeeLink paymentFeeLink= payment.getPaymentLink();
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
+        PaymentFeeLink paymentFeeLink = payment.getPaymentLink();
         List<PaymentFeeLink> paymentFeeLinkList = new ArrayList<>();
         paymentFeeLinkList.add(paymentFeeLink);
         List<FeePayApportion> feePayApportionList = new ArrayList<>();
@@ -1360,7 +1358,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         feePayApportionList.add(feePayApportion);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1384,7 +1382,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsBeforeApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
 
         List<FeePayApportion> feePayApportionList = new ArrayList<>();
         FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
@@ -1398,7 +1396,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         feePayApportionList.add(feePayApportion);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.05.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1422,11 +1420,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsEqualToApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.06.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1450,11 +1448,11 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsAfterApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("05.06.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")

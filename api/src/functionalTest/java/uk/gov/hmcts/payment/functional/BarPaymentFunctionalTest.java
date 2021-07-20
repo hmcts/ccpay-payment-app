@@ -37,33 +37,27 @@ public class BarPaymentFunctionalTest {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final Logger LOG = LoggerFactory.getLogger(BarPaymentFunctionalTest.class);
-
+    private static String USER_TOKEN;
+    private static String SERVICE_TOKEN;
+    private static boolean TOKENS_INITIALIZED = false;
+    private static DateTimeZone zoneUTC = DateTimeZone.UTC;
     @Autowired
     private TestConfigProperties testProps;
-
     @Autowired
     private PaymentsTestDsl dsl;
-
     @Autowired
     private IdamService idamService;
     @Autowired
     private S2sTokenService s2sTokenService;
-
-    private static String USER_TOKEN;
-    private static String SERVICE_TOKEN;
-    private static boolean TOKENS_INITIALIZED = false;
-
-    private static DateTimeZone zoneUTC = DateTimeZone.UTC;
 
     @Before
     public void setUp() throws Exception {
         if (!TOKENS_INITIALIZED) {
             USER_TOKEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
-           TOKENS_INITIALIZED = true;
-        }
+            TOKENS_INITIALIZED = true;
+             }
     }
-
 
     @Test
     public void createPaymentRecordAndValidateSearchResults() throws Exception {

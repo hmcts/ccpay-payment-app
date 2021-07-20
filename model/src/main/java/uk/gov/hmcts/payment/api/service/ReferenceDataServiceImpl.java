@@ -43,6 +43,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Value("${rd.location.url}")
     private String rdBaseUrl;
 
+
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
 
@@ -56,6 +57,10 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
     @Override
     public OrganisationalServiceDto getOrganisationalDetail(String caseType, MultiValueMap<String, String> headers) {
 
+//        return OrganisationalServiceDto.orgServiceDtoWith().serviceDescription("Divorce").serviceCode("AAD1").build();
+
+        LOG.info("RD base url {}",rdBaseUrl);
+        MultiValueMap<String, String> headerMultiValueMapForOrganisationalDetail = new LinkedMultiValueMap<String, String>();
         List<OrganisationalServiceDto> orgServiceResponse;
         try {
             ResponseEntity<List<OrganisationalServiceDto>> responseEntity = getResponseEntity(caseType,headers);

@@ -25,6 +25,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -44,8 +45,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class FeePayApportionControllerTest extends PaymentsDataUtil {
-
+public class FeePayApportionControllerTest extends PaymentsDataUtil{
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
 
@@ -83,6 +83,8 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
 
+    @MockBean
+    ReferenceDataService referenceDataService;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);

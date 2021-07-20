@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.service.LoggingCreditAccountPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCreditAccountPaymentService;
+import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -53,7 +54,7 @@ public class CreditAccountPaymentProviderTestConfiguration {
     public UserAwareDelegatingCreditAccountPaymentService userAwareDelegatingCreditAccountPaymentService() {
         return new UserAwareDelegatingCreditAccountPaymentService(paymentFeeLinkRepository(), paymentChannelRepository, paymentMethodRepository,
             paymentProviderRepository, paymentStatusRepository,
-            payment2Repository, referenceUtil(), serviceIdSupplier, userIdSupplier);
+            payment2Repository, referenceUtil(), serviceIdSupplier, userIdSupplier, orderCaseUtil);
 
     }
 
@@ -108,6 +109,8 @@ public class CreditAccountPaymentProviderTestConfiguration {
     ReferenceDataService referenceDataService;
     @MockBean
     AuthTokenGenerator authTokenGenerator;
+    @MockBean
+    OrderCaseUtil orderCaseUtil;
 
     @Bean
     @Primary
