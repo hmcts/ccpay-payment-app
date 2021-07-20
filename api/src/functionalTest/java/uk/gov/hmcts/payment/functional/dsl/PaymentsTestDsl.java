@@ -359,8 +359,8 @@ public class PaymentsTestDsl {
             TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = response.then().statusCode(201).extract().as(TelephonyCardPaymentsResponse.class);
             return telephonyCardPaymentsResponse;
         }
-        public PaymentsResponse getPayments() {
-            PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
+        public ReconciliationPaymentResponse getPayments() {
+            ReconciliationPaymentResponse paymentsResponse = response.then().statusCode(200).extract().as(ReconciliationPaymentResponse.class);
             return paymentsResponse;
         }
 
