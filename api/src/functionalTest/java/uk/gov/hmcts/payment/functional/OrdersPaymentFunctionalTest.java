@@ -4,7 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
@@ -59,7 +58,7 @@ public class OrdersPaymentFunctionalTest {
     public void createAnOrderAndMakePBAPayment(){
         UUID randomUUID = UUID.randomUUID();
         OrderDto requestOrder = OrderDto.orderDtoWith()
-            .caseType("Divorce")
+            .siteId("ABA1")
             .ccdCaseNumber("1234567890123456")
             .caseReference("abcd-defg-hjik-1234")
             .fees(Arrays.asList(OrderFeeDto.feeDtoWith()
