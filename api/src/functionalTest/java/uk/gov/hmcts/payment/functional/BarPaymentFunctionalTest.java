@@ -110,8 +110,8 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getBankGiroCreditSlipNumber()).isEqualTo("12345");
             ReconciliationFeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-            assertThat(feeDto.getCode()).isEqualTo("FEE0002");
-            assertThat(feeDto.getVersion()).isEqualTo("4");
+            assertThat(feeDto.getCode()).isEqualTo("FEE0333");
+            assertThat(feeDto.getVersion()).isEqualTo("1");
             assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
             assertThat(feeDto.getReference()).isNotNull();
             assertThat(feeDto.getReference()).isEqualTo("REF_123");
@@ -129,14 +129,14 @@ public class BarPaymentFunctionalTest {
             .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .giroSlipNo("12345")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now(zoneUTC).toString())
             .siteId("AA01")
             .fees(
                 Arrays.asList(
                     FeeDto.feeDtoWith()
                         .calculatedAmount(new BigDecimal("550.00"))
-                        .code("FEE0002")
-                        .version("4")
+                        .code("FEE0333")
+                        .version("1")
                         .volume(1)
                         .reference("REF_123")
                         .build()
@@ -231,7 +231,7 @@ public class BarPaymentFunctionalTest {
             .service("DIGITAL_BAR")
             .currency(CurrencyCode.GBP)
             .giroSlipNo("312131")
-            .reportedDateOffline(DateTime.now().toString())
+            .reportedDateOffline(DateTime.now(zoneUTC).toString())
             .siteId("Y431")
             .fees(
                 Arrays.asList(
