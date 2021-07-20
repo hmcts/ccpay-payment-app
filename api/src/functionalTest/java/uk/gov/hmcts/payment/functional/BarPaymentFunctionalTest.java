@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.contract.ReconciliationFeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -107,14 +108,14 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("12345");
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
+            assertThat(paymentsResponse.getPayments().get(0).getBankGiroCreditSlipNumber()).isEqualTo("12345");
+            ReconciliationFeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
             assertThat(feeDto.getCode()).isEqualTo("FEE0002");
             assertThat(feeDto.getVersion()).isEqualTo("4");
             assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
             assertThat(feeDto.getReference()).isNotNull();
             assertThat(feeDto.getReference()).isEqualTo("REF_123");
-            assertThat(feeDto.getVolume()).isEqualTo(1);
+            assertThat(feeDto.getVolumeAmount()).isEqualTo(1);
         }));
 
     }
@@ -205,8 +206,8 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("312131");
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
+            assertThat(paymentsResponse.getPayments().get(0).getBankGiroCreditSlipNumber()).isEqualTo("312131");
+            ReconciliationFeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
             assertThat(feeDto.getCode()).isEqualTo("FEE0002");
             assertThat(feeDto.getVersion()).isEqualTo("4");
             assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
@@ -216,7 +217,7 @@ public class BarPaymentFunctionalTest {
             assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
             assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
             assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
-            assertThat(feeDto.getVolume()).isEqualTo(1);
+            assertThat(feeDto.getVolumeAmount()).isEqualTo(1);
         }));
 
     }
@@ -288,8 +289,8 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("312131");
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
+            assertThat(paymentsResponse.getPayments().get(0).getBankGiroCreditSlipNumber()).isEqualTo("312131");
+            ReconciliationFeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
             assertThat(feeDto.getCode()).isEqualTo("FEE0002");
             assertThat(feeDto.getVersion()).isEqualTo("4");
             assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
@@ -299,7 +300,7 @@ public class BarPaymentFunctionalTest {
             assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
             assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
             assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
-            assertThat(feeDto.getVolume()).isEqualTo(1);
+            assertThat(feeDto.getVolumeAmount()).isEqualTo(1);
         }));
 
     }
@@ -370,8 +371,8 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().get(0).getSiteId()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getPaymentGroupReference()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
-            assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isNull();
-            FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
+            assertThat(paymentsResponse.getPayments().get(0).getBankGiroCreditSlipNumber()).isNull();
+            ReconciliationFeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
             assertThat(feeDto.getCode()).isEqualTo("FEE0002");
             assertThat(feeDto.getVersion()).isEqualTo("4");
             assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
@@ -381,7 +382,7 @@ public class BarPaymentFunctionalTest {
             assertThat(feeDto.getNaturalAccountCode()).isEqualTo("4481102159");
             assertThat(feeDto.getJurisdiction1()).isEqualTo("family");
             assertThat(feeDto.getJurisdiction2()).isEqualTo("family court");
-            assertThat(feeDto.getVolume()).isEqualTo(1);
+            assertThat(feeDto.getVolumeAmount()).isEqualTo(1);
         }));
 
     }

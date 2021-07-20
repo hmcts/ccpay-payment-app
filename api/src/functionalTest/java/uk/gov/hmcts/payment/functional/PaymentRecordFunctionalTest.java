@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationFeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -85,13 +86,13 @@ public class PaymentRecordFunctionalTest {
                 LOG.info("paymentsResponse: {}",paymentsResponse.getPayments().size());
                 assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
 
-                FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
+                ReconciliationFeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
                 assertThat(feeDto.getCode()).isEqualTo("FEE0333");
                 assertThat(feeDto.getVersion()).isEqualTo("1");
                 assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
                 assertThat(feeDto.getReference()).isNotNull();
                 assertThat(feeDto.getReference()).isEqualTo("REF_123");
-                assertThat(feeDto.getVolume()).isEqualTo(1);
+                assertThat(feeDto.getVolumeAmount()).isEqualTo(1);
             }));
         });
     }
