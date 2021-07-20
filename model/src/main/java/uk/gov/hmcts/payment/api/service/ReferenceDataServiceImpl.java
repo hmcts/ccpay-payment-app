@@ -79,13 +79,11 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
         UriComponentsBuilder builder = null;
         if (caseType.isPresent()) {
             builder = UriComponentsBuilder.fromUriString(rdBaseUrl + RD_ENDPOINT)
-                .queryParam("ccdCaseType", caseType);
-        }
-        if (serviceCode.isPresent()) {
+                .queryParam("ccdCaseType", caseType.get());
+        }else if (serviceCode.isPresent()) {
             builder = UriComponentsBuilder.fromUriString(rdBaseUrl + RD_ENDPOINT)
-                .queryParam("serviceCode", serviceCode);
-        }
-        if (serviceCode.isEmpty() && caseType.isEmpty()) {
+                .queryParam("serviceCode", serviceCode.get());
+        }else if (serviceCode.isEmpty() && caseType.isEmpty()) {
             throw new NullPointerException("Either ServiceCode or caseType should be passed");
         }
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
