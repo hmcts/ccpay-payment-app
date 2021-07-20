@@ -13,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import uk.gov.hmcts.payment.api.componenttests.CardPaymentComponentTest;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.Payment;
@@ -41,7 +40,7 @@ public class CallbackServiceImplTest {
     private FF4j ff4j;
 
     @Test
-    public void testCallbackService() throws ServiceBusException, InterruptedException, JsonProcessingException {
+    public void testCallbackService() throws ServiceBusException, InterruptedException {
 
         Payment payment = CardPaymentComponentTest.getPaymentsData().get(2);
         payment.setServiceCallbackUrl("serviceCallbackUrl");

@@ -11,11 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.*;
-import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.BulkScanPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
@@ -23,6 +18,8 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
+import uk.gov.hmcts.payment.api.dto.order.OrderDto;
+import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 
@@ -106,6 +103,16 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl getBuildInfo() {
             response = newRequest().get("/info");
+            return this;
+        }
+
+        public PaymentWhenDsl createOrder(OrderDto orderDto){
+            response=newRequest().contentType(ContentType.JSON).body(orderDto).post("/order");
+            return this;
+        }
+
+        public PaymentWhenDsl createOrderCreditAccountPayment(OrderPaymentDto orderPaymentDto, String orderReference, String idempotencyKey){
+            response=newRequest().contentType(ContentType.JSON).header("idempotency_key",idempotencyKey).body(orderPaymentDto).post("/order/{order-reference}/credit-account-payment",orderReference);
             return this;
         }
 

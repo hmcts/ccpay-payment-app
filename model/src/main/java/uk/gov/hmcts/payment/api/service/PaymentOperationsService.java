@@ -56,12 +56,22 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
     }
 
     @Override
+    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
+        return null;
+    }
+
+    @Override
     public String getServiceNameByCode(String serviceCode) {
         return null;
     }
 
     @Override
-    public List<Payment> searchByCriteria(PaymentSearchCriteria searchCriteria) {
+    public Payment getPaymentById(Integer id) {
+        return null;
+    }
+
+    @Override
+    public Payment findSavedPayment(String reference) {
         return null;
     }
 

@@ -251,7 +251,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         restActions
             .post("/card-payments", cardPaymentRequestWithCaseType())
             .andExpect(status().isNotFound())
-            .andExpect(content().string("No Service found for given CaseType"));
+            .andExpect(content().string("No Service found for given CaseType or ServiceCode"));
     }
 
     @Test
@@ -634,6 +634,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertEquals("Initiated", paymentDto.getStatus());
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
+
 
     @Test
     public void creatingCardPaymentWithoutFees() throws Exception {

@@ -15,6 +15,7 @@ import java.util.List;
 @EntityListeners(PaymentEntityListener.class)
 @Getter
 @Setter
+@ToString
 @Builder(builderMethodName = "paymentWith")
 @AllArgsConstructor
 @NoArgsConstructor

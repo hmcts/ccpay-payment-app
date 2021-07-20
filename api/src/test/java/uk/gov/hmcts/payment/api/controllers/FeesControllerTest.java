@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.controllers;
+package uk.gov.hmcts.payment.api.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
@@ -135,17 +135,17 @@ public class FeesControllerTest {
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .caseType("tax_exception")
+            .caseType("DIVORCE")
             .hwfReference("HWFref")
             .fee(getFee())
             .build();
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AAD7")
-            .serviceDescription("DIVORCE")
+            .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result = restActions
             .post("/remissions", remissionRequest)
