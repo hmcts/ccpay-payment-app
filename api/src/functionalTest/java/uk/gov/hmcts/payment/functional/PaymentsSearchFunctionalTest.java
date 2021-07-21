@@ -58,7 +58,7 @@ public class PaymentsSearchFunctionalTest {
         }
     }
 
-    //@Test
+    @Test
     public void givenAnyTwoValidDatesWithFormatYYYYMMDDShouldNotBeAnyErrors() {
         String startDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT);
         String endDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT);
@@ -71,7 +71,7 @@ public class PaymentsSearchFunctionalTest {
         });
     }
 
-    //@Test
+    @Test
     public void givenAnyTwoValidDatesWithFormatDDMMYYYYShouldNotBeAnyErrors() {
         String startDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT_DD_MM_YYYY);
         String endDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT_DD_MM_YYYY);
