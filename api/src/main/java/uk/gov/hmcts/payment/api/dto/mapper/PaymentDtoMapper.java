@@ -10,10 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.StatusHistoryDto;
+import uk.gov.hmcts.payment.api.contract.*;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.controllers.CardPaymentController;
 import uk.gov.hmcts.payment.api.model.*;
@@ -259,7 +256,7 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
+    public ReconciliationPaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
         boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
@@ -268,7 +265,7 @@ public class PaymentDtoMapper {
         LOG.info("isBulkScanPayment value in PaymentDtoMapper: {}",isBulkScanPayment);
         LOG.info("apportionFeature value in PaymentDtoMapper: {}",apportionFeature);
         LOG.info("apportionCheck value in PaymentDtoMapper: {}",apportionCheck);
-        PaymentDto paymentDto = PaymentDto.payment2DtoWith()
+        ReconciliationPaymentDto paymentDto = ReconciliationPaymentDto.payment2DtoWith()
             .paymentReference(payment.getReference())
             .paymentGroupReference(apportionCheck ? null : paymentReference)
             .serviceName(payment.getServiceType())
@@ -286,19 +283,45 @@ public class PaymentDtoMapper {
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
             .bankedDate(payment.getBankedDate())
-            .giroSlipNo(payment.getGiroSlipNo())
+            .bankGiroCreditSlipNumber(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(isBulkScanPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
             .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
-            .fees(isBulkScanPayment ? toFeeLiberataDtosWithCaseReference(fees,payment.getCaseReference(),apportionCheck) : toFeeLiberataDtos(fees,apportionCheck))
+            .fees(toFeeLiberataDtosWithCaseReference(fees,payment.getCaseReference(),apportionCheck))
             .build();
 
         if (bulkScanCheck && isBulkScanPayment) {
             paymentDto.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
         }
-        return enrichWithFeeData(paymentDto);
+        return enrichWithFeeDataForReconciliation(paymentDto);
     }
 
+    private ReconciliationPaymentDto enrichWithFeeDataForReconciliation(ReconciliationPaymentDto paymentDto) {
+        LOG.info("Start of enrichWithFeeData!!!");
+        paymentDto.getFees().forEach(fee -> {
+            Optional<Map<String, Fee2Dto>> optFrFeeMap = Optional.ofNullable(feesService.getFeesDtoMap());
+            if (optFrFeeMap.isPresent()) {
+                LOG.info("Fee details retrieved from fees-register!!!");
+                Map<String, Fee2Dto> frFeeMap = optFrFeeMap.get();
+
+                if (frFeeMap.containsKey(fee.getCode())) {
+                    Fee2Dto frFee = frFeeMap.get(fee.getCode());
+                    fee.setJurisdiction1(frFee.getJurisdiction1Dto().getName());
+                    fee.setJurisdiction2(frFee.getJurisdiction2Dto().getName());
+
+                    Optional<FeeVersionDto> optionalFeeVersionDto = feesService.getFeeVersion(fee.getCode(), fee.getVersion());
+                    if (optionalFeeVersionDto.isPresent()) {
+                        fee.setMemoLine(optionalFeeVersionDto.get().getMemoLine());
+                        fee.setNaturalAccountCode(optionalFeeVersionDto.get().getNaturalAccountCode());
+                    }
+                    LOG.info("End of enrichWithFeeData!!!");
+                } else {
+                    LOG.info("No fee found with the code: {}", fee.getCode());
+                }
+            }
+        });
+        return paymentDto;
+    }
 
     private PaymentDto enrichWithFeeData(PaymentDto paymentDto) {
         LOG.info("Start of enrichWithFeeData!!!");
@@ -331,16 +354,12 @@ public class PaymentDtoMapper {
         return fees.stream().map(this::toFeeDto).collect(Collectors.toList());
     }
 
-    private List<FeeDto> toFeeLiberataDtos(List<PaymentFee> fees,boolean apportionCheck) {
-        return fees.stream().map(fee -> toFeeLiberataDto(fee,apportionCheck)).collect(Collectors.toList());
-    }
-
     private List<FeeDto> toGetPaymentFeeDtos(List<PaymentFee> fees) {
         return fees.stream().map(this::toGetPaymentsFeeDto).collect(Collectors.toList());
     }
 
 
-    private List<FeeDto> toFeeLiberataDtosWithCaseReference(List<PaymentFee> fees, String caseReference,boolean apportionCheck) {
+    private List<ReconciliationFeeDto> toFeeLiberataDtosWithCaseReference(List<PaymentFee> fees, String caseReference,boolean apportionCheck) {
         return fees.stream().map(fee -> toFeeLiberataDtoWithCaseReference(fee,caseReference,apportionCheck)).collect(Collectors.toList());
     }
 
@@ -380,25 +399,6 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    private FeeDto toFeeLiberataDto(PaymentFee fee,boolean apportionCheck) {
-        LOG.info("Inside toFeeLiberataDto");
-        BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
-        BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
-        return FeeDto.feeDtoWith()
-            .id(fee.getId())
-            .calculatedAmount(calculatedAmount)
-            .code(fee.getCode())
-            .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
-            .version(fee.getVersion())
-            .volume(fee.getVolume())
-            .ccdCaseNumber(fee.getCcdCaseNumber())
-            .reference(fee.getReference())
-            .apportionedPayment(apportionCheck ? fee.getAllocatedAmount(): null)
-            .dateReceiptProcessed(apportionCheck ? fee.getDateApportioned(): null)
-            .paymentGroupReference(apportionCheck && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference(): null)
-            .build();
-    }
-
     private FeeDto toGetPaymentsFeeDto(PaymentFee fee) {
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
@@ -420,18 +420,18 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    private FeeDto toFeeLiberataDtoWithCaseReference(PaymentFee fee, String caseReference,boolean apportionCheck) {
+    private ReconciliationFeeDto toFeeLiberataDtoWithCaseReference(PaymentFee fee, String caseReference,boolean apportionCheck) {
 
         BigDecimal netAmount = fee.getNetAmount() != null ? fee.getNetAmount() : fee.getCalculatedAmount();
         BigDecimal calculatedAmount =  netAmount.equals(fee.getCalculatedAmount()) ? fee.getCalculatedAmount() : netAmount;
         LOG.info("Inside toFeeLiberataDtoWithCaseReference");
-        return FeeDto.feeDtoWith()
+        return ReconciliationFeeDto.feeDtoWith()
             .id(fee.getId())
             .calculatedAmount(calculatedAmount)
             .code(fee.getCode())
             .netAmount(netAmount.equals(fee.getCalculatedAmount()) ? null : netAmount)
             .version(fee.getVersion())
-            .volume(fee.getVolume())
+            .volumeAmount(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .caseReference(caseReference)
             .reference(fee.getReference())

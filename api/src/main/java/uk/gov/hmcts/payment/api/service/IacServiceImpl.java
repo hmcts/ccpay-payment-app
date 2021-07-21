@@ -14,6 +14,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.ReconciliationPaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -36,10 +37,10 @@ public class IacServiceImpl implements IacService {
     private AuthTokenGenerator authTokenGenerator;
 
     @Override
-    public ResponseEntity<SupplementaryPaymentDto> getIacSupplementaryInfo(List<PaymentDto> paymentDtos, String serviceName) {
+    public ResponseEntity<SupplementaryPaymentDto> getIacSupplementaryInfo(List<ReconciliationPaymentDto> paymentDtos, String serviceName) {
        HttpStatus paymentResponseHttpStatus = HttpStatus.OK;
         boolean isExceptionOccur = false;
-        List<PaymentDto> iacPayments = paymentDtos.stream().filter(payment -> (payment.getServiceName().equalsIgnoreCase(serviceName))).
+        List<ReconciliationPaymentDto> iacPayments = paymentDtos.stream().filter(payment -> (payment.getServiceName().equalsIgnoreCase(serviceName))).
             collect(Collectors.toList());
         LOG.info("No of Iac payment retrieved  : {}", iacPayments.size());
 
