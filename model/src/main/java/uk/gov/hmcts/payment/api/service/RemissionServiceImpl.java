@@ -72,6 +72,8 @@ public class RemissionServiceImpl implements RemissionService {
 
         Remission remission = buildRemission(remissionServiceRequest);
 
+        paymentFeeLink.setRemissions(Lists.newArrayList(remission));
+
         fee.setNetAmount(fee.getCalculatedAmount().subtract(remission.getHwfAmount()));
 
         if(remissionServiceRequest.isRetroRemission()){
@@ -89,7 +91,7 @@ public class RemissionServiceImpl implements RemissionService {
         } else {
            throw new RemissionCannotApplyException("Remission is already applied to the Fee "+fee.getCode());
         }
-
+        remission.setPaymentFeeLink(paymentFeeLink);
         remission.setFee(fee);
 
         return paymentFeeLink;
