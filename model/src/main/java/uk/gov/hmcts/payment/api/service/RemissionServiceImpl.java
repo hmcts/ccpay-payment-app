@@ -10,7 +10,6 @@ import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionCannotApplyException;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
@@ -86,10 +85,10 @@ public class RemissionServiceImpl implements RemissionService {
             });
         }
 
-        if (fee.getRemissions().isEmpty()) {
+        if (fee.getRemissions() == null) {
             fee.setRemissions(Lists.newArrayList(remission));
         } else {
-           throw new RemissionCannotApplyException("Remission is already applied to the Fee "+fee.getCode());
+            fee.getRemissions().add(remission);
         }
         remission.setPaymentFeeLink(paymentFeeLink);
         remission.setFee(fee);
