@@ -275,7 +275,7 @@ public class BarPaymentFunctionalTest {
             LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
             assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
             assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("cheque");
-            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("100.00"));
+            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
             assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
             assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("pending");
             assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
@@ -292,7 +292,7 @@ public class BarPaymentFunctionalTest {
             FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
             assertThat(feeDto.getCode()).isEqualTo("FEE0002");
             assertThat(feeDto.getVersion()).isEqualTo("4");
-            assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("100.00"));
+            assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
             assertThat(feeDto.getReference()).isNotNull();
             assertThat(feeDto.getReference()).isEqualTo("REF_123");
             assertThat(feeDto.getMemoLine()).isEqualTo("GOV - App for divorce/nullity of marriage or CP");
@@ -306,7 +306,7 @@ public class BarPaymentFunctionalTest {
 
     private PaymentRecordRequest getPaymentRecordRequestForCheque() {
         return PaymentRecordRequest.createPaymentRecordRequestDtoWith()
-            .amount(new BigDecimal("100.00"))
+            .amount(new BigDecimal("550.00"))
             .paymentMethod(PaymentMethodType.CHEQUE)
             .reference("REF_123")
             .externalProvider("middle office provider")
@@ -318,7 +318,7 @@ public class BarPaymentFunctionalTest {
             .fees(
                 Arrays.asList(
                     FeeDto.feeDtoWith()
-                        .calculatedAmount(new BigDecimal("100.00"))
+                        .calculatedAmount(new BigDecimal("550.00"))
                         .code("FEE0002")
                         .version("4")
                         .volume(1)
