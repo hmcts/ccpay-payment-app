@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -79,13 +80,13 @@ public class IacServiceImpl implements IacService {
     @Override
     public ResponseEntity<SupplementaryPaymentDto> getIacSupplementaryInfo(List<PaymentDto> paymentDtos, String serviceName) {
        HttpStatus paymentResponseHttpStatus = HttpStatus.OK;
-        boolean isExceptionOccur = false;
+        boolean CanRaiseServicenowIncident = false;
         List<PaymentDto> iacPayments = paymentDtos.stream().filter(payment -> (payment.getServiceName().equalsIgnoreCase(serviceName))).
             collect(Collectors.toList());
         LOG.info("No of Iac payment retrieved  : {}", iacPayments.size());
 
-        List<String> iacCcdCaseNos = iacPayments.stream().map(paymentDto -> paymentDto.getCcdCaseNumber()).
-            collect(Collectors.toList());
+        Set<String> iacCcdCaseNos = iacPayments.stream().map(paymentDto -> paymentDto.getCcdCaseNumber()).
+            collect(Collectors.toSet());
 
         ResponseEntity<SupplementaryDetailsResponse> responseEntitySupplementaryInfo = null;
 
@@ -101,14 +102,14 @@ public class IacServiceImpl implements IacService {
                 LOG.info("IAC Supplementary information could not be found for the list of Ccd Case numbers : {} , Exception: {}", iacCcdCaseNos.toString(), ex.getMessage());
                 paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
                 servicenowErrorDetail = "IAC Supplementary information could not be found for the list of Ccd Case numbers : " + iacCcdCaseNos.toString() + " , Exception:" +  ex.getMessage();
-                isExceptionOccur = true;
+                CanRaiseServicenowIncident = true;
             } catch (Exception ex) {
                 LOG.info("Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers : {}, Exception: {}", iacCcdCaseNos.toString(),ex.getMessage());
                 paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
                 servicenowErrorDetail ="Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers :" +  iacCcdCaseNos.toString() + ", Exception: {}"+ ex.getMessage();
-                isExceptionOccur = true;
+                CanRaiseServicenowIncident = true;
             }
-            if (!isExceptionOccur) {
+            if (!CanRaiseServicenowIncident) {
                 paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
                 ObjectMapper objectMapperSupplementaryInfo = new ObjectMapper();
                 SupplementaryDetailsResponse supplementaryDetailsResponse = objectMapperSupplementaryInfo.convertValue(responseEntitySupplementaryInfo.getBody(), SupplementaryDetailsResponse.class);
@@ -118,25 +119,23 @@ public class IacServiceImpl implements IacService {
                 if (responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null) {
                     LOG.info("No missing supplementary info received from IAC for any of the Ccd case numbers , requested list of Ccd numbers : " + iacCcdCaseNos.toString() + ", however response is 206");
                     servicenowErrorDetail = "No missing supplementary info received from IAC for any of the Ccd case numbers,  requested list of Ccd numbers : " + iacCcdCaseNos.toString() +  ", however response is 206";
+                    CanRaiseServicenowIncident = true;
                 } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null) {
                     LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
                     servicenowErrorDetail = "missing supplementary info from IAC for CCD case numbers : " + lstMissingSupplementaryInfo.getCcdCaseNumbers().toString();
+                    CanRaiseServicenowIncident = true;
                 }
             }
-            raiseServicenowIncident(servicenowErrorDetail);
-            LOG.info("TESRT");
-
+            if(CanRaiseServicenowIncident) {
+                raiseServicenowIncident(servicenowErrorDetail);
+            }
             supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
                 supplementaryInfo(lstSupplementaryInfo).build();
-            }else{
-                LOG.info("No Iac payments retrieved");
-                 supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
-                    build();
             }
            return new ResponseEntity(supplementaryPaymentDto, paymentResponseHttpStatus);
     }
 
-    private ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryInfoResponse(List<String> iacCcdCaseNos) throws RestClientException {
+    private ResponseEntity<SupplementaryDetailsResponse> getIacSupplementaryInfoResponse(Set<String> iacCcdCaseNos) throws RestClientException {
 
         IacSupplementaryRequest iacSupplementaryRequest = IacSupplementaryRequest.createIacSupplementaryRequestWith()
             .ccdCaseNumbers(iacCcdCaseNos).build();
@@ -156,28 +155,25 @@ public class IacServiceImpl implements IacService {
     }
 
     private void raiseServicenowIncident(String serviceNowErrorDetail) {
-
         try {
-
             IacServiceNowRequest iacServiceNowRequest = IacServiceNowRequest.createIacServiceNowRequestWith().
-                callerId(servicenowCallerId).
-                contactType(servicenowContactType).
-                //need to check -- will need the details
-                    serviceOffering(servicenowServiceOffering).
-                    category(servicenowCategory).
-                    subcategory(servicenowSubCategory).
-                    shortDescription(servicenowShortDescription).
-                    assignmentGroup(servicenowAssignmentGroup).
-                    description(serviceNowErrorDetail).
-                    uRoleType(servicenowURoleType).
-                    impact(servicenowImpact).
-                    urgency(servicenowUrgency).
-                    build();
+            callerId(servicenowCallerId).
+            contactType(servicenowContactType).
+             //need to check -- will need the details
+            serviceOffering(servicenowServiceOffering).
+            category(servicenowCategory).
+            subcategory(servicenowSubCategory).
+            shortDescription(servicenowShortDescription).
+            assignmentGroup(servicenowAssignmentGroup).
+            description(serviceNowErrorDetail).
+            uRoleType(servicenowURoleType).
+            impact(servicenowImpact).
+            urgency(servicenowUrgency).
+            build();
 
-            LOG.info("servicenowUrl --> " + servicenowUrl);
-            LOG.info("servicenowUsername --> " + servicenowUsername);
-            LOG.info("servicenowPassword --> " + servicenowPassword);
-
+            LOG.info("servicenowUrl : {}" , servicenowUrl);
+            LOG.info("servicenowUsername : {}", servicenowUsername);
+            LOG.info("servicenowPassword : {}", servicenowPassword);
             HttpHeaders headers = createHeaders(servicenowUsername, servicenowPassword);
             final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity(iacServiceNowRequest, headers);
             ResponseEntity iacServiceNowResponseEntity = this.restTemplateIacSupplementaryInfo.exchange(servicenowUrl, HttpMethod.POST, entity, IacServiceNowResponse.class);

@@ -6,7 +6,8 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import lombok.experimental.Wither;
 import javax.validation.Valid;
-import java.util.List;
+import java.util.Set;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @With
@@ -21,5 +22,5 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class IacSupplementaryRequest {
 
     @Valid
-    private List<String> ccdCaseNumbers;
+    private Set<String> ccdCaseNumbers;
 }
