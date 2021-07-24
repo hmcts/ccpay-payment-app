@@ -33,6 +33,8 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.dto.IacServiceNowResponse;
+import uk.gov.hmcts.payment.api.dto.ServiceNowResult;
 import uk.gov.hmcts.payment.api.dto.SupplementaryDetailsResponse;
 import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import uk.gov.hmcts.payment.api.model.*;
@@ -1781,8 +1783,15 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         SupplementaryDetailsResponse supplementaryDetailsResponse = populateIACSupplementaryDetailsWithMissingCCDNumbers("1");
         supplementaryDetailsResponse.setMissingSupplementaryInfo(null);
 
+        ServiceNowResult serviceNowResult  = ServiceNowResult.serviceNowResultWith().number("INCIDENTNO").build();
+
+        IacServiceNowResponse iacServiceNowResponse = IacServiceNowResponse.iacServiceNowResponseResponseWith().result(serviceNowResult).build();
+
         when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(SupplementaryDetailsResponse.class)))
             .thenReturn(new ResponseEntity(supplementaryDetailsResponse,HttpStatus.PARTIAL_CONTENT));
+
+        when(this.restTemplateIacSupplementaryInfo.exchange(anyString(),eq(HttpMethod.POST),any(HttpEntity.class),eq(IacServiceNowResponse.class)))
+            .thenReturn(new ResponseEntity(iacServiceNowResponse,HttpStatus.OK));
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
