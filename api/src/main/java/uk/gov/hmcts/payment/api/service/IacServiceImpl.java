@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
+import org.eclipse.jetty.util.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,11 +119,14 @@ public class IacServiceImpl implements IacService {
                 if (responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null) {
                     LOG.info("No missing supplementary info received from IAC for any of the Ccd case numbers , requested list of Ccd numbers : " + iacCcdCaseNos.toString() + ", however response is 206");
                     servicenowErrorDetail = "No missing supplementary info received from IAC for any of the Ccd case numbers,  requested list of Ccd numbers : " + iacCcdCaseNos.toString() +  ", however response is 206";
-                } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null)
+                } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null) {
                     LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
-                    servicenowErrorDetail = "missing supplementary info from IAC for CCD case numbers : "   + lstMissingSupplementaryInfo.getCcdCaseNumbers().toString();
+                    servicenowErrorDetail = "missing supplementary info from IAC for CCD case numbers : " + lstMissingSupplementaryInfo.getCcdCaseNumbers().toString();
+                }
             }
             raiseServicenowIncident(servicenowErrorDetail);
+            LOG.info("TESRT");
+
             supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
                 supplementaryInfo(lstSupplementaryInfo).build();
             }else{
