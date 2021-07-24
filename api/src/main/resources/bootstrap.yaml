@@ -45,3 +45,5 @@ spring:
         pci-pal-antenna-divorce-flow-id: pci-pal.antenna.divorce.flow.id
         pci-pal-antenna-financial-remedy-flow-id: pci-pal.antenna.financial.remedy.flow.id
         spring-mail-password: spring.mail.password
+        servicenow-username: servicenow.username
+        servicenow-password: servicenow.password
