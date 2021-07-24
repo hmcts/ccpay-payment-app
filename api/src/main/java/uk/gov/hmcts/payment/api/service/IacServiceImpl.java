@@ -1,7 +1,7 @@
 package uk.gov.hmcts.payment.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.launchdarkly.shaded.org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +91,7 @@ public class IacServiceImpl implements IacService {
 
         List<SupplementaryInfo> lstSupplementaryInfo = null;
         SupplementaryPaymentDto supplementaryPaymentDto = null;
-        String serviceNowErrorDetail = null;
+        String servicenowErrorDetail = null;
 
         if (!iacCcdCaseNos.isEmpty()) {
             LOG.info("List of IAC Ccd Case numbers : {}", iacCcdCaseNos.toString());
@@ -101,12 +100,12 @@ public class IacServiceImpl implements IacService {
             } catch (HttpClientErrorException ex) {
                 LOG.info("IAC Supplementary information could not be found for the list of Ccd Case numbers : {} , Exception: {}", iacCcdCaseNos.toString(), ex.getMessage());
                 paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                serviceNowErrorDetail = "IAC Supplementary information could not be found for the list of Ccd Case numbers : " + iacCcdCaseNos.toString() + " , Exception:" +  ex.getMessage();
+                servicenowErrorDetail = "IAC Supplementary information could not be found for the list of Ccd Case numbers : " + iacCcdCaseNos.toString() + " , Exception:" +  ex.getMessage();
                 isExceptionOccur = true;
             } catch (Exception ex) {
                 LOG.info("Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers : {}, Exception: {}", iacCcdCaseNos.toString(),ex.getMessage());
                 paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                serviceNowErrorDetail ="Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers :" +  iacCcdCaseNos.toString() + ", Exception: {}"+ ex.getMessage();
+                servicenowErrorDetail ="Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers :" +  iacCcdCaseNos.toString() + ", Exception: {}"+ ex.getMessage();
                 isExceptionOccur = true;
             }
             if (!isExceptionOccur) {
@@ -118,12 +117,12 @@ public class IacServiceImpl implements IacService {
 
                 if (responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null) {
                     LOG.info("No missing supplementary info received from IAC for any of the Ccd case numbers , requested list of Ccd numbers : " + iacCcdCaseNos.toString() + ", however response is 206");
-                    serviceNowErrorDetail = "No missing supplementary info received from IAC for any of the Ccd case numbers,  requested list of Ccd numbers : " + iacCcdCaseNos.toString() +  ", however response is 206";
+                    servicenowErrorDetail = "No missing supplementary info received from IAC for any of the Ccd case numbers,  requested list of Ccd numbers : " + iacCcdCaseNos.toString() +  ", however response is 206";
                 } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null)
                     LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
-                    serviceNowErrorDetail = "missing supplementary info from IAC for CCD case numbers : "   + lstMissingSupplementaryInfo.getCcdCaseNumbers().toString();
+                    servicenowErrorDetail = "missing supplementary info from IAC for CCD case numbers : "   + lstMissingSupplementaryInfo.getCcdCaseNumbers().toString();
             }
-            raiseServiceNowIncident(serviceNowErrorDetail);
+            raiseServicenowIncident(servicenowErrorDetail);
             supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
                 supplementaryInfo(lstSupplementaryInfo).build();
             }else{
@@ -153,7 +152,7 @@ public class IacServiceImpl implements IacService {
         return this.restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl + "/supplementary-details", HttpMethod.POST, entity, SupplementaryDetailsResponse.class);
     }
 
-    private void raiseServiceNowIncident(String serviceNowErrorDetail) {
+    private void raiseServicenowIncident(String serviceNowErrorDetail) {
 
         try {
 
