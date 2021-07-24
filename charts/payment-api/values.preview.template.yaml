@@ -18,7 +18,7 @@ java:
     IAC_SERVICE_API_URL: http://ia-case-access-api-aat.service.core-compute-aat.internal
 
     #for IAC-ServiceNow-Request - Start
-    SERVICENOW_URL:https: //mojcpppreprod.service-now.com/api/now/table/incident?sysparm_fields=number
+    SERVICENOW_URL:https: https://mojcpppreprod.service-now.com/api/now/table/incident?sysparm_fields=number
     #for IAC-ServiceNow-Request - Start
 
 
