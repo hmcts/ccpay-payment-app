@@ -99,14 +99,14 @@ public class IacServiceImpl implements IacService {
             try {
                 responseEntitySupplementaryInfo = getIacSupplementaryInfoResponse(iacCcdCaseNos);
             } catch (HttpClientErrorException ex) {
-                LOG.info("IAC Supplementary information could not be found for the list of Ccd Case numbers : {} , Exception: {}", iacCcdCaseNos.toString(), ex.getMessage());
+                LOG.info("IAC Supplementary information could not be found for the list of Ccd Case numbers : {} , Exception: {}", iacCcdCaseNos, ex.getMessage());
                 paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                servicenowErrorDetail = "IAC Supplementary information could not be found for the list of Ccd Case numbers : " + iacCcdCaseNos.toString() + " , Exception:" +  ex.getMessage();
+                servicenowErrorDetail = "IAC Supplementary information could not be found for the list of Ccd Case numbers : " + iacCcdCaseNos + " , Exception:" +  ex.getMessage();
                 CanRaiseServicenowIncident = true;
             } catch (Exception ex) {
-                LOG.info("Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers : {}, Exception: {}", iacCcdCaseNos.toString(),ex.getMessage());
+                LOG.info("Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers : {}, Exception: {}", iacCcdCaseNos,ex.getMessage());
                 paymentResponseHttpStatus = HttpStatus.PARTIAL_CONTENT;
-                servicenowErrorDetail ="Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers :" +  iacCcdCaseNos.toString() + ", Exception: {}"+ ex.getMessage();
+                servicenowErrorDetail ="Unable to retrieve IAC Supplementary Info information for the list of Ccd Case numbers :" +  iacCcdCaseNos + ", Exception: {}"+ ex.getMessage();
                 CanRaiseServicenowIncident = true;
             }
             if (!CanRaiseServicenowIncident) {
@@ -186,13 +186,12 @@ public class IacServiceImpl implements IacService {
     }
 
     HttpHeaders createHeaders(String username, String password){
-        return new HttpHeaders() {{
-            String auth = username + ":" + password;
-            byte[] encodedAuth = Base64.encodeBase64(
-                auth.getBytes(Charset.forName("US-ASCII")) );
-            String authHeader = "Basic " + new String( encodedAuth );
-            set( "Authorization", authHeader );
-        }};
+        HttpHeaders httpHeaders = new HttpHeaders();
+        String auth = username + ":" + password;
+        byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("US-ASCII")) );
+        String authHeader = "Basic " + new String( encodedAuth );
+        httpHeaders.set("Authorization", authHeader);
+        return httpHeaders;
     }
 
 }
