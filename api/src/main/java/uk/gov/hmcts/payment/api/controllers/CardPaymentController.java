@@ -80,6 +80,7 @@ public class CardPaymentController {
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
         @ApiResponse(code = 400, message = "Payment creation failed"),
+        @ApiResponse(code = 401, message = "Payment authentication failed"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute"),
         @ApiResponse(code = 404, message = "No Service found for given CaseType"),
         @ApiResponse(code = 504, message = "Unable to retrieve service information. Please try again later")
@@ -231,6 +232,12 @@ public class CardPaymentController {
         LOG.error("Error while calling payments", e);
         return new ResponseEntity(INTERNAL_SERVER_ERROR);
     }
+    
+     @ExceptionHandler(value = {GovPayException.class})
+    public ResponseEntity httpClientErrorException(GovPayException e) {
+        LOG.error("Error while Authorising", e);
+        return new ResponseEntity(UNAUTHORIZED);
+    }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
@@ -241,6 +248,12 @@ public class CardPaymentController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(PaymentException.class)
     public String return400(PaymentException ex) {
+        return ex.getMessage();
+    }
+    
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(GovPayException.class)
+    public String return401(GovPayException ex) {
         return ex.getMessage();
     }
 
