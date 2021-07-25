@@ -233,11 +233,6 @@ public class CardPaymentController {
         return new ResponseEntity(INTERNAL_SERVER_ERROR);
     }
     
-     @ExceptionHandler(value = {GovPayException.class})
-    public ResponseEntity httpClientErrorException(GovPayException e) {
-        LOG.error("Error while Authorising", e);
-        return new ResponseEntity(UNAUTHORIZED);
-    }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
@@ -251,11 +246,6 @@ public class CardPaymentController {
         return ex.getMessage();
     }
     
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(GovPayException.class)
-    public String return401(GovPayException ex) {
-        return ex.getMessage();
-    }
 
     @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
     @ExceptionHandler(GatewayTimeoutException.class)
