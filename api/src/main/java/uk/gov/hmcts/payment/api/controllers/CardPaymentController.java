@@ -232,7 +232,7 @@ public class CardPaymentController {
         LOG.error("Error while calling payments", e);
         return new ResponseEntity(INTERNAL_SERVER_ERROR);
     }
-    
+
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
@@ -245,7 +245,7 @@ public class CardPaymentController {
     public String return400(PaymentException ex) {
         return ex.getMessage();
     }
-    
+
 
     @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
     @ExceptionHandler(GatewayTimeoutException.class)

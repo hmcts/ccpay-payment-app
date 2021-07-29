@@ -65,6 +65,8 @@ public class GovPayClient {
         return withIOExceptionHandling(() -> {
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
+            response.setHeader("Accept", "application/json");
+            response.setHeader("Content-Type","application/json;charset=UTF-8");
             checkNotAnError(response);
             return objectMapper.readValue(response.getEntity().getContent(), GovPayPayment.class);
         });
