@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.audit.AuditRepository;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
@@ -117,25 +119,29 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         paymentServiceRequest.setPaymentReference(paymentReference);
 
         Payment payment = buildPayment(paymentReference, paymentServiceRequest);
-        if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
-            PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
-            PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
-            fillTransientDetails(payment, pciPalPayment);
-            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
-                .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
-                .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).getMappedStatus())
-                .errorCode(pciPalPayment.getState().getCode())
-                .message(pciPalPayment.getState().getMessage())
-                .build()));
-        } else {
-            GovPayPayment govPayPayment = delegateGovPay.create(paymentServiceRequest);
-            fillTransientDetails(payment, govPayPayment);
-            payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
-                .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
-                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
-                .errorCode(govPayPayment.getState().getCode())
-                .message(govPayPayment.getState().getMessage())
-                .build()));
+        try {
+            if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
+                PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
+                PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
+                fillTransientDetails(payment, pciPalPayment);
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .externalStatus(pciPalPayment.getState().getStatus().toLowerCase())
+                    .status(PayStatusToPayHubStatus.valueOf(pciPalPayment.getState().getStatus().toLowerCase()).getMappedStatus())
+                    .errorCode(pciPalPayment.getState().getCode())
+                    .message(pciPalPayment.getState().getMessage())
+                    .build()));
+            } else {
+                GovPayPayment govPayPayment = delegateGovPay.create(paymentServiceRequest);
+                fillTransientDetails(payment, govPayPayment);
+                payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                    .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
+                    .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
+                    .errorCode(govPayPayment.getState().getCode())
+                    .message(govPayPayment.getState().getMessage())
+                    .build()));
+            }
+        } catch (HttpClientErrorException.Unauthorized ce){
+            throw new  HttpClientErrorException(HttpStatus.UNAUTHORIZED);
         }
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
