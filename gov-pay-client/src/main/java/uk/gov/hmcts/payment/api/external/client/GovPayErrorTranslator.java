@@ -1,7 +1,11 @@
 package uk.gov.hmcts.payment.api.external.client;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+
+import com.github.tomakehurst.wiremock.common.Json;
+import org.apache.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.external.client.dto.Error;
@@ -30,9 +34,13 @@ public class GovPayErrorTranslator {
      * @return exception
      * @see <a href="https://gds-payments.gelato.io/docs/versions/1.0.0/api-reference">https://gds-payments.gelato.io/docs/versions/1.0.0/api-reference</a>
      */
-    GovPayException toException(byte[] responseBody) {
+    GovPayException toException(byte[] responseBody, HttpResponse httpResponse) {
         try {
-            Error error = objectMapper.readValue(responseBody, Error.class);
+//            Error error = objectMapper.readValue(responseBody, Error.class);
+//            JsonParser j = (JsonParser) httpResponse;
+//            System.out.println(j);
+            Error error = new Error("" +httpResponse.getStatusLine().getStatusCode(), httpResponse.getStatusLine().getReasonPhrase());
+//            Error error1 = objectMapper.readValue((JsonParser) httpResponse, Error.class);
 
                 switch (error.getCode()) {
                 case "P0198":
@@ -69,7 +77,7 @@ public class GovPayErrorTranslator {
                 default:
                     return new GovPayUnmappedErrorException(error);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to parse error body: " + new String(responseBody));
         }
     }

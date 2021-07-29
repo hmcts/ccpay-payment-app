@@ -61,8 +61,15 @@ public class GovPayClient {
     public GovPayPayment createPayment(String authorizationKey, CreatePaymentRequest createPaymentRequest) {
         LOG.info("Inside createPayment in GovPayClient");
         return withIOExceptionHandling(() -> {
+//            HttpPost request = new HttpPost();
+//            request.setHeader("Accept", "application/json"); // NEW AND IMPROVED, SEND US JSON!
+//            request.setHeader("Content-Type","application/json;charset=UTF-8");
+
+
             HttpPost request = postRequestFor(authorizationKey, url, createPaymentRequest);
             HttpResponse response = httpClient.execute(request);
+            response.setHeader("Accept", "application/json");
+            response.setHeader("Content-Type","application/json;charset=UTF-8");
             checkNotAnError(response);
             return objectMapper.readValue(response.getEntity().getContent(), GovPayPayment.class);
         });
@@ -124,9 +131,10 @@ public class GovPayClient {
         int status = httpResponse.getStatusLine().getStatusCode();
 
         if (status >= 400) {
+
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             httpResponse.getEntity().writeTo(bos);
-            throw errorTranslator.toException(bos.toByteArray());
+            throw errorTranslator.toException(bos.toByteArray(), httpResponse);
         }
     }
 
