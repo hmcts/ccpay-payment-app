@@ -77,7 +77,7 @@ public class GovPayErrorTranslator {
                 default:
                     return new GovPayUnmappedErrorException(error);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException("Failed to parse error body: " + new String(responseBody));
         }
     }
