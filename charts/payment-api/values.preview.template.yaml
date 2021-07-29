@@ -15,12 +15,6 @@ java:
     SPRING_PROFILES_ACTIVE: "liberataMock,callbackMock,ccdMock"
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 0
     CCPAY_BULK_SCANNING_API_URL: http://ccpay-bulkscanning-api-aat.service.core-compute-aat.internal
-    IAC_SERVICE_API_URL: http://ia-case-access-api-aat.service.core-compute-aat.internal ss
-    #for IAC-ServiceNow-Request - Start s
-    SERVICENOW_URL: https://mojcpppreprod.service-now.com/api/now/table/incident?sysparm_fields=number
-    #for IAC-ServiceNow-Request - Start
-
-
     PBA_CONFIG1_SERVICE_NAMES: dummy
     PCI_PAL_API_URL: https://ip3cloud.com/clients/hmcts/payments/index.php
   keyVaults:

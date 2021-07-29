@@ -33,6 +33,7 @@ java:
     CALLBACK_PAYMENTS_CUTOFF_TIME_IN_MINUTES: 2
 
     #for IAC-ServiceNow-Request - Start
+    SERVICENOW_URL: https://mojcpppreprod.service-now.com/api/now/table/incident?sysparm_fields=number
     SERVICENOW_CALLER_ID: 8918448e1bd1b8106248a822b24bcb14
     SERVICENOW_CONTACT_TYPE: Alert
     #need to check -- need to get it from Shahed -- Service now team
