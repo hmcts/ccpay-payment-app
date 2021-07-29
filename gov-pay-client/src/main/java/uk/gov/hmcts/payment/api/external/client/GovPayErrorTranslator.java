@@ -34,12 +34,12 @@ public class GovPayErrorTranslator {
      * @return exception
      * @see <a href="https://gds-payments.gelato.io/docs/versions/1.0.0/api-reference">https://gds-payments.gelato.io/docs/versions/1.0.0/api-reference</a>
      */
-    GovPayException toException(byte[] responseBody, HttpResponse httpResponse) {
+    GovPayException toException(byte[] responseBody) {
         try {
-//            Error error = objectMapper.readValue(responseBody, Error.class);
+            Error error = objectMapper.readValue(responseBody, Error.class);
 //            JsonParser j = (JsonParser) httpResponse;
 //            System.out.println(j);
-            Error error = new Error("" +httpResponse.getStatusLine().getStatusCode(), httpResponse.getStatusLine().getReasonPhrase());
+//            Error error = new Error("" +httpResponse.getStatusLine().getStatusCode(), httpResponse.getStatusLine().getReasonPhrase());
 //            Error error1 = objectMapper.readValue((JsonParser) httpResponse, Error.class);
 
                 switch (error.getCode()) {
