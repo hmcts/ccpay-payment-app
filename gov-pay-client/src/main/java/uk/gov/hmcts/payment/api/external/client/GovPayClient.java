@@ -131,16 +131,24 @@ public class GovPayClient {
 
     private void checkNotAnError(HttpResponse httpResponse) throws IOException {
         int status = httpResponse.getStatusLine().getStatusCode();
+        String s1 = ""+httpResponse.getStatusLine().getStatusCode();
 
         if (status >= 400) {
-            JSONObject json = new JSONObject();
-            json.put("code", status);
-            json.put("description", httpResponse.getStatusLine().getReasonPhrase());
-            json.toString().getBytes("utf-8");
+            if (s1.contains("P0")) {
+                JSONObject json = new JSONObject();
+                json.put("code", status);
+                json.put("description", httpResponse.getStatusLine().getReasonPhrase());
+                json.toString().getBytes("utf-8");
+                throw errorTranslator.toException(json.toString().getBytes("utf-8"));
 
-//            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//            json.getEntity().writeTo(bos);
-            throw errorTranslator.toException(json.toString().getBytes("utf-8"));
+            }
+            else {
+
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                httpResponse.getEntity().writeTo(bos);
+                throw errorTranslator.toException(bos.toByteArray());
+
+            }
         }
     }
 
