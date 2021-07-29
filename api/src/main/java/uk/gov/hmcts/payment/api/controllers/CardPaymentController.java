@@ -21,9 +21,7 @@ import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.external.client.dto.CardDetails;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.*;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.*;
@@ -228,7 +226,7 @@ public class CardPaymentController {
         return new ResponseEntity(NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {GovPayException.class})
+    @ExceptionHandler(value = {GovPayUnauthorizedClientException.class})
     public ResponseEntity httpClientErrorException(GovPayException e) {
         LOG.error("Error while calling payments", e);
         return new ResponseEntity(UNAUTHORIZED);

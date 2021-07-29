@@ -9,16 +9,7 @@ import org.apache.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.external.client.dto.Error;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayAccountErrorException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayCancellationFailedException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayDownstreamSystemErrorException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayPaymentNotFoundException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayRefundAmountMismatch;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayRefundNotAvailableException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayTooManyRequestsException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayUnavailableException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayUnmappedErrorException;
+import uk.gov.hmcts.payment.api.external.client.exceptions.*;
 
 @Component
 public class GovPayErrorTranslator {
@@ -73,6 +64,8 @@ public class GovPayErrorTranslator {
                     return new GovPayTooManyRequestsException(error);
                 case "P0999":
                     return new GovPayUnavailableException(error);
+                    case "401":
+                        return new GovPayUnauthorizedClientException(error);
 
                 default:
                     return new GovPayUnmappedErrorException(error);

@@ -23,9 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.RefundPaymentRequest;
@@ -129,21 +127,21 @@ public class GovPayClient {
     private void checkNotAnError(HttpResponse httpResponse) throws IOException {
         int status = httpResponse.getStatusLine().getStatusCode();
 
-
-
         if (status >= 400) {
-            if (status == 401) {
-                throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED);
-            }
-            else {
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                httpResponse.getEntity().writeTo(bos);
-                String byteData = bos.toString();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            httpResponse.getEntity().writeTo(bos);
+            String byteData = bos.toString();
+            if (byteData.contains("P0")) {
                 throw errorTranslator.toException(bos.toByteArray());
             }
-
+            else {
+                JSONObject json = new JSONObject();
+                json.put("code", status);
+                json.put("description", httpResponse.getStatusLine().getReasonPhrase());
+                json.toString().getBytes("utf-8");
+                throw errorTranslator.toException(json.toString().getBytes("utf-8"));
+            }
         }
-
     }
 
     private <T> T withIOExceptionHandling(CheckedExceptionProvider<T> provider) {
