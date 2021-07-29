@@ -70,6 +70,7 @@ public class PaymentsSearchFunctionalTest {
         });
     }
 
+    
     @Test
     public void givenAnyTwoValidDatesWithFormatDDMMYYYYShouldNotBeAnyErrors() {
         String startDate = LocalDate.now(zoneUTC).toString(DATE_FORMAT_DD_MM_YYYY);
