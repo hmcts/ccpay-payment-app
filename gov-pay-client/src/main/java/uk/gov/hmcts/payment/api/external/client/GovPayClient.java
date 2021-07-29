@@ -8,6 +8,8 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import net.minidev.json.JSONObject;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -131,10 +133,14 @@ public class GovPayClient {
         int status = httpResponse.getStatusLine().getStatusCode();
 
         if (status >= 400) {
+            JSONObject json = new JSONObject();
+            json.put("code", status);
+            json.put("description", httpResponse.getStatusLine().getReasonPhrase());
+            json.toString().getBytes("utf-8");
 
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            httpResponse.getEntity().writeTo(bos);
-            throw errorTranslator.toException(bos.toByteArray(), httpResponse);
+//            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//            json.getEntity().writeTo(bos);
+            throw errorTranslator.toException(json.toString().getBytes("utf-8"));
         }
     }
 
