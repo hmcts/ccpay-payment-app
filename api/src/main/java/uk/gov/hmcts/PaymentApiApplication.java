@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 @EnableCircuitBreaker
 public class PaymentApiApplication {
     private static final Logger LOG = LoggerFactory.getLogger(PaymentApiApplication.class);
-
+//////
     public static void main(String[] args) {
         try {
             //Setting Liquibase DB Lock property before Spring starts up.
