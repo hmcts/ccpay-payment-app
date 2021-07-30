@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.external.client;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 
 import com.github.tomakehurst.wiremock.common.Json;
@@ -33,7 +34,7 @@ public class GovPayErrorTranslator {
 //            Error error = new Error("" +httpResponse.getStatusLine().getStatusCode(), httpResponse.getStatusLine().getReasonPhrase());
 //            Error error1 = objectMapper.readValue((JsonParser) httpResponse, Error.class);
 
-                switch (error.getCode()) {
+            switch (error.getCode()) {
                 case "P0198":
                     return new GovPayDownstreamSystemErrorException(error);
                 case "P0199":
@@ -64,8 +65,8 @@ public class GovPayErrorTranslator {
                     return new GovPayTooManyRequestsException(error);
                 case "P0999":
                     return new GovPayUnavailableException(error);
-                    case "401":
-                        return new GovPayUnauthorizedClientException(error);
+                case "401":
+                    return new GovPayUnauthorizedClientException(error);
 
                 default:
                     return new GovPayUnmappedErrorException(error);

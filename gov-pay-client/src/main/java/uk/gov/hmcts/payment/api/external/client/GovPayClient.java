@@ -130,15 +130,14 @@ public class GovPayClient {
         if (status >= 400) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             httpResponse.getEntity().writeTo(bos);
-            String byteData = bos.toString();
-            if (byteData.contains("P0")) {
+            String byteResponseData = bos.toString();
+            if (byteResponseData.contains("P0")) {
                 throw errorTranslator.toException(bos.toByteArray());
             }
             else {
                 JSONObject json = new JSONObject();
                 json.put("code", status);
                 json.put("description", httpResponse.getStatusLine().getReasonPhrase());
-                json.toString().getBytes("utf-8");
                 throw errorTranslator.toException(json.toString().getBytes("utf-8"));
             }
         }
