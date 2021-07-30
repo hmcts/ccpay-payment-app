@@ -36,12 +36,11 @@ java:
     SERVICENOW_URL: https://mojcpppreprod.service-now.com/api/now/table/incident?sysparm_fields=number
     SERVICENOW_CALLER_ID: 8918448e1bd1b8106248a822b24bcb14
     SERVICENOW_CONTACT_TYPE: Alert
-    #need to check -- need to get it from Shahed -- Service now team
-    SERVICENOW_SERVICE_OFFERING: IAC - Appellant in Person
+    SERVICENOW_SERVICE_OFFERING: 528e98621be9b810b2c64195d34bcb28
     SERVICENOW_CATEGORY: Alert
     SERVICENOW_SUBCATEGORY: Error
     SERVICENOW_SHORT_DESCRIPTION: Immigration & Asylum Appeals Error while calling endpoint - /supplementary-details
-    SERVICENOW_ASSIGNMENT_GROUP: 56b756774fbd368057db0b318110c7bd
+    SERVICENOW_ASSIGNMENT_GROUP: a573ec80dbd7af440346f68dae961990
     SERVICENOW_USER_ROLE_TYPE: c319bc4bdb41834074abffa9bf96199c
     SERVICENOW_IMPACT: 2
     SERVICENOW_URGENCY: 2
