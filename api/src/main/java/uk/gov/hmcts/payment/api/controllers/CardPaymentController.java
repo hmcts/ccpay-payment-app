@@ -226,10 +226,11 @@ public class CardPaymentController {
         return new ResponseEntity(NOT_FOUND);
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = {GovPayUnauthorizedClientException.class})
-    public ResponseEntity httpClientErrorException(GovPayException e) {
-        LOG.error("Error while calling payments", e);
-        return new ResponseEntity(UNAUTHORIZED);
+    public String httpClientErrorException(GovPayException e) {
+        LOG.error("Error while authorizing service", e);
+        return e.getMessage();
     }
 
 
