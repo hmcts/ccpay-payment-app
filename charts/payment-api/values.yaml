@@ -140,5 +140,5 @@ java:
         - pci-pal-antenna-divorce-flow-id
         - pci-pal-antenna-financial-remedy-flow-id
         - spring-mail-password
-        - servicenow-usernam
+        - servicenow-username
         - servicenow-password
