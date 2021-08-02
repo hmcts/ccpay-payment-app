@@ -29,6 +29,11 @@ public class RestTemplateConfiguration {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
+    @Bean (value = "restTemplateRefundsGroup")
+    public RestTemplate restTemplateRefundGroup() {
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
+
     @Bean (value = "restTemplateIacSupplementaryInfo")
     public RestTemplate restTemplateIacSupplementaryInfo() {
         var factory = new HttpComponentsClientHttpRequestFactory();
