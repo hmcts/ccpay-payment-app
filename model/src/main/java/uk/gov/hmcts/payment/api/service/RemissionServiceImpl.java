@@ -67,23 +67,18 @@ public class RemissionServiceImpl implements RemissionService {
                 .findAny()
                 .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with code " + remissionServiceRequest.getFee().getCode() + " does not exists."));
 
-        if (!fee.getRemissions().isEmpty()) {
-            throw new RemissionAlreadyExistException("Remission is already applied to the Fee "+fee.getCode());
-        }
-
         String remissionReference = referenceUtil.getNext("RM");
         remissionServiceRequest.setRemissionReference(remissionReference);
 
         Remission remission = buildRemission(remissionServiceRequest);
 
-        paymentFeeLink.setRemissions(Lists.newArrayList(remission));
-
         fee.setNetAmount(fee.getCalculatedAmount().subtract(remission.getHwfAmount()));
 
-        if (fee.getRemissions() == null) {
+        if (fee.getRemissions()==null || fee.getRemissions().isEmpty()) {
+            paymentFeeLink.setRemissions(Lists.newArrayList(remission));
             fee.setRemissions(Lists.newArrayList(remission));
         } else {
-            fee.getRemissions().add(remission);
+            throw new RemissionAlreadyExistException("Remission is already applied to the Fee "+fee.getCode());
         }
 
         remission.setPaymentFeeLink(paymentFeeLink);
