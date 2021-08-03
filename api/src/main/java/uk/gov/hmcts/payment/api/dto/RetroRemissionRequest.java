@@ -19,8 +19,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "createRemissionRequestWith")
-public class RemissionRequest {
+@Builder(builderMethodName = "createRetroRemissionRequestWith")
+public class RetroRemissionRequest {
+
     @NotEmpty
     private String hwfReference;
 
@@ -29,31 +30,4 @@ public class RemissionRequest {
     @Positive
     @Digits(integer = 10, fraction = 2, message = "Amount cannot have more than 2 decimal places")
     private BigDecimal hwfAmount;
-
-    private String beneficiaryName;
-
-    private String ccdCaseNumber;
-
-    private String caseReference;
-
-    private String paymentGroupReference;
-
-    @NotNull
-    @Valid
-    private FeeDto fee;
-
-    @NotBlank
-    private String caseType;
-
-    @AssertFalse(message = "Hwf amount cannot be greater than calculated amount.")
-    private boolean isHwfAmountInvalid() {
-        return (hwfAmount != null && fee != null) &&
-            (hwfAmount.compareTo(fee.getCalculatedAmount()) == 1);
-    }
-
-    @AssertFalse(message = "Either ccdCaseNumber or caseReference is required.")
-    private boolean isEitherOneRequired() {
-        return (ccdCaseNumber == null && caseReference == null);
-    }
-
 }

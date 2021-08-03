@@ -21,5 +21,4 @@ public class RemissionServiceRequest {
     private String caseReference;
     private String siteId;
     private PaymentFee fee;
-    private boolean isRetroRemission;
 }
