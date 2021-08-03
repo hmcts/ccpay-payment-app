@@ -53,7 +53,7 @@ public class GovPayClientTest {
         assertThat(payment.getAmount()).isEqualTo(12000);
     }
 
-    @Test
+    @Test(expected = GovPayUnauthorizedClientException.class)
     public void createPaymentReturn401Unauthorized() {
         Error error = new Error();
         stubFor(
@@ -65,15 +65,8 @@ public class GovPayClientTest {
         );
 
         CreatePaymentRequest request = new CreatePaymentRequest(0, "reference", "description", "return_url","language");
-        try {
             GovPayPayment payment = client.createPayment("token", request);
-        }
-        catch (GovPayUnauthorizedClientException e){
-             error.setCode("401");
-             error.setDescription("Unauthorized");
-        }
-        assertThat(error.getCode()).isEqualTo("401");
-        assertThat(error.getDescription()).isEqualTo("Unauthorized");
+
     }
 
 

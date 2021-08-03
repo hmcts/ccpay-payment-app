@@ -228,8 +228,8 @@ public class CardPaymentController {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = {GovPayUnauthorizedClientException.class})
     public String httpClientErrorException(GovPayException e) {
-        LOG.error("Error while authorizing service", e);
-        return e.getMessage();
+        LOG.info("Error while authorizing service");
+        return "Unauthorized Service for Gov Pay";
     }
 
 
