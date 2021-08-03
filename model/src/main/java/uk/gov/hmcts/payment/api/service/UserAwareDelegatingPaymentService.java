@@ -119,7 +119,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
         paymentServiceRequest.setPaymentReference(paymentReference);
 
         Payment payment = buildPayment(paymentReference, paymentServiceRequest);
-//        try {
             if (PAYMENT_CHANNEL_TELEPHONY.equals(paymentServiceRequest.getChannel()) &&
                 PAYMENT_PROVIDER_PCI_PAL.equals(paymentServiceRequest.getProvider())) {
                 PciPalPayment pciPalPayment = delegatePciPal.create(paymentServiceRequest);
@@ -140,9 +139,6 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
                     .message(govPayPayment.getState().getMessage())
                     .build()));
             }
-//        } catch (HttpClientErrorException.Unauthorized ce){
-//            throw new  HttpClientErrorException(HttpStatus.UNAUTHORIZED);
-//        }
 
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentServiceRequest.getPaymentGroupReference())
