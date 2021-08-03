@@ -51,7 +51,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-        if (!payment.getStatus().equalsIgnoreCase("success")) {
+        if (!payment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
             throw new InvalidRefundRequestException("Payment is not SUCCESS for given Reference to initiate Refund");
         }
 
@@ -94,6 +94,5 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
         return new HttpEntity<>(refundRequestDto, httpHeaders);
     }
-
-
+    
 }
