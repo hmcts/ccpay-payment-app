@@ -159,7 +159,6 @@ public class IacServiceImpl implements IacService {
             IacServicenowRequest iacServicenowRequest = IacServicenowRequest.createIacServicenowRequestWith().
             callerId(servicenowCallerId).
             contactType(servicenowContactType).
-             //need to check -- will need the details
             serviceOffering(servicenowServiceOffering).
             category(servicenowCategory).
             subcategory(servicenowSubCategory).
