@@ -20,7 +20,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "RefundRequestWith")
+@Builder(builderMethodName = "refundRequestWith")
 public class PaymentRefundRequest {
 
     @NotNull(message = "Payment Reference cannot be null")
