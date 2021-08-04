@@ -160,7 +160,6 @@ public class RemissionServiceTest {
             .hwfAmount(new BigDecimal("100.99"))
             .hwfReference("hwf123456789")
             .fee(getFee())
-            .isRetroRemission(true)
             .build();
         Payment payment = Payment.paymentWith()
             .paymentStatus(PaymentStatus.CREATED)
@@ -195,7 +194,6 @@ public class RemissionServiceTest {
             .hwfAmount(new BigDecimal("100.99"))
             .hwfReference("hwf123456789")
             .fee(getFee())
-            .isRetroRemission(true)
             .build();
         Payment payment = Payment.paymentWith()
             .paymentStatus(PaymentStatus.SUCCESS)
@@ -232,7 +230,6 @@ public class RemissionServiceTest {
             .hwfAmount(new BigDecimal("100.99"))
             .hwfReference("hwf123456789")
             .fee(getFee())
-            .isRetroRemission(true)
             .build();
         Payment payment = Payment.paymentWith()
             .paymentStatus(PaymentStatus.SUCCESS)
