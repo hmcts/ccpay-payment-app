@@ -92,9 +92,18 @@ public class BarPaymentFunctionalTest {
             .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "cash")
             .then().getPayments((paymentsResponse -> {
             LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
+
+
+
+            for (int i =0; i<= paymentsResponse.getPayments().size(); i++){
+                if(paymentsResponse.getPayments().get(i).getAmount().equals(new BigDecimal("550.00"))){
+                    assertThat(paymentsResponse.getPayments().get(i).getAmount()).isEqualTo(new BigDecimal("550.00"));
+                    break;
+                }
+            }
+
             assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
             assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("cash");
-            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
             assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
             assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("success");
             assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
