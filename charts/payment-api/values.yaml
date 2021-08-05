@@ -77,6 +77,7 @@ java:
     PAYMENT_S2S_MICROSERVICE_NAME: payment_app
     PBA_CONFIG1_SERVICE_NAMES: dummy
     RD_LOCATION_BASE_URL: http://rd-location-ref-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+    REFUND_BASE_URL: http://refunds-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     SERVER_SHUTDOWN_STRATEGY: graceful
     TIMEOUT_SERVER_SHUTDOWN_PHASE: 30s
 
