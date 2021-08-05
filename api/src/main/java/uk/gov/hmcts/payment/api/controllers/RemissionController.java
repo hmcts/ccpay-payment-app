@@ -160,4 +160,10 @@ public class RemissionController {
         return ex.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(RemissionNotFoundException.class)
+    public String return400RemissionNotFound(RemissionNotFoundException ex) {
+        return ex.getMessage();
+    }
+
 }
