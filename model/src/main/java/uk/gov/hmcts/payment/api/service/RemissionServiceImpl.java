@@ -104,7 +104,7 @@ public class RemissionServiceImpl implements RemissionService {
         PaymentFee fee = paymentFeeRepository.findById(feeId)
             .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists."));
 
-        Optional<Payment> payment = null;
+        Optional<Payment> payment ;
         if(!feePayApportion.isEmpty()&&feePayApportion.size()==1){
             payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
         } else{
@@ -117,7 +117,8 @@ public class RemissionServiceImpl implements RemissionService {
             .findAny()
             .orElseThrow(() -> new RemissionNotFoundException("No matching remission found for reference "+remissionServiceRequest.getHwfReference()));
 
-                if(payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
+                if (payment.isPresent() &&
+                    payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
                     payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")){
                     fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()).subtract(payment.get().getAmount()));
                 }else{
