@@ -111,15 +111,19 @@ public class RemissionServiceImpl implements RemissionService {
             throw new InvalidPaymentGroupReferenceException("Multiple payments or No Payment for apportionment for " + feeId + " fee id.");
         }
 
-       Remission remission = fee.getRemissions().stream().filter(r->r.getHwfReference().equalsIgnoreCase(remissionServiceRequest.getHwfReference()))
+       Remission remission = fee.getRemissions().stream()
+           .filter(r-> r.getHwfReference().equalsIgnoreCase(remissionServiceRequest.getHwfReference())
+                  && r.getHwfAmount().compareTo(remissionServiceRequest.getHwfAmount())==0)
             .findAny()
-            .orElseThrow(() -> new RemissionNotFoundException("No remission found for reference "+remissionServiceRequest.getHwfReference()));
+            .orElseThrow(() -> new RemissionNotFoundException("No matching remission found for reference "+remissionServiceRequest.getHwfReference()));
 
-                if(payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") && payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")){
-                    fee.setAmountDue(fee.getCalculatedAmount().subtract(remission.getHwfAmount()).subtract(payment.get().getAmount()));
+                if(payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
+                    payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")){
+                    fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()).subtract(payment.get().getAmount()));
                 }else{
-                    fee.setAmountDue(fee.getCalculatedAmount().subtract(remission.getHwfAmount()));
+                    fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()));
                 }
+
         return remission;
     }
 
