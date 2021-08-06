@@ -21,15 +21,19 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
+import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import javax.validation.Valid;
 
 @RestController
-@Api(tags = {"Refunds"})
+@Api(tags = {"Refund group"})
 @SwaggerDefinition(tags = {@Tag(name = "RefundsController", description = "Refunds REST API")})
 public class RefundsController {
 
@@ -48,7 +52,32 @@ public class RefundsController {
     @ResponseBody
     @Transactional
     public ResponseEntity<RefundResponse> createRefundPayment(@Valid @RequestBody PaymentRefundRequest paymentRefundRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        return new ResponseEntity<>(paymentRefundsService.CreateRefund(paymentRefundRequest, headers), HttpStatus.CREATED);
+        return paymentRefundsService.CreateRefund(paymentRefundRequest, headers);
+    }
+
+    @PostMapping(value = "/refund-retro-remission")
+    public ResponseEntity<RefundResponse> createRefundForRetroSpective(@Valid @RequestBody RetroSpectiveRemissionRequest
+                                                                           request, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+        return paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(request.getRemissionReference(), headers);
+    }
+
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PaymentNotSuccessException.class)
+    public String return400(PaymentNotSuccessException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(NonPBAPaymentException.class)
+    public String return400(NonPBAPaymentException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(RemissionNotFoundException.class)
+    public String return400(RemissionNotFoundException ex) {
+        return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

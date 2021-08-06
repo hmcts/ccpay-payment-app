@@ -86,9 +86,9 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(RefundResponse.class))).thenReturn(responseEntity);
 
-        RefundResponse refundResponse = paymentRefundsService.CreateRefund(paymentRefundRequest, header);
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.CreateRefund(paymentRefundRequest, header);
 
-        assertEquals("RF-4321-4321-4321-4321", refundResponse.getRefundReference());
+        assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
 
     }
 
