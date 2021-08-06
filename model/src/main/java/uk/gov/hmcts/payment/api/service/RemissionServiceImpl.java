@@ -12,7 +12,6 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionAlreadyExistException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
@@ -24,7 +23,6 @@ public class RemissionServiceImpl implements RemissionService {
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final FeePayApportionRepository feePayApportionRepository;
-    private final PaymentFeeRepository paymentFeeRepository;
     private final Payment2Repository paymentRespository;
     private final ReferenceUtil referenceUtil;
 
@@ -32,10 +30,9 @@ public class RemissionServiceImpl implements RemissionService {
 
     @Autowired
     public RemissionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
-                                FeePayApportionRepository feePayApportionRepository, PaymentFeeRepository paymentFeeRepository, Payment2Repository paymentRespository, ReferenceUtil referenceUtil, OrderCaseUtil orderCaseUtil) {
+                                FeePayApportionRepository feePayApportionRepository, Payment2Repository paymentRespository, ReferenceUtil referenceUtil, OrderCaseUtil orderCaseUtil) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.feePayApportionRepository = feePayApportionRepository;
-        this.paymentFeeRepository = paymentFeeRepository;
         this.paymentRespository = paymentRespository;
         this.referenceUtil = referenceUtil;
         this.orderCaseUtil = orderCaseUtil;
@@ -80,13 +77,14 @@ public class RemissionServiceImpl implements RemissionService {
 
         Remission remission = buildRemission(remissionServiceRequest);
 
+        paymentFeeLink.setRemissions(Lists.newArrayList(remission));
+
         fee.setNetAmount(fee.getCalculatedAmount().subtract(remission.getHwfAmount()));
 
-        if (fee.getRemissions()==null || fee.getRemissions().isEmpty()) {
-            paymentFeeLink.setRemissions(Lists.newArrayList(remission));
+        if (fee.getRemissions() == null) {
             fee.setRemissions(Lists.newArrayList(remission));
         } else {
-            throw new RemissionAlreadyExistException("Remission is already applied to the Fee "+fee.getCode());
+            fee.getRemissions().add(remission);
         }
         remission.setPaymentFeeLink(paymentFeeLink);
         remission.setFee(fee);
@@ -98,33 +96,46 @@ public class RemissionServiceImpl implements RemissionService {
     @Transactional
     public Remission  createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
 
+        // Order -> OrderItem(OrderFee) , OrderItem(OrderFee) -> Remission , OrderItem(OrderFee) -> Apportion , Payment -> Apportionment
+        // Order
+        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
+            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
+
+        // Order -> OrderItem(OrderFee)
+        PaymentFee fee =  paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
+            .findAny()
+            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists.")) ;
+
+        // Single remission to a fee
+        if(!fee.getRemissions().isEmpty()){
+           throw new RemissionAlreadyExistException("Remission is already exist for FeeId "+feeId);
+        }
+
+        //OrderItem(OrderFee) -> Apportion
         List<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(feeId)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Cannot find apportionment entry with feeId "+feeId));
 
-        PaymentFee fee = paymentFeeRepository.findById(feeId)
-            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists."));
-
-        Optional<Payment> payment ;
-        if(!feePayApportion.isEmpty()&&feePayApportion.size()==1){
+        // Payment -> Apportionment
+        Optional<Payment> payment;
+        if(feePayApportion.size() == 1){
             payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
+            if (payment.isPresent() &&
+                payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
+                payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")){
+                fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()).subtract(payment.get().getAmount()));
+            }else{
+                fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()));
+            }
         } else{
             throw new InvalidPaymentGroupReferenceException("Multiple payments or No Payment for apportionment for " + feeId + " fee id.");
         }
 
-       Remission remission = fee.getRemissions().stream()
-           .filter(r-> r.getHwfReference().equalsIgnoreCase(remissionServiceRequest.getHwfReference())
-                  && r.getHwfAmount().compareTo(remissionServiceRequest.getHwfAmount())==0)
-            .findAny()
-            .orElseThrow(() -> new RemissionNotFoundException("No matching remission found for reference "+remissionServiceRequest.getHwfReference()));
-
-                if (payment.isPresent() &&
-                    payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
-                    payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")){
-                    fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()).subtract(payment.get().getAmount()));
-                }else{
-                    fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()));
-                }
-
+        String remissionReference = referenceUtil.getNext("RM");
+        Remission remission = buildRemissionForPayment(payment.get(),  fee,  remissionServiceRequest);
+        remission.setRemissionReference(remissionReference);
+        remission.setSiteId(paymentFeeLink.getOrgId()!=null ? paymentFeeLink.getOrgId() : "");
+        fee.setRemissions(Lists.newArrayList(remission));
+        paymentFeeLink.setRemissions(Lists.newArrayList(remission));
         return remission;
     }
 
@@ -140,4 +151,13 @@ public class RemissionServiceImpl implements RemissionService {
             .build();
     }
 
+    private Remission buildRemissionForPayment(Payment payment, PaymentFee paymentFee, RetroRemissionServiceRequest remissionServiceRequest) {
+        return Remission.remissionWith()
+            .hwfReference(remissionServiceRequest.getHwfReference())
+            .hwfAmount(remissionServiceRequest.getHwfAmount())
+            //.beneficiaryName(remissionServiceRequest.getBeneficiaryName())
+            .ccdCaseNumber(paymentFee.getCcdCaseNumber())
+            .caseReference(payment.getCaseReference())
+            .build();
+    }
 }
