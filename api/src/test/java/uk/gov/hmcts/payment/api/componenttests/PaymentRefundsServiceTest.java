@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -44,37 +45,36 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = MOCK)
 public class PaymentRefundsServiceTest {
 
+    final static MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
+    PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+        .paymentReference("RC-1234-1234-1234-1234")
+        .refundReason("RESN1")
+        .build();
+    Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
+        .paymentStatus(PaymentStatus.paymentStatusWith().name("Success").build())
+        .build();
+    ;
     @MockBean
     private Payment2Repository paymentRepository;
-
     @MockBean
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
     private RestTemplate restTemplate;
-
-
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
-
     @Autowired
     private PaymentRefundsService paymentRefundsService;
+
+    @Before
+    public void setup() {
+        System.gc();
+        header.put("Authorization", Collections.singletonList("Bearer 131313"));
+    }
 
     @Test
     public void createSuccessfulRefund() throws Exception {
 
-        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundReason("RESN1")
-            .build();
-
-        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-        header.put("Authorization", Collections.singletonList("Bearer 131313"));
-
-        Payment mockPayment = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("Success").build())
-            .build();
-
-        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPayment));
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
         RefundResponse mockRefundResponse = RefundResponse.RefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
@@ -96,19 +96,11 @@ public class PaymentRefundsServiceTest {
     @Test(expected = InvalidRefundRequestException.class)
     public void createRefundWithFailedReference() throws Exception {
 
-        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundReason("RESN1")
-            .build();
-
-        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-        header.put("Authorization", Collections.singletonList("Bearer 131313"));
-
-        Payment mockPayment = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
+        Payment mockPaymentFailed = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
             .paymentStatus(PaymentStatus.paymentStatusWith().name("Failed").build())
             .build();
 
-        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPayment));
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentFailed));
 
         paymentRefundsService.CreateRefund(paymentRefundRequest, header);
 
@@ -118,19 +110,7 @@ public class PaymentRefundsServiceTest {
     @Test(expected = InvalidRefundRequestException.class)
     public void createRefundWithClientException() throws Exception {
 
-        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundReason("RESN1")
-            .build();
-
-        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-        header.put("Authorization", Collections.singletonList("Bearer 131313"));
-
-        Payment mockPayment = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("Success").build())
-            .build();
-
-        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPayment));
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
@@ -145,19 +125,7 @@ public class PaymentRefundsServiceTest {
     @Test(expected = GatewayTimeoutException.class)
     public void createRefundWithServerException() throws Exception {
 
-        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundReason("RESN1")
-            .build();
-
-        MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-        header.put("Authorization", Collections.singletonList("Bearer 131313"));
-
-        Payment mockPayment = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("Success").build())
-            .build();
-
-        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPayment));
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
