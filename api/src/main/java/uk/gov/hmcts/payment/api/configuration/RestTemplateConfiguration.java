@@ -41,4 +41,9 @@ public class RestTemplateConfiguration {
         factory.setReadTimeout((Integer.parseInt(iacReadTimeout)));
         return new RestTemplate(factory);
     }
+
+    @Bean (value = "restTemplateRefundGroup")
+    public RestTemplate restTemplateRefundGroup() {
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 }
