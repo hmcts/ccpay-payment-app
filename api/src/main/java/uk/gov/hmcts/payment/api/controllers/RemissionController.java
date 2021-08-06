@@ -24,7 +24,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import javax.validation.Valid;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @Api(tags = {"Remissions"})
