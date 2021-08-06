@@ -30,7 +30,7 @@ public class RestTemplateConfiguration {
     }
 
     @Bean (value = "restTemplateRefundsGroup")
-    public RestTemplate restTemplateRefundGroup() {
+    public RestTemplate restTemplateRefundsGroup() {
         return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
 
