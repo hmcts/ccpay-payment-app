@@ -8,6 +8,8 @@ import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,7 +39,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class RefundControllerTest {
+public class RefundsControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
@@ -78,7 +80,10 @@ public class RefundControllerTest {
             .refundReason("RESN1")
             .build();
 
-        RefundResponse mockRefundResponse = RefundResponse.RefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+        ResponseEntity<RefundResponse> mockRefundResponse = new ResponseEntity<>(RefundResponse.RefundResponseWith()
+            .refundReference("RF-4321-4321-4321-4321")
+            .build(), HttpStatus.CREATED);
+
 
         when(paymentRefundsService.CreateRefund(any(), any())).thenReturn(mockRefundResponse);
 
@@ -87,7 +92,7 @@ public class RefundControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        RefundResponse refundResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(),RefundResponse.class);
+        RefundResponse refundResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RefundResponse.class);
 
         assertEquals("RF-4321-4321-4321-4321", refundResponse.getRefundReference());
 
