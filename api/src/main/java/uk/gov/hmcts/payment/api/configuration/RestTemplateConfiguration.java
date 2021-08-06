@@ -42,8 +42,4 @@ public class RestTemplateConfiguration {
         return new RestTemplate(factory);
     }
 
-    @Bean (value = "restTemplateRefundGroup")
-    public RestTemplate restTemplateRefundGroup() {
-        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-    }
 }
