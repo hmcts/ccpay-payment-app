@@ -17,7 +17,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
-import uk.gov.hmcts.payment.api.dto.RefundRequest;
+import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
@@ -47,10 +47,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PaymentRefundsServiceImpl.class);
     private static final String REFUND_ENDPOINT = "/refund";
+
     final Predicate<Payment> paymentSuccessCheck =
         payment -> payment.getPaymentStatus().getName().equals(PaymentStatus.SUCCESS.getName());
     final Predicate<Payment> checkIfPaymentIsPBA = payment -> payment.getPaymentMethod()
         .getName().equalsIgnoreCase(PaymentMethodType.PBA.getType());
+
     @Autowired
     RemissionRepository remissionRepository;
 
@@ -60,6 +62,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     private Payment2Repository paymentRepository;
     @Autowired
     private AuthTokenGenerator authTokenGenerator;
+
     @Autowired()
     @Qualifier("restTemplateRefundsGroup")
     private RestTemplate restTemplateRefundsGroup;
@@ -74,7 +77,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             throw new InvalidRefundRequestException("Payment is not SUCCESS for given Reference to initiate Refund");
         }
 
-        RefundRequest refundRequest = RefundRequest.refundRequestWith()
+        RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
             .refundAmount(payment.getAmount())
             .refundReason(paymentRefundRequest.getRefundReason())
@@ -118,7 +121,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 BigDecimal remissionAmount = remission.get().getHwfAmount();
                 String paymentReference = validateThePaymentBeforeInitiatingRefund(payment);
 
-                RefundRequest refundRequest = RefundRequest.refundRequestWith()
+                RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                     .paymentReference(paymentReference) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
                     .refundReason("RR004")  //Refund reason category would be other
@@ -149,14 +152,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
 
-    private ResponseEntity<RefundResponse> postToRefundService(RefundRequest refundRequest, MultiValueMap<String, String> headers) {
+    private ResponseEntity<RefundResponse> postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
         return restTemplateRefundsGroup
             .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), RefundResponse.class);
     }
 
-    private HttpEntity<RefundRequest> createEntity(MultiValueMap<String, String> headers, RefundRequest refundRequest) {
+    private HttpEntity<RefundRequestDto> createEntity(MultiValueMap<String, String> headers, RefundRequestDto refundRequest) {
         MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
         String serviceAuthorisation = authTokenGenerator.generate();
         headerMultiValueMap.put("Content-Type", headers.get("content-type"));

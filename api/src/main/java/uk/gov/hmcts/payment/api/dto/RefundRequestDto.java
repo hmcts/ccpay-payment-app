@@ -17,7 +17,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderMethodName = "RefundRequestDtoWith")
+@Builder(builderMethodName = "refundRequestDtoWith")
 public class RefundRequestDto {
 
     private String paymentReference;
