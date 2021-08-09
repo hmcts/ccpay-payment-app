@@ -76,17 +76,31 @@ public class CaseControllerTest extends PaymentsDataUtil {
     private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+    static FeeDto feeRequest = FeeDto.feeDtoWith()
+        .calculatedAmount(new BigDecimal("92.19"))
+        .code("FEE312")
+        .version("1")
+        .volume(2)
+        .reference("BXsd1123")
+        .ccdCaseNumber("ccdCaseNumber1")
+        .build();
+    static FeeDto consecutiveFeeRequest = FeeDto.feeDtoWith()
+        .calculatedAmount(new BigDecimal("100.19"))
+        .code("FEE313")
+        .id(1)
+        .version("1")
+        .volume(2)
+        .reference("BXsd112543")
+        .ccdCaseNumber("ccdCaseNumber1")
+        .build();
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     protected PaymentDbBackdoor paymentDbBackdoor;
-
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
     RestActions restActions;
@@ -148,7 +162,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>(){});
+        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>() {
+        });
 
         assertThat(payments.getPayments().size()).isEqualTo(1);
 
@@ -201,7 +216,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>(){});
+        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>() {
+        });
 
         assertThat(payments.getPayments().size()).isEqualTo(1);
 
@@ -210,8 +226,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
         assertThat(paymentDto.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
 
         Assert.assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("status", is("Failed"))));
-        Assert.assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("errorCode",is("P0200"))));
-        Assert.assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("errorMessage",is("Payment not found"))));
+        Assert.assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("errorCode", is("P0200"))));
+        Assert.assertThat(paymentDto.getStatusHistories(), hasItem(hasProperty("errorMessage", is("Payment not found"))));
     }
 
 
@@ -272,7 +288,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>() {
+        });
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
 
@@ -284,15 +301,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDb("1");
 
-        FeeDto feeRequest = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("92.19"))
-            .code("FEE312")
-            .version("1")
-            .volume(2)
-            .reference("BXsd1123")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .build();
-
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
             .build();
@@ -308,7 +316,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>() {
+        });
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
 
@@ -320,15 +329,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         populateCardPaymentToDbWithApportionmentDetails("1");
 
-        FeeDto feeRequest = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("92.19"))
-            .code("FEE312")
-            .version("1")
-            .volume(2)
-            .reference("BXsd1123")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .build();
-
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
             .build();
@@ -344,7 +344,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>() {
+        });
         PaymentGroupDto paymentGroupDto1 = paymentGroups.getPaymentGroups().get(0);
         FeeDto feeDto = paymentGroupDto1.getFees().get(0);
 
@@ -359,25 +360,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     public void getAllPaymentGroupsHavingMultipleFeesAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
 
         populateCardPaymentToDb("1");
-
-        FeeDto feeRequest = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("92.19"))
-            .code("FEE312")
-            .version("1")
-            .volume(2)
-            .reference("BXsd1123")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .build();
-
-        FeeDto consecutiveFeeRequest = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("100.19"))
-            .code("FEE313")
-            .id(1)
-            .version("1")
-            .volume(2)
-            .reference("BXsd112543")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .build();
 
         PaymentGroupDto paymentGroupDto = PaymentGroupDto.paymentGroupDtoWith()
             .fees(Arrays.asList(feeRequest))
@@ -404,7 +386,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>() {
+        });
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(2);
 
@@ -413,25 +396,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void getAllPaymentGroupsHavingMultipleFeesRemissionsAndPaymentsWithCcdCaseNumberShouldReturnRequiredFields() throws Exception {
-
-        FeeDto feeRequest = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("92.19"))
-            .code("FEE312")
-            .version("1")
-            .volume(2)
-            .reference("BXsd1123")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .build();
-
-        FeeDto consecutiveFeeRequest = FeeDto.feeDtoWith()
-            .calculatedAmount(new BigDecimal("100.19"))
-            .code("FEE313")
-            .id(1)
-            .version("1")
-            .volume(2)
-            .reference("BXsd112543")
-            .ccdCaseNumber("ccdCaseNumber1")
-            .build();
 
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("A partial remission")
@@ -495,7 +459,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>() {
+        });
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(3);
 
@@ -561,11 +526,12 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>() {
+        });
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
         assertThat(paymentGroups.getPaymentGroups().get(0)
-        .getFees().get(0).getDescription()).isEqualTo("Application for a charging order");
+            .getFees().get(0).getDescription()).isEqualTo("Application for a charging order");
         System.out.println(paymentGroups.getPaymentGroups().get(0)
             .getRemissions().get(0).getDateCreated());
         System.out.println(new Date());
@@ -607,5 +573,5 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .fees(Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
             .build();
     }
-    
+
 }
