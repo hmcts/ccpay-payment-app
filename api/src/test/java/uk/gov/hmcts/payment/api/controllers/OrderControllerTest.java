@@ -65,6 +65,12 @@ public class OrderControllerTest {
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
     PaymentDbBackdoor paymentDbBackdoor;
+    OrderDto orderDto = OrderDto.orderDtoWith()
+        .caseReference("123245677")
+        .caseType("ClaimCase")
+        .ccdCaseNumber("8689869686968696")
+        .fees(Collections.singletonList(getFee()))
+        .build();
     @Autowired
     private WebApplicationContext webApplicationContext;
     @MockBean
@@ -78,13 +84,10 @@ public class OrderControllerTest {
     @Autowired
     private AccountService<AccountDto, String> accountService;
     private RestActions restActions;
-
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -475,13 +478,6 @@ public class OrderControllerTest {
     @Test
     public void createOrderWithInvalidCaseType() throws Exception {
 
-        OrderDto orderDto = OrderDto.orderDtoWith()
-            .caseReference("123245677")
-            .caseType("ClaimCase")
-            .ccdCaseNumber("8689869686968696")
-            .fees(Collections.singletonList(getFee()))
-            .build();
-
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
@@ -492,13 +488,6 @@ public class OrderControllerTest {
 
     @Test
     public void createOrderWithValidCaseTypeReturnsTimeOutException() throws Exception {
-
-        OrderDto orderDto = OrderDto.orderDtoWith()
-            .caseReference("123245677")
-            .caseType("ClaimCase")
-            .ccdCaseNumber("8689869686968696")
-            .fees(Collections.singletonList(getFee()))
-            .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
