@@ -95,16 +95,12 @@ public class BarPaymentFunctionalTest {
 
 
 
-            for (int i =0; i<= paymentsResponse.getPayments().size(); i++){
-                if(paymentsResponse.getPayments().get(i).getAmount().equals(new BigDecimal("550.00"))){
-                    assertThat(paymentsResponse.getPayments().get(i).getAmount()).isEqualTo(new BigDecimal("550.00"));
-                    break;
-                }
-            }
+
 
             assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
             assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("cash");
             assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
+            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isIn(new BigDecimal("0.10"), new BigDecimal("100.00"), new BigDecimal("550.00"));
             assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("success");
             assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
             assertThat(paymentsResponse.getPayments().get(0).getDateCreated()).isNotNull();
