@@ -24,18 +24,16 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 public class DuplicatePaymentValidatorTest {
 
     private final static int TIME_INTERVAL = 2;
-
+    static PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
     private DuplicatePaymentValidator validator;
     @Mock
     private DuplicateSpecification duplicateSpecification;
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
-
     @Mock
     private Specification mockSpecification;
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
 
     @Before
     public void setUp() {
@@ -45,7 +43,7 @@ public class DuplicatePaymentValidatorTest {
     @Test
     public void shouldReturnNoErrors_whenNoMatchingPaymentsWithCriteriaSpecification() {
         Payment payment = aPayment();
-        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+
 
         given(duplicateSpecification.getBy(payment, TIME_INTERVAL)).willReturn(mockSpecification);
         given(paymentFeeLinkRepository.findAll(mockSpecification)).willReturn(Collections.EMPTY_LIST);
@@ -57,7 +55,6 @@ public class DuplicatePaymentValidatorTest {
     @Test
     public void shouldReturnNoErrors_whenMatchingPaymentsButWithDifferentFeeCode() {
         Payment payment = aPayment();
-        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0002").volume(1).build();
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
@@ -74,7 +71,6 @@ public class DuplicatePaymentValidatorTest {
     @Test
     public void shouldReturnNoErrors_whenMatchingPaymentsButWithDifferentFeeVersion() {
         Payment payment = aPayment();
-        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("4").code("X0001").volume(1).build();
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
@@ -91,7 +87,6 @@ public class DuplicatePaymentValidatorTest {
     @Test
     public void shouldReturnNoErrors_whenMatchingPaymentsButWithDifferentFeeVolume() {
         Payment payment = aPayment();
-        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(4).build();
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
@@ -108,8 +103,7 @@ public class DuplicatePaymentValidatorTest {
     @Test
     public void shouldReturnNoErrors_whenMatchingPaymentsButWithMultipleFees() {
         Payment payment = aPayment();
-        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
-        PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+        PaymentFee dbFee = requestFee;
         PaymentFee dbFee2 = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0002").volume(1).build();
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
@@ -126,8 +120,7 @@ public class DuplicatePaymentValidatorTest {
     @Test
     public void shouldThrowException_whenMatchingPaymentsWithSameFeeDetails() {
         Payment payment = aPayment();
-        PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
-        PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
+        PaymentFee dbFee = requestFee;
 
         PaymentFeeLink paymentFeeLink = paymentFeeLinkWith().paymentReference("RC-1519-9028-1909-3890")
             .payments(Arrays.asList(payment))
