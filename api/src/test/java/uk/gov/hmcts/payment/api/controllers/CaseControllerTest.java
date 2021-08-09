@@ -607,26 +607,5 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .fees(Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
             .build();
     }
-
-    private Payment getPayment() {
-        return Payment.paymentWith()
-            .id(1)
-            .amount(new BigDecimal("99.99"))
-            .caseReference("Reference1")
-            .ccdCaseNumber("1607065108455502")
-            .description("Test payments statuses  ")
-            .serviceType("PROBATE")
-            .currency("GBP")
-            .siteId("AA09")
-            .userId(USER_ID)
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("card").build())
-            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("created").build())
-            .externalReference("e2kkddts5215h9qqoeuth5c0v")
-            .reference("RC-1519-9028-2432-0001")
-            .build();
-    }
-
-
+    
 }
