@@ -105,7 +105,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         if (remission.isPresent()) {
             //remissionAmount
-
             paymentFee = remission.get().getFee();
             //need to validate if multipleApportionment scenario present for single feeId validation needed
             Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
@@ -124,7 +123,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                     .paymentReference(paymentReference) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
-                    .refundReason("RR004")  //Refund reason category would be other
+                    .refundReason("RR004-Remission Refund")  //Refund reason category would be other
                     .build();
                 return postToRefundService(refundRequest, headers);
             }
@@ -145,7 +144,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             if (!checkIfPaymentIsPBA.test(payment.get())) {
                 throw new NonPBAPaymentException("Refund currently supported for PBA Payment Channel only");
             }
-
             return payment.get().getReference();
         }
         return null;
