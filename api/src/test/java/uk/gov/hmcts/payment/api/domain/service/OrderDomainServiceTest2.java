@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -24,9 +23,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundExceptio
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -52,11 +49,6 @@ public class OrderDomainServiceTest2 {
 
     @Mock
     private OrderBo orderBo;
-
-    @Before
-    public void setup() {
-
-    }
 
     @Test
     public void createOrderWithValidRequest() throws Exception {
