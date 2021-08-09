@@ -17,11 +17,23 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.PaymentFeeDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.RemissionDbBackdoor;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
-import uk.gov.hmcts.payment.api.dto.*;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
+import uk.gov.hmcts.payment.api.dto.RemissionDto;
+import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetroRemissionDto;
+import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -35,7 +47,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -92,6 +103,10 @@ public class RemissionControllerTest {
     @MockBean
     private ReferenceDataService referenceDataService;
 
+    OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+        .serviceCode("AA001")
+        .serviceDescription("DIVORCE")
+        .build();
 
     @Before
     public void setUp() {
@@ -103,11 +118,6 @@ public class RemissionControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
 
@@ -238,12 +248,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullHwfAmountShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -254,13 +263,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void negativeHwfAmountShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("-10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -271,13 +279,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void hwfAmountEqualToZeroShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("0.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -288,13 +295,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void hwfAmountWithMoreThan2DecimalPlacesShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.001"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -305,13 +311,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void emptyCcdCaseNumberShouldReturn201() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .fee(getFee())
             .build();
@@ -325,12 +330,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullCcdCaseNumberShouldReturn201() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .fee(getFee())
             .build();
@@ -344,13 +348,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void emptyCaseReferenceShouldReturn201() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .fee(getFee())
             .build();
@@ -364,12 +367,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullCaseReferenceShouldReturn201() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .fee(getFee())
             .build();
@@ -383,13 +385,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void emptyCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .build();
 
@@ -401,11 +402,10 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .hwfAmount(new BigDecimal("10.01"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .build();
 
@@ -417,12 +417,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .build();
 
@@ -434,12 +433,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void emptyCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .hwfAmount(new BigDecimal("10.01"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .build();
 
@@ -509,15 +507,13 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void paymentFeeLinkAndFeeCreatedWhenNoPaymentGroupReferenceSent() throws Exception {
-        BigDecimal calculatedAmount = new BigDecimal("199.99");
-        String feeReference = "feeReference";
 
         String feeCode = "FEE0001";
         FeeDto feeDto = FeeDto.feeDtoWith()
-            .calculatedAmount(calculatedAmount)
+            .calculatedAmount(new BigDecimal("199.99"))
             .code(feeCode)
             .version("1")
-            .reference(feeReference)
+            .reference("feeReference")
             .build();
 
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
@@ -604,13 +600,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void remissionWithWrongSiteIDShouldNotSaveToDb() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions

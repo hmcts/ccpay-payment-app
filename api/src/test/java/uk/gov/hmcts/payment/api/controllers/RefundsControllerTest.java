@@ -42,6 +42,10 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 public class RefundsControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
+    PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
+        .paymentReference("RC-1234-1234-1234-1234")
+        .refundReason("RESN1")
+        .build();
     @Autowired
     private WebApplicationContext webApplicationContext;
     @Autowired
@@ -58,7 +62,6 @@ public class RefundsControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-
     @Before
     public void setup() {
         MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
@@ -74,11 +77,6 @@ public class RefundsControllerTest {
 
     @Test
     public void createRefundWithValidRequest() throws Exception {
-
-        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-            .paymentReference("RC-1234-1234-1234-1234")
-            .refundReason("RESN1")
-            .build();
 
         ResponseEntity<RefundResponse> mockRefundResponse = new ResponseEntity<>(RefundResponse.RefundResponseWith()
             .refundReference("RF-4321-4321-4321-4321")
@@ -101,11 +99,6 @@ public class RefundsControllerTest {
     @Test
     public void createRefundWithInvalidRequestReturns404() throws Exception {
 
-        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-            .paymentReference("1234-1234-1234-1234")
-            .refundReason("RESN1")
-            .build();
-
         when(paymentRefundsService.CreateRefund(any(), any())).thenThrow(new PaymentNotFoundException("reference not found"));
 
         restActions
@@ -117,11 +110,6 @@ public class RefundsControllerTest {
     @Test
     public void createRefundWithInvalidRequestReturns504() throws Exception {
 
-        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-            .paymentReference("1234-1234-1234-1234")
-            .refundReason("RESN1")
-            .build();
-
         when(paymentRefundsService.CreateRefund(any(), any())).thenThrow(new GatewayTimeoutException("Gateway timeout"));
         restActions
             .post("/refund-for-payment", paymentRefundRequest)
@@ -130,11 +118,6 @@ public class RefundsControllerTest {
 
     @Test
     public void createRefundWithInvalidRequestReturns400() throws Exception {
-
-        PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
-            .paymentReference("1234-1234-1234-1234")
-            .refundReason("RESN1")
-            .build();
 
         when(paymentRefundsService.CreateRefund(any(), any())).thenThrow(new InvalidRefundRequestException("Reference not valid"));
         restActions
