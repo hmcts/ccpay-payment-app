@@ -127,7 +127,7 @@ public class RemissionServiceImpl implements RemissionService {
                 fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()));
             }
         } else{
-            throw new InvalidPaymentGroupReferenceException("Multiple payments or No Payment for apportionment for " + feeId + " fee id.");
+            throw new InvalidPaymentGroupReferenceException("This fee "+feeId+" is paid by more than one payment. Hence not eligible for remission");
         }
 
         String remissionReference = referenceUtil.getNext("RM");
