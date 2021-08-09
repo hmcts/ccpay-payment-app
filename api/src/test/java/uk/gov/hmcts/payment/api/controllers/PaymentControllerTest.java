@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1309,7 +1309,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertNotNull(payments);
         assertThat(payments.size()).isEqualTo(1);
     }
-    
+
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenFeeIdIsDifferent() throws Exception {

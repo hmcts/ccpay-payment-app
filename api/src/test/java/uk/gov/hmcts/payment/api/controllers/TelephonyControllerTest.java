@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.RandomUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -68,32 +67,36 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class TelephonyControllerTest extends PaymentsDataUtil {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @MockBean
     protected CallbackServiceImpl callbackServiceImplMock;
-
     @Autowired
     protected PaymentDbBackdoor db;
+    RestActions restActions;
+    OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+        .serviceCode("AA001")
+        .serviceDescription("DIVORCE")
+        .build();
+    TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
+        .amount(new BigDecimal("101.99"))
+        .currency(CurrencyCode.GBP)
+        .description("Test cross field validation")
+        .caseType("tax_exception")
+        .ccdCaseNumber("1234123412341234")
+        .provider("pci pal")
+        .channel("telephony")
+        .build();
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @Autowired
     private TelephonyRepository telephonyRepository;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
-
-    RestActions restActions;
-
     @MockBean
     private ReferenceDataService referenceDataService;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
 
@@ -129,7 +132,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber() + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -221,8 +224,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
             "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
 
-        String paymentReference = "RC-1519-9028-1909-1435";
-        Payment dbPayment = populateTelephonyPaymentToDb(paymentReference, false);
+        Payment dbPayment = populateTelephonyPaymentToDb("RC-1519-9028-1909-1435", false);
 
         restActions
             .postWithFormData("/telephony/callback", rawFormData)
@@ -238,9 +240,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             "avsAddress=&avsPostcode=&avsCVN=&cardExpiry=1220&cardLast4=9999&cardType=MASTERCARD&ppCallID=820782890&" +
             "customData1=MOJTest120190124123432&customData2=MASTERCARD&customData3=CreditCard&customData4=";
 
-        String paymentReference = "RC-1519-9028-1909-1435";
         //Create Telephony Payment
-        Payment dbPayment = populateTelephonyPaymentToDb(paymentReference, false);
+        Payment dbPayment = populateTelephonyPaymentToDb("RC-1519-9028-1909-1435", false);
 
         //Update Telephony Payment Status from PCI PAL - 1st time
         restActions
@@ -252,14 +253,14 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber() + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
         PaymentsResponse response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         List<PaymentDto> payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getPaymentReference(), paymentReference);
+        assertEquals(payments.get(0).getPaymentReference(), "RC-1519-9028-1909-1435");
         Date updatedTsForFirstReq = payments.get(0).getDateUpdated();
 
         //Update Telephony Payment Status from PCI PAL - 2nd time(Duplicate)
@@ -269,14 +270,14 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         //Validate & capture Update_timestamp - After 2nd PCI PAL Callback Request(Duplicate)
         result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber() + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
         response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         payments = response.getPayments();
         assertThat(payments.size()).isEqualTo(1);
-        assertEquals(payments.get(0).getPaymentReference(), paymentReference);
+        assertEquals(payments.get(0).getPaymentReference(), "RC-1519-9028-1909-1435");
         Date updatedTsForSecondReq = payments.get(0).getDateUpdated();
 
         //UpdateTimeStamp should not be changed after 2nd Request(Duplicate)
@@ -285,12 +286,11 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     @Test
     public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
+            .fees(Arrays.asList(getNewFee("1234123412341234")))
             .build();
 
         MvcResult result = restActions
@@ -300,24 +300,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        BigDecimal amount = new BigDecimal("101.99");
-
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber(ccdCaseNumber)
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")
@@ -354,12 +337,11 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     @Test
     public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
-        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee(ccdCaseNumber)))
+            .fees(Arrays.asList(getNewFee("1234123412341234")))
             .build();
 
         MvcResult result = restActions
@@ -369,24 +351,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         PaymentGroupDto paymentGroupDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        BigDecimal amount = new BigDecimal("101.99");
-
-        TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
-            .amount(amount)
-            .currency(CurrencyCode.GBP)
-            .description("Test cross field validation")
-            .caseType("tax_exception")
-            .ccdCaseNumber(ccdCaseNumber)
-            .provider("pci pal")
-            .channel("telephony")
-            .build();
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")
@@ -421,7 +386,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     }
 
-    private FeeDto getNewFee(String ccdCaseNumber){
+    private FeeDto getNewFee(String ccdCaseNumber) {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("101.99"))
             .code("FEE312")
