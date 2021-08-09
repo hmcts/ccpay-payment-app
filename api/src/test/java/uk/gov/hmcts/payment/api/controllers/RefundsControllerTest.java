@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
+import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsServiceImpl;
 import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
@@ -25,7 +26,10 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,6 +50,10 @@ public class RefundsControllerTest {
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
         .build();
+
+    RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
+        .remissionReference("qwerty").build();
+
     @Autowired
     private WebApplicationContext webApplicationContext;
     @Autowired
@@ -123,5 +131,62 @@ public class RefundsControllerTest {
         restActions
             .post("/refund-for-payment", paymentRefundRequest)
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void createRetroRemissionRefundWithValidRequest() throws Exception {
+
+        ResponseEntity<RefundResponse> mockRefundResponse = new ResponseEntity<>(RefundResponse.RefundResponseWith()
+            .refundReference("RF-4321-4321-4321-4321")
+            .build(), HttpStatus.CREATED);
+
+        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenReturn(mockRefundResponse);
+
+        MvcResult result = restActions
+            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        RefundResponse refundResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RefundResponse.class);
+
+        assertEquals("RF-4321-4321-4321-4321", refundResponse.getRefundReference());
+
+    }
+
+
+    @Test
+    public void createRetroRemissionRefundWithInvalidRequestReturnsNonPbaPaymentException() throws Exception {
+
+        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new NonPBAPaymentException("test 123"));
+
+        MvcResult result = restActions
+            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    }
+
+    @Test
+    public void createRetroRemissionRefundWithInvalidRequestReturnsRemissionNotFoundException() throws Exception {
+
+        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new RemissionNotFoundException("test 123"));
+
+        MvcResult result = restActions
+            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    }
+
+    @Test
+    public void createRetroRemissionRefundWithInvalidRequestReturnsPaymentNotSuccessException() throws Exception {
+
+        when(paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(any(), any())).thenThrow(new PaymentNotSuccessException("test 123"));
+
+        MvcResult result = restActions
+            .post("/refund-retro-remission", retroSpectiveRemissionRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
     }
 }
