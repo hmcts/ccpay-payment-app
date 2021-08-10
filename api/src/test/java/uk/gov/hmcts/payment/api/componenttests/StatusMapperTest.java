@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
+import org.junit.Before;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -14,10 +15,16 @@ import static org.junit.Assert.assertThat;
 
 public class StatusMapperTest {
 
+    private PaymentDtoMapper mapper;
+
+    @Before
+    public void setup(){
+        mapper = new PaymentDtoMapper();
+    }
+
     @Test
     public void whenGovPayStatusIsCreated_thenShouldMappedAsInitiated() {
 
-        PaymentDtoMapper mapper = new PaymentDtoMapper();
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("created"));
 
         assertThat("Initiated", is(paymentDto.getStatus()));
@@ -27,7 +34,6 @@ public class StatusMapperTest {
     @Test
     public void whenGovPayStatusIsStarted_thenShouldMappedAsInitiated() {
 
-        PaymentDtoMapper mapper = new PaymentDtoMapper();
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("started"));
 
         assertThat("Initiated", is(paymentDto.getStatus()));
@@ -35,7 +41,6 @@ public class StatusMapperTest {
     @Test
     public void whenGovPayStatusIsError_thenShouldMappedAsInitiated() {
 
-        PaymentDtoMapper mapper = new PaymentDtoMapper();
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("error"));
 
         assertThat("Failed", is(paymentDto.getStatus()));
@@ -43,15 +48,14 @@ public class StatusMapperTest {
     @Test
     public void whenGovPayStatusIsFailed_thenShouldMappedAsInitiated() {
 
-        PaymentDtoMapper mapper = new PaymentDtoMapper();
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("failed"));
 
         assertThat("Failed", is(paymentDto.getStatus()));
     }
 
+
     public void whenGovPayStatusIsUnknown_thenShouldReturnSameStatus() {
 
-        PaymentDtoMapper mapper = new PaymentDtoMapper();
         PaymentDto paymentDto = mapper.toCardPaymentDto(getPaymentWithStatus("PBAStatus"));
 
         assertThat("PBAStatus", is(paymentDto.getStatus()));

@@ -104,6 +104,22 @@ public class CaseControllerTest extends PaymentsDataUtil {
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
     RestActions restActions;
+    MockMvc mvc;
+    List<Site> serviceReturn = Arrays.asList(Site.siteWith()
+            .sopReference("sop")
+            .siteId("AA99")
+            .name("name")
+            .service("service")
+            .id(1)
+            .build(),
+        Site.siteWith()
+            .sopReference("sop")
+            .siteId("AA001")
+            .name("name")
+            .service("service")
+            .id(1)
+            .build()
+    );
     @Autowired
     private WebApplicationContext webApplicationContext;
     @MockBean
@@ -121,7 +137,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        System.gc();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -129,22 +146,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
-
-        List<Site> serviceReturn = Arrays.asList(Site.siteWith()
-                .sopReference("sop")
-                .siteId("AA99")
-                .name("name")
-                .service("service")
-                .id(1)
-                .build(),
-            Site.siteWith()
-                .sopReference("sop")
-                .siteId("AA001")
-                .name("name")
-                .service("service")
-                .id(1)
-                .build()
-        );
 
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
     }

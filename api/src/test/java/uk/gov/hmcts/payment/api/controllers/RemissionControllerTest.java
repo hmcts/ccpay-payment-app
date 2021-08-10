@@ -70,47 +70,36 @@ public class RemissionControllerTest {
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private final static String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
-
-    private RestActions restActions;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     protected RemissionDbBackdoor remissionDbBackdoor;
-
     @Autowired
     protected PaymentDbBackdoor paymentDbBackdoor;
-
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @MockBean
-    private AuthTokenGenerator authTokenGenerator;
-
-    @Autowired
-    private SiteService<Site, String> siteServiceMock;
-
-    @MockBean
-    private ReferenceDataService referenceDataService;
-
     OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
         .serviceCode("AA001")
         .serviceDescription("DIVORCE")
         .build();
+    MockMvc mvc;
+    private RestActions restActions;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
+    @MockBean
+    private ReferenceDataService referenceDataService;
 
     @Before
     public void setUp() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -119,7 +108,7 @@ public class RemissionControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
     }
 
@@ -180,12 +169,12 @@ public class RemissionControllerTest {
             .fee(getFeeWithOutCCDCaseNumber())
             .build();
 
-        MvcResult result =  restActions
+        MvcResult result = restActions
             .post("/remissions", remissionRequest)
             .andReturn();
 
         RemissionDto remissionResultDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
-        assertEquals(remissionRequest.getCcdCaseNumber(),remissionResultDto.getFee().getCcdCaseNumber());
+        assertEquals(remissionRequest.getCcdCaseNumber(), remissionResultDto.getFee().getCcdCaseNumber());
     }
 
     @Test
@@ -707,7 +696,7 @@ public class RemissionControllerTest {
     @Transactional
     public void createRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         MvcResult result = restActions
@@ -747,7 +736,7 @@ public class RemissionControllerTest {
     @Transactional
     public void createRemissionWithoutFeesShouldBeSuccessfulTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
@@ -819,7 +808,7 @@ public class RemissionControllerTest {
             .fee(getFee())
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
         restActions
             .post("/remissions", remission)
             .andExpect(status().isNotFound())
@@ -838,7 +827,7 @@ public class RemissionControllerTest {
             .fee(getFee())
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
         restActions
             .post("/remissions", remission)
             .andExpect(status().isGatewayTimeout())
@@ -906,7 +895,7 @@ public class RemissionControllerTest {
         paymentFeeLink2.getApportions().get(0).setFeeId(paymentFeeLink2.getFees().get(0).getId());
         paymentFeeLink2.getApportions().get(0).setPaymentId(paymentFeeLink2.getPayments().get(0).getId());
         // Apply retro Remission
-        RetroRemissionRequest retroRemissionRequest =getRetroRemissionRequestForPayment(true);
+        RetroRemissionRequest retroRemissionRequest = getRetroRemissionRequestForPayment(true);
         retroRemissionRequest.setHwfAmount(new BigDecimal(5.00));
         MvcResult result = restActions
             .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/retro-remission",
@@ -932,7 +921,7 @@ public class RemissionControllerTest {
         paymentFeeLink2.getApportions().get(0).setFeeId(paymentFeeLink2.getFees().get(0).getId());
         paymentFeeLink2.getApportions().get(0).setPaymentId(paymentFeeLink2.getPayments().get(0).getId());
         // Apply retro Remission
-        RetroRemissionRequest retroRemissionRequest =getRetroRemissionRequestForPayment(true);
+        RetroRemissionRequest retroRemissionRequest = getRetroRemissionRequestForPayment(true);
         MvcResult result = restActions
             .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/retro-remission",
                 retroRemissionRequest)
@@ -984,7 +973,7 @@ public class RemissionControllerTest {
             .build();
     }
 
-    private FeeDto getNewFee(){
+    private FeeDto getNewFee() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250"))
             .code("FEE312")
@@ -1046,7 +1035,7 @@ public class RemissionControllerTest {
             .caseReference("Reference" + number)
             .ccdCaseNumber("ccdCaseNumber" + number)
             .description("Test payments statuses for " + number)
-            .paymentMethod(new PaymentMethod("payment by account",""))
+            .paymentMethod(new PaymentMethod("payment by account", ""))
             .serviceType("PROBATE")
             .currency("GBP")
             .siteId("AA07")

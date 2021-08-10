@@ -71,6 +71,11 @@ public class OrderControllerTest {
         .ccdCaseNumber("8689869686968696")
         .fees(Collections.singletonList(getFee()))
         .build();
+    MockMvc mvc;
+    OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+        .serviceCode("AA001")
+        .serviceDescription("DIVORCE")
+        .build();
     @Autowired
     private WebApplicationContext webApplicationContext;
     @MockBean
@@ -94,8 +99,7 @@ public class OrderControllerTest {
     @Before
     @Transactional
     public void setup() {
-
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -103,11 +107,6 @@ public class OrderControllerTest {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
-
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 

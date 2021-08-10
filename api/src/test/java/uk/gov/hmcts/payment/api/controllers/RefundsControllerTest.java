@@ -53,7 +53,7 @@ public class RefundsControllerTest {
 
     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
         .remissionReference("qwerty").build();
-
+    MockMvc mvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
     @Autowired
@@ -72,7 +72,7 @@ public class RefundsControllerTest {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
