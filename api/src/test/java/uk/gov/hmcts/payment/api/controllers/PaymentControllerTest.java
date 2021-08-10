@@ -1,6 +1,8 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ff4j.services.domain.FeatureApiBean;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -26,6 +28,8 @@ import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.contract.UpdatePaymentRequest;
+import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentAllocation;
 import uk.gov.hmcts.payment.api.model.PaymentAllocationStatus;
@@ -52,6 +56,9 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -300,8 +307,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             "}";
     }
 
-    // Commented below line as these tests go unuse beacuse of new reconcile payment api
-/*
+
     @Test
     @Transactional
     public void searchAllPayments_withValidBetweenDates_shouldReturn200() throws Exception {
@@ -1534,7 +1540,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
         verify(callbackServiceImplMock, times(0)).callback(payment.getPaymentLink(), payment);
     }
-*/
+
     @Test
     @Transactional
     public void retrievePaymentByReference() throws Exception {
