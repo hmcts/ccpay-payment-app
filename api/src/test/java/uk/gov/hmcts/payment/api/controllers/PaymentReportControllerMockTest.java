@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,8 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import uk.gov.hmcts.payment.api.controllers.PaymentReportController;
-import uk.gov.hmcts.payment.api.controllers.RestErrorHandler;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.reports.PaymentsReportFacade;
 import uk.gov.hmcts.payment.api.scheduler.Clock;
@@ -54,6 +53,11 @@ public class PaymentReportControllerMockTest {
     @Before
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new RestErrorHandler()).build();
+    }
+
+    @After
+    public void tearDown() {
+        this.mockMvc = null;
     }
 
     @Test

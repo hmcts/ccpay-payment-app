@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,8 +88,12 @@ public class PaymentRefundsServiceTest {
 
     @Before
     public void setup() {
-        System.gc();
         header.put("Authorization", Collections.singletonList("Bearer 131313"));
+    }
+
+    @After
+    public void tearDown() {
+        header.clear();
     }
 
     @Test

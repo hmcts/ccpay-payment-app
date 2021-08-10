@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.validators;
 
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,6 +39,11 @@ public class DuplicatePaymentValidatorTest {
     @Before
     public void setUp() {
         validator = new DuplicatePaymentValidator(duplicateSpecification, TIME_INTERVAL, paymentFeeLinkRepository);
+    }
+
+    @After
+    public void tearDown() {
+        validator = null;
     }
 
     @Test

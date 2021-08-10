@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -113,6 +114,12 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         restActions
             .withAuthorizedService("divorce")
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        mvc = null;
     }
 
     @Test

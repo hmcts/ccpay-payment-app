@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.unit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
 import org.ff4j.FF4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,28 +25,28 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class CallbackServiceImplTest {
 
-    @Mock
-    private TopicClientProxy topicClient;
-
-    @Mock
-    private FF4j ff4j;
-
-    private CallbackService callbackService;
-
-    @Mock
-    private PaymentDtoMapper paymentDtoMapper;
-
-    private ObjectMapper objectMapper = new ObjectMapper();
-
     PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
         .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
         .fees(PaymentsDataUtil.getFeesData())
         .build();
+    @Mock
+    private TopicClientProxy topicClient;
+    @Mock
+    private FF4j ff4j;
+    private CallbackService callbackService;
+    @Mock
+    private PaymentDtoMapper paymentDtoMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     public void init() {
         callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, ff4j);
         when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
+    }
+
+    @After
+    public void tearDown() {
+        callbackService = null;
     }
 
     @Test

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,6 +100,11 @@ public class FeesControllerTest {
 
     }
 
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
+    }
 
     @Test
     public void deleteFeesTest() throws Exception {
