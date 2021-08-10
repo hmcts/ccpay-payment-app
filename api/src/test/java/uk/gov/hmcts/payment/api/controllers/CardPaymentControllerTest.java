@@ -86,44 +86,31 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
-
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
-
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @Autowired
-    private ServiceResolverBackdoor serviceRequestAuthorizer;
-
-    @Autowired
-    private UserResolverBackdoor userRequestAuthorizer;
-
-    @Autowired
-    private PaymentDbBackdoor db;
-
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
-
-    private RestActions restActions;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Autowired
     ReferenceDataService referenceDataService;
-
-    @MockBean
-    private AuthTokenGenerator authTokenGenerator;
-
     @InjectMocks
     CardPaymentController cardPaymentController;
-
+    MockMvc mvc;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+    @Autowired
+    private ServiceResolverBackdoor serviceRequestAuthorizer;
+    @Autowired
+    private UserResolverBackdoor userRequestAuthorizer;
+    @Autowired
+    private PaymentDbBackdoor db;
+    private RestActions restActions;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-
     @MockBean
     @Qualifier("restTemplatePaymentGroup")
     private RestTemplate restTemplatePaymentGroup;
@@ -134,7 +121,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -238,7 +225,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .andReturn();
 
         assertEquals(resultWithEmptyValues.getResponse().getContentAsString(), "eitherIdOrTypeRequired: Either of Site ID or Case Type is mandatory as part of the request.");
- }
+    }
 
     @Test
     public void createCardPaymentWithCaseTypeReturn404Test() throws Exception {
@@ -246,7 +233,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplatePaymentGroup.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            }))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         restActions
             .post("/card-payments", cardPaymentRequestWithCaseType())
@@ -259,7 +247,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplatePaymentGroup.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            }))).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
 
         restActions
             .post("/card-payments", cardPaymentRequestWithCaseType())
@@ -268,7 +257,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     }
 
     @Test
-    public void createCardPaymentWithCaseTypeReturnSuccess() throws Exception{
+    public void createCardPaymentWithCaseTypeReturnSuccess() throws Exception {
 
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("VPAA")
@@ -282,7 +271,8 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplatePaymentGroup.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            }))).thenReturn(responseEntity);
 
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
@@ -686,7 +676,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
-        assertEquals(paymentDto.getStatus() , "Initiated");
+        assertEquals(paymentDto.getStatus(), "Initiated");
         assertNotNull(paymentFeeLink);
     }
 
@@ -864,7 +854,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
@@ -924,7 +914,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
@@ -984,7 +974,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
 
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
@@ -1043,7 +1033,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     public void createCardPaymentWithMultipleFee_SurplusPayment_When_Apportion_Flag_Is_On() throws Exception {
 
         String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         stubFor(post(urlPathMatching("/v1/payments"))
             .willReturn(aResponse()
                 .withStatus(201)
@@ -1143,6 +1133,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
     private CardPaymentRequest cardPaymentRequestWithCaseReference() throws Exception {
         return objectMapper.readValue(jsonWithCaseReference().getBytes(), CardPaymentRequest.class);
     }
+
     private CardPaymentRequest cardPaymentRequestWithCaseType() throws Exception {
         return objectMapper.readValue(requestJsonWithCaseType().getBytes(), CardPaymentRequest.class);
     }

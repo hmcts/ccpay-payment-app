@@ -89,6 +89,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         .provider("pci pal")
         .channel("telephony")
         .build();
+    MockMvc mvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
     @Autowired
@@ -106,7 +107,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, null, objectMapper);
 
         restActions
