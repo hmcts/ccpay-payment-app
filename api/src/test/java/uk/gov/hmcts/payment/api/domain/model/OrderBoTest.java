@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
@@ -22,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrderBoTest {
 
     String orderReference = "2200-1619524583862";
