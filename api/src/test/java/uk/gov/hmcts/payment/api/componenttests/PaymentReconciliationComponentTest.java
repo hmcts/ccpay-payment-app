@@ -1,10 +1,10 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.componenttests.TestUtil;
@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentReconciliationComponentTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
@@ -35,11 +36,6 @@ public class PaymentReconciliationComponentTest extends TestUtil {
     @Before
     public void setUp() {
         paymentsDataUtil = new PaymentsDataUtil();
-    }
-
-    @After
-    public void tearDown() {
-        paymentsDataUtil = null;
     }
 
     @Test

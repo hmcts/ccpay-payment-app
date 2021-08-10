@@ -7,7 +7,6 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -69,6 +69,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
@@ -109,12 +110,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
-    }
-
-    @After
-    public void tearDown() {
-        this.restActions = null;
-        mvc = null;
     }
 
     @Test

@@ -2,7 +2,6 @@ package uk.gov.hmcts.payment.api.componenttests;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.model.FeePayApportion;
 import uk.gov.hmcts.payment.api.model.FeePayApportion.FeePayApportionBuilder;
 import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
@@ -16,7 +15,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import java.util.List;
 
 @Component
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentDbBackdoor {
 
     @Autowired
