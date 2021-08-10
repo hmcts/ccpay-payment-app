@@ -77,6 +77,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Autowired
     protected PaymentDbBackdoor db;
     RestActions restActions;
+    MockMvc mvc;
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
     @Autowired
@@ -92,7 +93,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -292,7 +293,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             "}";
     }
 
-// Commented below line as these tests go unuse beacuse of new reconcile payment api
+    // Commented below line as these tests go unuse beacuse of new reconcile payment api
 /*
     @Test
     @Transactional

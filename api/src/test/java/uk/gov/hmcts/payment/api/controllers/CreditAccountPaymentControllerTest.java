@@ -61,7 +61,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -105,11 +104,11 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
-
+    MockMvc mvc;
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions

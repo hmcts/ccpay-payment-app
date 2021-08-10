@@ -79,9 +79,10 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
         return new CustomResultMatcher(objectMapper);
     }
 
+    MockMvc mvc;
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+         mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions

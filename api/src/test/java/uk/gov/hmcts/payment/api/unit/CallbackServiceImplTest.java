@@ -37,6 +37,11 @@ public class CallbackServiceImplTest {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+        .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
+        .fees(PaymentsDataUtil.getFeesData())
+        .build();
+
     @Before
     public void init() {
         callbackService = new CallbackServiceImpl(paymentDtoMapper, objectMapper, topicClient, ff4j);
@@ -45,11 +50,6 @@ public class CallbackServiceImplTest {
 
     @Test
     public void testThatWhenCallbackUriIsProvidedServiceBusIsCalled() throws Exception {
-
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
-            .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
-            .fees(PaymentsDataUtil.getFeesData())
-            .build();
 
         when(paymentDtoMapper.toResponseDto(paymentFeeLink, paymentFeeLink.getPayments().get(0))).thenReturn(new PaymentDto());
 
@@ -61,11 +61,6 @@ public class CallbackServiceImplTest {
 
     @Test
     public void testThatWhenNoCallbackUrlIsProvidedBusIsNotCalled() {
-
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
-            .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
-            .fees(PaymentsDataUtil.getFeesData())
-            .build();
 
         paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
 

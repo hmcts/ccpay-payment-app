@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedExc
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
-import uk.gov.hmcts.payment.api.controllers.AccountController;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceInaccessibleException;
@@ -32,19 +31,17 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class AccountControllerTest {
 
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
+    AccountDto expectedDto = new AccountDto("PBA4324", "accountName", new BigDecimal(100),
+        new BigDecimal(100), AccountStatus.ACTIVE, new Date());
     @Mock
     private AccountService<AccountDto, String> accountServiceMock;
-
     @InjectMocks
     private AccountController accountController;
 
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
-
     @Test
     public void gettingExistingAccountNumberReturnsAccountDetails() {
-        AccountDto expectedDto = new AccountDto("PBA1234", "accountName", new BigDecimal(100),
-            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
 
         //When Account Matches
         when(accountServiceMock.retrieve(eq("PBA1234"))).thenReturn(expectedDto);
@@ -61,8 +58,6 @@ public class AccountControllerTest {
 
     @Test(expected = AccountNotFoundException.class)
     public void gettingNonExistingAccountNumberThrowsAccountNotFoundException() {
-        AccountDto expectedDto = new AccountDto("PBA4321", "accountName", new BigDecimal(100),
-            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
 
         //For Same account return account not found
         when(accountServiceMock.retrieve(eq("PBA4321"))).thenThrow(HttpClientErrorException.class);
@@ -87,8 +82,6 @@ public class AccountControllerTest {
 
     @Test(expected = LiberataServiceInaccessibleException.class)
     public void getLiberataServiceInaccessibleException() {
-        AccountDto expectedDto = new AccountDto("PBA4324", "accountName", new BigDecimal(100),
-            new BigDecimal(100), AccountStatus.ACTIVE, new Date());
 
         //For Same account return Auth exception
         when(accountServiceMock.retrieve(eq("PBA4324"))).thenThrow(OAuth2AccessDeniedException.class);

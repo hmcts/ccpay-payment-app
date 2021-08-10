@@ -56,36 +56,27 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 public class PaymentRecordControllerTest {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
-
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
+    MockMvc mvc;
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     private SiteService<Site, String> siteServiceMock;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
     private RestActions restActions;
-
     @Autowired
     private ObjectMapper objectMapper;
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
+    private CheckDigit cd;
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
-
-    private CheckDigit cd;
 
     @SneakyThrows
     private String contentsOf(String fileName) {
@@ -99,7 +90,7 @@ public class PaymentRecordControllerTest {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
         cd = new LuhnCheckDigit();
 
@@ -200,7 +191,7 @@ public class PaymentRecordControllerTest {
 
 
         MvcResult result = restActions
-            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR"+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR" + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
