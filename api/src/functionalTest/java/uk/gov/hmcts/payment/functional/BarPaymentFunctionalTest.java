@@ -276,7 +276,7 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
             assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("cheque");
             assertThat(paymentsResponse.getPayments().get(0).getAmount()).isIn(new BigDecimal("0.10"), new BigDecimal("0.01"), new BigDecimal("100.00"), new BigDecimal("550.00"));
-            assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
+            assertThat(paymentsResponse.getPayments().get(0).getChannel()).isIn("digital bar", "bulk scan"));
             assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("pending");
             assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
             assertThat(paymentsResponse.getPayments().get(0).getDateCreated()).isNotNull();
