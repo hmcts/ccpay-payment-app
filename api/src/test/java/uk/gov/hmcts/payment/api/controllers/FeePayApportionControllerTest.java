@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -87,6 +88,12 @@ public class FeePayApportionControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
     }
 
     @Test

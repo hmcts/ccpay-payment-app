@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,9 +22,24 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 public class PaymentReconciliationComponentTest extends TestUtil {
     private PaymentsDataUtil paymentsDataUtil;
 
+    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
+        return Specification
+            .where(isBetween(fromDate, toDate));
+    }
+
+    private static Specification isBetween(Date startDate, Date endDate) {
+
+        return ((root, query, cb) -> cb.between(root.get("dateCreated"), startDate, endDate));
+    }
+
     @Before
     public void setUp() {
         paymentsDataUtil = new PaymentsDataUtil();
+    }
+
+    @After
+    public void tearDown() {
+        paymentsDataUtil = null;
     }
 
     @Test
@@ -81,17 +97,6 @@ public class PaymentReconciliationComponentTest extends TestUtil {
 
         assertNotNull(paymentFeeLink);
         assertEquals(paymentFeeLinks.size(), 0);
-    }
-
-
-    private static Specification findByDatesBetween(Date fromDate, Date toDate) {
-        return Specification
-            .where(isBetween(fromDate, toDate));
-    }
-
-    private static Specification isBetween(Date startDate, Date endDate) {
-
-        return ((root, query, cb) -> cb.between(root.get("dateCreated"), startDate, endDate));
     }
 
 }

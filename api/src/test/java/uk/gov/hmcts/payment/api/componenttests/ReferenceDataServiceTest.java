@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,6 +67,11 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         //Service token
         header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
         header.put("Content-Type", Collections.singletonList("application/json"));
+    }
+
+    @After
+    public void tearDown() {
+        header.clear();
     }
 
     @Test

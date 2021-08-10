@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -18,8 +19,13 @@ public class StatusMapperTest {
     private PaymentDtoMapper mapper;
 
     @Before
-    public void setup(){
+    public void setup() {
         mapper = new PaymentDtoMapper();
+    }
+
+    @After
+    public void tearDown() {
+        mapper = null;
     }
 
     @Test
@@ -38,6 +44,7 @@ public class StatusMapperTest {
 
         assertThat("Initiated", is(paymentDto.getStatus()));
     }
+
     @Test
     public void whenGovPayStatusIsError_thenShouldMappedAsInitiated() {
 
@@ -45,6 +52,7 @@ public class StatusMapperTest {
 
         assertThat("Failed", is(paymentDto.getStatus()));
     }
+
     @Test
     public void whenGovPayStatusIsFailed_thenShouldMappedAsInitiated() {
 

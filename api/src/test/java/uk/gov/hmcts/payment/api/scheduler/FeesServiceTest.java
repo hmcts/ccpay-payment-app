@@ -1,11 +1,11 @@
 package uk.gov.hmcts.payment.api.scheduler;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.fees2.register.api.contract.FeeVersionDto;
@@ -36,34 +36,38 @@ public class FeesServiceTest {
     @Mock
     private FeesRegisterClient feesRegisterClient;
 
-    private List<PaymentDto>  payments = Arrays.asList(PaymentDto.payment2DtoWith()
+    private List<PaymentDto> payments = Arrays.asList(PaymentDto.payment2DtoWith()
         .fees(Arrays.asList(FeeDto.feeDtoWith()
             .code("X0001")
             .version("1").build())).build());
 
 
     @Before
-    public void setUp()  {
+    public void setUp() {
         feesRegisterAdapter = new FeesRegisterAdapter(feesRegisterClient);
         feesService = new FeesService(feesRegisterAdapter);
-        }
+    }
 
-
+    @After
+    public void tearDown() {
+        feesRegisterAdapter = null;
+        feesService = null;
+    }
 
     @Test
-    public void shouldGetFeesDtoMap()  {
+    public void shouldGetFeesDtoMap() {
         // given
 
         // when
         feesService.getFeesDtoMap();
 
         // then
-        verify(feesRegisterClient,times(1)).getFeesDataAsMap();
+        verify(feesRegisterClient, times(1)).getFeesDataAsMap();
 
     }
 
     @Test
-    public void shouldGetEmptyFeeVersion_whenClientThrowsException()  {
+    public void shouldGetEmptyFeeVersion_whenClientThrowsException() {
         // given
         given(feesRegisterClient.getFeesDataAsMap()).willThrow(new RuntimeException());
         // when
@@ -74,9 +78,9 @@ public class FeesServiceTest {
     }
 
     @Test
-    public void shouldGetEmptyFeeVersion_whenRuntimeExceptionThrownDueToPartialData()  {
+    public void shouldGetEmptyFeeVersion_whenRuntimeExceptionThrownDueToPartialData() {
         // given feeCode without currentVersion
-        Map<String,Fee2Dto>  versionMap = ImmutableMap.of("2", fee2DtoWith().code("FEE001").build());
+        Map<String, Fee2Dto> versionMap = ImmutableMap.of("2", fee2DtoWith().code("FEE001").build());
         given(feesRegisterClient.getFeesDataAsMap()).willReturn(Optional.of(versionMap));
         // when
         Optional<FeeVersionDto> feeVersion = feesService.getFeeVersion("FEE001", "2");

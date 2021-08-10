@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.reports;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -8,15 +9,14 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
 
 import java.util.Date;
 import java.util.Map;
@@ -42,19 +42,25 @@ public class PaymentsReportFacadeTest {
     private PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig = new PbaDivorcePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFplPaymentReportConfig pbaFplPaymentReportConfig = new PbaFplPaymentReportConfig("from", null, "subject", "message", true);
     private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
-    private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig= new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
+    private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig = new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
+
+    Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
+        .put(PaymentReportType.CARD, cardPaymentReportConfig)
+        .put(PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig)
+        .put(PaymentReportType.DIGITAL_BAR, barPaymentReportConfig)
+        .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
+        .put(PaymentReportType.PBA_DIVORCE, pbaDivorcePaymentReportConfig)
+        .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
+        .put(PaymentReportType.PBA_FINREM, pbaFinremPaymentReportConfig).build();
 
     @Before
     public void setUp() {
-        Map<PaymentReportType, PaymentReportConfig> map = ImmutableMap.<PaymentReportType, PaymentReportConfig>builder()
-            .put(PaymentReportType.CARD, cardPaymentReportConfig)
-            .put(PaymentReportType.PBA_CMC, pbaCmcPaymentReportConfig)
-            .put(PaymentReportType.DIGITAL_BAR,barPaymentReportConfig)
-            .put(PaymentReportType.PBA_FPL, pbaFplPaymentReportConfig)
-            .put(PaymentReportType.PBA_DIVORCE,pbaDivorcePaymentReportConfig)
-            .put(PaymentReportType.PBA_PROBATE, pbaProbatePaymentReportConfig)
-            .put(PaymentReportType.PBA_FINREM,pbaFinremPaymentReportConfig).build();
         facade = new PaymentsReportFacade(reportService, map);
+    }
+
+    @After
+    public void tearDown() {
+        facade = null;
     }
 
     @Test
@@ -92,7 +98,7 @@ public class PaymentsReportFacadeTest {
 
         // given & when
 
-        facade.generateCsvAndSendEmail(fromDate, toDate, PBA,"Specified Money Claims");
+        facade.generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims");
 
         verify(reportService).generateCsvAndSendEmail(fromDate, toDate, PBA, "Specified Money Claims", pbaCmcPaymentReportConfig);
 
@@ -105,10 +111,10 @@ public class PaymentsReportFacadeTest {
         Date toDate = new Date();
 
         exception.expect(UnsupportedOperationException.class);
-        facade.generateCsvAndSendEmail(fromDate, toDate, null,null);
+        facade.generateCsvAndSendEmail(fromDate, toDate, null, null);
     }
 
-        @Test
+    @Test
     public void shouldThrowExceptionForEmptyValuesForMethodTypeAndService() {
         exception.expect(UnsupportedOperationException.class);
 

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import org.joda.time.MutableDateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
@@ -36,6 +37,11 @@ public class DelegatingPaymentServiceTest extends TestUtil {
             .payments(paymentsDataUtil.getCreditAccountPaymentsData())
             .fees(paymentsDataUtil.getFeesData())
             .build());
+    }
+
+    @After
+    public void tearDown() {
+        paymentsDataUtil = null;
     }
 
     @Test

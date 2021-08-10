@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -137,7 +138,6 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        System.gc();
         mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
@@ -150,6 +150,11 @@ public class CaseControllerTest extends PaymentsDataUtil {
         when(siteServiceMock.getAllSites()).thenReturn(serviceReturn);
     }
 
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
+    }
     @Test
     @Transactional
     public void searchAllPaymentsWithCcdCaseNumberShouldReturnRequiredFieldsForVisualComponent() throws Exception {

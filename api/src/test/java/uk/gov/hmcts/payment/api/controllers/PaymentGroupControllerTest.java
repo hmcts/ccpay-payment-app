@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.math.RandomUtils;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -158,6 +159,13 @@ public class PaymentGroupControllerTest {
         when(referenceDataService.getSiteIDs()).thenReturn(serviceReturn);
 
     }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        mvc = null;
+    }
+
 
     @Test
     @Transactional
