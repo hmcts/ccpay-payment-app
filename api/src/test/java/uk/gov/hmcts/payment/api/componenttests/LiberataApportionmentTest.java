@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,51 +51,36 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class LiberataApportionmentTest extends PaymentsDataUtil {
 
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormat.forPattern("dd-MM-yyyy");
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_TIME_FORMAT_T_HH_MM_SS = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     @MockBean
     protected CallbackServiceImpl callbackServiceImplMock;
-
     @Autowired
     protected PaymentDbBackdoor db;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
     RestActions restActions;
-
+    String startDate;
+    String endDate;
+    String paymentReference = "RC-1519-9028-1909-1435";
+    Payment payment;
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
-
-    private static final DateTimeFormatter DATE_FORMAT_DD_MM_YYYY = DateTimeFormat.forPattern("dd-MM-yyyy");
-
-    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-
-    private static final DateTimeFormatter DATE_TIME_FORMAT_T_HH_MM_SS = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
-
-    String startDate;
-    String endDate;
-    String paymentReference = "RC-1519-9028-1909-1435";
-
-    Payment payment;
 
     @Before
     public void setup() throws Exception {
@@ -110,11 +96,18 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .withReturnUrl("https://www.gooooogle.com");
     }
 
+    @After
+    public void tearDown() {
+        startDate = null;
+        endDate = null;
+        this.restActions = null;
+    }
+
     @Test
     @Transactional
     public void shouldCheckApportionNewFieldsNotPopulatedWhenApportionFeatureIsToggledOffForBulkScanPayments() throws Exception {
         populatePaymentToDbForExelaPayments(paymentReference);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -139,7 +132,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionNewFieldsPopulatedWhenApportionFeatureIsToggledONForBulkScanPayments() throws Exception {
         populatePaymentToDbForExelaPayments(paymentReference);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -164,8 +157,8 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionNewFieldsNotPopulatedWhenApportionFeatureIsToggledOffForCardPayments() throws Exception {
 
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -189,8 +182,8 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionNewFieldsPopulatedWhenApportionFeatureIsToggledONForCardPayments() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -214,9 +207,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledONForCardPayments() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetails(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
@@ -238,9 +231,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenCallSurplusAmountIsNotNull() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
@@ -262,8 +255,8 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWithoutApportionDetails() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
@@ -285,9 +278,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenFeeIdIsDifferent() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithDifferentFeeId(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
@@ -310,9 +303,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenApportionFlagToggledOFFForCardPayments() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetails(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -335,7 +328,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsBeforeApportionDate() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         List<FeePayApportion> feePayApportionList = new ArrayList<>();
         FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
             .id(1)
@@ -346,7 +339,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .feeAmount(BigDecimal.valueOf(100))
             .build();
         feePayApportionList.add(feePayApportion);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.05.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -369,9 +362,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsEqualToApportionDate() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.06.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -394,9 +387,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsAfterApportionDate() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("05.06.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -419,9 +412,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsDigitalBar() throws Exception {
-        Payment payment =populateBarCashPaymentToDbForApportionment("1");
+        Payment payment = populateBarCashPaymentToDbForApportionment("1");
         populateApportionDetailsWithCallSurplusAmount(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("05.06.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -444,9 +437,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsNull() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("05.06.2020"));
         payment.setPaymentChannel(null);
         restActions
@@ -470,9 +463,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsNullAndApportionmentFlagIsFalse() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
         payment.setDateCreated(parseDate("05.06.2020"));
         payment.setPaymentChannel(null);
         restActions
@@ -496,9 +489,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsNullAndApportionmentFlagIsFalseAndHistoricalCase() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(false);
         payment.setDateCreated(parseDate("01.05.2020"));
         payment.setPaymentChannel(null);
         restActions
@@ -522,9 +515,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsNullAndApportionmentFlagIsTrueAndHistoricalCase() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.05.2020"));
         payment.setPaymentChannel(null);
         restActions
@@ -548,8 +541,8 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsTelephonyAndApportionmentFlagIsTrue() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("05.06.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -572,9 +565,9 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsTelephonyAndFeeIdIsDifferent() throws Exception {
-        payment =populateTelephonyPaymentToDb(paymentReference,false);
+        payment = populateTelephonyPaymentToDb(paymentReference, false);
         populateApportionDetailsWithDifferentFeeId(payment);
-        when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
+        when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
         payment.setDateCreated(parseDate("05.06.2020"));
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")

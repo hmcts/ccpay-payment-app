@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,6 +64,11 @@ public class PbaControllerTest extends PaymentsDataUtil {
             .withReturnUrl("https://www.gooooogle.com");
     }
 
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
+    }
     @Test
     @Transactional
     public void searchCreditPayments_withPbaNumber() throws Exception {

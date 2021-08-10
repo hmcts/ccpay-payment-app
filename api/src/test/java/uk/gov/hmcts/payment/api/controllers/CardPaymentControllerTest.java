@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import org.apache.commons.lang3.RandomUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -130,6 +131,12 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
     }
 
     @Test

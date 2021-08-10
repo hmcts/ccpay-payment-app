@@ -4,6 +4,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -110,6 +111,12 @@ public class OrderControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
     }
 
     @Test

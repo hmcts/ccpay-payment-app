@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.math.RandomUtils;
 import org.assertj.core.util.Files;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,6 +106,12 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
         Mockito.reset(accountService);
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        mvc = null;
     }
 
     @Test
