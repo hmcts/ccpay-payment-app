@@ -9,6 +9,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
@@ -26,6 +27,7 @@ import static uk.gov.hmcts.payment.api.util.PaymentMethodType.CARD;
 import static uk.gov.hmcts.payment.api.util.PaymentMethodType.PBA;
 
 @RunWith(MockitoJUnitRunner.class)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentsReportFacadeTest {
 
     @Rule
