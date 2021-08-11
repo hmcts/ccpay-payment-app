@@ -96,30 +96,24 @@ public class RemissionServiceImpl implements RemissionService {
     @Transactional
     public Remission  createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
 
-        // Order -> OrderItem(OrderFee) , OrderItem(OrderFee) -> Remission , OrderItem(OrderFee) -> Apportion , Payment -> Apportionment
-        // Order
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
 
-        // Order -> OrderItem(OrderFee)
-        PaymentFee fee =  paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
+         PaymentFee fee =  paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
             .findAny()
             .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists.")) ;
 
-        // Single remission to a fee
         if(!fee.getRemissions().isEmpty()){
            throw new RemissionAlreadyExistException("Remission is already exist for FeeId "+feeId);
         }
 
-        //OrderItem(OrderFee) -> Apportion
         List<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(feeId)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Cannot find apportionment entry with feeId "+feeId));
 
-        // Payment -> Apportionment
-        Optional<Payment> payment;
+        Optional<Payment> payment=null;
         if(feePayApportion.size() == 1){
             payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
-            if (payment.isPresent() &&
+            if (payment.isPresent() && payment.get()!=null &&
                 payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
                 payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")){
                 fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()).subtract(payment.get().getAmount()));
@@ -131,7 +125,7 @@ public class RemissionServiceImpl implements RemissionService {
         }
 
         String remissionReference = referenceUtil.getNext("RM");
-        Remission remission = buildRemissionForPayment(payment.get(),  fee,  remissionServiceRequest);
+        Remission remission = buildRemissionForPayment(payment.get(), fee,  remissionServiceRequest);
         remission.setRemissionReference(remissionReference);
         remission.setSiteId(paymentFeeLink.getOrgId()!=null ? paymentFeeLink.getOrgId() : "");
         fee.setRemissions(Lists.newArrayList(remission));
