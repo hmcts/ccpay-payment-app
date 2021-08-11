@@ -124,10 +124,9 @@ public class RemissionServiceImpl implements RemissionService {
             throw new InvalidPaymentGroupReferenceException("This fee "+feeId+" is paid by more than one payment. Hence not eligible for remission");
         }
 
-        String remissionReference = referenceUtil.getNext("RM");
         Remission remission = buildRemissionForPayment(paymentFeeLink.getCaseReference(), fee,  remissionServiceRequest);
-        remission.setRemissionReference(remissionReference);
-        remission.setSiteId(paymentFeeLink.getOrgId()!=null ? paymentFeeLink.getOrgId() : "");
+        remission.setRemissionReference(referenceUtil.getNext("RM"));
+        remission.setSiteId(paymentFeeLink.getOrgId());
         fee.setRemissions(Lists.newArrayList(remission));
         paymentFeeLink.setRemissions(Lists.newArrayList(remission));
         return remission;
