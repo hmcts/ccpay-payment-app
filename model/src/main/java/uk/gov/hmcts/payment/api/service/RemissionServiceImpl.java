@@ -110,10 +110,10 @@ public class RemissionServiceImpl implements RemissionService {
         List<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(feeId)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Cannot find apportionment entry with feeId "+feeId));
 
-        Optional<Payment> payment=null;
+        Optional<Payment> payment;
         if(feePayApportion.size() == 1){
             payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
-            if (payment.isPresent() && payment.get()!=null &&
+            if (payment.isPresent() &&
                 payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
                 payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")){
                 fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()).subtract(payment.get().getAmount()));
@@ -125,7 +125,7 @@ public class RemissionServiceImpl implements RemissionService {
         }
 
         String remissionReference = referenceUtil.getNext("RM");
-        Remission remission = buildRemissionForPayment(payment.get(), fee,  remissionServiceRequest);
+        Remission remission = buildRemissionForPayment(paymentFeeLink.getCaseReference(), fee,  remissionServiceRequest);
         remission.setRemissionReference(remissionReference);
         remission.setSiteId(paymentFeeLink.getOrgId()!=null ? paymentFeeLink.getOrgId() : "");
         fee.setRemissions(Lists.newArrayList(remission));
@@ -145,13 +145,13 @@ public class RemissionServiceImpl implements RemissionService {
             .build();
     }
 
-    private Remission buildRemissionForPayment(Payment payment, PaymentFee paymentFee, RetroRemissionServiceRequest remissionServiceRequest) {
+    private Remission buildRemissionForPayment(String caseReference, PaymentFee paymentFee, RetroRemissionServiceRequest remissionServiceRequest) {
         return Remission.remissionWith()
             .hwfReference(remissionServiceRequest.getHwfReference())
             .hwfAmount(remissionServiceRequest.getHwfAmount())
             //.beneficiaryName(remissionServiceRequest.getBeneficiaryName())
             .ccdCaseNumber(paymentFee.getCcdCaseNumber())
-            .caseReference(payment.getCaseReference())
+            .caseReference(caseReference)
             .build();
     }
 }
