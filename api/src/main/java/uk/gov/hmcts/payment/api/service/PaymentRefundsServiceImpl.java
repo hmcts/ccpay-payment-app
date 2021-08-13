@@ -78,6 +78,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
             .refundAmount(payment.getAmount())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
             .build();
 
@@ -120,6 +121,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                     .paymentReference(paymentReference) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
+                    .ccdCaseNumber(payment.get().getCcdCaseNumber())
                     .refundReason("RR004-Retro Remission")  //Refund reason category would be other
                     .build();
                 return postToRefundService(refundRequest, headers);
@@ -156,7 +158,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private HttpEntity<RefundRequestDto> createEntity(MultiValueMap<String, String> headers, RefundRequestDto refundRequest) {
         MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
-        String serviceAuthorisation = authTokenGenerator.generate();
+        String serviceAuthorisation =" authTokenGenerator.generate()";
+//        String serviceAuthorisation = authTokenGenerator.generate();
         headerMultiValueMap.put("Content-Type", headers.get("content-type"));
         String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
         headerMultiValueMap.put("Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
