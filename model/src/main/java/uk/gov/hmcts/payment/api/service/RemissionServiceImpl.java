@@ -115,7 +115,7 @@ public class RemissionServiceImpl implements RemissionService {
             .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists.")) ;
         if(!fee.getRemissions().isEmpty()){
             throw new RemissionAlreadyExistException("Remission is already exist for FeeId "+feeId);
-        }else if(fee.getFeeAmount().compareTo(remissionServiceRequest.getHwfAmount())==-1){
+        }else if(fee.getCalculatedAmount().compareTo(remissionServiceRequest.getHwfAmount())==-1){
             throw new RemissionNotFoundException("Hwf Amount should not be more than Fee amount");
         }
         return fee;
