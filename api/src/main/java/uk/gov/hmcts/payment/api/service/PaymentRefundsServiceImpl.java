@@ -73,16 +73,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-        if (!payment.getPaymentStatus().getName().equalsIgnoreCase("success")) {
-            throw new InvalidRefundRequestException("Payment is not SUCCESS for given Reference to initiate Refund");
-        }
+        validateThePaymentBeforeInitiatingRefund(Optional.ofNullable(payment));
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
             .refundAmount(payment.getAmount())
             .refundReason(paymentRefundRequest.getRefundReason())
             .build();
-
 
         try {
             return postToRefundService(refundRequest, headers);
@@ -123,7 +120,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
                     .paymentReference(paymentReference) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
-                    .refundReason("RR004-Remission Refund")  //Refund reason category would be other
+                    .refundReason("RR004-Retro Remission")  //Refund reason category would be other
                     .build();
                 return postToRefundService(refundRequest, headers);
             }
