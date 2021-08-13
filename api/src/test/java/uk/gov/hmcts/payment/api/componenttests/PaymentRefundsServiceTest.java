@@ -38,6 +38,7 @@ import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.RemissionRepository;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -64,7 +65,8 @@ public class PaymentRefundsServiceTest {
         .refundReason("RESN1")
         .build();
     Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
-        .paymentStatus(PaymentStatus.paymentStatusWith().name("Success").build())
+        .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+        .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
         .build();
     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
         .remissionReference("qwerty").build();
@@ -118,7 +120,7 @@ public class PaymentRefundsServiceTest {
     }
 
 
-    @Test(expected = InvalidRefundRequestException.class)
+    @Test(expected = PaymentNotSuccessException.class)
     public void createRefundWithFailedReference() throws Exception {
 
         Payment mockPaymentFailed = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
