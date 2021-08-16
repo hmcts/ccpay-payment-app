@@ -37,6 +37,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -116,12 +117,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment")));
 
                 BigDecimal remissionAmount = remission.get().getHwfAmount();
-                String paymentReference = validateThePaymentBeforeInitiatingRefund(payment);
+                List<String> paymentWithCcdAndRef = validateThePaymentBeforeInitiatingRefund(payment);
 
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
-                    .paymentReference(paymentReference) //RC reference
+                    .paymentReference(paymentWithCcdAndRef.get(0)) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
-                    .ccdCaseNumber(payment.get().getCcdCaseNumber())
+                    .ccdCaseNumber(paymentWithCcdAndRef.get(1)) // ccd case number
                     .refundReason("RR004-Retro Remission")  //Refund reason category would be other
                     .build();
                 return postToRefundService(refundRequest, headers);
@@ -133,7 +134,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return null;
     }
 
-    private String validateThePaymentBeforeInitiatingRefund(Optional<Payment> payment) {
+    private List<String> validateThePaymentBeforeInitiatingRefund(Optional<Payment> payment) {
         if (payment.isPresent()) {
             //payment success check
             if (!paymentSuccessCheck.test(payment.get())) {
@@ -143,7 +144,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             if (!checkIfPaymentIsPBA.test(payment.get())) {
                 throw new NonPBAPaymentException("Refund currently supported for PBA Payment Channel only");
             }
-            return payment.get().getReference();
+            return Arrays.asList(payment.get().getReference(), payment.get().getCcdCaseNumber());
         }
         return null;
     }
@@ -158,7 +159,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     private HttpEntity<RefundRequestDto> createEntity(MultiValueMap<String, String> headers, RefundRequestDto refundRequest) {
         MultiValueMap<String, String> headerMultiValueMap = new LinkedMultiValueMap<String, String>();
-        String serviceAuthorisation =" authTokenGenerator.generate()";
+        String serviceAuthorisation = " authTokenGenerator.generate()";
 //        String serviceAuthorisation = authTokenGenerator.generate();
         headerMultiValueMap.put("Content-Type", headers.get("content-type"));
         String userAuthorization = headers.get("authorization") != null ? headers.get("authorization").get(0) : headers.get("Authorization").get(0);
