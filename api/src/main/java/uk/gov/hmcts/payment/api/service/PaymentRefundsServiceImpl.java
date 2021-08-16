@@ -73,7 +73,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 
-        validateThePaymentBeforeInitiatingRefund(Optional.ofNullable(payment));
+        validateThePaymentBeforeInitiatingRefund(payment);
 
         RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
             .paymentReference(paymentRefundRequest.getPaymentReference())
@@ -111,17 +111,16 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             if (feePayApportion.isPresent() && feePayApportion.get().size() > 0) {
                 paymentId = feePayApportion.get().get(0).getPaymentId();
 
-                Optional<Payment> payment = Optional
-                    .ofNullable(paymentRepository
-                        .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment")));
+                Payment payment = paymentRepository
+                    .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
 
                 BigDecimal remissionAmount = remission.get().getHwfAmount();
-                Payment paymentWithCcdAndRef = validateThePaymentBeforeInitiatingRefund(payment);
+                validateThePaymentBeforeInitiatingRefund(payment);
 
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
-                    .paymentReference(paymentWithCcdAndRef.getReference()) //RC reference
+                    .paymentReference(payment.getReference()) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
-                    .ccdCaseNumber(paymentWithCcdAndRef.getCcdCaseNumber()) // ccd case number
+                    .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR004-Retro Remission")  //Refund reason category would be other
                     .build();
                 return postToRefundService(refundRequest, headers);
@@ -133,19 +132,15 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return null;
     }
 
-    private Payment validateThePaymentBeforeInitiatingRefund(Optional<Payment> payment) {
-        if (payment.isPresent()) {
-            //payment success check
-            if (!paymentSuccessCheck.test(payment.get())) {
-                throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
-            }
-            //payment should be PBA check
-            if (!checkIfPaymentIsPBA.test(payment.get())) {
-                throw new NonPBAPaymentException("Refund currently supported for PBA Payment Channel only");
-            }
-            return payment.get();
+    private void validateThePaymentBeforeInitiatingRefund(Payment payment) {
+        //payment success check
+        if (!paymentSuccessCheck.test(payment)) {
+            throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
         }
-        return null;
+        //payment should be PBA check
+        if (!checkIfPaymentIsPBA.test(payment)) {
+            throw new NonPBAPaymentException("Refund currently supported for PBA Payment Channel only");
+        }
     }
 
 
