@@ -37,7 +37,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -117,12 +116,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment")));
 
                 BigDecimal remissionAmount = remission.get().getHwfAmount();
-                List<String> paymentWithCcdAndRef = validateThePaymentBeforeInitiatingRefund(payment);
+                Payment paymentWithCcdAndRef = validateThePaymentBeforeInitiatingRefund(payment);
 
                 RefundRequestDto refundRequest = RefundRequestDto.refundRequestDtoWith()
-                    .paymentReference(paymentWithCcdAndRef.get(0)) //RC reference
+                    .paymentReference(paymentWithCcdAndRef.getReference()) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
-                    .ccdCaseNumber(paymentWithCcdAndRef.get(1)) // ccd case number
+                    .ccdCaseNumber(paymentWithCcdAndRef.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR004-Retro Remission")  //Refund reason category would be other
                     .build();
                 return postToRefundService(refundRequest, headers);
@@ -134,7 +133,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         return null;
     }
 
-    private List<String> validateThePaymentBeforeInitiatingRefund(Optional<Payment> payment) {
+    private Payment validateThePaymentBeforeInitiatingRefund(Optional<Payment> payment) {
         if (payment.isPresent()) {
             //payment success check
             if (!paymentSuccessCheck.test(payment.get())) {
@@ -144,7 +143,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             if (!checkIfPaymentIsPBA.test(payment.get())) {
                 throw new NonPBAPaymentException("Refund currently supported for PBA Payment Channel only");
             }
-            return Arrays.asList(payment.get().getReference(), payment.get().getCcdCaseNumber());
+            return payment.get();
         }
         return null;
     }
