@@ -9,18 +9,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "RefundResponseWith")
+@Builder(builderMethodName = "InternalRefundResponseWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class RefundResponse {
+public class InternalRefundResponse {
     private String refundReference;
-    private BigDecimal refundAmount;
 }
