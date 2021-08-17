@@ -22,9 +22,11 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionAlreadyExistExcepti
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RemissionServiceImpl implements RemissionService {
@@ -130,12 +132,11 @@ public class RemissionServiceImpl implements RemissionService {
 
     private List<FeePayApportion> populatePaymentApportionment(Integer feeId) {
         // If there are more than one payment for a Fee then not eligible for remission
-        List<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(feeId)
-            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Cannot find apportionment entry with feeId " + feeId));
-        if (feePayApportion.size() != 1) {
+        Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(feeId);
+        if (feePayApportion.isPresent() && feePayApportion.get().size() != 1) {
             throw new InvalidPaymentGroupReferenceException("This fee " + feeId + " is paid by more than one payment. Hence not eligible for remission");
         }
-        return feePayApportion;
+        return feePayApportion.orElse(new ArrayList<>());
     }
 
     private Remission buildRemission(RemissionServiceRequest remissionServiceRequest) {
@@ -151,8 +152,14 @@ public class RemissionServiceImpl implements RemissionService {
     }
 
     private void calculateRetroRemission(PaymentFee fee, List<FeePayApportion> feePayApportion, RetroRemissionServiceRequest remissionServiceRequest) {
-        // If paymentMethod is PBA and Status is Success then add refund else add remission
-        Optional<Payment> payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
+        // If paymentMethod is PBA and Status is Success then add refund else add remission , If failed payment then fetch payment using ccdcasenumber
+        Optional<Payment> payment = null;
+        if(!feePayApportion.isEmpty()) {
+            payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
+        } else{
+                payment = Optional.ofNullable(paymentRespository.findByCcdCaseNumber(fee.getCcdCaseNumber()).get().stream().
+                filter(f->f.getPaymentMethod().getName().equalsIgnoreCase("payment by account")).collect(Collectors.toList()).get(0));
+        }
         if (payment.isPresent() &&
             payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
             payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")) {
