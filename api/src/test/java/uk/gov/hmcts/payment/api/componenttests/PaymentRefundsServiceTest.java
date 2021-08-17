@@ -21,6 +21,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
@@ -103,15 +104,15 @@ public class PaymentRefundsServiceTest {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
-        RefundResponse mockRefundResponse = RefundResponse.RefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
 
-        ResponseEntity<RefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(RefundResponse.class))).thenReturn(responseEntity);
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
 
         ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.CreateRefund(paymentRefundRequest, header);
 
@@ -143,7 +144,7 @@ public class PaymentRefundsServiceTest {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(RefundResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+            eq(InternalRefundResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
         paymentRefundsService.CreateRefund(paymentRefundRequest, header);
 
@@ -158,7 +159,7 @@ public class PaymentRefundsServiceTest {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(RefundResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
+            eq(InternalRefundResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
 
         paymentRefundsService.CreateRefund(paymentRefundRequest, header);
 
@@ -218,14 +219,14 @@ public class PaymentRefundsServiceTest {
 
         Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
 
-        RefundResponse mockRefundResponse = RefundResponse.RefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
+        InternalRefundResponse mockRefundResponse = InternalRefundResponse.InternalRefundResponseWith().refundReference("RF-4321-4321-4321-4321").build();
 
-        ResponseEntity<RefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
+        ResponseEntity<InternalRefundResponse> responseEntity = new ResponseEntity<>(mockRefundResponse, HttpStatus.CREATED);
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(RefundResponse.class))).thenReturn(responseEntity);
+            eq(InternalRefundResponse.class))).thenReturn(responseEntity);
 
         ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(retroSpectiveRemissionRequest.getRemissionReference(), header);
 

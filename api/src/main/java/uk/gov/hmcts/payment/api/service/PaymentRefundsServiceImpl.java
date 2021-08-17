@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -16,6 +17,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
@@ -83,7 +85,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .build();
 
         try {
-            return postToRefundService(refundRequest, headers);
+            RefundResponse refundResponse = RefundResponse.RefundResponseWith()
+                .refundAmount(payment.getAmount())
+                .refundReference(postToRefundService(refundRequest, headers).getBody().getRefundReference()).build();
+            return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
             throw new InvalidRefundRequestException(e.getMessage());
@@ -123,7 +128,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR004-Retro Remission")  //Refund reason category would be other
                     .build();
-                return postToRefundService(refundRequest, headers);
+                RefundResponse refundResponse = RefundResponse.RefundResponseWith()
+                    .refundAmount(remissionAmount)
+                    .refundReference(postToRefundService(refundRequest, headers).getBody().getRefundReference()).build();
+                return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
             }
 
         } else {
@@ -144,11 +152,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
 
-    private ResponseEntity<RefundResponse> postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
+    private ResponseEntity<InternalRefundResponse> postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
         return restTemplateRefundsGroup
-            .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), RefundResponse.class);
+            .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);
     }
 
     private HttpEntity<RefundRequestDto> createEntity(MultiValueMap<String, String> headers, RefundRequestDto refundRequest) {
