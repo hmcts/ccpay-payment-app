@@ -84,18 +84,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .refundReason(paymentRefundRequest.getRefundReason())
             .build();
 
-        try {
-            RefundResponse refundResponse = RefundResponse.RefundResponseWith()
-                .refundAmount(payment.getAmount())
-                .refundReference(postToRefundService(refundRequest, headers).getBody().getRefundReference()).build();
-            return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
-        } catch (HttpClientErrorException e) {
-            LOG.error("client err ", e);
-            throw new InvalidRefundRequestException(e.getMessage());
-        } catch (HttpServerErrorException e) {
-            LOG.error("server err ", e);
-            throw new GatewayTimeoutException("Unable to connect to Refund service. Please try again later");
-        }
+
+        RefundResponse refundResponse = RefundResponse.RefundResponseWith()
+            .refundAmount(payment.getAmount())
+            .refundReference(postToRefundService(refundRequest, headers).getRefundReference()).build();
+        return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
+
 
     }
 
@@ -130,7 +124,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
                     .refundAmount(remissionAmount)
-                    .refundReference(postToRefundService(refundRequest, headers).getBody().getRefundReference()).build();
+                    .refundReference(postToRefundService(refundRequest, headers).getRefundReference()).build();
                 return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
             }
 
@@ -152,11 +146,23 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
 
-    private ResponseEntity<InternalRefundResponse> postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
+    private InternalRefundResponse postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
-        return restTemplateRefundsGroup
-            .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);
+        try {
+            ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = restTemplateRefundsGroup
+                .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);
+            if (refundResponseResponseEntity.hasBody()) {
+                return refundResponseResponseEntity.getBody();
+            }
+        } catch (HttpClientErrorException e) {
+            LOG.error("client err ", e);
+            throw new InvalidRefundRequestException(e.getMessage());
+        } catch (HttpServerErrorException e) {
+            LOG.error("server err ", e);
+            throw new GatewayTimeoutException("Unable to connect to Refund service. Please try again later");
+        }
+        return null;
     }
 
     private HttpEntity<RefundRequestDto> createEntity(MultiValueMap<String, String> headers, RefundRequestDto refundRequest) {
