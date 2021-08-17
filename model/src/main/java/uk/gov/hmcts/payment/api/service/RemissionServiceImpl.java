@@ -153,10 +153,10 @@ public class RemissionServiceImpl implements RemissionService {
 
     private void calculateRetroRemission(PaymentFee fee, List<FeePayApportion> feePayApportion, RetroRemissionServiceRequest remissionServiceRequest) {
         // If paymentMethod is PBA and Status is Success then add refund else add remission , If failed payment then fetch payment using ccdcasenumber
-        Optional<Payment> payment = null;
+        Optional<Payment> payment = Optional.empty();
         if(!feePayApportion.isEmpty()) {
             payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
-        } else{
+        } else if(paymentRespository.findByCcdCaseNumber(fee.getCcdCaseNumber()).isPresent()){
                 payment = Optional.ofNullable(paymentRespository.findByCcdCaseNumber(fee.getCcdCaseNumber()).get().stream().
                 filter(f->f.getPaymentMethod().getName().equalsIgnoreCase("payment by account")).collect(Collectors.toList()).get(0));
         }
