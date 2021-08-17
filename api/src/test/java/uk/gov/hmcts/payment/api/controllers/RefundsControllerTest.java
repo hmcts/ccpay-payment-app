@@ -33,6 +33,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
+import java.math.BigDecimal;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -45,7 +47,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RefundsControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
@@ -88,14 +90,17 @@ public class RefundsControllerTest {
 
     @After
     public void tearDown() {
-        this.restActions=null;
-        mvc=null;
+        this.restActions = null;
+        mvc = null;
     }
+
     @Test
     public void createRefundWithValidRequest() throws Exception {
 
+        BigDecimal amount = new BigDecimal(100);
         ResponseEntity<RefundResponse> mockRefundResponse = new ResponseEntity<>(RefundResponse.RefundResponseWith()
             .refundReference("RF-4321-4321-4321-4321")
+            .refundAmount(amount)
             .build(), HttpStatus.CREATED);
 
 
@@ -109,6 +114,7 @@ public class RefundsControllerTest {
         RefundResponse refundResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RefundResponse.class);
 
         assertEquals("RF-4321-4321-4321-4321", refundResponse.getRefundReference());
+        assertEquals(amount, refundResponse.getRefundAmount());
 
     }
 
