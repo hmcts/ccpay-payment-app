@@ -50,12 +50,13 @@ public class RefundsController {
     })
     @PostMapping(value = "/refund-for-payment")
     @ResponseBody
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> createRefundPayment(@Valid @RequestBody PaymentRefundRequest paymentRefundRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
         return paymentRefundsService.CreateRefund(paymentRefundRequest, headers);
     }
 
     @PostMapping(value = "/refund-retro-remission")
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> createRefundForRetroSpective(@Valid @RequestBody RetroSpectiveRemissionRequest
                                                                            request, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
         return paymentRefundsService.createAndValidateRetroSpectiveRemissionRequest(request.getRemissionReference(), headers);
