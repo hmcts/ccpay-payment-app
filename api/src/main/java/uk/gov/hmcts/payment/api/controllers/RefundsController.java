@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
@@ -64,28 +66,11 @@ public class RefundsController {
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(PaymentNotSuccessException.class)
-    public String return400(PaymentNotSuccessException ex) {
+    @ExceptionHandler({PaymentNotSuccessException.class, NonPBAPaymentException.class, RemissionNotFoundException.class, InvalidRefundRequestException.class})
+    public String return400(Exception ex) {
         return ex.getMessage();
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(NonPBAPaymentException.class)
-    public String return400(NonPBAPaymentException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(RemissionNotFoundException.class)
-    public String return400(RemissionNotFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(value = {InvalidRefundRequestException.class})
-    public String return400(InvalidRefundRequestException ex) {
-        return ex.getMessage();
-    }
 
     @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
     @ExceptionHandler(GatewayTimeoutException.class)
@@ -99,4 +84,13 @@ public class RefundsController {
         return ex.getMessage();
     }
 
+    @ExceptionHandler(HttpClientErrorException.class)
+    public ResponseEntity returnClientException(HttpClientErrorException ex) {
+        return new ResponseEntity<>(ex.getMessage(), ex.getStatusCode());
+    }
+
+    @ExceptionHandler(HttpServerErrorException.class)
+    public ResponseEntity returnServerException(HttpServerErrorException ex) {
+        return new ResponseEntity<>(ex.getMessage(), ex.getStatusCode());
+    }
 }
