@@ -152,9 +152,10 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         try {
             ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);
-            if (refundResponseResponseEntity.hasBody()) {
+            if (refundResponseResponseEntity.getBody() != null) {
                 return refundResponseResponseEntity.getBody();
             }
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR,"Refund couldn't initiate, Please try again later");
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
             throw new InvalidRefundRequestException(e.getMessage());
@@ -162,7 +163,6 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             LOG.error("server err ", e);
             throw new GatewayTimeoutException("Unable to connect to Refund service. Please try again later");
         }
-        return null;
     }
 
     private HttpEntity<RefundRequestDto> createEntity(MultiValueMap<String, String> headers, RefundRequestDto refundRequest) {
