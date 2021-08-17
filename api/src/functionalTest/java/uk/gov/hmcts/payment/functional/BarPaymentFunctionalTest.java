@@ -88,7 +88,7 @@ public class BarPaymentFunctionalTest {
             LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
             assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
             assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("cash");
-            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
+            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isIn(new BigDecimal("0.10"), new BigDecimal("0.01"), new BigDecimal("100.00"), new BigDecimal("550.00"));
             assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
             assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("success");
             assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
@@ -103,8 +103,8 @@ public class BarPaymentFunctionalTest {
             assertThat(paymentsResponse.getPayments().get(0).getReportedDateOffline()).isNotNull();
             assertThat(paymentsResponse.getPayments().get(0).getGiroSlipNo()).isEqualTo("12345");
             FeeDto feeDto = paymentsResponse.getPayments().get(0).getFees().get(0);
-            assertThat(feeDto.getCode()).isEqualTo("FEE0002");
-            assertThat(feeDto.getVersion()).isEqualTo("4");
+            assertThat(feeDto.getCode()).isEqualTo("FEE0333");
+            assertThat(feeDto.getVersion()).isEqualTo("1");
             assertThat(feeDto.getCalculatedAmount()).isEqualTo(new BigDecimal("550.00"));
             assertThat(feeDto.getReference()).isNotNull();
             assertThat(feeDto.getReference()).isEqualTo("REF_123");
@@ -128,8 +128,8 @@ public class BarPaymentFunctionalTest {
                 Arrays.asList(
                     FeeDto.feeDtoWith()
                         .calculatedAmount(new BigDecimal("550.00"))
-                        .code("FEE0002")
-                        .version("4")
+                        .code("FEE0333")
+                        .version("1")
                         .volume(1)
                         .reference("REF_123")
                         .build()
@@ -269,8 +269,8 @@ public class BarPaymentFunctionalTest {
             LOG.info("paymentsResponse: {}", paymentsResponse.getPayments().size());
             assertThat(paymentsResponse.getPayments().size()).isGreaterThanOrEqualTo(1);
             assertThat(paymentsResponse.getPayments().get(0).getMethod()).isEqualTo("cheque");
-            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
-            assertThat(paymentsResponse.getPayments().get(0).getChannel()).isEqualTo("digital bar");
+            assertThat(paymentsResponse.getPayments().get(0).getAmount()).isIn(new BigDecimal("0.10"), new BigDecimal("0.01"), new BigDecimal("100.00"), new BigDecimal("550.00"));
+            assertThat(paymentsResponse.getPayments().get(0).getChannel()).isIn("digital bar", "bulk scan");
             assertThat(paymentsResponse.getPayments().get(0).getStatus()).isEqualTo("pending");
             assertThat(paymentsResponse.getPayments().get(0).getServiceName()).isEqualTo("Digital Bar");
             assertThat(paymentsResponse.getPayments().get(0).getDateCreated()).isNotNull();
