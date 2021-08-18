@@ -26,7 +26,6 @@ import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -71,13 +70,6 @@ public class RefundsController {
         return ex.getMessage();
     }
 
-
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(GatewayTimeoutException.class)
-    public String return504(GatewayTimeoutException ex) {
-        return ex.getMessage();
-    }
-
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)
     public String notFound(PaymentNotFoundException ex) {
@@ -89,8 +81,9 @@ public class RefundsController {
         return new ResponseEntity<>(ex.getMessage(), ex.getStatusCode());
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(HttpServerErrorException.class)
-    public ResponseEntity returnServerException(HttpServerErrorException ex) {
-        return new ResponseEntity<>(ex.getMessage(), ex.getStatusCode());
+    public String returnServerException(HttpServerErrorException ex) {
+        return ex.getMessage();
     }
 }
