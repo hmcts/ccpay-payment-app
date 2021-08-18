@@ -78,12 +78,12 @@ public class RefundsController {
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity returnClientException(HttpClientErrorException ex) {
-        return new ResponseEntity<>(ex.getMessage(), ex.getStatusCode());
+        return new ResponseEntity<>(ex.getResponseBodyAsString(), ex.getStatusCode());
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(HttpServerErrorException.class)
     public String returnServerException(HttpServerErrorException ex) {
-        return ex.getMessage();
+        return ex.getResponseBodyAsString();
     }
 }
