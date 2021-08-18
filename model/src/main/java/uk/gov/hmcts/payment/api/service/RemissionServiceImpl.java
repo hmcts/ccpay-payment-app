@@ -108,7 +108,7 @@ public class RemissionServiceImpl implements RemissionService {
         PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference);
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
         List<FeePayApportion> feePayApportion = populatePaymentApportionment(feeId);
-        calculateRetroRemission(fee, feePayApportion, remissionServiceRequest);
+        calculateRetroRemission(fee, feePayApportion, remissionServiceRequest,paymentFeeLink.getId());
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
     }
 
@@ -151,14 +151,17 @@ public class RemissionServiceImpl implements RemissionService {
             .build();
     }
 
-    private void calculateRetroRemission(PaymentFee fee, List<FeePayApportion> feePayApportion, RetroRemissionServiceRequest remissionServiceRequest) {
-        // If paymentMethod is PBA and Status is Success then add refund else add remission , If failed payment then fetch payment using ccdcasenumber
+    private void calculateRetroRemission(PaymentFee fee, List<FeePayApportion> feePayApportion, RetroRemissionServiceRequest remissionServiceRequest, Integer paymentLinkId) {
+        // If paymentMethod is PBA and Status is Success then add refund else add remission , If failed payment then fetch payment using paymentLinkId
         Optional<Payment> payment = Optional.empty();
         if(!feePayApportion.isEmpty()) {
             payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
-        } else if(paymentRespository.findByCcdCaseNumber(fee.getCcdCaseNumber()).isPresent()){
-                payment = Optional.ofNullable(paymentRespository.findByCcdCaseNumber(fee.getCcdCaseNumber()).get().stream().
-                filter(f->f.getPaymentMethod().getName().equalsIgnoreCase("payment by account")).collect(Collectors.toList()).get(0));
+        } else {
+            Optional<List<Payment>> paymentList = paymentRespository.findByPaymentLinkId(paymentLinkId);
+            if(paymentList.isPresent()){
+                payment =  Optional.ofNullable(paymentRespository.findByCcdCaseNumber(fee.getCcdCaseNumber()).get().stream().
+                    filter(f->f.getPaymentMethod().getName().equalsIgnoreCase("payment by account")).collect(Collectors.toList()).get(0));
+            }
         }
         if (payment.isPresent() &&
             payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
