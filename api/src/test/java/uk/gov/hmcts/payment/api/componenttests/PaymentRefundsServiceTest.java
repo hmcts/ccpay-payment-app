@@ -38,7 +38,6 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.RemissionRepository;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -150,16 +149,16 @@ public class PaymentRefundsServiceTest {
 
     }
 
-    @Test(expected = GatewayTimeoutException.class)
+
+    @Test(expected = HttpServerErrorException.class)
     public void createRefundWithServerException() throws Exception {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
 
-
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(InternalRefundResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
+            eq(InternalRefundResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
         paymentRefundsService.CreateRefund(paymentRefundRequest, header);
 

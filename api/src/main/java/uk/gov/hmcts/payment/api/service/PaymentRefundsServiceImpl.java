@@ -31,7 +31,6 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.RemissionRepository;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -152,16 +151,13 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         try {
             ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);
-            if (refundResponseResponseEntity!=null && refundResponseResponseEntity.getBody()!=null) {
+            if (refundResponseResponseEntity != null && refundResponseResponseEntity.getBody() != null) {
                 return refundResponseResponseEntity.getBody().getRefundReference();
             }
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Refund couldn't initiate, Please try again later");
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
             throw new InvalidRefundRequestException(e.getMessage());
-        } catch (HttpServerErrorException e) {
-            LOG.error("server err ", e);
-            throw new GatewayTimeoutException("Unable to connect to Refund service. Please try again later");
         }
     }
 
