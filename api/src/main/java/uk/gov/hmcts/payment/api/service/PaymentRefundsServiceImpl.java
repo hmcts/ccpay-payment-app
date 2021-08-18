@@ -152,10 +152,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         try {
             ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);
-            if (refundResponseResponseEntity.getBody() != null) {
-                return refundResponseResponseEntity.getBody();
+            if (refundResponseResponseEntity != null) {
+                if (refundResponseResponseEntity.getBody() != null) {
+                    return refundResponseResponseEntity.getBody();
+                }
             }
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR,"Refund couldn't initiate, Please try again later");
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Refund couldn't initiate, Please try again later");
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
             throw new InvalidRefundRequestException(e.getMessage());
