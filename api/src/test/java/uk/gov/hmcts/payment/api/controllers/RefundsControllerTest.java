@@ -27,7 +27,6 @@ import uk.gov.hmcts.payment.api.service.PaymentServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
@@ -126,16 +125,6 @@ public class RefundsControllerTest {
         restActions
             .post("/refund-for-payment", paymentRefundRequest)
             .andExpect(status().isNotFound());
-    }
-
-
-    @Test
-    public void createRefundWithInvalidRequestReturns504() throws Exception {
-
-        when(paymentRefundsService.CreateRefund(any(), any())).thenThrow(new GatewayTimeoutException("Gateway timeout"));
-        restActions
-            .post("/refund-for-payment", paymentRefundRequest)
-            .andExpect(status().isGatewayTimeout());
     }
 
     @Test
