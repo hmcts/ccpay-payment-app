@@ -159,8 +159,10 @@ public class RemissionServiceImpl implements RemissionService {
         } else {
             Optional<List<Payment>> paymentList = paymentRespository.findByPaymentLinkId(paymentLinkId);
             if(paymentList.isPresent()){
-                payment =  Optional.ofNullable(paymentRespository.findByCcdCaseNumber(fee.getCcdCaseNumber()).get().stream().
-                    filter(f->f.getPaymentMethod().getName().equalsIgnoreCase("payment by account")).collect(Collectors.toList()).get(0));
+                payment = Optional.of(paymentList.get()
+                                  .stream()
+                                  .filter(f->f.getPaymentMethod().getName().equalsIgnoreCase("payment by account"))
+                                  .collect(Collectors.toList()).get(0));
             }
         }
         if (payment.isPresent() &&
