@@ -87,7 +87,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
         RefundResponse refundResponse = RefundResponse.RefundResponseWith()
             .refundAmount(payment.getAmount())
-            .refundReference(postToRefundService(refundRequest, headers).getRefundReference()).build();
+            .refundReference(postToRefundService(refundRequest, headers)).build();
         return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
 
 
@@ -124,7 +124,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
                     .refundAmount(remissionAmount)
-                    .refundReference(postToRefundService(refundRequest, headers).getRefundReference()).build();
+                    .refundReference(postToRefundService(refundRequest, headers)).build();
                 return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
             }
 
@@ -146,16 +146,14 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
 
-    private InternalRefundResponse postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
+    private String postToRefundService(RefundRequestDto refundRequest, MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refundApiUrl + REFUND_ENDPOINT);
         LOG.debug("builder.toUriString() : {}", builder.toUriString());
         try {
             ResponseEntity<InternalRefundResponse> refundResponseResponseEntity = restTemplateRefundsGroup
                 .exchange(builder.toUriString(), HttpMethod.POST, createEntity(headers, refundRequest), InternalRefundResponse.class);
-            if (refundResponseResponseEntity != null) {
-                if (refundResponseResponseEntity.getBody() != null) {
-                    return refundResponseResponseEntity.getBody();
-                }
+            if (refundResponseResponseEntity!=null && refundResponseResponseEntity.getBody()!=null) {
+                return refundResponseResponseEntity.getBody().getRefundReference();
             }
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Refund couldn't initiate, Please try again later");
         } catch (HttpClientErrorException e) {
