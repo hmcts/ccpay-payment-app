@@ -40,6 +40,8 @@ public class RemissionDto {
     private String paymentReference;
 
     private String feeCode;
+    
+    private Integer feeId;
 
     private FeeDto fee;
 
