@@ -45,6 +45,12 @@
             <![CDATA[This CVE appears in the latest version of jakarta]]></notes>
         <cve>CVE-2021-28170</cve>
     </suppress>
+
+    <suppress until="2021-09-07">
+        <notes>
+            <![CDATA[This CVE appears in the latest version of lang-tar]]></notes>
+        <cve>CVE-2020-23171</cve>
+    </suppress>
     <!-- Supression Group ends here -->
 
 
