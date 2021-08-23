@@ -938,5 +938,4 @@ public class RemissionControllerTest {
             .ccdCaseNumber("1111-2222-2222-1111")
             .build();
     }
-    
 }
