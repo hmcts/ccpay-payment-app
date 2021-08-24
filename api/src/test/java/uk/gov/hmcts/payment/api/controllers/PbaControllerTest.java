@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class PbaControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.SOLICITOR_ID;
@@ -68,9 +68,10 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
     @After
     public void tearDown() {
-        this.restActions=null;
-        mvc=null;
+        this.restActions = null;
+        mvc = null;
     }
+
     @Test
     @Transactional
     public void searchCreditPayments_withPbaNumber() throws Exception {
