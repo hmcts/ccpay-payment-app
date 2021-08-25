@@ -20,7 +20,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class PaymentRecordComponentTest {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
