@@ -27,4 +27,6 @@ public class RefundRequestDto {
     private BigDecimal refundAmount;
 
     private String ccdCaseNumber;
+
+    private String feeIds;
 }
