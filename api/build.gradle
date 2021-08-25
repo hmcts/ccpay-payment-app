@@ -1,6 +1,7 @@
 plugins {
     id "info.solidsoft.pitest" version '1.5.1'
     id 'au.com.dius.pact' version '4.1.0'
+    id 'checkstyle'
 }
 
 apply from: 'liquibase.gradle'
@@ -31,6 +32,11 @@ sourceSets {
             srcDir file('src/contractTest/java')
         }
         resources.srcDir file('src/contractTest/resources')
+    }
+
+    checkstyle {
+        toolVersion "7.8.1"
+        sourceSets = [sourceSets.main, sourceSets.test, sourceSets.functionalTest, sourceSets.smokeTest]
     }
 }
 
@@ -170,6 +176,8 @@ task functionalTest(type: Test, description: 'Runs the functional tests', group:
     classpath = sourceSets.functionalTest.runtimeClasspath
 }
 
+checkstyleMain.enabled(true)
+checkstyleTest.enabled(true)
 
 project.ext {
     pactVersion = getCheckedOutGitCommitHash()
