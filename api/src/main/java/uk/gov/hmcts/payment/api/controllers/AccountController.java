@@ -27,7 +27,7 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 public class AccountController {
 
 
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AccountController.class);
 
     private final AccountService<AccountDto, String> accountService;
@@ -39,7 +39,8 @@ public class AccountController {
     }
 
 
-    @ApiOperation(value = "Get the account status and available balance for a PBA account number", notes = "Get the account status and available balance for a PBA account number")
+    @ApiOperation(value = "Get the account status and available balance for a PBA account number",
+        notes = "Get the account status and available balance for a PBA account number")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Account details retrieved"),
         @ApiResponse(code = 404, message = "Account not found"),
@@ -56,7 +57,7 @@ public class AccountController {
             throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + ex.getMessage());
         }
 
-        
+
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)

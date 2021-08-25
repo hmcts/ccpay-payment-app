@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGeneratorFactory;
 @Configuration
 public class ServiceAuthTokenConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceAuthTokenConfiguration.class);
+
     @Bean
     public AuthTokenGenerator authTokenGenerator(
         @Value("${idam.s2s-auth.totp_secret}") final String secret,

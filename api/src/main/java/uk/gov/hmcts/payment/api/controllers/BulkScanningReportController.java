@@ -1,6 +1,12 @@
 package uk.gov.hmcts.payment.api.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +44,7 @@ public class BulkScanningReportController {
         this.paymentService = paymentService;
         this.bulkScanningReportMapper = bulkScanningReportMapper;
     }
+
     @ApiOperation("API to generate Report for Bulk Scan Payment System")
     @ApiResponses({
         @ApiResponse(code = 200, message = "Report Generated"),
@@ -52,13 +59,11 @@ public class BulkScanningReportController {
 
         List<Payment> payments = paymentService.getPayments(atStartOfDay(fromDate), atEndOfDay(toDate));
         LOG.info("No of payments exists for the date-range: {}", payments.size());
-        if(reportType.equals(PROCESSED_UNALLOCATED)) {
+        if (reportType.equals(PROCESSED_UNALLOCATED)) {
             LOG.info("Processed and Unallocated report section");
             List<BulkScanningReportDto> bulkScanningReportDtoList = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payments);
             return new ResponseEntity<>(bulkScanningReportDtoList, HttpStatus.OK);
-        }
-        else if(reportType.equals(SURPLUS_AND_SHORTFALL))
-        {
+        } else if(reportType.equals(SURPLUS_AND_SHORTFALL)) {
             LOG.info("Surplus and Shortfall report section");
             List<BulkScanningUnderOverPaymentDto> underOverPaymentDtoList = bulkScanningReportMapper.toSurplusAndShortfallReportdto(payments);
             return new ResponseEntity<>(underOverPaymentDtoList, HttpStatus.OK);

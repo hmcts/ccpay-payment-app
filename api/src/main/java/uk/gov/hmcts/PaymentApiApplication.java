@@ -15,16 +15,18 @@ import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableAsync;
-import uk.gov.hmcts.payment.api.logging.Markers;
 import org.springframework.hateoas.client.LinkDiscoverer;
 import org.springframework.http.MediaType;
 import org.springframework.plugin.core.OrderAwarePluginRegistry;
 import org.springframework.plugin.core.PluginRegistry;
+import org.springframework.scheduling.annotation.EnableAsync;
 
-import javax.servlet.ServletContextListener;
+import uk.gov.hmcts.payment.api.logging.Markers;
+
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.ServletContextListener;
+
 
 @EnableCaching
 @EnableFeignClients

@@ -10,8 +10,8 @@ import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaCmcPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaDivorcePaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFinremPaymentReportConfig;
-import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PbaFplPaymentReportConfig;
+import uk.gov.hmcts.payment.api.reports.config.PbaProbatePaymentReportConfig;
 
 import java.util.Map;
 
