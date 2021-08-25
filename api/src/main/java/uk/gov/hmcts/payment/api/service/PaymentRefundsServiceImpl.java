@@ -71,7 +71,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     @Value("${refund.api.url}")
     private String refundApiUrl;
 
-    public ResponseEntity<RefundResponse> CreateRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
+    public ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers) {
 
         Payment payment = paymentRepository.findByReference(paymentRefundRequest.getPaymentReference()).orElseThrow(PaymentNotFoundException::new);
 

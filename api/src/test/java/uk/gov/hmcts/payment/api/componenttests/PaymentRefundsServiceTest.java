@@ -114,7 +114,7 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenReturn(responseEntity);
 
-        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.CreateRefund(paymentRefundRequest, header);
+        ResponseEntity<RefundResponse> refundResponse = paymentRefundsService.createRefund(paymentRefundRequest, header);
 
         assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
 
@@ -130,7 +130,7 @@ public class PaymentRefundsServiceTest {
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentFailed));
 
-        paymentRefundsService.CreateRefund(paymentRefundRequest, header);
+        paymentRefundsService.createRefund(paymentRefundRequest, header);
 
     }
 
@@ -146,7 +146,7 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
-        paymentRefundsService.CreateRefund(paymentRefundRequest, header);
+        paymentRefundsService.createRefund(paymentRefundRequest, header);
 
     }
 
@@ -161,7 +161,7 @@ public class PaymentRefundsServiceTest {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(InternalRefundResponse.class))).thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        paymentRefundsService.CreateRefund(paymentRefundRequest, header);
+        paymentRefundsService.createRefund(paymentRefundRequest, header);
 
     }
 
