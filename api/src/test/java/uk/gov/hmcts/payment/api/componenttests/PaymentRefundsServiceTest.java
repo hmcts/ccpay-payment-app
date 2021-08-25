@@ -214,7 +214,7 @@ public class PaymentRefundsServiceTest {
             .build();
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
 
-        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(Collections.singletonList(feePayApportion)));
+        Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(feePayApportion));
 
         Mockito.when(paymentRepository.findById(any())).thenReturn(Optional.ofNullable(payment));
 
