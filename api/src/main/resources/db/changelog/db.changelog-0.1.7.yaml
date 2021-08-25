@@ -11,3 +11,22 @@ databaseChangeLog:
               ALTER TABLE payment_fee_link ADD COLUMN enterprise_service_name varchar(255);
               ALTER TABLE payment_fee_link ADD COLUMN ccd_case_number varchar(255);
               ALTER TABLE payment_fee_link ADD COLUMN case_reference varchar(255);
+  - changeSet:
+      id: 1559991099418-8
+      author: arbab
+      changes:
+        - insert:
+            tableName: site
+            columns:
+              - column:
+                  name: site_id
+                  value: "Y264"
+              - column:
+                  name: name
+                  value: "Leeds County Court"
+              - column:
+                  name: sop_reference
+                  value: "10257217"
+              - column:
+                  name: service
+                  value: "County"
