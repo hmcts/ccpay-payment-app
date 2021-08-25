@@ -19,8 +19,6 @@
         <cve>CVE-2020-29243</cve>
         <cve>CVE-2020-29244</cve>
         <cve>CVE-2020-29245</cve>
-        <cve>CVE-2021-28170</cve>
-        <cve>CVE-2021-22119</cve>
     </suppress>
 
 
@@ -39,6 +37,14 @@
             <![CDATA[This CVE appears in the latest version of wiremock, WireMock 2.27.2 JRE 8 embeds jquery-3.4.1.min.js. see(https://github.com/tomakehurst/wiremock/issues/1417)]]></notes>
         <cve>CVE-2020-11022</cve>
         <cve>CVE-2020-11023</cve>
+    </suppress>
+
+     <suppress until="2021-09-25">
+        <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
+            arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
+            crafted file
+        </notes>
+        <cve>CVE-2020-23171</cve>
     </suppress>
     <!-- Supression Group ends here -->
 
