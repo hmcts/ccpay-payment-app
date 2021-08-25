@@ -53,7 +53,7 @@ public class RefundsController {
     @ResponseBody
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<RefundResponse> createRefundPayment(@Valid @RequestBody PaymentRefundRequest paymentRefundRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        return paymentRefundsService.CreateRefund(paymentRefundRequest, headers);
+        return paymentRefundsService.createRefund(paymentRefundRequest, headers);
     }
 
     @PostMapping(value = "/refund-retro-remission")

@@ -103,7 +103,7 @@ public class RefundsControllerTest {
             .build(), HttpStatus.CREATED);
 
 
-        when(paymentRefundsService.CreateRefund(any(), any())).thenReturn(mockRefundResponse);
+        when(paymentRefundsService.createRefund(any(), any())).thenReturn(mockRefundResponse);
 
         MvcResult result = restActions
             .post("/refund-for-payment", paymentRefundRequest)
@@ -120,7 +120,7 @@ public class RefundsControllerTest {
     @Test
     public void createRefundWithInvalidRequestReturns404() throws Exception {
 
-        when(paymentRefundsService.CreateRefund(any(), any())).thenThrow(new PaymentNotFoundException("reference not found"));
+        when(paymentRefundsService.createRefund(any(), any())).thenThrow(new PaymentNotFoundException("reference not found"));
 
         restActions
             .post("/refund-for-payment", paymentRefundRequest)
@@ -130,7 +130,7 @@ public class RefundsControllerTest {
     @Test
     public void createRefundWithInvalidRequestReturns400() throws Exception {
 
-        when(paymentRefundsService.CreateRefund(any(), any())).thenThrow(new InvalidRefundRequestException("Reference not valid"));
+        when(paymentRefundsService.createRefund(any(), any())).thenThrow(new InvalidRefundRequestException("Reference not valid"));
         restActions
             .post("/refund-for-payment", paymentRefundRequest)
             .andExpect(status().isBadRequest());
