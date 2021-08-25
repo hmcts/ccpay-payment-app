@@ -10,14 +10,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
@@ -99,17 +107,20 @@ public class CreditAccountPaymentController {
         @ApiResponse(code = 400, message = "Payment creation failed"),
         @ApiResponse(code = 403, message = "Payment failed due to insufficient funds or the account being on hold"),
         @ApiResponse(code = 404, message = "Account information could not be found, \t\n No Service found for given CaseType"),
-        @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later \t\n Unable to retrieve service information. Please try again later"),
+        @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later \t\n " +
+            "Unable to retrieve service information. Please try again later"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute")
     })
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
+    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest,
+                                                                 @RequestHeader(required = false) MultiValueMap<String, String> headers)
+        throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         /*
-        Following piece of code to be removed once all Services are on-boarded to PBA Config 2
+        Following piece of code to be removed once all Services are on-boarded to PBA Config 2.
          */
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
         Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(creditAccountPaymentRequest.getService())

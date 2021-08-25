@@ -63,7 +63,7 @@ public class BulkScanningReportController {
             LOG.info("Processed and Unallocated report section");
             List<BulkScanningReportDto> bulkScanningReportDtoList = bulkScanningReportMapper.toBulkScanningUnallocatedReportDto(payments);
             return new ResponseEntity<>(bulkScanningReportDtoList, HttpStatus.OK);
-        } else if(reportType.equals(SURPLUS_AND_SHORTFALL)) {
+        } else if (reportType.equals(SURPLUS_AND_SHORTFALL)) {
             LOG.info("Surplus and Shortfall report section");
             List<BulkScanningUnderOverPaymentDto> underOverPaymentDtoList = bulkScanningReportMapper.toSurplusAndShortfallReportdto(payments);
             return new ResponseEntity<>(underOverPaymentDtoList, HttpStatus.OK);
