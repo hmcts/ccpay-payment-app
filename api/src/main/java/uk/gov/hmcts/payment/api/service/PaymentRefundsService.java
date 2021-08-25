@@ -7,7 +7,7 @@ import uk.gov.hmcts.payment.api.dto.RefundResponse;
 
 public interface PaymentRefundsService {
 
-    ResponseEntity<RefundResponse> CreateRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers);
+    ResponseEntity<RefundResponse> createRefund(PaymentRefundRequest paymentRefundRequest, MultiValueMap<String, String> headers);
 
     ResponseEntity<RefundResponse> createAndValidateRetroSpectiveRemissionRequest(String remissionReference, MultiValueMap<String, String> headers);
 
