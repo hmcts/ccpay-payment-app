@@ -132,8 +132,10 @@ public class RemissionServiceImpl implements RemissionService {
     private FeePayApportion populatePaymentApportionment(Integer feeId) {
         // If there are more than one payment for a Fee then not eligible for remission
         Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(feeId);
-        if (!feePayApportion.isPresent() && feePayApportion.get() == null) {
-            throw new InvalidPaymentGroupReferenceException("This fee " + feeId + " is not found. Hence not eligible for remission");
+        if (!feePayApportion.isPresent()) {
+            if (feePayApportion.get() == null) {
+                throw new InvalidPaymentGroupReferenceException("This fee " + feeId + " is not found. Hence not eligible for remission");
+            }
         }
         return feePayApportion.get();
     }
