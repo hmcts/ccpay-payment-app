@@ -41,7 +41,7 @@ withNightlyPipeline("java", product, component) {
     loadVaultSecrets(secrets)
     enableSecurityScan()
     enableMutationTest()
-    enableFortifyScan()
+    enableFortifyScan('ccpay-aat')
     enableFullFunctionalTest()
     enableSlackNotifications('#cc-payments-tech')
 }
