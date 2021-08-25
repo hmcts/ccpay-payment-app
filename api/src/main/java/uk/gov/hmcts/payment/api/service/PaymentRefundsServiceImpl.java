@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentRefundsServiceImpl implements PaymentRefundsService {
@@ -81,6 +82,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             .refundAmount(payment.getAmount())
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .refundReason(paymentRefundRequest.getRefundReason())
+            .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
             .build();
 
 
@@ -119,7 +121,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .paymentReference(payment.getReference()) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
-                    .refundReason("RR004-Retro Remission")  //Refund reason category would be other
+                    .refundReason("RR004-Retrospective Remission")//Refund reason category would be other
+                    .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
                     .refundAmount(remissionAmount)
@@ -174,6 +177,12 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         headerMultiValueMap.put("ServiceAuthorization", Collections.singletonList(serviceAuthorisation));
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
         return new HttpEntity<>(refundRequest, httpHeaders);
+    }
+
+    private String getFeeIds(List<PaymentFee> paymentFees) {
+        return paymentFees.stream()
+            .map(fee -> fee.getId().toString())
+            .collect(Collectors.joining(","));
     }
 
 }
