@@ -67,6 +67,7 @@ public class PaymentRefundsServiceTest {
     Payment mockPaymentSuccess = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
         .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
         .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+        .paymentLink(PaymentFeeLink.paymentFeeLinkWith().fees(Arrays.asList(PaymentFee.feeWith().id(1).build())).build())
         .build();
     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest = RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith()
         .remissionReference("qwerty").build();
@@ -169,28 +170,10 @@ public class PaymentRefundsServiceTest {
     public void createSuccessfulRetroRemissionRefund() throws Exception {
 
         BigDecimal amount = new BigDecimal("11.99");
-        Payment payment = Payment.paymentWith()
-            .id(1)
-            .amount(amount)
-            .caseReference("caseReference")
-            .description("retrieve payment mock test")
-            .serviceType("Civil Money Claims")
-            .siteId("siteID")
-            .currency("GBP")
-            .organisationName("organisationName")
-            .customerReference("customerReference")
-            .pbaNumber("pbaNumer")
-            .reference("RC-1520-2505-0381-8145")
-            .ccdCaseNumber("1234123412341234")
-            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
-            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
-            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
-            .build();
         PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
             .id(1)
             .paymentReference("2018-15202505035")
-            .payments(Arrays.asList(payment))
             .fees(Arrays.asList(fee))
             .build();
 
@@ -211,7 +194,24 @@ public class PaymentRefundsServiceTest {
             .feeId(1)
             .id(1)
             .feeAmount(amount).build();
-
+        Payment payment = Payment.paymentWith()
+            .id(1)
+            .amount(amount)
+            .caseReference("caseReference")
+            .description("retrieve payment mock test")
+            .serviceType("Civil Money Claims")
+            .siteId("siteID")
+            .currency("GBP")
+            .organisationName("organisationName")
+            .customerReference("customerReference")
+            .pbaNumber("pbaNumer")
+            .reference("RC-1520-2505-0381-8145")
+            .ccdCaseNumber("1234123412341234")
+            .paymentLink(paymentFeeLink)
+            .paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .build();
         Mockito.when(remissionRepository.findByRemissionReference(any())).thenReturn(Optional.ofNullable(remission));
 
         Mockito.when(feePayApportionRepository.findByFeeId(any())).thenReturn(Optional.ofNullable(Collections.singletonList(feePayApportion)));
