@@ -22,7 +22,6 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionAlreadyExistExcepti
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -107,8 +106,8 @@ public class RemissionServiceImpl implements RemissionService {
     public Remission createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference);
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
-        List<FeePayApportion> feePayApportion = populatePaymentApportionment(feeId);
-        calculateRetroRemission(fee, feePayApportion, remissionServiceRequest,paymentFeeLink.getId());
+        FeePayApportion feePayApportion = populatePaymentApportionment(feeId);
+        calculateRetroRemission(fee, feePayApportion, remissionServiceRequest, paymentFeeLink.getId());
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
     }
 
@@ -130,13 +129,13 @@ public class RemissionServiceImpl implements RemissionService {
         return fee;
     }
 
-    private List<FeePayApportion> populatePaymentApportionment(Integer feeId) {
+    private FeePayApportion populatePaymentApportionment(Integer feeId) {
         // If there are more than one payment for a Fee then not eligible for remission
-        Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(feeId);
-        if (feePayApportion.isPresent() && feePayApportion.get().size() != 1) {
-            throw new InvalidPaymentGroupReferenceException("This fee " + feeId + " is paid by more than one payment. Hence not eligible for remission");
+        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(feeId);
+        if (!feePayApportion.isPresent() && feePayApportion.get() == null) {
+            throw new InvalidPaymentGroupReferenceException("This fee " + feeId + " is not found. Hence not eligible for remission");
         }
-        return feePayApportion.orElse(new ArrayList<>());
+        return feePayApportion.get();
     }
 
     private Remission buildRemission(RemissionServiceRequest remissionServiceRequest) {
@@ -151,18 +150,18 @@ public class RemissionServiceImpl implements RemissionService {
             .build();
     }
 
-    private void calculateRetroRemission(PaymentFee fee, List<FeePayApportion> feePayApportion, RetroRemissionServiceRequest remissionServiceRequest, Integer paymentLinkId) {
+    private void calculateRetroRemission(PaymentFee fee, FeePayApportion feePayApportion, RetroRemissionServiceRequest remissionServiceRequest, Integer paymentLinkId) {
         // If paymentMethod is PBA and Status is Success then add refund else add remission , If failed payment then fetch payment using paymentLinkId
         Optional<Payment> payment = Optional.empty();
-        if(!feePayApportion.isEmpty()) {
-            payment = paymentRespository.findById(feePayApportion.get(0).getPaymentId());
+        if (feePayApportion != null) {
+            payment = paymentRespository.findById(feePayApportion.getPaymentId());
         } else {
             Optional<List<Payment>> paymentList = paymentRespository.findByPaymentLinkId(paymentLinkId);
-            if(paymentList.isPresent()){
+            if (paymentList.isPresent()) {
                 payment = Optional.of(paymentList.get()
-                                  .stream()
-                                  .filter(f->f.getPaymentMethod().getName().equalsIgnoreCase("payment by account"))
-                                  .collect(Collectors.toList()).get(0));
+                    .stream()
+                    .filter(f -> f.getPaymentMethod().getName().equalsIgnoreCase("payment by account"))
+                    .collect(Collectors.toList()).get(0));
             }
         }
         if (payment.isPresent() &&

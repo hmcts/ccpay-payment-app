@@ -105,11 +105,11 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             //remissionAmount
             paymentFee = remission.get().getFee();
             //need to validate if multipleApportionment scenario present for single feeId validation needed
-            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
+            Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(paymentFee.getId());
 
 
-            if (feePayApportion.isPresent() && feePayApportion.get().size() > 0) {
-                paymentId = feePayApportion.get().get(0).getPaymentId();
+            if (feePayApportion.isPresent() && feePayApportion.get() != null) {
+                paymentId = feePayApportion.get().getPaymentId();
 
                 Payment payment = paymentRepository
                     .findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found for given apportionment"));
@@ -122,7 +122,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .refundAmount(remissionAmount) //Refund amount
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
                     .refundReason("RR004-Retrospective Remission")//Refund reason category would be other
-                    .feeIds(getFeeIds(payment.getPaymentLink().getFees()))
+                    .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
                     .refundAmount(remissionAmount)
