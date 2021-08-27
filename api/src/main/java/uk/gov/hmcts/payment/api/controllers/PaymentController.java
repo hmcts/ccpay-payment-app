@@ -92,40 +92,40 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
-        "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request")
-    })
-    @GetMapping(value = "/payments")
-    @PaymentExternalAPI
-    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
-                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
-                                             @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
-                                             @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
-                                             @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
-                                             @RequestParam(name = "pba_number", required = false) String pbaNumber
-    ) {
-
-        validatePullRequest(startDateTimeString, endDateTimeString, paymentMethodType, serviceType);
-
-        Date fromDateTime = getFromDateTime(startDateTimeString);
-
-        Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
-
-        List<PaymentFeeLink> paymentFeeLinks = paymentService
-            .search(
-                getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
-            );
-
-        final List<PaymentDto> paymentDtos = new ArrayList<>();
-        LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", paymentFeeLinks.size());
-        for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
-            populatePaymentDtos(paymentDtos, paymentFeeLink, fromDateTime, toDateTime);
-        }
-        return new PaymentsResponse(paymentDtos);
-    }
+//    @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
+//        "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
+//    @ApiResponses(value = {
+//        @ApiResponse(code = 200, message = "Payments retrieved"),
+//        @ApiResponse(code = 400, message = "Bad request")
+//    })
+//    @GetMapping(value = "/payments")
+//    @PaymentExternalAPI
+//    public PaymentsResponse retrievePayments(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+//                                             @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
+//                                             @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
+//                                             @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
+//                                             @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
+//                                             @RequestParam(name = "pba_number", required = false) String pbaNumber
+//    ) {
+//
+//        validatePullRequest(startDateTimeString, endDateTimeString, paymentMethodType, serviceType);
+//
+//        Date fromDateTime = getFromDateTime(startDateTimeString);
+//
+//        Date toDateTime = getToDateTime(endDateTimeString, fromDateTime);
+//
+//        List<PaymentFeeLink> paymentFeeLinks = paymentService
+//            .search(
+//                getSearchCriteria(paymentMethodType, serviceType, ccdCaseNumber, pbaNumber, fromDateTime, toDateTime)
+//            );
+//
+//        final List<PaymentDto> paymentDtos = new ArrayList<>();
+//        LOG.info("No of paymentFeeLinks retrieved for Liberata Pull : {}", paymentFeeLinks.size());
+//        for (final PaymentFeeLink paymentFeeLink: paymentFeeLinks) {
+//            populatePaymentDtos(paymentDtos, paymentFeeLink, fromDateTime, toDateTime);
+//        }
+//        return new PaymentsResponse(paymentDtos);
+//    }
 
     @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")

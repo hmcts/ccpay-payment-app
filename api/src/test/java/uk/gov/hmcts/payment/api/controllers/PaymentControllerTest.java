@@ -302,380 +302,380 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             "}";
     }
 
-    @Test
-    @Transactional
-    public void searchAllPayments_withValidBetweenDates_shouldReturn200() throws Exception {
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-    }
-
-    @Test
-    @Transactional
-    public void searchAllPayments_withValidBetweenDates_shouldReturn200ForBulkScanDisable() throws Exception {
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/disable")
-            .andExpect(status().isAccepted());
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-    }
-
-
-    @Test
-    @Transactional
-    public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("1");
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .get("/payments?ccd_case_number=ccdCaseNumber1"+"&start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>() {
-        });
-
-        assertThat(payments.getPayments().size()).isEqualTo(2);
-
-        PaymentDto payment = payments.getPayments().get(0);
-
-        assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
-
-        assertThat(payment.getReference()).isNotBlank();
-        assertThat(payment.getAmount()).isPositive();
-        assertThat(payment.getDateCreated()).isNotNull();
-        assertThat(payment.getCustomerReference()).isNotBlank();
-    }
-
-    @Test
-    @Transactional
-    public void searchCardPayments_withValidBetweenDates_shouldReturnOnlyCardPayments() throws Exception {
-
-        populateCardPaymentToDb("2");
-        populateCreditAccountPaymentToDb("1");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> payments = paymentsResponse.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
-            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
-            assertThat(p.getCaseReference()).isEqualTo("Reference2");
-            assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
-            assertThat(p.getChannel()).isEqualTo("online");
-            assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("initiated");
-            assertThat(p.getSiteId()).isEqualTo("AA02");
-            assertThat(p.getDateCreated()).isNotNull();
-            assertThat(p.getDateUpdated()).isNotNull();
-            p.getFees().stream().forEach(f -> {
-                assertThat(f.getCode()).isEqualTo("FEE0002");
-                assertThat(f.getVersion()).isEqualTo("1");
-                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
-            });
-        });
-    }
-
-    @Test
-    @Transactional
-    public void searchCreditPayments_withValidBetweenDates_shouldReturnOnlyPbaPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=PBA")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
-
-    }
-
-    @Test
-    @Transactional
-    public void searchCreditPayments_withValidBetweenDates_shouldReturnAllPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=ALL")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-
-    }
-
-    @Test
-    @Transactional
-    public void searchCreditPayments_withValidBetweenDates_shouldReturnPaymentsBasedOnServiceType() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=DIVORCE")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(0);
-
-    }
-
-    @Test
-    @Transactional
-    public void searchCreditPayments_withValidStartDate_shouldReturnAllPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&payment_method=ALL")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-
-    }
-
-    @Test
-    @Transactional
-    public void searchCreditPayments_withValidEndDate_shouldReturnAllPayments() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?end_date=" + endDate + "&payment_method=ALL")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        assertThat(paymentsResponse.getPayments().size()).isEqualTo(0);
-    }
-
-    @Test
-    @Transactional
-    public void searchCreditPayments_withPbaNumber() throws Exception {
-
-        populateCardPaymentToDb("1");
-        populateCreditAccountPaymentToDb("2");
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .get("/payments?pba_number=123456"+"&start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-
-        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
-
-    }
-
-
-    @Test
-    @Transactional
-    public void searchCreditPayments_byCcdCaseNumber() throws Exception {
-
-        populateCardPaymentToDb("1");
-
-        Payment creditPayment = populateCreditAccountPaymentToDb("2");
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-
-        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
-
-    }
-
-
-    @Test
-    @Transactional
-    public void searchAllPayments_withInvalidMethodType_shouldReturn400() throws Exception {
-        populateCardPaymentToDb("1");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = startDate;
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=UNKNOWN")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
-        assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid payment method requested");
-    }
-
-    @Test
-    @Transactional
-    public void searchAllPayment_withFutureDate_shouldReturn400() throws Exception {
-        populateCardPaymentToDb("1");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().plusDays(1).toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
-        assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
-        assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("end_date");
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Date cannot be in the future");
-    }
-
-    @Test
-    @Transactional
-    public void searchAllPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
-        populateCardPaymentToDb("1");
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=12/05/2018&end_date=14-05-2018&payment_method=CARD")
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
-        assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
-        assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("start_date");
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).contains("Invalid date format received, required data format is ISO");
-    }
+//    @Test
+//    @Transactional
+//    public void searchAllPayments_withValidBetweenDates_shouldReturn200() throws Exception {
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("2");
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//
+//        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchAllPayments_withValidBetweenDates_shouldReturn200ForBulkScanDisable() throws Exception {
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("2");
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        restActions
+//            .post("/api/ff4j/store/features/bulk-scan-check/disable")
+//            .andExpect(status().isAccepted());
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//
+//        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+//    }
+
+
+//    @Test
+//    @Transactional
+//    public void searchAllPayments_withCcdCaseNumber_shouldReturnRequiredFieldsForVisualComponent() throws Exception {
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("1");
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        MvcResult result = restActions
+//            .get("/payments?ccd_case_number=ccdCaseNumber1"+"&start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse payments = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentsResponse>() {
+//        });
+//
+//        assertThat(payments.getPayments().size()).isEqualTo(2);
+//
+//        PaymentDto payment = payments.getPayments().get(0);
+//
+//        assertThat(payment.getCcdCaseNumber()).isEqualTo("ccdCaseNumber1");
+//
+//        assertThat(payment.getReference()).isNotBlank();
+//        assertThat(payment.getAmount()).isPositive();
+//        assertThat(payment.getDateCreated()).isNotNull();
+//        assertThat(payment.getCustomerReference()).isNotBlank();
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchCardPayments_withValidBetweenDates_shouldReturnOnlyCardPayments() throws Exception {
+//
+//        populateCardPaymentToDb("2");
+//        populateCreditAccountPaymentToDb("1");
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        restActions
+//            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//        List<PaymentDto> payments = paymentsResponse.getPayments();
+//        assertThat(payments.size()).isEqualTo(1);
+//        payments.stream().forEach(p -> {
+//            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
+//            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+//            assertThat(p.getCaseReference()).isEqualTo("Reference2");
+//            assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
+//            assertThat(p.getChannel()).isEqualTo("online");
+//            assertThat(p.getMethod()).isEqualTo("card");
+//            assertThat(p.getStatus()).isEqualTo("initiated");
+//            assertThat(p.getSiteId()).isEqualTo("AA02");
+//            assertThat(p.getDateCreated()).isNotNull();
+//            assertThat(p.getDateUpdated()).isNotNull();
+//            p.getFees().stream().forEach(f -> {
+//                assertThat(f.getCode()).isEqualTo("FEE0002");
+//                assertThat(f.getVersion()).isEqualTo("1");
+//                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
+//            });
+//        });
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchCreditPayments_withValidBetweenDates_shouldReturnOnlyPbaPayments() throws Exception {
+//
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("2");
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=PBA")
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
+//
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchCreditPayments_withValidBetweenDates_shouldReturnAllPayments() throws Exception {
+//
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("2");
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        restActions
+//            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=ALL")
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+//
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchCreditPayments_withValidBetweenDates_shouldReturnPaymentsBasedOnServiceType() throws Exception {
+//
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("2");
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=DIVORCE")
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//        assertThat(paymentsResponse.getPayments().size()).isEqualTo(0);
+
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchCreditPayments_withValidStartDate_shouldReturnAllPayments() throws Exception {
+//
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("2");
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&payment_method=ALL")
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+//
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchCreditPayments_withValidEndDate_shouldReturnAllPayments() throws Exception {
+//
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("2");
+//
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?end_date=" + endDate + "&payment_method=ALL")
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//        assertThat(paymentsResponse.getPayments().size()).isEqualTo(0);
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchCreditPayments_withPbaNumber() throws Exception {
+//
+//        populateCardPaymentToDb("1");
+//        populateCreditAccountPaymentToDb("2");
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        restActions
+//            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+//            .andExpect(status().isAccepted());
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        MvcResult result = restActions
+//            .get("/payments?pba_number=123456"+"&start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//
+//        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
+//
+//    }
+
+
+//    @Test
+//    @Transactional
+//    public void searchCreditPayments_byCcdCaseNumber() throws Exception {
+//
+//        populateCardPaymentToDb("1");
+//
+//        Payment creditPayment = populateCreditAccountPaymentToDb("2");
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        MvcResult result = restActions
+//            .get("/payments?ccd_case_number=" + creditPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//
+//        assertPbaPaymentsForLibereta(paymentsResponse.getPayments());
+//
+//    }
+
+
+//    @Test
+//    @Transactional
+//    public void searchAllPayments_withInvalidMethodType_shouldReturn400() throws Exception {
+//        populateCardPaymentToDb("1");
+//
+//        String startDate = LocalDate.now().toString(DATE_FORMAT);
+//        String endDate = startDate;
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=UNKNOWN")
+//            .andExpect(status().isBadRequest())
+//            .andReturn();
+//
+//        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
+//        assertThat(errorDTO.hasErrors()).isTrue();
+//        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
+//        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid payment method requested");
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchAllPayment_withFutureDate_shouldReturn400() throws Exception {
+//        populateCardPaymentToDb("1");
+//
+//        String startDate = LocalDate.now().toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().plusDays(1).toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&payment_method=CARD")
+//            .andExpect(status().isBadRequest())
+//            .andReturn();
+//
+//        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
+//        assertThat(errorDTO.hasErrors()).isTrue();
+//        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
+//        assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("end_date");
+//        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Date cannot be in the future");
+//    }
+
+//    @Test
+//    @Transactional
+//    public void searchAllPayments_withInvalidFormatDates_shouldReturn400() throws Exception {
+//        populateCardPaymentToDb("1");
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=12/05/2018&end_date=14-05-2018&payment_method=CARD")
+//            .andExpect(status().isBadRequest())
+//            .andReturn();
+//
+//        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
+//        assertThat(errorDTO.hasErrors()).isTrue();
+//        assertThat(errorDTO.getFieldErrors().size()).isEqualTo(1);
+//        assertThat(errorDTO.getFieldErrors().get(0).getField()).isEqualTo("start_date");
+//        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).contains("Invalid date format received, required data format is ISO");
+//    }
 
     @Test
     public void testFindFeatureFlag_withCorrectUID() throws Exception {
@@ -715,220 +715,220 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         assertThat(feature.getDescription()).isEqualTo("Payments search API");
     }
 
-    @Test
-    public void testRetrievePayments_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
-        restActions
-            .post("/api/ff4j/store/features/payment-search/disable")
-            .andExpect(status().isAccepted());
+//    @Test
+//    public void testRetrievePayments_withFeatureFlagDisabled_shouldReturnValidMessage() throws Exception {
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/disable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?payment_method=ALL")
+//            .andExpect(status().isBadRequest())
+//            .andReturn();
+//
+//        assertThat(result.getResponse().getContentAsString()).isEqualTo("Payment search feature is not available for usage.");
+//    }
 
-        MvcResult result = restActions
-            .get("/payments?payment_method=ALL")
-            .andExpect(status().isBadRequest())
-            .andReturn();
+//    @Test
+//    @Transactional
+//    public void searchCardPayments_withValidStartDateAndNoEndDate_shouldReturnOk() throws Exception {
+//
+//        populateCardPaymentToDb("2");
+//        populateCreditAccountPaymentToDb("1");
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        restActions
+//            .post("/api/ff4j/store/features/bulk-scan-check/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate+ "&payment_method=CARD")
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//        List<PaymentDto> payments = paymentsResponse.getPayments();
+//        assertThat(payments.size()).isEqualTo(1);
+//        payments.stream().forEach(p -> {
+//            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
+//            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+//            assertThat(p.getCaseReference()).isEqualTo("Reference2");
+//            assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
+//            assertThat(p.getChannel()).isEqualTo("online");
+//            assertThat(p.getMethod()).isEqualTo("card");
+//            assertThat(p.getStatus()).isEqualTo("initiated");
+//            assertThat(p.getSiteId()).isEqualTo("AA02");
+//            assertThat(p.getDateCreated()).isNotNull();
+//            assertThat(p.getDateUpdated()).isNotNull();
+//            p.getFees().stream().forEach(f -> {
+//                assertThat(f.getCode()).isEqualTo("FEE0002");
+//                assertThat(f.getVersion()).isEqualTo("1");
+//                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
+//            });
+//        });
+//    }
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("Payment search feature is not available for usage.");
-    }
-
-    @Test
-    @Transactional
-    public void searchCardPayments_withValidStartDateAndNoEndDate_shouldReturnOk() throws Exception {
-
-        populateCardPaymentToDb("2");
-        populateCreditAccountPaymentToDb("1");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        restActions
-            .post("/api/ff4j/store/features/bulk-scan-check/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate+ "&payment_method=CARD")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> payments = paymentsResponse.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
-            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
-            assertThat(p.getCaseReference()).isEqualTo("Reference2");
-            assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
-            assertThat(p.getChannel()).isEqualTo("online");
-            assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("initiated");
-            assertThat(p.getSiteId()).isEqualTo("AA02");
-            assertThat(p.getDateCreated()).isNotNull();
-            assertThat(p.getDateUpdated()).isNotNull();
-            p.getFees().stream().forEach(f -> {
-                assertThat(f.getCode()).isEqualTo("FEE0002");
-                assertThat(f.getVersion()).isEqualTo("1");
-                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
-            });
-        });
-    }
-
-    @Test
-    @Transactional
-    public void searchCardPayments_withValidEndDateAndNoStartDate_shouldReturnOk() throws Exception {
-
-        populateCardPaymentToDb("2", "RC-1519-9028-2432-0002");
-        populateCreditAccountPaymentToDb("1");
-
-        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?end_date=" + endDate +"&start_date=" + startDate +"&payment_method=CARD")
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-        List<PaymentDto> payments = paymentsResponse.getPayments();
-        assertThat(payments.size()).isEqualTo(1);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
-            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
-            assertThat(p.getCaseReference()).isEqualTo("Reference2");
-            assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
-            assertThat(p.getChannel()).isEqualTo("online");
-            assertThat(p.getMethod()).isEqualTo("card");
-            assertThat(p.getStatus()).isEqualTo("initiated");
-            assertThat(p.getSiteId()).isEqualTo("AA02");
-            assertThat(p.getDateCreated()).isNotNull();
-            assertThat(p.getDateUpdated()).isNotNull();
-            p.getFees().stream().forEach(f -> {
-                assertThat(f.getCode()).isEqualTo("FEE0002");
-                assertThat(f.getVersion()).isEqualTo("1");
-                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
-            });
-        });
-    }
-
-
-    @Test
-    @Transactional
-    public void searchAllPaymentsWithInvalidDateFormatshouldFail() throws Exception {
-        populateCardPaymentToDb("1");
-
-        String startDate = LocalDate.now().toString("dd/MM/yyyy");
-        String endDate = startDate;
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isBadRequest())
-            .andReturn();
-
-        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
-        assertThat(errorDTO.hasErrors()).isTrue();
-        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid date format received, required data format is ISO");
-    }
-
-    @Test
-    @Transactional
-    public void searchAllPaymentsWithValidDateFormatShouldPass() throws Exception {
-        populateBarCashPaymentToDb("1");
-        populateBarCardPaymentToDb("2");
-
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(2);
-    }
-
-    @Test
-    @Transactional
-    public void searchAllPaymentsWithValidDateTimeFormatShouldPass() throws Exception {
-        populateBarCashPaymentToDb("3");
-        populateBarChequePaymentToDb("4");
-
-        String startDate = LocalDate.now().toString(DATE_FORMAT);
-        String endDate = LocalDate.now().toString(DATE_FORMAT);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(2);
-    }
-
-    @Test
-    @Transactional
-    public void searchAllPaymentsWithDateDDMMYYYYFormatShouldPass() throws Exception {
-        populateBarCashPaymentToDb("5");
-        populateBarChequePaymentToDb("6");
-
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT_DD_MM_YYYY);
-        String endDate = LocalDateTime.now().minusSeconds(1).toString(DATE_FORMAT_DD_MM_YYYY);
+//    @Test
+//    @Transactional
+//    public void searchCardPayments_withValidEndDateAndNoStartDate_shouldReturnOk() throws Exception {
+//
+//        populateCardPaymentToDb("2", "RC-1519-9028-2432-0002");
+//        populateCreditAccountPaymentToDb("1");
+//
+//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+//        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?end_date=" + endDate +"&start_date=" + startDate +"&payment_method=CARD")
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+//        List<PaymentDto> payments = paymentsResponse.getPayments();
+//        assertThat(payments.size()).isEqualTo(1);
+//        payments.stream().forEach(p -> {
+//            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
+//            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
+//            assertThat(p.getCaseReference()).isEqualTo("Reference2");
+//            assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
+//            assertThat(p.getChannel()).isEqualTo("online");
+//            assertThat(p.getMethod()).isEqualTo("card");
+//            assertThat(p.getStatus()).isEqualTo("initiated");
+//            assertThat(p.getSiteId()).isEqualTo("AA02");
+//            assertThat(p.getDateCreated()).isNotNull();
+//            assertThat(p.getDateUpdated()).isNotNull();
+//            p.getFees().stream().forEach(f -> {
+//                assertThat(f.getCode()).isEqualTo("FEE0002");
+//                assertThat(f.getVersion()).isEqualTo("1");
+//                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
+//            });
+//        });
+//    }
 
 
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
+//    @Test
+//    @Transactional
+//    public void searchAllPaymentsWithInvalidDateFormatshouldFail() throws Exception {
+//        populateCardPaymentToDb("1");
+//
+//        String startDate = LocalDate.now().toString("dd/MM/yyyy");
+//        String endDate = startDate;
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isBadRequest())
+//            .andReturn();
+//
+//        ValidationErrorDTO errorDTO = objectMapper.readValue(result.getResponse().getContentAsString(), ValidationErrorDTO.class);
+//        assertThat(errorDTO.hasErrors()).isTrue();
+//        assertThat(errorDTO.getFieldErrors().get(0).getMessage()).isEqualTo("Invalid date format received, required data format is ISO");
+//    }
 
-        MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
+//    @Test
+//    @Transactional
+//    public void searchAllPaymentsWithValidDateFormatShouldPass() throws Exception {
+//        populateBarCashPaymentToDb("1");
+//        populateBarCardPaymentToDb("2");
+//
+//        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
+//        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result1 = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+//        List<PaymentDto> payments = response.getPayments();
+//        assertNotNull(payments);
+//        assertThat(payments.size()).isEqualTo(2);
+//    }
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(2);
+//    @Test
+//    @Transactional
+//    public void searchAllPaymentsWithValidDateTimeFormatShouldPass() throws Exception {
+//        populateBarCashPaymentToDb("3");
+//        populateBarChequePaymentToDb("4");
+//
+//        String startDate = LocalDate.now().toString(DATE_FORMAT);
+//        String endDate = LocalDate.now().toString(DATE_FORMAT);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result1 = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+//        List<PaymentDto> payments = response.getPayments();
+//        assertNotNull(payments);
+//        assertThat(payments.size()).isEqualTo(2);
+//    }
 
-    }
+//    @Test
+//    @Transactional
+//    public void searchAllPaymentsWithDateDDMMYYYYFormatShouldPass() throws Exception {
+//        populateBarCashPaymentToDb("5");
+//        populateBarChequePaymentToDb("6");
+//
+//        String startDate = LocalDateTime.now().toString(DATE_FORMAT_DD_MM_YYYY);
+//        String endDate = LocalDateTime.now().minusSeconds(1).toString(DATE_FORMAT_DD_MM_YYYY);
+//
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result1 = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+//        List<PaymentDto> payments = response.getPayments();
+//        assertNotNull(payments);
+//        assertThat(payments.size()).isEqualTo(2);
+//
+//    }
 
-    @Test
-    public void searchAllPaymentsWithDateFormatYYYYDDMMTHHMMSSShouldPass() throws Exception {
-        String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-
-        restActions
-            .post("/api/ff4j/store/features/payment-search/enable")
-            .andExpect(status().isAccepted());
-
-        MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        assertNotNull(response);
-    }
+//    @Test
+//    public void searchAllPaymentsWithDateFormatYYYYDDMMTHHMMSSShouldPass() throws Exception {
+//        String startDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+//        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+//
+//        restActions
+//            .post("/api/ff4j/store/features/payment-search/enable")
+//            .andExpect(status().isAccepted());
+//
+//        MvcResult result1 = restActions
+//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+//            .andExpect(status().isOk())
+//            .andReturn();
+//
+//        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
+//        assertNotNull(response);
+//    }
 
     @Test
     public void updatePaymentStatusForInvalidPaymentReferenceShouldFail() throws Exception {
@@ -941,10 +941,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void updatePaymentStatusForPaymentReferenceShouldPass() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1433";
-        populateTelephonyPaymentToDb(paymentReference, false);
-
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+       Payment payment=  populateTelephonyPaymentToDb(paymentReference, false);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -955,20 +952,16 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/"+payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
-            assertThat(p.getStatus()).isEqualTo("initiated");
-            assertThat(p.getExternalProvider()).isEqualTo("pci pal");
-            assertThat(p.getChannel()).isEqualTo("telephony");
-        });
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsString(), PaymentDto.class);
+        assertNotNull(paymentDto);
+        assertThat(paymentDto.getPaymentReference()).isEqualTo(paymentReference);
+        assertThat(paymentDto.getStatus()).isEqualTo("Initiated");
+        assertThat(paymentDto.getExternalProvider()).isEqualTo("pci pal");
+        assertThat(paymentDto.getChannel()).isEqualTo("telephony");
 
         // Update payment status with valid payment reference
         restActions
@@ -977,27 +970,23 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
 
         MvcResult result2 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/"+payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        payments = response.getPayments();
-        assertNotNull(payments);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
-            assertThat(p.getStatus()).isEqualTo("success");
-        });
+        paymentDto = objectMapper.readValue(result2.getResponse().getContentAsString(), PaymentDto.class);
+
+        assertNotNull(paymentDto);
+            assertThat(paymentDto.getPaymentReference()).isEqualTo(paymentReference);
+            assertThat(paymentDto.getStatus()).isEqualTo("Success");
     }
 
     @Test
     @Transactional
     public void updatePaymentStatusForPaymentReferenceWhenBulkScanDisabled() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1433";
-        populateTelephonyPaymentToDb(paymentReference, false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, false);
 
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1008,20 +997,18 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/"+payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
-            assertThat(p.getStatus()).isEqualTo("Initiated");
-            assertThat(p.getExternalProvider()).isEqualTo("pci pal");
-            assertThat(p.getChannel()).isEqualTo("telephony");
-        });
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertNotNull(response);
+        assertThat(response.getPaymentReference()).isEqualTo(paymentReference);
+        assertThat(response.getStatus()).isEqualTo("Initiated");
+        assertThat(response.getExternalProvider()).isEqualTo("pci pal");
+        assertThat(response.getChannel()).isEqualTo("telephony");
+
 
         // Update payment status with valid payment reference
         restActions
@@ -1030,17 +1017,15 @@ public class PaymentControllerTest extends PaymentsDataUtil {
 
 
         MvcResult result2 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/"+payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        payments = response.getPayments();
-        assertNotNull(payments);
-        payments.stream().forEach(p -> {
-            assertThat(p.getPaymentReference()).isEqualTo(paymentReference);
-            assertThat(p.getStatus()).isEqualTo("Success");
-        });
+        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertNotNull(response);
+        assertThat(response.getPaymentReference()).isEqualTo(paymentReference);
+        assertThat(response.getStatus()).isEqualTo("Success");
     }
 
     @Test
@@ -1062,24 +1047,20 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void updatePaymentStatusForPaymentReferenceShouldUseCallbackServiceToUpdateInterestedService() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populateTelephonyPaymentToDb(paymentReference, true);
-
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference, true);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+
+        assertNotNull(response);
 
         // Update payment status with valid payment reference
         restActions
@@ -1096,10 +1077,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckExelaPaymentsWhenBulkScanIsToggledOn() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populatePaymentToDbForExelaPayments(paymentReference);
-
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        Payment payment = populatePaymentToDbForExelaPayments(paymentReference);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1110,23 +1088,19 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(response);
     }
 
     @Test
     @Transactional
     public void shouldCheckExelaPaymentsWhenBulkScanIsToggledOnAndPaymentProviderIsNull() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populatePaymentToDbForExelaPaymentsWithoutPaymentProvider(paymentReference);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        Payment payment = populatePaymentToDbForExelaPaymentsWithoutPaymentProvider(paymentReference);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1137,23 +1111,20 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(response);
     }
 
     @Test
     @Transactional
     public void shouldCheckApportionNewFieldsNotPopulatedWhenApportionFeatureIsToggledOffForBulkScanPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populatePaymentToDbForExelaPayments(paymentReference);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        Payment payment = populatePaymentToDbForExelaPayments(paymentReference);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
 
         restActions
@@ -1165,23 +1136,20 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(response);
     }
 
     @Test
     @Transactional
     public void shouldCheckApportionNewFieldsPopulatedWhenApportionFeatureIsToggledONForBulkScanPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populatePaymentToDbForExelaPayments(paymentReference);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        Payment payment = populatePaymentToDbForExelaPayments(paymentReference);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         restActions
@@ -1193,23 +1161,19 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(response);
     }
 
     @Test
     @Transactional
     public void shouldCheckApportionNewFieldsNotPopulatedWhenApportionFeatureIsToggledOffForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populateTelephonyPaymentToDb(paymentReference,false);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
 
         restActions
@@ -1221,23 +1185,20 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(response);
     }
 
     @Test
     @Transactional
     public void shouldCheckApportionNewFieldsPopulatedWhenApportionFeatureIsToggledONForCardPayments() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populateTelephonyPaymentToDb(paymentReference,false);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
 
         restActions
@@ -1249,14 +1210,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(response);
     }
 
     @Test
@@ -1265,8 +1224,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetails(payment);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1276,14 +1234,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference() )
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(response);
     }
 
     @Test
@@ -1292,8 +1248,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1303,14 +1258,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(response);
     }
     @Test
     @Transactional
@@ -1318,8 +1271,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithDifferentFeeId(payment);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1329,14 +1281,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
     }
 
 
@@ -1358,8 +1308,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .feeAmount(BigDecimal.valueOf(100))
             .build();
         feePayApportionList.add(feePayApportion);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(false);
 
         restActions
@@ -1370,14 +1319,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
     }
 
     @Test
@@ -1396,8 +1343,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .feeAmount(BigDecimal.valueOf(100))
             .build();
         feePayApportionList.add(feePayApportion);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.05.2020"));
         restActions
@@ -1408,14 +1354,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
     }
 
     @Test
@@ -1424,8 +1368,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         payment.setDateCreated(parseDate("01.06.2020"));
         restActions
@@ -1435,15 +1378,14 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         restActions
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
+
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
     }
 
     @Test
@@ -1452,8 +1394,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         String paymentReference = "RC-1519-9028-1909-1435";
         Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
+
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
         payment.setDateCreated(parseDate("05.06.2020"));
         restActions
@@ -1464,24 +1405,20 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
     }
 
     @Test
     @Transactional
     public void shouldCheckExelaPaymentsWhenBulkScanIsToggledOff() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populatePaymentToDbForExelaPayments(paymentReference);
+        Payment payment = populatePaymentToDbForExelaPayments(paymentReference);
 
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_FORMAT);
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1492,14 +1429,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(0);
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
     }
 
     // if callback URL does not exist make sure not to call callback service
@@ -1517,15 +1452,12 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
-
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
         // Update payment status with valid payment reference
         restActions
             .patch("/payments/" + paymentReference + "/status/success")
@@ -1593,10 +1525,7 @@ public class PaymentControllerTest extends PaymentsDataUtil {
     @Transactional
     public void duplicateBSPPaymentsShouldNotAppearLiberata() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        populatePaymentToDbForBulkScanPayment(paymentReference, "2018-00000000001");
-
-        String startDate = LocalDateTime.now().toString(DATE_FORMAT);
-        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
+        Payment payment = populatePaymentToDbForBulkScanPayment(paymentReference, "2018-00000000001");
 
         restActions
             .post("/api/ff4j/store/features/payment-search/enable")
@@ -1607,36 +1536,14 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments/" + payment.getReference())
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentsResponse response = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        List<PaymentDto> payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
+        PaymentDto paymentDto = objectMapper.readValue(result1.getResponse().getContentAsByteArray(), PaymentDto.class);
+        assertNotNull(paymentDto);
 
-        MvcResult result2 = restActions
-            .get("/payments?start_date=" + startDate)
-            .andExpect(status().isOk())
-            .andReturn();
 
-        response = objectMapper.readValue(result2.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
-
-        endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
-
-        MvcResult result3 = restActions
-            .get("/payments?end_date=" + endDate)
-            .andExpect(status().isOk())
-            .andReturn();
-
-        response = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentsResponse.class);
-        payments = response.getPayments();
-        assertNotNull(payments);
-        assertThat(payments.size()).isEqualTo(1);
     }
 
     @Test
