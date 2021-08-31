@@ -120,7 +120,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -148,7 +148,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -176,7 +176,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -204,7 +204,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .andExpect(status().isAccepted());
 
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -231,7 +231,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -258,7 +258,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -284,7 +284,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -311,7 +311,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -340,7 +340,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -378,7 +378,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -406,7 +406,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -434,7 +434,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -461,7 +461,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -490,7 +490,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -519,7 +519,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -548,7 +548,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -577,7 +577,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -604,7 +604,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -632,7 +632,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
             .post("/api/ff4j/store/features/bulk-scan-check/enable")
             .andExpect(status().isAccepted());
         MvcResult result1 = restActions
-            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
