@@ -121,7 +121,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -244,7 +244,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         MvcResult result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -261,7 +261,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
 
         //Validate & capture Update_timestamp - After 2nd PCI PAL Callback Request(Duplicate)
         result = restActions
-            .get("/payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?ccd_case_number=" + dbPayment.getCcdCaseNumber()+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
