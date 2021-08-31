@@ -200,7 +200,7 @@ public class PaymentRecordControllerTest {
 
 
         MvcResult result = restActions
-            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR"+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/reconciliation-payments?payment_method=cheque&service_name=DIGITAL_BAR"+"&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
