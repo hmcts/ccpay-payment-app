@@ -114,7 +114,7 @@ public class TelephonyPaymentsTest {
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when()
                 .enableSearch()
-                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
+                .searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1("Civil Money Claims", startDateTime, endDateTime)
                 .then().got(PaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
@@ -160,7 +160,7 @@ public class TelephonyPaymentsTest {
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when()
                 .enableSearch()
-                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
+                .searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1("Civil Money Claims", startDateTime, endDateTime)
                 .then().got(PaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
@@ -208,7 +208,7 @@ public class TelephonyPaymentsTest {
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when()
                 .enableSearch()
-                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
+                .searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1("Civil Money Claims", startDateTime, endDateTime)
                 .then().got(PaymentsResponse.class, paymentsResponse -> {
                 assertTrue("correct payment has been retrieved",
                     paymentsResponse.getPayments().stream()
