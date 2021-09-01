@@ -192,7 +192,8 @@ public class PaymentFixture {
             .build();
     }
 
-    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(String amountString, String service) {
+    public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(
+        final String amountString, final String service, final String pbaAccountNumber) {
         Random rand = new Random();
         String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
             "111122%04d%04d%02d",
@@ -210,7 +211,7 @@ public class PaymentFixture {
             .siteId("ABA6")
             .customerReference("CUST101")
             .organisationName("ORG101")
-            .accountNumber("PBAFUNC12345")
+            .accountNumber(pbaAccountNumber)
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
                     .calculatedAmount(new BigDecimal(amountString))
