@@ -8,9 +8,12 @@ import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 
 import java.math.BigDecimal;
+import java.util.Locale;
+import java.util.Random;
 
 public class PaymentFixture {
 
@@ -190,7 +193,13 @@ public class PaymentFixture {
     }
 
     public static CreditAccountPaymentRequest aPbaPaymentRequestForProbate(String amountString, String service) {
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        Random rand = new Random();
+        String ccdCaseNumber = String.format((Locale)null, //don't want any thousand separators
+            "111122%04d%04d%02d",
+            rand.nextInt(10000),
+            rand.nextInt(10000),
+            rand.nextInt(99));
+        System.out.println("The Correct CCD Case Number : " + ccdCaseNumber);
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
             .amount(new BigDecimal(amountString))
             .description("New passport application")
@@ -253,5 +262,13 @@ public class PaymentFixture {
                     .build())
             )
             .build();
+    }
+
+    public static PaymentRefundRequest aRefundRequest(final String refundReason,
+                                                      final String paymentReference) {
+        return PaymentRefundRequest
+            .refundRequestWith().paymentReference(paymentReference)
+            .refundReason(refundReason).build();
+
     }
 }

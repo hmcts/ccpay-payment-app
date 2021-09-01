@@ -26,6 +26,7 @@ def vaultOverrides = [
 def secrets = [
     'ccpay-${env}': [
         secret('cmc-service-secret', 'S2S_SERVICE_SECRET'),
+        secret('paybubble-s2s-secret', 'PAYBUBBLE_S2S_SERVICE_SECRET'),
         secret('citizen-oauth-client-secret', 'OAUTH2_CLIENT_SECRET'),
         secret('freg-idam-generated-user-email-pattern', 'GENERATED_USER_EMAIL_PATTERN'),
         secret('freg-idam-test-user-password', 'TEST_USER_PASSWORD'),
