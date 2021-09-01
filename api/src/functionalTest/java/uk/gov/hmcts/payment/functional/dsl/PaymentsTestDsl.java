@@ -225,11 +225,11 @@ public class PaymentsTestDsl {
 
         public PaymentWhenDsl searchPaymentsBetweenDates(String startDate, String endDate) {
             if (startDate != null && endDate != null) {
-                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate);
+                response = newRequest().get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate);
             } else if (startDate != null) {
-                response = newRequest().get("/payments?start_date=" + startDate);
+                response = newRequest().get("/reconciliation-payments?start_date=" + startDate);
             } else if (endDate != null) {
-                response = newRequest().get("/payments?end_date=" + endDate);
+                response = newRequest().get("/reconciliation-payments?end_date=" + endDate);
             }
 
             return this;

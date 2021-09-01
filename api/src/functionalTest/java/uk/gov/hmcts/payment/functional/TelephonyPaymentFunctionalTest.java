@@ -128,23 +128,23 @@ public class TelephonyPaymentFunctionalTest {
                 .when().telephonyCallback(callbackDto)
                 .then().noContent();
 
-            // Get pba payments by ccdCaseNumber
-            PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumber(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
-                .then()
-                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+//            // Get pba payments by ccdCaseNumber
+//            PaymentsResponse liberataResponseOld = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
+//                .then()
+//                .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
             PaymentsResponse liberataResponseApproach1 = paymentTestService.getPbaPaymentsByCCDCaseNumberApproach1(SERVICE_TOKEN, telephonyPaymentRequest.getCcdCaseNumber())
                 .then()
                 .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
-            //Comparing the response size of old and new approach
-            Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
-            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
-
-            //Comparing the response of old and new approach
-            Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-            Java6Assertions.assertThat(compareResult).isEqualTo(true);
-            LOG.info("Comparison of old and new api end point response of telephony payment is same");
+//            //Comparing the response size of old and new approach
+//            Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).isGreaterThanOrEqualTo(1);
+//            Java6Assertions.assertThat(liberataResponseApproach1.getPayments().size()).isGreaterThanOrEqualTo(1);
+//
+//            //Comparing the response of old and new approach
+//            Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+//            Java6Assertions.assertThat(compareResult).isEqualTo(true);
+//            LOG.info("Comparison of old and new api end point response of telephony payment is same");
 
             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getPaymentReference()).isNotNull();
             Java6Assertions.assertThat(liberataResponseApproach1.getPayments().get(0).getAmount()).isEqualTo(new BigDecimal("550.00"));
