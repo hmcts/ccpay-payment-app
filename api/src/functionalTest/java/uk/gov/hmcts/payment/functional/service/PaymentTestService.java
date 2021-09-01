@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,15 @@ public class PaymentTestService {
             .body(request)
             .when()
             .post("/credit-account-payments");
+    }
+
+    public Response postInitiateRefund(String userToken, String serviceToken,
+                                       PaymentRefundRequest paymentRefundRequest) {
+        return givenWithAuthHeaders(userToken,serviceToken)
+            .contentType(ContentType.JSON)
+            .body(paymentRefundRequest)
+            .when()
+            .post("/refund-for-payment");
     }
 
     public Response recordBarPayment(String userToken, String serviceToken, PaymentRecordRequest request) {
