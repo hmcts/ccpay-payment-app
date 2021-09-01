@@ -142,95 +142,27 @@ public class RefundsFunctionalTest {
 
     @Test
     public void test_positive_issue_refunds_for_a_failed_pba_payment() {
-        // create a PBA payment
-        String accountNumber = "PBAFUNC12345";
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
-            .aPbaPaymentRequestForProbate("350000.00",
-                "PROBATE", "PBAFUNC12345");
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(FORBIDDEN.value());
-
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(USER_TOKEN,
-                SERVICE_TOKEN,
-                accountNumber)
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
-
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("350000.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        assertThat(paymentDtoOptional.get().getStatus()).isEqualTo("Failed");
-        assertThat(paymentDtoOptional.get().getStatusHistories().get(0).getErrorMessage()).isEqualTo("Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
-
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        String paymentReference = paymentDtoOptional.get().getPaymentReference();
-        PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN_PAYMENT,
-            paymentRefundRequest);
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        System.out.println("The value of the response body "+refundResponse.getBody().prettyPrint());
-        assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
+        issue_refunds_for_a_failed_payment("350000.00","PBAFUNC12345","Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
     @Test
     public void test_positive_issue_refunds_for_a_pba_account_deleted_payment() {
-        // create a PBA payment
-        String accountNumber = "PBAFUNC12350";
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
-            .aPbaPaymentRequestForProbate("100.00",
-                "PROBATE", "PBAFUNC12350");
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-            .statusCode(FORBIDDEN.value());
-
-        // Get pba payments by accountNumber
-        PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(USER_TOKEN,
-                SERVICE_TOKEN,
-                accountNumber)
-            .then()
-            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
-
-        Optional<PaymentDto> paymentDtoOptional
-            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
-            return s2.getDateCreated().compareTo(s1.getDateCreated());
-        }).findFirst();
-
-        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("100.00"));
-        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
-        assertThat(paymentDtoOptional.get().getStatus()).isEqualTo("Failed");
-        assertThat(paymentDtoOptional.get().getStatusHistories().get(0).getErrorMessage()).isEqualTo("Your account is deleted");
-
-        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
-        String paymentReference = paymentDtoOptional.get().getPaymentReference();
-        PaymentRefundRequest paymentRefundRequest
-            = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
-            SERVICE_TOKEN_PAYMENT,
-            paymentRefundRequest);
-        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        System.out.println("The value of the response body "+refundResponse.getBody().prettyPrint());
-        assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
+        issue_refunds_for_a_failed_payment("100.00","PBAFUNC12350","Your account is deleted");
     }
 
     @Test
     public void test_positive_issue_refunds_for_a_pba_account_on_hold_payment() {
+        issue_refunds_for_a_failed_payment("100.00","PBAFUNC12355","Your account is on hold");
+    }
+
+    private void issue_refunds_for_a_failed_payment(final String amount,
+                                                    final String accountNumber,
+                                                    final String errorMessage) {
+
         // create a PBA payment
-        String accountNumber = "PBAFUNC12355";
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
-            .aPbaPaymentRequestForProbate("100.00",
-                "PROBATE", "PBAFUNC12355");
+            .aPbaPaymentRequestForProbate(amount,
+                "PROBATE", accountNumber);
         accountPaymentRequest.setAccountNumber(accountNumber);
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(FORBIDDEN.value());
@@ -249,10 +181,10 @@ public class RefundsFunctionalTest {
         }).findFirst();
 
         assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("100.00"));
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal(amount));
         assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
         assertThat(paymentDtoOptional.get().getStatus()).isEqualTo("Failed");
-        assertThat(paymentDtoOptional.get().getStatusHistories().get(0).getErrorMessage()).isEqualTo("Your account is on hold");
+        assertThat(paymentDtoOptional.get().getStatusHistories().get(0).getErrorMessage()).isEqualTo(errorMessage);
 
         System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
