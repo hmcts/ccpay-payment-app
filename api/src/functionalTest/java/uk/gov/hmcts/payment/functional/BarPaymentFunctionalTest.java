@@ -165,24 +165,24 @@ public class BarPaymentFunctionalTest {
 
         String endDate = formatter.format(LocalDateTime.now(zoneUTC).toDate());
 
-        PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
-            .s2sToken(SERVICE_TOKEN)
-            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "postal_order")
-            .then().getPayments();
+//        PaymentsResponse liberataResponseOld = dsl.given().userToken(USER_TOKEN)
+//            .s2sToken(SERVICE_TOKEN)
+//            .when().searchPaymentsBetweenDatesPaymentMethodServiceName(startDate, endDate, "postal_order")
+//            .then().getPayments();
 
         PaymentsResponse liberataResponseApproach1 = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(startDate, endDate, "postal_order")
             .then().getPayments();
 
-        //Comparing the response size of old and new approach
-        Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
-            isEqualTo(liberataResponseApproach1.getPayments().size());
-        LOG.info(""+liberataResponseApproach1.getPayments().size());
-        //Comparing the response of old and new approach
-        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
-        Java6Assertions.assertThat(compareResult).isEqualTo(true);
-        LOG.info("Comparison of old and new api end point response BAR Postal Order payment is same");
+//        //Comparing the response size of old and new approach
+//        Java6Assertions.assertThat(liberataResponseOld.getPayments().size()).
+//            isEqualTo(liberataResponseApproach1.getPayments().size());
+//        LOG.info(""+liberataResponseApproach1.getPayments().size());
+//        //Comparing the response of old and new approach
+//        Boolean compareResult = new HashSet<>(liberataResponseOld.getPayments()).equals(new HashSet<>(liberataResponseApproach1.getPayments()));
+//        Java6Assertions.assertThat(compareResult).isEqualTo(true);
+//        LOG.info("Comparison of old and new api end point response BAR Postal Order payment is same");
 
         // search payment and assert the result
         dsl.given().userToken(USER_TOKEN)
