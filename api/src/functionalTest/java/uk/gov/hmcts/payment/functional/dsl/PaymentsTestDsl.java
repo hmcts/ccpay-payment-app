@@ -259,15 +259,15 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(String  serviceName, String startDate, String endDate) {
-            StringBuilder sb = new StringBuilder("/payments?");
-            sb.append("start_date=").append(startDate);
-            sb.append("&end_date=").append(endDate);
-            sb.append("&service_name=").append(serviceName);
-            response = newRequest().get(sb.toString());
-
-            return this;
-        }
+//        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(String  serviceName, String startDate, String endDate) {
+//            StringBuilder sb = new StringBuilder("/payments?");
+//            sb.append("start_date=").append(startDate);
+//            sb.append("&end_date=").append(endDate);
+//            sb.append("&service_name=").append(serviceName);
+//            response = newRequest().get(sb.toString());
+//
+//            return this;
+//        }
 
         public PaymentThenDsl then() {
             return new PaymentThenDsl();
