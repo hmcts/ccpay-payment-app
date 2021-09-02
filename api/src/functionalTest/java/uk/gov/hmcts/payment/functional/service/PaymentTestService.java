@@ -65,11 +65,11 @@ public class PaymentTestService {
             .get("/pba-accounts/{accountNumber}/payments", accountNumber);
     }
 
-    public Response getPbaPaymentsByCCDCaseNumber(String serviceToken, String ccdCaseNumber) {
-        return givenWithServiceHeaders(serviceToken)
-            .when()
-            .get("/payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
-    }
+//    public Response getPbaPaymentsByCCDCaseNumber(String serviceToken, String ccdCaseNumber) {
+//        return givenWithServiceHeaders(serviceToken)
+//            .when()
+//            .get("/payments?ccd_case_number={ccdCaseNumber}", ccdCaseNumber);
+//    }
 
     public Response getPbaPaymentsByCCDCaseNumberApproach1(String serviceToken, String ccdCaseNumber) {
         return givenWithServiceHeaders(serviceToken)
