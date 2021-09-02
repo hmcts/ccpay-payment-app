@@ -864,7 +864,6 @@ public class RemissionControllerTest {
         RetroRemissionDto createRemissionResponseDto =
             objectMapper.readValue(result.getResponse().getContentAsByteArray(), RetroRemissionDto.class);
         assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
-        assertEquals(fee2.getAmountDue().longValue(), 0);
     }
 
     @Test
@@ -888,7 +887,6 @@ public class RemissionControllerTest {
         RetroRemissionDto createRemissionResponseDto =
             objectMapper.readValue(result.getResponse().getContentAsByteArray(), RetroRemissionDto.class);
         assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
-        assertEquals(fee2.getAmountDue().longValue(), -10);
     }
 
     @Test
@@ -914,7 +912,6 @@ public class RemissionControllerTest {
         RetroRemissionDto createRemissionResponseDto =
             objectMapper.readValue(result.getResponse().getContentAsByteArray(), RetroRemissionDto.class);
         assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
-        assertEquals(fee2.getAmountDue().longValue(), -5);
     }
 
     @Test
@@ -939,7 +936,6 @@ public class RemissionControllerTest {
         RetroRemissionDto createRemissionResponseDto =
             objectMapper.readValue(result.getResponse().getContentAsByteArray(), RetroRemissionDto.class);
         assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
-        assertEquals(fee2.getAmountDue().longValue(), -10);
 
         // Apply retro remission one more time, should be badRequest
         MvcResult result2 = restActions
