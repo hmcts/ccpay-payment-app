@@ -307,11 +307,11 @@ public class PaymentController {
         }
     }
 
-    private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(PaymentFeeLink paymentFeeLink) {
-        List<Payment> payments = paymentFeeLink.getPayments();
-        payments = getPayments(payments);
-        return payments;
-    }
+//    private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(PaymentFeeLink paymentFeeLink) {
+//        List<Payment> payments = paymentFeeLink.getPayments();
+//        payments = getPayments(payments);
+//        return payments;
+//    }
 
     private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(List<Payment> payments) {
         payments = getPayments(payments);
