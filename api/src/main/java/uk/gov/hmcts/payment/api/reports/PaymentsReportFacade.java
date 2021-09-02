@@ -30,7 +30,8 @@ public class PaymentsReportFacade {
         if (reportConfig.isEnabled()) {
             reportService.generateCsvAndSendEmail(startDate, endDate, paymentMethodType, serviceType, reportConfig);
         } else {
-            LOG.info("payments report flag is disabled for type :{} and service :{}. So, system will not send CSV email", paymentMethodType, serviceType);
+            LOG.info("payments report flag is disabled for type :{} and service :{}. So, system will not send CSV email",
+                paymentMethodType, serviceType);
         }
     }
 }

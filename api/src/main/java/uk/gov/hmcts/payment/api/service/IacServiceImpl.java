@@ -71,10 +71,12 @@ public class IacServiceImpl implements IacService {
                 lstSupplementaryInfo = supplementaryDetailsResponse.getSupplementaryInfo();
                 MissingSupplementaryInfo lstMissingSupplementaryInfo = supplementaryDetailsResponse.getMissingSupplementaryInfo();
 
-                if (responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value() && lstMissingSupplementaryInfo == null) {
+                if (responseEntitySupplementaryInfo.getStatusCodeValue() == HttpStatus.PARTIAL_CONTENT.value()
+                    && lstMissingSupplementaryInfo == null) {
                     LOG.info("No missing supplementary info received from IAC for any CCD case numbers, however response is 206");
                 } else if (lstMissingSupplementaryInfo != null && lstMissingSupplementaryInfo.getCcdCaseNumbers() != null)
-                    LOG.info("missing supplementary info from IAC for CCD case numbers : {}", lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
+                    LOG.info("missing supplementary info from IAC for CCD case numbers : {}",
+                        lstMissingSupplementaryInfo.getCcdCaseNumbers().toString());
             }
 
             supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).

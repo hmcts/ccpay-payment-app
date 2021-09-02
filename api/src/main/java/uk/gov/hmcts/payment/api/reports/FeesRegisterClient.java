@@ -24,7 +24,7 @@ public interface FeesRegisterClient {
         return Optional.ofNullable(getFeesData().stream()
             .collect(Collectors.toMap(
                 Fee2Dto::getCode,
-                fee ->fee,
+                fee -> fee,
                 (fee1, fee2) -> {
                     LOG.warn("duplicate feeCode key found :{}", fee2);
                     return fee1;

@@ -23,6 +23,7 @@ public class Clock {
     }
 
     public Date atEndOfDay(String dateString, DateTimeFormatter formatter) {
-        return Date.from(LocalDate.parse(dateString, formatter).atStartOfDay().plusDays(1).minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
+        return Date.from(LocalDate.parse(dateString, formatter).atStartOfDay().plusDays(1).minusSeconds(1)
+            .atZone(ZoneId.systemDefault()).toInstant());
     }
 }

@@ -47,7 +47,8 @@ public class PaymentsReportService {
     private final FeesService feesService;
 
     @Autowired
-    public PaymentsReportService(@Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService, PaymentDtoMapper paymentDtoMapper,
+    public PaymentsReportService(@Qualifier("loggingPaymentService") DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService,
+                                 PaymentDtoMapper paymentDtoMapper,
                                  EmailService emailService, FeesService feesService) {
         this.delegatingPaymentService = delegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
@@ -114,7 +115,8 @@ public class PaymentsReportService {
             LOG.info("PaymentsReportService - Total " + payments.size() + " payments records written in payments csv file " + paymentsCsvFileName);
             paymentsCsvByteArray = bos.toByteArray();
         } catch (IOException ex) {
-            LOG.error("PaymentsReportService - Error while creating payments csv file " + paymentsCsvFileName + ". Error message is " + ex.getMessage());
+            LOG.error("PaymentsReportService - Error while creating payments csv file " + paymentsCsvFileName +
+                ". Error message is " + ex.getMessage());
         }
         return paymentsCsvByteArray;
     }
