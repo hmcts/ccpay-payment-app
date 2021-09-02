@@ -36,7 +36,8 @@ public class DuplicatePaymentValidator {
         .thenComparing(PaymentFee::getCalculatedAmount);
 
     @Autowired
-    public DuplicatePaymentValidator(DuplicateSpecification duplicateSpecification, @Value("${duplicate.payment.check.interval.in.minutes:2}") int timeInterval,
+    public DuplicatePaymentValidator(DuplicateSpecification duplicateSpecification,
+                                     @Value("${duplicate.payment.check.interval.in.minutes:2}") int timeInterval,
                                      PaymentFeeLinkRepository paymentFeeLinkRepository) {
         this.duplicateSpecification = duplicateSpecification;
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
@@ -49,8 +50,9 @@ public class DuplicatePaymentValidator {
             boolean sameFees = dbPayments.stream()
                 .anyMatch(feePredicate(requestFees));
             if (sameFees) {
-                if(payment != null && payment.getPaymentStatus() != null) {
-                    LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Duplicate Payment!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+                if (payment != null && payment.getPaymentStatus() != null) {
+                    LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Duplicate Payment!!!",
+                        payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
                 }
                 throw new DuplicatePaymentException("duplicate payment");
             }
@@ -59,7 +61,7 @@ public class DuplicatePaymentValidator {
 
     private Predicate<PaymentFeeLink> feePredicate(List<PaymentFee> requestFees) {
         return p -> p.getFees().size() == requestFees.size() && IntStream.range(0, requestFees.size())
-                    .allMatch(i-> contains(p.getFees(), requestFees.get(i), FEE_COMPARATOR));
+                    .allMatch(i -> contains(p.getFees(), requestFees.get(i), FEE_COMPARATOR));
     }
 
     private static <T> boolean contains(List<T> list, T item, Comparator<? super T> comparator) {

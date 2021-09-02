@@ -71,7 +71,7 @@ public class MaintenanceJobsController {
 
         LOG.warn("{} payment references were successfully updated", count);
 
-        if(topicClientProxy != null) {
+        if (topicClientProxy != null) {
             topicClientProxy.setKeepClientAlive(false);
             topicClientProxy.close();
         }

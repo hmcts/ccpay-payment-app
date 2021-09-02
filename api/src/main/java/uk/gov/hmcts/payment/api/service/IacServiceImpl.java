@@ -79,7 +79,7 @@ public class IacServiceImpl implements IacService {
 
             supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
                 supplementaryInfo(lstSupplementaryInfo).build();
-            }else{
+            } else {
                 LOG.info("No Iac payments retrieved");
                  supplementaryPaymentDto = SupplementaryPaymentDto.supplementaryPaymentDtoWith().payments(paymentDtos).
                     build();
@@ -103,7 +103,8 @@ public class IacServiceImpl implements IacService {
 
         HttpHeaders headers = new HttpHeaders(headerMultiValueMapForIacSuppInfo);
         final HttpEntity<IacSupplementaryRequest> entity = new HttpEntity<>(iacSupplementaryRequest, headers);
-        return this.restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl + "/supplementary-details", HttpMethod.POST, entity, SupplementaryDetailsResponse.class);
+        return this.restTemplateIacSupplementaryInfo.exchange(iacSupplementaryInfoUrl + "/supplementary-details",
+            HttpMethod.POST, entity, SupplementaryDetailsResponse.class);
     }
 
 }
