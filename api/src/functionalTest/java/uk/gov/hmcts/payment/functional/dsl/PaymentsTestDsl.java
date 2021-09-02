@@ -235,17 +235,6 @@ public class PaymentsTestDsl {
             return this;
         }
 
-//        public PaymentWhenDsl searchPaymentsBetweenDatesPaymentMethodServiceName(String startDate, String endDate, String paymentMethod) {
-//            if (startDate != null && endDate != null) {
-//                response = newRequest().get("/payments?start_date=" + startDate + "&end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
-//            } else if (startDate != null) {
-//                response = newRequest().get("/payments?start_date=" + startDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
-//            } else if (endDate != null) {
-//                response = newRequest().get("/payments?end_date=" + endDate + "&service_name=Digital Bar" + "&payment_method=" + paymentMethod);
-//            }
-//
-//            return this;
-//        }
 
         public PaymentWhenDsl searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1(String startDate, String endDate, String paymentMethod) {
             if (startDate != null && endDate != null) {
@@ -259,15 +248,6 @@ public class PaymentsTestDsl {
             return this;
         }
 
-//        public PaymentWhenDsl searchPaymentsByServiceBetweenDates(String  serviceName, String startDate, String endDate) {
-//            StringBuilder sb = new StringBuilder("/payments?");
-//            sb.append("start_date=").append(startDate);
-//            sb.append("&end_date=").append(endDate);
-//            sb.append("&service_name=").append(serviceName);
-//            response = newRequest().get(sb.toString());
-//
-//            return this;
-//        }
 
         public PaymentThenDsl then() {
             return new PaymentThenDsl();
