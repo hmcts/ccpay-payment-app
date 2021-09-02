@@ -10,6 +10,7 @@ import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +54,15 @@ public class PaymentTestService {
             .body(paymentRefundRequest)
             .when()
             .post("/refund-for-payment");
+    }
+
+    public Response postSubmitRefund(String userToken, String serviceToken,
+                                     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest) {
+        return givenWithAuthHeaders(userToken,serviceToken)
+            .contentType(ContentType.JSON)
+            .body(retroSpectiveRemissionRequest)
+            .when()
+            .post("/refund-retro-remission");
     }
 
     public Response recordBarPayment(String userToken, String serviceToken, PaymentRecordRequest request) {
