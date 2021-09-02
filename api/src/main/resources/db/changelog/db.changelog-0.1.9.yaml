@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+        id: 1554989041019-23
+        author: Jennings
+        changes:
+            - sql:
+                splitStatements: true
+                sql: >
+                    INSERT INTO audit_events_type (name, description)
+                    VALUES
+                    ('order_updated', 'Order Updated successfully as part of Data migration');
