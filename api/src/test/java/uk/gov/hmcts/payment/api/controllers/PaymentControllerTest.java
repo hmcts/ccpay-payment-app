@@ -302,29 +302,29 @@ public class PaymentControllerTest extends PaymentsDataUtil {
             "}";
     }
 
-//    @Test
-//    @Transactional
-//    public void searchAllPayments_withValidBetweenDates_shouldReturn200() throws Exception {
-//        populateCardPaymentToDb("1");
-//        populateCreditAccountPaymentToDb("2");
-//
-//        restActions
-//            .post("/api/ff4j/store/features/payment-search/enable")
-//            .andExpect(status().isAccepted());
-//
-//
-//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-//        String endDate = LocalDate.now().toString(DATE_FORMAT);
-//
-//        MvcResult result = restActions
-//            .get("/payments?start_date=" + startDate + "&end_date=" + endDate)
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-//
-//        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
-//    }
+    @Test
+    @Transactional
+    public void searchAllPayments_withValidBetweenDates_shouldReturn200() throws Exception {
+        populateCardPaymentToDb("1");
+        populateCreditAccountPaymentToDb("2");
+
+        restActions
+            .post("/api/ff4j/store/features/payment-search/enable")
+            .andExpect(status().isAccepted());
+
+
+        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
+        String endDate = LocalDate.now().toString(DATE_FORMAT);
+
+        MvcResult result = restActions
+            .get("/reconciliation-payments?start_date=" + startDate + "&end_date=" + endDate)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
+
+        assertThat(paymentsResponse.getPayments().size()).isEqualTo(2);
+    }
 
 //    @Test
 //    @Transactional

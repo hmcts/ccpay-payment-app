@@ -218,33 +218,33 @@ public class PaymentController {
             .filter(p -> p.getReference().equals(reference)).findAny();
     }
 
-    private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink, Date fromDateTime, Date toDateTime) {
-        //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
-        List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
-
-        //Additional filter to retrieve payments within specified Date Range for Liberata Pull
-        if (null != fromDateTime && null != toDateTime) {
-            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0
-                && payment.getDateUpdated().compareTo(toDateTime) <= 0 ))
-                .collect(Collectors.toList());
-        } else if (null != fromDateTime) {
-            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0))
-                .collect(Collectors.toList());
-        } else if (null != toDateTime) {
-            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(toDateTime) <= 0 ))
-                .collect(Collectors.toList());
-        }
-
-        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
-
-        LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
-        LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
-        for (final Payment payment: payments) {
-            final String paymentReference = paymentFeeLink.getPaymentReference();
-            //Apportion logic added for pulling allocation amount
-            populateApportionedFees(paymentDtos, paymentFeeLink, apportionFeature, payment, paymentReference);
-        }
-    }
+//    private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final PaymentFeeLink paymentFeeLink, Date fromDateTime, Date toDateTime) {
+//        //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
+//        List<Payment> payments = getFilteredListBasedOnBulkScanToggleFeature(paymentFeeLink);
+//
+//        //Additional filter to retrieve payments within specified Date Range for Liberata Pull
+//        if (null != fromDateTime && null != toDateTime) {
+//            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0
+//                && payment.getDateUpdated().compareTo(toDateTime) <= 0 ))
+//                .collect(Collectors.toList());
+//        } else if (null != fromDateTime) {
+//            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0))
+//                .collect(Collectors.toList());
+//        } else if (null != toDateTime) {
+//            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(toDateTime) <= 0 ))
+//                .collect(Collectors.toList());
+//        }
+//
+//        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
+//
+//        LOG.info("BSP Feature ON : No of Payments retrieved for Liberata Pull : {}", payments.size());
+//        LOG.info("Apportion feature flag in liberata API: {}", apportionFeature);
+//        for (final Payment payment: payments) {
+//            final String paymentReference = paymentFeeLink.getPaymentReference();
+//            //Apportion logic added for pulling allocation amount
+//            populateApportionedFees(paymentDtos, paymentFeeLink, apportionFeature, payment, paymentReference);
+//        }
+//    }
 
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final List<Payment> payments) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
