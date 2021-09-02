@@ -152,24 +152,16 @@ public class RemissionServiceImpl implements RemissionService {
 
     private void calculateRetroRemission(PaymentFee fee, FeePayApportion feePayApportion, RetroRemissionServiceRequest remissionServiceRequest, Integer paymentLinkId) {
         // If paymentMethod is PBA and Status is Success then add refund else add remission , If failed payment then fetch payment using paymentLinkId
-        Optional<Payment> payment = Optional.empty();
         if (feePayApportion != null) {
-            payment = paymentRespository.findById(feePayApportion.getPaymentId());
+            paymentRespository.findById(feePayApportion.getPaymentId());
         } else {
             Optional<List<Payment>> paymentList = paymentRespository.findByPaymentLinkId(paymentLinkId);
             if (paymentList.isPresent()) {
-                payment = Optional.of(paymentList.get()
+                Optional.of(paymentList.get()
                     .stream()
                     .filter(f -> f.getPaymentMethod().getName().equalsIgnoreCase("payment by account"))
                     .collect(Collectors.toList()).get(0));
             }
-        }
-        if (payment.isPresent() &&
-            payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
-            payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")) {
-            fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()).subtract(payment.get().getAmount()));
-        } else {
-            fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()));
         }
     }
 
