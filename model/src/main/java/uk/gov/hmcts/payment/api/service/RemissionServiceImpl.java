@@ -107,7 +107,6 @@ public class RemissionServiceImpl implements RemissionService {
         PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference);
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
         FeePayApportion feePayApportion = populatePaymentApportionment(feeId);
-        calculateRetroRemission(fee, feePayApportion, remissionServiceRequest, paymentFeeLink.getId());
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
     }
 
@@ -150,20 +149,6 @@ public class RemissionServiceImpl implements RemissionService {
             .build();
     }
 
-    private void calculateRetroRemission(PaymentFee fee, FeePayApportion feePayApportion, RetroRemissionServiceRequest remissionServiceRequest, Integer paymentLinkId) {
-        // If paymentMethod is PBA and Status is Success then add refund else add remission , If failed payment then fetch payment using paymentLinkId
-        if (feePayApportion != null) {
-            paymentRespository.findById(feePayApportion.getPaymentId());
-        } else {
-            Optional<List<Payment>> paymentList = paymentRespository.findByPaymentLinkId(paymentLinkId);
-            if (paymentList.isPresent()) {
-                Optional.of(paymentList.get()
-                    .stream()
-                    .filter(f -> f.getPaymentMethod().getName().equalsIgnoreCase("payment by account"))
-                    .collect(Collectors.toList()).get(0));
-            }
-        }
-    }
 
     private Remission buildRemissionForPayment(PaymentFeeLink paymentFeeLink, PaymentFee fee, RetroRemissionServiceRequest remissionServiceRequest) throws CheckDigitException {
         // Apply retro remission using all data from paymentFeeLink,fee,feePayApportion,remissionServiceRequest
