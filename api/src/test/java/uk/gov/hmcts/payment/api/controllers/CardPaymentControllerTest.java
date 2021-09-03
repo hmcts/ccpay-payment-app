@@ -692,7 +692,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         PaymentDto paymentDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentDto.class);
         assertNotNull(paymentDto);
         PaymentFeeLink paymentFeeLink = db.findByReference(paymentDto.getPaymentGroupReference());
-        assertEquals(paymentDto.getStatus() , "Initiated");
+        assertEquals(paymentDto.getStatus(), "Initiated");
         assertNotNull(paymentFeeLink);
     }
 

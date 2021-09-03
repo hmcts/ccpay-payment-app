@@ -44,7 +44,7 @@ public class DuplicatePaymentValidatorTest {
 
     @Test
     public void shouldReturnNoErrors_whenNoMatchingPaymentsWithCriteriaSpecification() {
-        Payment payment = aPayment();
+        Payment payment = getPayment();
         PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
 
         given(duplicateSpecification.getBy(payment, TIME_INTERVAL)).willReturn(mockSpecification);
@@ -56,7 +56,7 @@ public class DuplicatePaymentValidatorTest {
 
     @Test
     public void shouldReturnNoErrors_whenMatchingPaymentsButWithDifferentFeeCode() {
-        Payment payment = aPayment();
+        Payment payment = getPayment();
         PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0002").volume(1).build();
 
@@ -73,7 +73,7 @@ public class DuplicatePaymentValidatorTest {
 
     @Test
     public void shouldReturnNoErrors_whenMatchingPaymentsButWithDifferentFeeVersion() {
-        Payment payment = aPayment();
+        Payment payment = getPayment();
         PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("4").code("X0001").volume(1).build();
 
@@ -90,7 +90,7 @@ public class DuplicatePaymentValidatorTest {
 
     @Test
     public void shouldReturnNoErrors_whenMatchingPaymentsButWithDifferentFeeVolume() {
-        Payment payment = aPayment();
+        Payment payment = getPayment();
         PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(4).build();
 
@@ -107,7 +107,7 @@ public class DuplicatePaymentValidatorTest {
 
     @Test
     public void shouldReturnNoErrors_whenMatchingPaymentsButWithMultipleFees() {
-        Payment payment = aPayment();
+        Payment payment = getPayment();
         PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee2 = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0002").volume(1).build();
@@ -125,7 +125,7 @@ public class DuplicatePaymentValidatorTest {
 
     @Test
     public void shouldThrowException_whenMatchingPaymentsWithSameFeeDetails() {
-        Payment payment = aPayment();
+        Payment payment = getPayment();
         PaymentFee requestFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
         PaymentFee dbFee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").volume(1).build();
 
@@ -141,7 +141,7 @@ public class DuplicatePaymentValidatorTest {
         validator.checkDuplication(payment, Lists.newArrayList(requestFee));
     }
 
-    private Payment aPayment() {
+    private Payment getPayment() {
         return Payment.paymentWith()
             .amount(new BigDecimal("11.99"))
             .ccdCaseNumber("ccdCaseNumber")

@@ -39,7 +39,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class BulkScanningReportControllerTest extends PaymentsDataUtil{
+public class BulkScanningReportControllerTest extends PaymentsDataUtil {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
