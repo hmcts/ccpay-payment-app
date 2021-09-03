@@ -83,7 +83,8 @@ public class RemissionController {
         return new ResponseEntity<>(remissionDtoMapper.toCreateRemissionResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 
-    private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest, OrganisationalServiceDto organisationalServiceDto) {
+    private RemissionServiceRequest populateRemissionServiceRequest(RemissionRequest remissionRequest,
+                                                                    OrganisationalServiceDto organisationalServiceDto) {
         return RemissionServiceRequest.remissionServiceRequestWith()
             .paymentGroupReference(PaymentReference.getInstance().getNext())
             .hwfAmount(remissionRequest.getHwfAmount())

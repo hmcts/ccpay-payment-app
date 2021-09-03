@@ -7,7 +7,6 @@ import uk.gov.hmcts.payment.api.contract.BulkScanningReportDto;
 import uk.gov.hmcts.payment.api.contract.BulkScanningUnderOverPaymentDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 
 import java.math.BigDecimal;
@@ -25,7 +24,7 @@ public class BulkScanningReportMapper {
         List<BulkScanningReportDto> bulkScanningReportDtos = new ArrayList<>();
 
         payments = Optional.ofNullable(payments)
-            .orElseGet(Collections :: emptyList)
+            .orElseGet(Collections::emptyList)
             .stream()
             .filter(payment -> Objects.nonNull(payment.getPaymentChannel()))
             .filter(payment -> Objects.nonNull(payment.getPaymentChannel().getName()))
@@ -41,7 +40,8 @@ public class BulkScanningReportMapper {
                     payment.getPaymentAllocation().get(0).getPaymentAllocationStatus().getName().equalsIgnoreCase("Unidentified")))
             .map(populateTransferredOrUnidentifiedReport()).collect(Collectors.toList());
 
-        bulkScanningReportDtos.sort(Comparator.comparing(BulkScanningReportDto::getRespServiceId).thenComparing(BulkScanningReportDto::getAllocationStatus));
+        bulkScanningReportDtos.sort(Comparator.comparing(BulkScanningReportDto::getRespServiceId)
+            .thenComparing(BulkScanningReportDto::getAllocationStatus));
         LOG.info("Final Unallocated Report list size : {}",bulkScanningReportDtos.size());
         return bulkScanningReportDtos;
     }
@@ -71,7 +71,7 @@ public class BulkScanningReportMapper {
         LOG.info("SurplusAndShortfall payments size : {}",payments.size());
 
         payments = Optional.ofNullable(payments)
-            .orElseGet(Collections :: emptyList)
+            .orElseGet(Collections::emptyList)
             .stream()
             .filter(payment -> Objects.nonNull(payment.getPaymentChannel()))
             .filter(payment -> Objects.nonNull(payment.getPaymentChannel().getName()))
@@ -99,7 +99,8 @@ public class BulkScanningReportMapper {
             .filter(payment -> getGroupOutstandingForDateRange(payment).compareTo(BigDecimal.ZERO) != 0)
             .map(populateUnderOverPaymentReport())
             .collect(Collectors.toList());
-        underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId).thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
+        underOverPaymentDtos.sort(Comparator.comparing(BulkScanningUnderOverPaymentDto::getRespServiceId)
+            .thenComparing(BulkScanningUnderOverPaymentDto::getSurplusShortfall));
         LOG.info("Surplus and Shortfall Report list final size : {}",underOverPaymentDtos.size());
         return underOverPaymentDtos;
     }
@@ -114,7 +115,8 @@ public class BulkScanningReportMapper {
             bulkScanningUnderOverPaymentDto.setCcdCaseReference(payment.getCcdCaseNumber());
             bulkScanningUnderOverPaymentDto.setBalance(getGroupOutstandingForDateRange(payment));
             bulkScanningUnderOverPaymentDto.setPaymentAmount(payment.getAmount());
-            bulkScanningUnderOverPaymentDto.setSurplusShortfall(getGroupOutstandingForDateRange(payment).compareTo(BigDecimal.ZERO) > 0 ? "Shortfall" : "Surplus");
+            bulkScanningUnderOverPaymentDto.setSurplusShortfall(getGroupOutstandingForDateRange(payment).compareTo(BigDecimal.ZERO) > 0 ?
+                "Shortfall" : "Surplus");
             bulkScanningUnderOverPaymentDto.setProcessedDate(payment.getDateCreated());
             bulkScanningUnderOverPaymentDto.setReason(payment.getPaymentAllocation().get(0).getReason());
             bulkScanningUnderOverPaymentDto.setExplanation(payment.getPaymentAllocation().get(0).getExplanation());
@@ -143,7 +145,7 @@ public class BulkScanningReportMapper {
      2. For 2nd payment total outstanding will be 600
      */
 
-    private BigDecimal getGroupOutstandingForDateRange(Payment payment){
+    private BigDecimal getGroupOutstandingForDateRange(Payment payment) {
         BigDecimal feeAmount = calculateFeeAmount(payment.getPaymentLink().getFees());
 
         BigDecimal remissionAmount = calculateRemissionAmount(payment.getPaymentLink().getRemissions());
@@ -171,10 +173,9 @@ public class BulkScanningReportMapper {
             .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success"))
             .collect(Collectors.toList());
         LOG.info("Payments size after filtering success payments: {}",payments.size());
-        for(Payment payment : payments)
-        {
+        for (Payment payment : payments) {
             BigDecimal calculatedAmount = payment.getAmount();
-            paymentAmount= paymentAmount.add(calculatedAmount);
+            paymentAmount = paymentAmount.add(calculatedAmount);
 
         }
         return paymentAmount;
@@ -184,10 +185,9 @@ public class BulkScanningReportMapper {
     private BigDecimal calculateRemissionAmount(List<Remission> remissions) {
 
         BigDecimal remissionAmount = new BigDecimal(0);
-        for(Remission remission : remissions)
-        {
-            BigDecimal calculatedAmount = remission.getHwfAmount() ;
-            remissionAmount= remissionAmount.add(calculatedAmount);
+        for (Remission remission : remissions) {
+            BigDecimal calculatedAmount = remission.getHwfAmount();
+            remissionAmount = remissionAmount.add(calculatedAmount);
         }
         return remissionAmount;
     }
@@ -195,10 +195,9 @@ public class BulkScanningReportMapper {
     //Method to calculate the total fee amount for a particular payment group.
     private BigDecimal calculateFeeAmount(List<PaymentFee> fees) {
         BigDecimal feeAmount = new BigDecimal(0);
-        for(PaymentFee paymentFee : fees)
-        {
-            BigDecimal calculatedAmount = paymentFee.getCalculatedAmount() ;
-            feeAmount= feeAmount.add(calculatedAmount);
+        for (PaymentFee paymentFee : fees) {
+            BigDecimal calculatedAmount = paymentFee.getCalculatedAmount();
+            feeAmount = feeAmount.add(calculatedAmount);
 
         }
         return feeAmount;

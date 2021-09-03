@@ -45,7 +45,8 @@ public class PaymentReferenceDataController {
 
     @Autowired
     public PaymentReferenceDataController(PaymentStatusRepository paymentStatusRepository, PaymentProviderRepository paymentProviderRespository,
-                                          PaymentMethodRepository paymentMethodRepository, PaymentChannelRepository paymentChannelRepository, LegacySiteRepository legacySiteRepository) {
+                                          PaymentMethodRepository paymentMethodRepository, PaymentChannelRepository paymentChannelRepository,
+                                          LegacySiteRepository legacySiteRepository) {
         this.paymentStatusRepository = paymentStatusRepository;
         this.paymentProviderRespository = paymentProviderRespository;
         this.paymentMethodRepository = paymentMethodRepository;

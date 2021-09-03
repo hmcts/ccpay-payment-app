@@ -477,13 +477,15 @@ public class PaymentGroupController {
             if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
                 List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
                 if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
-                    throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+                    throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = "
+                        + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
                 }
             }
 
             String paymentGroupReference = PaymentReference.getInstance().getNext();
 
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService
+                .getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
 
             PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
                 paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
@@ -568,7 +570,8 @@ public class PaymentGroupController {
         params.put("status", status);
 
         LOG.info("Calling Bulk scan api to mark payment as processed from Payment Api");
-        return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}", HttpMethod.PATCH, entity, String.class, params);
+        return restTemplatePaymentGroup.exchange(bulkScanPaymentsProcessedUrl + "/bulk-scan-payments/{dcn}/status/{status}",
+            HttpMethod.PATCH, entity, String.class, params);
     }
 
 
@@ -608,11 +611,14 @@ public class PaymentGroupController {
             PaymentFeeLink paymentLink = delegatingPaymentService.update(paymentServiceRequest);
             Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
 
-            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
+            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith()
+                .orderAmount(telephonyCardPaymentsRequest.getAmount().toString()).orderCurrency(telephonyCardPaymentsRequest.getCurrency().getCode())
                 .orderReference(payment.getReference()).build();
-            telephonyProviderAuthorisationResponse = pciPalPaymentService.getTelephonyProviderLink(pciPalPaymentRequest, telephonyProviderAuthorisationResponse, paymentServiceRequest.getServiceType(), telephonyCardPaymentsRequest.getReturnURL());
+            telephonyProviderAuthorisationResponse = pciPalPaymentService.getTelephonyProviderLink(pciPalPaymentRequest,
+                telephonyProviderAuthorisationResponse, paymentServiceRequest.getServiceType(), telephonyCardPaymentsRequest.getReturnURL());
             LOG.info("Next URL Value in PaymentGroupController : {}", telephonyProviderAuthorisationResponse.getNextUrl());
-            TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper.toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
+            TelephonyCardPaymentsResponse telephonyCardPaymentsResponse = telephonyDtoMapper
+                .toTelephonyCardPaymentsResponse(paymentLink, payment, telephonyProviderAuthorisationResponse);
 
             // trigger Apportion based on the launch darkly feature flag
             boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);

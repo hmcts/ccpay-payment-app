@@ -199,7 +199,7 @@ public class CreditAccountDtoMapper {
             .ccdCaseNumber(feeDto.getCcdCaseNumber())
             .feeAmount(feeDto.getFeeAmount())
             .netAmount(feeDto.getNetAmount())
-            .dateCreated(apportionFeature ? timestamp: null)
+            .dateCreated(apportionFeature ? timestamp : null)
             .build();
     }
 

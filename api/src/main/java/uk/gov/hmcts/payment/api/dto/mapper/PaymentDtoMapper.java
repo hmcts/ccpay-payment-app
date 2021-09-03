@@ -259,8 +259,9 @@ public class PaymentDtoMapper {
         return enrichWithFeeData(paymentDto);
     }
 
-    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference, final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
-        boolean isBulkScanPayment = payment.getPaymentChannel() !=null && payment.getPaymentChannel().getName().equals("bulk scan");
+    public PaymentDto toReconciliationResponseDtoForLibereta(final Payment payment, final String paymentReference,
+                                                             final List<PaymentFee> fees, final FF4j ff4j,boolean isPaymentAfterApportionment) {
+        boolean isBulkScanPayment = payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("bulk scan");
         boolean bulkScanCheck = ff4j.check("bulk-scan-check");
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         boolean apportionCheck = apportionFeature && isPaymentAfterApportionment;
@@ -279,9 +280,10 @@ public class PaymentDtoMapper {
             .accountNumber(payment.getPbaNumber())
             .organisationName(payment.getOrganisationName())
             .customerReference(payment.getCustomerReference())
-            .channel(payment.getPaymentChannel()!= null ? payment.getPaymentChannel().getName(): null)
+            .channel(payment.getPaymentChannel() != null ? payment.getPaymentChannel().getName() : null)
             .currency(CurrencyCode.valueOf(payment.getCurrency()))
-            .status(bulkScanCheck ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() : PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .status(bulkScanCheck ? PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus().toLowerCase() :
+                PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .dateCreated(payment.getDateCreated())
             .dateUpdated(payment.getDateUpdated())
             .method(payment.getPaymentMethod().getName())
@@ -289,8 +291,10 @@ public class PaymentDtoMapper {
             .giroSlipNo(payment.getGiroSlipNo())
             .externalProvider(payment.getPaymentProvider() != null ? payment.getPaymentProvider().getName() : null)
             .externalReference(isBulkScanPayment ? payment.getDocumentControlNumber() : payment.getExternalReference())
-            .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ? payment.getReportedDateOffline() : null)
-            .fees(isBulkScanPayment ? toFeeLiberataDtosWithCaseReference(fees,payment.getCaseReference(),apportionCheck) : toFeeLiberataDtos(fees,apportionCheck))
+            .reportedDateOffline(payment.getPaymentChannel() != null && payment.getPaymentChannel().getName().equals("digital bar") ?
+                payment.getReportedDateOffline() : null)
+            .fees(isBulkScanPayment ? toFeeLiberataDtosWithCaseReference(fees,payment.getCaseReference(),apportionCheck) :
+                toFeeLiberataDtos(fees,apportionCheck))
             .build();
 
         if (bulkScanCheck && isBulkScanPayment) {
