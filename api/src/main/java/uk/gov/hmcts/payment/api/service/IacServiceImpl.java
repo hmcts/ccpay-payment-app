@@ -67,7 +67,8 @@ public class IacServiceImpl implements IacService {
             if (!isExceptionOccur) {
                 paymentResponseHttpStatus = responseEntitySupplementaryInfo.getStatusCode();
                 ObjectMapper objectMapperSupplementaryInfo = new ObjectMapper();
-                SupplementaryDetailsResponse supplementaryDetailsResponse = objectMapperSupplementaryInfo.convertValue(responseEntitySupplementaryInfo.getBody(), SupplementaryDetailsResponse.class);
+                SupplementaryDetailsResponse supplementaryDetailsResponse = objectMapperSupplementaryInfo
+                    .convertValue(responseEntitySupplementaryInfo.getBody(), SupplementaryDetailsResponse.class);
                 lstSupplementaryInfo = supplementaryDetailsResponse.getSupplementaryInfo();
                 MissingSupplementaryInfo lstMissingSupplementaryInfo = supplementaryDetailsResponse.getMissingSupplementaryInfo();
 

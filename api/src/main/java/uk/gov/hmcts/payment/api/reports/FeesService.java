@@ -40,7 +40,7 @@ public class FeesService {
     public Map<String, Map<String, FeeVersionDto>> getFeesVersionsData() {
 
         Map<String, Map<String, FeeVersionDto>> mapOfFeeVersionsDtoMap = new HashMap<>();
-        if(getFeesDtoMap() != null){
+        if (getFeesDtoMap() != null) {
             Iterator<Map.Entry<String, Fee2Dto>> iterator = getFeesDtoMap().entrySet().iterator();
 
             while (iterator.hasNext()) {

@@ -10,13 +10,17 @@ import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 @Component
 public class TelephonyDtoMapper {
 
-    public TelephonyCardPaymentsResponse toTelephonyCardPaymentsResponse(PaymentFeeLink paymentFeeLink, Payment payment, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse) {
+    public TelephonyCardPaymentsResponse toTelephonyCardPaymentsResponse(PaymentFeeLink paymentFeeLink,
+                                                                         Payment payment,
+                                                                         TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse) {
         return TelephonyCardPaymentsResponse.telephonyCardPaymentsResponseWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
-            .links(new TelephonyCardPaymentsResponse.NextURLDtos(new TelephonyCardPaymentsResponse.NextURLDto(telephonyProviderAuthorisationResponse.getNextUrl(), "POST", telephonyProviderAuthorisationResponse.getAccessToken(), telephonyProviderAuthorisationResponse.getRefreshToken())))
+            .links(new TelephonyCardPaymentsResponse.NextURLDtos(new TelephonyCardPaymentsResponse
+                .NextURLDto(telephonyProviderAuthorisationResponse.getNextUrl(), "POST", telephonyProviderAuthorisationResponse.getAccessToken(),
+                telephonyProviderAuthorisationResponse.getRefreshToken())))
             .build();
     }
 }

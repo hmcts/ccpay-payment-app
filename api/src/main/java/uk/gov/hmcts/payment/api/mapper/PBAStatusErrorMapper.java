@@ -23,7 +23,8 @@ public class PBAStatusErrorMapper {
         if (accountDetails.getStatus() == AccountStatus.ACTIVE && isAccountBalanceSufficient(accountDetails.getAvailableBalance(),
             creditAccountPaymentRequest.getAmount())) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("success").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - " +
+                "Account Balance Sufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.ACTIVE) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -36,7 +37,8 @@ public class PBAStatusErrorMapper {
                     " Requested payment was {} where available balance is {}",
                 accountDetails.getAccountName(), creditAccountPaymentRequest.getAmount(),
                 accountDetails.getAvailableBalance());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - " +
+                "Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.ON_HOLD) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -44,7 +46,8 @@ public class PBAStatusErrorMapper {
                 .errorCode("CA-E0003")
                 .message("Your account is on hold")
                 .build()));
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - " +
+                "Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         } else if (accountDetails.getStatus() == AccountStatus.DELETED) {
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name(FAILED).build());
             payment.setStatusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
@@ -52,7 +55,8 @@ public class PBAStatusErrorMapper {
                 .errorCode("CA-E0004")
                 .message("Your account is deleted")
                 .build()));
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {} PaymentStatus : {} - " +
+                "Account Balance InSufficient!!!", payment.getCcdCaseNumber(), accountDetails.getStatus(), payment.getPaymentStatus().getName());
         }
     }
 

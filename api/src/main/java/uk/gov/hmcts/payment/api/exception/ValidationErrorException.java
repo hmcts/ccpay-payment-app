@@ -2,7 +2,7 @@ package uk.gov.hmcts.payment.api.exception;
 
 import uk.gov.hmcts.payment.api.contract.exception.ValidationErrorDTO;
 
-public class ValidationErrorException extends RuntimeException{
+public class ValidationErrorException extends RuntimeException {
 
     private final ValidationErrorDTO errors;
 

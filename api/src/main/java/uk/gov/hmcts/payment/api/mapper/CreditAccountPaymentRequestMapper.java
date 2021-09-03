@@ -14,13 +14,12 @@ import java.util.stream.Collectors;
 @Component
 public class CreditAccountPaymentRequestMapper {
 
-    private final static String PAYMENT_CHANNEL_ONLINE = "online";
+    private static final String PAYMENT_CHANNEL_ONLINE = "online";
 
     @Autowired
     private CreditAccountDtoMapper creditAccountDtoMapper;
 
-    public Payment mapPBARequest(CreditAccountPaymentRequest creditAccountPaymentRequest)
-    {
+    public Payment mapPBARequest(CreditAccountPaymentRequest creditAccountPaymentRequest) {
         return Payment.paymentWith()
             .amount(creditAccountPaymentRequest.getAmount())
             .description(creditAccountPaymentRequest.getDescription())
@@ -36,8 +35,7 @@ public class CreditAccountPaymentRequestMapper {
             .build();
     }
 
-    public List<PaymentFee> mapPBAFeesFromRequest(CreditAccountPaymentRequest creditAccountPaymentRequest)
-    {
+    public List<PaymentFee> mapPBAFeesFromRequest(CreditAccountPaymentRequest creditAccountPaymentRequest) {
         List<PaymentFee> fees = creditAccountPaymentRequest.getFees().stream()
             .map(f -> creditAccountDtoMapper.toFee(f))
             .collect(Collectors.toList());

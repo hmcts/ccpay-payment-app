@@ -147,7 +147,7 @@ public class PaymentGroupDtoMapper {
             .feeAmount(feeDto.getFeeAmount())
             .netAmount(feeDto.getCalculatedAmount())
             .reference(feeDto.getReference())
-            .dateCreated(apportionFeature ? timestamp: null)
+            .dateCreated(apportionFeature ? timestamp : null)
             .build();
     }
 }
