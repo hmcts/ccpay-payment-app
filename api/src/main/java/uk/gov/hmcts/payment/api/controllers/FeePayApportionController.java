@@ -58,8 +58,7 @@ public class FeePayApportionController {
         Optional<Payment> payment = paymentFeeLink.getPayments().stream()
             .filter(p -> p.getReference().equals(paymentReference)).findAny();
 
-        if (payment.isPresent() && apportionFeature)
-        {
+        if (payment.isPresent() && apportionFeature) {
             LOG.info("Apportion feature is true and payment is available in FeePayApportionController");
             List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
             if (feePayApportionList != null && !feePayApportionList.isEmpty()) {
@@ -68,7 +67,7 @@ public class FeePayApportionController {
                 for (FeePayApportion feePayApportion : feePayApportionList) {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
                     Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
-                    if(apportionedFee.isPresent()) {
+                    if (apportionedFee.isPresent()) {
                         LOG.info("Apportioned fee is present");
                         PaymentFee fee = apportionedFee.get();
                         LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());

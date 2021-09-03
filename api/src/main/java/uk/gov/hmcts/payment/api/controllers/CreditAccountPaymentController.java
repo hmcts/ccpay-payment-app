@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -102,7 +101,8 @@ public class CreditAccountPaymentController {
     @ResponseBody
     @Transactional
     public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest,
-                                                                 @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
+                                                                 @RequestHeader(required = false) MultiValueMap<String, String> headers)
+        throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         /*
@@ -152,7 +152,8 @@ public class CreditAccountPaymentController {
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
-            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment received for ccdCaseNumber : {} PaymentStatus : {} - Account Balance Sufficient!!!",
+                payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         }
 
         checkDuplication(payment, fees);
@@ -160,7 +161,8 @@ public class CreditAccountPaymentController {
         PaymentFeeLink paymentFeeLink = creditAccountPaymentService.create(payment, fees, paymentGroupReference);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
-            LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+            LOG.info("CreditAccountPayment Response 403(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}",
+                payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
             return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.FORBIDDEN);
         }
 

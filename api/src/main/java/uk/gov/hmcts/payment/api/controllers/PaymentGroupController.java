@@ -128,7 +128,8 @@ public class PaymentGroupController {
                                   ReferenceDataService<SiteDTO> referenceDataService,
                                   PaymentProviderRepository paymentProviderRespository,
                                   FeePayApportionService feePayApportionService,
-                                  LaunchDarklyFeatureToggler featureToggler, Payment2Repository payment2Repository, TelephonyDtoMapper telephonyDtoMapper) {
+                                  LaunchDarklyFeatureToggler featureToggler, Payment2Repository payment2Repository,
+                                  TelephonyDtoMapper telephonyDtoMapper) {
         this.paymentGroupService = paymentGroupService;
         this.paymentGroupDtoMapper = paymentGroupDtoMapper;
         this.delegatingPaymentService = delegatingPaymentService;
@@ -255,7 +256,9 @@ public class PaymentGroupController {
 
         if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
             LOG.info("Inside if loop");
-            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
+            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith()
+                .orderAmount(request.getAmount().toString())
+                .orderCurrency(request.getCurrency().getCode())
                 .orderReference(paymentDto.getReference()).build();
             pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
             String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, paymentServiceRequest.getServiceType());

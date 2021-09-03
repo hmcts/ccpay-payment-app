@@ -169,7 +169,7 @@ public class PaymentController {
         LOG.info("IAC Supplementary Details feature flag in liberata API: {}", iacSupplementaryDetailsFeature);
         LOG.info("Is any IAC payment present: {}", iacPaymentAny.isPresent());
 
-        if(iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature){
+        if (iacPaymentAny.isPresent() && iacSupplementaryDetailsFeature) {
             return iacService.getIacSupplementaryInfo(paymentDtos,paymentService.getServiceNameByCode("IAC"));
         }
 
@@ -219,7 +219,11 @@ public class PaymentController {
         return paymentDtoMapper.toGetPaymentResponseDtos(payment1);
     }
 
-    private PaymentSearchCriteria getSearchCriteria(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType, @RequestParam(name = "service_name", required = false) Optional<String> serviceType, @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber, @RequestParam(name = "pba_number", required = false) String pbaNumber, Date fromDateTime, Date toDateTime) {
+    private PaymentSearchCriteria getSearchCriteria(@RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
+                                                    @RequestParam(name = "service_name", required = false) Optional<String> serviceType,
+                                                    @RequestParam(name = "ccd_case_number", required = false) String ccdCaseNumber,
+                                                    @RequestParam(name = "pba_number", required = false) String pbaNumber,
+                                                    Date fromDateTime, Date toDateTime) {
         return PaymentSearchCriteria
             .searchCriteriaWith()
             .startDate(fromDateTime)

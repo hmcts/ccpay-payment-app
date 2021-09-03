@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 public class CreditAccountPaymentComponentTest extends TestUtil {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Autowired
     private Payment2Repository paymentRepository;

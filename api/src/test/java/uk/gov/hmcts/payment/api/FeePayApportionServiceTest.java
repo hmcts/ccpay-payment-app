@@ -43,7 +43,8 @@ public class FeePayApportionServiceTest extends TestUtil {
 
     @Test(expected = PaymentException.class)
     public void updateFeeAmountDueTest() {
-        Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
+        Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1")
+            .description("desc1").returnUrl("returnUrl1")
             .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                 .externalStatus("created")
@@ -62,7 +63,8 @@ public class FeePayApportionServiceTest extends TestUtil {
 
     @Test(expected = PaymentException.class)
     public void processApportionTest() {
-        Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
+        Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1")
+            .description("desc1").returnUrl("returnUrl1")
             .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
             .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
                 .externalStatus("created")

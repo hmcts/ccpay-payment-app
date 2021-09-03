@@ -27,7 +27,7 @@ public class PaymentRecordComponentTest {
     @Autowired
     private PaymentProviderRepository paymentProviderRespository;
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
 
     @Test

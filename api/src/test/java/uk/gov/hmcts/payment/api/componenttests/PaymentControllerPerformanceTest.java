@@ -30,7 +30,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -115,14 +114,15 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
             .build();
         PaymentFee fee = PaymentFee.feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("X0001").build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162001" + n).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-15186162001" + n)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
     }
 
-    private final static int PAYMENTS_BACKLOG = 10;
+    private static final int PAYMENTS_BACKLOG = 10;
 
-    private final static int PAYMENTS_TODAY = 10;
+    private static final int PAYMENTS_TODAY = 10;
 
     @Test
     public void testSuitesRequireAtLeastOneTest() {

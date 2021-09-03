@@ -43,7 +43,7 @@ public class FeePayApportionMockControllerTest {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Test
-    public void SingleFeeMultiplePay_ExactPayment() throws CheckDigitException {
+    public void SingleFeeMultiplePayExactPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233334444";
 
@@ -211,7 +211,7 @@ public class FeePayApportionMockControllerTest {
     }
 
     @Test
-    public void MultipleFeeMultiplePay_SurplusPayment() throws CheckDigitException {
+    public void MultipleFeeMultiplePaySurplusPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233338888";
 
@@ -301,7 +301,7 @@ public class FeePayApportionMockControllerTest {
     }
 
     @Test
-    public void MultipleFeeMultiplePay_UseCase5() throws CheckDigitException {
+    public void MultipleFeeMultiplePayUseCase5() throws CheckDigitException {
 
         String ccdCase = "1111222244441111";
 
@@ -348,7 +348,8 @@ public class FeePayApportionMockControllerTest {
         return paymentFeeLinks;
     }
 
-    private List<Payment> getPayments(String ccdCase, List<BigDecimal> amounts, List<Date> paymentCreatedDates, int count) throws CheckDigitException {
+    private List<Payment> getPayments(String ccdCase, List<BigDecimal> amounts, List<Date> paymentCreatedDates, int count)
+        throws CheckDigitException {
         List<Payment> payments = new ArrayList<>();
 
         for(int i = 0; i < count; i++) {

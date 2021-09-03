@@ -80,6 +80,6 @@ public class PaymentAllocationController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(PaymentNotFoundException.class)
     public String notFound(PaymentNotFoundException ex) {
-        return "Payment Record not found----"+ex.getMessage();
+        return "Payment Record not found----" + ex.getMessage();
     }
 }
