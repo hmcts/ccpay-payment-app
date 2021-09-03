@@ -49,7 +49,7 @@ public class AuthCheckerServiceAndAnonymousUserFilter extends AbstractPreAuthent
     @Override
     protected Object getPreAuthenticatedCredentials(HttpServletRequest request) {
         String preAuthenticatedCredentials = request.getHeader(UserRequestAuthorizer.AUTHORISATION);
-        return (preAuthenticatedCredentials != null) ? preAuthenticatedCredentials : " " ;
+        return (preAuthenticatedCredentials != null) ? preAuthenticatedCredentials : " ";
     }
 
     private User authorizeUser(HttpServletRequest request) {
