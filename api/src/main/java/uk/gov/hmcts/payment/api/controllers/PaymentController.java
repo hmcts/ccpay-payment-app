@@ -273,7 +273,7 @@ public class PaymentController {
             payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0))
                 .collect(Collectors.toList());
         } else if (null != toDateTime) {
-            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(toDateTime) <= 0 ))
+            payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(toDateTime) <= 0))
                 .collect(Collectors.toList());
         }
 
