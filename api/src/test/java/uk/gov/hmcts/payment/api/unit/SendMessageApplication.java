@@ -16,7 +16,7 @@ import java.util.Collections;
 public class SendMessageApplication {
 
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
 
         TopicClientProxy client = new TopicClientProxy("<Service-bus Connection String>", "serviceCallbackTopic");
 

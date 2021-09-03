@@ -8,7 +8,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.reports.config.BarPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.CardPaymentReportConfig;
 import uk.gov.hmcts.payment.api.reports.config.PaymentReportConfig;
@@ -42,7 +41,7 @@ public class PaymentsReportFacadeTest {
     private PbaDivorcePaymentReportConfig pbaDivorcePaymentReportConfig = new PbaDivorcePaymentReportConfig("from", null, "subject", "message", true);
     private PbaFplPaymentReportConfig pbaFplPaymentReportConfig = new PbaFplPaymentReportConfig("from", null, "subject", "message", true);
     private PbaProbatePaymentReportConfig pbaProbatePaymentReportConfig = new PbaProbatePaymentReportConfig("from", null, "subject", "message", true);
-    private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig= new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
+    private PbaFinremPaymentReportConfig pbaFinremPaymentReportConfig = new PbaFinremPaymentReportConfig("from", null, "subject", "message", true);
 
     @Before
     public void setUp() {
@@ -84,7 +83,7 @@ public class PaymentsReportFacadeTest {
     }
 
     @Test
-    public void PbaCmcDelegatePaymentReportType() {
+    public void pbaCmcDelegatePaymentReportType() {
 
         // given
         Date fromDate = new Date();
@@ -131,7 +130,7 @@ public class PaymentsReportFacadeTest {
     }
 
     @Test
-    public void PbaDivorceConfigurationService() {
+    public void pbaDivorceConfigurationService() {
         // given
         Date fromDate = new Date();
         Date toDate = new Date();
@@ -146,7 +145,7 @@ public class PaymentsReportFacadeTest {
 
 
     @Test
-    public void PbaProbateConfigurationService() {
+    public void pbaProbateConfigurationService() {
         // given
         Date fromDate = new Date();
         Date toDate = new Date();

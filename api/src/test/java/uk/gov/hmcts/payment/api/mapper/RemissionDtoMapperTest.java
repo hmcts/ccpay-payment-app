@@ -4,7 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.fees.register.legacymodel.Fee;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.mapper.RemissionDtoMapper;
@@ -27,7 +26,7 @@ public class RemissionDtoMapperTest {
     RemissionDtoMapper remissionDtoMapper = new RemissionDtoMapper();
 
     @Before
-    public void initiate(){
+    public void initiate() {
         payment1 = Payment.paymentWith()
             .siteId("siteId")
             .paymentChannel(PaymentChannel.paymentChannelWith().name("bulk scan").build())
@@ -69,13 +68,13 @@ public class RemissionDtoMapperTest {
     }
 
     @Test
-    public void testToCreateRemissionResponse(){
+    public void testToCreateRemissionResponse() {
         RemissionDto remissionDto = remissionDtoMapper.toCreateRemissionResponse(feeLink);
         assertEquals("remission-reference",remissionDto.getRemissionReference());
     }
 
     @Test
-    public  void testToFeeDto(){
+    public  void testToFeeDto() {
         List<FeeDto> feeDtos = new ArrayList<FeeDto>();
         FeeDto  feeDto = FeeDto.feeDtoWith()
                             .calculatedAmount(new BigDecimal("100.00"))

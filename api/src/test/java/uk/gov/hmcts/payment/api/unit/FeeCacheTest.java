@@ -18,7 +18,6 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.fees2.register.api.contract.Fee2Dto;
 import uk.gov.hmcts.payment.api.reports.FeesService;
 import uk.gov.hmcts.payment.referencedata.model.Site;
-import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.payment.referencedata.service.SiteServiceImpl;
 
 import java.nio.file.Files;

@@ -22,7 +22,8 @@ public class RestActions {
     private final UserResolverBackdoor userRequestAuthorizer;
     private final ObjectMapper objectMapper;
 
-    public RestActions(MockMvc mvc, ServiceResolverBackdoor serviceRequestAuthorizer, UserResolverBackdoor userRequestAuthorizer, ObjectMapper objectMapper) {
+    public RestActions(MockMvc mvc, ServiceResolverBackdoor serviceRequestAuthorizer, UserResolverBackdoor userRequestAuthorizer,
+                       ObjectMapper objectMapper) {
         this.mvc = mvc;
         this.serviceRequestAuthorizer = serviceRequestAuthorizer;
         this.userRequestAuthorizer = userRequestAuthorizer;

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.v1.componenttests;
 
-import org.junit.Test;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;

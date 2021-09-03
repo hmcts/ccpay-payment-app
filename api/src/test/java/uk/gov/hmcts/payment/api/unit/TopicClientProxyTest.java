@@ -4,7 +4,6 @@ import com.microsoft.azure.servicebus.Message;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -29,9 +28,9 @@ public class TopicClientProxyTest {
 
         topicClientProxy.setKeepClientAlive(true);
 
-        try{
+        try {
             topicClientProxy.send(new Message("Hi!"));
-        }catch(Exception e) {
+        } catch (Exception e) {
 
         }
 

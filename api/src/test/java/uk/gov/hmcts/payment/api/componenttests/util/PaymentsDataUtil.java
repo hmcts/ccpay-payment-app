@@ -205,8 +205,8 @@ public class PaymentsDataUtil {
     public Payment populateCardPaymentToDbForPaymentAllocation(String number) throws Exception {
         //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
-        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
-            .paymentReference("RC-1519-9028-2432-000"+number)
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000" + number)
+            .paymentReference("RC-1519-9028-2432-000" + number)
             .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
             .receivingOffice("Home office")
             .reason("receiver@receiver.com")
@@ -240,8 +240,8 @@ public class PaymentsDataUtil {
     public Payment populatePaymentToDbForExelaPayments(String number) throws Exception {
         //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
-        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
-            .paymentReference("RC-1519-9028-2432-000"+number)
+        PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000" + number)
+            .paymentReference("RC-1519-9028-2432-000" + number)
             .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
             .receivingOffice("Home office")
             .reason("receiver@receiver.com")
@@ -269,7 +269,8 @@ public class PaymentsDataUtil {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         return payment;
     }
@@ -278,7 +279,7 @@ public class PaymentsDataUtil {
         //Create a payment in remissionDbBackdoor
         StatusHistory statusHistory = StatusHistory.statusHistoryWith().status("Initiated").externalStatus("created").build();
         PaymentAllocation paymentAllocation = PaymentAllocation.paymentAllocationWith().paymentGroupReference("2018-0000000000"+number)
-            .paymentReference("RC-1519-9028-2432-000"+number)
+            .paymentReference("RC-1519-9028-2432-000" + number)
             .paymentAllocationStatus(PaymentAllocationStatus.paymentAllocationStatusWith().name("Transferred").build())
             .receivingOffice("Home office")
             .reason("receiver@receiver.com")
@@ -330,7 +331,8 @@ public class PaymentsDataUtil {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("11.99")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
         return payment;
@@ -356,7 +358,8 @@ public class PaymentsDataUtil {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("66.66")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
 
         return payment;
@@ -416,7 +419,8 @@ public class PaymentsDataUtil {
 
     }
 
-    public Payment populateCreditAccountPaymentToDbWithNetAmountForFee(String number, BigDecimal calculatedAmount, BigDecimal netAmount) throws Exception {
+    public Payment populateCreditAccountPaymentToDbWithNetAmountForFee(String number, BigDecimal calculatedAmount, BigDecimal netAmount)
+        throws Exception {
         //Create a payment in remissionDbBackdoor
         Payment payment = Payment.paymentWith()
             .amount(calculatedAmount)
@@ -594,7 +598,7 @@ public class PaymentsDataUtil {
             .reference(reference)
             .build();
 
-        if(withServiceCallbackURL) {
+        if (withServiceCallbackURL) {
             payment.setServiceCallbackUrl("www.gooooooogle.com");
         }
 
@@ -609,7 +613,8 @@ public class PaymentsDataUtil {
 
     public void populateCardPaymentToDbWith(Payment payment, String number) {
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
     }
 

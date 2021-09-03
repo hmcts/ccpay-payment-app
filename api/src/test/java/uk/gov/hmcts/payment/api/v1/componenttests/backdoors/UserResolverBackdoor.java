@@ -11,13 +11,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Primary
-public class UserResolverBackdoor implements SubjectResolver<User>{
+public class UserResolverBackdoor implements SubjectResolver<User> {
     private final ConcurrentHashMap<String, User> tokenToUserMap = new ConcurrentHashMap<>();
 
-    public final static String CITIZEN_ID = "1";
-    public final static String CASEWORKER_ID = "2";
-    public final static String AUTHENTICATED_USER_ID = "3";
-    public final static String SOLICITOR_ID = "4";
+    public static final  String CITIZEN_ID = "1";
+    public static final String CASEWORKER_ID = "2";
+    public static final String AUTHENTICATED_USER_ID = "3";
+    public static final String SOLICITOR_ID = "4";
 
     public UserResolverBackdoor() {
 

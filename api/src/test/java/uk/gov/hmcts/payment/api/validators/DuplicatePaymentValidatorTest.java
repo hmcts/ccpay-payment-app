@@ -23,7 +23,7 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @RunWith(MockitoJUnitRunner.class)
 public class DuplicatePaymentValidatorTest {
 
-    private final static int TIME_INTERVAL = 2;
+    private static final int TIME_INTERVAL = 2;
 
     private DuplicatePaymentValidator validator;
     @Mock

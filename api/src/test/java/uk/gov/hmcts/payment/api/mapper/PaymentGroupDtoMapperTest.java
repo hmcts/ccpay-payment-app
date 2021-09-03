@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.model.*;
@@ -36,7 +35,7 @@ public class PaymentGroupDtoMapperTest {
     PaymentFeeLink feeLink;
 
     @Before
-    public void initiate(){
+    public void initiate() {
         List<PaymentAllocation> paymentAllocations1 = new ArrayList<PaymentAllocation>();
         PaymentAllocation allocation1 = PaymentAllocation.paymentAllocationWith()
             .receivingOffice("receiving-office")
@@ -61,7 +60,8 @@ public class PaymentGroupDtoMapperTest {
             .paymentAllocation(paymentAllocations1)
             .id(1).build();
         payments.add(payment1);
-        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").calculatedAmount(new BigDecimal("100.00")).build();
+        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number")
+            .calculatedAmount(new BigDecimal("100.00")).build();
         Remission remission = Remission.remissionWith()
             .hwfAmount(new BigDecimal("10.00"))
             .fee(fee)
@@ -80,12 +80,12 @@ public class PaymentGroupDtoMapperTest {
     }
 
     @Test
-    public void testToPaymentGroupDto(){
+    public void testToPaymentGroupDto() {
         PaymentGroupDto paymentGroupDto = paymentGroupDtoMapper.toPaymentGroupDto(feeLink);
     }
 
     @Test
-    public void testToPaymentFee(){
+    public void testToPaymentFee() {
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal(("100.00")))
             .code("FEE123")
