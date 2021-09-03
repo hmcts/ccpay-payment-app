@@ -101,7 +101,8 @@ public class CreditAccountPaymentController {
     @PostMapping(value = "/credit-account-payments")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
+    public ResponseEntity<PaymentDto> createCreditAccountPayment(@Valid @RequestBody CreditAccountPaymentRequest creditAccountPaymentRequest,
+                                                                 @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
         String paymentGroupReference = PaymentReference.getInstance().getNext();
 
         /*
@@ -113,7 +114,8 @@ public class CreditAccountPaymentController {
 
         LOG.info("Case Type: {} ", creditAccountPaymentRequest.getCaseType());
         if (StringUtils.isNotBlank(creditAccountPaymentRequest.getCaseType())) {
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService
+                .getOrganisationalDetail(creditAccountPaymentRequest.getCaseType(), headers);
             creditAccountPaymentRequest.setSiteId(organisationalServiceDto.getServiceCode());
             creditAccountPaymentRequest.setService(organisationalServiceDto.getServiceDescription());
         } else {
@@ -136,7 +138,8 @@ public class CreditAccountPaymentController {
             AccountDto accountDetails;
             try {
                 accountDetails = accountService.retrieve(creditAccountPaymentRequest.getAccountNumber());
-                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
+                LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}",
+                    payment.getCcdCaseNumber(), accountDetails.getStatus());
             } catch (HttpClientErrorException ex) {
                 LOG.error("Account information could not be found, exception: {}", ex.getMessage());
                 throw new AccountNotFoundException("Account information could not be found");
@@ -176,7 +179,8 @@ public class CreditAccountPaymentController {
             }
         }
 
-        LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
+        LOG.info("CreditAccountPayment Response 201(CREATED) for ccdCaseNumber : {} PaymentStatus : {}",
+            payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
         return new ResponseEntity<>(creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(paymentFeeLink), HttpStatus.CREATED);
     }
 

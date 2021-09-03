@@ -57,7 +57,7 @@ public class CaseController {
             .map(paymentDtoMapper::toReconciliationResponseDto)
             .collect(Collectors.toList());
 
-        if(payments == null || payments.isEmpty()) {
+        if (payments == null || payments.isEmpty()) {
             throw new PaymentNotFoundException();
         }
 
@@ -81,7 +81,7 @@ public class CaseController {
             .map(paymentGroupDtoMapper::toPaymentGroupDto)
             .collect(Collectors.toList());
 
-        if(paymentGroups == null || paymentGroups.isEmpty()) {
+        if (paymentGroups == null || paymentGroups.isEmpty()) {
             throw new PaymentGroupNotFoundException();
         }
 

@@ -44,7 +44,7 @@ public class SpringSecurityConfiguration {
                     .antMatchers(HttpMethod.GET, "/payments1")
                     .antMatchers(HttpMethod.PATCH, "/payments/**")
                     .antMatchers(HttpMethod.POST, "/telephony/callback")
-                    .antMatchers(  "/jobs/**")
+                    .antMatchers("/jobs/**")
                     .and()
                 .addFilter(authCheckerServiceOnlyFilter)
                 .csrf().disable()
@@ -87,7 +87,8 @@ public class SpringSecurityConfiguration {
         }
 
         @Override
-        @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED", justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
+        @SuppressWarnings(value = "SPRING_CSRF_PROTECTION_DISABLED",
+            justification = "It's safe to disable CSRF protection as application is not being hit directly from the browser")
         protected void configure(HttpSecurity http) throws Exception {
             http.addFilter(authCheckerFilter)
                 .sessionManagement().sessionCreationPolicy(STATELESS).and()
@@ -100,7 +101,9 @@ public class SpringSecurityConfiguration {
                 .antMatchers(HttpMethod.POST, "/card-payments").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.POST, "/card-payments/*/cancel").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
-                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
+                .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager",
+                "caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor",
+                "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()

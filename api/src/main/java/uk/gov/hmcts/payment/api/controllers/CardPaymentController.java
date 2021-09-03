@@ -66,7 +66,8 @@ public class CardPaymentController {
                                  CardDetailsService<CardDetails, String> cardDetailsService,
                                  PciPalPaymentService pciPalPaymentService,
                                  FF4j ff4j,
-                                 FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler, ReferenceDataService referenceDataService) {
+                                 FeePayApportionService feePayApportionService, LaunchDarklyFeatureToggler featureToggler,
+                                 ReferenceDataService referenceDataService) {
         this.delegatingPaymentService = cardDelegatingPaymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.cardDetailsService = cardDetailsService;
@@ -171,7 +172,8 @@ public class CardPaymentController {
         return paymentDtoMapper.toRetrieveCardPaymentResponseDto(delegatingPaymentService.retrieve(paymentReference));
     }
 
-    @ApiOperation(value = "Get card payment details with card details by payment reference", notes = "Get payment details with card details for supplied payment reference")
+    @ApiOperation(value = "Get card payment details with card details by payment reference",
+        notes = "Get payment details with card details for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment card details retrieved"),
         @ApiResponse(code = 404, message = "Payment card details not found")
