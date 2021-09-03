@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest", "mockcallbackservice"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class LiberataApportionmentTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
