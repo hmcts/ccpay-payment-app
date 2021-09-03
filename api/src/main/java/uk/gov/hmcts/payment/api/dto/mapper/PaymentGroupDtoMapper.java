@@ -39,7 +39,8 @@ public class PaymentGroupDtoMapper {
             .dateCreated(paymentFeeLink.getDateCreated())
             .dateUpdated(paymentFeeLink.getDateUpdated())
             .fees(toFeeDtos(paymentFeeLink.getFees()))
-            .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ? toPaymentDtos(paymentFeeLink.getPayments()) : null)
+            .payments((!(paymentFeeLink.getPayments() == null) && !paymentFeeLink.getPayments().isEmpty()) ?
+                toPaymentDtos(paymentFeeLink.getPayments()) : null)
             .remissions(!(paymentFeeLink.getRemissions() == null) ? toRemissionDtos(paymentFeeLink.getRemissions()) : null)
             .build();
     }
@@ -71,7 +72,7 @@ public class PaymentGroupDtoMapper {
             .documentControlNumber(payment.getDocumentControlNumber())
             .bankedDate(payment.getBankedDate())
             .payerName(payment.getPayerName())
-            .paymentAllocation(payment.getPaymentAllocation() !=null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
+            .paymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtos(payment.getPaymentAllocation()) : null)
             .build();
     }
 
@@ -83,13 +84,14 @@ public class PaymentGroupDtoMapper {
         return paymentAllocation.stream().map(pa -> toPaymentAllocationDto(pa)).collect(Collectors.toList());
     }
 
-    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation){
+    public PaymentAllocationDto toPaymentAllocationDto(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
             .allocationStatus(paymentAllocation.getPaymentAllocationStatus().getName())
             .build();
     }
     private BigDecimal getTotalHwfRemission(List<Remission> remissions) {
-        return remissions != null ? remissions.stream().map(Remission::getHwfAmount).reduce(BigDecimal.ZERO, BigDecimal::add) : new BigDecimal("0.00");
+        return remissions != null ? remissions.stream().map(Remission::getHwfAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add) : new BigDecimal("0.00");
     }
 
     private RemissionDto toRemissionDto(Remission remission) {
@@ -125,7 +127,7 @@ public class PaymentGroupDtoMapper {
             .id(fee.getId())
             .memoLine(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getMemoLine() : null)
             .naturalAccountCode(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getNaturalAccountCode() : null)
-            .description( optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getDescription() : null)
+            .description(optionalFeeVersionDto.isPresent() ? optionalFeeVersionDto.get().getDescription() : null)
             .allocatedAmount(fee.getAllocatedAmount())
             .apportionAmount(fee.getApportionAmount())
             .dateCreated(fee.getDateCreated())
@@ -135,7 +137,7 @@ public class PaymentGroupDtoMapper {
             .build();
     }
 
-    public PaymentFee toPaymentFee(FeeDto feeDto){
+    public PaymentFee toPaymentFee(FeeDto feeDto) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature",false);
         return PaymentFee.feeWith()

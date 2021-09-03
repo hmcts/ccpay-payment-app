@@ -294,7 +294,8 @@ public class PaymentDtoMapper {
             .build();
 
         if (bulkScanCheck && isBulkScanPayment) {
-            paymentDto.setPaymentAllocation(payment.getPaymentAllocation() != null ? toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
+            paymentDto.setPaymentAllocation(payment.getPaymentAllocation() != null ?
+                toPaymentAllocationDtoForLibereta(payment.getPaymentAllocation()) : null);
         }
         return enrichWithFeeData(paymentDto);
     }
@@ -359,7 +360,7 @@ public class PaymentDtoMapper {
             .volume(feeDto.getVolume() == null ? 1 : feeDto.getVolume().intValue())
             .ccdCaseNumber(feeDto.getCcdCaseNumber())
             .reference(feeDto.getReference())
-            .dateCreated(apportionFeature ? timestamp: null)
+            .dateCreated(apportionFeature ? timestamp : null)
             .build();
     }
 
@@ -393,9 +394,9 @@ public class PaymentDtoMapper {
             .volume(fee.getVolume())
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .reference(fee.getReference())
-            .apportionedPayment(apportionCheck ? fee.getAllocatedAmount(): null)
-            .dateReceiptProcessed(apportionCheck ? fee.getDateApportioned(): null)
-            .paymentGroupReference(apportionCheck && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference(): null)
+            .apportionedPayment(apportionCheck ? fee.getAllocatedAmount() : null)
+            .dateReceiptProcessed(apportionCheck ? fee.getDateApportioned() : null)
+            .paymentGroupReference(apportionCheck && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference() : null)
             .build();
     }
 
@@ -435,9 +436,9 @@ public class PaymentDtoMapper {
             .ccdCaseNumber(fee.getCcdCaseNumber())
             .caseReference(caseReference)
             .reference(fee.getReference())
-            .apportionedPayment(apportionCheck ? fee.getAllocatedAmount(): null)
-            .dateReceiptProcessed(apportionCheck ? fee.getDateApportioned(): null)
-            .paymentGroupReference(apportionCheck && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference(): null)
+            .apportionedPayment(apportionCheck ? fee.getAllocatedAmount() : null)
+            .dateReceiptProcessed(apportionCheck ? fee.getDateApportioned() : null)
+            .paymentGroupReference(apportionCheck && fee.getPaymentLink() != null ? fee.getPaymentLink().getPaymentReference() : null)
             .build();
     }
 
@@ -485,7 +486,7 @@ public class PaymentDtoMapper {
             .paymentAllocationStatus(paymentAllocation.getPaymentAllocationStatus())
             .paymentGroupReference(paymentAllocation.getPaymentGroupReference())
             .paymentReference(paymentAllocation.getPaymentReference())
-            .id(paymentAllocation.getId()!=null ? paymentAllocation.getId().toString():null)
+            .id(paymentAllocation.getId() != null ? paymentAllocation.getId().toString() : null)
             .dateCreated(paymentAllocation.getDateCreated())
             .reason(paymentAllocation.getReason())
             .explanation(paymentAllocation.getExplanation())
@@ -497,7 +498,8 @@ public class PaymentDtoMapper {
 
     public PaymentAllocationDto toPaymentAllocationDtoForLibereta(PaymentAllocation paymentAllocation) {
         return PaymentAllocationDto.paymentAllocationDtoWith()
-            .allocationStatus(paymentAllocation.getPaymentAllocationStatus() !=null ? paymentAllocation.getPaymentAllocationStatus().getName().toLowerCase():null)
+            .allocationStatus(paymentAllocation.getPaymentAllocationStatus() != null ?
+                paymentAllocation.getPaymentAllocationStatus().getName().toLowerCase() : null)
             .allocationReason(paymentAllocation.getUnidentifiedReason())
             .dateCreated(paymentAllocation.getDateCreated())
             .receivingOffice(paymentAllocation.getReceivingOffice())
