@@ -12,15 +12,15 @@ public class TelephonyDtoMapper {
 
     public TelephonyCardPaymentsResponse toTelephonyCardPaymentsResponse(PaymentFeeLink paymentFeeLink,
                                                                          Payment payment,
-                                                                         TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse) {
+                                                                         TelephonyProviderAuthorisationResponse telephonyProviderAuthResponse) {
         return TelephonyCardPaymentsResponse.telephonyCardPaymentsResponseWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .paymentReference(payment.getReference())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
             .dateCreated(payment.getDateCreated())
             .links(new TelephonyCardPaymentsResponse.NextURLDtos(new TelephonyCardPaymentsResponse
-                .NextURLDto(telephonyProviderAuthorisationResponse.getNextUrl(), "POST", telephonyProviderAuthorisationResponse.getAccessToken(),
-                telephonyProviderAuthorisationResponse.getRefreshToken())))
+                .NextURLDto(telephonyProviderAuthResponse.getNextUrl(), "POST", telephonyProviderAuthResponse.getAccessToken(),
+                telephonyProviderAuthResponse.getRefreshToken())))
             .build();
     }
 }

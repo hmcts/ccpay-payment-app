@@ -103,7 +103,8 @@ public class PaymentsDataUtil {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         return payment;
     }
@@ -130,7 +131,8 @@ public class PaymentsDataUtil {
 
         PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("77.77")).version("1").code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         return payment;
     }
@@ -156,9 +158,11 @@ public class PaymentsDataUtil {
             .statusHistories(Arrays.asList(statusHistory))
             .build();
 
-        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE000" + number).volume(1).build();
+        PaymentFee fee = feeWith().calculatedAmount(new BigDecimal("99.99")).version("1")
+            .code("FEE000" + number).volume(1).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         Thread.sleep(1000);
         return payment;
     }
@@ -192,7 +196,8 @@ public class PaymentsDataUtil {
             .allocatedAmount(new BigDecimal("99.99"))
             .apportionAmount(new BigDecimal("99.99")).build();
 
-        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number).payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        PaymentFeeLink paymentFeeLink = db.create(paymentFeeLinkWith().paymentReference("2018-0000000000" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
         payment.setPaymentLink(paymentFeeLink);
         return payment;
     }

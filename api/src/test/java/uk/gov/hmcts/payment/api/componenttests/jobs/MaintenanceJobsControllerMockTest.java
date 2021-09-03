@@ -41,7 +41,7 @@ public class MaintenanceJobsControllerMockTest {
     }
 
     @Test
-    public void testThatNoPaymentsReturn200() throws Exception{
+    public void testThatNoPaymentsReturn200() throws Exception {
 
         // when & then
         this.mockMvc.perform(patch("/jobs/card-payments-status-update"))
@@ -54,7 +54,7 @@ public class MaintenanceJobsControllerMockTest {
     }
 
     @Test
-    public void testThatReturns200WhenPaymentsExist() throws Exception{
+    public void testThatReturns200WhenPaymentsExist() throws Exception {
 
         doReturn(Arrays.asList(reference, reference)).when(paymentService).listInitiatedStatusPaymentsReferences();
 

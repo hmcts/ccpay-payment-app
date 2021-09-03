@@ -285,7 +285,8 @@ public class PaymentGroupController {
     @ResponseBody
     @Transactional
     public ResponseEntity<PaymentDto> recordBulkScanPayment(@PathVariable("payment-group-reference") String paymentGroupReference,
-                                                            @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
+                                                            @Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest)
+        throws CheckDigitException {
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
@@ -344,7 +345,8 @@ public class PaymentGroupController {
     })
     @PostMapping(value = "/payment-groups/bulk-scan-payments")
     @ResponseBody
-    public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPayment(@Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest) throws CheckDigitException {
+    public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPayment(@Valid @RequestBody BulkScanPaymentRequest bulkScanPaymentRequest)
+        throws CheckDigitException {
 
         List<SiteDTO> sites = referenceDataService.getSiteIDs();
 
@@ -401,44 +403,46 @@ public class PaymentGroupController {
     @ResponseBody
     @Transactional
     public ResponseEntity<PaymentDto> recordBulkScanPaymentStrategic(@PathVariable("payment-group-reference") String paymentGroupReference,
-                                                                     @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic,
-                                                                     @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
+                                                                     @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentReqStrategic,
+                                                                     @RequestHeader(required = false) MultiValueMap<String, String> headers)
+        throws CheckDigitException {
 
         boolean prodStrategicFixFeatureFlag = featureToggler.getBooleanValue("prod-strategic-fix", false);
         if (prodStrategicFixFeatureFlag) {
             // Check Any Duplicate payments for current DCN
-            if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
+            if (bulkScanPaymentReqStrategic.getDocumentControlNumber() != null) {
                 List<Payment> existingPaymentForDCNList = payment2Repository
-                    .findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
+                    .findByDocumentControlNumber(bulkScanPaymentReqStrategic.getDocumentControlNumber()).orElse(null);
                 if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
                     throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = "
-                        + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+                        + bulkScanPaymentReqStrategic.getDocumentControlNumber());
                 }
             }
 
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(bulkScanPaymentRequestStrategic.getCaseType(), headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService
+                .getOrganisationalDetail(bulkScanPaymentReqStrategic.getCaseType(), headers);
 
-            PaymentProvider paymentProvider = bulkScanPaymentRequestStrategic.getExternalProvider() != null ?
-                paymentProviderRepository.findByNameOrThrow(bulkScanPaymentRequestStrategic.getExternalProvider())
+            PaymentProvider paymentProvider = bulkScanPaymentReqStrategic.getExternalProvider() != null ?
+                paymentProviderRepository.findByNameOrThrow(bulkScanPaymentReqStrategic.getExternalProvider())
                 : null;
 
             Payment payment = Payment.paymentWith()
                 .reference(referenceUtil.getNext("RC"))
-                .amount(bulkScanPaymentRequestStrategic.getAmount())
-                .caseReference(bulkScanPaymentRequestStrategic.getExceptionRecord())
-                .ccdCaseNumber(bulkScanPaymentRequestStrategic.getCcdCaseNumber())
-                .currency(bulkScanPaymentRequestStrategic.getCurrency().getCode())
+                .amount(bulkScanPaymentReqStrategic.getAmount())
+                .caseReference(bulkScanPaymentReqStrategic.getExceptionRecord())
+                .ccdCaseNumber(bulkScanPaymentReqStrategic.getCcdCaseNumber())
+                .currency(bulkScanPaymentReqStrategic.getCurrency().getCode())
                 .paymentProvider(paymentProvider)
                 .serviceType(organisationalServiceDto.getServiceDescription())
-                .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentRequestStrategic.getPaymentMethod().getType()).build())
-                .paymentStatus(bulkScanPaymentRequestStrategic.getPaymentStatus())
+                .paymentMethod(PaymentMethod.paymentMethodWith().name(bulkScanPaymentReqStrategic.getPaymentMethod().getType()).build())
+                .paymentStatus(bulkScanPaymentReqStrategic.getPaymentStatus())
                 .siteId(organisationalServiceDto.getServiceCode())
-                .giroSlipNo(bulkScanPaymentRequestStrategic.getGiroSlipNo())
-                .reportedDateOffline(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
-                .paymentChannel(bulkScanPaymentRequestStrategic.getPaymentChannel())
-                .documentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber())
-                .payerName(bulkScanPaymentRequestStrategic.getPayerName())
-                .bankedDate(DateTime.parse(bulkScanPaymentRequestStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+                .giroSlipNo(bulkScanPaymentReqStrategic.getGiroSlipNo())
+                .reportedDateOffline(DateTime.parse(bulkScanPaymentReqStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
+                .paymentChannel(bulkScanPaymentReqStrategic.getPaymentChannel())
+                .documentControlNumber(bulkScanPaymentReqStrategic.getDocumentControlNumber())
+                .payerName(bulkScanPaymentReqStrategic.getPayerName())
+                .bankedDate(DateTime.parse(bulkScanPaymentReqStrategic.getBankedDate()).withZone(DateTimeZone.UTC).toDate())
                 .build();
 
             PaymentFeeLink paymentFeeLink = paymentGroupService.addNewPaymenttoExistingPaymentGroup(payment, paymentGroupReference);
@@ -458,7 +462,7 @@ public class PaymentGroupController {
                 }
             }
 
-            allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentRequestStrategic, paymentGroupReference, newPayment, headers);
+            allocateThePaymentAndMarkBulkScanPaymentAsProcessed(bulkScanPaymentReqStrategic, paymentGroupReference, newPayment, headers);
             return new ResponseEntity<>(paymentDtoMapper.toBulkScanPaymentStrategicDto(newPayment, paymentGroupReference), HttpStatus.CREATED);
         } else {
             throw new PaymentException("This feature is not available to use !!!");
@@ -474,14 +478,16 @@ public class PaymentGroupController {
     @PostMapping(value = "/payment-groups/bulk-scan-payments-strategic")
     @ResponseBody
     @Transactional
-    public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPaymentStrategic(@Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic
+    public ResponseEntity<PaymentDto> recordUnsolicitedBulkScanPaymentStrategic(
+        @Valid @RequestBody BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic
         , @RequestHeader(required = false) MultiValueMap<String, String> headers) throws CheckDigitException {
 
         boolean prodStrategicFixFeatureFlag = featureToggler.getBooleanValue("prod-strategic-fix", false);
         if (prodStrategicFixFeatureFlag) {
             // Check Any Duplicate payments for current DCN
             if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
-                List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
+                List<Payment> existingPaymentForDCNList = payment2Repository
+                    .findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
                 if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
                     throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = "
                         + bulkScanPaymentRequestStrategic.getDocumentControlNumber());

@@ -354,7 +354,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsBeforeApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
 
         List<FeePayApportion> feePayApportionList = new ArrayList<>();
         FeePayApportion feePayApportion = FeePayApportion.feePayApportionWith()
@@ -392,7 +392,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsEqualToApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -420,7 +420,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckAmountDueIsCalculatedFromApportionTableWhenWhenDateCreatedIsAfterApportionDate() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -447,7 +447,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsDigitalBar() throws Exception {
-        Payment payment =populateBarCashPaymentToDbForApportionment("1");
+        Payment payment = populateBarCashPaymentToDbForApportionment("1");
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -475,7 +475,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsNull() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -504,7 +504,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsNullAndApportionmentFlagIsFalse() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -533,7 +533,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsNullAndApportionmentFlagIsFalseAndHistoricalCase() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -562,7 +562,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsNullAndApportionmentFlagIsTrueAndHistoricalCase() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithCallSurplusAmount(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
@@ -591,7 +591,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsTelephonyAndApportionmentFlagIsTrue() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);
         when(featureToggler.getBooleanValue("apportion-feature",false)).thenReturn(true);
@@ -618,7 +618,7 @@ public class LiberataApportionmentTest extends PaymentsDataUtil {
     @Transactional
     public void shouldCheckApportionWhenPaymentChannelIsTelephonyAndFeeIdIsDifferent() throws Exception {
         String paymentReference = "RC-1519-9028-1909-1435";
-        Payment payment =populateTelephonyPaymentToDb(paymentReference,false);
+        Payment payment = populateTelephonyPaymentToDb(paymentReference,false);
         populateApportionDetailsWithDifferentFeeId(payment);
         String startDate = LocalDateTime.now().toString(DATE_FORMAT);
         String endDate = LocalDateTime.now().toString(DATE_FORMAT);

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.componenttests;
 
 import com.microsoft.azure.servicebus.IMessage;
-import com.microsoft.azure.servicebus.Message;
 import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.ff4j.FF4j;
 import org.junit.After;

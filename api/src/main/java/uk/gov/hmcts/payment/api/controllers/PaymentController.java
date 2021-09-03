@@ -316,7 +316,7 @@ public class PaymentController {
         if (apportionCheck && apportionFeature) {
             LOG.info("Apportion check and feature passed");
             final List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.getId());
-            if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
+            if (feePayApportionList != null && !feePayApportionList.isEmpty()) {
                 LOG.info("Apportion details available in PaymentController");
                 fees = new ArrayList<>();
                 getApportionedDetails(fees, feePayApportionList);

@@ -78,7 +78,8 @@ public class ServiceAndUserTestApplication {
         public AuthCheckerServiceAndAnonymousUserFilter authCheckerServiceAndUserFilter(RequestAuthorizer<User> userRequestAuthorizer,
                                                                                RequestAuthorizer<Service> serviceRequestAuthorizer,
                                                                                AuthenticationManager authenticationManager) {
-            AuthCheckerServiceAndAnonymousUserFilter filter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer, userRequestAuthorizer);
+            AuthCheckerServiceAndAnonymousUserFilter filter = new AuthCheckerServiceAndAnonymousUserFilter(serviceRequestAuthorizer,
+                userRequestAuthorizer);
             filter.setAuthenticationManager(authenticationManager);
             return filter;
         }

@@ -43,7 +43,7 @@ public class FeePayApportionMockControllerTest {
     private LaunchDarklyFeatureToggler featureToggler;
 
     @Test
-    public void SingleFeeMultiplePayExactPayment() throws CheckDigitException {
+    public void singleFeeMultiplePayExactPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233334444";
 
@@ -85,7 +85,7 @@ public class FeePayApportionMockControllerTest {
     }
 
     @Test
-    public void SingleFeeMultiplePay_SurplusPayment() throws CheckDigitException {
+    public void singleFeeMultiplePay_SurplusPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233335555";
 
@@ -127,7 +127,7 @@ public class FeePayApportionMockControllerTest {
     }
 
     @Test
-    public void SingleFeeMultiplePay_ShortfallPayment() throws CheckDigitException {
+    public void singleFeeMultiplePay_ShortfallPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233336666";
 
@@ -169,7 +169,7 @@ public class FeePayApportionMockControllerTest {
     }
 
     @Test
-    public void MultipleFeeMultiplePay_ExactPayment() throws CheckDigitException {
+    public void multipleFeeMultiplePay_ExactPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233337777";
 
@@ -211,7 +211,7 @@ public class FeePayApportionMockControllerTest {
     }
 
     @Test
-    public void MultipleFeeMultiplePaySurplusPayment() throws CheckDigitException {
+    public void multipleFeeMultiplePaySurplusPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233338888";
 
@@ -255,7 +255,7 @@ public class FeePayApportionMockControllerTest {
     }
 
     @Test
-    public void MultipleFeeMultiplePay_ShortfallPayment() throws CheckDigitException {
+    public void multipleFeeMultiplePay_ShortfallPayment() throws CheckDigitException {
 
         String ccdCase = "1111222233339999";
 
@@ -301,7 +301,7 @@ public class FeePayApportionMockControllerTest {
     }
 
     @Test
-    public void MultipleFeeMultiplePayUseCase5() throws CheckDigitException {
+    public void multipleFeeMultiplePayUseCase5() throws CheckDigitException {
 
         String ccdCase = "1111222244441111";
 
@@ -339,7 +339,7 @@ public class FeePayApportionMockControllerTest {
     private List<PaymentFeeLink> getPaymentFeeLinks(int count) throws CheckDigitException {
         List<PaymentFeeLink> paymentFeeLinks = new ArrayList<>();
 
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             paymentFeeLinks.add(PaymentFeeLink.paymentFeeLinkWith()
                 .id(RandomUtils.nextInt())
                 .paymentReference(referenceUtil.getNext("GR"))
@@ -352,7 +352,7 @@ public class FeePayApportionMockControllerTest {
         throws CheckDigitException {
         List<Payment> payments = new ArrayList<>();
 
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             payments.add(Payment.paymentWith()
                 .id(RandomUtils.nextInt(100, 999))
                 .amount(amounts.get(i))
@@ -369,10 +369,11 @@ public class FeePayApportionMockControllerTest {
         return payments;
     }
 
-    private List<PaymentFee> getFees(String ccdCase, List<BigDecimal> amounts, List<BigDecimal> remissionAmounts, List<Timestamp> feeCreatedDates, int count) throws CheckDigitException {
+    private List<PaymentFee> getFees(String ccdCase, List<BigDecimal> amounts, List<BigDecimal> remissionAmounts,
+                                     List<Timestamp> feeCreatedDates, int count) throws CheckDigitException {
         List<PaymentFee> fees = new ArrayList<>();
 
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             PaymentFee fee = PaymentFee.feeWith()
                 .id(RandomUtils.nextInt(100, 999))
                 .code("FEE00" + i)

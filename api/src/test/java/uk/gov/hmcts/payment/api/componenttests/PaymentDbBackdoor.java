@@ -30,8 +30,7 @@ public class PaymentDbBackdoor {
         return paymentFeeLinkRepository.findByPaymentReference(reference).orElseThrow(PaymentNotFoundException::new);
     }
 
-    public FeePayApportion createApportionDetails(FeePayApportionBuilder apportionBuilder)
-    {
+    public FeePayApportion createApportionDetails(FeePayApportionBuilder apportionBuilder) {
         return feePayApportionRepository.save(apportionBuilder.build());
     }
 
