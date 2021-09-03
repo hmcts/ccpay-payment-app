@@ -46,7 +46,7 @@ public class ReplayCreditAccountPaymentController {
     private final ReplayCreditAccountPaymentService replayCreditAccountPaymentService;
     private final CreditAccountPaymentController creditAccountPaymentController;
 
-    private final static String PAYMENT_STATUS_HISTORY_MESSAGE = "System Failure. Not charged";
+    private static final String PAYMENT_STATUS_HISTORY_MESSAGE = "System Failure. Not charged";
 
 
     @Autowired
@@ -133,12 +133,14 @@ public class ReplayCreditAccountPaymentController {
 
         try {
             // Call the Payment PBA API v1
-            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController.createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest(),headers);
+            ResponseEntity<PaymentDto> paymentDtoResponseEntity = creditAccountPaymentController
+                .createCreditAccountPayment(replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest(),headers);
             if (paymentDtoResponseEntity != null) {
                 PaymentDto paymentDto = paymentDtoResponseEntity.getBody();
                 if (paymentDto != null && paymentDto.getReference() != null) {
                     String newPaymentReference = paymentDto.getReference();
-                    LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  Existing Payment Reference : " + replayCreditAccountPaymentDTO.getExistingPaymentReference()
+                    LOG.info("REPLAY_CREDIT_ACCOUNT_PAYMENT:  Existing Payment Reference : "
+                        + replayCreditAccountPaymentDTO.getExistingPaymentReference()
                         + " New Payment Reference : " + newPaymentReference
                         + " CCD_CASE_NUMBER : " + replayCreditAccountPaymentDTO.getCreditAccountPaymentRequest().getCcdCaseNumber());
                 }

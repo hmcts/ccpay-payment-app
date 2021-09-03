@@ -28,7 +28,7 @@ public class PaymentReference {
         long dateTimeinMillis = dateTime.getMillis() / 100;
 
         String nextVal = String.format("%010d", dateTimeinMillis);
-        return LocalDateTime.now().getYear() + "-" + nextVal + + (random.nextInt(89)+10);
+        return LocalDateTime.now().getYear() + "-" + nextVal + + (random.nextInt(89) + 10);
     }
 
 }

@@ -58,7 +58,7 @@ public class MaintenanceJobsController {
         LOG.warn("Found {} references that require an status update", referenceList.size());
 
         /* We ask the topic client proxy to keep the reuse the connection to the service bus for the whole batch */
-        if(topicClientProxy != null && !referenceList.isEmpty()) {
+        if (topicClientProxy != null && !referenceList.isEmpty()) {
             topicClientProxy.setKeepClientAlive(true);
         }
 

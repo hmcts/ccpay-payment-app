@@ -68,12 +68,9 @@ public class PaymentAllocationController {
             payment.get().setPaymentAllocation(paymentAllocationList);
             Payment paymentResponse = paymentRepository.save(payment.get());
             PaymentAllocationDto allocationDto = new PaymentAllocationDto();
-            for(PaymentAllocation allocation: paymentResponse.getPaymentAllocation())
-            {
+            for (PaymentAllocation allocation: paymentResponse.getPaymentAllocation()) {
                 allocationDto = paymentDtoMapper.toPaymentAllocationDto(allocation);
-
             }
-
 
             return new ResponseEntity<>(allocationDto, HttpStatus.CREATED);
         }

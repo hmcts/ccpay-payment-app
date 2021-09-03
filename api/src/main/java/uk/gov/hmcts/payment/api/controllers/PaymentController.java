@@ -127,7 +127,9 @@ public class PaymentController {
         return new PaymentsResponse(paymentDtos);
     }
 
-    @ApiOperation(value = "Get payments for Reconciliation for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
+    @ApiOperation(value = "Get payments for Reconciliation for between dates",
+        notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. " +
+            "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payments retrieved"),
@@ -233,7 +235,10 @@ public class PaymentController {
             .orElse(null);
     }
 
-    private void validatePullRequest(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString, @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString, @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType, @RequestParam(name = "service_name", required = false) Optional<String> serviceType) {
+    private void validatePullRequest(@RequestParam(name = "start_date", required = false) Optional<String> startDateTimeString,
+                                     @RequestParam(name = "end_date", required = false) Optional<String> endDateTimeString,
+                                     @RequestParam(name = "payment_method", required = false) Optional<String> paymentMethodType,
+                                     @RequestParam(name = "service_name", required = false) Optional<String> serviceType) {
         if (!ff4j.check("payment-search")) {
             throw new PaymentException("Payment search feature is not available for usage.");
         }
@@ -260,7 +265,7 @@ public class PaymentController {
         //Additional filter to retrieve payments within specified Date Range for Liberata Pull
         if (null != fromDateTime && null != toDateTime) {
             payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0
-                && payment.getDateUpdated().compareTo(toDateTime) <= 0 ))
+                && payment.getDateUpdated().compareTo(toDateTime) <= 0))
                 .collect(Collectors.toList());
         } else if (null != fromDateTime) {
             payments = payments.stream().filter(payment -> (payment.getDateUpdated().compareTo(fromDateTime) >= 0))
@@ -295,7 +300,8 @@ public class PaymentController {
         }
     }
 
-    private void populateApportionedFees(List<PaymentDto> paymentDtos, PaymentFeeLink paymentFeeLink, boolean apportionFeature, Payment payment, String paymentReference) {
+    private void populateApportionedFees(List<PaymentDto> paymentDtos, PaymentFeeLink paymentFeeLink, boolean apportionFeature,
+                                         Payment payment, String paymentReference) {
         boolean apportionCheck = payment.getPaymentChannel() != null
             && !payment.getPaymentChannel().getName().equalsIgnoreCase(paymentService.getServiceNameByCode("DIGITAL_BAR"));
         LOG.info("Apportion check value in liberata API: {}", apportionCheck);
@@ -312,7 +318,8 @@ public class PaymentController {
             }
         }
         //End of Apportion logic
-        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment, paymentReference, fees,ff4j,isPaymentAfterApportionment);
+        final PaymentDto paymentDto = paymentDtoMapper.toReconciliationResponseDtoForLibereta(payment,
+            paymentReference, fees,ff4j,isPaymentAfterApportionment);
         paymentDtos.add(paymentDto);
     }
 
@@ -320,14 +327,12 @@ public class PaymentController {
 
     private void getApportionedDetails(List<PaymentFee> fees, List<FeePayApportion> feePayApportionList) {
         LOG.info("Getting Apportionment Details!!!");
-        for (FeePayApportion feePayApportion : feePayApportionList)
-        {
+        for (FeePayApportion feePayApportion : feePayApportionList) {
             Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
-            if(apportionedFee.isPresent())
-            {
+            if (apportionedFee.isPresent()) {
                 LOG.info("Apportioned fee is present");
                 PaymentFee fee = apportionedFee.get();
-                if(feePayApportion.getApportionAmount() != null) {
+                if (feePayApportion.getApportionAmount() != null) {
                     LOG.info("Apportioned Amount is available!!!");
                     BigDecimal allocatedAmount = feePayApportion.getApportionAmount()
                         .add(feePayApportion.getCallSurplusAmount() != null

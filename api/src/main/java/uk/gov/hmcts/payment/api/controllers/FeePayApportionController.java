@@ -69,15 +69,14 @@ public class FeePayApportionController {
                 {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
                     Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
-                    if(apportionedFee.isPresent())
-                    {
+                    if(apportionedFee.isPresent()) {
                         LOG.info("Apportioned fee is present");
                         PaymentFee fee = apportionedFee.get();
                         LOG.info("apportion amount value in FeePayApportionController: {}", feePayApportion.getApportionAmount());
                         fee.setApportionAmount(feePayApportion.getApportionAmount());
                         feeList.add(fee);
-                                }
-                            }
+                    }
+                }
                 paymentFeeLink.setFees(feeList);
             }
 

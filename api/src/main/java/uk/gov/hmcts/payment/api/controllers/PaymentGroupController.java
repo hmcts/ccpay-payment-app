@@ -143,7 +143,8 @@ public class PaymentGroupController {
         this.telephonyDtoMapper = telephonyDtoMapper;
     }
 
-    @ApiOperation(value = "Get payments/remissions/fees details by payment group reference", notes = "Get payments/remissions/fees details for supplied payment group reference")
+    @ApiOperation(value = "Get payments/remissions/fees details by payment group reference",
+        notes = "Get payments/remissions/fees details for supplied payment group reference")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payment retrieved"),
         @ApiResponse(code = 403, message = "Payment info forbidden"),
@@ -404,9 +405,11 @@ public class PaymentGroupController {
         if (prodStrategicFixFeatureFlag) {
             // Check Any Duplicate payments for current DCN
             if (bulkScanPaymentRequestStrategic.getDocumentControlNumber() != null) {
-                List<Payment> existingPaymentForDCNList = payment2Repository.findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
+                List<Payment> existingPaymentForDCNList = payment2Repository
+                    .findByDocumentControlNumber(bulkScanPaymentRequestStrategic.getDocumentControlNumber()).orElse(null);
                 if (existingPaymentForDCNList != null && !existingPaymentForDCNList.isEmpty()) {
-                    throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = " + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
+                    throw new DuplicatePaymentException("Bulk scan payment already exists for DCN = "
+                        + bulkScanPaymentRequestStrategic.getDocumentControlNumber());
                 }
             }
 
@@ -521,7 +524,8 @@ public class PaymentGroupController {
         }
     }
 
-    public void allocateThePaymentAndMarkBulkScanPaymentAsProcessed(BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic, String paymentGroupReference, Payment newPayment,
+    public void allocateThePaymentAndMarkBulkScanPaymentAsProcessed(BulkScanPaymentRequestStrategic bulkScanPaymentRequestStrategic,
+                                                                    String paymentGroupReference, Payment newPayment,
                                                                     MultiValueMap<String, String> headers) {
         //Payment Allocation endpoint call
         PaymentAllocationDto paymentAllocationDto = bulkScanPaymentRequestStrategic.getPaymentAllocationDTO();
@@ -551,7 +555,8 @@ public class PaymentGroupController {
         }
     }
 
-    public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn, String status) throws RestClientException {
+    public ResponseEntity<String> markBulkScanPaymentProcessed(MultiValueMap<String, String> headersMap, String dcn, String status)
+        throws RestClientException {
         //Generate token for payment api and replace
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
@@ -593,10 +598,12 @@ public class PaymentGroupController {
         LOG.info("Feature Flag Value in CardPaymentController : {}", antennaFeature);
         if (antennaFeature) {
 
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(telephonyCardPaymentsRequest.getCaseType(), headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService
+                .getOrganisationalDetail(telephonyCardPaymentsRequest.getCaseType(), headers);
 
             LOG.info("Inside Telephony check!!!");
-            TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService.getPaymentProviderAutorisationTokens();
+            TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse = pciPalPaymentService
+                .getPaymentProviderAutorisationTokens();
             PaymentServiceRequest paymentServiceRequest = PaymentServiceRequest.paymentServiceRequestWith()
                 .paymentGroupReference(paymentGroupReference)
                 .paymentReference(referenceUtil.getNext("RC"))
