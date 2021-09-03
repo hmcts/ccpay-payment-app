@@ -1,6 +1,5 @@
 package uk.gov.hmcts.payment.api.mapper;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -15,8 +14,6 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BulkScanningReportMapperTest {
@@ -24,7 +21,7 @@ public class BulkScanningReportMapperTest {
     BulkScanningReportMapper bulkScanningReportMapper = new BulkScanningReportMapper();
 
     @Test
-    public void testToBulkScanningUnallocatedReportDto(){
+    public void testToBulkScanningUnallocatedReportDto() {
         List<BulkScanningReportDto> bulkScanningReportDtos = new ArrayList<>();
         BulkScanningReportDto bulkScanningReportDto = BulkScanningReportDto.report2DtoWith()
                                                         .respServiceId("siteId")
@@ -46,7 +43,7 @@ public class BulkScanningReportMapperTest {
     }
 
     @Test
-    public void testToSurplusAndShortfallReportdto(){
+    public void testToSurplusAndShortfallReportdto() {
         List<BulkScanningUnderOverPaymentDto> underOverPaymentDtos = new ArrayList<>();
         BulkScanningUnderOverPaymentDto bulkScanningUnderOverPaymentDto = BulkScanningUnderOverPaymentDto.report2DtoWith()
                                                                             .respServiceId("siteId")
@@ -60,13 +57,13 @@ public class BulkScanningReportMapperTest {
     }
 
     @Test
-    public void testToSurplusAndShortfallReportdtoFilteringExelaPayments(){
+    public void testToSurplusAndShortfallReportdtoFilteringExelaPayments() {
         List<BulkScanningUnderOverPaymentDto> responseDtos = bulkScanningReportMapper.toSurplusAndShortfallReportdto(getPayments());
         assertEquals(1,responseDtos.size());
         assertEquals("ccd-case-number-3",responseDtos.get(0).getCcdCaseReference());
     }
 
-    private List<Payment> getPayments(){
+    private List<Payment> getPayments() {
         List<Payment> payments = new ArrayList<Payment>();
         List<PaymentAllocation> paymentAllocations1 = new ArrayList<PaymentAllocation>();
         List<PaymentAllocation> paymentAllocations2 = new ArrayList<PaymentAllocation>();
@@ -122,7 +119,8 @@ public class BulkScanningReportMapperTest {
         payments.add(payment1);
         payments.add(payment2);
         payments.add(payment3);
-        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").calculatedAmount(new BigDecimal("100.00")).build();
+        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number")
+            .calculatedAmount(new BigDecimal("100.00")).build();
         List<PaymentFee> paymentFees = new ArrayList<PaymentFee>();
         paymentFees.add(fee);
         Remission remission = Remission.remissionWith()

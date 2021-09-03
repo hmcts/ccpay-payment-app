@@ -48,7 +48,7 @@ public class CreditAccountDtoMapperTest {
     PaymentFeeLink feeLink;
 
     @Before
-    public void initiate(){
+    public void initiate() {
         List<PaymentAllocation> paymentAllocations1 = new ArrayList<PaymentAllocation>();
         PaymentAllocation allocation1 = PaymentAllocation.paymentAllocationWith()
             .receivingOffice("receiving-office")
@@ -82,7 +82,8 @@ public class CreditAccountDtoMapperTest {
             .statusHistories(statusHistories)
             .id(1).paymentAllocation(paymentAllocations1).build();
         payments.add(payment1);
-        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").calculatedAmount(new BigDecimal("100.00")).build();
+        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00"))
+            .ccdCaseNumber("ccd-case-number").calculatedAmount(new BigDecimal("100.00")).build();
         List<PaymentFee> paymentFees = new ArrayList<PaymentFee>();
         paymentFees.add(fee);
         Remission remission = Remission.remissionWith()
@@ -102,7 +103,7 @@ public class CreditAccountDtoMapperTest {
 
 
     @Test
-    public void testToPaymentRequest(){
+    public void testToPaymentRequest() {
         CreditAccountPaymentRequest creditAccountPayment = CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
                                                                 .amount(new BigDecimal("100.00"))
                                                                 .description("description")
@@ -116,14 +117,15 @@ public class CreditAccountDtoMapperTest {
     }
 
     @Test
-    public void testToRetrievePaymentGroupReferenceResponse(){
+    public void testToRetrievePaymentGroupReferenceResponse() {
         PaymentGroupDto payment = creditAccountDtoMapper.toRetrievePaymentGroupReferenceResponse(feeLink);
         assertEquals("payment-reference",payment.getPaymentGroupReference());
     }
 
     @Test
-    public void testToRetrievePaymentResponse(){
-        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").calculatedAmount(new BigDecimal("100.00")).build();
+    public void testToRetrievePaymentResponse() {
+        PaymentFee fee = PaymentFee.feeWith().feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number")
+            .calculatedAmount(new BigDecimal("100.00")).build();
         List<PaymentFee> paymentFees = new ArrayList<PaymentFee>();
         paymentFees.add(fee);
         PaymentDto paymentDto = creditAccountDtoMapper.toRetrievePaymentResponse(payment1,paymentFees);
@@ -132,20 +134,20 @@ public class CreditAccountDtoMapperTest {
     }
 
     @Test
-    public void testToCreateCreditAccountPaymentResponse(){
+    public void testToCreateCreditAccountPaymentResponse() {
         PaymentDto paymentDto = creditAccountDtoMapper.toCreateCreditAccountPaymentResponse(feeLink);
         assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
     }
 
     @Test
-    public void testToRetrievePaymentStatusResponse(){
+    public void testToRetrievePaymentStatusResponse() {
         PaymentDto paymentDto = creditAccountDtoMapper.toRetrievePaymentStatusResponse(payment1);
         assertEquals(new BigDecimal("100.00"),paymentDto.getAmount());
         assertEquals("RC-1612-3710-5335-6484",paymentDto.getReference());
     }
 
     @Test
-    public void testToFee(){
+    public void testToFee() {
         FeeDto feeDto = FeeDto.feeDtoWith()
                         .calculatedAmount(new BigDecimal(("100.00")))
                         .code("FEE123")

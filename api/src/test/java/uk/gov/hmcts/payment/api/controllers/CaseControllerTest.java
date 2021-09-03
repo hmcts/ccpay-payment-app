@@ -261,7 +261,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
+            new TypeReference<PaymentGroupResponse>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
 
@@ -453,7 +454,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
+            .post("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId()
+                + "/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -484,7 +486,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
+            new TypeReference<PaymentGroupResponse>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(3);
 
@@ -539,7 +542,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference() + "/fees/" + fee.getId() + "/remissions", remissionRequest)
+            .post("/payment-groups/" + createPaymentGroupResponseDto.getPaymentGroupReference() + "/fees/"
+                + fee.getId() + "/remissions", remissionRequest)
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -550,7 +554,8 @@ public class CaseControllerTest extends PaymentsDataUtil {
             .andExpect(status().isOk())
             .andReturn();
 
-        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<PaymentGroupResponse>(){});
+        PaymentGroupResponse paymentGroups = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
+            new TypeReference<PaymentGroupResponse>(){});
 
         assertThat(paymentGroups.getPaymentGroups().size()).isEqualTo(1);
         assertThat(paymentGroups.getPaymentGroups().get(0)

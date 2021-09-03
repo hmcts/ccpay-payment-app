@@ -110,7 +110,7 @@ public class FeesControllerTest {
     public void deleteFeesTest() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         MvcResult result = restActions
@@ -122,7 +122,7 @@ public class FeesControllerTest {
 
         Integer feeId = paymentGroupDto.getFees().get(0).getId();
         MvcResult result1 = restActions.
-            delete("/fees/"+ feeId)
+            delete("/fees/" + feeId)
             .andExpect(status().isNoContent())
             .andReturn();
     }
@@ -156,7 +156,7 @@ public class FeesControllerTest {
 
         Integer feeId = remissionDto.getFee().getId();
         MvcResult result1 = restActions.
-            delete("/fees/"+ feeId)
+            delete("/fees/" + feeId)
             .andExpect(status().isNoContent())
             .andReturn();
     }
@@ -166,12 +166,12 @@ public class FeesControllerTest {
 
         Integer feeId = 12;
         MvcResult result1 = restActions.
-            delete("/fees/"+ feeId)
+            delete("/fees/" + feeId)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
 
-    private FeeDto getNewFee(){
+    private FeeDto getNewFee() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")

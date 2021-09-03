@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.fees2.register.data.model.Fee;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.contract.PaymentAllocationDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -48,7 +47,7 @@ public class PaymentDtoMapperTest {
     PaymentAllocation allocation1;
 
     @Before
-    public void initiate(){
+    public void initiate() {
         List<Payment> payments = new ArrayList<Payment>();
         List<PaymentAllocation> paymentAllocations1 = new ArrayList<PaymentAllocation>();
         allocation1 = PaymentAllocation.paymentAllocationWith()

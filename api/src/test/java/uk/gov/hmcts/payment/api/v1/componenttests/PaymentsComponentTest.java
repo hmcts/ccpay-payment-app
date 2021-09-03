@@ -179,7 +179,8 @@ public class PaymentsComponentTest extends TestUtil {
         PaymentOld paymentOld = db.create(validPaymentWith().govPayId("GOV_PAY_ID"));
 
         restActions
-            .post(format("/users/%s/payments/%s/refunds", USER_ID, paymentOld.getId()), refundPaymentRequestDtoWith().amount(100).refundAmountAvailable(100).build())
+            .post(format("/users/%s/payments/%s/refunds", USER_ID, paymentOld.getId()), refundPaymentRequestDtoWith()
+                .amount(100).refundAmountAvailable(100).build())
             .andExpect(status().is(201));
     }
 

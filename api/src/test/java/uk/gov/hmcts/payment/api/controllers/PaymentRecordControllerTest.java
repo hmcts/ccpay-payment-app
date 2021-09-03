@@ -55,7 +55,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class PaymentRecordControllerTest {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
@@ -200,7 +200,7 @@ public class PaymentRecordControllerTest {
 
 
         MvcResult result = restActions
-            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR"+"&start_date=" + startDate + "&end_date=" + endDate)
+            .get("/payments?payment_method=cheque&service_name=DIGITAL_BAR" + "&start_date=" + startDate + "&end_date=" + endDate)
             .andExpect(status().isOk())
             .andReturn();
 
@@ -304,7 +304,8 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. " +
+            "Date format should be UTC.");
     }
 
     @Test
@@ -317,7 +318,8 @@ public class PaymentRecordControllerTest {
             .andExpect(status().isUnprocessableEntity())
             .andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. Date format should be UTC.");
+        assertThat(result.getResponse().getContentAsString()).isEqualTo("validReportedDateOffline: Invalid payment reported offline date. " +
+            "Date format should be UTC.");
 
     }
 
@@ -606,7 +608,8 @@ public class PaymentRecordControllerTest {
             .andReturn();
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsByteArray(), PaymentsResponse.class);
         List<PaymentDto> paymentDtos = paymentsResponse.getPayments();
-        Optional<PaymentDto> optPayment = paymentDtos.stream().filter(p -> p.getPaymentReference().equals(paymentDto.getPaymentReference())).findAny();
+        Optional<PaymentDto> optPayment = paymentDtos.stream().filter(p -> p.getPaymentReference()
+            .equals(paymentDto.getPaymentReference())).findAny();
         if (optPayment.isPresent()) {
             PaymentDto payment = optPayment.get();
             assertThat(payment.getAmount()).isEqualTo(new BigDecimal("217.00"));

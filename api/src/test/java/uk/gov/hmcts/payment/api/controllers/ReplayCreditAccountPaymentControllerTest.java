@@ -60,7 +60,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @Transactional
 public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     @Autowired
     private ConfigurableListableBeanFactory configurableListableBeanFactory;
@@ -178,7 +178,8 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
                 Assert.assertEquals(entry.getValue().getOrganisationName().replace("\"", ""), newPayment.getOrganisationName());
                 Assert.assertEquals(entry.getValue().getSiteId(), newPayment.getSiteId());
                 Assert.assertEquals(entry.getValue().getFees().get(0).getCode(), newPayment.getPaymentLink().getFees().get(0).getCode());
-                Assert.assertEquals(entry.getValue().getFees().get(0).getCalculatedAmount(), newPayment.getPaymentLink().getFees().get(0).getCalculatedAmount());
+                Assert.assertEquals(entry.getValue().getFees().get(0).getCalculatedAmount(),
+                    newPayment.getPaymentLink().getFees().get(0).getCalculatedAmount());
                 Assert.assertEquals(entry.getValue().getFees().get(0).getVersion(), newPayment.getPaymentLink().getFees().get(0).getVersion());
 
             });
@@ -203,7 +204,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             createCreditAccountPayments(csvParseMap, 5);
 
             //Create CSV
-            replayCreditAccountPaymentUtils.createCSV(csvParseMap ,"paymentsToFailed.csv");
+            replayCreditAccountPaymentUtils.createCSV(csvParseMap,"paymentsToFailed.csv");
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToFailed.csv", "text/csv",
@@ -308,7 +309,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
     }
 
 
-    private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap , int noOfPayments) throws Exception {
+    private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap, int noOfPayments) throws Exception {
         for (int i = 0; i < noOfPayments; i++) {
             //create PBA payment
             String url = replayCreditAccountPaymentUtils.setCreditAccountPaymentLiberataCheckFeature(true);

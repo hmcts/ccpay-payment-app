@@ -20,7 +20,7 @@ public class TopicClientProxyTest {
     private String topic;
 
     @Test
-    public void testBatchMode() throws Exception{
+    public void testBatchMode() throws Exception {
 
         TopicClientProxy topicClientProxy = new TopicClientProxy(
             connectionString, topic

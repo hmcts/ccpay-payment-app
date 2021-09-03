@@ -33,7 +33,7 @@ public class CreditAccountPaymentRequestMapperTest {
     CreditAccountPaymentRequest creditAccountPaymentRequest;
 
     @Before
-    public void initiate(){
+    public void initiate() {
         List<FeeDto> fees = new ArrayList<>();
         FeeDto fee = FeeDto.feeDtoWith().ccdCaseNumber("ccd-case-number").build();
         fees.add(fee);
@@ -48,14 +48,14 @@ public class CreditAccountPaymentRequestMapperTest {
     }
 
     @Test
-    public void testMapPBARequest(){
+    public void testMapPBARequest() {
         Payment payment = creditAccountPaymentRequestMapper.mapPBARequest(creditAccountPaymentRequest);
         assertEquals("ccd-case-number-1",payment.getCcdCaseNumber());
         assertEquals("case-reference",payment.getCaseReference());
     }
 
     @Test
-    public void testMapPBAFeesFromRequest(){
+    public void testMapPBAFeesFromRequest() {
         PaymentFee fee = PaymentFee.feeWith().code("FEE123").feeAmount(new BigDecimal("100.00")).ccdCaseNumber("ccd-case-number").build();
         when(creditAccountDtoMapper.toFee(Mockito.any(FeeDto.class))).thenReturn(fee);
         List<PaymentFee> paymentFees = creditAccountPaymentRequestMapper.mapPBAFeesFromRequest(creditAccountPaymentRequest);

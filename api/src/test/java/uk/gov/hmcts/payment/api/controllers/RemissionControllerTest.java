@@ -59,7 +59,7 @@ public class RemissionControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
-    private final static String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
 
     private RestActions restActions;
 
@@ -713,7 +713,7 @@ public class RemissionControllerTest {
     @Transactional
     public void createRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         MvcResult result = restActions
@@ -731,7 +731,8 @@ public class RemissionControllerTest {
 
         // create a partial remission
         MvcResult result2 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequestForNetAmount())
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions",
+                getRemissionRequestForNetAmount())
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -745,7 +746,8 @@ public class RemissionControllerTest {
 
         PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result3.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0).getCalculatedAmount().subtract(getRemissionRequestForNetAmount().getHwfAmount()));
+        assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0)
+            .getCalculatedAmount().subtract(getRemissionRequestForNetAmount().getHwfAmount()));
 
     }
 
@@ -753,7 +755,7 @@ public class RemissionControllerTest {
     @Transactional
     public void createRemissionWithoutFeesShouldBeSuccessfulTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
@@ -779,7 +781,8 @@ public class RemissionControllerTest {
 
         // create a partial remission
         MvcResult result3 = restActions
-            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequestForNetAmount())
+            .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions",
+                getRemissionRequestForNetAmount())
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -793,7 +796,8 @@ public class RemissionControllerTest {
 
         PaymentGroupDto paymentGroupDto1 = objectMapper.readValue(result4.getResponse().getContentAsByteArray(), PaymentGroupDto.class);
 
-        assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0).getCalculatedAmount().subtract(getRemissionRequestForNetAmount().getHwfAmount()));
+        assertThat(paymentGroupDto1.getFees().get(0).getNetAmount()).isEqualTo(paymentGroupDto.getFees().get(0).getCalculatedAmount()
+            .subtract(getRemissionRequestForNetAmount().getHwfAmount()));
 
         MvcResult result5 = restActions
             .post("/payment-groups/" + paymentGroupDto.getPaymentGroupReference() + "/fees/" + feeId + "/remissions", getRemissionRequest())
@@ -899,7 +903,7 @@ public class RemissionControllerTest {
             .build();
     }
 
-    private FeeDto getNewFee(){
+    private FeeDto getNewFee() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250"))
             .code("FEE312")

@@ -91,7 +91,7 @@ public class PaymentsReportServiceTest {
         // given
         paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String []{"toEmail"}, "emailSubject", "emailMessage", true);
 
-         // when
+        // when
         paymentsReportService.generateCsvAndSendEmail(new Date(), new Date(), PaymentMethodType.CARD, null, paymentReportConfig);
 
         // then

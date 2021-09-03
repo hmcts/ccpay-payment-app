@@ -397,7 +397,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
             .build();
-       Remission remission= Remission.remissionWith()
+       Remission remission = Remission.remissionWith()
             .remissionReference("12345")
             .hwfReference("HR1111")
             .hwfAmount(new BigDecimal("50.00"))
@@ -469,7 +469,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
             .build();
-        Remission remission= Remission.remissionWith()
+        Remission remission = Remission.remissionWith()
             .remissionReference("12345")
             .hwfReference("HR1111")
             .hwfAmount(new BigDecimal("50.00"))

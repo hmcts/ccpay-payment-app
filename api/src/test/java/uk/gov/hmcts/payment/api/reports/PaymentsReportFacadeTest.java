@@ -159,7 +159,7 @@ public class PaymentsReportFacadeTest {
     }
 
     @Test
-    public void PbaFinremConfigurationService() {
+    public void pbaFinremConfigurationService() {
         // given
         Date fromDate = new Date();
         Date toDate = new Date();

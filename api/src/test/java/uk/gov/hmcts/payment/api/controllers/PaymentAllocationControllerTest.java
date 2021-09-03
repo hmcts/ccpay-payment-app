@@ -73,7 +73,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
     @Autowired
     private PaymentDbBackdoor db;
 
-    private final static String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final String PAYMENT_REFERENCE_REGEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -113,7 +113,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
 
     @Test
     public void addInvalidPaymentAllocationTest() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto paymentAllocationDto = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-0001")
@@ -154,7 +154,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
 
     @Test
     public void addPaymentAllocationForSolicitedPaymentTest() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-0001")
@@ -179,7 +179,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
     @Test
     @Transactional
     public void addPaymentAllocationForUnsolicitedPaymentTest() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-0001")
@@ -208,7 +208,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
 
     @Test
     public void addPaymentAllocationForUnIdentifiedPaymentTest() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-0001")
@@ -234,7 +234,7 @@ public class PaymentAllocationControllerTest extends PaymentsDataUtil {
     }
     @Test
     public void paymentIsNotFound() throws Exception {
-        Payment payment =populateCardPaymentToDbForPaymentAllocation("1");
+        Payment payment = populateCardPaymentToDbForPaymentAllocation("1");
         PaymentAllocationDto request = PaymentAllocationDto.paymentAllocationDtoWith()
             .paymentGroupReference("2018-00000000001")
             .paymentReference("RC-1519-9028-2432-00011")

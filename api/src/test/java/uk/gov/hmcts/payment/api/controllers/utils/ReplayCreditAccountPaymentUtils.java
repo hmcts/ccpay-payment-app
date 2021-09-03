@@ -56,18 +56,16 @@ public class ReplayCreditAccountPaymentUtils {
     }
 
     public void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap, String fileName) throws IOException {
-        String csvFile = "src/test/resources/" +fileName;
+        String csvFile = "src/test/resources/" + fileName;
         FileWriter writer = new FileWriter(csvFile);
 
         //for header
-        CSVUtil.writeLine
-            (writer, Arrays.asList("index_col", "impacted.payment.reference", "payment.amount", "payment.ccd_case_number",
+        CSVUtil.writeLine(writer, Arrays.asList("index_col", "impacted.payment.reference", "payment.amount", "payment.ccd_case_number",
                 "payment.pba_number", "payment.description", "payment.case_reference", "payment.service",
                 "payment.currency", "payment.customer_reference", "payment.organisation_name", "payment.site_id",
                 "fee.code", "fee.calculated_amount", "fee.version"));
 
-        csvParseMap.entrySet().stream().forEach(paymentRequestEntry ->
-            {
+        csvParseMap.entrySet().stream().forEach(paymentRequestEntry -> {
                 CreditAccountPaymentRequest request = paymentRequestEntry.getValue();
                 List<String> list = new ArrayList<>();
                 list.add("");
