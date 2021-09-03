@@ -62,11 +62,10 @@ public class FeePayApportionController {
         {
             LOG.info("Apportion feature is true and payment is available in FeePayApportionController");
             List<FeePayApportion> feePayApportionList = paymentService.findByPaymentId(payment.get().getId());
-            if(feePayApportionList != null && !feePayApportionList.isEmpty()) {
+            if (feePayApportionList != null && !feePayApportionList.isEmpty()) {
                 LOG.info("Apportion details available in FeePayApportionController");
                 List<PaymentFee> feeList = new ArrayList<>();
-                for (FeePayApportion feePayApportion : feePayApportionList)
-                {
+                for (FeePayApportion feePayApportion : feePayApportionList) {
                     LOG.info("Inside FeePayApportion section in FeePayApportionController");
                     Optional<PaymentFee> apportionedFee = paymentFeeRepository.findById(feePayApportion.getFeeId());
                     if(apportionedFee.isPresent()) {

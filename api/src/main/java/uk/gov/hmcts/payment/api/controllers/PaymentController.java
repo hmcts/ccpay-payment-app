@@ -92,7 +92,9 @@ public class PaymentController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @ApiOperation(value = "Get payments for between dates", notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
+    @ApiOperation(value = "Get payments for between dates",
+        notes = "Get list of payments. You can optionally provide start date and end dates which can include times as well. " +
+            "Following are the supported date/time formats. These are yyyy-MM-dd, dd-MM-yyyy," +
         "yyyy-MM-dd HH:mm:ss, dd-MM-yyyy HH:mm:ss, yyyy-MM-dd'T'HH:mm:ss, dd-MM-yyyy'T'HH:mm:ss")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Payments retrieved"),
