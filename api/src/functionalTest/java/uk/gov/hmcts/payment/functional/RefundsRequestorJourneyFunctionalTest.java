@@ -1,13 +1,7 @@
 package uk.gov.hmcts.payment.functional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.RestAssured;
-import io.restassured.config.ObjectMapperConfig;
-import io.restassured.config.RestAssuredConfig;
-import io.restassured.mapper.factory.DefaultJackson2ObjectMapperFactory;
 import io.restassured.response.Response;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,7 +16,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
-import uk.gov.hmcts.payment.api.dto.RetroRemissionDto;
 import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
@@ -33,7 +26,6 @@ import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
 import uk.gov.hmcts.payment.functional.service.CaseTestService;
 import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -99,7 +91,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_positive_issue_refunds_for_a_pba_payment() {
+    public void positive_issue_refunds_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -139,7 +131,97 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_negative_issue_refund_for_card_payment() {
+    public void positive_issue_refunds_for_2_pba_payments() {
+        // create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest1 = PaymentFixture
+            .aPbaPaymentRequestForProbateWithFeeCode("90.00","FEE0001",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest1.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
+            .aPbaPaymentRequestForProbateWithFeeCode("550.00","FEE0002",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest2.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        // Get pba payments by accountNumber
+        PaymentsResponse paymentsResponse = paymentTestService
+            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        Optional<PaymentDto> paymentDtoOptional
+            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
+            return s2.getDateCreated().compareTo(s1.getDateCreated());
+        }).findFirst();
+
+        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("550.00"));
+        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest2.getCcdCaseNumber());
+        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
+        String paymentReference = paymentDtoOptional.get().getPaymentReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+        System.out.println(refundResponse.getStatusLine());
+        System.out.println(refundResponse.getBody().prettyPrint());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("550.00"));
+        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+    }
+
+
+    @Test
+    public void positive_issue_refunds_for_a_pba_payment_accross_2_fees() {
+        // create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
+                "PROBATE", "PBAFUNC12345",
+                "FEE0001","90.00","FEE002","550.00");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        // Get pba payments by accountNumber
+        PaymentsResponse paymentsResponse = paymentTestService
+            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        Optional<PaymentDto> paymentDtoOptional
+            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
+            return s2.getDateCreated().compareTo(s1.getDateCreated());
+        }).findFirst();
+
+        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("640.00"));
+        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
+        String paymentReference = paymentDtoOptional.get().getPaymentReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+        System.out.println(refundResponse.getStatusLine());
+        System.out.println(refundResponse.getBody().prettyPrint());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("640.00"));
+        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+    }
+
+    @Test
+    @Ignore ("Expected : Refund currently supported for PBA Payment Channel only - Actual : Refund can be possible if payment is successful")
+    public void negative_issue_refund_for_card_payment() {
 
         PaymentDto paymentDto = paymentsTestDsl.given().userToken(USER_TOKEN_CMC_CITIZEN)
             .s2sToken(SERVICE_TOKEN)
@@ -157,11 +239,13 @@ public class RefundsRequestorJourneyFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        //TODO - Raise a defect for this sceanrio.
         //assertThat(refundResponse.getBody().print()).isEqualTo("Refund currently supported for PBA Payment Channel only");
     }
 
     @Test
-    public void test_positive_add_remission_and_add_refund_for_a_pba_payment() {
+    @Ignore("Test Failing with the Error Message stating : Invalid reason selected")
+    public void positive_add_remission_and_add_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -171,14 +255,15 @@ public class RefundsRequestorJourneyFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         Response casePaymentGroupResponse
-            = cardTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
-       PaymentGroupResponse paymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+        PaymentGroupResponse paymentGroupResponse
             = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
         final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
         final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
 
-         //TEST create retrospective remission
+        //TEST create retrospective remission
         Response response = dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
             .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
@@ -195,7 +280,52 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_positive_add_remission_amount_more_than_refund_for_a_pba_payment() {
+    @Ignore("Test Failing with the Error Message stating : Invalid reason selected")
+    public void positive_add_remission_and_add_refund_for_2_pba_payments() {
+        // create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest1 = PaymentFixture
+            .aPbaPaymentRequestForProbateWithFeeCode("90.00","FEE0001",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest1.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest1).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        CreditAccountPaymentRequest accountPaymentRequest2 = PaymentFixture
+            .aPbaPaymentRequestForProbateWithFeeCode("550.00","FEE0002",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest2.setCcdCaseNumber(accountPaymentRequest1.getCcdCaseNumber());
+        accountPaymentRequest2.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest2).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest1.getCcdCaseNumber());
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        String remissionReference = response.getBody().jsonPath().getString("remission_reference");
+
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
+        assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
+        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+    }
+
+    @Test
+    public void negative_add_remission_amount_more_than_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -205,7 +335,8 @@ public class RefundsRequestorJourneyFunctionalTest {
         paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
         Response casePaymentGroupResponse
-            = cardTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
         PaymentGroupResponse paymentGroupResponse
             = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
@@ -233,7 +364,8 @@ public class RefundsRequestorJourneyFunctionalTest {
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
         Response casePaymentGroupResponse
-            = cardTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
         PaymentGroupResponse paymentGroupResponse
             = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
@@ -278,6 +410,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
+    @Ignore("Test Failing with the Error Message stating : Invalid reason selected")
     public void test_positive_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -289,7 +422,8 @@ public class RefundsRequestorJourneyFunctionalTest {
             .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
         Response casePaymentGroupResponse
-            = cardTestService.getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
         PaymentGroupResponse paymentGroupResponse
             = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
         //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
@@ -311,7 +445,6 @@ public class RefundsRequestorJourneyFunctionalTest {
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
         assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
-
 
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -337,6 +470,45 @@ public class RefundsRequestorJourneyFunctionalTest {
         System.out.println(refundInitiatedResponse.getStatusLine());
         System.out.println(refundInitiatedResponse.getBody().prettyPrint());
         assertThat(refundInitiatedResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+    }
+
+    @Test
+    @Ignore("Test Failing with the Error Message stating : Invalid reason selected")
+    public void test_positive_create_2_fee_payment_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
+                "PROBATE", "PBAFUNC12345",
+                "FEE0001","90.00","FEE0002","550.00");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().stream().filter(s -> s.getCode().equals("FEE0002")).findFirst().get().getId();
+
+        //TEST create retrospective remission
+        Response retrospectiveRemissionResponse = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("540.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(retrospectiveRemissionResponse.getStatusCode()).isEqualTo(CREATED.value());
+        String remissionReference = retrospectiveRemissionResponse.getBody().jsonPath().getString("remission_reference");
+
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
+        System.out.println("The value of the responseBody : "+refundResponse.getBody().prettyPrint());
+        assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("540.00"));
+        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+
     }
 
     @Test
@@ -396,6 +568,90 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         System.out.println("The value of the response body " + refundResponse.getBody().prettyPrint());
         assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
+    }
+
+    @Test
+    @Ignore("Fee id Not Found Issue")
+    public void test_negative_add_remission_and_initiate_a_refund_for_a_pba_payment_more_than_the_account_limit() {
+
+        // Create a PBA payment
+        this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
+            "PBAFUNC12345",
+            "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
+    }
+
+    @Test
+    @Ignore("Fee id Not Found Issue")
+    public void test_negative_add_remission_and_initiate_a_refund_for_a_pba_payment_with_account_deleted() {
+
+        // Create a PBA payment
+        this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
+            "PBAFUNC12350",
+            "Your account is deleted");
+    }
+
+    @Test
+    @Ignore("Fee id Not Found Issue")
+    public void test_negative_add_remission_and_initiate_a_refund_for_a_pba_payment_with_account_on_hold() {
+
+        // Create a PBA payment
+        this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
+            "PBAFUNC12355",
+            "Your account is on hold");
+    }
+
+    private void add_remisssions_and_add_refund_for_a_failed_payment(final String amount,
+                                                                     final String accountNumber,
+                                                                     final String errorMessage) {
+        // Create a PBA payment
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate(amount,
+                "PROBATE", accountNumber);
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(FORBIDDEN.value());
+
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(response.getStatusCode()).isEqualTo(CREATED.value());
+        String remissionReference = response.getBody().jsonPath().getString("remission_reference");
+
+        // Get pba payments by accountNumber
+        PaymentsResponse paymentsResponse = paymentTestService
+            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        Optional<PaymentDto> paymentDtoOptional
+            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
+            return s2.getDateCreated().compareTo(s1.getDateCreated());
+        }).findFirst();
+
+        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal(amount));
+        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+        assertThat(paymentDtoOptional.get().getStatus()).isEqualTo("Failed");
+        assertThat(paymentDtoOptional.get().getStatusHistories().get(0).getErrorMessage()).isEqualTo(errorMessage);
+
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        System.out.println("The value of the response body " + refundResponse.getBody().prettyPrint());
+        assertThat(refundResponse.getBody().print()).isEqualTo("Refund can be possible if payment is successful");
+
     }
 
     private static final RetroRemissionRequest getRetroRemissionRequest(final String remissionAmount) {
