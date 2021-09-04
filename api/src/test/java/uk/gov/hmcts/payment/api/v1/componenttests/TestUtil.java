@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
 public class TestUtil {
 
     @ClassRule
