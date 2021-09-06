@@ -28,6 +28,7 @@ import uk.gov.hmcts.payment.functional.service.PaymentTestService;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +52,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     private static String SERVICE_TOKEN;
     private static String SERVICE_TOKEN_PAYMENT;
     private static boolean TOKENS_INITIALIZED = false;
-    private static final String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
+    private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
 
     @Autowired
     private PaymentTestService paymentTestService;
@@ -127,7 +128,54 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
-        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+        System.out.println(refundResponseFromPost.getRefundReference());
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
+    }
+
+    @Test
+    public void negative_duplicate_issue_refunds_for_a_pba_payment() {
+        // create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("90.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        // Get pba payments by accountNumber
+        PaymentsResponse paymentsResponse = paymentTestService
+            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        Optional<PaymentDto> paymentDtoOptional
+            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
+            return s2.getDateCreated().compareTo(s1.getDateCreated());
+        }).findFirst();
+
+        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
+        String paymentReference = paymentDtoOptional.get().getPaymentReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+        System.out.println(refundResponse.getStatusLine());
+        System.out.println(refundResponse.getBody().prettyPrint());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
+        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
+
+        Response refundResponseDuplicate = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+        assertThat(refundResponseDuplicate.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
 
     @Test
@@ -174,7 +222,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("550.00"));
-        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
     }
 
 
@@ -216,7 +264,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("640.00"));
-        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
     }
 
     @Test
@@ -244,7 +292,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Test Failing with the Error Message stating : Invalid reason selected")
+    @Ignore("Error : - Invalid Reason Selected.")
     public void positive_add_remission_and_add_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -276,11 +324,11 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
-        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
     }
 
     @Test
-    @Ignore("Test Failing with the Error Message stating : Invalid reason selected")
+    @Ignore("Error : - Invalid Reason Selected.")
     public void positive_add_remission_and_add_refund_for_2_pba_payments() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -321,7 +369,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
-        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
     }
 
     @Test
@@ -353,7 +401,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_positive_add_remission_and_initiate_a_refund_for_a_pba_payment() {
+    public void positive_add_remission_and_initiate_a_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -410,7 +458,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Test Failing with the Error Message stating : Invalid reason selected")
+    @Ignore("Error : - Invalid Reason Selected.")
     public void test_positive_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -444,7 +492,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
-        assertThat(refundResponseFromPost.getRefundReference()).startsWith("RF-");
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
 
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
@@ -512,18 +560,18 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_positive_issue_refunds_for_a_failed_pba_payment() {
+    public void positive_issue_refunds_for_a_failed_pba_payment() {
         issue_refunds_for_a_failed_payment("350000.00", "PBAFUNC12345",
             "Payment request failed. PBA account CAERPHILLY COUNTY BOROUGH COUNCIL have insufficient funds available");
     }
 
     @Test
-    public void test_positive_issue_refunds_for_a_pba_account_deleted_payment() {
+    public void positive_issue_refunds_for_a_pba_account_deleted_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12350", "Your account is deleted");
     }
 
     @Test
-    public void test_positive_issue_refunds_for_a_pba_account_on_hold_payment() {
+    public void positive_issue_refunds_for_a_pba_account_on_hold_payment() {
         issue_refunds_for_a_failed_payment("100.00", "PBAFUNC12355", "Your account is on hold");
     }
 
