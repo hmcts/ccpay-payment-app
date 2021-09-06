@@ -106,8 +106,6 @@ public class RemissionServiceImpl implements RemissionService {
     public Remission createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference);
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
-        FeePayApportion feePayApportion = populatePaymentApportionment(feeId);
-        calculateRetroRemission(fee, feePayApportion, remissionServiceRequest, paymentFeeLink.getId());
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
     }
 
@@ -129,15 +127,6 @@ public class RemissionServiceImpl implements RemissionService {
         return fee;
     }
 
-    private FeePayApportion populatePaymentApportionment(Integer feeId) {
-        // If there are more than one payment for a Fee then not eligible for remission
-        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(feeId);
-        if (!feePayApportion.isPresent()) {
-                throw new InvalidPaymentGroupReferenceException("This fee " + feeId + " is not found. Hence not eligible for remission");
-        }
-        return feePayApportion.get();
-    }
-
     private Remission buildRemission(RemissionServiceRequest remissionServiceRequest) {
         return Remission.remissionWith()
             .remissionReference(remissionServiceRequest.getRemissionReference())
@@ -150,28 +139,6 @@ public class RemissionServiceImpl implements RemissionService {
             .build();
     }
 
-    private void calculateRetroRemission(PaymentFee fee, FeePayApportion feePayApportion, RetroRemissionServiceRequest remissionServiceRequest, Integer paymentLinkId) {
-        // If paymentMethod is PBA and Status is Success then add refund else add remission , If failed payment then fetch payment using paymentLinkId
-        Optional<Payment> payment = Optional.empty();
-        if (feePayApportion != null) {
-            payment = paymentRespository.findById(feePayApportion.getPaymentId());
-        } else {
-            Optional<List<Payment>> paymentList = paymentRespository.findByPaymentLinkId(paymentLinkId);
-            if (paymentList.isPresent()) {
-                payment = Optional.of(paymentList.get()
-                    .stream()
-                    .filter(f -> f.getPaymentMethod().getName().equalsIgnoreCase("payment by account"))
-                    .collect(Collectors.toList()).get(0));
-            }
-        }
-        if (payment.isPresent() &&
-            payment.get().getPaymentMethod().getName().equalsIgnoreCase("payment by account") &&
-            payment.get().getPaymentStatus().getName().equalsIgnoreCase("success")) {
-            fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()).subtract(payment.get().getAmount()));
-        } else {
-            fee.setAmountDue(fee.getCalculatedAmount().subtract(remissionServiceRequest.getHwfAmount()));
-        }
-    }
 
     private Remission buildRemissionForPayment(PaymentFeeLink paymentFeeLink, PaymentFee fee, RetroRemissionServiceRequest remissionServiceRequest) throws CheckDigitException {
         // Apply retro remission using all data from paymentFeeLink,fee,feePayApportion,remissionServiceRequest
