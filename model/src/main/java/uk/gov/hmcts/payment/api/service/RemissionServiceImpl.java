@@ -106,7 +106,6 @@ public class RemissionServiceImpl implements RemissionService {
     public Remission createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
         PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference);
         PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
-        FeePayApportion feePayApportion = populatePaymentApportionment(feeId);
         return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
     }
 
@@ -126,15 +125,6 @@ public class RemissionServiceImpl implements RemissionService {
             throw new RemissionNotFoundException("Hwf Amount should not be more than Fee amount");
         }
         return fee;
-    }
-
-    private FeePayApportion populatePaymentApportionment(Integer feeId) {
-        // If there are more than one payment for a Fee then not eligible for remission
-        Optional<FeePayApportion> feePayApportion = feePayApportionRepository.findByFeeId(feeId);
-        if (!feePayApportion.isPresent()) {
-                throw new InvalidPaymentGroupReferenceException("This fee " + feeId + " is not found. Hence not eligible for remission");
-        }
-        return feePayApportion.get();
     }
 
     private Remission buildRemission(RemissionServiceRequest remissionServiceRequest) {
