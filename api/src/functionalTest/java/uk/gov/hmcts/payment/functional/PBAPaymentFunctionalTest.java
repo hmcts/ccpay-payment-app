@@ -259,24 +259,24 @@ public class PBAPaymentFunctionalTest {
         }
     }
 
-    @Test
-    public void makeAndRetrievePbaPaymentByFinrem() throws InterruptedException {
-
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-        String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", "FINREM");
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-                .statusCode(CREATED.value()).body("status", equalTo("Success"));
-        Thread.sleep(2000);
-        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-
-        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
-                .searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1("Finrem", startDate, endDate).then()
-                .getPayments((paymentsResponse -> {
-                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-                }));
-    }
+//    @Test
+//    public void makeAndRetrievePbaPaymentByFinrem() throws InterruptedException {
+//
+//        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+//        String accountNumber = testProps.existingAccountNumber;
+//        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequest("90.00", "FINREM");
+//        accountPaymentRequest.setAccountNumber(accountNumber);
+//        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+//                .statusCode(CREATED.value()).body("status", equalTo("Success"));
+//        Thread.sleep(2000);
+//        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+//
+//        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
+//                .searchPaymentsByServiceBetweenDates("Finrem", startDate, endDate).then()
+//                .getPayments((paymentsResponse -> {
+//                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+//                }));
+//    }
 
     @Test
     public void makeAndRetrievePbaPaymentByCivilService() throws InterruptedException {
@@ -291,51 +291,51 @@ public class PBAPaymentFunctionalTest {
         String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
 
         dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
-                .searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1("Civil", startDate, endDate).then()
+                .searchPaymentsByServiceBetweenDates("Civil", startDate, endDate).then()
                 .getPayments((paymentsResponse -> {
                     Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
                 }));
     }
 
-    @Test
-    public void makeAndRetrievePbaPaymentByIACService() throws InterruptedException {
+//    @Test
+//    public void makeAndRetrievePbaPaymentByIACService() throws InterruptedException {
+//
+//        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+//        String accountNumber = testProps.existingAccountNumber;
+//        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForIAC("90.00", "IAC");
+//        accountPaymentRequest.setAccountNumber(accountNumber);
+//        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+//                .statusCode(CREATED.value()).body("status", equalTo("Success"));
+//
+//        Thread.sleep(2000);
+//        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+//
+//        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
+//                .searchPaymentsByServiceBetweenDates("Immigration and Asylum Appeals", startDate, endDate).then()
+//                .getPayments((paymentsResponse -> {
+//                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+//                }));
+//    }
 
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-        String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForIAC("90.00", "IAC");
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-                .statusCode(CREATED.value()).body("status", equalTo("Success"));
-
-        Thread.sleep(2000);
-        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-
-        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
-                .searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1("Immigration and Asylum Appeals", startDate, endDate).then()
-                .getPayments((paymentsResponse -> {
-                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-                }));
-    }
-
-    @Test
-    public void makeAndRetrievePbaPaymentByFPLService() throws InterruptedException {
-
-        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
-        String accountNumber = testProps.existingAccountNumber;
-        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForFPL("90.00", "FPL");
-        accountPaymentRequest.setAccountNumber(accountNumber);
-        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
-                .statusCode(CREATED.value()).body("status", equalTo("Success"));
-
-        Thread.sleep(2000);
-        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-
-        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
-                .searchPaymentsBetweenDatesPaymentMethodServiceNameApproach1("Family Public Law", startDate, endDate).then()
-                .getPayments((paymentsResponse -> {
-                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
-                }));
-    }
+//    @Test
+//    public void makeAndRetrievePbaPaymentByFPLService() throws InterruptedException {
+//
+//        String startDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT);
+//        String accountNumber = testProps.existingAccountNumber;
+//        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForFPL("90.00", "FPL");
+//        accountPaymentRequest.setAccountNumber(accountNumber);
+//        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+//                .statusCode(CREATED.value()).body("status", equalTo("Success"));
+//
+//        Thread.sleep(2000);
+//        String endDate = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+//
+//        dsl.given().userToken(USER_TOKEN).s2sToken(SERVICE_TOKEN).when()
+//                .searchPaymentsByServiceBetweenDates("Family Public Law", startDate, endDate).then()
+//                .getPayments((paymentsResponse -> {
+//                    Assertions.assertThat(paymentsResponse.getPayments().size()).isEqualTo(1);
+//                }));
+//    }
 
     @Test
     public void shouldRejectDuplicatePayment() {

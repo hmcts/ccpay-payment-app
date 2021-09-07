@@ -173,52 +173,52 @@ public class TelephonyPaymentsTest {
 //        });
 //    }
 
-//    @Test
-//    public void retrieveAnErrorneousTelephonyPaymentViaLookup() {
-//        String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
-//        PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
-//        String status = "error";
-//
-//        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-//
-//        dsl.given().userToken(USER_TOKEN)
-//            .s2sToken(SERVICE_TOKEN)
-//            .returnUrl("https://www.moneyclaims.service.gov.uk")
-//            .when().createTelephonyPayment(paymentRecordRequest)
-//            .then().created(paymentDto -> {
-//            String referenceNumber = paymentDto.getReference();
-//            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
-//            //update the status
-//            dsl.given().userToken(USER_TOKEN)
-//                .s2sToken(SERVICE_TOKEN)
-//                .returnUrl("https://www.moneyclaims.service.gov.uk")
-//                .when().updatePaymentStatus(referenceNumber, status)
-//                .then().noContent();
-//
-//            try {
-//                Thread.sleep(2000);
-//            } catch (InterruptedException e) {
-//                LOG.error(e.getMessage());
-//            }
-//
-//            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
-//
-//            dsl.given().userToken(USER_TOKEN)
-//                .s2sToken(SERVICE_TOKEN)
-//                .returnUrl("https://www.moneyclaims.service.gov.uk")
-//                .when()
-//                .enableSearch()
-//                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
-//                .then().got(PaymentsResponse.class, paymentsResponse -> {
-//                assertTrue("correct payment has been retrieved",
-//                    paymentsResponse.getPayments().stream()
-//                        .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
-//                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
-//                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
-//                assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
-//            });
-//        });
-//    }
+    @Test
+    public void retrieveAnErrorneousTelephonyPaymentViaLookup() {
+        String telRefNumber = new Generex("TEL_PAY_\\d{8}").random();
+        PaymentRecordRequest paymentRecordRequest = getTelephonyPayment(telRefNumber);
+        String status = "error";
+
+        String startDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
+        dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .returnUrl("https://www.moneyclaims.service.gov.uk")
+            .when().createTelephonyPayment(paymentRecordRequest)
+            .then().created(paymentDto -> {
+            String referenceNumber = paymentDto.getReference();
+            assertEquals("payment status is properly set", "Success", paymentDto.getStatus());
+            //update the status
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
+                .when().updatePaymentStatus(referenceNumber, status)
+                .then().noContent();
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                LOG.error(e.getMessage());
+            }
+
+            String endDateTime = LocalDateTime.now(DateTimeZone.UTC).toString(DATE_TIME_FORMAT_T_HH_MM_SS);
+
+            dsl.given().userToken(USER_TOKEN)
+                .s2sToken(SERVICE_TOKEN)
+                .returnUrl("https://www.moneyclaims.service.gov.uk")
+                .when()
+                .enableSearch()
+                .searchPaymentsByServiceBetweenDates("Civil Money Claims", startDateTime, endDateTime)
+                .then().got(PaymentsResponse.class, paymentsResponse -> {
+                assertTrue("correct payment has been retrieved",
+                    paymentsResponse.getPayments().stream()
+                        .anyMatch(o -> o.getPaymentReference().equals(referenceNumber)));
+                PaymentDto paymentRetrieved = paymentsResponse.getPayments().stream().filter(o -> o.getPaymentReference().equals(referenceNumber)).findFirst().get();
+                assertEquals("correct payment reference retrieved", paymentRetrieved.getCaseReference(), paymentRecordRequest.getReference());
+                assertEquals("payment status is properly set", "failed", paymentRetrieved.getStatus());
+            });
+        });
+    }
 
     @Test
     public void createASuccessfulCardPaymentWithChannelTelephonyAndProviderPciPal() {
