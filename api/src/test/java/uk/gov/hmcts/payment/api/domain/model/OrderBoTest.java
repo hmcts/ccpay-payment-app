@@ -65,7 +65,7 @@ public class OrderBoTest {
 
 
     private ServiceRequestBo getOrderBoDomain(String orderReference) {
-        return ServiceRequestBo.orderBoWith()
+        return ServiceRequestBo.serviceRequestBoWith()
             .enterpriseServiceName("DIVORCE")
             .orgId("AA001")
             .ccdCaseNumber("8696869686968696")
