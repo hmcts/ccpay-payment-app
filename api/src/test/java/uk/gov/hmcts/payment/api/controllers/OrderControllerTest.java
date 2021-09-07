@@ -23,11 +23,11 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
-import uk.gov.hmcts.payment.api.domain.service.OrderDomainService;
+import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderFeeDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
@@ -72,7 +72,7 @@ public class OrderControllerTest {
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
-    private OrderDomainService orderDomainService;
+    private ServiceRequestDomainService orderDomainService;
     @Autowired
     private IdempotencyService idempotencyService;
     @Autowired
@@ -381,7 +381,7 @@ public class OrderControllerTest {
         assertTrue(orderPaymentDto.equals(orderPaymentDto2)); //Different Object
 
         //assert different class scenario
-        OrderDto orderDto = OrderDto.orderDtoWith().build();
+        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith().build();
         assertFalse(orderPaymentDto.equals(orderDto));
 
         //Hashcode coverage
@@ -435,9 +435,9 @@ public class OrderControllerTest {
     @Test
     public void createOrderWithInValidCcdCaseNumber() throws Exception {
 
-        OrderDto orderDto = OrderDto.orderDtoWith()
+        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("MoneyClaimCase")
+            .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("689869686968696")
             .fees(Collections.singletonList(getFee()))
             .build();
@@ -455,13 +455,13 @@ public class OrderControllerTest {
     @Test
     public void createOrderWithDuplicateFees() throws Exception {
 
-        List<OrderFeeDto> orderFeeDtoList = new ArrayList<OrderFeeDto>();
+        List<ServiceRequestFeeDto> orderFeeDtoList = new ArrayList<ServiceRequestFeeDto>();
         orderFeeDtoList.add(getFee());
         orderFeeDtoList.add(getFee());
 
-        OrderDto orderDto = OrderDto.orderDtoWith()
+        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("MoneyClaimCase")
+            .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("8689869686968696")
             .fees(orderFeeDtoList)
             .build();
@@ -475,9 +475,9 @@ public class OrderControllerTest {
     @Test
     public void createOrderWithInvalidCaseType() throws Exception {
 
-        OrderDto orderDto = OrderDto.orderDtoWith()
+        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("ClaimCase")
+            .hmctsOrgId("ClaimCase")
             .ccdCaseNumber("8689869686968696")
             .fees(Collections.singletonList(getFee()))
             .build();
@@ -493,9 +493,9 @@ public class OrderControllerTest {
     @Test
     public void createOrderWithValidCaseTypeReturnsTimeOutException() throws Exception {
 
-        OrderDto orderDto = OrderDto.orderDtoWith()
+        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("ClaimCase")
+            .hmctsOrgId("ClaimCase")
             .ccdCaseNumber("8689869686968696")
             .fees(Collections.singletonList(getFee()))
             .build();
@@ -508,8 +508,8 @@ public class OrderControllerTest {
             .andExpect(content().string("Test Error"));
     }
 
-    private OrderFeeDto getFee() {
-        return OrderFeeDto.feeDtoWith()
+    private ServiceRequestFeeDto getFee() {
+        return ServiceRequestFeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
             .version("1")
@@ -517,15 +517,15 @@ public class OrderControllerTest {
             .build();
     }
 
-    private List<OrderFeeDto> getMultipleFees() {
-        OrderFeeDto fee1 = OrderFeeDto.feeDtoWith()
+    private List<ServiceRequestFeeDto> getMultipleFees() {
+        ServiceRequestFeeDto fee1 = ServiceRequestFeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("100"))
             .code("FEE100")
             .version("1")
             .volume(1)
             .build();
 
-        OrderFeeDto fee2 = OrderFeeDto.feeDtoWith()
+        ServiceRequestFeeDto fee2 = ServiceRequestFeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("200"))
             .code("FEE102")
             .version("1")
@@ -536,9 +536,9 @@ public class OrderControllerTest {
     }
 
     private String getOrderReference() throws Exception {
-        OrderDto orderDto = OrderDto.orderDtoWith()
+        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
             .caseReference("123245677")
-            .caseType("MoneyClaimCase")
+            .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("8689869686968696")
             .fees(getMultipleFees())
             .build();

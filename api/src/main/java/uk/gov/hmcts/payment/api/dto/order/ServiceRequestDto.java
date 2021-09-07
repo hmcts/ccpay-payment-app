@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 
 import javax.validation.constraints.AssertFalse;
 import javax.validation.constraints.NotBlank;
@@ -27,20 +28,23 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderDto {
+public class ServiceRequestDto {
 
     @NotNull
     @Pattern(regexp = "^[0-9]{16}",message = "ccd_case_number should be 16 digit")
     private String ccdCaseNumber;
 
     @NotEmpty
-    private List<OrderFeeDto> fees;
+    private List<ServiceRequestFeeDto> fees;
+
+    @NotNull
+    private CasePaymentRequest casePaymentRequest;
 
     @NotBlank
     private String caseReference;
 
     @NotBlank
-    private String caseType;
+    private String hmctsOrgId;
 
     @AssertFalse(message = "Fee code cannot be duplicated")
     private boolean isFeeCodeUnique() {
