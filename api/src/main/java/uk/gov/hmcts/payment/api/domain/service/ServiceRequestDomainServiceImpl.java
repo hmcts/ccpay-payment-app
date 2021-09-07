@@ -17,15 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.domain.mapper.OrderDtoDomainMapper;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
-import uk.gov.hmcts.payment.api.domain.model.OrderBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
@@ -46,14 +46,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class OrderDomainServiceImpl implements OrderDomainService {
+public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(OrderDomainServiceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
     private static final String FAILED = "failed";
     private static final String SUCCESS = "success";
 
     @Autowired
-    private OrderDtoDomainMapper orderDtoDomainMapper;
+    private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
 
     @Autowired
     private OrderPaymentDtoDomainMapper orderPaymentDtoDomainMapper;
@@ -86,7 +86,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     private FeePayApportionService feePayApportionService;
 
     @Autowired
-    private OrderBo orderBo;
+    private ServiceRequestBo serviceRequestBo;
 
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -110,11 +110,12 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     @Override
     @Transactional
-    public OrderResponseDto create(OrderDto orderDto, MultiValueMap<String, String> headers) {
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(orderDto.getCaseType(), headers);
+    public ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers) {
 
-        OrderBo orderBoDomain = orderDtoDomainMapper.toDomain(orderDto, organisationalServiceDto);
-        return orderBo.createOrder(orderBoDomain);
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(serviceRequestDto.getHmctsOrgId(), headers);
+
+        ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
+        return serviceRequestBo.createServiceRequest(serviceRequestDomain);
 
     }
 
