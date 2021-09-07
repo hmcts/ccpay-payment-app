@@ -6,21 +6,20 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
-import uk.gov.hmcts.payment.api.dto.OrderResponseDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.util.List;
-import java.util.Map;
 
-public interface OrderDomainService {
+public interface ServiceRequestDomainService {
 
     PaymentFeeLink find(String orderReference);
 
     List<PaymentFeeLink> findByCcdCaseNumber(String ccdCaseNumber);
 
-    OrderResponseDto create(OrderDto orderDto, MultiValueMap<String, String> headers);
+    ServiceRequestResponseDto create(ServiceRequestDto orderDto, MultiValueMap<String, String> headers);
 
     OrderPaymentBo addPayments(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException;
 
