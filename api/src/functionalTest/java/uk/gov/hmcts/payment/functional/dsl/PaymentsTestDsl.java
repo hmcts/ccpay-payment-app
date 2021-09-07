@@ -18,7 +18,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.functional.idam.IdamService;
 import uk.gov.hmcts.payment.functional.s2s.S2sTokenService;
@@ -106,7 +106,7 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createOrder(OrderDto orderDto){
+        public PaymentWhenDsl createOrder(ServiceRequestDto orderDto){
             response=newRequest().contentType(ContentType.JSON).body(orderDto).post("/order");
             return this;
         }
