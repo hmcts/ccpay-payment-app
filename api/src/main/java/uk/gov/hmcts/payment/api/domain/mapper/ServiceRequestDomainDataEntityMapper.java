@@ -1,8 +1,8 @@
 package uk.gov.hmcts.payment.api.domain.mapper;
 
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.domain.model.OrderBo;
-import uk.gov.hmcts.payment.api.domain.model.OrderFeeBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestFeeBo;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
@@ -10,24 +10,24 @@ import java.sql.Timestamp;
 import java.util.stream.Collectors;
 
 @Component
-public class OrderDomainDataEntityMapper {
+public class ServiceRequestDomainDataEntityMapper {
 
-    public PaymentFeeLink toOrderEntity(OrderBo orderBo) {
+    public PaymentFeeLink toServiceRequestEntity(ServiceRequestBo serviceRequestBo) {
 
         return PaymentFeeLink.paymentFeeLinkWith()
-            .orgId(orderBo.getOrgId())
-            .enterpriseServiceName(orderBo.getEnterpriseServiceName())
-            .paymentReference(orderBo.getReference())
-            .ccdCaseNumber(orderBo.getCcdCaseNumber())
-            .caseReference(orderBo.getCaseReference())// Will be removed after get api's work without ccd dependency
-            .fees(orderBo.getFees()
+            .orgId(serviceRequestBo.getOrgId())
+            .enterpriseServiceName(serviceRequestBo.getEnterpriseServiceName())
+            .paymentReference(serviceRequestBo.getReference())
+            .ccdCaseNumber(serviceRequestBo.getCcdCaseNumber())
+            .caseReference(serviceRequestBo.getCaseReference())// Will be removed after get api's work without ccd dependency
+            .fees(serviceRequestBo.getFees()
                 .stream()
                 .map(feeBo -> toPaymentFeeEntity(feeBo)) // Will be removed after get api's work without ccd dependency
                 .collect(Collectors.toList()))
             .build();
     }
 
-    public PaymentFee toPaymentFeeEntity(OrderFeeBo orderFeeBo) {
+    public PaymentFee toPaymentFeeEntity(ServiceRequestFeeBo orderFeeBo) {
 
         return PaymentFee.feeWith()
             .calculatedAmount(orderFeeBo.getCalculatedAmount())
