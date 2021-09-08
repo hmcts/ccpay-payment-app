@@ -59,7 +59,7 @@ public class OrderDomainServiceTest2 {
     @Test
     public void createOrderWithValidRequest() throws Exception {
 
-        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
+        ServiceRequestDto orderDto = ServiceRequestDto.serviceRequestDtoWith()
             .caseReference("123245677")
             .hmctsOrgId("ClaimCase")
             .ccdCaseNumber("8689869686968696")
