@@ -23,7 +23,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "orderDtoWith")
+@Builder(builderMethodName = "serviceRequestDtoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
