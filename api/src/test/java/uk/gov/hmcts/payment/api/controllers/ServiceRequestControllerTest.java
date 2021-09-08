@@ -25,6 +25,7 @@ import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
@@ -60,7 +61,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = MOCK)
 @Transactional
-public class OrderControllerTest {
+public class ServiceRequestControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
     @Autowired
@@ -111,7 +112,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    public void createPBAPaymentWithOrderSuccessTest() throws Exception {
+    public void createPBAPaymentWithServiceRequestSuccessTest() throws Exception {
 
         //Creation of Order-reference
         String orderReferenceResult = getOrderReference();
@@ -197,7 +198,7 @@ public class OrderControllerTest {
 
 
     @Test
-    public void createPBAPaymentWithOrderTimeOutTest() throws Exception {
+    public void createPBAPaymentWithServiceRequestTimeOutTest() throws Exception {
         when(accountService.retrieve("PBA12346")).thenThrow(
             new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "Unable to retrieve account information", null, null));
 
@@ -344,7 +345,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    public void orderReferenceNotFoundExceptionOrderDTOEqualsTest() throws Exception {
+    public void orderReferenceNotFoundExceptionServiceRequestDTOEqualsTest() throws Exception {
         String orderReferenceNotPresent = "2021-1621352111111";
 
         //Order Payment DTO
@@ -381,7 +382,7 @@ public class OrderControllerTest {
         assertTrue(orderPaymentDto.equals(orderPaymentDto2)); //Different Object
 
         //assert different class scenario
-        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith().build();
+        ServiceRequestDto orderDto = ServiceRequestDto.serviceRequestDtoWith().build();
         assertFalse(orderPaymentDto.equals(orderDto));
 
         //Hashcode coverage
@@ -433,12 +434,13 @@ public class OrderControllerTest {
     }
 
     @Test
-    public void createOrderWithInValidCcdCaseNumber() throws Exception {
+    public void createServiceRequestWithInValidCcdCaseNumber() throws Exception {
 
-        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .caseReference("123245677")
             .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("689869686968696")
+            .casePaymentRequest(getCasePaymentRequest())
             .fees(Collections.singletonList(getFee()))
             .build();
 
@@ -446,64 +448,67 @@ public class OrderControllerTest {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
 
         restActions
-            .post("/order", orderDto)
+            .post("/service-request", serviceRequestDto)
             .andExpect(status().isUnprocessableEntity())
             .andExpect(content().string("ccdCaseNumber: ccd_case_number should be 16 digit"));
 
     }
 
     @Test
-    public void createOrderWithDuplicateFees() throws Exception {
+    public void createServiceRequestWithDuplicateFees() throws Exception {
 
-        List<ServiceRequestFeeDto> orderFeeDtoList = new ArrayList<ServiceRequestFeeDto>();
-        orderFeeDtoList.add(getFee());
-        orderFeeDtoList.add(getFee());
+        List<ServiceRequestFeeDto> serviceRequestFeeDtoList = new ArrayList<ServiceRequestFeeDto>();
+        serviceRequestFeeDtoList.add(getFee());
+        serviceRequestFeeDtoList.add(getFee());
 
-        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
+        ServiceRequestDto orderDto = ServiceRequestDto.serviceRequestDtoWith()
             .caseReference("123245677")
             .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("8689869686968696")
-            .fees(orderFeeDtoList)
+            .fees(serviceRequestFeeDtoList)
+            .casePaymentRequest(getCasePaymentRequest())
             .build();
 
         restActions
-            .post("/order", orderDto)
+            .post("/service-request", orderDto)
             .andExpect(status().isUnprocessableEntity())
             .andExpect(content().string("feeCodeUnique: Fee code cannot be duplicated"));
     }
 
     @Test
-    public void createOrderWithInvalidCaseType() throws Exception {
+    public void createServiceRequestWithInvalidCaseType() throws Exception {
 
-        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .caseReference("123245677")
             .hmctsOrgId("ClaimCase")
             .ccdCaseNumber("8689869686968696")
+            .casePaymentRequest(getCasePaymentRequest())
             .fees(Collections.singletonList(getFee()))
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
-            .post("/order", orderDto)
+            .post("/service-request", serviceRequestDto)
             .andExpect(status().isNotFound())
             .andExpect(content().string("Test Error"));
     }
 
     @Test
-    public void createOrderWithValidCaseTypeReturnsTimeOutException() throws Exception {
+    public void createServiceRequestWithValidCaseTypeReturnsTimeOutException() throws Exception {
 
-        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .caseReference("123245677")
             .hmctsOrgId("ClaimCase")
             .ccdCaseNumber("8689869686968696")
+            .casePaymentRequest(getCasePaymentRequest())
             .fees(Collections.singletonList(getFee()))
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
-            .post("/order", orderDto)
+            .post("/service-request", serviceRequestDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
     }
@@ -535,21 +540,31 @@ public class OrderControllerTest {
         return Arrays.asList(fee1, fee2);
     }
 
+    private CasePaymentRequest getCasePaymentRequest(){
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest.casePaymentRequestWith()
+            .action("action")
+            .responsibleParty("party")
+            .build();
+
+        return casePaymentRequest;
+    }
+
     private String getOrderReference() throws Exception {
-        ServiceRequestDto orderDto = ServiceRequestDto.orderDtoWith()
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .caseReference("123245677")
             .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("8689869686968696")
             .fees(getMultipleFees())
+            .casePaymentRequest(getCasePaymentRequest())
             .build();
 
         MvcResult result = restActions
-            .post("/order", orderDto)
+            .post("/service-request", serviceRequestDto)
             .andExpect(status().isCreated())
             .andReturn();
 
         Map orderReferenceResultMaps = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
-        String orderReferenceResult = orderReferenceResultMaps.get("order_reference").toString();
+        String orderReferenceResult = orderReferenceResultMaps.get("service_request_reference").toString();
         assertNotNull(orderReferenceResult);
         return orderReferenceResult;
     }
