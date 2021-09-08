@@ -57,7 +57,7 @@ public class OrdersPaymentFunctionalTest {
     @Test
     public void createAnOrderAndMakePBAPayment(){
         UUID randomUUID = UUID.randomUUID();
-        ServiceRequestDto requestOrder = ServiceRequestDto.orderDtoWith()
+        ServiceRequestDto requestOrder = ServiceRequestDto.serviceRequestDtoWith()
             .hmctsOrgId("Divorce")
             .ccdCaseNumber("1234567890123456")
             .caseReference("abcd-defg-hjik-1234")
