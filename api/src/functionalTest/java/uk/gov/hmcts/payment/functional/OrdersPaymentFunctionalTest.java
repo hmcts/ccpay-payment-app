@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
@@ -40,6 +41,7 @@ public class OrdersPaymentFunctionalTest {
     private LaunchDarklyFeature featureToggler;
 
     private static String USER_TOKEN;
+
     private static String USER_TOKEN_PAYMENT;
     private static String SERVICE_TOKEN;
     private static boolean TOKENS_INITIALIZED = false;
@@ -57,10 +59,11 @@ public class OrdersPaymentFunctionalTest {
     @Test
     public void createAnOrderAndMakePBAPayment(){
         UUID randomUUID = UUID.randomUUID();
-        ServiceRequestDto requestOrder = ServiceRequestDto.serviceRequestDtoWith()
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .hmctsOrgId("Divorce")
             .ccdCaseNumber("1234567890123456")
             .caseReference("abcd-defg-hjik-1234")
+            .casePaymentRequest(getCasePaymentRequest())
             .fees(Arrays.asList(ServiceRequestFeeDto.feeDtoWith()
                 .calculatedAmount(BigDecimal.valueOf(100))
                 .code("FEE0101")
@@ -76,17 +79,26 @@ public class OrdersPaymentFunctionalTest {
             .build();
         dsl.given().userToken(USER_TOKEN)
             .s2sToken(SERVICE_TOKEN)
-            .when().createOrder(requestOrder)
+            .when().createServiceRequest(serviceRequestDto)
             .then().gotCreated(Map.class,mapResult->{
-            Object orderReference=mapResult.get("order_reference");
-            assertThat(orderReference).isNotNull();
+            Object serviceRequestReference=mapResult.get("service_request_reference");
+            assertThat(serviceRequestReference).isNotNull();
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createOrderCreditAccountPayment(paymentDto,orderReference.toString(),randomUUID.toString())
+                .when().createOrderCreditAccountPayment(paymentDto,serviceRequestReference.toString(),randomUUID.toString())
                 .then().gotCreated(OrderPaymentBo.class, paymentBo->{
                 assertThat(paymentBo.getPaymentReference()).isNotNull();
                 assertThat(paymentBo.getStatus()).isEqualToIgnoringCase("success");
             });
         });
+    }
+
+    private CasePaymentRequest getCasePaymentRequest(){
+        CasePaymentRequest casePaymentRequest = CasePaymentRequest.casePaymentRequestWith()
+            .action("action")
+            .responsibleParty("party")
+            .build();
+
+        return casePaymentRequest;
     }
 }
