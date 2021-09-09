@@ -339,7 +339,13 @@ public class PaymentsTestDsl {
         }
 
         public PaymentThenDsl getPayments(Consumer<PaymentsResponse> paymentsResponseAssertions) {
-            PaymentsResponse paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
+            PaymentsResponse paymentsResponse;
+
+            if(response.statusCode() == 206){
+                 paymentsResponse = response.then().statusCode(206).extract().as(PaymentsResponse.class);
+            }else {
+                 paymentsResponse = response.then().statusCode(200).extract().as(PaymentsResponse.class);
+            }
             paymentsResponseAssertions.accept(paymentsResponse);
             return this;
         }
