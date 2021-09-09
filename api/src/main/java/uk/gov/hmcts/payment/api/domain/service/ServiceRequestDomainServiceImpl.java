@@ -23,6 +23,8 @@ import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
@@ -104,8 +106,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public PaymentFeeLink find(String orderReference) {
-        return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(orderReference);
+    public PaymentFeeLink find(String serviceRequestReference) {
+        return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(serviceRequestReference);
     }
 
     @Override
@@ -117,6 +119,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
 
+    }
+
+    @Override
+    public OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference) {
+        PaymentFeeLink paymentFeeLink =  find(serviceRequestReference);
+        return OnlineCardPaymentResponse.onlineCardPaymentResponseWith().build();
     }
 
     @Override
