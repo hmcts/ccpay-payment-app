@@ -27,12 +27,12 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
-import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -46,9 +46,19 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingA
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -361,7 +371,7 @@ public class ServiceRequestControllerTest {
             .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/order/" + orderReferenceNotPresent + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isNotFound())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderReferenceNotFoundException))
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
             .andExpect(orderException -> assertEquals("Order reference doesn't exist", orderException.getResolvedException().getMessage()))
             .andReturn();
 
