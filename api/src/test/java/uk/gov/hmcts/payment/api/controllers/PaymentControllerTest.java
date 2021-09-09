@@ -774,47 +774,6 @@ public class PaymentControllerTest extends PaymentsDataUtil {
         });
     }
 
-//    @Test
-//    @Transactional
-//    public void searchCardPayments_withValidEndDateAndNoStartDate_shouldReturnOk() throws Exception {
-//
-//        populateCardPaymentToDb("2", "RC-1519-9028-2432-0002");
-//        populateCreditAccountPaymentToDb("1");
-//
-//        String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
-//        String endDate = LocalDateTime.now().toString(DATE_TIME_FORMAT);
-//
-//        restActions
-//            .post("/api/ff4j/store/features/payment-search/enable")
-//            .andExpect(status().isAccepted());
-//
-//        MvcResult result = restActions
-//            .get("/reconciliation-payments?end_date=" + endDate +"&start_date=" + startDate +"&payment_method=CARD")
-//            .andExpect(status().isOk())
-//            .andReturn();
-//
-//        PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
-//        List<PaymentDto> payments = paymentsResponse.getPayments();
-//        assertThat(payments.size()).isEqualTo(1);
-//        payments.stream().forEach(p -> {
-//            assertThat(p.getPaymentReference()).isEqualTo("RC-1519-9028-2432-0002");
-//            assertThat(p.getCcdCaseNumber()).isEqualTo("ccdCaseNumber2");
-//            assertThat(p.getCaseReference()).isEqualTo("Reference2");
-//            assertThat(p.getAmount()).isEqualTo(new BigDecimal("99.99"));
-//            assertThat(p.getChannel()).isEqualTo("online");
-//            assertThat(p.getMethod()).isEqualTo("card");
-//            assertThat(p.getStatus()).isEqualTo("Initiated");
-//            assertThat(p.getSiteId()).isEqualTo("AA02");
-//            assertThat(p.getDateCreated()).isNotNull();
-//            assertThat(p.getDateUpdated()).isNotNull();
-//            p.getFees().stream().forEach(f -> {
-//                assertThat(f.getCode()).isEqualTo("FEE0002");
-//                assertThat(f.getVersion()).isEqualTo("1");
-//                assertThat(f.getCalculatedAmount()).isEqualTo(new BigDecimal("99.99"));
-//            });
-//        });
-//    }
-
 
     @Test
     @Transactional

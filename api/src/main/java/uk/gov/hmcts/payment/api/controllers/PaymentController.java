@@ -219,6 +219,7 @@ public class PaymentController {
     }
 
 
+
     private void populatePaymentDtos(final List<PaymentDto> paymentDtos, final List<Payment> payments) {
         //Adding this filter to exclude Exela payments if the bulk scan toggle feature is disabled.
         List<Payment> filteredPayments = getFilteredListBasedOnBulkScanToggleFeature(payments);
@@ -280,11 +281,6 @@ public class PaymentController {
         }
     }
 
-//    private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(PaymentFeeLink paymentFeeLink) {
-//        List<Payment> payments = paymentFeeLink.getPayments();
-//        payments = getPayments(payments);
-//        return payments;
-//    }
 
     private List<Payment> getFilteredListBasedOnBulkScanToggleFeature(List<Payment> payments) {
         payments = getPayments(payments);
