@@ -305,7 +305,7 @@ public class PBAPaymentFunctionalTest {
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture.aPbaPaymentRequestForIAC("90.00", "IAC");
         accountPaymentRequest.setAccountNumber(accountNumber);
-        ValidatableResponse response21 = paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
                 .statusCode(CREATED.value()).body("status", equalTo("Success"));
 
         Thread.sleep(2000);
