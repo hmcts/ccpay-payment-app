@@ -114,10 +114,4 @@ public class RemissionController {
     public String return404(NoServiceFoundException ex) {
         return ex.getMessage();
     }
-
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(GatewayTimeoutException.class)
-    public String return504(GatewayTimeoutException ex) {
-        return ex.getMessage();
-    }
 }
