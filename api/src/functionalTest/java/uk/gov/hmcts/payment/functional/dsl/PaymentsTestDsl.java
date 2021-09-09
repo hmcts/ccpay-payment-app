@@ -106,8 +106,8 @@ public class PaymentsTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createOrder(ServiceRequestDto orderDto){
-            response=newRequest().contentType(ContentType.JSON).body(orderDto).post("/order");
+        public PaymentWhenDsl createServiceRequest(ServiceRequestDto serviceRequestDto){
+            response=newRequest().contentType(ContentType.JSON).body(serviceRequestDto).post("/service-request");
             return this;
         }
 
