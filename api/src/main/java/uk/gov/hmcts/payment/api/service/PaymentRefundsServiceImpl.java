@@ -132,19 +132,21 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
 
-        if (payment != null && payment.getAmount().compareTo(requestAmount) < 0) {
-            throw new InvalidRefundRequestException("Amount should not be more than Payment amount");
-        }
+        if (payment != null) {
+            if (payment.getAmount().compareTo(requestAmount) < 0) {
+                throw new InvalidRefundRequestException("Amount should not be more than Payment amount");
+            }
 
-        //If refund reason is retro-remission
-        if (refundReason.equalsIgnoreCase("RR036")) {
-            Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(payment.getId());
+            //If refund reason is retro-remission
+            if (refundReason.contains("RR036")) {
+                Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(payment.getId());
 
-            if (feePayApportion.isPresent()) {
-                List<FeePayApportion> feePayApportionList = feePayApportion.get();
-                if (!isEmptyOrNull(feePayApportionList)) {
-                    FeePayApportion feePayApportionElement = feePayApportionList.get(0);
-                    updateRemissionAmount(feePayApportionElement.getFeeId(), requestAmount);
+                if (feePayApportion.isPresent()) {
+                    List<FeePayApportion> feePayApportionList = feePayApportion.get();
+                    if (!isEmptyOrNull(feePayApportionList)) {
+                        FeePayApportion feePayApportionElement = feePayApportionList.get(0);
+                        updateRemissionAmount(feePayApportionElement.getFeeId(), requestAmount);
+                    }
                 }
             }
         }
