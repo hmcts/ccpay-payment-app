@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestFeeBo;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
 
@@ -13,13 +12,12 @@ import java.util.stream.Collectors;
 @Component
 public class ServiceRequestDtoDomainMapper {
 
-    public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto, OrganisationalServiceDto organisationalServiceDto){
+    public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto){
 
         String orderReference = PaymentReference.getInstance().getNext();
 
         return ServiceRequestBo.serviceRequestBoWith()
-            .enterpriseServiceName(organisationalServiceDto.getServiceDescription())
-            .orgId(organisationalServiceDto.getServiceCode())
+            .orgId(serviceRequestDto.getHmctsOrgId())
             .ccdCaseNumber(serviceRequestDto.getCcdCaseNumber())
             .caseReference(serviceRequestDto.getCaseReference())
             .reference(orderReference)
