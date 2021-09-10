@@ -441,6 +441,7 @@ public class ServiceRequestControllerTest {
             .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("689869686968696")
             .casePaymentRequest(getCasePaymentRequest())
+            .callBackUrl("http://callback/url")
             .fees(Collections.singletonList(getFee()))
             .build();
 
@@ -466,6 +467,7 @@ public class ServiceRequestControllerTest {
             .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("8689869686968696")
             .fees(serviceRequestFeeDtoList)
+            .callBackUrl("http://callback/url")
             .casePaymentRequest(getCasePaymentRequest())
             .build();
 
@@ -482,6 +484,7 @@ public class ServiceRequestControllerTest {
             .caseReference("123245677")
             .hmctsOrgId("ClaimCase")
             .ccdCaseNumber("8689869686968696")
+            .callBackUrl("http://callback/url")
             .casePaymentRequest(getCasePaymentRequest())
             .fees(Collections.singletonList(getFee()))
             .build();
@@ -501,6 +504,7 @@ public class ServiceRequestControllerTest {
             .caseReference("123245677")
             .hmctsOrgId("ClaimCase")
             .ccdCaseNumber("8689869686968696")
+            .callBackUrl("http://callback/url")
             .casePaymentRequest(getCasePaymentRequest())
             .fees(Collections.singletonList(getFee()))
             .build();
@@ -555,6 +559,7 @@ public class ServiceRequestControllerTest {
             .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("8689869686968696")
             .fees(getMultipleFees())
+            .callBackUrl("http://callback/url")
             .casePaymentRequest(getCasePaymentRequest())
             .build();
 
