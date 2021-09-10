@@ -17,16 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
@@ -41,7 +40,9 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingA
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -112,9 +113,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Transactional
     public ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers) {
 
-        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(serviceRequestDto.getHmctsOrgId(), headers);
-
-        ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
+        ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
 
     }
