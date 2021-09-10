@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
+import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsServiceImpl;
@@ -34,6 +36,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import java.math.BigDecimal;
 
+import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -125,6 +128,45 @@ public class RefundsControllerTest {
         restActions
             .post("/refund-for-payment", paymentRefundRequest)
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testRemissionAmountUpdateForResubmitRefundJourney() throws Exception {
+
+        when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",BigDecimal.valueOf(100), "RR036"))
+            .thenReturn(new ResponseEntity(null, HttpStatus.OK));
+
+       ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
+           .resubmitRefundRemissionRequestWith()
+           .amount(BigDecimal.valueOf(100))
+           .refundReason("RR036")
+           .build();
+
+        restActions.
+            patch(format("/refund/resubmit/RC-1111-2222-5555-2222"), resubmitRefundRemissionRequest)
+            .andExpect(status().isOk())
+            .andReturn();
+    }
+
+
+    @Test
+    public void testRefundRequestExceptionForResubmitRefundJourney() throws Exception {
+
+        when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",BigDecimal.valueOf(100), "RR036"))
+            .thenThrow(new InvalidRefundRequestException("Amount should not be more than Remission amount"));
+
+        ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
+            .resubmitRefundRemissionRequestWith()
+            .amount(BigDecimal.valueOf(100))
+            .refundReason("RR036")
+            .build();
+
+        MvcResult result = restActions.
+            patch(format("/refund/resubmit/RC-1111-2222-5555-2222"), resubmitRefundRemissionRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+        Assertions.assertEquals("Amount should not be more than Remission amount", result.getResponse().getContentAsString());
     }
 
     @Test
