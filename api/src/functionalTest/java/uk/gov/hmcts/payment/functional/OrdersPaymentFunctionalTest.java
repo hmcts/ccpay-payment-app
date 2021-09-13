@@ -84,6 +84,11 @@ public class OrdersPaymentFunctionalTest {
             .then().gotCreated(Map.class,mapResult->{
             Object serviceRequestReference=mapResult.get("service_request_reference");
             assertThat(serviceRequestReference).isNotNull();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .when().createOrderCreditAccountPayment(paymentDto,serviceRequestReference.toString(),randomUUID.toString())
