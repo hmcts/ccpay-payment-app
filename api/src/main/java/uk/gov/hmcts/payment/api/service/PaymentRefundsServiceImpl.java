@@ -121,7 +121,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .paymentReference(payment.getReference()) //RC reference
                     .refundAmount(remissionAmount) //Refund amount
                     .ccdCaseNumber(payment.getCcdCaseNumber()) // ccd case number
-                    .refundReason("RR036-Retrospective remission")//Refund reason category would be other
+                    .refundReason("RR036")//Refund reason category would be other
                     .feeIds(getFeeIds(Collections.singletonList(paymentFee)))
                     .build();
                 RefundResponse refundResponse = RefundResponse.RefundResponseWith()
