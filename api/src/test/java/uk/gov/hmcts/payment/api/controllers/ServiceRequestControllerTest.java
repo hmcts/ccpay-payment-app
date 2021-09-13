@@ -107,7 +107,7 @@ public class ServiceRequestControllerTest {
             .serviceDescription("DIVORCE")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
     }
 
@@ -489,7 +489,7 @@ public class ServiceRequestControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/service-request", serviceRequestDto)
@@ -509,7 +509,7 @@ public class ServiceRequestControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/service-request", serviceRequestDto)
