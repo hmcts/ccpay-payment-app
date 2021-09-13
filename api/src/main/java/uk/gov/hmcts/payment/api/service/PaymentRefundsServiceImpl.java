@@ -121,10 +121,9 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
             }
 
-        } else {
-            throw new RemissionNotFoundException("Remission not found for given remission reference");
         }
-        return null;
+
+        throw new RemissionNotFoundException("Remission not found for given remission reference");
     }
 
     @Override
