@@ -38,6 +38,7 @@ import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
 import uk.gov.hmcts.payment.api.model.RemissionRepository;
 import uk.gov.hmcts.payment.api.service.PaymentRefundsService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotSuccessException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -270,6 +271,13 @@ public class PaymentRefundsServiceTest {
         Mockito.when(remissionRepository.findByFeeId(anyInt())).thenReturn(Optional.of(remission));
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(10),"RR036");
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+    }
+
+    @Test(expected = PaymentNotFoundException.class)
+    public void testUpdateRemissionWhenPaymentReferenceIsNotFound(){
+        Mockito.when(paymentRepository.findByReference(any())).thenThrow(new PaymentNotFoundException());
+        ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(10),"RR036");
+
     }
 
 
