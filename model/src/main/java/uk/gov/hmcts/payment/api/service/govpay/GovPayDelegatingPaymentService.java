@@ -42,7 +42,14 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
         LOG.info("Language value in GovPayDelegatingPaymentService: {}", paymentServiceRequest.getLanguage());
         return govPayClient.createPayment(key, new CreatePaymentRequest(paymentServiceRequest.getAmount().movePointRight(2).intValue(),
             paymentServiceRequest.getPaymentReference(), paymentServiceRequest.getDescription(),
-            paymentServiceRequest.getReturnUrl(),paymentServiceRequest.getLanguage()));
+            paymentServiceRequest.getReturnUrl(), paymentServiceRequest.getLanguage()));
+    }
+
+    @Override
+    public GovPayPayment create(CreatePaymentRequest createPaymentRequest) {
+        String key = keyForService();
+        LOG.info("Language value in GovPayDelegatingPaymentService: {}", createPaymentRequest.getLanguage());
+        return govPayClient.createPayment(key, createPaymentRequest);
     }
 
     @Override

@@ -4,6 +4,7 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.apache.http.MethodNotSupportedException;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
 
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.List;
 public interface DelegatingPaymentService<T, ID> {
 
     T create(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException;
+
+    T create(CreatePaymentRequest createPaymentRequest);
 
     T update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException, MethodNotSupportedException;
 
