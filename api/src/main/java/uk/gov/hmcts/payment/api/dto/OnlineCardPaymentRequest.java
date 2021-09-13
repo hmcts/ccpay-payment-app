@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
@@ -35,7 +36,7 @@ public class OnlineCardPaymentRequest {
     private BigDecimal amount;
 
     @NotNull(message = "currency can't be Blank")
-    private String currency;
+    private CurrencyCode currency;
 
     @NotNull(message = "language can't be Blank")
     private String language;
