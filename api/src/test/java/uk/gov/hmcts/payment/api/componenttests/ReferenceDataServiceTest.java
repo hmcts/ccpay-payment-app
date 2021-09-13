@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -68,8 +69,9 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            }))).thenReturn(responseEntity);
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"),Optional.empty(), header);
         assertEquals("VPAA", res.getServiceCode());
     }
 
@@ -84,13 +86,14 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
         header.put("Content-Type", Collections.singletonList("application/json"));
 
-        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(Collections.emptyList(),HttpStatus.OK);
+        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            }))).thenReturn(responseEntity);
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"),Optional.empty(), header);
     }
 
     @Test(expected = NoServiceFoundException.class)
@@ -103,13 +106,14 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
         header.put("Content-Type", Collections.singletonList("application/json"));
 
-        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(null,HttpStatus.OK);
+        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
 
         when(authTokenGenerator.generate()).thenReturn("test-token");
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {}))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
+            }))).thenReturn(responseEntity);
+        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"), Optional.empty(), header);
     }
 
 }

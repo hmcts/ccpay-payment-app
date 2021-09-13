@@ -44,6 +44,9 @@ public class ServiceRequestDto {
     private String caseReference;
 
     @NotBlank
+    private String callBackUrl;
+
+    @NotBlank
     private String hmctsOrgId;
 
     @AssertFalse(message = "Fee code cannot be duplicated")
