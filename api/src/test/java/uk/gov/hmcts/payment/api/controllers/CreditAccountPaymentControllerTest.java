@@ -367,7 +367,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .ccdCaseTypes(Collections.singletonList("DIVORCE"))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(anyString(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         AccountDto accountActiveDto = new AccountDto(request.getAccountNumber(), "accountName",
             new BigDecimal(1000), new BigDecimal(1000), AccountStatus.ACTIVE, new Date());
@@ -389,7 +389,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypereturn404() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)
@@ -401,7 +401,7 @@ public class CreditAccountPaymentControllerTest extends PaymentsDataUtil {
     public void CreateCreditAccountPayment_withCaseTypeReturn504() throws Exception {
         CreditAccountPaymentRequest request = objectMapper.readValue(jsonRequestWithCaseType().getBytes(), CreditAccountPaymentRequest.class);
 
-        Mockito.when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        Mockito.when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/credit-account-payments", request)

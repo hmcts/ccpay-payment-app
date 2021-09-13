@@ -64,6 +64,7 @@ public class OrdersPaymentFunctionalTest {
             .ccdCaseNumber("1234567890123456")
             .caseReference("abcd-defg-hjik-1234")
             .casePaymentRequest(getCasePaymentRequest())
+            .callBackUrl("http://callback/url")
             .fees(Arrays.asList(ServiceRequestFeeDto.feeDtoWith()
                 .calculatedAmount(BigDecimal.valueOf(100))
                 .code("FEE0101")

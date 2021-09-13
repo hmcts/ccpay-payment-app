@@ -135,7 +135,7 @@ public class CardPaymentController {
         LOG.info("Case Type: {} ", request.getCaseType());
 
         if (StringUtils.isNotBlank(request.getCaseType())) {
-            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(request.getCaseType(), headers);
+            OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.ofNullable(request.getCaseType()), Optional.empty(), headers);
             request.setSiteId(organisationalServiceDto.getServiceCode());
             request.setService(organisationalServiceDto.getServiceDescription());
         } else {
