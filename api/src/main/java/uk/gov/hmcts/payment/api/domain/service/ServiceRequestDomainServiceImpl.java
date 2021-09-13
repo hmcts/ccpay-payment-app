@@ -161,8 +161,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         Payment payment = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
         payment.setPaymentLink(serviceRequestOrder);
 
-        //Apportion payment
-        feePayApportionService.processApportion(payment);
+        // trigger Apportion based on the launch darkly feature flag
+        boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
+        LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
+        if (apportionFeature) {
+            //Apportion payment
+            feePayApportionService.processApportion(payment);
+        }
 
         return OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
             .dateCreated(payment.getDateCreated())
