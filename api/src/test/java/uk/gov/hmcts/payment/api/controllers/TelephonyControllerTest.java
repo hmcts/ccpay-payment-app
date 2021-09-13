@@ -317,7 +317,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .serviceDescription("DIVORCE")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")
@@ -386,7 +386,7 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .serviceDescription("DIVORCE")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")

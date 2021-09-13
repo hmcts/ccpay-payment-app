@@ -145,7 +145,7 @@ public class FeesControllerTest {
             .serviceDescription("Divorce")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
         MvcResult result = restActions
             .post("/remissions", remissionRequest)
