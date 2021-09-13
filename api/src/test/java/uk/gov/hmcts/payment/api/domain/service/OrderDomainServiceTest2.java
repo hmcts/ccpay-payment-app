@@ -73,7 +73,7 @@ public class OrderDomainServiceTest2 {
 
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
         String orderReference = "2200-1619524583862";
         ServiceRequestResponseDto orderResponse = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
