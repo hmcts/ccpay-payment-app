@@ -27,9 +27,9 @@ import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
@@ -39,6 +39,8 @@ import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -473,6 +475,46 @@ public class ServiceRequestControllerTest {
             .post("/service-request", orderDto)
             .andExpect(status().isUnprocessableEntity())
             .andExpect(content().string("feeCodeUnique: Fee code cannot be duplicated"));
+    }
+
+    @Test
+    public void createServiceRequestWithInvalidCaseType() throws Exception {
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
+            .caseReference("123245677")
+            .hmctsOrgId("ClaimCase")
+            .ccdCaseNumber("8689869686968696")
+            .callBackUrl("http://callback/url")
+            .casePaymentRequest(getCasePaymentRequest())
+            .fees(Collections.singletonList(getFee()))
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+
+        restActions
+            .post("/service-request", serviceRequestDto)
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void createServiceRequestWithValidCaseTypeReturnsTimeOutException() throws Exception {
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
+            .caseReference("123245677")
+            .hmctsOrgId("ClaimCase")
+            .ccdCaseNumber("8689869686968696")
+            .callBackUrl("http://callback/url")
+            .casePaymentRequest(getCasePaymentRequest())
+            .fees(Collections.singletonList(getFee()))
+            .build();
+
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
+        restActions
+            .post("/service-request", serviceRequestDto)
+            .andExpect(status().isGatewayTimeout())
+            .andExpect(content().string("Test Error"));
     }
 
     private ServiceRequestFeeDto getFee() {
