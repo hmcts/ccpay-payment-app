@@ -93,6 +93,7 @@ public class RefundsRequestorJourneyFunctionalTest {
 
     @Test
     public void positive_issue_refunds_for_a_pba_payment() {
+
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -292,9 +293,8 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Error : - Invalid Reason Selected.")
     public void positive_add_remission_and_add_refund_for_a_pba_payment() {
-        // create a PBA payment
+        // Create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
             .aPbaPaymentRequestForProbate("90.00",
@@ -328,8 +328,83 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Error : - Invalid Reason Selected.")
+    public void positive_add_remission_and_add_refund_and_a_duplicate_refund_for_a_pba_payment() {
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("90.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        String remissionReference = response.getBody().jsonPath().getString("remission_reference");
+
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
+        assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+        RefundResponse refundResponseFromPost = refundResponse.getBody().as(RefundResponse.class);
+        assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
+        assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
+
+        Response refundResponseDuplicate = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
+        assertThat(refundResponseDuplicate.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(refundResponseDuplicate.getBody().asString()).isEqualTo("Refund is already processed for this payment");
+    }
+
+    @Test
+    public void positive_add_remission_and_add_refund_and_a_duplicate_remission_for_a_pba_payment() {
+        // Create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("90.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+        Response casePaymentGroupResponse
+            = cardTestService
+            .getPaymentGroupsForCase(USER_TOKEN_PAYMENT, SERVICE_TOKEN_PAYMENT, accountPaymentRequest.getCcdCaseNumber());
+        PaymentGroupResponse paymentGroupResponse
+            = casePaymentGroupResponse.getBody().as(PaymentGroupResponse.class);
+        //System.out.println("The Payment Group Reference : " + casePaymentGroupResponse.getBody().prettyPrint());
+        final String paymentGroupReference = paymentGroupResponse.getPaymentGroups().get(0).getPaymentGroupReference();
+        final Integer feeId = paymentGroupResponse.getPaymentGroups().get(0).getFees().get(0).getId();
+
+        //TEST create retrospective remission
+        Response response = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("5.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        String remissionReference = response.getBody().jsonPath().getString("remission_reference");
+
+        Response addRemissionResponse = dsl.given().userToken(USER_TOKEN)
+            .s2sToken(SERVICE_TOKEN)
+            .when().createRetrospectiveRemissionForRefund(getRetroRemissionRequest("15.00"), paymentGroupReference, feeId)
+            .then().getResponse();
+        assertThat(addRemissionResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(addRemissionResponse.getBody().asString()).startsWith("Remission is already exist for FeeId");
+    }
+
+    @Test
     public void positive_add_remission_and_add_refund_for_2_pba_payments() {
+
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest1 = PaymentFixture
@@ -458,7 +533,6 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Error : - Invalid Reason Selected.")
     public void test_positive_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -521,7 +595,6 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Test Failing with the Error Message stating : Invalid reason selected")
     public void test_positive_create_2_fee_payment_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
