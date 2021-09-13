@@ -280,6 +280,10 @@ public class PaymentRefundsServiceTest {
 
     }
 
-
+    @Test(expected = InvalidRefundRequestException.class)
+    public void testUpdateRemissionWhenRequestAmountIsGreaterThanPaymentAmount(){
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+        ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(1000),"RR036");
+    }
 
 }
