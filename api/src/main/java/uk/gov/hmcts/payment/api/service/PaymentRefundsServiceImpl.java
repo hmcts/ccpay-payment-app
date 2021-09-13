@@ -153,7 +153,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
     public void updateRemissionAmount(Integer feeId, BigDecimal remissionAmount) {
-        if (feeId != null) {
+//        if (feeId != null) {
             //Remission against fee
             Optional<Remission> remission = remissionRepository.findByFeeId(feeId);
 
@@ -167,7 +167,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 }
             }
 
-        }
+//        }
     }
 
     public static boolean isEmptyOrNull(Collection< ? > collection) {
