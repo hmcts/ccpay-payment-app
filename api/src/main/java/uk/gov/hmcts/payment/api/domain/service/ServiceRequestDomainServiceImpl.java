@@ -17,33 +17,50 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeysPK;
+import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.Payment2Repository;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -56,6 +73,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
+
+    @Autowired
+    private ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
 
     @Autowired
     private OrderPaymentDtoDomainMapper orderPaymentDtoDomainMapper;
@@ -96,6 +116,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     private IdempotencyKeysRepository idempotencyKeysRepository;
 
+    @Autowired
+    private DelegatingPaymentService<GovPayPayment, String> delegateGovPay;
+
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 
@@ -122,9 +145,32 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference) {
-        PaymentFeeLink paymentFeeLink =  find(serviceRequestReference);
-        return OnlineCardPaymentResponse.onlineCardPaymentResponseWith().build();
+    public OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException {
+        PaymentFeeLink serviceRequestOrder = find(serviceRequestReference);
+
+        businessValidationForServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
+
+        //payment Boundary Object
+        ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(serviceRequestOrder, onlineCardPaymentRequest, returnURL, serviceCallbackURL);
+
+        // GovPay request and creation
+        CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
+        GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest);
+
+        //payment Entity creation
+        Payment payment = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
+        payment.setPaymentLink(serviceRequestOrder);
+
+        //Apportion payment
+        feePayApportionService.processApportion(payment);
+
+        return OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
+            .dateCreated(payment.getDateCreated())
+            .externalReference(payment.getExternalReference())
+            .nextUrl(payment.getNextUrl())
+            .paymentReference(payment.getReference())
+            .status(payment.getPaymentStatus().getName())
+            .build();
     }
 
     @Override
@@ -230,6 +276,20 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         return order;
     }
 
+    public void businessValidationForServiceRequestOrder(PaymentFeeLink order, OnlineCardPaymentRequest request) {
+        //Business validation for amount
+        Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
+        if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(request.getAmount()) != 0)) {
+            throw new ServiceRequestExceptionForNoMatchingAmount("The payment amount should be equal to order balance");
+        }
+
+
+        //Business validation for amount due for fees
+        Optional<BigDecimal> totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add);
+        if (totalAmountDue.isPresent() && totalAmountDue.get().compareTo(BigDecimal.ZERO) == 0) {
+            throw new ServiceRequestExceptionForNoAmountDue("The order has already been paid");
+        }
+    }
 
     public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String orderReference,
                                                   String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException {

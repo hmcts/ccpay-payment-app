@@ -23,7 +23,7 @@ public interface ServiceRequestDomainService {
 
     ServiceRequestResponseDto create(ServiceRequestDto orderDto, MultiValueMap<String, String> headers);
 
-    OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference);
+    OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException;
 
     OrderPaymentBo addPayments(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException;
 

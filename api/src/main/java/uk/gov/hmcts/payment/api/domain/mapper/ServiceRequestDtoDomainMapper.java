@@ -1,19 +1,29 @@
 package uk.gov.hmcts.payment.api.domain.mapper;
 
+import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestFeeBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 
 import java.util.stream.Collectors;
 
 @Component
 public class ServiceRequestDtoDomainMapper {
 
-    public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto, OrganisationalServiceDto organisationalServiceDto){
+    @Autowired
+    private ReferenceUtil referenceUtil;
+
+    public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto, OrganisationalServiceDto organisationalServiceDto) {
 
         String orderReference = PaymentReference.getInstance().getNext();
 
@@ -25,7 +35,7 @@ public class ServiceRequestDtoDomainMapper {
             .reference(orderReference)
             .fees(serviceRequestDto.getFees()
                 .stream()
-                .map(feeDto -> toFeeDomain(feeDto,serviceRequestDto.getCcdCaseNumber())) // Will be removed after get api's work without ccd dependency
+                .map(feeDto -> toFeeDomain(feeDto, serviceRequestDto.getCcdCaseNumber())) // Will be removed after get api's work without ccd dependency
                 .collect(Collectors.toList()))
             .build();
     }
@@ -39,5 +49,24 @@ public class ServiceRequestDtoDomainMapper {
             .version(orderFeeDto.getVersion())
             .volume(orderFeeDto.getVolume())
             .build();
+    }
+
+
+    public ServiceRequestOnlinePaymentBo toDomain(PaymentFeeLink paymentFeeLink, OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
+        return ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .paymentReference(referenceUtil.getNext("RC"))
+            .description("") // check with lead/BA
+            .returnUrl(returnUrl)
+            .currency(request.getCurrency().getCode())
+            .amount(request.getAmount())
+            .serviceCallbackUrl(serviceCallbackUrl)
+            .language(request.getLanguage().toLowerCase())//change language to lower case before sending to gov pay
+            .build();
+    }
+
+    public CreatePaymentRequest createGovPayRequest(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo) {
+        return new CreatePaymentRequest(requestOnlinePaymentBo.getAmount().movePointRight(2).intValue(),
+            requestOnlinePaymentBo.getPaymentReference(), requestOnlinePaymentBo.getDescription(),
+            requestOnlinePaymentBo.getReturnUrl(), requestOnlinePaymentBo.getLanguage());
     }
 }

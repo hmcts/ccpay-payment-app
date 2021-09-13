@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(builderMethodName = "paymentServiceRequestWith")
 public class PaymentServiceRequest {
-    private String paymentGroupReference;
+    private String paymentGroupReference; // to be removed after existing online payment disabled
     private String paymentReference;
     private String description;
     private String returnUrl;
@@ -21,7 +21,7 @@ public class PaymentServiceRequest {
     private String currency;
     private String siteId;
     private String serviceType;
-    private List<PaymentFee> fees;
+    private List<PaymentFee> fees; // to be removed after existing online payment disabled
     private BigDecimal amount;
     private String serviceCallbackUrl;
     private String channel;

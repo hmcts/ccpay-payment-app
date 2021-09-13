@@ -3,10 +3,19 @@ package uk.gov.hmcts.payment.api.domain.mapper;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestFeeBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
+import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,6 +47,34 @@ public class ServiceRequestDomainDataEntityMapper {
             .volume(orderFeeBo.getVolume())
             .dateCreated(new Timestamp(System.currentTimeMillis()))
             .build();
+    }
+
+    public Payment toPaymentEntity(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo, GovPayPayment govPayPayment) {
+        BigDecimal amountInPounds = new BigDecimal(govPayPayment.getAmount());
+        amountInPounds = amountInPounds.divide(new BigDecimal(100));
+        return Payment.paymentWith()
+            .reference(requestOnlinePaymentBo.getPaymentReference())
+            .amount(amountInPounds)
+            .status(govPayPayment.getState().getStatus())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name(govPayPayment.getState().getStatus().toLowerCase()).build())
+            .finished(govPayPayment.getState().getFinished())
+            .externalReference(govPayPayment.getPaymentId())
+            .description(govPayPayment.getDescription())
+            .returnUrl(govPayPayment.getReturnUrl())
+            .nextUrl(hrefFor(govPayPayment.getLinks().getNextUrl()))
+            .cancelUrl(hrefFor(govPayPayment.getLinks().getCancel()))
+            .refundsUrl(hrefFor(govPayPayment.getLinks().getRefunds()))
+            .statusHistories(Collections.singletonList(StatusHistory.statusHistoryWith()
+                .externalStatus(govPayPayment.getState().getStatus().toLowerCase())
+                .status(PayStatusToPayHubStatus.valueOf(govPayPayment.getState().getStatus().toLowerCase()).getMappedStatus())
+                .errorCode(govPayPayment.getState().getCode())
+                .message(govPayPayment.getState().getMessage())
+                .build()))
+            .build();
+    }
+
+    private String hrefFor(Link url) {
+        return url == null ? null : url.getHref();
     }
 
 }
