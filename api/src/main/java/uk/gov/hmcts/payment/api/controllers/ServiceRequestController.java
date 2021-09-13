@@ -45,6 +45,8 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue
 import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -174,11 +176,11 @@ public class ServiceRequestController {
     @Transactional
     public ResponseEntity<OnlineCardPaymentResponse> createCreditAccountPayment(@RequestHeader(value = "idempotency_key") String idempotencyKey,
                                                                                 @RequestHeader(value = "return-url") String returnURL,
-                                                                                @RequestHeader(value = "service-callback-url") String serviceCallbackUrl,
+                                                                                @RequestHeader(value = "service-callback-url") String serviceCallbackURL,
                                                                                 @PathVariable("service-request-reference") String serviceRequestReference,
                                                                                 @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
 
-        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference), HttpStatus.CREATED);
+        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference,returnURL,serviceCallbackURL), HttpStatus.CREATED);
     }
 
 
@@ -223,6 +225,13 @@ public class ServiceRequestController {
     public String return404(AccountNotFoundException ex) {
         return ex.getMessage();
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({ServiceRequestExceptionForNoMatchingAmount.class, ServiceRequestExceptionForNoAmountDue.class})
+    public String return400(Exception ex) {
+        return ex.getMessage();
+    }
+
 
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
     @ExceptionHandler(OrderExceptionForNoMatchingAmount.class)
