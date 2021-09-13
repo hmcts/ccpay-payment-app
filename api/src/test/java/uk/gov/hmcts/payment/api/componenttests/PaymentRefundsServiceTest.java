@@ -286,4 +286,12 @@ public class PaymentRefundsServiceTest {
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(1000),"RR036");
     }
 
+    @Test
+    public  void testUpdateRemissionAmountOtherThanRetrospectiveRemission(){
+
+        Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
+                ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(10),"RR003");
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+    }
+
 }
