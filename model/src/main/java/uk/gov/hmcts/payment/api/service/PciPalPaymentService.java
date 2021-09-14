@@ -23,6 +23,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
 import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.exceptions.PciPalClientException;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderLinkIdRequest;
@@ -247,6 +248,11 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             .state(State.stateWith().code("code").finished(false).message("message").status("created").build()).build();
         LOG.info("PciPal service called, returning with: {}", payment);
         return payment;
+    }
+
+    @Override
+    public PciPalPayment create(CreatePaymentRequest createPaymentRequest) {
+        return null;
     }
 
     @Override
