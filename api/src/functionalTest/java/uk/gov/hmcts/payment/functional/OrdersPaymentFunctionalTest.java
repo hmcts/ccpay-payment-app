@@ -60,11 +60,11 @@ public class OrdersPaymentFunctionalTest {
     public void createAnOrderAndMakePBAPayment(){
         UUID randomUUID = UUID.randomUUID();
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
-            .hmctsOrgId("Divorce")
+            .hmctsOrgId("ABA1")
             .ccdCaseNumber("1234567890123456")
             .caseReference("abcd-defg-hjik-1234")
             .casePaymentRequest(getCasePaymentRequest())
-            .callBackUrl("http://callback/url")
+            .callBackUrl("http://callback.hmcts.net")
             .fees(Arrays.asList(ServiceRequestFeeDto.feeDtoWith()
                 .calculatedAmount(BigDecimal.valueOf(100))
                 .code("FEE0101")
@@ -84,6 +84,11 @@ public class OrdersPaymentFunctionalTest {
             .then().gotCreated(Map.class,mapResult->{
             Object serviceRequestReference=mapResult.get("service_request_reference");
             assertThat(serviceRequestReference).isNotNull();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .when().createOrderCreditAccountPayment(paymentDto,serviceRequestReference.toString(),randomUUID.toString())
