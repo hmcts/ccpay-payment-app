@@ -305,12 +305,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     private void checkOnlinePaymentExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
         //Already created state payment existed, then cancel gov pay section present
-        Payment existedPayment = (Payment) paymentFeeLink.getPayments().stream().map(payment ->
+        Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream().filter(payment ->
             payment.getPaymentStatus().getName().equalsIgnoreCase("created") && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
-        );
+        ).findFirst();
 
-        if (existedPayment != null) {
-            delegatingPaymentService.cancel(existedPayment.getReference());
+        if (existedPayment.isPresent()) {
+            delegatingPaymentService.cancel(existedPayment.get().getReference());
         }
     }
 
