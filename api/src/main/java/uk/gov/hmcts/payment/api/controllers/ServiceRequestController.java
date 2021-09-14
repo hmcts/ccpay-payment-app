@@ -162,13 +162,12 @@ public class ServiceRequestController {
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<OnlineCardPaymentResponse> createCreditAccountPayment(@RequestHeader(value = "idempotency_key") String idempotencyKey,
-                                                                                @RequestHeader(value = "return-url") String returnURL,
-                                                                                @RequestHeader(value = "service-callback-url") String serviceCallbackURL,
-                                                                                @PathVariable("service-request-reference") String serviceRequestReference,
-                                                                                @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
+    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@RequestHeader(value = "return-url") String returnURL,
+                                                                       @RequestHeader(value = "service-callback-url") String serviceCallbackURL,
+                                                                       @PathVariable("service-request-reference") String serviceRequestReference,
+                                                                       @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
 
-        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference,returnURL,serviceCallbackURL), HttpStatus.CREATED);
+        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
     }
 
 }
