@@ -59,6 +59,8 @@ public class ServiceRequestDtoDomainMapper {
             .returnUrl(returnUrl)
             .currency(request.getCurrency().getCode())
             .amount(request.getAmount())
+            .channel("online")
+            .provider("gov pay")
             .serviceCallbackUrl(serviceCallbackUrl)
             .language(request.getLanguage().toLowerCase())//change language to lower case before sending to gov pay
             .build();
