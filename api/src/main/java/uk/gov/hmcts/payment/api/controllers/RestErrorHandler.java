@@ -53,30 +53,25 @@ public class RestErrorHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
     }
 
-    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
     @ExceptionHandler(OrderExceptionForNoMatchingAmount.class)
-    public String return417(OrderExceptionForNoMatchingAmount ex) {
-        return ex.getMessage();
+    public ResponseEntity return417(OrderExceptionForNoMatchingAmount ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
     }
 
-    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler(OrderExceptionForNoAmountDue.class)
-    public String return412(OrderExceptionForNoAmountDue ex) {
-        return ex.getMessage();
+    public ResponseEntity return412(OrderExceptionForNoAmountDue ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.PRECONDITION_FAILED);
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class, ServiceRequestReferenceNotFoundException.class, AccountNotFoundException.class})
-    public String return404(Exception ex) {
-        return ex.getMessage();
+    public ResponseEntity return404(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({PaymentNotFoundException.class, InvalidFeeRequestException.class, PaymentException.class,
         OrderException.class, ServiceRequestExceptionForNoMatchingAmount.class, ServiceRequestExceptionForNoAmountDue.class})
-    public String return400(Exception ex) {
-        return ex.getMessage();
+    public ResponseEntity return400(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
 }
