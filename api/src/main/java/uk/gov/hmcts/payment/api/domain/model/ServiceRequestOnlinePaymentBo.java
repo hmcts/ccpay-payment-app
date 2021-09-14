@@ -26,11 +26,14 @@ public class ServiceRequestOnlinePaymentBo {
 
     private String paymentReference;
     private String currency;
+    private String channel;
     private String serviceCallbackUrl;
+    private String provider;
     private String returnUrl;
     private String description;
     private String language;
     private BigDecimal amount;
+
 
 
 }
