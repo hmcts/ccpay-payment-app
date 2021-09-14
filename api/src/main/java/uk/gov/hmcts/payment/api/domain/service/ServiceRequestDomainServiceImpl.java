@@ -119,6 +119,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     private DelegatingPaymentService<GovPayPayment, String> delegateGovPay;
 
+    @Autowired
+    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+
     private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 
@@ -148,22 +151,26 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     public OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException {
         PaymentFeeLink serviceRequestOrder = find(serviceRequestReference);
 
+        //If exist, will cancel existing payment channel session with gov pay
+        checkOnlinePaymentExistWithCreatedState(serviceRequestOrder);
+
+        //General business validation
         businessValidationForServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
 
-        //payment Boundary Object
+        //Payment - Boundary Object
         ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(serviceRequestOrder, onlineCardPaymentRequest, returnURL, serviceCallbackURL);
 
-        // GovPay request and creation
+        // GovPay - Request and creation
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest);
 
-        //payment Entity creation
+        //Payment - Entity creation
         Payment payment = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
         payment.setPaymentLink(serviceRequestOrder);
 
-        // trigger Apportion based on the launch darkly feature flag
+        // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
-        LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
+        LOG.info("ApportionFeature Flag Value in online card payment : {}", apportionFeature);
         if (apportionFeature) {
             //Apportion payment
             feePayApportionService.processApportion(payment);
@@ -281,18 +288,29 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         return order;
     }
 
-    public void businessValidationForServiceRequestOrder(PaymentFeeLink order, OnlineCardPaymentRequest request) {
+    private void businessValidationForServiceRequestOrder(PaymentFeeLink order, OnlineCardPaymentRequest request) {
+
         //Business validation for amount
         Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
         if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(request.getAmount()) != 0)) {
             throw new ServiceRequestExceptionForNoMatchingAmount("The payment amount should be equal to order balance");
         }
 
-
         //Business validation for amount due for fees
         Optional<BigDecimal> totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add);
         if (totalAmountDue.isPresent() && totalAmountDue.get().compareTo(BigDecimal.ZERO) == 0) {
             throw new ServiceRequestExceptionForNoAmountDue("The order has already been paid");
+        }
+    }
+
+    private void checkOnlinePaymentExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
+        //Already created state payment existed, then cancel gov pay section present
+        Payment existedPayment = (Payment) paymentFeeLink.getPayments().stream().map(payment ->
+            payment.getPaymentStatus().getName().equalsIgnoreCase("created") && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
+        );
+
+        if (existedPayment != null) {
+            delegatingPaymentService.cancel(existedPayment.getReference());
         }
     }
 
