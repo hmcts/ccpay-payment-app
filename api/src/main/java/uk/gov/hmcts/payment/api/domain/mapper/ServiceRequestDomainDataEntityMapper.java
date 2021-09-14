@@ -7,8 +7,10 @@ import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.util.PayStatusToPayHubStatus;
@@ -53,8 +55,12 @@ public class ServiceRequestDomainDataEntityMapper {
         BigDecimal amountInPounds = new BigDecimal(govPayPayment.getAmount());
         amountInPounds = amountInPounds.divide(new BigDecimal(100));
         return Payment.paymentWith()
+            .userId(requestOnlinePaymentBo.getUserId())
+            .s2sServiceName(requestOnlinePaymentBo.getS2sServiceName())
             .reference(requestOnlinePaymentBo.getPaymentReference())
             .amount(amountInPounds)
+            .paymentChannel(PaymentChannel.ONLINE)
+            .paymentProvider(PaymentProvider.GOV_PAY)
             .status(govPayPayment.getState().getStatus())
             .paymentStatus(PaymentStatus.paymentStatusWith().name(govPayPayment.getState().getStatus().toLowerCase()).build())
             .finished(govPayPayment.getState().getFinished())
