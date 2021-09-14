@@ -263,9 +263,11 @@ public class PaymentRefundsServiceTest {
             .id(1)
             .feeAmount(amount).build();
         Remission remission = Remission.remissionWith()
-                                .hwfAmount(BigDecimal.valueOf(10))
-                                .remissionReference("RM-1234-1234-1234-1234")
-                            .build();
+            .fee(PaymentFee.feeWith()
+                .calculatedAmount(BigDecimal.valueOf(10))
+                .build())
+            .remissionReference("RM-1234-1234-1234-1234")
+            .build();
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
         Mockito.when(feePayApportionRepository.findByPaymentId(any())).thenReturn(Optional.of(Arrays.asList(feePayApportion)));
 
@@ -351,7 +353,9 @@ public class PaymentRefundsServiceTest {
             .id(1)
             .feeAmount(amount).build();
         Remission remission = Remission.remissionWith()
-            .hwfAmount(BigDecimal.valueOf(75))
+            .fee(PaymentFee.feeWith()
+                .calculatedAmount(BigDecimal.valueOf(75))
+                .build())
             .remissionReference("RM-1234-1234-1234-1234")
             .build();
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));

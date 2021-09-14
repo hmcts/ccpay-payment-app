@@ -158,8 +158,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
             Optional<Remission> remission = remissionRepository.findByFeeId(feeId);
 
             if (remission.isPresent()) {
-                if (remission.get().getHwfAmount() != null && remission.get().getHwfAmount().compareTo(remissionAmount) < 0) {
-                    throw new InvalidRefundRequestException("Amount should not be more than Remission amount");
+                if (remission.get().getFee().getCalculatedAmount().compareTo(remissionAmount) < 0) {
+                    throw new InvalidRefundRequestException("Remission Amount should not be more than Fee amount");
                 } else {
                     //update remissionAmount
                     remission.get().setHwfAmount(remissionAmount);
