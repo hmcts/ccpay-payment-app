@@ -34,6 +34,7 @@ import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
@@ -149,7 +150,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     @Override
     public OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException {
-        PaymentFeeLink serviceRequestOrder = find(serviceRequestReference);
+        //find service request
+        PaymentFeeLink serviceRequestOrder = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
         //If exist, will cancel existing payment channel session with gov pay
         checkOnlinePaymentExistWithCreatedState(serviceRequestOrder);
@@ -167,6 +169,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //Payment - Entity creation
         Payment payment = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
         payment.setPaymentLink(serviceRequestOrder);
+        paymentRepository.save(payment);
 
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
