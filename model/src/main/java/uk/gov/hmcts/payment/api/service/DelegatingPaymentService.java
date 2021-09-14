@@ -15,6 +15,8 @@ public interface DelegatingPaymentService<T, ID> {
 
     T create(CreatePaymentRequest createPaymentRequest);
 
+    void cancel(Payment payment, String ccdCaseNumber);
+
     T update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException, MethodNotSupportedException;
 
     T retrieve(ID id);

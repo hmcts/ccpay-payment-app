@@ -61,6 +61,11 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
+    public void cancel(Payment payment, String ccdCaseNumber) {
+
+    }
+
+    @Override
     public PaymentFeeLink update(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException, MethodNotSupportedException {
         PaymentFeeLink paymentFeeLink = delegate.update(paymentServiceRequest);
         Payment payment = paymentFeeLink.getPayments().get(0);
