@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,20 +32,9 @@ import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
-import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -183,65 +171,4 @@ public class ServiceRequestController {
         return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference,returnURL,serviceCallbackURL), HttpStatus.CREATED);
     }
 
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(value = {NoServiceFoundException.class})
-    public String return404(NoServiceFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(ServiceRequestReferenceNotFoundException.class)
-    public String return404(ServiceRequestReferenceNotFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(PaymentNotFoundException.class)
-    public String return400(PaymentNotFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InvalidFeeRequestException.class)
-    public String return400(InvalidFeeRequestException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(PaymentException.class)
-    public String return400(PaymentException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(OrderException.class)
-    public String return400(OrderException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(AccountNotFoundException.class)
-    public String return404(AccountNotFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({ServiceRequestExceptionForNoMatchingAmount.class, ServiceRequestExceptionForNoAmountDue.class})
-    public String return400(Exception ex) {
-        return ex.getMessage();
-    }
-
-
-    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
-    @ExceptionHandler(OrderExceptionForNoMatchingAmount.class)
-    public String return417(OrderExceptionForNoMatchingAmount ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(OrderExceptionForNoAmountDue.class)
-    public String return412(OrderExceptionForNoAmountDue ex) {
-        return ex.getMessage();
-    }
 }
