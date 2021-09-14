@@ -155,7 +155,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         checkOnlinePaymentExistWithCreatedState(serviceRequestOrder);
 
         //General business validation
-        businessValidationForServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
+        businessValidationForOnlinePaymentServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
 
         //Payment - Boundary Object
         ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(serviceRequestOrder, onlineCardPaymentRequest, returnURL, serviceCallbackURL);
@@ -275,20 +275,20 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //Business validation for amount
         Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
         if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(orderPaymentDto.getAmount()) != 0)) {
-            throw new OrderExceptionForNoMatchingAmount("The order amount should be equal to order balance");
+            throw new OrderExceptionForNoMatchingAmount("The payment amount should be equal to order balance");
         }
 
 
         //Business validation for amount due for fees
         Optional<BigDecimal> totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add);
         if (totalAmountDue.isPresent() && totalAmountDue.get().compareTo(BigDecimal.ZERO) == 0) {
-            throw new OrderExceptionForNoAmountDue("The order has already been paid");
+            throw new OrderExceptionForNoAmountDue("The service request has already been paid");
         }
 
         return order;
     }
 
-    private void businessValidationForServiceRequestOrder(PaymentFeeLink order, OnlineCardPaymentRequest request) {
+    private void businessValidationForOnlinePaymentServiceRequestOrder(PaymentFeeLink order, OnlineCardPaymentRequest request) {
 
         //Business validation for amount
         Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
