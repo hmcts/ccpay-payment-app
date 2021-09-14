@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -52,6 +53,11 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
             REFERENCE, payment.getReference()
         )));
         return paymentFeeLink;
+    }
+
+    @Override
+    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest) {
+        return null;
     }
 
     @Override
