@@ -14,6 +14,8 @@ import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
+import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
 import java.util.stream.Collectors;
 
@@ -22,6 +24,13 @@ public class ServiceRequestDtoDomainMapper {
 
     @Autowired
     private ReferenceUtil referenceUtil;
+
+    @Autowired
+    private UserIdSupplier userIdSupplier;
+
+    @Autowired
+    private ServiceIdSupplier serviceIdSupplier;
+
 
     public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto, OrganisationalServiceDto organisationalServiceDto) {
 
@@ -55,12 +64,12 @@ public class ServiceRequestDtoDomainMapper {
     public ServiceRequestOnlinePaymentBo toDomain(PaymentFeeLink paymentFeeLink, OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
         return ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
             .paymentReference(referenceUtil.getNext("RC"))
+            .s2sServiceName(serviceIdSupplier.get())
+            .userId(userIdSupplier.get())
             .description("") // check with lead/BA
             .returnUrl(returnUrl)
             .currency(request.getCurrency().getCode())
             .amount(request.getAmount())
-            .channel("online")
-            .provider("gov pay")
             .serviceCallbackUrl(serviceCallbackUrl)
             .language(request.getLanguage().toLowerCase())//change language to lower case before sending to gov pay
             .build();
