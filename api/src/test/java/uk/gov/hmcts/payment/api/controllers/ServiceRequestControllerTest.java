@@ -202,7 +202,7 @@ public class ServiceRequestControllerTest {
             .post("/order/" + orderReferenceResult + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isPreconditionFailed())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoAmountDue))
-            .andExpect(orderException -> assertEquals("The order has already been paid", orderException.getResolvedException().getMessage()))
+            .andExpect(orderException -> assertEquals("The service request has already been paid", orderException.getResolvedException().getMessage()))
             .andReturn();
     }
 
@@ -438,7 +438,7 @@ public class ServiceRequestControllerTest {
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isExpectationFailed())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoMatchingAmount))
-            .andExpect(orderException -> assertEquals("The order amount should be equal to order balance", orderException.getResolvedException().getMessage()))
+            .andExpect(orderException -> assertEquals("The payment amount should be equal to order balance", orderException.getResolvedException().getMessage()))
             .andReturn();
 
     }
