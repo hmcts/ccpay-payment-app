@@ -154,7 +154,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         PaymentFeeLink serviceRequestOrder = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
         //If exist, will cancel existing payment channel session with gov pay
-        checkOnlinePaymentExistWithCreatedState(serviceRequestOrder);
+        checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequestOrder);
 
         //General business validation
         businessValidationForOnlinePaymentServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
@@ -167,24 +167,25 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest);
 
         //Payment - Entity creation
-        Payment payment = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
-        payment.setPaymentLink(serviceRequestOrder);
-        paymentRepository.save(payment);
+        Payment paymentEntity = serviceRequestDomainDataEntityMapper.toPaymentEntity(requestOnlinePaymentBo, govPayPayment);
+        paymentEntity.setPaymentLink(serviceRequestOrder);
+        serviceRequestOrder.getPayments().add(paymentEntity);
+        Payment p1 = paymentRepository.save(paymentEntity);
 
         // Trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in online card payment : {}", apportionFeature);
         if (apportionFeature) {
             //Apportion payment
-            feePayApportionService.processApportion(payment);
+            feePayApportionService.processApportion(paymentRepository.findByReference(paymentEntity.getReference()).get());
         }
 
         return OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
-            .dateCreated(payment.getDateCreated())
-            .externalReference(payment.getExternalReference())
-            .nextUrl(payment.getNextUrl())
-            .paymentReference(payment.getReference())
-            .status(payment.getPaymentStatus().getName())
+            .dateCreated(paymentEntity.getDateCreated())
+            .externalReference(paymentEntity.getExternalReference())
+            .nextUrl(paymentEntity.getNextUrl())
+            .paymentReference(paymentEntity.getReference())
+            .status(paymentEntity.getPaymentStatus().getName())
             .build();
     }
 
@@ -306,14 +307,14 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
     }
 
-    private void checkOnlinePaymentExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
+    private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
         //Already created state payment existed, then cancel gov pay section present
         Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream().filter(payment ->
             payment.getPaymentStatus().getName().equalsIgnoreCase("created") && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
         ).findFirst();
 
         if (existedPayment.isPresent()) {
-            delegatingPaymentService.cancel(existedPayment.get().getReference());
+            delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber());
         }
     }
 
