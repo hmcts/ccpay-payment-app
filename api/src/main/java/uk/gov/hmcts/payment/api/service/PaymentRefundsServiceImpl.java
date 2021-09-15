@@ -5,11 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -22,14 +18,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
-import uk.gov.hmcts.payment.api.model.FeePayApportion;
-import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.Remission;
-import uk.gov.hmcts.payment.api.model.RemissionRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NonPBAPaymentException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
@@ -38,6 +27,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +50,7 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
 
     @Autowired
     FeePayApportionRepository feePayApportionRepository;
+
     @Autowired
     private Payment2Repository paymentRepository;
     @Autowired
@@ -130,10 +121,59 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                 return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
             }
 
-        } else {
-            throw new RemissionNotFoundException("Remission not found for given remission reference");
         }
-        return null;
+
+        throw new RemissionNotFoundException("Remission not found for given remission reference");
+    }
+
+    @Override
+    public ResponseEntity updateTheRemissionAmount(String paymentReference, BigDecimal requestAmount, String refundReason) {
+        //Payment not found exception
+        Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
+
+            if (payment.getAmount().compareTo(requestAmount) < 0) {
+                throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
+            }
+
+            //If refund reason is retro-remission
+            if (refundReason.contains("RR036")) {
+                Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(payment.getId());
+
+                if (feePayApportion.isPresent()) {
+                    List<FeePayApportion> feePayApportionList = feePayApportion.get();
+                    if (!isEmptyOrNull(feePayApportionList)) {
+                        FeePayApportion feePayApportionElement = feePayApportionList.get(0);
+                        updateRemissionAmount(feePayApportionElement.getFeeId(), requestAmount);
+                    }
+                }else {
+                    throw new PaymentNotFoundException("payment not found for"+payment.getId());
+                }
+            }
+
+
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+
+    public void updateRemissionAmount(Integer feeId, BigDecimal remissionAmount) {
+//        if (feeId != null) {
+            //Remission against fee
+            Optional<Remission> remission = remissionRepository.findByFeeId(feeId);
+
+            if (remission.isPresent()) {
+                if (remission.get().getFee().getCalculatedAmount().compareTo(remissionAmount) < 0) {
+                    throw new InvalidRefundRequestException("Remission Amount should not be more than Fee amount");
+                } else {
+                    //update remissionAmount
+                    remission.get().setHwfAmount(remissionAmount);
+                    remissionRepository.save(remission.get());
+                }
+            }
+
+//        }
+    }
+
+    public static boolean isEmptyOrNull(Collection< ? > collection) {
+        return (collection == null || collection.isEmpty());
     }
 
     private void validateThePaymentBeforeInitiatingRefund(Payment payment) {
