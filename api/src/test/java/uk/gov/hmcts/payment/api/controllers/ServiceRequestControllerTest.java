@@ -568,9 +568,43 @@ public class ServiceRequestControllerTest {
 
     }
 
+
+    @Test
+    public void createMultipleOnlinePaymentByCancelingSessionWithGovPay4PaymentWithCreatedStatusWithIn90Mins() throws Exception {
+        //Creation of Order-reference
+        String orderReferenceResult = getOrderReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "dummy")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+        Thread.sleep(1000); //just to resemble minutes changes to create new payment
+
+        MvcResult result1 = restActions
+            .withHeader("service-callback-url", "dummy")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+    }
+
     private GovPayPayment getGovPayPayment() {
         return GovPayPayment.govPaymentWith()
-            .amount(10000)
+            .amount(300)
             .state(new State("created", false, null, null))
             .description("description")
             .reference("reference")
