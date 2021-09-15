@@ -41,4 +41,9 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplateIdam() {
         return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     }
+
+    @Bean("restTemplateRefData")
+    public RestTemplate restTemplateRefData() {
+        return  new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 }
