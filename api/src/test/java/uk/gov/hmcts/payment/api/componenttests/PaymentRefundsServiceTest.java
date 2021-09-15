@@ -232,6 +232,7 @@ public class PaymentRefundsServiceTest {
 
         assertEquals("RF-4321-4321-4321-4321", refundResponse.getBody().getRefundReference());
 
+
     }
 
 
@@ -245,7 +246,7 @@ public class PaymentRefundsServiceTest {
     }
 
     @Test
-    public  void testUpdateRemissionAmount(){
+    public  void testUpdateRemissionAmount_updatesRemissionAmount(){
         BigDecimal amount = new BigDecimal("11.99");
         PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
@@ -274,6 +275,7 @@ public class PaymentRefundsServiceTest {
         Mockito.when(remissionRepository.findByFeeId(anyInt())).thenReturn(Optional.of(remission));
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(10),"RR036");
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        verify(remissionRepository).save(any(Remission.class));
     }
 
     @Test(expected = PaymentNotFoundException.class)
@@ -290,21 +292,19 @@ public class PaymentRefundsServiceTest {
     }
 
     @Test
-    public  void testUpdateRemissionAmountOtherThanRetrospectiveRemission(){
-
+    public  void testUpdateRemissionAmountForRefundsOtherThanRetrospectiveRemission(){
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
                 ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(10),"RR003");
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
-    @Test
+    @Test(expected = PaymentNotFoundException.class)
     public void testUpdateRemissionAmountWithNullFeePayApportion(){
 
         Mockito.when(paymentRepository.findByReference(any())).thenReturn(Optional.ofNullable(mockPaymentSuccess));
         Mockito.when(feePayApportionRepository.findByPaymentId(any())).thenReturn(Optional.ofNullable(null));
 
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(10),"RR036");
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
     @Test
@@ -331,11 +331,11 @@ public class PaymentRefundsServiceTest {
         Mockito.when(remissionRepository.findByFeeId(anyInt())).thenReturn(Optional.ofNullable(null));
         ResponseEntity responseEntity = paymentRefundsService.updateTheRemissionAmount("RC-1234-1234-1234-1234",BigDecimal.valueOf(10),"RR036");
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-//        verify(remissionRepository).save(any(Remission.class));
+        verify(remissionRepository,Mockito.times(0)).save(any(Remission.class));
     }
 
     @Test
-    public  void testUpdateRemissionAmountWhenNewRemissionAmountIsLesserThan(){
+    public  void testUpdateRemissionAmountWhenNewRemissionAmountIsLesserThanFeeAmount(){
         BigDecimal amount = new BigDecimal("11.99");
         PaymentFee fee = PaymentFee.feeWith().id(1).calculatedAmount(new BigDecimal("11.99")).code("X0001").version("1").build();
         PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith()
