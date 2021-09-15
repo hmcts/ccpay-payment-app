@@ -60,6 +60,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNo
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -309,11 +310,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
     private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
         //Already created state payment existed, then cancel gov pay section present
-        Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream().filter(payment ->
-            payment.getPaymentStatus().getName().equalsIgnoreCase("created") && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
-        ).findFirst();
+        Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
+        Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream()
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("created") && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay"))
+            .filter(payment -> payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
+            .findFirst();
 
-        if (existedPayment.isPresent()) {
+        if (!existedPayment.isEmpty()) {
             delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber());
         }
     }
