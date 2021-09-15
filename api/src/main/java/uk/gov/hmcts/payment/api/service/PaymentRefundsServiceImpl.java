@@ -145,6 +145,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                         FeePayApportion feePayApportionElement = feePayApportionList.get(0);
                         updateRemissionAmount(feePayApportionElement.getFeeId(), requestAmount);
                     }
+                }else {
+                    throw new PaymentNotFoundException("payment not found for"+payment.getId());
                 }
             }
 
