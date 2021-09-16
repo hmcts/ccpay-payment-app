@@ -73,7 +73,7 @@ public class ReferenceDataServiceImpl implements ReferenceDataService<SiteDTO> {
             return orgServiceResponse.get(0);
         } catch (HttpClientErrorException e) {
             LOG.error("client err ", e);
-            throw new NoServiceFoundException("No Service found for given CaseType or ServiceCode");
+            throw new NoServiceFoundException("No Service found for given CaseType or HMCTS Org Id");
         } catch (HttpServerErrorException e) {
             LOG.error("server err ", e);
             throw new GatewayTimeoutException("Unable to retrieve service information. Please try again later");
