@@ -53,6 +53,7 @@ public class ServiceRequestDomainDataEntityMapper {
 
     public Payment toPaymentEntity(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo, GovPayPayment govPayPayment) {
         return Payment.paymentWith()
+            .currency(requestOnlinePaymentBo.getCurrency())
             .userId(requestOnlinePaymentBo.getUserId())
             .s2sServiceName(requestOnlinePaymentBo.getS2sServiceName())
             .reference(requestOnlinePaymentBo.getPaymentReference())
