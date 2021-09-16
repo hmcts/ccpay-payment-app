@@ -131,7 +131,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
         MvcResult result = restActions
             .get("/pba-accounts")
-            .andExpect(status().is4xxClientError())
+            .andExpect(status().is5xxServerError())
             .andReturn();
     }
 }
