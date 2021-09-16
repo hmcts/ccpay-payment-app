@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.ArrayList;
@@ -83,47 +85,66 @@ public class PBAController {
         return new PaymentsResponse(paymentDto);
     }
 
-    @ApiOperation(value = "Get PBA account details from ref data", notes = "Get PBA account details from ref data")
+    @ApiOperation(value = "Get PBA account details from ref data", notes = "Get list of PBA account details from ref data")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payments retrieved"),
-        @ApiResponse(code = 400, message = "Bad request")
+        @ApiResponse(code = 200, message = "PBA accounts retrieved"),
+        @ApiResponse(code = 401, message = "Unauthorized"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 404, message = "No PBA Accounts found.")
     })
     @GetMapping(value = "/pba-accounts")
     @PaymentExternalAPI
     public ResponseEntity<OrganisationEntityResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
         String userId = idamService.getUserId(headers);
+        LOG.info("User Id retrieved from IDAM : {} ",userId);
         UserIdentityDataDto userIdentityDataDto = idamService.getUserIdentityData(headers, userId);
         String emailId = userIdentityDataDto.getEmailId();
+        LOG.info("emailId retrieved from IDAM : {} ",emailId);
 
 
         //Generate token for payment api and replace
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
 
+        LOG.info("serviceAuthTokenPaymentList : {} ",serviceAuthTokenPaymentList.get(0));
         //Add email address retrieved from IDAM to invoke ref data end point
         List<String> email = new ArrayList<>();
         email.add(emailId);
 
-        MultiValueMap<String, String> headerMultiValueMapForRefData = new LinkedMultiValueMap<String, String>();
-        headerMultiValueMapForRefData.put("content-type", headers.get("content-type"));
+        MultiValueMap<String, String> headerMultiValueMapForRefData = new LinkedMultiValueMap<>();
+        headerMultiValueMapForRefData.put(
+            "Content-Type",
+            headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type")
+        );
         //User token
         headerMultiValueMapForRefData.put("Authorization", headers.get("authorization"));
         //Service token
         headerMultiValueMapForRefData.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         headerMultiValueMapForRefData.put("UserEmail", email);
 
+        try {
+            return getDetailsFromRefData(headerMultiValueMapForRefData);
+        } catch (HttpClientErrorException httpClientErrorException) {
+            LOG.info("Exception : {} ",httpClientErrorException.getMessage());
+            throw new PaymentException(httpClientErrorException.getMessage());
+        } catch (Exception exception) {
+            LOG.info("Exception : {} ",exception.getMessage());
+            throw new PaymentException(exception.getMessage());
+        }
+    }
 
+    private ResponseEntity<OrganisationEntityResponse> getDetailsFromRefData(MultiValueMap<String, String> headerMultiValueMapForRefData) {
         HttpHeaders headersForRefData = new HttpHeaders(headerMultiValueMapForRefData);
         final HttpEntity<String> entity = new HttpEntity<>(headersForRefData);
 
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refDataBaseURL + RETRIEVE_PBA_ENDPOINT);
-            LOG.debug("builder.toUriString() : {}", builder.toUriString());
-            return restTemplateRefData
-                .exchange(
-                    builder.toUriString(),
-                    HttpMethod.GET,
-                    entity, OrganisationEntityResponse.class
-                );
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refDataBaseURL+RETRIEVE_PBA_ENDPOINT);
+        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        return restTemplateRefData
+            .exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                entity, OrganisationEntityResponse.class
+            );
     }
 }
