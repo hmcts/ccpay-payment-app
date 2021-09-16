@@ -154,11 +154,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //find service request
         PaymentFeeLink serviceRequestOrder = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
-        //If exist, will cancel existing payment channel session with gov pay
-        checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequestOrder);
 
         //General business validation
         businessValidationForOnlinePaymentServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
+        
+        //If exist, will cancel existing payment channel session with gov pay
+        checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequestOrder);
 
         //Payment - Boundary Object
         ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(serviceRequestOrder, onlineCardPaymentRequest, returnURL, serviceCallbackURL);
