@@ -43,8 +43,15 @@ public class RestErrorHandler {
         return ex.getErrors();
     }
 
-    @ExceptionHandler({GovPayException.class, CpoInternalServerErrorException.class, CheckDigitException.class})
+    @ExceptionHandler({CpoInternalServerErrorException.class, CheckDigitException.class})
     public ResponseEntity return500(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler({GovPayException.class})
+    public ResponseEntity returnGovPay500(GovPayException ex) {
+        LOG.info("Gov pay exception : ", ex.getLocalizedMessage());
+        LOG.info("Gov pay exception : ", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
