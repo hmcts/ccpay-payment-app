@@ -19,12 +19,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(NON_NULL)
-@Builder(builderMethodName = "orderPaymentBoWith")
+@Builder(builderMethodName = "serviceRequestPaymentBoWith")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderPaymentBo {
+public class ServiceRequestPaymentBo {
 
     private String paymentReference;
 

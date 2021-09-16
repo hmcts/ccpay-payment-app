@@ -21,18 +21,18 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
-import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
-import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
@@ -41,8 +41,8 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
@@ -73,7 +73,7 @@ public class ServiceRequestControllerTest {
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
-    private ServiceRequestDomainService orderDomainService;
+    private ServiceRequestDomainService serviceRequestDomainService;
     @Autowired
     private IdempotencyService idempotencyService;
     @Autowired
@@ -114,11 +114,11 @@ public class ServiceRequestControllerTest {
     @Test
     public void createPBAPaymentWithServiceRequestSuccessTest() throws Exception {
 
-        //Creation of Order-reference
-        String orderReferenceResult = getOrderReference();
+        //Creation of serviceRequest-reference
+        String serviceRequestReferenceResult = getServiceRequestReference();
 
-        //Order Payment DTO
-        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
@@ -140,42 +140,42 @@ public class ServiceRequestControllerTest {
         String idempotencyKey = UUID.randomUUID().toString();
 
 
-        MvcResult successOrderPaymentResult = restActions
+        MvcResult successServiceRequestPaymentResult = restActions
             .withHeader("idempotency_key", idempotencyKey)
-            .post("/order/" + orderReferenceResult + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isCreated())
             .andReturn();
 
-        OrderPaymentBo orderPaymentBo = objectMapper.readValue(successOrderPaymentResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
+        ServiceRequestPaymentBo serviceRequestPaymentBo = objectMapper.readValue(successServiceRequestPaymentResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
 
         // 1. PBA Payment was successful
-        assertTrue(orderPaymentBo.getPaymentReference().startsWith("RC-"));
-        assertEquals("success", orderPaymentBo.getStatus());
-        assertNotNull(orderPaymentBo.getDateCreated());
-        assertNull(orderPaymentBo.getError());
+        assertTrue(serviceRequestPaymentBo.getPaymentReference().startsWith("RC-"));
+        assertEquals("success", serviceRequestPaymentBo.getStatus());
+        assertNotNull(serviceRequestPaymentBo.getDateCreated());
+        assertNull(serviceRequestPaymentBo.getError());
 
-        // 2.Duplicate request with same Idempotency key, same request content, same order reference
+        // 2.Duplicate request with same Idempotency key, same request content, same serviceRequest reference
         MvcResult duplicatePBAPaymentResult = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
-            .post("/order/" + orderReferenceResult + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isCreated())
             .andReturn();
 
-        OrderPaymentBo oldOrderPaymentBA = objectMapper.readValue(duplicatePBAPaymentResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
+        ServiceRequestPaymentBo oldServiceRequestPaymentBA = objectMapper.readValue(duplicatePBAPaymentResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
 
         //Get old payment details from idempotency table
-        assertEquals(orderPaymentBo.getPaymentReference(), oldOrderPaymentBA.getPaymentReference());
-        assertEquals(orderPaymentBo.getStatus(), oldOrderPaymentBA.getStatus());
-        assertEquals(orderPaymentBo.getDateCreated(), oldOrderPaymentBA.getDateCreated());
+        assertEquals(serviceRequestPaymentBo.getPaymentReference(), oldServiceRequestPaymentBA.getPaymentReference());
+        assertEquals(serviceRequestPaymentBo.getStatus(), oldServiceRequestPaymentBA.getStatus());
+        assertEquals(serviceRequestPaymentBo.getDateCreated(), oldServiceRequestPaymentBA.getDateCreated());
 
 
         //3.Duplicate request with same Idempotency key with different Payment details
-        orderPaymentDto.setAmount(BigDecimal.valueOf(111)); //changed the amount
-        orderPaymentDto.setCustomerReference("cust-reference-change"); //changed the customer reference
+        serviceRequestPaymentDto.setAmount(BigDecimal.valueOf(111)); //changed the amount
+        serviceRequestPaymentDto.setCustomerReference("cust-reference-change"); //changed the customer reference
 
         MvcResult conflictPBAPaymentResult = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
-            .post("/order/" + orderReferenceResult + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isConflict())
             .andReturn();
 
@@ -183,16 +183,16 @@ public class ServiceRequestControllerTest {
             getContentAsString().
             contains("Payment already present for idempotency key with different payment details"));
 
-        //4. Different idempotency key, same order reference, same payment details no amount due
-        orderPaymentDto.setAmount(BigDecimal.valueOf(300)); //changed the amount
-        orderPaymentDto.setCustomerReference("testCustReference"); //changed the customer reference
+        //4. Different idempotency key, same serviceRequest reference, same payment details no amount due
+        serviceRequestPaymentDto.setAmount(BigDecimal.valueOf(300)); //changed the amount
+        serviceRequestPaymentDto.setCustomerReference("testCustReference"); //changed the customer reference
 
         restActions
             .withHeaderIfpresent("idempotency_key", UUID.randomUUID().toString())
-            .post("/order/" + orderReferenceResult + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPreconditionFailed())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoAmountDue))
-            .andExpect(orderException -> assertEquals("The order has already been paid", orderException.getResolvedException().getMessage()))
+            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestExceptionForNoAmountDue))
+            .andExpect(serviceRequestException -> assertEquals("The serviceRequest has already been paid", serviceRequestException.getResolvedException().getMessage()))
             .andReturn();
     }
 
@@ -202,22 +202,22 @@ public class ServiceRequestControllerTest {
         when(accountService.retrieve("PBA12346")).thenThrow(
             new HystrixRuntimeException(HystrixRuntimeException.FailureType.TIMEOUT, HystrixCommand.class, "Unable to retrieve account information", null, null));
 
-        String orderReference = getOrderReference();
+        String serviceRequestReference = getServiceRequestReference();
 
-        //Order Payment DTO
-        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12346")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
 
-        //Order reference creation
+        //ServiceRequest reference creation
         String idempotencyKey = UUID.randomUUID().toString();
 
         MvcResult result = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
-            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andReturn();
 
@@ -228,7 +228,7 @@ public class ServiceRequestControllerTest {
         //Duplicate request for timeout
         MvcResult result1 = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
-            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGatewayTimeout())
             .andReturn();
 
@@ -259,52 +259,52 @@ public class ServiceRequestControllerTest {
 
         when(accountService.retrieve("PBA12347")).thenReturn(accountOnHoldResponse);
 
-        String orderReference = getOrderReference();
+        String serviceRequestReference = getServiceRequestReference();
 
-        //Order Payment DTO
-        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12347")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
 
-        //Order reference creation
+        //ServiceRequest reference creation
         String idempotencyKey = UUID.randomUUID().toString();
 
         MvcResult accountOnHoldResult = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
-            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPaymentRequired())
             .andReturn();
 
 
-        OrderPaymentBo orderPaymentBo = objectMapper.readValue(accountOnHoldResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
+        ServiceRequestPaymentBo serviceRequestPaymentBo = objectMapper.readValue(accountOnHoldResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
 
         // 1. Account On Hold scenario
-        String paymentReference = orderPaymentBo.getPaymentReference();
+        String paymentReference = serviceRequestPaymentBo.getPaymentReference();
         assertTrue(paymentReference.startsWith("RC-"));
-        assertEquals("failed", orderPaymentBo.getStatus());
-        assertNotNull(orderPaymentBo.getDateCreated());
-        assertEquals("CA-E0003", orderPaymentBo.getError().getErrorCode());
-        assertEquals("Your account is on hold", orderPaymentBo.getError().getErrorMessage());
+        assertEquals("failed", serviceRequestPaymentBo.getStatus());
+        assertNotNull(serviceRequestPaymentBo.getDateCreated());
+        assertEquals("CA-E0003", serviceRequestPaymentBo.getError().getErrorCode());
+        assertEquals("Your account is on hold", serviceRequestPaymentBo.getError().getErrorMessage());
 
 
-        // 2. Payment success scenario - request with Correct account details & Same Order reference
-        orderPaymentDto.setAccountNumber("PBAFUNC12345");
+        // 2. Payment success scenario - request with Correct account details & Same ServiceRequest reference
+        serviceRequestPaymentDto.setAccountNumber("PBAFUNC12345");
         String newIdempotencyKey = UUID.randomUUID().toString(); //changed idempotency Key
 
         MvcResult accountSuccessResult = restActions
             .withHeaderIfpresent("idempotency_key", newIdempotencyKey)
-            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isCreated())
             .andReturn();
 
-        OrderPaymentBo duplicateRequestOrderPaymentBO = objectMapper.readValue(accountSuccessResult.getResponse().getContentAsByteArray(), OrderPaymentBo.class);
+        ServiceRequestPaymentBo duplicateRequestServiceRequestPaymentBO = objectMapper.readValue(accountSuccessResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
 
         //Response should be success this time
-        assertNotEquals(paymentReference, duplicateRequestOrderPaymentBO.getPaymentReference());
-        assertEquals("success", duplicateRequestOrderPaymentBO.getStatus());
+        assertNotEquals(paymentReference, duplicateRequestServiceRequestPaymentBO.getPaymentReference());
+        assertEquals("success", duplicateRequestServiceRequestPaymentBO.getStatus());
     }
 
     @Test
@@ -313,10 +313,10 @@ public class ServiceRequestControllerTest {
         when(accountService.retrieve("PBA1111")).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         when(accountService.retrieve("PBA2222")).thenThrow(new RuntimeException("Runtime exception"));
 
-        String orderReference = getOrderReference();
+        String ServiceRequestReference = getServiceRequestReference();
 
-        //Order Payment DTO
-        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA1111")
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
@@ -326,30 +326,30 @@ public class ServiceRequestControllerTest {
         // 1. Account not found exception
         restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
-            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + ServiceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isNotFound())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof AccountNotFoundException))
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException().getMessage().contains("Account information could not be found")))
+            .andExpect(ServiceRequestException -> assertTrue(ServiceRequestException.getResolvedException() instanceof AccountNotFoundException))
+            .andExpect(ServiceRequestException -> assertTrue(ServiceRequestException.getResolvedException().getMessage().contains("Account information could not be found")))
             .andReturn();
 
         //AccountServiceUnAvailableException
-        orderPaymentDto.setAccountNumber("PBA2222"); //Account for runtime exception
+        serviceRequestPaymentDto.setAccountNumber("PBA2222"); //Account for runtime exception
 
         restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
-            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + ServiceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isGatewayTimeout())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof AccountServiceUnavailableException))
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException().getMessage().contains("Unable to retrieve account information, please try again later")))
+            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof AccountServiceUnavailableException))
+            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException().getMessage().contains("Unable to retrieve account information, please try again later")))
             .andReturn();
     }
 
     @Test
-    public void orderReferenceNotFoundExceptionServiceRequestDTOEqualsTest() throws Exception {
-        String orderReferenceNotPresent = "2021-1621352111111";
+    public void serviceRequestReferenceNotFoundExceptionServiceRequestDTOEqualsTest() throws Exception {
+        String serviceRequestReferenceNotPresent = "2021-1621352111111";
 
-        //Order Payment DTO
-        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
@@ -359,14 +359,14 @@ public class ServiceRequestControllerTest {
         //Payment amount should not be matching with fees
         MvcResult result = restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
-            .post("/order/" + orderReferenceNotPresent + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReferenceNotPresent + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isNotFound())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderReferenceNotFoundException))
-            .andExpect(orderException -> assertEquals("Order reference doesn't exist", orderException.getResolvedException().getMessage()))
+            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
+            .andExpect(serviceRequestException -> assertEquals("ServiceRequest reference doesn't exist", serviceRequestException.getResolvedException().getMessage()))
             .andReturn();
 
         //Equality test
-        OrderPaymentDto orderPaymentDto2 = OrderPaymentDto
+        ServiceRequestPaymentDto serviceRequestPaymentDto2 = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12345") //changed the account no
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
@@ -374,26 +374,26 @@ public class ServiceRequestControllerTest {
                 build();
 
         //assert not equal scenario
-        assertFalse(orderPaymentDto.equals(orderPaymentDto2));
+        assertFalse(serviceRequestPaymentDto.equals(serviceRequestPaymentDto2));
 
-        orderPaymentDto2.setCustomerReference("testCustReference");
+        serviceRequestPaymentDto2.setCustomerReference("testCustReference");
         //assert equal scenario
-        assertTrue(orderPaymentDto.equals(orderPaymentDto)); //same Object
-        assertTrue(orderPaymentDto.equals(orderPaymentDto2)); //Different Object
+        assertTrue(serviceRequestPaymentDto.equals(serviceRequestPaymentDto)); //same Object
+        assertTrue(serviceRequestPaymentDto.equals(serviceRequestPaymentDto2)); //Different Object
 
         //assert different class scenario
-        ServiceRequestDto orderDto = ServiceRequestDto.serviceRequestDtoWith().build();
-        assertFalse(orderPaymentDto.equals(orderDto));
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith().build();
+        assertFalse(serviceRequestPaymentDto.equals(serviceRequestDto));
 
         //Hashcode coverage
-        assertTrue(Integer.valueOf(orderPaymentDto.hashCode()) instanceof Integer);
+        assertTrue(Integer.valueOf(serviceRequestPaymentDto.hashCode()) instanceof Integer);
 
     }
 
     @Test
     public void createPBAInvalidCurrencyScenario() throws Exception {
-        //Order Payment DTO
-        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+        //serviceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
             .currency("INR") //instead of GBP
@@ -402,7 +402,7 @@ public class ServiceRequestControllerTest {
 
         restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
-            .post("/order/" + "2021-1621352112222" + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + "2021-1621352112222" + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isUnprocessableEntity())
             .andExpect(content().string("validCurrency: Invalid currency. Accepted value GBP"));
     }
@@ -411,24 +411,24 @@ public class ServiceRequestControllerTest {
     @Test
     public void createPBAPaymentNonMatchAmountTest() throws Exception {
 
-        //Order Payment DTO
-        OrderPaymentDto orderPaymentDto = OrderPaymentDto
+        //serviceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
             .paymentDtoWith().accountNumber("PBA12345")
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
             .customerReference("testCustReference").
                 build();
 
-        //Order reference creation
-        String orderReference = getOrderReference();
+        //serviceRequest reference creation
+        String serviceRequestReference = getServiceRequestReference();
 
         //Payment amount should not be matching with fees
         MvcResult result = restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
-            .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isExpectationFailed())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoMatchingAmount))
-            .andExpect(orderException -> assertEquals("The order amount should be equal to order balance", orderException.getResolvedException().getMessage()))
+            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestExceptionForNoMatchingAmount))
+            .andExpect(serviceRequestException -> assertEquals("The amount should be equal to serviceRequest balance", serviceRequestException.getResolvedException().getMessage()))
             .andReturn();
 
     }
@@ -462,7 +462,7 @@ public class ServiceRequestControllerTest {
         serviceRequestFeeDtoList.add(getFee());
         serviceRequestFeeDtoList.add(getFee());
 
-        ServiceRequestDto orderDto = ServiceRequestDto.serviceRequestDtoWith()
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .caseReference("123245677")
             .hmctsOrgId("MoneyClaimCase")
             .ccdCaseNumber("8689869686968696")
@@ -472,7 +472,7 @@ public class ServiceRequestControllerTest {
             .build();
 
         restActions
-            .post("/service-request", orderDto)
+            .post("/service-request", serviceRequestDto)
             .andExpect(status().isUnprocessableEntity())
             .andExpect(content().string("feeCodeUnique: Fee code cannot be duplicated"));
     }
@@ -553,7 +553,7 @@ public class ServiceRequestControllerTest {
         return casePaymentRequest;
     }
 
-    private String getOrderReference() throws Exception {
+    private String getServiceRequestReference() throws Exception {
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .caseReference("123245677")
             .hmctsOrgId("MoneyClaimCase")
@@ -568,10 +568,10 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        Map orderReferenceResultMaps = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
-        String orderReferenceResult = orderReferenceResultMaps.get("service_request_reference").toString();
-        assertNotNull(orderReferenceResult);
-        return orderReferenceResult;
+        Map serviceRequestReferenceResultMaps = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
+        String serviceRequestReferenceResult = serviceRequestReferenceResultMaps.get("service_request_reference").toString();
+        assertNotNull(serviceRequestReferenceResult);
+        return serviceRequestReferenceResult;
     }
 
 }

@@ -13,8 +13,8 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
-public class OrderDomainServiceTest2 {
+public class ServiceRequestDomainServiceTest2 {
 
     @InjectMocks
     private ServiceRequestDomainServiceImpl orderDomainService;

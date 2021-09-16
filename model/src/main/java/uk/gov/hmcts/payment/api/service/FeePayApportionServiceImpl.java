@@ -77,7 +77,7 @@ public class FeePayApportionServiceImpl implements FeePayApportionService {
         try {
             Optional<List<PaymentFee>> savedFees;
 
-            //Fees against order / paymentgroup
+            //Fees against service Request / paymentgroup
             savedFees = paymentFeeRepository.findByPaymentLinkId(payment.getPaymentLink().getId());
 
             if (savedFees.isPresent()) {
