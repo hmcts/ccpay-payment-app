@@ -60,6 +60,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNo
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -315,6 +316,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream()
             .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("created") && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay"))
             .filter(payment -> payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
+            .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
             .findFirst();
 
         if (!existedPayment.isEmpty()) {

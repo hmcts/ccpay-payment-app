@@ -17,7 +17,6 @@ import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.external.client.exceptions.GovPayException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
@@ -45,13 +44,6 @@ public class RestErrorHandler {
 
     @ExceptionHandler({CpoInternalServerErrorException.class, CheckDigitException.class})
     public ResponseEntity return500(Exception ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler({GovPayException.class})
-    public ResponseEntity returnGovPay500(GovPayException ex) {
-        LOG.info("Gov pay exception : ", ex.getLocalizedMessage());
-        LOG.info("Gov pay exception : ", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
