@@ -157,12 +157,12 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         //General business validation
         businessValidationForOnlinePaymentServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
-        
+
         //If exist, will cancel existing payment channel session with gov pay
         checkOnlinePaymentAlreadyExistWithCreatedState(serviceRequestOrder);
 
         //Payment - Boundary Object
-        ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(serviceRequestOrder, onlineCardPaymentRequest, returnURL, serviceCallbackURL);
+        ServiceRequestOnlinePaymentBo requestOnlinePaymentBo = serviceRequestDtoDomainMapper.toDomain(onlineCardPaymentRequest, returnURL, serviceCallbackURL);
 
         // GovPay - Request and creation
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);

@@ -12,7 +12,6 @@ import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -61,12 +60,12 @@ public class ServiceRequestDtoDomainMapper {
     }
 
 
-    public ServiceRequestOnlinePaymentBo toDomain(PaymentFeeLink paymentFeeLink, OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
+    public ServiceRequestOnlinePaymentBo toDomain(OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
         return ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
             .paymentReference(referenceUtil.getNext("RC"))
             .s2sServiceName(serviceIdSupplier.get())
             .userId(userIdSupplier.get())
-            .description("") // check with lead/BA
+            .description("card payment")
             .returnUrl(returnUrl)
             .currency(request.getCurrency().getCode())
             .amount(request.getAmount())
