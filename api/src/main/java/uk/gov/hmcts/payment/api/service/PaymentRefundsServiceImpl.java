@@ -27,10 +27,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -177,14 +174,20 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
     private void validateThePaymentBeforeInitiatingRefund(Payment payment) {
-        //payment success check
-        if (!paymentSuccessCheck.test(payment)) {
-            throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
-        }
         //payment should be PBA check
         if (!checkIfPaymentIsPBA.test(payment)) {
             throw new NonPBAPaymentException("Refund currently supported for PBA Payment Channel only");
         }
+
+        //payment success check
+        if (!paymentSuccessCheck.test(payment)) {
+            throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
+        }
+
+
+//        if(payment.getDateCreated().compareTo(new Date())==4){
+//            throw new InvalidRefundRequestException("Refund can be raised 4 days after the payment made");
+//        }
     }
 
 

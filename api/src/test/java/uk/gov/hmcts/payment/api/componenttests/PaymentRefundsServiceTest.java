@@ -126,6 +126,7 @@ public class PaymentRefundsServiceTest {
     public void createRefundWithFailedReference() throws Exception {
 
         Payment mockPaymentFailed = Payment.paymentWith().reference("RC-1234-1234-1234-1234")
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
             .paymentStatus(PaymentStatus.paymentStatusWith().name("Failed").build())
             .build();
 
