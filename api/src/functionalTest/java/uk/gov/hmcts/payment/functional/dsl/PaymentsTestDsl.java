@@ -112,7 +112,7 @@ public class PaymentsTestDsl {
         }
 
         public PaymentWhenDsl createServiceRequestCreditAccountPayment(ServiceRequestPaymentDto serviceRequestPaymentDto, String serviceRequestReference, String idempotencyKey){
-            response=newRequest().contentType(ContentType.JSON).header("idempotency_key",idempotencyKey).body(serviceRequestPaymentDto).post("/serviceRequest/{serviceRequest-reference}/credit-account-payment",serviceRequestReference);
+            response=newRequest().contentType(ContentType.JSON).header("idempotency_key",idempotencyKey).body(serviceRequestPaymentDto).post("/service-request/{service_request_reference}/pba-payments",serviceRequestReference);
             return this;
         }
 
