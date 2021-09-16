@@ -129,10 +129,10 @@ public class PBAController {
         } catch (HttpClientErrorException httpClientErrorException) {
             LOG.info("Exception : {} ",httpClientErrorException.getMessage());
             throw new PaymentException(httpClientErrorException.getMessage());
-        } catch (Exception exception) {
+        } /*catch (Exception exception) {
             LOG.info("Exception : {} ",exception.getMessage());
             throw new PaymentException(exception.getMessage());
-        }
+        }*/
     }
 
     private ResponseEntity<OrganisationEntityResponse> getDetailsFromRefData(MultiValueMap<String, String> headerMultiValueMapForRefData) {
