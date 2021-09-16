@@ -44,11 +44,9 @@ public class PBAController {
 
     private final PaymentDtoMapper paymentDtoMapper;
 
-    @Autowired
-    private IdamService idamService;
+    private final IdamService idamService;
 
-    @Autowired
-    private AuthTokenGenerator authTokenGenerator;
+    private final AuthTokenGenerator authTokenGenerator;
 
     @Autowired()
     @Qualifier("restTemplateRefData")
@@ -63,9 +61,11 @@ public class PBAController {
     private String refDataBaseURL;
 
     @Autowired
-    public PBAController(PaymentService<PaymentFeeLink, String> paymentService, PaymentDtoMapper paymentDtoMapper) {
+    public PBAController(PaymentService<PaymentFeeLink, String> paymentService, PaymentDtoMapper paymentDtoMapper, IdamService idamService, AuthTokenGenerator authTokenGenerator ) {
         this.paymentService = paymentService;
         this.paymentDtoMapper = paymentDtoMapper;
+        this.idamService = idamService;
+        this.authTokenGenerator = authTokenGenerator;
     }
 
     @ApiOperation(value = "Get payments for a PBA account", notes = "Get list of payments")
@@ -117,8 +117,9 @@ public class PBAController {
             "Content-Type",
             headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type")
         );
+        LOG.info("user token : {} ",headers.get("Authorization"));
         //User token
-        headerMultiValueMapForRefData.put("Authorization", headers.get("authorization"));
+        headerMultiValueMapForRefData.put("Authorization", headers.get("Authorization"));
         //Service token
         headerMultiValueMapForRefData.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         headerMultiValueMapForRefData.put("UserEmail", email);
