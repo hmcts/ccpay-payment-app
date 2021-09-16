@@ -8,12 +8,12 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 
 @Component
-public class OrderCaseUtil {
+public class ServiceRequestCaseUtil {
 
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
-    public void updateOrderCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
+    public void updateServiceRequestCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
 
         if (payment.getCcdCaseNumber() != null) {
             paymentFeeLink.setCcdCaseNumber(payment.getCcdCaseNumber());
@@ -25,7 +25,7 @@ public class OrderCaseUtil {
         paymentFeeLink.setOrgId(payment.getSiteId());
     }
 
-    public void updateOrderCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
+    public void updateServiceRequestCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
         if (remission.getCcdCaseNumber() != null) {
             paymentFeeLink.setCcdCaseNumber(remission.getCcdCaseNumber());
         }
@@ -35,7 +35,7 @@ public class OrderCaseUtil {
         paymentFeeLink.setOrgId(remission.getSiteId());
     }
 
-    public PaymentFeeLink enhanceWithOrderCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
+    public PaymentFeeLink enhanceWithServiceRequestCaseDetails(PaymentFeeLink paymentFeeLink, Payment payment) {
 
         paymentFeeLink.setOrgId(payment.getSiteId());
         paymentFeeLink.setEnterpriseServiceName(payment.getServiceType());
@@ -48,7 +48,7 @@ public class OrderCaseUtil {
         return paymentFeeLink;
     }
 
-    public PaymentFeeLink enhanceWithOrderCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
+    public PaymentFeeLink enhanceWithServiceRequestCaseDetails(PaymentFeeLink paymentFeeLink, RemissionServiceRequest remission) {
 
         paymentFeeLink.setOrgId(remission.getSiteId());
         if (remission.getCcdCaseNumber() != null) {
