@@ -314,8 +314,9 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //Already created state payment existed, then cancel gov pay section present
         Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
         Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream()
-            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("created") && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay"))
-            .filter(payment -> payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
+            .filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("created")
+                && payment.getPaymentProvider().getName().equalsIgnoreCase("gov pay")
+                && payment.getDateCreated().compareTo(ninetyMinAgo) >= 0)
             .sorted(Comparator.comparing(Payment::getDateCreated).reversed())
             .findFirst();
 
