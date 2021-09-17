@@ -155,7 +155,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //find service request
         PaymentFeeLink serviceRequestOrder = paymentFeeLinkRepository.findByPaymentReference(serviceRequestReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("Order reference doesn't exist"));
 
-
         //General business validation
         businessValidationForOnlinePaymentServiceRequestOrder(serviceRequestOrder, onlineCardPaymentRequest);
 
@@ -310,7 +309,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
     }
 
-    private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink) {
+    private void checkOnlinePaymentAlreadyExistWithCreatedState(PaymentFeeLink paymentFeeLink)  {
         //Already created state payment existed, then cancel gov pay section present
         Date ninetyMinAgo = new Date(System.currentTimeMillis() - 90 * 60 * 1000);
         Optional<Payment> existedPayment = paymentFeeLink.getPayments().stream()
