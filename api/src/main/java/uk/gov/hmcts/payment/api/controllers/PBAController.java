@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.dto.OrganisationEntityResponse;
+import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
@@ -61,7 +61,7 @@ public class PBAController {
     private String refDataBaseURL;
 
     @Autowired
-    public PBAController(PaymentService<PaymentFeeLink, String> paymentService, PaymentDtoMapper paymentDtoMapper, IdamService idamService, AuthTokenGenerator authTokenGenerator ) {
+    public PBAController(PaymentService<PaymentFeeLink, String> paymentService, PaymentDtoMapper paymentDtoMapper, IdamService idamService, AuthTokenGenerator authTokenGenerator) {
         this.paymentService = paymentService;
         this.paymentDtoMapper = paymentDtoMapper;
         this.idamService = idamService;
@@ -94,7 +94,7 @@ public class PBAController {
     })
     @GetMapping(value = "/pba-accounts")
     @PaymentExternalAPI
-    public ResponseEntity<OrganisationEntityResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
+    public ResponseEntity<PBAResponse> retrievePBADetails(@RequestHeader(required = false) MultiValueMap<String, String> headers) {
 
         String userId = idamService.getUserId(headers);
         LOG.info("User Id retrieved from IDAM : {} ",userId);
@@ -102,40 +102,42 @@ public class PBAController {
         String emailId = userIdentityDataDto.getEmailId();
         LOG.info("emailId retrieved from IDAM : {} ",emailId);
 
+        MultiValueMap<String, String> headerMultiValueMapForRefData = generateHeaders(headers, emailId);
 
+        try {
+            ResponseEntity<PBAResponse> response = getDetailsFromRefData(headerMultiValueMapForRefData);
+            return response;
+        } catch (HttpClientErrorException httpClientErrorException) {
+            LOG.info("Exception : {} ",httpClientErrorException.getMessage());
+            throw new PaymentException(httpClientErrorException.getMessage());
+        } /*catch (Exception exception) {
+            throw new PaymentException(exception.getMessage());
+        }*/
+    }
+
+    private MultiValueMap<String, String> generateHeaders(MultiValueMap<String, String> headers, String emailId) {
         //Generate token for payment api and replace
         List<String> serviceAuthTokenPaymentList = new ArrayList<>();
         serviceAuthTokenPaymentList.add(authTokenGenerator.generate());
 
-        LOG.info("serviceAuthTokenPaymentList : {} ",serviceAuthTokenPaymentList.get(0));
         //Add email address retrieved from IDAM to invoke ref data end point
         List<String> email = new ArrayList<>();
         email.add(emailId);
 
-        MultiValueMap<String, String> headerMultiValueMapForRefData = new LinkedMultiValueMap<>();
+        MultiValueMap<String, String> headerMultiValueMapForRefData = new LinkedMultiValueMap<String, String>();
         headerMultiValueMapForRefData.put(
             "Content-Type",
             headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type")
         );
-        LOG.info("user token : {} ",headers.get("Authorization"));
         //User token
         headerMultiValueMapForRefData.put("Authorization", headers.get("Authorization"));
         //Service token
         headerMultiValueMapForRefData.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         headerMultiValueMapForRefData.put("UserEmail", email);
-
-        try {
-            return getDetailsFromRefData(headerMultiValueMapForRefData);
-        } catch (HttpClientErrorException httpClientErrorException) {
-            LOG.info("Exception : {} ",httpClientErrorException.getMessage());
-            throw new PaymentException(httpClientErrorException.getMessage());
-        } /*catch (Exception exception) {
-            LOG.info("Exception : {} ",exception.getMessage());
-            throw new PaymentException(exception.getMessage());
-        }*/
+        return headerMultiValueMapForRefData;
     }
 
-    private ResponseEntity<OrganisationEntityResponse> getDetailsFromRefData(MultiValueMap<String, String> headerMultiValueMapForRefData) {
+    private ResponseEntity<PBAResponse> getDetailsFromRefData(MultiValueMap<String, String> headerMultiValueMapForRefData) {
         HttpHeaders headersForRefData = new HttpHeaders(headerMultiValueMapForRefData);
         final HttpEntity<String> entity = new HttpEntity<>(headersForRefData);
 
@@ -145,7 +147,7 @@ public class PBAController {
             .exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
-                entity, OrganisationEntityResponse.class
+                entity, PBAResponse.class
             );
     }
 }
