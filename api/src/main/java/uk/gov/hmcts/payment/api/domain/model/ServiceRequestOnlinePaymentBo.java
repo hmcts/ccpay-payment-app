@@ -33,6 +33,5 @@ public class ServiceRequestOnlinePaymentBo {
     private String userId;
     private String s2sServiceName;
     private BigDecimal amount;
-
-
+    
 }
