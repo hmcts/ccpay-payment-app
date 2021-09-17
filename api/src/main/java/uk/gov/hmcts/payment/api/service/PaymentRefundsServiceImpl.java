@@ -116,6 +116,8 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
                     .refundAmount(remissionAmount)
                     .refundReference(postToRefundService(refundRequest, headers)).build();
                 return new ResponseEntity<>(refundResponse, HttpStatus.CREATED);
+            }else{
+                throw new PaymentNotSuccessException("Refund can be possible if payment is successful");
             }
 
         }
