@@ -6,6 +6,8 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
@@ -21,6 +23,8 @@ public interface ServiceRequestDomainService {
 
     ServiceRequestResponseDto create(ServiceRequestDto orderDto, MultiValueMap<String, String> headers);
 
+    OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException;
+
     OrderPaymentBo addPayments(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException;
 
     PaymentFeeLink businessValidationForOrders(PaymentFeeLink order, OrderPaymentDto orderPaymentDto);
@@ -29,4 +33,5 @@ public interface ServiceRequestDomainService {
                                            String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException;
 
     Boolean isDuplicate(String orderReference);
+
 }
