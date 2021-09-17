@@ -2,11 +2,13 @@ package uk.gov.hmcts.payment.api.controllers;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -21,19 +23,27 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
-import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.external.client.GovPayClient;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -46,10 +56,21 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingA
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -80,6 +101,12 @@ public class ServiceRequestControllerTest {
     private AccountService<AccountDto, String> accountService;
     private RestActions restActions;
 
+    @Spy
+    private DelegatingPaymentService<GovPayPayment, String> delegateGovPay;
+
+    @MockBean
+    private GovPayClient govPayClient;
+
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
 
@@ -107,7 +134,7 @@ public class ServiceRequestControllerTest {
             .serviceDescription("DIVORCE")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(organisationalServiceDto);
 
     }
 
@@ -192,7 +219,7 @@ public class ServiceRequestControllerTest {
             .post("/order/" + orderReferenceResult + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isPreconditionFailed())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoAmountDue))
-            .andExpect(orderException -> assertEquals("The order has already been paid", orderException.getResolvedException().getMessage()))
+            .andExpect(orderException -> assertEquals("The service request has already been paid", orderException.getResolvedException().getMessage()))
             .andReturn();
     }
 
@@ -361,7 +388,7 @@ public class ServiceRequestControllerTest {
             .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/order/" + orderReferenceNotPresent + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isNotFound())
-            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderReferenceNotFoundException))
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
             .andExpect(orderException -> assertEquals("Order reference doesn't exist", orderException.getResolvedException().getMessage()))
             .andReturn();
 
@@ -428,7 +455,7 @@ public class ServiceRequestControllerTest {
             .post("/order/" + orderReference + "/credit-account-payment", orderPaymentDto)
             .andExpect(status().isExpectationFailed())
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof OrderExceptionForNoMatchingAmount))
-            .andExpect(orderException -> assertEquals("The order amount should be equal to order balance", orderException.getResolvedException().getMessage()))
+            .andExpect(orderException -> assertEquals("The payment amount should be equal to order balance", orderException.getResolvedException().getMessage()))
             .andReturn();
 
     }
@@ -489,7 +516,7 @@ public class ServiceRequestControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
 
         restActions
             .post("/service-request", serviceRequestDto)
@@ -509,13 +536,85 @@ public class ServiceRequestControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
 
         restActions
             .post("/service-request", serviceRequestDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
     }
+
+
+    @Test
+    public void createSuccessOnlinePayment() throws Exception {
+        //Creation of Order-reference
+        String orderReferenceResult = getOrderReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "idempotencyKey")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+    }
+
+
+    @Test
+    public void createMultipleOnlinePaymentByCancelingSessionWithGovPay4PaymentWithCreatedStatusWithIn90Mins() throws Exception {
+        //Creation of Order-reference
+        String orderReferenceResult = getOrderReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "dummy")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+        Thread.sleep(1000); //just to resemble minutes changes to create new payment
+
+        MvcResult result1 = restActions
+            .withHeader("service-callback-url", "dummy")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+    }
+
+    private GovPayPayment getGovPayPayment() {
+        return GovPayPayment.govPaymentWith()
+            .amount(300)
+            .state(new State("created", false, null, null))
+            .description("description")
+            .reference("reference")
+            .paymentId("paymentId")
+            .paymentProvider("sandbox")
+            .returnUrl("https://www.google.com")
+            .links(GovPayPayment.Links.linksWith().nextUrl(new Link("any", ImmutableMap.of(), "cancelHref", "any")).build())
+            .build();
+    }
+
 
     private ServiceRequestFeeDto getFee() {
         return ServiceRequestFeeDto.feeDtoWith()
@@ -544,7 +643,7 @@ public class ServiceRequestControllerTest {
         return Arrays.asList(fee1, fee2);
     }
 
-    private CasePaymentRequest getCasePaymentRequest(){
+    private CasePaymentRequest getCasePaymentRequest() {
         CasePaymentRequest casePaymentRequest = CasePaymentRequest.casePaymentRequestWith()
             .action("action")
             .responsibleParty("party")
