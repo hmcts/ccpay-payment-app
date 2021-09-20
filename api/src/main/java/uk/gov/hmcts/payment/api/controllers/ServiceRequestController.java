@@ -62,7 +62,13 @@ public class ServiceRequestController {
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
-        return new ResponseEntity<>(serviceRequestDomainService.create(serviceRequestDto, headers), HttpStatus.CREATED);
+
+        ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
+            create(serviceRequestDto, headers), HttpStatus.CREATED);
+
+        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
+
+        return serviceRequestResponseDto;
     }
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
