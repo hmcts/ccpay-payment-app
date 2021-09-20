@@ -29,4 +29,6 @@ public interface ServiceRequestDomainService {
                                            String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException;
 
     Boolean isDuplicate(String orderReference);
+
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
 }
