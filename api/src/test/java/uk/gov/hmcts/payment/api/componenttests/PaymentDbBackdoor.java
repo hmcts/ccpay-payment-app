@@ -43,5 +43,11 @@ public class PaymentDbBackdoor {
         return paymentRepository.findByCcdCaseNumber(ccdCaseNumber).orElseThrow(PaymentNotFoundException::new);
     }
 
+    public void createPayment(final Payment payment) {
+        paymentRepository.save(payment);
+    }
 
+    public void deletePayment(final Payment payment) {
+        paymentRepository.delete(payment);
+    }
 }

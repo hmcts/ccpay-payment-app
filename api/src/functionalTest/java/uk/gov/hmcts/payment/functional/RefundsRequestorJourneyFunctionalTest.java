@@ -365,7 +365,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         assertThat(refundResponseDuplicate.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(refundResponseDuplicate.getBody().asString()).isEqualTo("Refund is already processed for this payment");
+        assertThat(refundResponseDuplicate.getBody().asString()).isEqualTo("Refund is already requested for this payment");
     }
 
     @Test
@@ -692,8 +692,8 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Fee id Not Found Issue")
-    public void test_negative_add_remission_and_initiate_a_refund_for_a_pba_payment_more_than_the_account_limit() {
+    //@Ignore("Fee id Not Found Issue")
+    public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
@@ -702,8 +702,8 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Fee id Not Found Issue")
-    public void test_negative_add_remission_and_initiate_a_refund_for_a_pba_payment_with_account_deleted() {
+    //@Ignore("Fee id Not Found Issue")
+    public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
@@ -712,8 +712,8 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Fee id Not Found Issue")
-    public void test_negative_add_remission_and_initiate_a_refund_for_a_pba_payment_with_account_on_hold() {
+    //@Ignore("Fee id Not Found Issue")
+    public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
@@ -751,7 +751,7 @@ public class RefundsRequestorJourneyFunctionalTest {
 
         // Get pba payments by accountNumber
         PaymentsResponse paymentsResponse = paymentTestService
-            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
+            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, accountNumber)
             .then()
             .statusCode(OK.value()).extract().as(PaymentsResponse.class);
 
