@@ -1,23 +1,27 @@
 package uk.gov.hmcts.payment.api.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-//@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder(builderMethodName = "pbaDtoWith")
+public class PBAResponse{
+    public OrganisationEntityResponse organisationEntityResponse;
+}
+
 class SuperUser{
     public String firstName;
     public String lastName;
     public String email;
 }
-
- class OrganisationEntityResponse{
+class OrganisationEntityResponse{
     public String name;
     public String organisationIdentifier;
     public String status;
@@ -29,6 +33,4 @@ class SuperUser{
     public List<String> paymentAccount;
 }
 
-public class PBAResponse{
-    public OrganisationEntityResponse organisationEntityResponse;
-}
+

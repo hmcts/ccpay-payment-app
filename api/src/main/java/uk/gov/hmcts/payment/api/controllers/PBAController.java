@@ -6,16 +6,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -110,9 +104,9 @@ public class PBAController {
         } catch (HttpClientErrorException httpClientErrorException) {
             LOG.info("Exception : {} ",httpClientErrorException.getMessage());
             throw new PaymentException(httpClientErrorException.getMessage());
-        } /*catch (Exception exception) {
+        }catch (Exception exception) {
             throw new PaymentException(exception.getMessage());
-        }*/
+        }
     }
 
     private MultiValueMap<String, String> generateHeaders(MultiValueMap<String, String> headers, String emailId) {
@@ -125,10 +119,7 @@ public class PBAController {
         email.add(emailId);
 
         MultiValueMap<String, String> headerMultiValueMapForRefData = new LinkedMultiValueMap<String, String>();
-        headerMultiValueMapForRefData.put(
-            "Content-Type",
-            headers.get("content-type") == null ? List.of("application/json") : headers.get("content-type")
-        );
+        headerMultiValueMapForRefData.put("Content-Type", List.of("application/json"));
         //User token
         headerMultiValueMapForRefData.put("Authorization", headers.get("Authorization"));
         //Service token
@@ -149,5 +140,12 @@ public class PBAController {
                 HttpMethod.GET,
                 entity, PBAResponse.class
             );
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PaymentException.class)
+    public String return400(PaymentException ex) {
+        LOG.error("Error while processing payment request:", ex);
+        return ex.getMessage();
     }
 }
