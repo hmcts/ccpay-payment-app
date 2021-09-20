@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -35,14 +34,15 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
+
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 public class IdamServiceTest{
 
-    @Mock
+    @InjectMocks
     private IdamServiceImpl idamService;
 
-    @MockBean
+    @Mock
     @Qualifier("restTemplateIdam")
     private RestTemplate restTemplateIdam;
 
@@ -85,46 +85,13 @@ public class IdamServiceTest{
     @Test
     public void getResponseOnValidToken1() throws Exception {
 
-        /*MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
-        header.put("authorization", Collections.singletonList("Bearer 131313"));
-
-        IdamUserIdResponse mockIdamUserIdResponse = IdamUserIdResponse.idamUserIdResponseWith()
-            .familyName("VP")
-            .givenName("VP")
-            .name("VP")
-            .sub("V_P@gmail.com")
-            .roles(Arrays.asList("vp"))
-            .uid("986-erfg-kjhg-123")
-            .build();
-
-        ResponseEntity<IdamUserIdResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
-
-        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(IdamUserIdResponse.class)
-        )).thenReturn(responseEntity);*/
-
         MultiValueMap<String, String> header1 = new LinkedMultiValueMap<String, String>();
         header1.put("authorization", Collections.singletonList("Bearer 131313"));
 
         UserIdentityDataDto mockIdamUserIdResponse1 = UserIdentityDataDto.userIdentityDataWith()
             .fullName("abc")
-            .emailId("abc@gmail.com")
+            .emailId("mockfullname@gmail.com")
             .build();
-
-
-/*        IdamFullNameRetrivalResponse[] idamFullNameCCDSearchRefundListSupplier = new IdamFullNameRetrivalResponse[]{IdamFullNameRetrivalResponse
-            .idamFullNameRetrivalResponseWith()
-            .id(IDAM_USER_ID)
-            .email("mockfullname@gmail.com")
-            .forename("mock-Forename")
-            .surname("mock-Surname")
-            .roles(List.of("Refund-approver", "Refund-admin"))
-            .build()};
-        ResponseEntity<IdamFullNameRetrivalResponse[]> responseEntity1 = new ResponseEntity<>(idamFullNameCCDSearchRefundListSupplier, HttpStatus.OK);
-
-        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
-            eq(new ParameterizedTypeReference<IdamFullNameRetrivalResponse[]>() {}))).thenReturn(responseEntity1);*/
-
 
         mockIdamFullNameCall(IDAM_USER_ID, idamFullNameCCDSearchRefundListSupplier.get());
 
@@ -182,6 +149,8 @@ public class IdamServiceTest{
         MultiValueMap<String, String> header = new LinkedMultiValueMap<String, String>();
         header.put("authorization", Collections.singletonList("Bearer 131313"));
 
+        ResponseEntity<IdamFullNameRetrivalResponse[]> responseForFullNameCCDUserId =
+            new ResponseEntity<>(idamFullNameCCDSearchRefundListSupplier.get(), HttpStatus.OK);
         when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(IdamFullNameRetrivalResponse[].class)
         )).thenThrow(new UserNotFoundException("User Not Found"));
@@ -216,8 +185,7 @@ public class IdamServiceTest{
             .queryParam("query", "id:" + userId);
         ResponseEntity<IdamFullNameRetrivalResponse[]> responseForFullNameCCDUserId =
             new ResponseEntity<>(idamFullNameRetrivalResponse, HttpStatus.OK);
-        when(restTemplateIdam.exchange(eq(builderCCDSearchURI.toUriString())
-            , HttpMethod.GET, any(HttpEntity.class),
+        when(restTemplateIdam.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(IdamFullNameRetrivalResponse[].class)
         )).thenReturn(responseForFullNameCCDUserId);
     }
