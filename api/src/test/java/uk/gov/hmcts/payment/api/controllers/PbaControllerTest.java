@@ -10,17 +10,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
+import uk.gov.hmcts.payment.api.dto.PBAResponse;
 import uk.gov.hmcts.payment.api.dto.UserIdentityDataDto;
 import uk.gov.hmcts.payment.api.service.IdamService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -32,7 +38,7 @@ import java.math.BigDecimal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -131,9 +137,10 @@ public class PbaControllerTest extends PaymentsDataUtil {
         PaymentsResponse paymentsResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PaymentsResponse.class);
 
         assertEquals(1, paymentsResponse.getPayments().size());
-        assertEquals(netAmount,  paymentsResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount());
+        assertEquals(netAmount, paymentsResponse.getPayments().get(0).getFees().get(0).getCalculatedAmount());
         assertNotNull("net_amount should be set", paymentsResponse.getPayments().get(0).getFees().get(0).getNetAmount());
     }
+
     @Test
     @Transactional
     public void getPBAAccountsFromRefDataSuccess() throws Exception {
@@ -145,13 +152,64 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
         when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID);
         when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
-        BigDecimal calculatedAmount = new BigDecimal("13.33");
-        BigDecimal netAmount = new BigDecimal("23.33");
-        populateCreditAccountPaymentToDbWithNetAmountForFee("1", calculatedAmount, netAmount);
+
+        PBAResponse mockIdamUserIdResponse = PBAResponse.pbaDtoWith().organisationEntityResponse(null)
+            .build();
+
+        ResponseEntity<PBAResponse> responseEntity = new ResponseEntity<>(mockIdamUserIdResponse, HttpStatus.OK);
+
+        when(restTemplateRefData.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(PBAResponse.class)
+        )).thenReturn(responseEntity);
 
         MvcResult result = restActions
             .get("/pba-accounts")
-            .andExpect(status().is2xxSuccessful())
+            .andExpect(status().isOk())
+            .andReturn();
+        PBAResponse pbaResponse = objectMapper.readValue(result.getResponse().getContentAsString(), PBAResponse.class);
+        assertNotNull(pbaResponse);
+
+    }
+
+    @Test
+    @Transactional
+    public void getPBAAccountsFromRefDataFailureForRuntimeException() throws Exception {
+
+        UserIdentityDataDto userIdentityDataDto = UserIdentityDataDto.userIdentityDataWith()
+            .emailId("j@mail.com")
+            .fullName("ccd-full-name")
+            .build();
+
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID);
+        when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
+        when(restTemplateRefData.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(PBAResponse.class)
+        )).thenThrow(new RuntimeException());
+
+        MvcResult result = restActions
+            .get("/pba-accounts")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    @Transactional
+    public void getPBAAccountsFromRefDataFailureForBadRequest() throws Exception {
+
+        UserIdentityDataDto userIdentityDataDto = UserIdentityDataDto.userIdentityDataWith()
+            .emailId("j@mail.com")
+            .fullName("ccd-full-name")
+            .build();
+
+        when(idamService.getUserId(any())).thenReturn(IDAM_USER_ID);
+        when(idamService.getUserIdentityData(any(), any())).thenReturn(userIdentityDataDto);
+        when(restTemplateRefData.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
+            eq(PBAResponse.class)
+        )).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "bad request"));
+
+        MvcResult result = restActions
+            .get("/pba-accounts")
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 }
