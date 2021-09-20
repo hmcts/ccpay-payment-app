@@ -23,6 +23,7 @@ public class SpringSecurityConfiguration {
 
     private static final String CITIZEN_ROLE = "citizen";
     private static final String PAYMENTS_ROLE = "payments";
+    private static final String REFUNDS_ROLE = "payments-refund";
 
     @Configuration
     @Order(1)
@@ -102,6 +103,9 @@ public class SpringSecurityConfiguration {
                 .antMatchers(HttpMethod.GET, "/card-payments/*/details").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
                 .antMatchers(HttpMethod.GET, "/pba-accounts/*/payments").hasAnyAuthority(PAYMENTS_ROLE,"pui-finance-manager","caseworker-cmc-solicitor", "caseworker-publiclaw-solicitor", "caseworker-probate-solicitor", "caseworker-financialremedy-solicitor", "caseworker-divorce-solicitor")
                 .antMatchers(HttpMethod.GET, "/card-payments/*/status").hasAnyAuthority(PAYMENTS_ROLE, CITIZEN_ROLE)
+                .antMatchers(HttpMethod.GET, "/refund-for-payment").hasAuthority(REFUNDS_ROLE)
+                .antMatchers(HttpMethod.GET, "/refund-retro-remission").hasAuthority(REFUNDS_ROLE)
+                .antMatchers(HttpMethod.GET, "/refund/resubmit/*").hasAuthority(REFUNDS_ROLE)
                 .antMatchers(HttpMethod.GET, "/reference-data/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/case-payment-orders**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/**").permitAll()
