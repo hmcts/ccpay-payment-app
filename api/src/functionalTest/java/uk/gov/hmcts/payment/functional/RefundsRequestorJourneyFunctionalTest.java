@@ -365,7 +365,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         assertThat(refundResponseDuplicate.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(refundResponseDuplicate.getBody().asString()).isEqualTo("Refund is already processed for this payment");
+        assertThat(refundResponseDuplicate.getBody().asString()).isEqualTo("Refund is already requested for this payment");
     }
 
     @Test
