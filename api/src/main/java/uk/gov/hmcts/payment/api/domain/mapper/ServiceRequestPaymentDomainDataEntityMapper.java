@@ -1,20 +1,18 @@
 package uk.gov.hmcts.payment.api.domain.mapper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.domain.model.Error;
-import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
-public class OrderPaymentDomainDataEntityMapper {
+public class ServiceRequestPaymentDomainDataEntityMapper {
 
     private final static String PAYMENT_CHANNEL_ONLINE = "online";
 
@@ -41,7 +39,7 @@ public class OrderPaymentDomainDataEntityMapper {
     @Autowired
     private UserIdSupplier userIdSupplier;
 
-    public Payment toEntity(OrderPaymentBo paymentBo, PaymentFeeLink order) {
+    public Payment toEntity(ServiceRequestPaymentBo paymentBo, PaymentFeeLink serviceRequest) {
 
         return Payment.paymentWith()
             .userId(userIdSupplier.get())
@@ -55,14 +53,14 @@ public class OrderPaymentDomainDataEntityMapper {
             .pbaNumber(paymentBo.getAccountNumber())
             .currency(paymentBo.getCurrency().getCode())
             .customerReference(paymentBo.getCustomerReference())
-            .caseReference(order.getCaseReference())
-            .ccdCaseNumber(order.getCcdCaseNumber())
-            .siteId(order.getOrgId())
-            .serviceType(order.getEnterpriseServiceName())
+            .caseReference(serviceRequest.getCaseReference())
+            .ccdCaseNumber(serviceRequest.getCcdCaseNumber())
+            .siteId(serviceRequest.getOrgId())
+            .serviceType(serviceRequest.getEnterpriseServiceName())
             .build();
     }
 
-    public OrderPaymentBo toDomain(Payment payment) {
+    public ServiceRequestPaymentBo toDomain(Payment payment) {
         AtomicReference<Error> error = new AtomicReference<>();
 
         if (Optional.ofNullable(payment.getStatusHistories()).isPresent()) {
@@ -75,7 +73,7 @@ public class OrderPaymentDomainDataEntityMapper {
             });
         }
 
-        return OrderPaymentBo.orderPaymentBoWith()
+        return ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
             .paymentReference(payment.getReference())
             .status(payment.getPaymentStatus().getName())
             .error(error.get() != null ? error.get() : null)
