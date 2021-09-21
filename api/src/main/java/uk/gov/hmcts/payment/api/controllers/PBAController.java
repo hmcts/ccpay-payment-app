@@ -125,6 +125,7 @@ public class PBAController {
         //Service token
         headerMultiValueMapForRefData.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         headerMultiValueMapForRefData.put("UserEmail", email);
+        LOG.info("headers to ref data : {}", headerMultiValueMapForRefData);
         return headerMultiValueMapForRefData;
     }
 
@@ -133,7 +134,7 @@ public class PBAController {
         final HttpEntity<String> entity = new HttpEntity<>(headersForRefData);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(refDataBaseURL+RETRIEVE_PBA_ENDPOINT);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.info("builder.toUriString() : {}", builder.toUriString());
         return restTemplateRefData
             .exchange(
                 builder.toUriString(),
