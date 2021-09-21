@@ -26,6 +26,7 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -121,7 +122,13 @@ public class PBAController {
         MultiValueMap<String, String> headerMultiValueMapForRefData = new LinkedMultiValueMap<String, String>();
         headerMultiValueMapForRefData.put("Content-Type", List.of("application/json"));
         //User token
-        headerMultiValueMapForRefData.put("Authorization", headers.get("Authorization"));
+
+        String userAuthorization = headers.get("authorization") == null ? headers.get("Authorization").get(0) : headers.get(
+            "authorization").get(0);
+        headerMultiValueMapForRefData.put(
+            "Authorization", Collections.singletonList(userAuthorization.startsWith("Bearer ")
+                ? userAuthorization : "Bearer ".concat(userAuthorization))
+        );
         //Service token
         headerMultiValueMapForRefData.put("ServiceAuthorization", serviceAuthTokenPaymentList);
         headerMultiValueMapForRefData.put("UserEmail", email);
