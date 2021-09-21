@@ -52,7 +52,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentGroupDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.TelephonyDtoMapper;
-import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.TelephonyProviderAuthorisationResponse;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.Payment2Repository;
@@ -640,8 +640,8 @@ public class PaymentGroupController {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(value = {OrderReferenceNotFoundException.class})
-    public String return404(OrderReferenceNotFoundException ex) {
+    @ExceptionHandler(value = {ServiceRequestReferenceNotFoundException.class})
+    public String return404(ServiceRequestReferenceNotFoundException ex) {
         return ex.getMessage();
     }
 
