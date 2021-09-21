@@ -69,7 +69,7 @@ public class IdamServiceImpl implements IdamService {
 
     private ResponseEntity<IdamUserIdResponse> getResponseEntity(MultiValueMap<String, String> headers) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USERID_ENDPOINT);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.error("builder.toUriString() : {}", builder.toUriString());
         return restTemplateIdam
             .exchange(
                 builder.toUriString(),
@@ -90,6 +90,7 @@ public class IdamServiceImpl implements IdamService {
                 ? userAuthorization : "Bearer ".concat(userAuthorization))
         );
         HttpHeaders httpHeaders = new HttpHeaders(headerMultiValueMap);
+        LOG.error("headers : {}", httpHeaders);
         return new HttpEntity<>(httpHeaders);
     }
 
@@ -98,7 +99,7 @@ public class IdamServiceImpl implements IdamService {
     public UserIdentityDataDto getUserIdentityData(MultiValueMap<String, String> headers, String uid) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(idamBaseURL + USER_FULL_NAME_ENDPOINT)
             .queryParam("query", "id:" + uid);
-        LOG.debug("builder.toUriString() : {}", builder.toUriString());
+        LOG.error("builder.toUriString() : {}", builder.toUriString());
 
         ResponseEntity<IdamFullNameRetrivalResponse[]> idamFullNameResEntity = restTemplateIdam
             .exchange(
@@ -109,6 +110,7 @@ public class IdamServiceImpl implements IdamService {
 
 
         if (idamFullNameResEntity != null && idamFullNameResEntity.getBody() != null) {
+            LOG.error("idamFullNameResEntity body available");
             IdamFullNameRetrivalResponse[] idamArrayFullNameRetrievalResponse = idamFullNameResEntity.getBody();
 
             if (idamArrayFullNameRetrievalResponse != null && idamArrayFullNameRetrievalResponse.length > 0) {
