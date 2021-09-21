@@ -12,17 +12,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
-import uk.gov.hmcts.payment.api.exceptions.OrderReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 
@@ -73,31 +73,31 @@ public class ServiceRequestController {
         @ApiResponse(code = 404, message = "Account information could not be found"),
         @ApiResponse(code = 504, message = "Unable to retrieve account information, please try again later"),
         @ApiResponse(code = 422, message = "Invalid or missing attribute"),
-        @ApiResponse(code = 412, message = "The order has already been paid"),
-        @ApiResponse(code = 417, message = "The order amount should be equal to order balance")
+        @ApiResponse(code = 412, message = "The serviceRequest has already been paid"),
+        @ApiResponse(code = 417, message = "The amount should be equal to serviceRequest balance")
     })
-    @PostMapping(value = "/order/{order-reference}/credit-account-payment")
+    @PostMapping(value = "/service-request/{service-request-reference}/pba-payments")
     @ResponseBody
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
-    public ResponseEntity<OrderPaymentBo> createCreditAccountPayment(@RequestHeader(value = "idempotency_key") String idempotencyKey,
-                                                                     @PathVariable("order-reference") String orderReference,
-                                                                     @Valid @RequestBody OrderPaymentDto orderPaymentDto) throws CheckDigitException, JsonProcessingException {
+    public ResponseEntity<ServiceRequestPaymentBo> createCreditAccountPaymentForServiceRequest(@RequestHeader(value = "idempotency_key") String idempotencyKey,
+                                                                                               @PathVariable("service-request-reference") String serviceRequestReference,
+                                                                                               @Valid @RequestBody ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException, JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         Function<String, Optional<IdempotencyKeys>> getIdempotencyKey = idempotencyKeyToCheck -> idempotencyService.findTheRecordByIdempotencyKey(idempotencyKeyToCheck);
 
         Function<IdempotencyKeys, ResponseEntity<?>> validateHashcodeForRequest = idempotencyKeys -> {
 
-            OrderPaymentBo responseBO;
+            ServiceRequestPaymentBo responseBO;
             try {
-                if (!idempotencyKeys.getRequest_hashcode().equals(orderPaymentDto.hashCodeWithOrderReference(orderReference))) {
+                if (!idempotencyKeys.getRequest_hashcode().equals(serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference))) {
                     return new ResponseEntity<>("Payment already present for idempotency key with different payment details", HttpStatus.CONFLICT); // 409 if hashcode not matched
                 }
                 if (idempotencyKeys.getResponseCode() >= 500) {
                     return new ResponseEntity<>(idempotencyKeys.getResponseBody(), HttpStatus.valueOf(idempotencyKeys.getResponseCode()));
                 }
-                responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), OrderPaymentBo.class);
+                responseBO = objectMapper.readValue(idempotencyKeys.getResponseBody(), ServiceRequestPaymentBo.class);
             } catch (JsonProcessingException e) {
                 return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -111,25 +111,25 @@ public class ServiceRequestController {
             return responseEntity;
         }
 
-        //business validations for order
-        PaymentFeeLink order = serviceRequestDomainService.businessValidationForOrders(serviceRequestDomainService.find(orderReference), orderPaymentDto);
+        //business validations for serviceRequest
+        PaymentFeeLink serviceRequest = serviceRequestDomainService.businessValidationForServiceRequests(serviceRequestDomainService.find(serviceRequestReference), serviceRequestPaymentDto);
 
         //PBA Payment
-        OrderPaymentBo orderPaymentBo = null;
+        ServiceRequestPaymentBo serviceRequestPaymentBo = null;
         ResponseEntity responseEntity;
         String responseJson;
         try {
-            orderPaymentBo = serviceRequestDomainService.addPayments(order, orderPaymentDto);
-            HttpStatus httpStatus = orderPaymentBo.getStatus().equalsIgnoreCase(FAILED) ? HttpStatus.PAYMENT_REQUIRED : HttpStatus.CREATED; //402 for failed Payment scenarios
-            responseEntity = new ResponseEntity<>(orderPaymentBo, httpStatus);
-            responseJson = objectMapper.writeValueAsString(orderPaymentBo);
+            serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestPaymentDto);
+            HttpStatus httpStatus = serviceRequestPaymentBo.getStatus().equalsIgnoreCase(FAILED) ? HttpStatus.PAYMENT_REQUIRED : HttpStatus.CREATED; //402 for failed Payment scenarios
+            responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
+            responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
             responseEntity = new ResponseEntity<>(liberataServiceTimeoutException.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
             responseJson = liberataServiceTimeoutException.getMessage();
         }
 
         //Create Idempotency Record
-        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, orderReference, responseJson, responseEntity, orderPaymentDto);
+        return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
 
 
@@ -146,8 +146,8 @@ public class ServiceRequestController {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(OrderReferenceNotFoundException.class)
-    public String return404(OrderReferenceNotFoundException ex) {
+    @ExceptionHandler(ServiceRequestReferenceNotFoundException.class)
+    public String return404(ServiceRequestReferenceNotFoundException ex) {
         return ex.getMessage();
     }
 
@@ -170,8 +170,8 @@ public class ServiceRequestController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(OrderException.class)
-    public String return400(OrderException ex) {
+    @ExceptionHandler(ServiceRequestException.class)
+    public String return400(ServiceRequestException ex) {
         return ex.getMessage();
     }
 
@@ -194,14 +194,14 @@ public class ServiceRequestController {
     }
 
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
-    @ExceptionHandler(OrderExceptionForNoMatchingAmount.class)
-    public String return417(OrderExceptionForNoMatchingAmount ex) {
+    @ExceptionHandler(ServiceRequestExceptionForNoMatchingAmount.class)
+    public String return417(ServiceRequestExceptionForNoMatchingAmount ex) {
         return ex.getMessage();
     }
 
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(OrderExceptionForNoAmountDue.class)
-    public String return412(OrderExceptionForNoAmountDue ex) {
+    @ExceptionHandler(ServiceRequestExceptionForNoAmountDue.class)
+    public String return412(ServiceRequestExceptionForNoAmountDue ex) {
         return ex.getMessage();
     }
 }
