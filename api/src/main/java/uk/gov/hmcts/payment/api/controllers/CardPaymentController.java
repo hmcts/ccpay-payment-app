@@ -218,6 +218,23 @@ public class CardPaymentController {
         return paymentDtoMapper.toPaymentStatusesDto(payment1);
     }
 
+    @ApiOperation(value = "Get card payment statuses by UUID", notes = "Get payment statuses for supplied UUID")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment retrieved"),
+        @ApiResponse(code = 404, message = "Payment not found")
+    })
+    @GetMapping(value = "/card-payments/{uuid}/statuses")
+    public PaymentDto retrievePaymentStatusByUUID(@PathVariable("uuid") String paymentReference) {
+        PaymentFeeLink paymentFeeLink = delegatingPaymentService.retrieve(paymentReference);
+        Optional<Payment> payment = paymentFeeLink.getPayments().stream()
+            .filter(p -> p.getReference().equals(paymentReference)).findAny();
+        Payment payment1 = null;
+        if (payment.isPresent()) {
+            payment1 = payment.get();
+        }
+        return paymentDtoMapper.toPaymentStatusesDto(payment1);
+    }
+
     @ApiOperation(value = "Cancel payment for supplied payment reference", notes = "Cancel payment for supplied payment reference")
     @ApiResponses(value = {
         @ApiResponse(code = 204, message = "Cancellation of payment successful"),
