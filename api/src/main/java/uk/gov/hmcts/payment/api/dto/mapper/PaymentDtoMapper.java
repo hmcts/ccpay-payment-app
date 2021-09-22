@@ -175,6 +175,17 @@ public class PaymentDtoMapper {
             .build();
     }
 
+    public PaymentDto toRetrieveCardPaymentResponseDtoWithoutExtReference(PaymentFeeLink paymentFeeLink) {
+        Payment payment = paymentFeeLink.getPayments().get(0);
+        return PaymentDto.payment2DtoWith()
+            .reference(payment.getReference())
+            .caseReference(payment.getCaseReference())
+            .ccdCaseNumber(payment.getCcdCaseNumber())
+            .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
+            .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .build();
+    }
+
     public PaymentDto toRetrievePaymentStatusesDto(PaymentFeeLink paymentFeeLink) {
         Payment payment = paymentFeeLink.getPayments().get(0);
         return PaymentDto.payment2DtoWith()
