@@ -16,7 +16,7 @@ public interface Payment2Repository extends CrudRepository<Payment, Integer>, Jp
 
     Optional<Payment> findByReference(String reference);
 
-    Optional<Payment> findByInternalReference(String uuid);
+    Optional<Payment> findByInternalReference(String internalReference);
 
     List<Reference> findReferencesByPaymentProviderAndPaymentStatusNotInAndDateCreatedLessThan(
         PaymentProvider paymentProvider, List<PaymentStatus> paymentStatuses, Date targetTime);
