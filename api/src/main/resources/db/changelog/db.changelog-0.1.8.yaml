@@ -37,3 +37,14 @@ databaseChangeLog:
               - column:
                   name: date_updated
                   type: TIMESTAMP WITHOUT TIME ZONE
+
+  - changeSet:
+      id: 1678026402050-1
+      author: aravind
+      changes:
+        - addColumn:
+            tableName: payment
+            columns:
+              - column:
+                  name: internal_reference
+                  type: varchar(255)
