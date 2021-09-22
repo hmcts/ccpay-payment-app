@@ -22,15 +22,13 @@ import java.util.stream.Collectors;
 @Component
 public class ServiceRequestDtoDomainMapper {
 
+    private static final String RETURN_URL_PATH_CONFIRMATION = "/confirmation";
     @Autowired
     private ReferenceUtil referenceUtil;
-
     @Autowired
     private UserIdSupplier userIdSupplier;
-
     @Autowired
     private ServiceIdSupplier serviceIdSupplier;
-
 
     public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto, OrganisationalServiceDto organisationalServiceDto) {
 
@@ -62,13 +60,14 @@ public class ServiceRequestDtoDomainMapper {
 
 
     public ServiceRequestOnlinePaymentBo toDomain(OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
+        String uuid = UUID.randomUUID().toString();
         return ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
-            .internalReference(UUID.randomUUID().toString())
+            .internalReference(uuid)
             .paymentReference(referenceUtil.getNext("RC"))
             .s2sServiceName(serviceIdSupplier.get())
             .userId(userIdSupplier.get())
             .description("card payment")
-            .returnUrl(returnUrl)
+            .returnUrl(returnUrl + "/" + uuid + RETURN_URL_PATH_CONFIRMATION)
             .currency(request.getCurrency().getCode())
             .amount(request.getAmount())
             .serviceCallbackUrl(serviceCallbackUrl)
