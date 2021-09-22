@@ -172,6 +172,10 @@ public class Payment extends Auditable<String> {
     @Column(name = "payer_name")
     private String payerName;
 
+    @ToString.Exclude
+    @Column(name = "internal_reference")
+    private String internalReference;
+
     @Override
     public int hashCode(){
         return super.hashCode();
