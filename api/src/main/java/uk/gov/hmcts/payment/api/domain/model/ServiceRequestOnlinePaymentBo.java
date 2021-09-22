@@ -30,8 +30,9 @@ public class ServiceRequestOnlinePaymentBo {
     private String returnUrl;
     private String description;
     private String language;
+    private String internalReference;
     private String userId;
     private String s2sServiceName;
     private BigDecimal amount;
-    
+
 }
