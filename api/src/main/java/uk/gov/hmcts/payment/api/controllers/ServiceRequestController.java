@@ -16,13 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -30,11 +25,15 @@ import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -56,6 +55,15 @@ public class ServiceRequestController {
 
     @Autowired
     private CreditAccountDtoMapper creditAccountDtoMapper;
+
+    @Autowired
+    private PaymentService<PaymentFeeLink, String> paymentService;
+
+    @Autowired
+    private PaymentDtoMapper paymentDtoMapper;
+
+    @Autowired
+    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @ApiOperation(value = "Create Service Request", notes = "Create Service Request")
     @ApiResponses(value = {
@@ -168,6 +176,17 @@ public class ServiceRequestController {
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
 
         return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
+    }
+
+    @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment status retrieved"),
+        @ApiResponse(code = 404, message = "Internal reference not found")
+    })
+    @GetMapping(value = "/card-payments/{internal-reference}/status")
+    public PaymentDto retrieveStatusByUUID(@PathVariable("internal-reference") String internalReference) {
+        Payment payment = paymentService.findPayment(internalReference);
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
     }
 
 }
