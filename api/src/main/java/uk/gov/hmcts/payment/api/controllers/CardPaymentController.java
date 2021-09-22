@@ -202,8 +202,8 @@ public class CardPaymentController {
         @ApiResponse(code = 200, message = "Payment retrieved"),
         @ApiResponse(code = 404, message = "Payment not found")
     })
-    @GetMapping(value = "/card-payments/{uuid}/statuses")
-    public PaymentDto retrievePaymentStatusByUUID(@PathVariable("uuid") String uuid) {
+    @GetMapping(value = "/card-payments/{uuid}/status")
+    public PaymentDto retrieveStatusByUUID(@PathVariable("uuid") String uuid) {
         Payment payment = paymentService.findPayment(uuid);
         return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
     }
