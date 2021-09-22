@@ -16,6 +16,7 @@ import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
 
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -62,6 +63,7 @@ public class ServiceRequestDtoDomainMapper {
 
     public ServiceRequestOnlinePaymentBo toDomain(OnlineCardPaymentRequest request, String returnUrl, String serviceCallbackUrl) throws CheckDigitException {
         return ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+            .internalReference(UUID.randomUUID().toString())
             .paymentReference(referenceUtil.getNext("RC"))
             .s2sServiceName(serviceIdSupplier.get())
             .userId(userIdSupplier.get())
