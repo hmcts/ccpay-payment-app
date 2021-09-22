@@ -269,7 +269,6 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore ("Expected : Refund currently supported for PBA Payment Channel only - Actual : Refund can be possible if payment is successful")
     public void negative_issue_refund_for_card_payment() {
 
         PaymentDto paymentDto = paymentsTestDsl.given().userToken(USER_TOKEN_CMC_CITIZEN)
@@ -288,8 +287,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        //TODO - Raise a defect for this sceanrio.
-        //assertThat(refundResponse.getBody().print()).isEqualTo("Refund currently supported for PBA Payment Channel only");
+        assertThat(refundResponse.getBody().print()).isEqualTo("Refund currently supported for PBA Payment Channel only");
     }
 
     @Test
@@ -692,7 +690,6 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore("Fee id Not Found Issue")
     public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
         // Create a PBA payment
@@ -702,7 +699,6 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore("Fee id Not Found Issue")
     public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
 
         // Create a PBA payment
@@ -712,7 +708,6 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    //@Ignore("Fee id Not Found Issue")
     public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
 
         // Create a PBA payment
