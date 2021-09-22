@@ -183,6 +183,7 @@ public class PaymentDtoMapper {
             .ccdCaseNumber(payment.getCcdCaseNumber())
             .status(PayStatusToPayHubStatus.valueOf(payment.getPaymentStatus().getName()).getMappedStatus())
             .paymentGroupReference(paymentFeeLink.getPaymentReference())
+            .internalReference(payment.getInternalReference())
             .build();
     }
 
