@@ -122,11 +122,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Transactional
     public ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers) {
 
-        //OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
-        OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
-            .serviceCode("AA001")
-            .serviceDescription("DIVORCE")
-            .build();
+        OrganisationalServiceDto organisationalServiceDto = referenceDataService.getOrganisationalDetail(Optional.empty(), Optional.ofNullable(serviceRequestDto.getHmctsOrgId()), headers);
+
         ServiceRequestBo serviceRequestDomain = serviceRequestDtoDomainMapper.toDomain(serviceRequestDto, organisationalServiceDto);
         return serviceRequestBo.createServiceRequest(serviceRequestDomain);
 
@@ -270,10 +267,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestCpoDto serviceRequestDto) {
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto) {
+
+        ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
+            .action(serviceRequestDto.getCasePaymentRequest().getAction())
+            .case_id(serviceRequestDto.getCcdCaseNumber())
+            .order_reference(serviceRequestDto.getCaseReference())
+            .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
+            .build();
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            Message msg = new Message(objectMapper.writeValueAsString(serviceRequestDto));
+            Message msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
 
             msg.setContentType("application/json");
             msg.setLabel("Service Callback Message");
@@ -284,7 +289,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             topicClientCPO.send(msg);
 
         } catch (Exception e) {
-            LOG.error("Error", e);
+            LOG.error("Error while sending message to topic", e);
         }
     }
 }
