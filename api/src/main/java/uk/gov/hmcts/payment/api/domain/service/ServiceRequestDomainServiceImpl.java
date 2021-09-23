@@ -57,7 +57,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
     private static final String FAILED = "failed";
     private static final String SUCCESS = "success";
-    private static final String CALL_BACK_URL = "https://cpo-case-payment-orders-api-demo.service.core-compute-demo.internal/case-payment-orders";
+    @Value("${case-payment-orders.api.url}")
+    private  String callBackUrl;
 
     @Value("${sb-cpo-primary-connection-string}")
     private String connectionString;
@@ -285,7 +286,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             msg.setContentType("application/json");
             msg.setLabel("Service Callback Message");
             msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
-                CALL_BACK_URL));
+                callBackUrl+"/case-payment-orders"));
 
             TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString.trim(), topic);
             topicClientCPO.send(msg);
