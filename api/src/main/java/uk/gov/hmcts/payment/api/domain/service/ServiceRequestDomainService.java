@@ -8,7 +8,6 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
@@ -31,5 +30,5 @@ public interface ServiceRequestDomainService {
 
     Boolean isDuplicate(String orderReference);
 
-    void sendMessageTopicCPO(ServiceRequestCpoDto serviceRequestCpoDto);
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
 }
