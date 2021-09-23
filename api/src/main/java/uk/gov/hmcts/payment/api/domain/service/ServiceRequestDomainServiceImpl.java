@@ -32,6 +32,7 @@ import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.AccountService;
@@ -290,7 +291,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             topicClientCPO.send(msg);
             topicClientCPO.close();
         } catch (Exception e) {
-            LOG.error("Error while sending message to topic", e);
+            LOG.error("Error while sending message to topic", e.getMessage());
+            throw new SendMessageTopicFailedException("Error while sending message to topic");
         }
     }
 }
