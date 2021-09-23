@@ -27,6 +27,7 @@ import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
@@ -56,7 +57,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private static final String FAILED = "failed";
     private static final String SUCCESS = "success";
 
-    private final String connectionString = "Endpoint=sb://ccpay-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=5P9ikqaikSkA+kqt0KNQEvPMZXtNy0WMhkbtcScyT7A=";
+    @Value("${sb-cpo-primary-connection-string}")
+    private String connectionString;
 
     private final String topic = "ccpay-cpo-topic";
 
@@ -268,14 +270,15 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto) {
+    public void sendMessageTopicCPO(ServiceRequestCpoDto serviceRequestDto) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             Message msg = new Message(objectMapper.writeValueAsString(serviceRequestDto));
 
             msg.setContentType("application/json");
             msg.setLabel("Service Callback Message");
-            msg.setProperties(Collections.singletonMap("serviceCallbackUrl", serviceRequestDto.getCallBackUrl()));
+            msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
+                "https://cpo-case-payment-orders-api-demo.service.core-compute-demo.internal/case-payment-orders"));
 
             TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString.trim(), topic);
             topicClientCPO.send(msg);

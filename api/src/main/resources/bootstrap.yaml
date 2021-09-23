@@ -5,6 +5,7 @@ spring:
       paths: /mnt/secrets/ccpay
       aliases:
         sb-primary-connection-string: azure.servicebus.connection-string
+        cpo-topic-primary-send-listen-shared-access-key: sb-cpo-primary-connection-string
         pci-pal-account-id-cmc: pci-pal.account.id.cmc
         pci-pal-account-id-probate: pci-pal.account.id.probate
         pci-pal-account-id-divorce: pci-pal.account.id.divorce
