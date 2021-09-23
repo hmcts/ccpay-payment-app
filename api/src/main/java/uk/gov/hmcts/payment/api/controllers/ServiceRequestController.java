@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
@@ -66,7 +67,14 @@ public class ServiceRequestController {
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
 
-        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
+        ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
+                                                        .action(serviceRequestDto.getCasePaymentRequest().getAction())
+                                                        .case_id(serviceRequestDto.getCcdCaseNumber())
+                                                        .order_reference(serviceRequestDto.getCaseReference())
+                                                        .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
+                                                    .build();
+
+        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestCpoDto);
 
         return serviceRequestResponseDto;
     }
