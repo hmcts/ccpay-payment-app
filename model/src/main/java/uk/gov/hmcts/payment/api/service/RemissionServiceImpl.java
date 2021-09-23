@@ -9,7 +9,7 @@ import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
@@ -23,14 +23,14 @@ public class RemissionServiceImpl implements RemissionService {
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
     private final ReferenceUtil referenceUtil;
 
-    private final OrderCaseUtil orderCaseUtil;
+    private final ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     @Autowired
     public RemissionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
-                                ReferenceUtil referenceUtil, OrderCaseUtil orderCaseUtil) {
+                                ReferenceUtil referenceUtil, ServiceRequestCaseUtil serviceRequestCaseUtil) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.referenceUtil = referenceUtil;
-        this.orderCaseUtil = orderCaseUtil;
+        this.serviceRequestCaseUtil = serviceRequestCaseUtil;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class RemissionServiceImpl implements RemissionService {
         remission.setPaymentFeeLink(paymentFeeLink);
         fee.setRemissions(Collections.singletonList(remission));
 
-        return paymentFeeLinkRepository.save(orderCaseUtil.enhanceWithOrderCaseDetails(paymentFeeLink, remissionServiceRequest));
+        return paymentFeeLinkRepository.save(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest));
 
     }
 
@@ -59,7 +59,7 @@ public class RemissionServiceImpl implements RemissionService {
         PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
             .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
 
-        orderCaseUtil.updateOrderCaseDetails(paymentFeeLink, remissionServiceRequest);
+        serviceRequestCaseUtil.updateServiceRequestCaseDetails(paymentFeeLink, remissionServiceRequest);
 
         // Tactical check where feeId is null
         PaymentFee fee = feeId != null ? paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))

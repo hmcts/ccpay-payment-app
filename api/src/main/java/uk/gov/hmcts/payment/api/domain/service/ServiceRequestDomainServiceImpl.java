@@ -18,17 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
-import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDomainDataEntityMapper;
-import uk.gov.hmcts.payment.api.domain.mapper.OrderPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
-import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
@@ -38,9 +38,9 @@ import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 
 import java.math.BigDecimal;
@@ -66,10 +66,10 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
 
     @Autowired
-    private OrderPaymentDtoDomainMapper orderPaymentDtoDomainMapper;
+    private ServiceRequestPaymentDtoDomainMapper serviceRequestPaymentDtoDomainMapper;
 
     @Autowired
-    private OrderPaymentDomainDataEntityMapper orderPaymentDomainDataEntityMapper;
+    private ServiceRequestPaymentDomainDataEntityMapper serviceRequestPaymentDomainDataEntityMapper;
 
     @Autowired
     private Payment2Repository paymentRepository;
@@ -104,18 +104,18 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     private IdempotencyKeysRepository idempotencyKeysRepository;
 
-    private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
+    private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 
     @Override
     public List<PaymentFeeLink> findByCcdCaseNumber(String ccdCaseNumber) {
         Optional<List<PaymentFeeLink>> paymentFeeLinks = paymentFeeLinkRepository.findByCcdCaseNumber(ccdCaseNumber);
-        return paymentFeeLinks.orElseThrow(() -> new PaymentGroupNotFoundException("Order detail not found for given ccdcasenumber " + ccdCaseNumber));
+        return paymentFeeLinks.orElseThrow(() -> new PaymentGroupNotFoundException("ServiceRequest detail not found for given ccdcasenumber " + ccdCaseNumber));
     }
 
     @Override
-    public PaymentFeeLink find(String orderReference) {
-        return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(orderReference);
+    public PaymentFeeLink find(String serviceRequestReference) {
+        return (PaymentFeeLink) paymentGroupService.findByPaymentGroupReference(serviceRequestReference);
     }
 
     @Override
@@ -130,38 +130,38 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public OrderPaymentBo addPayments(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException {
+    public ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {
 
-        OrderPaymentBo orderPaymentBo = orderPaymentDtoDomainMapper.toDomain(orderPaymentDto);
-        orderPaymentBo.setStatus(PaymentStatus.CREATED.getName());
-        Payment payment = orderPaymentDomainDataEntityMapper.toEntity(orderPaymentBo, order);
-        payment.setPaymentLink(order);
+        ServiceRequestPaymentBo serviceRequestPaymentBo = serviceRequestPaymentDtoDomainMapper.toDomain(serviceRequestPaymentDto);
+        serviceRequestPaymentBo.setStatus(PaymentStatus.CREATED.getName());
+        Payment payment = serviceRequestPaymentDomainDataEntityMapper.toEntity(serviceRequestPaymentBo, serviceRequest);
+        payment.setPaymentLink(serviceRequest);
 
         //2. Account check for PBA-Payment
-        payment = accountCheckForPBAPayment(order, orderPaymentDto, payment);
+        payment = accountCheckForPBAPayment(serviceRequest, serviceRequestPaymentDto, payment);
 
         if (payment.getPaymentStatus().getName().equals(FAILED)) {
             LOG.info("CreditAccountPayment Response 402(FORBIDDEN) for ccdCaseNumber : {} PaymentStatus : {}", payment.getCcdCaseNumber(), payment.getPaymentStatus().getName());
-            orderPaymentBo = orderPaymentDomainDataEntityMapper.toDomain(payment);
-            return orderPaymentBo;
+            serviceRequestPaymentBo = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
+            return serviceRequestPaymentBo;
         }
 
-        // 3. Auto-Apportionment of Payment against Order Fees
-        extractApportionmentForPBA(order);
+        // 3. Auto-Apportionment of Payment against serviceRequest Fees
+        extractApportionmentForPBA(serviceRequest);
 
-        orderPaymentBo = orderPaymentDomainDataEntityMapper.toDomain(payment);
-        return orderPaymentBo;
+        serviceRequestPaymentBo = serviceRequestPaymentDomainDataEntityMapper.toDomain(payment);
+        return serviceRequestPaymentBo;
     }
 
 
-    private void extractApportionmentForPBA(PaymentFeeLink order) {
+    private void extractApportionmentForPBA(PaymentFeeLink serviceRequest) {
         // trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue("apportion-feature", false);
         LOG.info("ApportionFeature Flag Value in CreditAccountPaymentController : {}", apportionFeature);
         if (apportionFeature) {
             //get first successful payment
-            Payment pbaPayment = getFirstSuccessPayment.apply(order);
-            pbaPayment.setPaymentLink(order);
+            Payment pbaPayment = getFirstSuccessPayment.apply(serviceRequest);
+            pbaPayment.setPaymentLink(serviceRequest);
             feePayApportionService.processApportion(pbaPayment);
 
             // Update Fee Amount Due as Payment Status received from PBA Payment as SUCCESS
@@ -172,15 +172,15 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
     }
 
-    private Payment accountCheckForPBAPayment(PaymentFeeLink order, OrderPaymentDto orderPaymentDto, Payment payment) {
+    private Payment accountCheckForPBAPayment(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto, Payment payment) {
         LOG.info("PBA Old Config Service Names : {}", pbaConfig1ServiceNames);
-        Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(order.getEnterpriseServiceName());
+        Boolean isPBAConfig1Journey = pbaConfig1ServiceNames.contains(serviceRequest.getEnterpriseServiceName());
 
         if (!isPBAConfig1Journey) {
-            LOG.info("Checking with Liberata for Service : {}", order.getEnterpriseServiceName());
+            LOG.info("Checking with Liberata for Service : {}", serviceRequest.getEnterpriseServiceName());
             AccountDto accountDetails;
             try {
-                accountDetails = accountService.retrieve(orderPaymentDto.getAccountNumber());
+                accountDetails = accountService.retrieve(serviceRequestPaymentDto.getAccountNumber());
                 LOG.info("CreditAccountPayment received for ccdCaseNumber : {} Liberata AccountStatus : {}", payment.getCcdCaseNumber(), accountDetails.getStatus());
             } catch (HttpClientErrorException ex) {
                 LOG.error("Account information could not be found, exception: {}", ex.getMessage());
@@ -193,7 +193,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
                 throw new AccountServiceUnavailableException("Unable to retrieve account information, please try again later");
             }
 
-            pbaStatusErrorMapper.setOrderPaymentStatus(orderPaymentDto.getAmount(), payment, accountDetails);
+            pbaStatusErrorMapper.setServiceRequestPaymentStatus(serviceRequestPaymentDto.getAmount(), payment, accountDetails);
         } else {
             LOG.info("Setting status to pending");
             payment.setPaymentStatus(PaymentStatus.paymentStatusWith().name("pending").build());
@@ -208,35 +208,35 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         }
 
         //save the payment in paymentFeeLink
-        order.getPayments().add(payment);
-        paymentFeeLinkRepository.save(order);
+        serviceRequest.getPayments().add(payment);
+        paymentFeeLinkRepository.save(serviceRequest);
 
-        //Last Payment added in order
-        return order.getPayments().get(order.getPayments().size() - 1);
+        //Last Payment added in serviceRequest
+        return serviceRequest.getPayments().get(serviceRequest.getPayments().size() - 1);
     }
 
-    public PaymentFeeLink businessValidationForOrders(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) {
+    public PaymentFeeLink businessValidationForServiceRequests(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto) {
         //Business validation for amount
-        Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
-        if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(orderPaymentDto.getAmount()) != 0)) {
-            throw new OrderExceptionForNoMatchingAmount("The order amount should be equal to order balance");
+        Optional<BigDecimal> totalCalculatedAmount = serviceRequest.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
+        if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(serviceRequestPaymentDto.getAmount()) != 0)) {
+            throw new ServiceRequestExceptionForNoMatchingAmount("The amount should be equal to serviceRequest balance");
         }
 
 
         //Business validation for amount due for fees
-        Optional<BigDecimal> totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add);
+        Optional<BigDecimal> totalAmountDue = serviceRequest.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add);
         if (totalAmountDue.isPresent() && totalAmountDue.get().compareTo(BigDecimal.ZERO) == 0) {
-            throw new OrderExceptionForNoAmountDue("The order has already been paid");
+            throw new ServiceRequestExceptionForNoAmountDue("The serviceRequest has already been paid");
         }
 
-        return order;
+        return serviceRequest;
     }
 
 
-    public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String orderReference,
-                                                  String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException {
-        String requestJson = objectMapper.writeValueAsString(orderPaymentDto);
-        int requestHashCode = orderPaymentDto.hashCodeWithOrderReference(orderReference);
+    public ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
+                                                  String responseJson, ResponseEntity<?> responseEntity, ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException {
+        String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
+        int requestHashCode = serviceRequestPaymentDto.hashCodeWithServiceRequestReference(serviceRequestReference);
 
         IdempotencyKeys idempotencyRecord = IdempotencyKeys
             .idempotencyKeysWith()
@@ -250,20 +250,20 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         try {
             Optional<IdempotencyKeys> idempotencyKeysRecord = idempotencyKeysRepository.findById(IdempotencyKeysPK.idempotencyKeysPKWith().idempotencyKey(idempotencyKey).request_hashcode(requestHashCode).build());
             if (idempotencyKeysRecord.isPresent()) {
-                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), OrderPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
+                return new ResponseEntity<>(objectMapper.readValue(idempotencyKeysRecord.get().getResponseBody(), ServiceRequestPaymentBo.class), HttpStatus.valueOf(idempotencyKeysRecord.get().getResponseCode()));
             }
             idempotencyKeysRepository.save(idempotencyRecord);
 
         } catch (DataIntegrityViolationException exception) {
-            responseEntity = new ResponseEntity<>("Too many requests.PBA Payment currently is in progress for this order", HttpStatus.TOO_EARLY);
+            responseEntity = new ResponseEntity<>("Too many requests.PBA Payment currently is in progress for this serviceRequest", HttpStatus.TOO_EARLY);
         }
 
         return responseEntity;
     }
 
     @Override
-    public Boolean isDuplicate(String orderReference) {
-        return Optional.of(find(orderReference)).isPresent();
+    public Boolean isDuplicate(String serviceRequestReference) {
+        return Optional.of(find(serviceRequestReference)).isPresent();
     }
 
     @Override

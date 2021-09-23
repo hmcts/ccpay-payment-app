@@ -12,7 +12,7 @@ import uk.gov.hmcts.payment.api.dto.PciPalPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -46,7 +46,7 @@ public class UserAwareDelegatingPaymentServiceTest {
     private PaymentFeeRepository paymentFeeRepository = mock(PaymentFeeRepository.class);
     private FeePayApportionService feePayApportionService = mock(FeePayApportionService.class);
     private LaunchDarklyFeatureToggler featureToggler = mock(LaunchDarklyFeatureToggler.class);
-    private OrderCaseUtil orderCaseUtil = mock(OrderCaseUtil.class);
+    private ServiceRequestCaseUtil serviceRequestCaseUtil = mock(ServiceRequestCaseUtil.class);
 
     private final static String PAYMENT_CHANNEL_TELEPHONY = "telephony";
     private final static String PAYMENT_PROVIDER_PCI_PAL = "pci pal";
@@ -56,7 +56,7 @@ public class UserAwareDelegatingPaymentServiceTest {
         userAwareDelegatingPaymentService = new UserAwareDelegatingPaymentService(userIdSupplier,
             paymentFeeLinkRepository, delegateGovPay, delegatePciPal, paymentChannelRepository, paymentMethodRepository,
             paymentProviderRepository, paymentStatusRepository, paymentRespository, referenceUtil, govPayAuthUtil,
-            serviceIdSupplier, auditRepository, callbackService, feePayApportionRepository, paymentFeeRepository, feePayApportionService, featureToggler, orderCaseUtil);
+            serviceIdSupplier, auditRepository, callbackService, feePayApportionRepository, paymentFeeRepository, feePayApportionService, featureToggler, serviceRequestCaseUtil);
     }
 
     //calls PCI_PAL service when telephony and pci pal
