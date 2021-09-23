@@ -6,11 +6,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.functional.config.LaunchDarklyFeature;
 import uk.gov.hmcts.payment.functional.config.TestConfigProperties;
 import uk.gov.hmcts.payment.functional.dsl.PaymentsTestDsl;
@@ -27,7 +27,7 @@ import static uk.gov.hmcts.payment.functional.idam.IdamService.CMC_CITIZEN_GROUP
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class OrdersPaymentFunctionalTest {
+public class ServiceRequestPaymentFunctionalTest {
 
     @Autowired
     private TestConfigProperties testProps;
@@ -57,7 +57,7 @@ public class OrdersPaymentFunctionalTest {
     }
 
     @Test
-    public void createAnOrderAndMakePBAPayment(){
+    public void createAnServiceRequestAndMakePBAPayment(){
         UUID randomUUID = UUID.randomUUID();
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
             .hmctsOrgId("ABA1")
@@ -72,7 +72,7 @@ public class OrdersPaymentFunctionalTest {
                 .volume(1)
                 .build()))
             .build();
-        OrderPaymentDto paymentDto = OrderPaymentDto.paymentDtoWith()
+        ServiceRequestPaymentDto paymentDto = ServiceRequestPaymentDto.paymentDtoWith()
             .accountNumber("PBAFUNC12345")
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
@@ -91,8 +91,8 @@ public class OrdersPaymentFunctionalTest {
             }
             dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
-                .when().createOrderCreditAccountPayment(paymentDto,serviceRequestReference.toString(),randomUUID.toString())
-                .then().gotCreated(OrderPaymentBo.class, paymentBo->{
+                .when().createServiceRequestCreditAccountPayment(paymentDto,serviceRequestReference.toString(),randomUUID.toString())
+                .then().gotCreated(ServiceRequestPaymentBo.class, paymentBo->{
                 assertThat(paymentBo.getPaymentReference()).isNotNull();
                 assertThat(paymentBo.getStatus()).isEqualToIgnoringCase("success");
             });

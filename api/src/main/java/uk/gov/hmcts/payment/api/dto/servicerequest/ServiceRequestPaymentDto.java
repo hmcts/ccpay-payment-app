@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.dto.order;
+package uk.gov.hmcts.payment.api.dto.servicerequest;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,7 +21,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderPaymentDto {
+public class ServiceRequestPaymentDto {
 
     @JsonProperty("amount")
     @NotNull(message = "amount can't be Blank")
@@ -45,7 +45,7 @@ public class OrderPaymentDto {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        OrderPaymentDto that = (OrderPaymentDto) o;
+        ServiceRequestPaymentDto that = (ServiceRequestPaymentDto) o;
         return amount.equals(that.amount) &&
             currency == that.currency &&
             customerReference.equals(that.customerReference) &&
@@ -57,7 +57,7 @@ public class OrderPaymentDto {
         return Objects.hash(amount.toString(), currency, customerReference, accountNumber);
     }
 
-    public int hashCodeWithOrderReference(String orderReference) {
+    public int hashCodeWithServiceRequestReference(String orderReference) {
         return Objects.hash(orderReference.trim(), amount.abs().toString(), currency, customerReference.trim(), accountNumber.trim());
     }
 
