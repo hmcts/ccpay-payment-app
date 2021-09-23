@@ -5,8 +5,8 @@ import uk.gov.hmcts.payment.api.controllers.PaymentReference;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestFeeBo;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 
 import java.util.stream.Collectors;
 
@@ -15,14 +15,14 @@ public class ServiceRequestDtoDomainMapper {
 
     public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto, OrganisationalServiceDto organisationalServiceDto){
 
-        String orderReference = PaymentReference.getInstance().getNext();
+        String serviceRequestReference = PaymentReference.getInstance().getNext();
 
         return ServiceRequestBo.serviceRequestBoWith()
             .enterpriseServiceName(organisationalServiceDto.getServiceDescription())
             .orgId(organisationalServiceDto.getServiceCode())
             .ccdCaseNumber(serviceRequestDto.getCcdCaseNumber())
             .caseReference(serviceRequestDto.getCaseReference())
-            .reference(orderReference)
+            .reference(serviceRequestReference)
             .fees(serviceRequestDto.getFees()
                 .stream()
                 .map(feeDto -> toFeeDomain(feeDto,serviceRequestDto.getCcdCaseNumber())) // Will be removed after get api's work without ccd dependency
@@ -30,14 +30,14 @@ public class ServiceRequestDtoDomainMapper {
             .build();
     }
 
-    public ServiceRequestFeeBo toFeeDomain(ServiceRequestFeeDto orderFeeDto, String ccdCaseNumber) {
-        return ServiceRequestFeeBo.orderFeeBoWith()
-            .calculatedAmount(orderFeeDto.getCalculatedAmount())
-            .amountDue(orderFeeDto.getCalculatedAmount()) //amount due = calculated amount
-            .code(orderFeeDto.getCode())
+    public ServiceRequestFeeBo toFeeDomain(ServiceRequestFeeDto serviceRequestFeeDto, String ccdCaseNumber) {
+        return ServiceRequestFeeBo.serviceRequestFeeBoWith()
+            .calculatedAmount(serviceRequestFeeDto.getCalculatedAmount())
+            .amountDue(serviceRequestFeeDto.getCalculatedAmount()) //amount due = calculated amount
+            .code(serviceRequestFeeDto.getCode())
             .ccdCaseNumber(ccdCaseNumber)
-            .version(orderFeeDto.getVersion())
-            .volume(orderFeeDto.getVolume())
+            .version(serviceRequestFeeDto.getVersion())
+            .volume(serviceRequestFeeDto.getVolume())
             .build();
     }
 }

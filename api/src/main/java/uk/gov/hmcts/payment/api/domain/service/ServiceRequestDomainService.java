@@ -5,30 +5,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
-import uk.gov.hmcts.payment.api.dto.order.OrderPaymentDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 
 import java.util.List;
 
 public interface ServiceRequestDomainService {
 
-    PaymentFeeLink find(String orderReference);
+    PaymentFeeLink find(String serviceRequestReference);
 
     List<PaymentFeeLink> findByCcdCaseNumber(String ccdCaseNumber);
 
-    ServiceRequestResponseDto create(ServiceRequestDto orderDto, MultiValueMap<String, String> headers);
+    ServiceRequestResponseDto create(ServiceRequestDto serviceRequestDto, MultiValueMap<String, String> headers);
 
-    OrderPaymentBo addPayments(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException;
+    ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException;
 
-    PaymentFeeLink businessValidationForOrders(PaymentFeeLink order, OrderPaymentDto orderPaymentDto);
+    PaymentFeeLink businessValidationForServiceRequests(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto);
 
-    ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String orderReference,
-                                           String responseJson, ResponseEntity<?> responseEntity, OrderPaymentDto orderPaymentDto) throws JsonProcessingException;
+    ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
+                                           String responseJson, ResponseEntity<?> responseEntity, ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException;
 
-    Boolean isDuplicate(String orderReference);
+    Boolean isDuplicate(String serviceRequestReference);
 
     void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
 }
