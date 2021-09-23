@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,9 @@ public class PBAController {
     private String refDataBaseURL;
 
     @Autowired
+    ObjectMapper pbaObjectMapper;
+
+    @Autowired
     public PBAController(PaymentService<PaymentFeeLink, String> paymentService, PaymentDtoMapper paymentDtoMapper, IdamService idamService, AuthTokenGenerator authTokenGenerator) {
         this.paymentService = paymentService;
         this.paymentDtoMapper = paymentDtoMapper;
@@ -101,7 +105,8 @@ public class PBAController {
 
         try {
             ResponseEntity<PBAResponse> response = getDetailsFromRefData(headerMultiValueMapForRefData);
-            return response;
+            PBAResponse pbaResponse = pbaObjectMapper.convertValue(response.getBody(), PBAResponse.class);
+            return new ResponseEntity(pbaResponse, HttpStatus.OK);
         } catch (HttpClientErrorException httpClientErrorException) {
             LOG.info("Exception : {} ",httpClientErrorException.getMessage());
             throw new PaymentException(httpClientErrorException.getMessage());
