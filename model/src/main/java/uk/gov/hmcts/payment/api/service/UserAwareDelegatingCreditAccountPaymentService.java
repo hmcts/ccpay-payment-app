@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -41,7 +41,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
     private final ServiceIdSupplier serviceIdSupplier;
     private final UserIdSupplier userIdSupplier;
 
-    private final OrderCaseUtil orderCaseUtil;
+    private final ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     @Autowired
     public UserAwareDelegatingCreditAccountPaymentService(PaymentFeeLinkRepository paymentFeeLinkRepository,
@@ -49,7 +49,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
                                                           PaymentMethodRepository paymentMethodRepository, PaymentProviderRepository paymentProviderRepository,
                                                           PaymentStatusRepository paymentStatusRepository, Payment2Repository paymentRespository,
                                                           ReferenceUtil referenceUtil, ServiceIdSupplier serviceIdSupplier, UserIdSupplier userIdSupplier,
-                                                          OrderCaseUtil orderCaseUtil) {
+                                                          ServiceRequestCaseUtil serviceRequestCaseUtil) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
         this.paymentChannelRepository = paymentChannelRepository;
         this.paymentMethodRepository = paymentMethodRepository;
@@ -58,7 +58,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
         this.referenceUtil = referenceUtil;
         this.serviceIdSupplier = serviceIdSupplier;
         this.userIdSupplier = userIdSupplier;
-        this.orderCaseUtil = orderCaseUtil;
+        this.serviceRequestCaseUtil = serviceRequestCaseUtil;
     }
 
 
@@ -95,7 +95,7 @@ public class UserAwareDelegatingCreditAccountPaymentService implements CreditAcc
             LOG.error("Error in generating check digit for the payment reference, {}", e);
         }
 
-        PaymentFeeLink result = paymentFeeLinkRepository.save(orderCaseUtil.enhanceWithOrderCaseDetails(PaymentFeeLink.paymentFeeLinkWith()
+        PaymentFeeLink result = paymentFeeLinkRepository.save(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(PaymentFeeLink.paymentFeeLinkWith()
             .paymentReference(paymentGroupRef)
             .payments(Arrays.asList(payment))
             .fees(fees)

@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.util.OrderCaseUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.UserIdSupplier;
@@ -49,7 +49,7 @@ public class PaymentRecordServiceTest {
     private ArgumentCaptor<PaymentFeeLink> argumentCaptor;
 
     @Mock
-    private OrderCaseUtil orderCaseUtil;
+    private ServiceRequestCaseUtil serviceRequestCaseUtil;
 
     @Before
     public void setUp() {
@@ -67,7 +67,7 @@ public class PaymentRecordServiceTest {
             .fees(fees)
             .build();
 
-        when(orderCaseUtil.enhanceWithOrderCaseDetails(any(PaymentFeeLink.class), any(Payment.class))).thenReturn(paymentFeeLink);
+        when(serviceRequestCaseUtil.enhanceWithServiceRequestCaseDetails(any(PaymentFeeLink.class), any(Payment.class))).thenReturn(paymentFeeLink);
         when(paymentFeeLinkRepository.save(any(PaymentFeeLink.class))).thenReturn(paymentFeeLink);
         when(paymentStatusRepository.findByNameOrThrow("pending")).thenReturn(PaymentStatus.paymentStatusWith().name("pending").build());
 
