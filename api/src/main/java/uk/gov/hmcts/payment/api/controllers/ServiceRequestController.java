@@ -184,7 +184,7 @@ public class ServiceRequestController {
         @ApiResponse(code = 404, message = "Internal reference not found")
     })
     @GetMapping(value = "/card-payments/{internal-reference}/status")
-    public PaymentDto retrieveStatusByUUID(@PathVariable("internal-reference") String internalReference) {
+    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
         Payment payment = paymentService.findPayment(internalReference);
         return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
     }
