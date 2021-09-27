@@ -52,7 +52,7 @@ public class PaymentGroupServiceImpl implements PaymentGroupService<PaymentFeeLi
 
     @Override
     public PaymentFeeLink findByPaymentGroupReference(String paymentGroupReference) {
-        return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(() -> new ServiceRequestReferenceNotFoundException("ServiceRequest reference doesn't exist"));
+        return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference).orElseThrow(() -> new OrderReferenceNotFoundException("Order reference doesn't exist"));
     }
 
     @Override
