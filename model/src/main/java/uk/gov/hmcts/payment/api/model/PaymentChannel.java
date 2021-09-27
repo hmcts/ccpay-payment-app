@@ -15,7 +15,8 @@ import javax.persistence.*;
 @Table(name = "payment_channel")
 public class PaymentChannel {
 
-    public final static PaymentChannel TELEPHONY = new PaymentChannel("telephony","Through the IVR");
+    public final static PaymentChannel TELEPHONY = new PaymentChannel("telephony", "Through the IVR");
+    public final static PaymentChannel ONLINE = new PaymentChannel("online", "Through online portal");
 
     @Id
     @Column(name = "name", nullable = false)

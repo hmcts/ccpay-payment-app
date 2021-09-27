@@ -184,9 +184,5 @@ public class ReplayCreditAccountPaymentController {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {PaymentException.class})
-    public ResponseEntity returnInternalError(PaymentException ex) {
-        return new ResponseEntity(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 }
 
