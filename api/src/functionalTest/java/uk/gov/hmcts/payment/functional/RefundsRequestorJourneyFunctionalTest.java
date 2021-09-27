@@ -51,6 +51,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     private static String USER_TOKEN_CMC_CITIZEN;
     private static String SERVICE_TOKEN;
     private static String SERVICE_TOKEN_PAYMENT;
+    private static String USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE;
     private static boolean TOKENS_INITIALIZED = false;
     private static final Pattern REFUNDS_REGEX_PATTERN = Pattern.compile("^(RF)-([0-9]{4})-([0-9-]{4})-([0-9-]{4})-([0-9-]{4})$");
 
@@ -84,8 +85,11 @@ public class RefundsRequestorJourneyFunctionalTest {
             SERVICE_TOKEN = s2sTokenService.getS2sToken(testProps.s2sServiceName, testProps.s2sServiceSecret);
 
             USER_TOKEN_CMC_CITIZEN = idamService.createUserWith(CMC_CITIZEN_GROUP, "citizen").getAuthorisationToken();
-
             USER_TOKEN_PAYMENT = idamService.createUserWith(CMC_CITIZEN_GROUP, "payments").getAuthorisationToken();
+
+            USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE =
+                idamService.createUserWithSearchScope(CMC_CASE_WORKER_GROUP, "payments-refund")
+                    .getAuthorisationToken();
             SERVICE_TOKEN_PAYMENT = s2sTokenService.getS2sToken("ccpay_bubble", testProps.payBubbleS2SSecret);
             TOKENS_INITIALIZED = true;
         }
@@ -121,7 +125,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         System.out.println(refundResponse.getStatusLine());
@@ -131,6 +135,45 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
         System.out.println(refundResponseFromPost.getRefundReference());
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
+    }
+
+    @Test
+    @Ignore("The last stage should be a 403 rather than a 400....")
+    public void negative_issue_refunds_for_a_pba_payment_unauthorized_user() {
+
+        // create a PBA payment
+        String accountNumber = testProps.existingAccountNumber;
+        CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
+            .aPbaPaymentRequestForProbate("90.00",
+                "PROBATE", "PBAFUNC12345");
+        accountPaymentRequest.setAccountNumber(accountNumber);
+        paymentTestService.postPbaPayment(USER_TOKEN, SERVICE_TOKEN, accountPaymentRequest).then()
+            .statusCode(CREATED.value()).body("status", equalTo("Success"));
+
+        // Get pba payments by accountNumber
+        PaymentsResponse paymentsResponse = paymentTestService
+            .getPbaPaymentsByAccountNumber(USER_TOKEN, SERVICE_TOKEN, testProps.existingAccountNumber)
+            .then()
+            .statusCode(OK.value()).extract().as(PaymentsResponse.class);
+
+        Optional<PaymentDto> paymentDtoOptional
+            = paymentsResponse.getPayments().stream().sorted((s1, s2) -> {
+            return s2.getDateCreated().compareTo(s1.getDateCreated());
+        }).findFirst();
+
+        assertThat(paymentDtoOptional.get().getAccountNumber()).isEqualTo(accountNumber);
+        assertThat(paymentDtoOptional.get().getAmount()).isEqualTo(new BigDecimal("90.00"));
+        assertThat(paymentDtoOptional.get().getCcdCaseNumber()).isEqualTo(accountPaymentRequest.getCcdCaseNumber());
+        System.out.println("The value of the CCD Case Number " + paymentDtoOptional.get().getCcdCaseNumber());
+        String paymentReference = paymentDtoOptional.get().getPaymentReference();
+        PaymentRefundRequest paymentRefundRequest
+            = PaymentFixture.aRefundRequest("RR001", paymentReference);
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+            SERVICE_TOKEN_PAYMENT,
+            paymentRefundRequest);
+        System.out.println(refundResponse.getStatusLine());
+        System.out.println(refundResponse.getBody().prettyPrint());
+        assertThat(refundResponse.getStatusCode()).isEqualTo(FORBIDDEN.value());
     }
 
     @Test
@@ -163,7 +206,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
 
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         System.out.println(refundResponse.getStatusLine());
@@ -173,7 +216,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("90.00"));
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
 
-        Response refundResponseDuplicate = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundResponseDuplicate = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         assertThat(refundResponseDuplicate.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -215,7 +258,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         System.out.println(refundResponse.getStatusLine());
@@ -257,7 +300,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         System.out.println(refundResponse.getStatusLine());
@@ -316,7 +359,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             .then().getResponse();
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
 
-        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
@@ -351,7 +394,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             .then().getResponse();
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
 
-        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
@@ -359,7 +402,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(refundResponseFromPost.getRefundAmount()).isEqualTo(new BigDecimal("5.00"));
         assertThat(REFUNDS_REGEX_PATTERN.matcher(refundResponseFromPost.getRefundReference()).matches()).isEqualTo(true);
 
-        Response refundResponseDuplicate = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+        Response refundResponseDuplicate = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         assertThat(refundResponseDuplicate.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -436,7 +479,7 @@ public class RefundsRequestorJourneyFunctionalTest {
             .then().getResponse();
         String remissionReference = response.getBody().jsonPath().getString("remission_reference");
 
-        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
@@ -519,7 +562,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         System.out.println(refundResponse.getStatusLine());
@@ -531,7 +574,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_positive_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
+    public void positive_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         // create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
@@ -558,7 +601,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(retrospectiveRemissionResponse.getStatusCode()).isEqualTo(CREATED.value());
         String remissionReference = retrospectiveRemissionResponse.getBody().jsonPath().getString("remission_reference");
 
-        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.CREATED.value());
@@ -593,7 +636,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_positive_create_2_fee_payment_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
+    public void positive_create_2_fee_payment_add_remission_add_refund_and_then_initiate_a_refund_for_a_pba_payment() {
         String accountNumber = testProps.existingAccountNumber;
         CreditAccountPaymentRequest accountPaymentRequest = PaymentFixture
             .aPbaPaymentRequestForProbateSinglePaymentFor2Fees("640.00",
@@ -619,7 +662,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(retrospectiveRemissionResponse.getStatusCode()).isEqualTo(CREATED.value());
         String remissionReference = retrospectiveRemissionResponse.getBody().jsonPath().getString("remission_reference");
 
-        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         System.out.println("The value of the responseBody : "+refundResponse.getBody().prettyPrint());
@@ -690,7 +733,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
+    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_more_than_the_account_limit() {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("350000.00",
@@ -699,7 +742,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
+    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_deleted() {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
@@ -708,7 +751,7 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    public void test_negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
+    public void negative_add_remission_and_submit_a_refund_for_a_pba_payment_with_account_on_hold() {
 
         // Create a PBA payment
         this.add_remisssions_and_add_refund_for_a_failed_payment("100.00",
