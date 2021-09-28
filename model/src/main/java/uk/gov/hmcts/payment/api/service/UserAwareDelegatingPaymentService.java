@@ -68,10 +68,7 @@ public class UserAwareDelegatingPaymentService implements DelegatingPaymentServi
 
     private final ServiceRequestCaseUtil serviceRequestCaseUtil;
 
-    private static final Predicate[] REF = new Predicate[0];
-
-    @Value("${gov.pay.url}")
-    String govpayUrl;
+    @Value("${gov.pay.url}") String govpayUrl;
 
     @Autowired
     public UserAwareDelegatingPaymentService(UserIdSupplier userIdSupplier,
