@@ -7,5 +7,4 @@ public class ServiceRequestExceptionForNoMatchingAmount extends PaymentException
     public ServiceRequestExceptionForNoMatchingAmount(String message) {
         super(message);
     }
-
 }
