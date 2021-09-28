@@ -38,11 +38,6 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestFeeDto;
-import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
-import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
-import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
@@ -553,7 +548,7 @@ public class ServiceRequestControllerTest {
     @Test
     public void createSuccessOnlinePayment() throws Exception {
         //Creation of Order-reference
-        String orderReferenceResult = getOrderReference();
+        String orderReferenceResult = getServiceRequestReference();
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .amount(new BigDecimal(300))
@@ -577,7 +572,7 @@ public class ServiceRequestControllerTest {
     @Test
     public void createMultipleOnlinePaymentByCancelingSessionWithGovPay4PaymentWithCreatedStatusWithIn90Mins() throws Exception {
         //Creation of Order-reference
-        String orderReferenceResult = getOrderReference();
+        String orderReferenceResult = getServiceRequestReference();
 
         OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
             .amount(new BigDecimal(300))
