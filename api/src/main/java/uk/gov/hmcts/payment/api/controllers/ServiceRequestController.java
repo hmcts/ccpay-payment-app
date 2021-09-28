@@ -2,7 +2,12 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +16,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.payment.api.domain.model.OrderPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
@@ -25,6 +38,8 @@ import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
+import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
+
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -70,6 +85,7 @@ public class ServiceRequestController {
 
         return serviceRequestResponseDto;
     }
+
 
     @ApiOperation(value = "Create credit account payment", notes = "Create credit account payment")
     @ApiResponses(value = {
@@ -139,75 +155,30 @@ public class ServiceRequestController {
     }
 
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(value = {NoServiceFoundException.class})
-    public String return404(NoServiceFoundException ex) {
-        return ex.getMessage();
+    @ApiOperation(value = "Create online card payment", notes = "Create online card payment")
+    @ApiResponses(value = {
+        @ApiResponse(code = 201, message = "Payment created"),
+        @ApiResponse(code = 400, message = "Bad request. Payment creation failed"),
+        @ApiResponse(code = 403, message = "Unauthenticated request"),
+        @ApiResponse(code = 404, message = "Service request not found"),
+        @ApiResponse(code = 409, message = "Idempotency key already exist with different payment details"),
+        @ApiResponse(code = 412, message = "The order has already been paid"),
+        @ApiResponse(code = 422, message = "Invalid or missing attributes"),
+        @ApiResponse(code = 425, message = "Too many requests.\n There is already a payment request is in process for this service request."),
+        @ApiResponse(code = 452, message = "The service request has already been paid.\nThe payment amount should be equal to service request balance"),
+        @ApiResponse(code = 500, message = "Internal server error"),
+        @ApiResponse(code = 504, message = "Unable to connect to online card payment provider, please try again later"),
+    })
+    @PostMapping(value = "/service-request/{service-request-reference}/card-payments")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
+    public ResponseEntity<OnlineCardPaymentResponse> createCardPayment(@RequestHeader(value = "return-url") String returnURL,
+                                                                       @RequestHeader(value = "service-callback-url", required = false) String serviceCallbackURL,
+                                                                       @PathVariable("service-request-reference") String serviceRequestReference,
+                                                                       @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
+
+        return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
     }
 
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(GatewayTimeoutException.class)
-    public String return504(GatewayTimeoutException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(ServiceRequestReferenceNotFoundException.class)
-    public String return404(ServiceRequestReferenceNotFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(PaymentNotFoundException.class)
-    public String return400(PaymentNotFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InvalidFeeRequestException.class)
-    public String return400(InvalidFeeRequestException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(PaymentException.class)
-    public String return400(PaymentException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ServiceRequestException.class)
-    public String return400(ServiceRequestException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(AccountNotFoundException.class)
-    public String return404(AccountNotFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(AccountServiceUnavailableException.class)
-    public String return504(AccountServiceUnavailableException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(LiberataServiceTimeoutException.class)
-    public String return504(LiberataServiceTimeoutException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
-    @ExceptionHandler(ServiceRequestExceptionForNoMatchingAmount.class)
-    public String return417(ServiceRequestExceptionForNoMatchingAmount ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(ServiceRequestExceptionForNoAmountDue.class)
-    public String return412(ServiceRequestExceptionForNoAmountDue ex) {
-        return ex.getMessage();
-    }
 }
