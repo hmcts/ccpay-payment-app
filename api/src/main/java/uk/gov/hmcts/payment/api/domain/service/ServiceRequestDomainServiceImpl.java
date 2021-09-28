@@ -18,29 +18,25 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
-import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
-import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
-import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
-import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -59,8 +55,6 @@ import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
@@ -96,7 +90,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
 
     @Autowired
-    private OrderPaymentDtoDomainMapper orderPaymentDtoDomainMapper;
+    private ServiceRequestPaymentDtoDomainMapper serviceRequestPaymentDtoDomainMapper;
 
     @Autowired
     private ServiceRequestPaymentDomainDataEntityMapper serviceRequestPaymentDomainDataEntityMapper;
@@ -207,7 +201,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public serviceRequestPaymentBo addPayments(PaymentFeeLink order, OrderPaymentDto orderPaymentDto) throws CheckDigitException {
+    public ServiceRequestPaymentBo addPayments(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto) throws CheckDigitException {
 
         ServiceRequestPaymentBo serviceRequestPaymentBo = serviceRequestPaymentDtoDomainMapper.toDomain(serviceRequestPaymentDto);
         serviceRequestPaymentBo.setStatus(PaymentStatus.CREATED.getName());
