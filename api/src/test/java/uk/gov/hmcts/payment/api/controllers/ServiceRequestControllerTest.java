@@ -42,7 +42,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -143,6 +142,22 @@ public class ServiceRequestControllerTest {
         //Payment amount should be matching with fees
         String idempotencyKey = UUID.randomUUID().toString();
 
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+
+        ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+            .serviceRequestReference("2021-1632746723494").build();
+
+        when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
 
         MvcResult successServiceRequestPaymentResult = restActions
             .withHeader("idempotency_key", idempotencyKey)
@@ -218,6 +233,23 @@ public class ServiceRequestControllerTest {
 
         //ServiceRequest reference creation
         String idempotencyKey = UUID.randomUUID().toString();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+
+        ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+            .serviceRequestReference("2021-1632746723494").build();
+
+        when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
 
         MvcResult result = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
@@ -295,7 +327,8 @@ public class ServiceRequestControllerTest {
             .andReturn();
 
 
-        ServiceRequestPaymentBo serviceRequestPaymentBo = objectMapper.readValue(accountOnHoldResult.getResponse().getContentAsString(), ServiceRequestPaymentBo.class);
+        ServiceRequestPaymentBo serviceRequestPaymentBo = objectMapper.readValue(accountOnHoldResult.getResponse().getContentAsString(),
+            ServiceRequestPaymentBo.class);
 
         // 1. Account On Hold scenario
         String paymentReference = serviceRequestPaymentBo.getPaymentReference();
@@ -366,12 +399,6 @@ public class ServiceRequestControllerTest {
         //AccountServiceUnAvailableException
         serviceRequestPaymentDto.setAccountNumber("PBA2222"); //Account for runtime exception
 
-
-        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
-            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
-
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity2);
-
         restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + ServiceRequestReference + "/pba-payments", serviceRequestPaymentDto)
@@ -392,6 +419,21 @@ public class ServiceRequestControllerTest {
             .currency("GBP")
             .customerReference("testCustReference").
             build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+
+        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
+            thenThrow(new ServiceRequestReferenceNotFoundException("ServiceRequest reference doesn't exist"));
 
         //Payment amount should not be matching with fees
         MvcResult result = restActions
@@ -530,26 +572,6 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
-    public void createServiceRequestWithInvalidCaseType() throws Exception {
-
-        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
-            .caseReference("123245677")
-            .hmctsOrgId("ClaimCase")
-            .ccdCaseNumber("8689869686968696")
-            .callBackUrl("http://callback/url")
-            .casePaymentRequest(getCasePaymentRequest())
-            .fees(Collections.singletonList(getFee()))
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
-
-        restActions
-            .post("/service-request", serviceRequestDto)
-            .andExpect(status().isNotFound())
-            .andExpect(content().string("Test Error"));
-    }
-
-    @Test
     public void createServiceRequestWithValidCaseTypeReturnsTimeOutException() throws Exception {
 
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
@@ -561,7 +583,9 @@ public class ServiceRequestControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(serviceRequestDomainService.create(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
+        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class));
 
         restActions
             .post("/service-request", serviceRequestDto)
