@@ -41,6 +41,11 @@ withNightlyPipeline("java", product, component) {
     loadVaultSecrets(secrets)
     enableSecurityScan()
     enableMutationTest()
+    enableFortifyScan('ccpay-aat')
     enableFullFunctionalTest()
     enableSlackNotifications('#cc-payments-tech')
+}
+
+after('fortify-scan') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
 }
