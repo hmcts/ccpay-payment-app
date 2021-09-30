@@ -21,6 +21,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -33,16 +34,18 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
@@ -50,6 +53,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -88,6 +92,12 @@ public class ServiceRequestControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private PaymentService<PaymentFeeLink, String> paymentService;
+
+    @MockBean
+    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @Before
     @Transactional
@@ -515,6 +525,54 @@ public class ServiceRequestControllerTest {
             .post("/service-request", serviceRequestDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
+    }
+
+    @Test
+    public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .payments(paymentList)
+            .build();
+
+        when(paymentService.findPayment(anyString())).thenReturn(payment);
+        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLink);
+        MvcResult result1 = restActions
+            .get("/card-payments/" + payment.getInternalReference() + "/status")
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentDto paymentDto =  objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
+        assertEquals("Success",paymentDto.getStatus());
+
+    }
+
+    @Test
+    public void createSuccessOnlinePaymentAndValidateFailureStatus() throws Exception {
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .payments(paymentList)
+            .build();
+
+        when(paymentService.findPayment(anyString())).thenThrow(new PaymentNotFoundException());
+        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLink);
+        MvcResult result1 = restActions
+            .get("/card-payments/" + payment.getInternalReference() + "/status")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
     }
 
     private ServiceRequestFeeDto getFee() {
