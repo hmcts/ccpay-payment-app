@@ -297,13 +297,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         //Business validation for amount
         Optional<BigDecimal> totalCalculatedAmount = order.getFees().stream().map(paymentFee -> paymentFee.getCalculatedAmount()).reduce(BigDecimal::add);
         if (totalCalculatedAmount.isPresent() && (totalCalculatedAmount.get().compareTo(request.getAmount()) != 0)) {
-            throw new ServiceRequestExceptionForNoMatchingAmount("The payment amount should be equal to order balance");
+            throw new ServiceRequestExceptionForNoMatchingAmount("The amount should be equal to serviceRequest balance");
         }
 
         //Business validation for amount due for fees
         Optional<BigDecimal> totalAmountDue = order.getFees().stream().map(paymentFee -> paymentFee.getAmountDue()).reduce(BigDecimal::add);
         if (totalAmountDue.isPresent() && totalAmountDue.get().compareTo(BigDecimal.ZERO) == 0) {
-            throw new ServiceRequestExceptionForNoAmountDue("The order has already been paid");
+            throw new ServiceRequestExceptionForNoAmountDue("The serviceRequest has already been paid");
         }
     }
 
