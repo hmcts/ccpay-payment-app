@@ -44,7 +44,7 @@ public class PciPalPaymentServiceTest {
         );
     }
 
-    /*@Test
+    @Test
     public void getPciPalLink() throws URISyntaxException {
         StringBuilder sb = new StringBuilder();
         sb.append("ppAccountID&orderAmount=20000&orderReference=orderReference&callbackURL=www.callback.url.com&customData2");
@@ -70,5 +70,5 @@ public class PciPalPaymentServiceTest {
         URIBuilder uriBuilder = new URIBuilder(url + "?" + sb.toString());
         HttpGet getRequest = new HttpGet(uriBuilder.build());
         assertThat(response).isEqualTo(getRequest.getURI().toString());
-    }*/
+    }
 }
