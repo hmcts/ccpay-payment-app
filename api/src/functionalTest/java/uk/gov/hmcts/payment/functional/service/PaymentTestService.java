@@ -65,6 +65,14 @@ public class PaymentTestService {
             .post("/refund-retro-remission");
     }
 
+    public Response updateThePaymentDateByCCDCaseNumber(final String userToken,
+                                                        final String serviceToken,
+                                                        final String ccdCaseNumber) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .patch("/payments/ccd_case_reference/{ccd_case_number}", ccdCaseNumber);
+    }
+
     public Response recordBarPayment(String userToken, String serviceToken, PaymentRecordRequest request) {
         return givenWithAuthHeaders(userToken, serviceToken)
             .contentType(ContentType.JSON)
