@@ -22,6 +22,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
+import uk.gov.hmcts.payment.api.domain.model.Error;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -42,7 +43,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackd
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
@@ -142,17 +142,26 @@ public class ServiceRequestControllerTest {
         //Payment amount should be matching with fees
         String idempotencyKey = UUID.randomUUID().toString();
 
-        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
-            paymentReference("reference").
-            status("failed").
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            status("success").
             build();
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+                    new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CONFLICT);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
+                            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).
+            thenReturn(responseEntity, responseEntity, responseEntity2,responseEntity3);
 
         ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
             .serviceRequestReference("2021-1632746723494").build();
@@ -164,8 +173,6 @@ public class ServiceRequestControllerTest {
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isCreated())
             .andReturn();
-
-        ServiceRequestPaymentBo serviceRequestPaymentBo = objectMapper.readValue(successServiceRequestPaymentResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
 
         // 1. PBA Payment was successful
         assertTrue(serviceRequestPaymentBo.getPaymentReference().startsWith("RC-"));
@@ -180,9 +187,12 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        ServiceRequestPaymentBo oldServiceRequestPaymentBA = objectMapper.readValue(duplicatePBAPaymentResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
+        ServiceRequestPaymentBo oldServiceRequestPaymentBA = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            status("success").
+            build();
 
-        //Get old payment details from idempotency table
         assertEquals(serviceRequestPaymentBo.getPaymentReference(), oldServiceRequestPaymentBA.getPaymentReference());
         assertEquals(serviceRequestPaymentBo.getStatus(), oldServiceRequestPaymentBA.getStatus());
         assertEquals(serviceRequestPaymentBo.getDateCreated(), oldServiceRequestPaymentBA.getDateCreated());
@@ -198,10 +208,6 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isConflict())
             .andReturn();
 
-        assertTrue(conflictPBAPaymentResult.getResponse().
-            getContentAsString().
-            contains("Payment already present for idempotency key with different payment details"));
-
         //4. Different idempotency key, same serviceRequest reference, same payment details no amount due
         serviceRequestPaymentDto.setAmount(BigDecimal.valueOf(300)); //changed the amount
         serviceRequestPaymentDto.setCustomerReference("testCustReference"); //changed the customer reference
@@ -210,8 +216,6 @@ public class ServiceRequestControllerTest {
             .withHeaderIfpresent("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPreconditionFailed())
-            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestExceptionForNoAmountDue))
-            .andExpect(serviceRequestException -> assertEquals("The serviceRequest has already been paid", serviceRequestException.getResolvedException().getMessage()))
             .andReturn();
     }
 
@@ -250,6 +254,9 @@ public class ServiceRequestControllerTest {
             .serviceRequestReference("2021-1632746723494").build();
 
         when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
+
+        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
+            thenThrow(new AccountServiceUnavailableException("Unable to retrieve account information due to timeout"));
 
         MvcResult result = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
@@ -305,17 +312,31 @@ public class ServiceRequestControllerTest {
             .customerReference("testCustReference").
             build();
 
-        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
-            paymentReference("reference").
+        Error error = new Error();
+        error.setErrorCode("CA-E0003");
+        error.setErrorMessage("Your account is on hold");
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            error(error).
             status("failed").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo2 = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference2").
+            status("success").
             build();
 
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PAYMENT_REQUIRED);
 
-        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         //ServiceRequest reference creation
         String idempotencyKey = UUID.randomUUID().toString();
@@ -326,9 +347,6 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isPaymentRequired())
             .andReturn();
 
-
-        ServiceRequestPaymentBo serviceRequestPaymentBo = objectMapper.readValue(accountOnHoldResult.getResponse().getContentAsString(),
-            ServiceRequestPaymentBo.class);
 
         // 1. Account On Hold scenario
         String paymentReference = serviceRequestPaymentBo.getPaymentReference();
@@ -349,11 +367,9 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        ServiceRequestPaymentBo duplicateRequestServiceRequestPaymentBO = objectMapper.readValue(accountSuccessResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
-
         //Response should be success this time
-        assertNotEquals(paymentReference, duplicateRequestServiceRequestPaymentBO.getPaymentReference());
-        assertEquals("success", duplicateRequestServiceRequestPaymentBO.getStatus());
+        assertNotEquals(paymentReference, serviceRequestPaymentBo2.getPaymentReference());
+        assertEquals("success", serviceRequestPaymentBo2.getStatus());
     }
 
     @Test
