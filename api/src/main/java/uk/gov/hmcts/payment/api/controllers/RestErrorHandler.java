@@ -17,16 +17,7 @@ import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.exception.ValidationErrorException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.OrderExceptionForNoMatchingAmount;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
 import uk.gov.hmcts.payment.casepaymentorders.client.exceptions.CpoInternalServerErrorException;
 
 @ControllerAdvice
@@ -51,15 +42,16 @@ public class RestErrorHandler {
     public ResponseEntity return504(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
     }
-
-    @ExceptionHandler(OrderExceptionForNoMatchingAmount.class)
-    public ResponseEntity return417(OrderExceptionForNoMatchingAmount ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
+    @ExceptionHandler(ServiceRequestExceptionForNoMatchingAmount.class)
+    public String return417(ServiceRequestExceptionForNoMatchingAmount ex) {
+        return ex.getMessage();
     }
 
-    @ExceptionHandler(OrderExceptionForNoAmountDue.class)
-    public ResponseEntity return412(OrderExceptionForNoAmountDue ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.PRECONDITION_FAILED);
+    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
+    @ExceptionHandler(ServiceRequestExceptionForNoAmountDue.class)
+    public String return412(ServiceRequestExceptionForNoAmountDue ex) {
+        return ex.getMessage();
     }
 
     @ExceptionHandler(value = {NoServiceFoundException.class, ServiceRequestReferenceNotFoundException.class, AccountNotFoundException.class})
@@ -68,7 +60,7 @@ public class RestErrorHandler {
     }
 
     @ExceptionHandler({PaymentNotFoundException.class, InvalidFeeRequestException.class, PaymentException.class,
-        OrderException.class, ServiceRequestExceptionForNoMatchingAmount.class, ServiceRequestExceptionForNoAmountDue.class})
+        ServiceRequestException.class})
     public ResponseEntity return400(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
