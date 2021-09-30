@@ -71,7 +71,6 @@ import uk.gov.hmcts.payment.api.service.PciPalPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.DuplicatePaymentException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidFeeRequestException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.NoServiceFoundException;
@@ -630,12 +629,6 @@ public class PaymentGroupController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(value = {NoServiceFoundException.class})
     public String return404(NoServiceFoundException ex) {
-        return ex.getMessage();
-    }
-
-    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
-    @ExceptionHandler(GatewayTimeoutException.class)
-    public String return504(GatewayTimeoutException ex) {
         return ex.getMessage();
     }
 
