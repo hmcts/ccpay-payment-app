@@ -19,7 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
-import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
@@ -56,8 +55,6 @@ import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -120,14 +117,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Autowired
     private IdempotencyKeysRepository idempotencyKeysRepository;
 
-    private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
     @Autowired
     private DelegatingPaymentService<GovPayPayment, String> delegateGovPay;
 
     @Autowired
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
-    private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = order -> order.getPayments().stream().
+    private Function<PaymentFeeLink, Payment> getFirstSuccessPayment = serviceRequest -> serviceRequest.getPayments().stream().
         filter(payment -> payment.getPaymentStatus().getName().equalsIgnoreCase("success")).collect(Collectors.toList()).get(0);
 
     @Override
