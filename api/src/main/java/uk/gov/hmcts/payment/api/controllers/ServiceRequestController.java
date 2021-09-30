@@ -145,17 +145,6 @@ public class ServiceRequestController {
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
 
-    @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment status retrieved"),
-        @ApiResponse(code = 404, message = "Internal reference not found")
-    })
-    @GetMapping(value = "/card-payments/{internal-reference}/status")
-    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
-        Payment payment = paymentService.findPayment(internalReference);
-        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
-    }
-
     @ApiOperation(value = "Create online card payment", notes = "Create online card payment")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
@@ -180,6 +169,17 @@ public class ServiceRequestController {
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
 
         return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
+    }
+
+    @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment status retrieved"),
+        @ApiResponse(code = 404, message = "Internal reference not found")
+    })
+    @GetMapping(value = "/card-payments/{internal-reference}/status")
+    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
+        Payment payment = paymentService.findPayment(internalReference);
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
     }
 
 }
