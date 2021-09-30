@@ -382,10 +382,14 @@ public class ServiceRequestControllerTest {
         ResponseEntity<ServiceRequestPaymentBo> responseEntity =
             new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
 
-        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+                    new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
-            thenThrow(new AccountNotFoundException("Account information could not be found"));
+            thenThrow(new AccountNotFoundException("Account information could not be found"),
+                new AccountServiceUnavailableException("Unable to retrieve account information, please try again later"));
 
         // 1. Account not found exception
         restActions
