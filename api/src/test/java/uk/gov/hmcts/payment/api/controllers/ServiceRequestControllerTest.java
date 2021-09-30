@@ -22,6 +22,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.Error;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
@@ -40,9 +41,14 @@ import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundExcept
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.external.client.GovPayClient;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.external.client.dto.Link;
+import uk.gov.hmcts.payment.api.external.client.dto.State;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -230,6 +236,8 @@ public class ServiceRequestControllerTest {
             .withHeaderIfpresent("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPreconditionFailed())
+            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestExceptionForNoAmountDue))
+            .andExpect(serviceRequestException -> assertEquals("The serviceRequest has already been paid", serviceRequestException.getResolvedException().getMessage()))
             .andReturn();
     }
 
@@ -476,6 +484,8 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isNotFound())
             .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
             .andExpect(serviceRequestException -> assertEquals("ServiceRequest reference doesn't exist", serviceRequestException.getResolvedException().getMessage()))
+            .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
+            .andExpect(orderException -> assertEquals("ServiceRequest reference doesn't exist", orderException.getResolvedException().getMessage()))
             .andReturn();
 
         //Equality test
@@ -626,6 +636,126 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
     }
+
+    @Test
+    public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .payments(paymentList)
+            .build();
+
+        when(paymentService.findPayment(anyString())).thenReturn(payment);
+        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLink);
+        MvcResult result1 = restActions
+            .get("/card-payments/" + payment.getInternalReference() + "/status")
+            .andExpect(status().isOk())
+            .andReturn();
+        PaymentDto paymentDto =  objectMapper.readValue(result1.getResponse().getContentAsByteArray(),PaymentDto.class);
+        assertEquals("Success",paymentDto.getStatus());
+
+    }
+
+    @Test
+    public void createSuccessOnlinePaymentAndValidateFailureStatus() throws Exception {
+
+        Payment payment = Payment.paymentWith().internalReference("abc")
+            .reference("RC-1632-3254-9172-5888").paymentStatus(PaymentStatus.paymentStatusWith().name("success").build())
+            .build();
+
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+
+        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().ccdCaseNumber("1234")
+            .payments(paymentList)
+            .build();
+
+        when(paymentService.findPayment(anyString())).thenThrow(new PaymentNotFoundException());
+        when(delegatingPaymentService.retrieve(anyString())).thenReturn(paymentFeeLink);
+        MvcResult result1 = restActions
+            .get("/card-payments/" + payment.getInternalReference() + "/status")
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    }
+
+
+    @Test
+    public void createSuccessOnlinePayment() throws Exception {
+        //Creation of Order-reference
+        String orderReferenceResult = getServiceRequestReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "idempotencyKey")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+    }
+
+
+    @Test
+    public void createMultipleOnlinePaymentByCancelingSessionWithGovPay4PaymentWithCreatedStatusWithIn90Mins() throws Exception {
+        //Creation of Order-reference
+        String orderReferenceResult = getServiceRequestReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "dummy")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+        Thread.sleep(1000); //just to resemble minutes changes to create new payment
+
+        MvcResult result1 = restActions
+            .withHeader("service-callback-url", "dummy")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+    }
+
+    private GovPayPayment getGovPayPayment() {
+        return GovPayPayment.govPaymentWith()
+            .amount(300)
+            .state(new State("created", false, null, null))
+            .description("description")
+            .reference("reference")
+            .paymentId("paymentId")
+            .paymentProvider("sandbox")
+            .returnUrl("https://www.google.com")
+            .links(GovPayPayment.Links.linksWith().nextUrl(new Link("any", ImmutableMap.of(), "cancelHref", "any")).build())
+            .build();
+    }
+
 
     @Test
     public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
