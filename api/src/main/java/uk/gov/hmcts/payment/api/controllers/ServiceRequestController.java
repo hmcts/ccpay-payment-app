@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
@@ -39,6 +41,10 @@ import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import javax.validation.Valid;
 import java.util.Optional;
 import java.util.function.Function;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.PaymentService;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 
 @RestController
 @Api(tags = {"service-request"})
@@ -56,6 +62,15 @@ public class ServiceRequestController {
 
     @Autowired
     private CreditAccountDtoMapper creditAccountDtoMapper;
+
+    @Autowired
+    private PaymentService<PaymentFeeLink, String> paymentService;
+
+    @Autowired
+    private PaymentDtoMapper paymentDtoMapper;
+
+    @Autowired
+    private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
 
     @ApiOperation(value = "Create Service Request", notes = "Create Service Request")
     @ApiResponses(value = {
@@ -149,6 +164,16 @@ public class ServiceRequestController {
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
 
+    @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment status retrieved"),
+        @ApiResponse(code = 404, message = "Internal reference not found")
+    })
+    @GetMapping(value = "/card-payments/{internal-reference}/status")
+    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
+        Payment payment = paymentService.findPayment(internalReference);
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
+    }
 
     @ApiOperation(value = "Create online card payment", notes = "Create online card payment")
     @ApiResponses(value = {
