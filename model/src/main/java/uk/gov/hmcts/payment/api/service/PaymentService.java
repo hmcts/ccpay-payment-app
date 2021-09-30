@@ -30,4 +30,6 @@ public interface PaymentService<T, ID> {
 
     Payment findSavedPayment(String reference);
 
+    Payment findPayment(String internalReference);
+
 }
