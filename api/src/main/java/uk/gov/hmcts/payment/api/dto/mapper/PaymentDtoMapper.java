@@ -115,7 +115,7 @@ public class PaymentDtoMapper {
             .build();
     }
 
-    public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, String link) {
+    /*public PaymentDto toPciPalCardPaymentDto(PaymentFeeLink paymentFeeLink, Payment payment, String link) {
         return PaymentDto.payment2DtoWith()
             .status(PayStatusToPayHubStatus.valueOf(payment.getStatus().toLowerCase()).getMappedStatus())
             .reference(payment.getReference())
@@ -124,7 +124,7 @@ public class PaymentDtoMapper {
             .dateCreated(payment.getDateCreated())
             .links(new PaymentDto.LinksDto(new PaymentDto.LinkDto(link, "GET"), null, null))
             .build();
-    }
+    }*/
 
     public PaymentDto toResponseDto(PaymentFeeLink paymentFeeLink, Payment payment) {
         List<PaymentFee> fees = paymentFeeLink.getFees();
