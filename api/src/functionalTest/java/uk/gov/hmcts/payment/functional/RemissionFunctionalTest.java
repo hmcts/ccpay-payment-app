@@ -103,7 +103,7 @@ public class RemissionFunctionalTest {
             FeeDto feeDto = paymentGroupFeeDto.getFees().get(0);
             Integer feeId = feeDto.getId();
 
-            dsl.given().userToken(USER_TOKEN)
+           /* dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
@@ -114,7 +114,7 @@ public class RemissionFunctionalTest {
                 UrlValidator urlValidator = new UrlValidator(schemes);
                 assertNotNull(paymentDto.getLinks().getNextUrl());
                 assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
-            });
+            });*/
 
             // TEST create retrospective remission
             dsl.given().userToken(USER_TOKEN)

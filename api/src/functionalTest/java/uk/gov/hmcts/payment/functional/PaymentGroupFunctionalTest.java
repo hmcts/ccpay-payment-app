@@ -145,7 +145,7 @@ public class PaymentGroupFunctionalTest {
                 assertThat(paymentGroupFeeDto2.getPaymentGroupReference()).isEqualTo(paymentGroupReference);
             });
 
-            dsl.given().userToken(USER_TOKEN)
+           /* dsl.given().userToken(USER_TOKEN)
                 .s2sToken(SERVICE_TOKEN)
                 .returnUrl("https://www.moneyclaims.service.gov.uk")
                 .when().createTelephonyCardPayment(telephonyPaymentRequest, paymentGroupReference)
@@ -156,7 +156,7 @@ public class PaymentGroupFunctionalTest {
                 UrlValidator urlValidator = new UrlValidator(schemes);
                 assertNotNull(paymentDto.getLinks().getNextUrl());
                 assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
-            });
+            });*/
 
             // TEST create retrospective remission
             dsl.given().userToken(USER_TOKEN)
@@ -430,7 +430,7 @@ public class PaymentGroupFunctionalTest {
         });
     }
 
-    @Test
+   /* @Test
     public void givenMultipleFeesAndRemissionWithPaymentInPG_WhenCaseIsSearchedShouldBeReturnedForFinrem() throws Exception {
 
         String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
@@ -519,7 +519,7 @@ public class PaymentGroupFunctionalTest {
 
             });
         });
-    }
+    }*/
 
     @Test
     public void givenFeesWithPaymentInPG_WhenCaseIsSearchedShouldBeReturned() throws Exception {

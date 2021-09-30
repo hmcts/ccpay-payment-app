@@ -111,7 +111,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         this.objectMapper= objectMapper;
     }
 
-    public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
+    /*public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
         LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
         return withIOExceptionHandling(() -> {
             String ppAccountID = getppAccountId(serviceType);
@@ -131,9 +131,9 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
 
             return request.getURI().toString();
         });
-    }
+    }*/
 
-    private String getppAccountId(String serviceType) {
+    /*private String getppAccountId(String serviceType) {
         String ppAccountID = null;
         if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
             ppAccountID = ppAccountIDDivorce;
@@ -152,7 +152,7 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
             throw new PaymentException("Invalid service type: " + serviceType);
         }
         return ppAccountID;
-    }
+    }*/
 
 
     public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL) {
