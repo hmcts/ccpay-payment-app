@@ -75,6 +75,11 @@ public class PaymentOperationsService implements PaymentService<Payment, String>
         return null;
     }
 
+    @Override
+    public Payment findPayment(String uuid) {
+        return null;
+    }
+
     private static final Specification constructPaymentSpecification(final PaymentSearchCriteria searchCriteria) {
         return ((root, query, cb) -> constructPredicate(root, cb, searchCriteria, query));
     }
