@@ -160,17 +160,6 @@ public class ServiceRequestController {
         return serviceRequestDomainService.createIdempotencyRecord(objectMapper, idempotencyKey, serviceRequestReference, responseJson, responseEntity, serviceRequestPaymentDto);
     }
 
-    @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Payment status retrieved"),
-        @ApiResponse(code = 404, message = "Internal reference not found")
-    })
-    @GetMapping(value = "/card-payments/{internal-reference}/status")
-    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
-        Payment payment = paymentService.findPayment(internalReference);
-        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
-    }
-
     @ApiOperation(value = "Create online card payment", notes = "Create online card payment")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Payment created"),
@@ -181,7 +170,7 @@ public class ServiceRequestController {
         @ApiResponse(code = 412, message = "The order has already been paid"),
         @ApiResponse(code = 422, message = "Invalid or missing attributes"),
         @ApiResponse(code = 425, message = "Too many requests.\n There is already a payment request is in process for this service request."),
-        @ApiResponse(code = 452, message = "The service request has already been paid.\nThe payment amount should be equal to service request balance"),
+        @ApiResponse(code = 452, message = "The servicerequest has already been paid.\nThe payment amount should be equal to service request balance"),
         @ApiResponse(code = 500, message = "Internal server error"),
         @ApiResponse(code = 504, message = "Unable to connect to online card payment provider, please try again later"),
     })
@@ -195,6 +184,17 @@ public class ServiceRequestController {
                                                                        @Valid @RequestBody OnlineCardPaymentRequest onlineCardPaymentRequest) throws CheckDigitException, JsonProcessingException {
 
         return new ResponseEntity<>(serviceRequestDomainService.create(onlineCardPaymentRequest, serviceRequestReference, returnURL, serviceCallbackURL), HttpStatus.CREATED);
+    }
+
+    @ApiOperation(value = "Get card payment status by Internal Reference", notes = "Get payment status for supplied Internal Reference")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Payment status retrieved"),
+        @ApiResponse(code = 404, message = "Internal reference not found")
+    })
+    @GetMapping(value = "/card-payments/{internal-reference}/status")
+    public PaymentDto retrieveStatusByInternalReference(@PathVariable("internal-reference") String internalReference) {
+        Payment payment = paymentService.findPayment(internalReference);
+        return paymentDtoMapper.toRetrieveCardPaymentResponseDtoWithoutExtReference(delegatingPaymentService.retrieve(payment.getReference()));
     }
 
 }
