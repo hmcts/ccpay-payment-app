@@ -42,16 +42,14 @@ public class RestErrorHandler {
     public ResponseEntity return504(Exception ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GATEWAY_TIMEOUT);
     }
-    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
     @ExceptionHandler(ServiceRequestExceptionForNoMatchingAmount.class)
-    public String return417(ServiceRequestExceptionForNoMatchingAmount ex) {
-        return ex.getMessage();
+    public ResponseEntity return417(ServiceRequestExceptionForNoMatchingAmount ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
     }
 
-    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler(ServiceRequestExceptionForNoAmountDue.class)
-    public String return412(ServiceRequestExceptionForNoAmountDue ex) {
-        return ex.getMessage();
+    public ResponseEntity return412(ServiceRequestExceptionForNoAmountDue ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.PRECONDITION_FAILED);
     }
 
     @ExceptionHandler(value = {NoServiceFoundException.class, ServiceRequestReferenceNotFoundException.class, AccountNotFoundException.class})
