@@ -7,4 +7,5 @@ public class ServiceRequestExceptionForNoAmountDue extends PaymentException {
     public ServiceRequestExceptionForNoAmountDue(String message) {
         super(message);
     }
+
 }
