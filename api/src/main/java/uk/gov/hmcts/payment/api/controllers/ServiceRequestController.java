@@ -166,7 +166,7 @@ public class ServiceRequestController {
         @ApiResponse(code = 412, message = "The order has already been paid"),
         @ApiResponse(code = 422, message = "Invalid or missing attributes"),
         @ApiResponse(code = 425, message = "Too many requests.\n There is already a payment request is in process for this service request."),
-        @ApiResponse(code = 452, message = "The service request has already been paid.\nThe payment amount should be equal to service request balance"),
+        @ApiResponse(code = 452, message = "The servicerequest has already been paid.\nThe payment amount should be equal to service request balance"),
         @ApiResponse(code = 500, message = "Internal server error"),
         @ApiResponse(code = 504, message = "Unable to connect to online card payment provider, please try again later"),
     })
