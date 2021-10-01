@@ -111,50 +111,6 @@ public class PciPalPaymentService implements DelegatingPaymentService<PciPalPaym
         this.objectMapper= objectMapper;
     }
 
-    /*public String getPciPalLink(PciPalPaymentRequest pciPalPaymentRequest, String serviceType) {
-        LOG.debug("CMC: {} DIVORCE: {} PROBATE: {}", ppAccountIDCmc, ppAccountIDDivorce, ppAccountIDProbate);
-        return withIOExceptionHandling(() -> {
-            String ppAccountID = getppAccountId(serviceType);
-
-            LOG.debug("ppAccountID: {} SERVICE_TYPE_CMC: {} serviceType: {}", ppAccountID, SERVICE_TYPE_CMC, serviceType);
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair("ppAccountID", ppAccountID));
-            params.add(new BasicNameValuePair("orderAmount", new BigDecimal(pciPalPaymentRequest.getOrderAmount()).movePointRight(2).toString()));
-            params.add(new BasicNameValuePair("orderReference", pciPalPaymentRequest.getOrderReference()));
-            params.add(new BasicNameValuePair("callbackURL", callbackUrl));
-            params.add(new BasicNameValuePair("customData2", pciPalPaymentRequest.getCustomData2()));
-
-
-            URIBuilder uriBuilder = new URIBuilder(url);
-            uriBuilder.addParameters(params);
-            HttpGet request = new HttpGet(uriBuilder.build());
-
-            return request.getURI().toString();
-        });
-    }*/
-
-    /*private String getppAccountId(String serviceType) {
-        String ppAccountID = null;
-        if (serviceType.equalsIgnoreCase(SERVICE_TYPE_DIVORCE)) {
-            ppAccountID = ppAccountIDDivorce;
-        }
-        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_CMC)) {
-            ppAccountID = ppAccountIDCmc;
-        }
-        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_PROBATE)) {
-            ppAccountID = ppAccountIDProbate;
-        }
-        else if (serviceType.equalsIgnoreCase(SERVICE_TYPE_FINREM)) {
-            ppAccountID = ppAccountIDFinrem;
-        }
-        else
-        {
-            throw new PaymentException("Invalid service type: " + serviceType);
-        }
-        return ppAccountID;
-    }*/
-
-
     public TelephonyProviderAuthorisationResponse getTelephonyProviderLink(PciPalPaymentRequest pciPalPaymentRequest, TelephonyProviderAuthorisationResponse telephonyProviderAuthorisationResponse, String serviceType, String returnURL) {
         return withIOExceptionHandling(() -> {
 

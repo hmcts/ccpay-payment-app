@@ -278,19 +278,6 @@ public class TelephonyPaymentsTest {
             assertThat(paymentGroupFeeDto.getPaymentGroupReference()).isNotNull();
             assertThat(paymentGroupFeeDto.getFees().get(0)).isEqualToComparingOnlyGivenFields(getPaymentFeeGroupRequest());
 
-            /*dsl.given().userToken(USER_TOKEN)
-                .s2sToken(SERVICE_TOKEN)
-                .returnUrl("https://www.moneyclaims.service.gov.uk")
-                .when().createTelephonyCardPayment(paymentRequest, paymentGroupFeeDto.getPaymentGroupReference())
-                .then().created(paymentDto -> {
-                assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
-                assertEquals("payment status is properly set", "Initiated", paymentDto.getStatus());
-                String[] schemes = {"https"};
-                UrlValidator urlValidator = new UrlValidator(schemes);
-                assertNotNull(paymentDto.getLinks().getNextUrl());
-                assertTrue(urlValidator.isValid(paymentDto.getLinks().getNextUrl().getHref()));
-            });*/
-
         });
     }
 
