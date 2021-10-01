@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -13,8 +12,9 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
-import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
-import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -102,26 +102,7 @@ public class ServiceRequestDomainServiceTest2 {
 
     }
 
-    @Ignore
-    public void createOnlineCardPaymentRequest() throws Exception {
-
-        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith().
-            amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN)).
-            language("Eng").build();
-
-        when(paymentFeeLinkRepository.findByPaymentReference(any())).thenReturn(Optional.ofNullable(getPaymentFeeLink()));
-
-        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo =ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo().
-            paymentReference("RC-ref").build();
-
-        when(serviceRequestDtoDomainMapperMock.toDomain(any(),any(),any())).thenReturn(serviceRequestOnlinePaymentBo);
-
-        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,
-            "","","");
-
-    }
-
-    @Ignore
+    @Test
     public void businessValidationForServiceRequests() throws Exception {
 
         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
@@ -131,19 +112,6 @@ public class ServiceRequestDomainServiceTest2 {
 
 
         serviceRequestDomainService.businessValidationForServiceRequests(getPaymentFeeLink(),serviceRequestPaymentDto);
-
-    }
-
-    @Test
-    public void addPayments() throws Exception {
-
-        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
-                .accountNumber("1234").
-                 amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN)).
-                    build();
-
-
-        serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
 
     }
 
