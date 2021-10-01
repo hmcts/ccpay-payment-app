@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -10,18 +11,23 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
+import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
+import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,13 +43,22 @@ import static org.mockito.Mockito.when;
 public class ServiceRequestDomainServiceTest2 {
 
     @InjectMocks
-    private ServiceRequestDomainServiceImpl orderDomainService;
+    private ServiceRequestDomainServiceImpl serviceRequestDomainService;
 
     @Mock
     private ReferenceDataServiceImpl referenceDataService;
 
     @Spy
-    private ServiceRequestDtoDomainMapper orderDtoDomainMapper;
+    private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
+
+    @Spy
+    ServiceRequestPaymentDtoDomainMapper serviceRequestPaymentDtoDomainMapper;
+
+    @Mock
+    private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapperMock;
+
+    @Spy
+    ReferenceUtil referenceUtil;
 
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -81,9 +96,81 @@ public class ServiceRequestDomainServiceTest2 {
                                             .build();
         doReturn(orderResponse).when(orderBo).createServiceRequest(any());
 
-        ServiceRequestResponseDto orderReferenceResult = orderDomainService.create(orderDto, header);
+        ServiceRequestResponseDto orderReferenceResult = serviceRequestDomainService.create(orderDto, header);
 
         assertThat(orderReference).isEqualTo(orderReferenceResult.getServiceRequestReference());
+
+    }
+
+    @Ignore
+    public void createOnlineCardPaymentRequest() throws Exception {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith().
+            amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN)).
+            language("Eng").build();
+
+        when(paymentFeeLinkRepository.findByPaymentReference(any())).thenReturn(Optional.ofNullable(getPaymentFeeLink()));
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo =ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo().
+            paymentReference("RC-ref").build();
+
+        when(serviceRequestDtoDomainMapperMock.toDomain(any(),any(),any())).thenReturn(serviceRequestOnlinePaymentBo);
+
+        OnlineCardPaymentResponse onlineCardPaymentResponse = serviceRequestDomainService.create(onlineCardPaymentRequest,
+            "","","");
+
+    }
+
+    @Ignore
+    public void businessValidationForServiceRequests() throws Exception {
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+                .accountNumber("1234").
+                 amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN)).
+                    build();
+
+
+        serviceRequestDomainService.businessValidationForServiceRequests(getPaymentFeeLink(),serviceRequestPaymentDto);
+
+    }
+
+    @Test
+    public void addPayments() throws Exception {
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+                .accountNumber("1234").
+                 amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN)).
+                    build();
+
+
+        serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
+
+    }
+
+    @Test
+    public void sendMessageTopicCPORequest() throws Exception {
+
+        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
+            .caseReference("123245677")
+            .hmctsOrgId("ClaimCase")
+            .ccdCaseNumber("8689869686968696")
+            .casePaymentRequest(getCasePaymentRequest())
+            .build();
+
+        uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto serviceRequestCpoDto =
+            uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto.serviceRequestCpoDtoWith()
+            .action(serviceRequestDto.getCasePaymentRequest().getAction())
+            .case_id(serviceRequestDto.getCcdCaseNumber())
+            .order_reference(serviceRequestDto.getCaseReference())
+            .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
+            .build();
+
+        try {
+            serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
+        }catch (SendMessageTopicFailedException e){
+            assertThat(e.getMessage()).isEqualTo("Error while sending message to topic");
+        }
+
 
     }
 
@@ -91,7 +178,7 @@ public class ServiceRequestDomainServiceTest2 {
     public void findOrdersByCcdCaseNumber() throws Exception {
         when(paymentFeeLinkRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.of(Collections.singletonList(getPaymentFeeLink())));
 
-        List<PaymentFeeLink> paymentFeeLinkList = orderDomainService.findByCcdCaseNumber("1607065108455502");
+        List<PaymentFeeLink> paymentFeeLinkList = serviceRequestDomainService.findByCcdCaseNumber("1607065108455502");
 
         assertThat(paymentFeeLinkList.get(0).getCcdCaseNumber()).isEqualTo("1607065108455502");
     }
@@ -101,7 +188,7 @@ public class ServiceRequestDomainServiceTest2 {
         when(paymentFeeLinkRepository.findByCcdCaseNumber(anyString())).thenReturn(Optional.of(Collections.emptyList()));
 
         try {
-            List<PaymentFeeLink> paymentFeeLinkList = orderDomainService.findByCcdCaseNumber("1607065108455502");
+            List<PaymentFeeLink> paymentFeeLinkList = serviceRequestDomainService.findByCcdCaseNumber("1607065108455502");
         } catch (PaymentGroupNotFoundException e) {
             assertThat(e.getMessage()).isEqualTo("Order detail not found for given ccdcasenumber 1607065108455502");
         }
@@ -123,8 +210,14 @@ public class ServiceRequestDomainServiceTest2 {
             .enterpriseServiceName("enterprise-service-name")
             .paymentReference("payment-ref")
             .ccdCaseNumber("1607065108455502")
-            .fees(Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
+            .fees(Arrays.asList(PaymentFee.feeWith().
+                amountDue(new BigDecimal(10)).
+                calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()))
             .build();
+    }
+
+    private CasePaymentRequest getCasePaymentRequest(){
+        return CasePaymentRequest.casePaymentRequestWith().responsibleParty("party").action("action").build();
     }
 
 }
