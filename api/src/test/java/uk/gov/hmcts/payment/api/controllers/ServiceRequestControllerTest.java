@@ -566,6 +566,29 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
+    public void createCardPaymentTest() throws Exception {
+
+        String serviceRequestReference = getServiceRequestReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        OnlineCardPaymentResponse onlineCardPaymentResponse = OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
+                .paymentReference("RC-ref")
+                    .build();
+
+        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponse);
+
+        MvcResult result = restActions
+            .post("/service-request/" + serviceRequestReference + "/card-payments", onlineCardPaymentRequest)
+            .andReturn();
+
+    }
+
+    @Test
     public void createServiceRequestWithInValidCcdCaseNumber() throws Exception {
 
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
