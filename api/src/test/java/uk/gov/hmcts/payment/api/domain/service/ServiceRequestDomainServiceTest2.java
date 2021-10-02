@@ -22,9 +22,12 @@ import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -56,6 +59,9 @@ public class ServiceRequestDomainServiceTest2 {
 
     @Mock
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapperMock;
+
+    @Mock
+    PaymentGroupService paymentGroupService;
 
     @Spy
     ReferenceUtil referenceUtil;
@@ -115,6 +121,43 @@ public class ServiceRequestDomainServiceTest2 {
 
     }
 
+     @Test
+    public void businessValidationForServiceRequestsServiceRequestExceptionForNoMatchingAmount() throws Exception {
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+                .accountNumber("1234").
+                 amount(new BigDecimal(99.94)).
+                    build();
+        try {
+            serviceRequestDomainService.businessValidationForServiceRequests(getPaymentFeeLink(),serviceRequestPaymentDto);
+        }catch (ServiceRequestExceptionForNoMatchingAmount e){
+            assertThat(e.getMessage()).isEqualTo("The amount should be equal to serviceRequest balance");
+        }
+    }
+
+     @Test
+    public void businessValidationForServiceRequestsServiceRequestExceptionForNoAmountDue() throws Exception {
+
+         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+             .accountNumber("1234").
+             amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN)).
+             build();
+
+         PaymentFeeLink paymentFeeLink = getPaymentFeeLink();
+         paymentFeeLink.setFees(Arrays.asList(PaymentFee.feeWith().
+             amountDue(new BigDecimal(0)).
+             calculatedAmount(new BigDecimal("99.99")).version("1").code("FEE0001").volume(1).build()));
+
+         try {
+             serviceRequestDomainService.businessValidationForServiceRequests(paymentFeeLink,serviceRequestPaymentDto);
+         }catch (ServiceRequestExceptionForNoAmountDue e){
+             assertThat(e.getMessage()).isEqualTo("The serviceRequest has already been paid");
+         }
+
+    }
+
+
+
     @Test
     public void sendMessageTopicCPORequest() throws Exception {
 
@@ -149,6 +192,12 @@ public class ServiceRequestDomainServiceTest2 {
         List<PaymentFeeLink> paymentFeeLinkList = serviceRequestDomainService.findByCcdCaseNumber("1607065108455502");
 
         assertThat(paymentFeeLinkList.get(0).getCcdCaseNumber()).isEqualTo("1607065108455502");
+    }
+
+    @Test
+    public void isDuplicateTest() {
+        when(paymentGroupService.findByPaymentGroupReference(any())).thenReturn(getPaymentFeeLink());
+        serviceRequestDomainService.isDuplicate("1607065108455502");
     }
 
     @Test
