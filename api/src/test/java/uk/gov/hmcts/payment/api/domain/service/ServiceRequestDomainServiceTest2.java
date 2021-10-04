@@ -10,21 +10,24 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
+import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
+import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
-import uk.gov.hmcts.payment.api.util.ReferenceUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
@@ -54,17 +57,20 @@ public class ServiceRequestDomainServiceTest2 {
     @Spy
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
 
-    @Spy
+    @Mock
     ServiceRequestPaymentDtoDomainMapper serviceRequestPaymentDtoDomainMapper;
+
+    @Mock
+    ServiceRequestPaymentDomainDataEntityMapper serviceRequestPaymentDomainDataEntityMapper;
+
+    @Spy
+    private List<String> pbaConfig1ServiceNames;
 
     @Mock
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapperMock;
 
     @Mock
     PaymentGroupService paymentGroupService;
-
-    @Spy
-    ReferenceUtil referenceUtil;
 
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
@@ -135,7 +141,7 @@ public class ServiceRequestDomainServiceTest2 {
         }
     }
 
-     @Test
+    @Test
     public void businessValidationForServiceRequestsServiceRequestExceptionForNoAmountDue() throws Exception {
 
          ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
@@ -152,6 +158,34 @@ public class ServiceRequestDomainServiceTest2 {
              serviceRequestDomainService.businessValidationForServiceRequests(paymentFeeLink,serviceRequestPaymentDto);
          }catch (ServiceRequestExceptionForNoAmountDue e){
              assertThat(e.getMessage()).isEqualTo("The serviceRequest has already been paid");
+         }
+
+    }
+
+     @Test
+     public void addPaymentsTest() throws Exception {
+
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+            .accountNumber("1234")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+                .build();
+
+         ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith()
+                 .paymentReference("RC-ref")
+                     .build();
+
+         Payment payment = Payment.paymentWith()
+                 .paymentLink(getPaymentFeeLink())
+                     .build();
+
+         when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
+
+         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment);
+
+         try {
+             serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
+         }catch (AccountServiceUnavailableException e){
+             assertThat(e.getMessage()).isEqualTo("Unable to retrieve account information, please try again later");
          }
 
     }
