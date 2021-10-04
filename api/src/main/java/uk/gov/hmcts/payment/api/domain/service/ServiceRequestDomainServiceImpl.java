@@ -378,6 +378,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             LOG.error("Error while sending message to topic", e.getMessage());
         } catch (InterruptedException e) {
             LOG.error("Error while sending message to topic", e.getMessage());
+        }catch (Exception e){
+            LOG.error("Error while sending message to topic", e.getMessage());
         }
     }
 }
