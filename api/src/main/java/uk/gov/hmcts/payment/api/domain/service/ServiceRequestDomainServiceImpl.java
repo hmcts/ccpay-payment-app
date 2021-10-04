@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.servicebus.Message;
-import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -372,12 +371,6 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
         } catch (SendMessageTopicFailedException e) {
             LOG.error("Error while sending message to topic", e.getMessage());
             throw new SendMessageTopicFailedException("Error while sending message to topic");
-        } catch (ServiceBusException e) {
-            LOG.error("Error while sending message to topic", e.getMessage());
-        } catch (JsonProcessingException e) {
-            LOG.error("Error while sending message to topic", e.getMessage());
-        } catch (InterruptedException e) {
-            LOG.error("Error while sending message to topic", e.getMessage());
         }catch (Exception e){
             LOG.error("Error while sending message to topic", e.getMessage());
         }
