@@ -9,12 +9,16 @@ import org.mockito.Spy;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
+import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapper;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
+import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
+import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
@@ -22,10 +26,11 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
+import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
+import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
+import uk.gov.hmcts.payment.api.service.FeePayApportionService;
 import uk.gov.hmcts.payment.api.service.PaymentGroupService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
@@ -42,8 +47,7 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 public class ServiceRequestDomainServiceTest2 {
@@ -53,9 +57,6 @@ public class ServiceRequestDomainServiceTest2 {
 
     @Mock
     private ReferenceDataServiceImpl referenceDataService;
-
-    @Spy
-    private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
 
     @Mock
     ServiceRequestPaymentDtoDomainMapper serviceRequestPaymentDtoDomainMapper;
@@ -67,7 +68,7 @@ public class ServiceRequestDomainServiceTest2 {
     private List<String> pbaConfig1ServiceNames;
 
     @Mock
-    private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapperMock;
+    private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
 
     @Mock
     PaymentGroupService paymentGroupService;
@@ -77,6 +78,21 @@ public class ServiceRequestDomainServiceTest2 {
 
     @Mock
     private ServiceRequestBo orderBo;
+
+    @Mock
+    DelegatingPaymentService<GovPayPayment, String> delegateGovPay;
+
+    @Mock
+    ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
+
+    @Mock
+    Payment2Repository paymentRepository;
+
+    @Mock
+    LaunchDarklyFeatureToggler featureToggler;
+
+    @Mock
+    FeePayApportionService feePayApportionService;
 
     @Before
     public void setup() {
@@ -187,9 +203,44 @@ public class ServiceRequestDomainServiceTest2 {
          }catch (AccountServiceUnavailableException e){
              assertThat(e.getMessage()).isEqualTo("Unable to retrieve account information, please try again later");
          }
-
     }
 
+    @Test
+    public void createOnlineCardPaymentTest() throws Exception {
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .language("Eng")
+            .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+            .build();
+
+        when(paymentFeeLinkRepository.findByPaymentReference(anyString())).thenReturn(Optional.of(getPaymentFeeLink()));
+
+        ServiceRequestOnlinePaymentBo serviceRequestOnlinePaymentBo = ServiceRequestOnlinePaymentBo.serviceRequestOnlinePaymentBo()
+                .paymentReference("RC-ref")
+                    .build();
+
+        when(serviceRequestDtoDomainMapper.toDomain(any(),any(),any())).thenReturn(serviceRequestOnlinePaymentBo);
+
+        GovPayPayment govPayPayment = GovPayPayment.govPaymentWith()
+                .paymentId("id")
+                    .build();
+
+        when(delegateGovPay.create(any(CreatePaymentRequest.class))).thenReturn(govPayPayment);
+
+        Payment payment = Payment.paymentWith()
+                .paymentLink(getPaymentFeeLink())
+                .paymentStatus(PaymentStatus.CREATED)
+                    .build();
+
+        when(serviceRequestDomainDataEntityMapper.toPaymentEntity(any(),any())).thenReturn(payment);
+
+        when(paymentRepository.save(any())).thenReturn(payment);
+
+        when(featureToggler.getBooleanValue(any(),any())).thenReturn(false);
+
+        serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
+
+    }
 
 
     @Test
@@ -212,10 +263,11 @@ public class ServiceRequestDomainServiceTest2 {
 
         try {
             serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
-        }catch (SendMessageTopicFailedException e){
+        }catch (SendMessageTopicFailedException e) {
+            assertThat(e.getMessage()).isEqualTo("Error while sending message to topic");
+        }catch (Exception e){
             assertThat(e.getMessage()).isEqualTo("Error while sending message to topic");
         }
-
 
     }
 
