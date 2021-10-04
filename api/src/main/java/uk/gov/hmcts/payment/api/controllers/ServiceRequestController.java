@@ -30,8 +30,6 @@ import uk.gov.hmcts.payment.api.dto.mapper.CreditAccountDtoMapper;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
-import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
 import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
 import uk.gov.hmcts.payment.api.model.Payment;
