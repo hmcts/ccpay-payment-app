@@ -17,22 +17,16 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapp
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
-import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
+import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
 import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.PaymentGroupService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataServiceImpl;
+import uk.gov.hmcts.payment.api.service.*;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
@@ -47,7 +41,8 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 public class ServiceRequestDomainServiceTest2 {
@@ -93,6 +88,12 @@ public class ServiceRequestDomainServiceTest2 {
 
     @Mock
     FeePayApportionService feePayApportionService;
+
+    @Mock
+    AccountService accountService;
+
+    @Spy
+    PBAStatusErrorMapper pbaStatusErrorMapper;
 
     @Before
     public void setup() {
@@ -192,18 +193,29 @@ public class ServiceRequestDomainServiceTest2 {
 
          Payment payment = Payment.paymentWith()
                  .paymentLink(getPaymentFeeLink())
+                 .paymentStatus(PaymentStatus.SUCCESS)
                      .build();
+
+         Payment paymentFailed = Payment.paymentWith()
+             .paymentLink(getPaymentFeeLink())
+             .paymentStatus(PaymentStatus.FAILED)
+             .build();
 
          when(serviceRequestPaymentDtoDomainMapper.toDomain(any())).thenReturn(serviceRequestPaymentBo);
 
-         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment);
+         when(serviceRequestPaymentDomainDataEntityMapper.toEntity(any(),any())).thenReturn(payment,paymentFailed);
 
-         try {
-             serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
-         }catch (AccountServiceUnavailableException e){
-             assertThat(e.getMessage()).isEqualTo("Unable to retrieve account information, please try again later");
-         }
-    }
+         AccountDto accountDto = AccountDto.accountDtoWith()
+                 .accountNumber("1234")
+                     .build();
+
+         when(accountService.retrieve(any())).thenReturn(accountDto);
+
+         serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
+
+         serviceRequestDomainService.addPayments(getPaymentFeeLink(),serviceRequestPaymentDto);
+
+     }
 
     @Test
     public void createOnlineCardPaymentTest() throws Exception {
