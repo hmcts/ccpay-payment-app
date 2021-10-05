@@ -1,11 +1,15 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.poi.ss.formula.functions.T;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -95,6 +99,9 @@ public class ServiceRequestDomainServiceTest2 {
     @Spy
     PBAStatusErrorMapper pbaStatusErrorMapper;
 
+    @Mock
+    IdempotencyKeysRepository idempotencyKeysRepository;
+
     @Before
     public void setup() {
 
@@ -177,6 +184,36 @@ public class ServiceRequestDomainServiceTest2 {
              assertThat(e.getMessage()).isEqualTo("The serviceRequest has already been paid");
          }
 
+    }
+
+    @Test
+    public void createIdempotencyRecordTest() throws Exception {
+
+         ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto.paymentDtoWith()
+             .accountNumber("1234")
+             .amount(new BigDecimal(99.99).setScale(2, RoundingMode.HALF_EVEN))
+             .customerReference("cust_ref")
+                 .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String requestJson = objectMapper.writeValueAsString(serviceRequestPaymentDto);
+
+        IdempotencyKeys idempotencyRecord = IdempotencyKeys
+            .idempotencyKeysWith()
+            .idempotencyKey("idempotencyKey")
+            .requestBody(requestJson)
+            .request_hashcode(123)   //save the hashcode
+            .responseBody("")
+            .responseCode(201)
+            .build();
+
+        ResponseEntity<?> responseEntity = new ResponseEntity<T>(HttpStatus.CREATED);
+
+        when(idempotencyKeysRepository.findByIdempotencyKey(any())).thenReturn(Optional.ofNullable(idempotencyRecord));
+
+        serviceRequestDomainService.createIdempotencyRecord(objectMapper,"", "RC-ref",
+            "{\"response_body\":\"response_body\"}", responseEntity,serviceRequestPaymentDto);
     }
 
      @Test
