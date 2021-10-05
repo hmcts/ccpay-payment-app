@@ -31,7 +31,7 @@ public class ServiceRequestDto {
     private List<@Valid ServiceRequestFeeDto> fees;
 
     @NotNull
-    private CasePaymentRequest casePaymentRequest;
+    private @Valid CasePaymentRequest casePaymentRequest;
 
     @NotBlank
     private String caseReference;
