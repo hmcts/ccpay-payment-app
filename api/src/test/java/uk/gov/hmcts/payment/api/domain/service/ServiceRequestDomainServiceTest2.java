@@ -1,6 +1,7 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.servicebus.primitives.IllegalConnectionStringFormatException;
 import org.apache.poi.ss.formula.functions.T;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +26,6 @@ import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
@@ -285,14 +285,14 @@ public class ServiceRequestDomainServiceTest2 {
 
         when(paymentRepository.save(any())).thenReturn(payment);
 
-        when(featureToggler.getBooleanValue(any(),any())).thenReturn(false);
+        when(featureToggler.getBooleanValue(any(),any())).thenReturn(true);
 
         serviceRequestDomainService.create(onlineCardPaymentRequest,"","","");
 
     }
 
 
-    @Test
+    @Test(expected = IllegalConnectionStringFormatException.class)
     public void sendMessageTopicCPORequest() throws Exception {
 
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
@@ -310,13 +310,7 @@ public class ServiceRequestDomainServiceTest2 {
             .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
             .build();
 
-        try {
-            serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
-        }catch (SendMessageTopicFailedException e) {
-            assertThat(e.getMessage()).isEqualTo("Error while sending message to topic");
-        }catch (Exception e){
-            assertThat(e.getMessage()).isEqualTo("Error while sending message to topic");
-        }
+        serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
 
     }
 
