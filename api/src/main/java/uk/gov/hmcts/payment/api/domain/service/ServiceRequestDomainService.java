@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -34,5 +35,5 @@ public interface ServiceRequestDomainService {
 
     Boolean isDuplicate(String serviceRequestReference);
 
-    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto) throws ServiceBusException;
 }
