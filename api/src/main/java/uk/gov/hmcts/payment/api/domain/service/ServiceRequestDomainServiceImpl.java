@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.servicebus.Message;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -347,7 +348,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto) {
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto) throws ServiceBusException{
 
         ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
             .action(serviceRequestDto.getCasePaymentRequest().getAction())
@@ -365,16 +366,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                 callBackUrl+"/case-payment-orders"));
 
-            TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString.trim(), topic);
+            TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString, topic);
             topicClientCPO.send(msg);
             topicClientCPO.close();
         } catch (SendMessageTopicFailedException e) {
             throw new SendMessageTopicFailedException("Error while sending message to topic");
-        }catch (InterruptedException e){
+        }catch (InterruptedException | JsonProcessingException e){
             Thread.currentThread().interrupt();
-        }
-        catch (Exception e){
-            LOG.error("Error while sending message to topic", e.getMessage());
         }
     }
 }
