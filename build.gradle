@@ -17,6 +17,17 @@ def versions = [
         javaVersion: '11',
         jacocoVersion: '0.8.5'
 ]
+
+dependencies{
+    testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
+}
+
+task fortifyScan(type: JavaExec)  {
+    main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+    classpath += sourceSets.test.runtimeClasspath
+    jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
+}
+
 allprojects {
     apply plugin: 'maven'
     apply plugin: 'io.spring.dependency-management'
@@ -89,7 +100,6 @@ allprojects {
     codeCoverageReport.dependsOn {
         subprojects*.test
     }
-
 }
 
 subprojects {
