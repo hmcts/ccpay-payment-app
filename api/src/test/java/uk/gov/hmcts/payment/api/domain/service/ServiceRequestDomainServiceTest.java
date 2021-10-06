@@ -1,7 +1,6 @@
 package uk.gov.hmcts.payment.api.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.servicebus.primitives.IllegalConnectionStringFormatException;
 import org.apache.poi.ss.formula.functions.T;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +48,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
-public class ServiceRequestDomainServiceTest2 {
+public class ServiceRequestDomainServiceTest {
 
     @InjectMocks
     private ServiceRequestDomainServiceImpl serviceRequestDomainService;
@@ -210,8 +209,6 @@ public class ServiceRequestDomainServiceTest2 {
 
         ResponseEntity<?> responseEntity = new ResponseEntity<T>(HttpStatus.CREATED);
 
-        when(idempotencyKeysRepository.findByIdempotencyKey(any())).thenReturn(Optional.ofNullable(idempotencyRecord));
-
         serviceRequestDomainService.createIdempotencyRecord(objectMapper,"", "RC-ref",
             "{\"response_body\":\"response_body\"}", responseEntity,serviceRequestPaymentDto);
     }
@@ -292,7 +289,7 @@ public class ServiceRequestDomainServiceTest2 {
     }
 
 
-    @Test(expected = IllegalConnectionStringFormatException.class)
+    @Test()
     public void sendMessageTopicCPORequest() throws Exception {
 
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
@@ -300,14 +297,6 @@ public class ServiceRequestDomainServiceTest2 {
             .hmctsOrgId("ClaimCase")
             .ccdCaseNumber("8689869686968696")
             .casePaymentRequest(getCasePaymentRequest())
-            .build();
-
-        uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto serviceRequestCpoDto =
-            uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto.serviceRequestCpoDtoWith()
-            .action(serviceRequestDto.getCasePaymentRequest().getAction())
-            .case_id(serviceRequestDto.getCcdCaseNumber())
-            .order_reference(serviceRequestDto.getCaseReference())
-            .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
             .build();
 
         serviceRequestDomainService.sendMessageTopicCPO(serviceRequestDto);
