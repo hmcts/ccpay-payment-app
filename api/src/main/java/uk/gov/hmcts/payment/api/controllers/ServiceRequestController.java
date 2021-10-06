@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import io.swagger.annotations.*;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -81,7 +82,7 @@ public class ServiceRequestController {
     @PostMapping(value = "/service-request")
     @Transactional
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) {
+    public ResponseEntity<ServiceRequestResponseDto> create(@Valid @RequestBody ServiceRequestDto serviceRequestDto, @RequestHeader(required = false) MultiValueMap<String, String> headers) throws ServiceBusException {
 
         ResponseEntity<ServiceRequestResponseDto> serviceRequestResponseDto = new ResponseEntity<>(serviceRequestDomainService.
             create(serviceRequestDto, headers), HttpStatus.CREATED);
