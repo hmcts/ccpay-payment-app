@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.microsoft.azure.servicebus.Message;
-import com.microsoft.azure.servicebus.primitives.ServiceBusException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
-import uk.gov.hmcts.payment.api.exception.SendMessageTopicFailedException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
@@ -62,7 +60,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${sb-cpo-primary-connection-string}")
     private String connectionString;
 
-    private final String topic = "ccpay-cpo-topic";
+    private static final String topic = "ccpay-cpo-topic";
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
@@ -348,7 +346,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     }
 
     @Override
-    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto) throws ServiceBusException{
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto){
 
         ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
             .action(serviceRequestDto.getCasePaymentRequest().getAction())
@@ -369,9 +367,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString, topic);
             topicClientCPO.send(msg);
             topicClientCPO.close();
-        } catch (SendMessageTopicFailedException e) {
-            throw new SendMessageTopicFailedException("Error while sending message to topic");
-        }catch (InterruptedException | JsonProcessingException e){
+        } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
     }
