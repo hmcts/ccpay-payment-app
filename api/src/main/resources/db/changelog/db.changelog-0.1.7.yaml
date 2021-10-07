@@ -30,3 +30,12 @@ databaseChangeLog:
               - column:
                   name: service
                   value: "County"
+  - changeSet:
+      id: 1559091041418-39
+      author: Priyatham Bhikkumalla
+      failOnError: true
+      changes:
+        - sql:
+            splitStatements:
+            sql: >
+              ALTER TABLE payment_fee_link ADD COLUMN service_request_callback_url varchar(255);
