@@ -26,6 +26,7 @@ public class ServiceRequestDomainDataEntityMapper {
     public PaymentFeeLink toServiceRequestEntity(ServiceRequestBo serviceRequestBo) {
 
         return PaymentFeeLink.paymentFeeLinkWith()
+            .callBackUrl(serviceRequestBo.getCallBackUrl())
             .orgId(serviceRequestBo.getOrgId())
             .enterpriseServiceName(serviceRequestBo.getEnterpriseServiceName())
             .paymentReference(serviceRequestBo.getReference())

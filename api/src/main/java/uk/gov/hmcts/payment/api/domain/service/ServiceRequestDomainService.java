@@ -27,11 +27,12 @@ public interface ServiceRequestDomainService {
 
     OnlineCardPaymentResponse create(OnlineCardPaymentRequest onlineCardPaymentRequest, String serviceRequestReference, String returnURL, String serviceCallbackURL) throws CheckDigitException;
 
-
     PaymentFeeLink businessValidationForServiceRequests(PaymentFeeLink serviceRequest, ServiceRequestPaymentDto serviceRequestPaymentDto);
 
     ResponseEntity createIdempotencyRecord(ObjectMapper objectMapper, String idempotencyKey, String serviceRequestReference,
                                            String responseJson, ResponseEntity<?> responseEntity, ServiceRequestPaymentDto serviceRequestPaymentDto) throws JsonProcessingException;
 
     Boolean isDuplicate(String serviceRequestReference);
+
+    void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto);
 }
