@@ -35,6 +35,8 @@ public class ServiceRequestBo {
 
     private String reference;
 
+    private String callBackUrl;
+
     private String ccdCaseNumber;
 
     private String caseReference;

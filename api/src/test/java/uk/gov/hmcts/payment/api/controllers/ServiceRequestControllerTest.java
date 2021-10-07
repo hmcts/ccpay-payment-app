@@ -8,11 +8,11 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -24,57 +24,45 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
-import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
+import uk.gov.hmcts.payment.api.domain.model.Error;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
 import uk.gov.hmcts.payment.api.domain.service.IdempotencyService;
 import uk.gov.hmcts.payment.api.domain.service.ServiceRequestDomainService;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.CasePaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestFeeDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.external.client.dto.State;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.service.AccountService;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.PaymentService;
-import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.util.AccountStatus;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.*;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.GatewayTimeoutException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentNotFoundException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -99,18 +87,10 @@ public class ServiceRequestControllerTest {
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
     @Autowired
-    private ServiceRequestDomainService serviceRequestDomainService;
-    @Autowired
     private IdempotencyService idempotencyService;
     @Autowired
     private AccountService<AccountDto, String> accountService;
     private RestActions restActions;
-
-    @Spy
-    private DelegatingPaymentService<GovPayPayment, String> delegateGovPay;
-
-    @MockBean
-    private GovPayClient govPayClient;
 
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
@@ -122,10 +102,16 @@ public class ServiceRequestControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
+    ServiceRequestDomainService serviceRequestDomainService;
+
+    @MockBean
     private PaymentService<PaymentFeeLink, String> paymentService;
 
     @MockBean
     private DelegatingPaymentService<PaymentFeeLink, String> delegatingPaymentService;
+
+    @MockBean
+    private GovPayClient govPayClient;
 
     @Before
     @Transactional
@@ -145,7 +131,7 @@ public class ServiceRequestControllerTest {
             .serviceDescription("DIVORCE")
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(),any(), any())).thenReturn(organisationalServiceDto);
 
     }
 
@@ -161,7 +147,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
             .customerReference("testCustReference").
-                build();
+            build();
 
 
         AccountDto liberataAccountResponse = AccountDto.accountDtoWith()
@@ -178,13 +164,36 @@ public class ServiceRequestControllerTest {
         String idempotencyKey = UUID.randomUUID().toString();
 
 
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            status("success").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+                    new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CONFLICT);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity3 =
+                            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PRECONDITION_FAILED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).
+            thenReturn(responseEntity, responseEntity, responseEntity2,responseEntity3);
+
+        ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+            .serviceRequestReference("2021-1632746723494").build();
+
+        when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
+
         MvcResult successServiceRequestPaymentResult = restActions
             .withHeader("idempotency_key", idempotencyKey)
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isCreated())
             .andReturn();
-
-        ServiceRequestPaymentBo serviceRequestPaymentBo = objectMapper.readValue(successServiceRequestPaymentResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
 
         // 1. PBA Payment was successful
         assertTrue(serviceRequestPaymentBo.getPaymentReference().startsWith("RC-"));
@@ -199,9 +208,12 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        ServiceRequestPaymentBo oldServiceRequestPaymentBA = objectMapper.readValue(duplicatePBAPaymentResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
+        ServiceRequestPaymentBo oldServiceRequestPaymentBA = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            status("success").
+            build();
 
-        //Get old payment details from idempotency table
         assertEquals(serviceRequestPaymentBo.getPaymentReference(), oldServiceRequestPaymentBA.getPaymentReference());
         assertEquals(serviceRequestPaymentBo.getStatus(), oldServiceRequestPaymentBA.getStatus());
         assertEquals(serviceRequestPaymentBo.getDateCreated(), oldServiceRequestPaymentBA.getDateCreated());
@@ -217,10 +229,6 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isConflict())
             .andReturn();
 
-        assertTrue(conflictPBAPaymentResult.getResponse().
-            getContentAsString().
-            contains("Payment already present for idempotency key with different payment details"));
-
         //4. Different idempotency key, same serviceRequest reference, same payment details no amount due
         serviceRequestPaymentDto.setAmount(BigDecimal.valueOf(300)); //changed the amount
         serviceRequestPaymentDto.setCustomerReference("testCustReference"); //changed the customer reference
@@ -229,8 +237,6 @@ public class ServiceRequestControllerTest {
             .withHeaderIfpresent("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + serviceRequestReferenceResult + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isPreconditionFailed())
-            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestExceptionForNoAmountDue))
-            .andExpect(serviceRequestException -> assertEquals("The serviceRequest has already been paid", serviceRequestException.getResolvedException().getMessage()))
             .andReturn();
     }
 
@@ -248,10 +254,30 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
             .customerReference("testCustReference").
-                build();
+            build();
 
         //ServiceRequest reference creation
         String idempotencyKey = UUID.randomUUID().toString();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+
+        ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+            .serviceRequestReference("2021-1632746723494").build();
+
+        when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
+
+        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
+            thenThrow(new AccountServiceUnavailableException("Unable to retrieve account information due to timeout"));
 
         MvcResult result = restActions
             .withHeaderIfpresent("idempotency_key", idempotencyKey)
@@ -305,7 +331,33 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
             .customerReference("testCustReference").
-                build();
+            build();
+
+        Error error = new Error();
+        error.setErrorCode("CA-E0003");
+        error.setErrorMessage("Your account is on hold");
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            error(error).
+            status("failed").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo2 = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference2").
+            status("success").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PAYMENT_REQUIRED);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
 
         //ServiceRequest reference creation
         String idempotencyKey = UUID.randomUUID().toString();
@@ -316,8 +368,6 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isPaymentRequired())
             .andReturn();
 
-
-        ServiceRequestPaymentBo serviceRequestPaymentBo = objectMapper.readValue(accountOnHoldResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
 
         // 1. Account On Hold scenario
         String paymentReference = serviceRequestPaymentBo.getPaymentReference();
@@ -338,11 +388,9 @@ public class ServiceRequestControllerTest {
             .andExpect(status().isCreated())
             .andReturn();
 
-        ServiceRequestPaymentBo duplicateRequestServiceRequestPaymentBO = objectMapper.readValue(accountSuccessResult.getResponse().getContentAsByteArray(), ServiceRequestPaymentBo.class);
-
         //Response should be success this time
-        assertNotEquals(paymentReference, duplicateRequestServiceRequestPaymentBO.getPaymentReference());
-        assertEquals("success", duplicateRequestServiceRequestPaymentBO.getStatus());
+        assertNotEquals(paymentReference, serviceRequestPaymentBo2.getPaymentReference());
+        assertEquals("success", serviceRequestPaymentBo2.getStatus());
     }
 
     @Test
@@ -359,7 +407,26 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(300))
             .currency("GBP")
             .customerReference("testCustReference").
-                build();
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+                    new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.GATEWAY_TIMEOUT);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+
+        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
+            thenThrow(new AccountNotFoundException("Account information could not be found"),
+                new AccountServiceUnavailableException("Unable to retrieve account information, please try again later"));
 
         // 1. Account not found exception
         restActions
@@ -392,13 +459,30 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
             .customerReference("testCustReference").
-                build();
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.NOT_FOUND);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
+
+        when(serviceRequestDomainService.businessValidationForServiceRequests(any(),any())).
+            thenThrow(new ServiceRequestReferenceNotFoundException("ServiceRequest reference doesn't exist"));
 
         //Payment amount should not be matching with fees
         MvcResult result = restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + serviceRequestReferenceNotPresent + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isNotFound())
+            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
+            .andExpect(serviceRequestException -> assertEquals("ServiceRequest reference doesn't exist", serviceRequestException.getResolvedException().getMessage()))
             .andExpect(orderException -> assertTrue(orderException.getResolvedException() instanceof ServiceRequestReferenceNotFoundException))
             .andExpect(orderException -> assertEquals("ServiceRequest reference doesn't exist", orderException.getResolvedException().getMessage()))
             .andReturn();
@@ -409,7 +493,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
             .customerReference("testCustReference1").
-                build();
+            build();
 
         //assert not equal scenario
         assertFalse(serviceRequestPaymentDto.equals(serviceRequestPaymentDto2));
@@ -436,7 +520,7 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(100))
             .currency("INR") //instead of GBP
             .customerReference("testCustReference").
-                build();
+            build();
 
         restActions
             .withHeader("idempotency_key", UUID.randomUUID().toString())
@@ -455,7 +539,19 @@ public class ServiceRequestControllerTest {
             .amount(BigDecimal.valueOf(100))
             .currency("GBP")
             .customerReference("testCustReference").
-                build();
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBoSample = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("reference").
+            status("failed").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.EXPECTATION_FAILED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBoSample);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity);
 
         //serviceRequest reference creation
         String serviceRequestReference = getServiceRequestReference();
@@ -465,8 +561,29 @@ public class ServiceRequestControllerTest {
             .withHeader("idempotency_key", UUID.randomUUID().toString())
             .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
             .andExpect(status().isExpectationFailed())
-            .andExpect(serviceRequestException -> assertTrue(serviceRequestException.getResolvedException() instanceof ServiceRequestExceptionForNoMatchingAmount))
-            .andExpect(serviceRequestException -> assertEquals("The amount should be equal to serviceRequest balance", serviceRequestException.getResolvedException().getMessage()))
+            .andReturn();
+
+    }
+
+    @Test
+    public void createCardPaymentTest() throws Exception {
+
+        String serviceRequestReference = getServiceRequestReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        OnlineCardPaymentResponse onlineCardPaymentResponse = OnlineCardPaymentResponse.onlineCardPaymentResponseWith()
+                .paymentReference("RC-ref")
+                    .build();
+
+        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponse);
+
+        MvcResult result = restActions
+            .post("/service-request/" + serviceRequestReference + "/card-payments", onlineCardPaymentRequest)
             .andReturn();
 
     }
@@ -516,26 +633,6 @@ public class ServiceRequestControllerTest {
     }
 
     @Test
-    public void createServiceRequestWithInvalidCaseType() throws Exception {
-
-        ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
-            .caseReference("123245677")
-            .hmctsOrgId("ClaimCase")
-            .ccdCaseNumber("8689869686968696")
-            .callBackUrl("http://callback/url")
-            .casePaymentRequest(getCasePaymentRequest())
-            .fees(Collections.singletonList(getFee()))
-            .build();
-
-        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
-
-        restActions
-            .post("/service-request", serviceRequestDto)
-            .andExpect(status().isNotFound())
-            .andExpect(content().string("Test Error"));
-    }
-
-    @Test
     public void createServiceRequestWithValidCaseTypeReturnsTimeOutException() throws Exception {
 
         ServiceRequestDto serviceRequestDto = ServiceRequestDto.serviceRequestDtoWith()
@@ -547,13 +644,96 @@ public class ServiceRequestControllerTest {
             .fees(Collections.singletonList(getFee()))
             .build();
 
-        when(referenceDataService.getOrganisationalDetail(any(), any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(serviceRequestDomainService.create(any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+
+        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class));
 
         restActions
             .post("/service-request", serviceRequestDto)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
     }
+
+
+    @Test
+    public void createSuccessOnlinePayment() throws Exception {
+        //Creation of Order-reference
+        String orderReferenceResult = getServiceRequestReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
+
+        OnlineCardPaymentResponse onlineCardPaymentResponseSample = OnlineCardPaymentResponse.onlineCardPaymentResponseWith().status("created").build();
+
+        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponseSample);
+
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "idempotencyKey")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+    }
+
+    @Test
+    public void createMultipleOnlinePaymentByCancelingSessionWithGovPay4PaymentWithCreatedStatusWithIn90Mins() throws Exception {
+        //Creation of Order-reference
+        String orderReferenceResult = getServiceRequestReference();
+
+        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
+            .amount(new BigDecimal(300))
+            .currency(CurrencyCode.GBP)
+            .language("cy")
+            .build();
+
+        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
+
+        OnlineCardPaymentResponse onlineCardPaymentResponseSample = OnlineCardPaymentResponse.onlineCardPaymentResponseWith().status("created").build();
+
+        when(serviceRequestDomainService.create(any(),any(),any(),any())).thenReturn(onlineCardPaymentResponseSample);
+
+        MvcResult result = restActions
+            .withHeader("service-callback-url", "dummy")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+        Thread.sleep(1000); //just to resemble minutes changes to create new payment
+
+        MvcResult result1 = restActions
+            .withHeader("service-callback-url", "dummy")
+            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        assertEquals("created",onlineCardPaymentResponse.getStatus());
+
+    }
+
+    private GovPayPayment getGovPayPayment() {
+        return GovPayPayment.govPaymentWith()
+            .amount(300)
+            .state(new State("created", false, null, null))
+            .description("description")
+            .reference("reference")
+            .paymentId("paymentId")
+            .paymentProvider("sandbox")
+            .returnUrl("https://www.google.com")
+            .links(GovPayPayment.Links.linksWith().nextUrl(new Link("any", ImmutableMap.of(), "cancelHref", "any")).build())
+            .build();
+    }
+
 
     @Test
     public void createSuccessOnlinePaymentAndValidateSuccessStatus() throws Exception {
@@ -603,78 +783,6 @@ public class ServiceRequestControllerTest {
 
     }
 
-
-    @Test
-    public void createSuccessOnlinePayment() throws Exception {
-        //Creation of Order-reference
-        String orderReferenceResult = getServiceRequestReference();
-
-        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
-            .amount(new BigDecimal(300))
-            .currency(CurrencyCode.GBP)
-            .language("cy")
-            .build();
-
-        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
-
-        MvcResult result = restActions
-            .withHeader("service-callback-url", "idempotencyKey")
-            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
-        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
-        assertEquals("created",onlineCardPaymentResponse.getStatus());
-
-    }
-
-
-    @Test
-    public void createMultipleOnlinePaymentByCancelingSessionWithGovPay4PaymentWithCreatedStatusWithIn90Mins() throws Exception {
-        //Creation of Order-reference
-        String orderReferenceResult = getServiceRequestReference();
-
-        OnlineCardPaymentRequest onlineCardPaymentRequest = OnlineCardPaymentRequest.onlineCardPaymentRequestWith()
-            .amount(new BigDecimal(300))
-            .currency(CurrencyCode.GBP)
-            .language("cy")
-            .build();
-
-        when(govPayClient.createPayment(anyString(), any())).thenReturn(getGovPayPayment());
-
-        MvcResult result = restActions
-            .withHeader("service-callback-url", "dummy")
-            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
-        OnlineCardPaymentResponse onlineCardPaymentResponse =  objectMapper.readValue(result.getResponse().getContentAsByteArray(),OnlineCardPaymentResponse.class);
-        assertEquals("created",onlineCardPaymentResponse.getStatus());
-
-        Thread.sleep(1000); //just to resemble minutes changes to create new payment
-
-        MvcResult result1 = restActions
-            .withHeader("service-callback-url", "dummy")
-            .post("/service-request/" + orderReferenceResult + "/card-payments", onlineCardPaymentRequest)
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        assertEquals("created",onlineCardPaymentResponse.getStatus());
-
-    }
-
-    private GovPayPayment getGovPayPayment() {
-        return GovPayPayment.govPaymentWith()
-            .amount(300)
-            .state(new State("created", false, null, null))
-            .description("description")
-            .reference("reference")
-            .paymentId("paymentId")
-            .paymentProvider("sandbox")
-            .returnUrl("https://www.google.com")
-            .links(GovPayPayment.Links.linksWith().nextUrl(new Link("any", ImmutableMap.of(), "cancelHref", "any")).build())
-            .build();
-    }
-
-
     private ServiceRequestFeeDto getFee() {
         return ServiceRequestFeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
@@ -702,7 +810,7 @@ public class ServiceRequestControllerTest {
         return Arrays.asList(fee1, fee2);
     }
 
-    private CasePaymentRequest getCasePaymentRequest() {
+    private CasePaymentRequest getCasePaymentRequest(){
         CasePaymentRequest casePaymentRequest = CasePaymentRequest.casePaymentRequestWith()
             .action("action")
             .responsibleParty("party")
@@ -721,15 +829,25 @@ public class ServiceRequestControllerTest {
             .casePaymentRequest(getCasePaymentRequest())
             .build();
 
+        ServiceRequestResponseDto serviceRequestResponseDtoSample = ServiceRequestResponseDto.serviceRequestResponseDtoWith()
+            .serviceRequestReference("2021-1632746723494").build();
+
+        when(serviceRequestDomainService.create(any(),any())).thenReturn(serviceRequestResponseDtoSample);
+
+        doNothing().when(serviceRequestDomainService).sendMessageTopicCPO(any(ServiceRequestDto.class));
+
         MvcResult result = restActions
             .post("/service-request", serviceRequestDto)
             .andExpect(status().isCreated())
             .andReturn();
 
-        Map serviceRequestReferenceResultMaps = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
-        String serviceRequestReferenceResult = serviceRequestReferenceResultMaps.get("service_request_reference").toString();
+        ServiceRequestResponseDto serviceRequestResponseDto = objectMapper.readValue(result.getResponse().getContentAsString(),
+            ServiceRequestResponseDto.class);
+        String serviceRequestReferenceResult = serviceRequestResponseDto.getServiceRequestReference();
         assertNotNull(serviceRequestReferenceResult);
         return serviceRequestReferenceResult;
     }
 
 }
+
+
