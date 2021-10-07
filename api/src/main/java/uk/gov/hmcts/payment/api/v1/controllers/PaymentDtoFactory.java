@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import lombok.SneakyThrows;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
+import uk.gov.hmcts.payment.api.dto.PaymentOldDto;
 import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
 @Component

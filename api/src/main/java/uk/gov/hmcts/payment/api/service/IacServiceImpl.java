@@ -13,7 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.*;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 

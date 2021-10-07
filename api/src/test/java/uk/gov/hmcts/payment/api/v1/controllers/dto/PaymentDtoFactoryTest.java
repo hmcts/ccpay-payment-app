@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
+import uk.gov.hmcts.payment.api.dto.PaymentOldDto;
 import uk.gov.hmcts.payment.api.v1.controllers.PaymentDtoFactory;
 import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
@@ -16,7 +16,7 @@ import java.util.Date;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.paymentDtoWith;
+import static uk.gov.hmcts.payment.api.dto.PaymentOldDto.paymentDtoWith;
 
 public class PaymentDtoFactoryTest {
 

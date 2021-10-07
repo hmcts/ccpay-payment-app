@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.contract;
+package uk.gov.hmcts.payment.api.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,6 +12,7 @@ import lombok.experimental.Wither;
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.contract.util.Language;
+import uk.gov.hmcts.payment.api.dto.FeeDto;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;

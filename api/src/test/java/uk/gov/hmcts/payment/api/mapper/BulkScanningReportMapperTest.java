@@ -1,11 +1,10 @@
 package uk.gov.hmcts.payment.api.mapper;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.payment.api.contract.BulkScanningReportDto;
-import uk.gov.hmcts.payment.api.contract.BulkScanningUnderOverPaymentDto;
+import uk.gov.hmcts.payment.api.dto.BulkScanningReportDto;
+import uk.gov.hmcts.payment.api.dto.BulkScanningUnderOverPaymentDto;
 import uk.gov.hmcts.payment.api.dto.mapper.BulkScanningReportMapper;
 import uk.gov.hmcts.payment.api.model.*;
 
@@ -15,7 +14,6 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)

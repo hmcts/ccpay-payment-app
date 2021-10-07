@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.service;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentDto;
 import uk.gov.hmcts.payment.api.dto.SupplementaryPaymentDto;
 import java.util.List;
 

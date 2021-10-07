@@ -7,10 +7,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import javax.validation.constraints.AssertFalse;
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;

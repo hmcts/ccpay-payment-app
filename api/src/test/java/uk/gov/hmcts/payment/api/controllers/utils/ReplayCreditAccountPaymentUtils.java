@@ -3,8 +3,8 @@ package uk.gov.hmcts.payment.api.controllers.utils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.componenttests.util.CSVUtil;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
+import uk.gov.hmcts.payment.api.dto.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.FeeDto;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 
 import javax.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.contract;
+package uk.gov.hmcts.payment.api.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;

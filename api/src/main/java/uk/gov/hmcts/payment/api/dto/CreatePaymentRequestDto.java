@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.v1.contract;
+package uk.gov.hmcts.payment.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

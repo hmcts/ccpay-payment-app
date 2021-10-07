@@ -3,7 +3,7 @@ package uk.gov.hmcts.payment.api.mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.request.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.AccountDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentStatus;

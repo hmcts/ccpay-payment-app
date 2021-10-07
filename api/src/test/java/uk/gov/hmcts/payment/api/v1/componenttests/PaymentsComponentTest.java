@@ -5,11 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
-import uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.LinksDto;
-import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.StateDto;
-import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto;
+import uk.gov.hmcts.payment.api.dto.CreatePaymentRequestDto;
+import uk.gov.hmcts.payment.api.dto.PaymentOldDto;
+import uk.gov.hmcts.payment.api.dto.PaymentOldDto.LinksDto;
+import uk.gov.hmcts.payment.api.dto.PaymentOldDto.StateDto;
+import uk.gov.hmcts.payment.api.dto.RefundPaymentRequestDto;
 import uk.gov.hmcts.payment.api.v1.model.PaymentOld;
 
 import static java.lang.String.format;
@@ -17,9 +17,9 @@ import static java.lang.String.format;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
-import static uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto.paymentDtoWith;
-import static uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
+import static uk.gov.hmcts.payment.api.dto.CreatePaymentRequestDto.createPaymentRequestDtoWith;
+import static uk.gov.hmcts.payment.api.dto.PaymentOldDto.paymentDtoWith;
+import static uk.gov.hmcts.payment.api.dto.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
 import static uk.gov.hmcts.payment.api.v1.model.PaymentOld.paymentWith;
 
 public class PaymentsComponentTest extends TestUtil {

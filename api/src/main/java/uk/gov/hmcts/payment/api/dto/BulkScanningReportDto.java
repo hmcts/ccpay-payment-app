@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.contract;
+package uk.gov.hmcts.payment.api.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
@@ -15,27 +14,29 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class BulkScanningUnderOverPaymentDto {
+public class BulkScanningReportDto {
 
     private String respServiceId;
 
     private String respServiceName;
 
-    private String surplusShortfall;
+    private String allocationStatus;
 
-    private BigDecimal balance;
+    private String receivingOffice;
 
-    private BigDecimal paymentAmount;
+    private String allocationReason;
+
+    private String ccdExceptionReference;
 
     private String ccdCaseReference;
 
-    private Date processedDate;
+    private Date dateBanked;
 
-    private String reason;
+    private String bgcBatch;
 
-    private String explanation;
+    private String paymentAssetDCN;
 
-    private String userName;
+    private String paymentMethod;
 
-    private String ccdExceptionReference;
+    private String amount;
 }

@@ -6,9 +6,9 @@ import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
-import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.request.CardPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.request.CreditAccountPaymentRequest;
+import uk.gov.hmcts.payment.api.dto.request.PaymentRecordRequest;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -3,11 +3,10 @@ package uk.gov.hmcts.payment.api.dto.mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.payment.api.contract.BulkScanningReportDto;
-import uk.gov.hmcts.payment.api.contract.BulkScanningUnderOverPaymentDto;
+import uk.gov.hmcts.payment.api.dto.BulkScanningReportDto;
+import uk.gov.hmcts.payment.api.dto.BulkScanningUnderOverPaymentDto;
 import uk.gov.hmcts.payment.api.model.Payment;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.Remission;
 
 import java.math.BigDecimal;

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.payment.api.dto;
+package uk.gov.hmcts.payment.api.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;

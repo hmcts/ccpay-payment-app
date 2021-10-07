@@ -1,6 +1,6 @@
 package uk.gov.hmcts.payment.api.reports.config;
 
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.dto.PaymentDto;
 import uk.gov.hmcts.payment.api.reports.PaymentReportType;
 
 public interface PaymentReportConfig {

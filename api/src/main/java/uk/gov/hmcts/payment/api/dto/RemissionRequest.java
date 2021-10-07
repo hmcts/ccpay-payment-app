@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
-import uk.gov.hmcts.payment.api.contract.FeeDto;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
