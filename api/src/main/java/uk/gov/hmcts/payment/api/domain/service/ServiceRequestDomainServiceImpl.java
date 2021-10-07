@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.domain.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.microsoft.azure.servicebus.Message;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.slf4j.Logger;
@@ -24,13 +25,10 @@ import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestPaymentDtoDomainMapp
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestOnlinePaymentBo;
 import uk.gov.hmcts.payment.api.domain.model.ServiceRequestPaymentBo;
-import uk.gov.hmcts.payment.api.dto.AccountDto;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentRequest;
-import uk.gov.hmcts.payment.api.dto.OnlineCardPaymentResponse;
-import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
+import uk.gov.hmcts.payment.api.dto.*;
+import uk.gov.hmcts.payment.api.dto.order.ServiceRequestCpoDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
-import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
 import uk.gov.hmcts.payment.api.exception.AccountNotFoundException;
 import uk.gov.hmcts.payment.api.exception.AccountServiceUnavailableException;
 import uk.gov.hmcts.payment.api.exception.LiberataServiceTimeoutException;
@@ -38,30 +36,15 @@ import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundExcept
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.mapper.PBAStatusErrorMapper;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeys;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeysPK;
-import uk.gov.hmcts.payment.api.model.IdempotencyKeysRepository;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.StatusHistory;
-import uk.gov.hmcts.payment.api.service.AccountService;
-import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
-import uk.gov.hmcts.payment.api.service.FeePayApportionService;
-import uk.gov.hmcts.payment.api.service.PaymentGroupService;
-import uk.gov.hmcts.payment.api.service.ReferenceDataService;
+import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.service.*;
+import uk.gov.hmcts.payment.api.servicebus.TopicClientProxy;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoAmountDue;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.ServiceRequestExceptionForNoMatchingAmount;
-import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentGroupNotFoundException;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -71,6 +54,13 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDomainServiceImpl.class);
     private static final String FAILED = "failed";
     private static final String SUCCESS = "success";
+    @Value("${case-payment-orders.api.url}")
+    private  String callBackUrl;
+
+    @Value("${sb-cpo-primary-connection-string}")
+    private String connectionString;
+
+    private static final String topic = "ccpay-cpo-topic";
 
     @Autowired
     private ServiceRequestDtoDomainMapper serviceRequestDtoDomainMapper;
@@ -353,5 +343,32 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Override
     public Boolean isDuplicate(String serviceRequestReference) {
         return Optional.of(find(serviceRequestReference)).isPresent();
+    }
+
+    @Override
+    public void sendMessageTopicCPO(ServiceRequestDto serviceRequestDto){
+
+        ServiceRequestCpoDto serviceRequestCpoDto = ServiceRequestCpoDto.serviceRequestCpoDtoWith()
+            .action(serviceRequestDto.getCasePaymentRequest().getAction())
+            .case_id(serviceRequestDto.getCcdCaseNumber())
+            .order_reference(serviceRequestDto.getCaseReference())
+            .responsible_party(serviceRequestDto.getCasePaymentRequest().getResponsibleParty())
+            .build();
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Message msg = new Message(objectMapper.writeValueAsString(serviceRequestCpoDto));
+
+            msg.setContentType("application/json");
+            msg.setLabel("Service Callback Message");
+            msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
+                callBackUrl+"/case-payment-orders"));
+
+            TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString, topic);
+            topicClientCPO.send(msg);
+            topicClientCPO.close();
+        } catch (Exception e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

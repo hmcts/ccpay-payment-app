@@ -35,6 +35,7 @@ public class ServiceRequestDtoDomainMapper {
         String serviceRequestReference = PaymentReference.getInstance().getNext();
 
         return ServiceRequestBo.serviceRequestBoWith()
+            .callBackUrl(serviceRequestDto.getCallBackUrl())
             .enterpriseServiceName(organisationalServiceDto.getServiceDescription())
             .orgId(organisationalServiceDto.getServiceCode())
             .ccdCaseNumber(serviceRequestDto.getCcdCaseNumber())
