@@ -30,77 +30,51 @@ import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class FeePayApportionServiceTest extends TestUtil {
 
     @Autowired
     protected FeePayApportionService feePayApportionService;
+    Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
+        .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
+        .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
+            .externalStatus("created")
+            .status("Initiated")
+            .build()))
+        .build();
+    PaymentFee fee = feeWith().code("FEE0111").version("1").build();
+    PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+        .payments(Arrays.asList(payment))
+        .fees(Arrays.asList(fee))
+        .build();
 
     private PaymentsDataUtil paymentsDataUtil;
-
     @MockBean
     private FeePayApportionRepository feePayApportionRepository;
-
     @MockBean
     private PaymentFeeRepository paymentFeeRepository;
 
     @Test(expected = PaymentException.class)
     public void updateFeeAmountDueTest() {
-        Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
-            .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
-            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                .externalStatus("created")
-                .status("Initiated")
-                .build()))
-            .build();
-        PaymentFee fee = feeWith().code("FEE0111").version("1").build();
-
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
-            .payments(Arrays.asList(payment))
-            .fees(Arrays.asList(fee))
-            .build());
+        paymentFeeLinkRepository.save(paymentFeeLink);
         Mockito.when(feePayApportionRepository.findByPaymentId(Mockito.any())).thenThrow(new RuntimeException("DB Exception"));
         feePayApportionService.updateFeeAmountDue(paymentFeeLink.getPayments().get(0));
     }
 
     @Test(expected = PaymentException.class)
     public void processApportionTest() {
-        Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
-            .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
-            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                .externalStatus("created")
-                .status("Initiated")
-                .build()))
-            .build();
-        PaymentFee fee = feeWith().code("FEE0111").version("1").build();
-
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
-            .payments(Arrays.asList(payment))
-            .fees(Arrays.asList(fee))
-            .build());
+        paymentFeeLinkRepository.save(paymentFeeLink);
         Mockito.when(paymentFeeRepository.findByCcdCaseNumber(Mockito.any())).thenThrow(new RuntimeException("DB Exception"));
         feePayApportionService.processApportion(paymentFeeLink.getPayments().get(0));
     }
 
     @Test(expected = PaymentException.class)
     public void processFeePayApportionTest() {
-        Payment payment = paymentWith().amount(BigDecimal.valueOf(10000).movePointRight(2)).reference("reference1").description("desc1").returnUrl("returnUrl1")
-            .ccdCaseNumber("ccdCaseNo1").caseReference("caseRef1").serviceType("cmc").currency("GBP")
-            .statusHistories(Arrays.asList(StatusHistory.statusHistoryWith()
-                .externalStatus("created")
-                .status("Initiated")
-                .build()))
-            .build();
-        PaymentFee fee = feeWith().code("FEE0111").version("1").build();
-
-        PaymentFeeLink paymentFeeLink = paymentFeeLinkRepository.save(PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
-            .payments(Arrays.asList(payment))
-            .fees(Arrays.asList(fee))
-            .build());
-
+        PaymentFeeLink paymentFeeLink1 = paymentFeeLinkRepository.save(paymentFeeLink);
         FeePayApportionCCDCase feePayApportionCCDCase = FeePayApportionCCDCase.feePayApportionCCDCaseWith()
             .ccdCaseNo("1234234534565678")
-            .feePayGroups(Collections.singletonList(paymentFeeLink))
-            .payments(Collections.singletonList(paymentFeeLink.getPayments().get(0)))
+            .feePayGroups(Collections.singletonList(paymentFeeLink1))
+            .payments(Collections.singletonList(paymentFeeLink1.getPayments().get(0)))
             .build();
         feePayApportionService.processFeePayApportion(feePayApportionCCDCase);
     }

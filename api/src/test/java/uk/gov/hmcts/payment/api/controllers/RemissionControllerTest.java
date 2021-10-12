@@ -1,12 +1,15 @@
 package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,16 +19,23 @@ import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.PaymentFeeDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.RemissionDbBackdoor;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
-import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.RemissionDto;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetroRemissionDto;
+import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
+import uk.gov.hmcts.payment.api.model.FeePayApportion;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
 import uk.gov.hmcts.payment.api.model.Remission;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
@@ -37,8 +47,8 @@ import uk.gov.hmcts.payment.referencedata.service.SiteService;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,53 +60,49 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
+import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles({"local", "componenttest"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @Transactional
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class RemissionControllerTest {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
 
     private final static String REMISSION_REFERENCE_REGEX = "^[RM-]{3}(\\w{4}-){3}(\\w{4})";
-
-    private RestActions restActions;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     protected RemissionDbBackdoor remissionDbBackdoor;
-
     @Autowired
     protected PaymentDbBackdoor paymentDbBackdoor;
-
     @Autowired
     protected PaymentFeeDbBackdoor paymentFeeDbBackdoor;
-
+    OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
+        .serviceCode("AA001")
+        .serviceDescription("DIVORCE")
+        .build();
+    MockMvc mvc;
+    private RestActions restActions;
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
-
     @Autowired
     private SiteService<Site, String> siteServiceMock;
-
     @MockBean
     private ReferenceDataService referenceDataService;
 
-
     @Before
     public void setUp() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -105,6 +111,7 @@ public class RemissionControllerTest {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
         OrganisationalServiceDto organisationalServiceDto = OrganisationalServiceDto.orgServiceDtoWith()
             .serviceCode("AA001")
             .serviceDescription("DIVORCE")
@@ -112,6 +119,12 @@ public class RemissionControllerTest {
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
 
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        mvc = null;
     }
 
     @Test
@@ -171,12 +184,12 @@ public class RemissionControllerTest {
             .fee(getFeeWithOutCCDCaseNumber())
             .build();
 
-        MvcResult result =  restActions
+        MvcResult result = restActions
             .post("/remissions", remissionRequest)
             .andReturn();
 
         RemissionDto remissionResultDto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), RemissionDto.class);
-        assertEquals(remissionRequest.getCcdCaseNumber(),remissionResultDto.getFee().getCcdCaseNumber());
+        assertEquals(remissionRequest.getCcdCaseNumber(), remissionResultDto.getFee().getCcdCaseNumber());
     }
 
     @Test
@@ -239,12 +252,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullHwfAmountShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -255,13 +267,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void negativeHwfAmountShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("-10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -272,13 +283,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void hwfAmountEqualToZeroShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("0.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -289,13 +299,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void hwfAmountWithMoreThan2DecimalPlacesShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.001"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -306,13 +315,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void emptyCcdCaseNumberShouldReturn201() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .fee(getFee())
             .build();
@@ -326,12 +334,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullCcdCaseNumberShouldReturn201() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .fee(getFee())
             .build();
@@ -345,13 +352,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void emptyCaseReferenceShouldReturn201() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .fee(getFee())
             .build();
@@ -365,12 +371,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullCaseReferenceShouldReturn201() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .fee(getFee())
             .build();
@@ -384,13 +389,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void emptyCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .build();
 
@@ -402,11 +406,10 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .hwfAmount(new BigDecimal("10.01"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .build();
 
@@ -418,12 +421,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void nullCaseReferenceAndEmptyCcdCaseNumberCCDShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .ccdCaseNumber("")
             .hwfAmount(new BigDecimal("10.01"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .build();
 
@@ -435,12 +437,11 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void emptyCaseReferenceAndNullCcdCaseNumberCCDShouldReturn400() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("")
             .hwfAmount(new BigDecimal("10.01"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .caseType("tax_exception")
             .build();
 
@@ -510,15 +511,13 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void paymentFeeLinkAndFeeCreatedWhenNoPaymentGroupReferenceSent() throws Exception {
-        BigDecimal calculatedAmount = new BigDecimal("199.99");
-        String feeReference = "feeReference";
 
         String feeCode = "FEE0001";
         FeeDto feeDto = FeeDto.feeDtoWith()
-            .calculatedAmount(calculatedAmount)
+            .calculatedAmount(new BigDecimal("199.99"))
             .code(feeCode)
             .version("1")
-            .reference(feeReference)
+            .reference("feeReference")
             .build();
 
         RemissionRequest remissionRequest = RemissionRequest.createRemissionRequestWith()
@@ -605,13 +604,12 @@ public class RemissionControllerTest {
     @Test
     @Transactional
     public void remissionWithWrongSiteIDShouldNotSaveToDb() throws Exception {
-        String hwfReference = "HWFref";
         RemissionRequest remissionDto = RemissionRequest.createRemissionRequestWith()
             .beneficiaryName("beneficiary")
             .caseReference("caseRef1234")
             .ccdCaseNumber("CCD1234")
             .hwfAmount(new BigDecimal("10.00"))
-            .hwfReference(hwfReference)
+            .hwfReference("HWFref")
             .build();
 
         restActions
@@ -713,7 +711,7 @@ public class RemissionControllerTest {
     @Transactional
     public void createRemissionWithValidDataShouldBeSuccessfulTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         MvcResult result = restActions
@@ -753,7 +751,7 @@ public class RemissionControllerTest {
     @Transactional
     public void createRemissionWithoutFeesShouldBeSuccessfulTest() throws Exception {
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         PaymentGroupDto consecutiveRequest = PaymentGroupDto.paymentGroupDtoWith()
@@ -826,6 +824,7 @@ public class RemissionControllerTest {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new NoServiceFoundException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new NoServiceFoundException("Test Error"));
         restActions
             .post("/remissions", remission)
             .andExpect(status().isNotFound())
@@ -845,12 +844,114 @@ public class RemissionControllerTest {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenThrow(new GatewayTimeoutException("Test Error"));
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenThrow(new GatewayTimeoutException("Test Error"));
         restActions
             .post("/remissions", remission)
             .andExpect(status().isGatewayTimeout())
             .andExpect(content().string("Test Error"));
     }
 
+    @Test
+    @Transactional
+    public void createRetroRemissionFullUnsuccessPaymentTest() throws Exception {
+
+        PaymentFee fee2 = PaymentFee.feeWith().amountDue(new BigDecimal("10.00")).netAmount(new BigDecimal("10.00"))
+            .calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000567").remissions(new ArrayList<>()).build();
+        PaymentFeeLink paymentFeeLink2 = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1625063858567")
+            .apportions(Lists.newArrayList(getFeePayApportion()))
+            .payments(Arrays.asList(populateCardPaymentToDb("567", false))).fees(Arrays.asList(fee2)));
+
+        paymentFeeLink2.getApportions().get(0).setFeeId(paymentFeeLink2.getFees().get(0).getId());
+        paymentFeeLink2.getApportions().get(0).setPaymentId(paymentFeeLink2.getPayments().get(0).getId());
+        // Apply retro Remission
+        MvcResult result = restActions
+            .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/retro-remission",
+                getRetroRemissionRequestForPayment(true))
+            .andExpect(status().isCreated())
+            .andReturn();
+        RetroRemissionDto createRemissionResponseDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), RetroRemissionDto.class);
+        assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
+    }
+
+    @Test
+    @Transactional
+    public void createRetroRemissionFullSuccessPaymentTest() throws Exception {
+
+        PaymentFee fee2 = PaymentFee.feeWith().amountDue(new BigDecimal("10.00")).netAmount(new BigDecimal("10.00"))
+            .calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000567").remissions(new ArrayList<>()).build();
+        PaymentFeeLink paymentFeeLink2 = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1625063858567")
+            .apportions(Lists.newArrayList(getFeePayApportion()))
+            .payments(Arrays.asList(populateCardPaymentToDb("567", true))).fees(Arrays.asList(fee2)));
+
+        paymentFeeLink2.getApportions().get(0).setFeeId(paymentFeeLink2.getFees().get(0).getId());
+        paymentFeeLink2.getApportions().get(0).setPaymentId(paymentFeeLink2.getPayments().get(0).getId());
+        // Apply retro Remission
+        MvcResult result = restActions
+            .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/retro-remission",
+                getRetroRemissionRequestForPayment(true))
+            .andExpect(status().isCreated())
+            .andReturn();
+        RetroRemissionDto createRemissionResponseDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), RetroRemissionDto.class);
+        assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
+    }
+
+    @Test
+    @Transactional
+    public void createPartialRetroRemissionSuccessPaymentTest() throws Exception {
+
+        PaymentFee fee2 = PaymentFee.feeWith().amountDue(new BigDecimal("10.00")).netAmount(new BigDecimal("10.00"))
+            .calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000567").remissions(new ArrayList<>()).build();
+        PaymentFeeLink paymentFeeLink2 = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1625063858567")
+            .apportions(Lists.newArrayList(getFeePayApportion()))
+            .payments(Arrays.asList(populateCardPaymentToDb("567", true))).fees(Arrays.asList(fee2)));
+
+        paymentFeeLink2.getApportions().get(0).setFeeId(paymentFeeLink2.getFees().get(0).getId());
+        paymentFeeLink2.getApportions().get(0).setPaymentId(paymentFeeLink2.getPayments().get(0).getId());
+        // Apply retro Remission
+        RetroRemissionRequest retroRemissionRequest = getRetroRemissionRequestForPayment(true);
+        retroRemissionRequest.setHwfAmount(new BigDecimal(5.00));
+        MvcResult result = restActions
+            .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/retro-remission",
+                retroRemissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        RetroRemissionDto createRemissionResponseDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), RetroRemissionDto.class);
+        assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
+    }
+
+    @Test
+    @Transactional
+    public void createRetroRemissionDuplicateRefundTest() throws Exception {
+
+        PaymentFee fee2 = PaymentFee.feeWith().amountDue(new BigDecimal("10.00")).netAmount(new BigDecimal("10.00"))
+            .calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000567").remissions(new ArrayList<>()).build();
+        PaymentFeeLink paymentFeeLink2 = paymentDbBackdoor.create(paymentFeeLinkWith().paymentReference("2020-1625063858567")
+            .apportions(Lists.newArrayList(getFeePayApportion()))
+            .payments(Arrays.asList(populateCardPaymentToDb("567", true))).fees(Arrays.asList(fee2)));
+
+        paymentFeeLink2.getApportions().get(0).setFeeId(paymentFeeLink2.getFees().get(0).getId());
+        paymentFeeLink2.getApportions().get(0).setPaymentId(paymentFeeLink2.getPayments().get(0).getId());
+        // Apply retro Remission
+        RetroRemissionRequest retroRemissionRequest = getRetroRemissionRequestForPayment(true);
+        MvcResult result = restActions
+            .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/retro-remission",
+                retroRemissionRequest)
+            .andExpect(status().isCreated())
+            .andReturn();
+        RetroRemissionDto createRemissionResponseDto =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), RetroRemissionDto.class);
+        assertThat(createRemissionResponseDto.getRemissionReference()).isNotNull();
+
+        // Apply retro remission one more time, should be badRequest
+        MvcResult result2 = restActions
+            .post("/payment-groups/" + paymentFeeLink2.getPaymentReference() + "/fees/" + fee2.getId() + "/retro-remission",
+                retroRemissionRequest)
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
 
     private RemissionRequest getRemissionRequest() {
         return RemissionRequest.createRemissionRequestWith()
@@ -865,20 +966,6 @@ public class RemissionControllerTest {
                 .version("1")
                 .volume(1)
                 .build())
-            .build();
-    }
-
-    private CardPaymentRequest getCardPaymentRequest() {
-        return CardPaymentRequest.createCardPaymentRequestDtoWith()
-            .amount(new BigDecimal("250"))
-            .ccdCaseNumber("CCD1234")
-            .channel("telephony")
-            .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
-            .service("DIVORCE")
-            .caseType("Divorce_Exception")
-            .fees(Collections.singletonList(getFee()))
             .build();
     }
 
@@ -899,7 +986,7 @@ public class RemissionControllerTest {
             .build();
     }
 
-    private FeeDto getNewFee(){
+    private FeeDto getNewFee() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("250"))
             .code("FEE312")
@@ -936,6 +1023,80 @@ public class RemissionControllerTest {
             .volume(2)
             .reference("BXsd11253")
             .ccdCaseNumber("1111-2222-2222-1111")
+            .build();
+    }
+
+    private RetroRemissionRequest getRetroRemissionRequestForPayment(final boolean retroRemissionFlag) {
+        return RetroRemissionRequest.createRetroRemissionRequestWith()
+            .hwfAmount(new BigDecimal(10.00))
+            .hwfReference("HR1111")
+            .build();
+    }
+
+    public Payment populateCardPaymentToDb(String number, boolean isPaymentSuccess) throws Exception {
+        //Create a payment in remissionDbBackdoor
+        String paymentStatus = "";
+        if (isPaymentSuccess) {
+            paymentStatus = "success";
+        } else {
+            paymentStatus = "created";
+        }
+        StatusHistory statusHistory =
+            StatusHistory.statusHistoryWith().status(paymentStatus).externalStatus(paymentStatus).build();
+        Payment payment = Payment.paymentWith()
+            .amount(new BigDecimal("10.00"))
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .description("Test payments statuses for " + number)
+            .paymentMethod(new PaymentMethod("payment by account", ""))
+            .serviceType("PROBATE")
+            .currency("GBP")
+            .siteId("AA07")
+            .userId(USER_ID)
+            .paymentChannel(PaymentChannel.paymentChannelWith().name("online").build())
+            .paymentMethod(PaymentMethod.paymentMethodWith().name("payment by account").build())
+            .paymentProvider(PaymentProvider.paymentProviderWith().name("gov pay").build())
+            .paymentStatus(PaymentStatus.paymentStatusWith().name(paymentStatus).build())
+            .externalReference("e2kkddts5215h9qqoeuth5c0v" + number)
+            .reference("RC-1519-9028-2432-000" + number)
+            .statusHistories(Arrays.asList(statusHistory))
+            .build();
+
+        PaymentFee fee =
+            feeWith().calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE000" + number).volume(1).build();
+
+        PaymentFeeLink paymentFeeLink = paymentDbBackdoor.create(paymentFeeLinkWith()
+            .paymentReference("2018-0000000000" + number)
+            .caseReference("Reference" + number)
+            .ccdCaseNumber("ccdCaseNumber" + number)
+            .enterpriseServiceName("Probate")
+            .orgId("AA0" + number)
+            .payments(Arrays.asList(payment)).fees(Arrays.asList(fee)));
+        payment.setPaymentLink(paymentFeeLink);
+        return payment;
+    }
+
+    private FeePayApportion getFeePayApportion() {
+        return FeePayApportion.feePayApportionWith()
+            .apportionAmount(new BigDecimal("10.00"))
+            .apportionType("AUTO")
+            .feeId(2)
+            .paymentId(1)
+            .feeAmount(new BigDecimal("10.00"))
+            .paymentAmount(new BigDecimal("10.00"))
+            .paymentId(1)
+            .paymentLink(getPaymentFeeLink())
+            .build();
+    }
+
+    private PaymentFeeLink getPaymentFeeLink() {
+        return PaymentFeeLink.paymentFeeLinkWith()
+            .id(1)
+            .orgId("org-id")
+            .enterpriseServiceName("enterprise-service-name")
+            .paymentReference("payment-ref")
+            .ccdCaseNumber("1607065108455502")
+            .fees(Arrays.asList(PaymentFee.feeWith().calculatedAmount(new BigDecimal("10.00")).version("1").code("FEE0001").volume(1).build()))
             .build();
     }
 }
