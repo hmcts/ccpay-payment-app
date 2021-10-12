@@ -6,6 +6,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.Minutes;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -23,7 +24,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
-import uk.gov.hmcts.payment.api.model.*;
+import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentChannel;
+import uk.gov.hmcts.payment.api.model.PaymentFee;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentMethod;
+import uk.gov.hmcts.payment.api.model.PaymentProvider;
+import uk.gov.hmcts.payment.api.model.PaymentStatus;
+import uk.gov.hmcts.payment.api.model.StatusHistory;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
@@ -31,7 +39,6 @@ import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
@@ -47,33 +54,25 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @Transactional
 public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
 
+    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
+    private final static int PAYMENTS_BACKLOG = 10;
+    private final static int PAYMENTS_TODAY = 10;
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(9190);
-
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
-
-
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     private PaymentDbBackdoor db;
-
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
-
     private RestActions restActions;
-
     @Autowired
     private ObjectMapper objectMapper;
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("dd-MM-yyyy");
 
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
@@ -90,6 +89,11 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
 
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
     }
 
     private void createPayment(int n) {
@@ -121,10 +125,6 @@ public class PaymentControllerPerformanceTest extends PaymentsDataUtil {
         payment.setPaymentLink(paymentFeeLink);
 
     }
-
-    private final static int PAYMENTS_BACKLOG = 10;
-
-    private final static int PAYMENTS_TODAY = 10;
 
     @Test
     public void testSuitesRequireAtLeastOneTest() {

@@ -21,16 +21,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class PaymentRecordComponentTest {
 
+    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
     @Autowired
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
-
     @Autowired
     private PaymentProviderRepository paymentProviderRespository;
-
-    private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
-
 
     @Test
     public void recordCashPaymentTest() throws Exception {
@@ -74,7 +72,6 @@ public class PaymentRecordComponentTest {
             assertThat(p.getPaymentStatus().getName()).isEqualTo("created");
             assertThat(p.getPaymentProvider().getName()).isEqualTo("middle office provider");
         });
-
 
 
     }

@@ -3,6 +3,7 @@ package uk.gov.hmcts.payment.api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.math.RandomUtils;
 import org.assertj.core.util.Files;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,38 +67,29 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @TestPropertySource(properties = {"duplicate.payment.check.interval.in.minutes=0", "pba.config1.service.names=PROBATE,CMC"})
 @Transactional
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private final static String PAYMENT_REFERENCE_REFEX = "^[RC-]{3}(\\w{4}-){3}(\\w{4})";
-
-    @Autowired
-    private ConfigurableListableBeanFactory configurableListableBeanFactory;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     protected UserResolverBackdoor userRequestAuthorizer;
-
     @Autowired
     protected PaymentDbBackdoor db;
-
     @Autowired
     protected Payment2Repository paymentRepository;
-
     @Autowired
     protected AccountService<AccountDto, String> accountService;
-
-    private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
-
     RestActions restActions;
-
+    MockMvc mvc;
+    @Autowired
+    private ConfigurableListableBeanFactory configurableListableBeanFactory;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private LaunchDarklyFeatureToggler featureToggler;
 
@@ -107,7 +99,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -117,6 +109,12 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
 
         Mockito.reset(accountService);
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        mvc = null;
     }
 
     @Test
@@ -134,7 +132,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             createCreditAccountPayments(csvParseMap, 10);
 
             //Create CSV
-            createCSV(csvParseMap,"paymentsToReplay.csv");
+            createCSV(csvParseMap, "paymentsToReplay.csv");
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
@@ -208,7 +206,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             createCreditAccountPayments(csvParseMap, 5);
 
             //Create CSV
-            createCSV(csvParseMap ,"paymentsToFailed.csv");
+            createCSV(csvParseMap, "paymentsToFailed.csv");
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToFailed.csv", "text/csv",
@@ -285,7 +283,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
             });
 
             //Create CSV
-            createCSV(csvParseMapWithIncorrectPayRef,"paymentsToReplay.csv");
+            createCSV(csvParseMapWithIncorrectPayRef, "paymentsToReplay.csv");
 
             //Invoke replay-credit-account-payment
             MockMultipartFile csvFile = new MockMultipartFile("csvFile", "paymentsToReplay.csv", "text/csv",
@@ -312,8 +310,8 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         }
     }
 
-    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap , String fileName) throws IOException {
-        String csvFile = "src/test/resources/" +fileName;
+    private void createCSV(Map<String, CreditAccountPaymentRequest> csvParseMap, String fileName) throws IOException {
+        String csvFile = "src/test/resources/" + fileName;
         FileWriter writer = new FileWriter(csvFile);
 
         //for header
@@ -355,7 +353,7 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
         writer.close();
     }
 
-    private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap , int noOfPayments) throws Exception {
+    private void createCreditAccountPayments(Map<String, CreditAccountPaymentRequest> csvParseMap, int noOfPayments) throws Exception {
         for (int i = 0; i < noOfPayments; i++) {
             //create PBA payment
             setCreditAccountPaymentLiberataCheckFeature(true);
@@ -387,18 +385,18 @@ public class ReplayCreditAccountPaymentControllerTest extends PaymentsDataUtil {
 
     private CreditAccountPaymentRequest getPBAPayment(Double calculatedAmount, List<FeeDto> fees) {
         return CreditAccountPaymentRequest.createCreditAccountPaymentRequestDtoWith()
-                .amount(new BigDecimal(calculatedAmount))
-                .ccdCaseNumber("1607065" + RandomUtils.nextInt(999999999))
-                .accountNumber("\"PBA0073" + RandomUtils.nextInt(999) + "\"")
-                .description("Money Claim issue fee")
-                .caseReference("\"9eb95270-7fee-48cf-afa2-e6c58ee" + RandomUtils.nextInt(999) + "ba\"")
-                .service("CMC")
-                .currency(CurrencyCode.GBP)
-                .customerReference("DEA2682/1/SWG" + RandomUtils.nextInt(999))
-                .organisationName("\"Slater & Gordon" + RandomUtils.nextInt(999) + "\"")
-                .siteId("Y689")
-                .fees(fees)
-                .build();
+            .amount(new BigDecimal(calculatedAmount))
+            .ccdCaseNumber("1607065" + RandomUtils.nextInt(999999999))
+            .accountNumber("\"PBA0073" + RandomUtils.nextInt(999) + "\"")
+            .description("Money Claim issue fee")
+            .caseReference("\"9eb95270-7fee-48cf-afa2-e6c58ee" + RandomUtils.nextInt(999) + "ba\"")
+            .service("CMC")
+            .currency(CurrencyCode.GBP)
+            .customerReference("DEA2682/1/SWG" + RandomUtils.nextInt(999))
+            .organisationName("\"Slater & Gordon" + RandomUtils.nextInt(999) + "\"")
+            .siteId("Y689")
+            .fees(fees)
+            .build();
     }
 
     @NotNull
