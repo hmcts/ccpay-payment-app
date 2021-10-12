@@ -52,7 +52,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RefundsControllerTest {
 
-    private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
+    private static final String USER_ID = UserResolverBackdoor.REFUND_ID;
     PaymentRefundRequest paymentRefundRequest = PaymentRefundRequest.refundRequestWith()
         .paymentReference("RC-1234-1234-1234-1234")
         .refundReason("RESN1")
