@@ -138,7 +138,6 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("The last stage should be a 403 rather than a 400....")
     public void negative_issue_refunds_for_a_pba_payment_unauthorized_user() {
 
         // create a PBA payment
@@ -326,7 +325,7 @@ public class RefundsRequestorJourneyFunctionalTest {
 
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         assertThat(refundResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -369,7 +368,6 @@ public class RefundsRequestorJourneyFunctionalTest {
     }
 
     @Test
-    @Ignore("Expecting the Error Code of 403 but rather received an Error of 400.....")
     public void positive_add_remission_and_add_refund_for_a_pba_payment_unauthorised_user() {
         // Create a PBA payment
         String accountNumber = testProps.existingAccountNumber;
@@ -660,7 +658,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundInitiatedResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         System.out.println(refundInitiatedResponse.getStatusLine());
@@ -757,7 +755,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         String paymentReference = paymentDtoOptional.get().getPaymentReference();
         PaymentRefundRequest paymentRefundRequest
             = PaymentFixture.aRefundRequest("RR001", paymentReference);
-        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postInitiateRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             paymentRefundRequest);
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -837,7 +835,7 @@ public class RefundsRequestorJourneyFunctionalTest {
         assertThat(paymentDtoOptional.get().getStatus()).isEqualTo("Failed");
         assertThat(paymentDtoOptional.get().getStatusHistories().get(0).getErrorMessage()).isEqualTo(errorMessage);
 
-        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENT,
+        Response refundResponse = paymentTestService.postSubmitRefund(USER_TOKEN_PAYMENTS_REFUND_REQUESTOR_ROLE,
             SERVICE_TOKEN_PAYMENT,
             RetroSpectiveRemissionRequest.retroSpectiveRemissionRequestWith().remissionReference(remissionReference).build());
         assertThat(refundResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
