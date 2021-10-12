@@ -2,6 +2,7 @@ package uk.gov.hmcts.payment.api.controllers;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,6 +10,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -51,11 +53,10 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class PbaControllerTest extends PaymentsDataUtil {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
+    private static final String USER_ID = UserResolverBackdoor.SOLICITOR_ID;
     @Autowired
     protected ServiceResolverBackdoor serviceRequestAuthorizer;
 
@@ -64,11 +65,10 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
     @Autowired
     protected PaymentDbBackdoor db;
-
-    private static final String USER_ID = UserResolverBackdoor.SOLICITOR_ID;
-
     RestActions restActions;
-
+    MockMvc mvc;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -96,7 +96,7 @@ public class PbaControllerTest extends PaymentsDataUtil {
 
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -104,6 +104,12 @@ public class PbaControllerTest extends PaymentsDataUtil {
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.gooooogle.com");
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions = null;
+        mvc = null;
     }
 
     @Test

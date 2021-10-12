@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
 import uk.gov.hmcts.payment.api.dto.RemissionRequest;
+import uk.gov.hmcts.payment.api.dto.RetroRemissionRequest;
 import uk.gov.hmcts.payment.api.dto.TelephonyCallbackDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestDto;
 import uk.gov.hmcts.payment.api.dto.servicerequest.ServiceRequestPaymentDto;
@@ -144,6 +145,14 @@ public class PaymentsTestDsl {
         public PaymentWhenDsl createRetrospectiveRemission(RemissionRequest remissionRequest, String paymentGroup, Integer feeId) {
             response = newRequest().contentType(ContentType.JSON).body(remissionRequest)
                 .post("/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/remissions", paymentGroup, feeId);
+            return this;
+        }
+
+        public PaymentWhenDsl createRetrospectiveRemissionForRefund(final RetroRemissionRequest retrospectiveRemissionRequest,
+                                                                    final String paymentGroup, final Integer feeId) {
+            response = newRequest().contentType(ContentType.JSON).body(retrospectiveRemissionRequest)
+                .post("/payment-groups/{payment-group-reference}/fees/{unique_fee_id}/retro-remission",
+                    paymentGroup, feeId);
             return this;
         }
 
@@ -385,6 +394,10 @@ public class PaymentsTestDsl {
 
         public Response validationErrorFor400() {
             return response.then().statusCode(400).extract().response();
+        }
+
+        public Response getResponse() {
+            return response;
         }
 
     }
