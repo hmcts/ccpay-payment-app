@@ -101,6 +101,7 @@ public class PaymentGroupDtoMapper {
 
     private RemissionDto toRemissionDto(Remission remission) {
         return RemissionDto.remissionDtoWith()
+            .feeId(remission.getFee().getId())
             .remissionReference(remission.getRemissionReference())
             .beneficiaryName(remission.getBeneficiaryName())
             .ccdCaseNumber(remission.getCcdCaseNumber())

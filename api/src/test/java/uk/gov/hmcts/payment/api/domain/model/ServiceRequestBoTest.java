@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
@@ -23,13 +24,16 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 public class ServiceRequestBoTest {
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+public class OrderBoTest {
 
+    String orderReference = "2200-1619524583862";
     @InjectMocks
     private ServiceRequestBo serviceRequestBo;
 
+    private OrderBo orderBo;
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
-
     @Spy
     private ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
 
@@ -39,6 +43,7 @@ public class ServiceRequestBoTest {
         String serviceRequestReference = "2200-1619524583862";
 
         ServiceRequestBo serviceRequestBoDomain = getServiceRequestBoDomain(serviceRequestReference);
+        OrderBo orderBoDomain = getOrderBoDomain(orderReference);
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
@@ -54,6 +59,7 @@ public class ServiceRequestBoTest {
         String serviceRequestReference = "2200-1619524583862";
 
         ServiceRequestBo serviceRequestBoDomain = getServiceRequestBoDomain(serviceRequestReference);
+        OrderBo orderBoDomain = getOrderBoDomain(orderReference);
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 

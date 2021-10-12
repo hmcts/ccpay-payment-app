@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,38 +42,39 @@ import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
-public class BulkScanningReportControllerTest extends PaymentsDataUtil{
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @Autowired
-    protected ServiceResolverBackdoor serviceRequestAuthorizer;
-
-    @Autowired
-    protected UserResolverBackdoor userRequestAuthorizer;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
+public class BulkScanningReportControllerTest extends PaymentsDataUtil {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("MM/dd/yyyy");
-
     private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
-
+    @Autowired
+    protected ServiceResolverBackdoor serviceRequestAuthorizer;
+    @Autowired
+    protected UserResolverBackdoor userRequestAuthorizer;
+    RestActions restActions;
+    MockMvc mvc;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+    @Autowired
+    private ObjectMapper objectMapper;
     @MockBean
     private PaymentService<PaymentFeeLink, String> paymentService;
 
-    RestActions restActions;
-
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
         restActions
             .withAuthorizedService("divorce")
             .withAuthorizedUser(USER_ID)
             .withUserId(USER_ID)
             .withReturnUrl("https://www.moneyclaims.service.gov.uk");
+    }
+
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
     }
 
     @Test
@@ -108,7 +110,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .build();
         List<Payment> paymentList = new ArrayList<>();
         paymentList.add(payment);
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -155,7 +157,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .build();
         List<Payment> paymentList = new ArrayList<>();
         paymentList.add(payment);
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -202,7 +204,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .build();
         List<Payment> paymentList = new ArrayList<>();
         paymentList.add(payment);
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -230,6 +232,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .andReturn();
 
     }
+
     @Test
     @Transactional
     public void shouldNotGenerateReportWhenDateFormatIsNotSupported() throws Exception {
@@ -249,7 +252,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
     @Transactional
     public void shouldNotGenerateReportWhenPaymentIsEmpty() throws Exception {
 
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(Collections.emptyList());
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(Collections.emptyList());
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -300,7 +303,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         paymentList.add(payment);
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(paymentList);
 
 
         MvcResult result = restActions
@@ -349,7 +352,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         String endDate = LocalDate.now().toString(DATE_FORMAT);
 
         paymentList.add(payment);
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(paymentList);
 
         MvcResult result = restActions
             .withAuthorizedUser(USER_ID)
@@ -399,7 +402,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
             .build();
-       Remission remission= Remission.remissionWith()
+        Remission remission = Remission.remissionWith()
             .remissionReference("12345")
             .hwfReference("HR1111")
             .hwfAmount(new BigDecimal("50.00"))
@@ -418,7 +421,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         payment.setPaymentLink(paymentFeeLink);
         paymentList.add(payment);
 
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -471,7 +474,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .hwfAmount(new BigDecimal("50.00"))
             .hwfReference("HR1111")
             .build();
-        Remission remission= Remission.remissionWith()
+        Remission remission = Remission.remissionWith()
             .remissionReference("12345")
             .hwfReference("HR1111")
             .hwfAmount(new BigDecimal("50.00"))
@@ -490,7 +493,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
         payment.setPaymentLink(paymentFeeLink);
         paymentList.add(payment);
 
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
@@ -538,7 +541,7 @@ public class BulkScanningReportControllerTest extends PaymentsDataUtil{
             .build();
         List<Payment> paymentList = new ArrayList<>();
         paymentList.add(payment);
-        when(paymentService.getPayments(any(Date.class),any(Date.class))).thenReturn(paymentList);
+        when(paymentService.getPayments(any(Date.class), any(Date.class))).thenReturn(paymentList);
 
         String startDate = LocalDate.now().minusDays(1).toString(DATE_FORMAT);
         String endDate = LocalDate.now().toString(DATE_FORMAT);
