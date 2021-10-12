@@ -6,16 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
 import uk.gov.hmcts.payment.api.dto.RetroRemissionServiceRequest;
-import uk.gov.hmcts.payment.api.model.FeePayApportion;
-import uk.gov.hmcts.payment.api.model.FeePayApportionRepository;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.Payment2Repository;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
-import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionAlreadyExistException;
@@ -23,16 +19,11 @@ import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class RemissionServiceImpl implements RemissionService {
 
     private final PaymentFeeLinkRepository paymentFeeLinkRepository;
-    private final FeePayApportionRepository feePayApportionRepository;
-    private final Payment2Repository paymentRespository;
     private final ReferenceUtil referenceUtil;
 
     private final ServiceRequestCaseUtil serviceRequestCaseUtil;
@@ -40,10 +31,7 @@ public class RemissionServiceImpl implements RemissionService {
     @Autowired
     public RemissionServiceImpl(PaymentFeeLinkRepository paymentFeeLinkRepository,
                                 ReferenceUtil referenceUtil, ServiceRequestCaseUtil serviceRequestCaseUtil) {
-                                FeePayApportionRepository feePayApportionRepository, Payment2Repository paymentRespository, ReferenceUtil referenceUtil, OrderCaseUtil orderCaseUtil) {
         this.paymentFeeLinkRepository = paymentFeeLinkRepository;
-        this.feePayApportionRepository = feePayApportionRepository;
-        this.paymentRespository = paymentRespository;
         this.referenceUtil = referenceUtil;
         this.serviceRequestCaseUtil = serviceRequestCaseUtil;
     }
@@ -130,19 +118,6 @@ public class RemissionServiceImpl implements RemissionService {
         return fee;
     }
 
-    private Remission buildRemission(RemissionServiceRequest remissionServiceRequest) {
-        return Remission.remissionWith()
-            .remissionReference(remissionServiceRequest.getRemissionReference())
-            .hwfReference(remissionServiceRequest.getHwfReference())
-            .hwfAmount(remissionServiceRequest.getHwfAmount())
-            .beneficiaryName(remissionServiceRequest.getBeneficiaryName())
-            .ccdCaseNumber(remissionServiceRequest.getCcdCaseNumber())
-            .caseReference(remissionServiceRequest.getCaseReference())
-            .siteId(remissionServiceRequest.getSiteId())
-            .build();
-    }
-
-
     private Remission buildRemissionForPayment(PaymentFeeLink paymentFeeLink, PaymentFee fee, RetroRemissionServiceRequest remissionServiceRequest) throws CheckDigitException {
         // Apply retro remission using all data from paymentFeeLink,fee,feePayApportion,remissionServiceRequest
         Remission remission = Remission.remissionWith()
@@ -158,4 +133,17 @@ public class RemissionServiceImpl implements RemissionService {
         paymentFeeLink.setRemissions(Lists.newArrayList(remission));
         return remission;
     }
+
+    private Remission buildRemission(RemissionServiceRequest remissionServiceRequest) {
+        return Remission.remissionWith()
+            .remissionReference(remissionServiceRequest.getRemissionReference())
+            .hwfReference(remissionServiceRequest.getHwfReference())
+            .hwfAmount(remissionServiceRequest.getHwfAmount())
+            .beneficiaryName(remissionServiceRequest.getBeneficiaryName())
+            .ccdCaseNumber(remissionServiceRequest.getCcdCaseNumber())
+            .caseReference(remissionServiceRequest.getCaseReference())
+            .siteId(remissionServiceRequest.getSiteId())
+            .build();
+    }
+
 }
