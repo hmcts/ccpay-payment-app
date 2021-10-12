@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.CreditAccountPaymentRequest;
 import uk.gov.hmcts.payment.api.dto.PaymentRecordRequest;
+import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
+import uk.gov.hmcts.payment.api.dto.RetroSpectiveRemissionRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +45,32 @@ public class PaymentTestService {
             .body(request)
             .when()
             .post("/credit-account-payments");
+    }
+
+    public Response postInitiateRefund(String userToken, String serviceToken,
+                                       PaymentRefundRequest paymentRefundRequest) {
+        return givenWithAuthHeaders(userToken,serviceToken)
+            .contentType(ContentType.JSON)
+            .body(paymentRefundRequest)
+            .when()
+            .post("/refund-for-payment");
+    }
+
+    public Response postSubmitRefund(String userToken, String serviceToken,
+                                     RetroSpectiveRemissionRequest retroSpectiveRemissionRequest) {
+        return givenWithAuthHeaders(userToken,serviceToken)
+            .contentType(ContentType.JSON)
+            .body(retroSpectiveRemissionRequest)
+            .when()
+            .post("/refund-retro-remission");
+    }
+
+    public Response updateThePaymentDateByCCDCaseNumber(final String userToken,
+                                                        final String serviceToken,
+                                                        final String ccdCaseNumber) {
+        return givenWithAuthHeaders(userToken, serviceToken)
+            .when()
+            .patch("/payments/ccd_case_reference/{ccd_case_number}", ccdCaseNumber);
     }
 
     public Response recordBarPayment(String userToken, String serviceToken, PaymentRecordRequest request) {

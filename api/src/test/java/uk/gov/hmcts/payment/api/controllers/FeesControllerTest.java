@@ -1,6 +1,7 @@
-package uk.gov.hmcts.payment.api.componenttests;
+package uk.gov.hmcts.payment.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,19 +45,16 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class FeesControllerTest {
 
+    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     @Autowired
     private ServiceResolverBackdoor serviceRequestAuthorizer;
-
     @Autowired
     private UserResolverBackdoor userRequestAuthorizer;
-
-    private static final String USER_ID = UserResolverBackdoor.CASEWORKER_ID;
-
     private RestActions restActions;
 
     @Autowired
@@ -67,18 +65,16 @@ public class FeesControllerTest {
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
-
-
+    @Autowired
+    private SiteService<Site, String> siteServiceMock;
+    MockMvc mvc;
     protected CustomResultMatcher body() {
         return new CustomResultMatcher(objectMapper);
     }
 
-    @Autowired
-    private SiteService<Site, String> siteServiceMock;
-
     @Before
     public void setup() {
-        MockMvc mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         this.restActions = new RestActions(mvc, serviceRequestAuthorizer, userRequestAuthorizer, objectMapper);
 
         restActions
@@ -107,12 +103,17 @@ public class FeesControllerTest {
 
     }
 
+    @After
+    public void tearDown() {
+        this.restActions=null;
+        mvc=null;
+    }
 
     @Test
     public void deleteFeesTest() throws Exception {
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
-            .fees( Arrays.asList(getNewFee()))
+            .fees(Arrays.asList(getNewFee()))
             .build();
 
         MvcResult result = restActions
@@ -124,7 +125,7 @@ public class FeesControllerTest {
 
         Integer feeId = paymentGroupDto.getFees().get(0).getId();
         MvcResult result1 = restActions.
-            delete("/fees/"+ feeId)
+            delete("/fees/" + feeId)
             .andExpect(status().isNoContent())
             .andReturn();
     }
@@ -148,6 +149,7 @@ public class FeesControllerTest {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
+        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result = restActions
             .post("/remissions", remissionRequest)
@@ -158,7 +160,7 @@ public class FeesControllerTest {
 
         Integer feeId = remissionDto.getFee().getId();
         MvcResult result1 = restActions.
-            delete("/fees/"+ feeId)
+            delete("/fees/" + feeId)
             .andExpect(status().isNoContent())
             .andReturn();
     }
@@ -168,12 +170,12 @@ public class FeesControllerTest {
 
         Integer feeId = 12;
         MvcResult result1 = restActions.
-            delete("/fees/"+ feeId)
+            delete("/fees/" + feeId)
             .andExpect(status().isBadRequest())
             .andReturn();
     }
 
-    private FeeDto getNewFee(){
+    private FeeDto getNewFee() {
         return FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("92.19"))
             .code("FEE312")
@@ -193,7 +195,6 @@ public class FeesControllerTest {
             .code("FEE0123")
             .build();
     }
-
 
 
 }

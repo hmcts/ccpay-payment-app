@@ -2,8 +2,6 @@ package uk.gov.hmcts.payment.api.v1.componenttests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -18,14 +16,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.WebApplicationContext;
-import uk.gov.hmcts.payment.api.model.*;
-import uk.gov.hmcts.payment.api.service.UserAwareDelegatingPaymentService;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.service.UserAwareDelegatingCreditAccountPaymentService;
-import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
-import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+import uk.gov.hmcts.payment.api.service.UserAwareDelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.DbBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.UserResolverBackdoor;
+import uk.gov.hmcts.payment.api.v1.componenttests.sugar.CustomResultMatcher;
+import uk.gov.hmcts.payment.api.v1.componenttests.sugar.RestActions;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -36,6 +37,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
+@DirtiesContext(classMode= DirtiesContext.ClassMode.BEFORE_CLASS)
 public class TestUtil {
 
     @ClassRule
