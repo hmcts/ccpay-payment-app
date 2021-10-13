@@ -23,9 +23,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
-public class ServiceRequestBoTest {
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
-public class OrderBoTest {
+public class ServiceRequestBoTest {
+
 
     String orderReference = "2200-1619524583862";
     @InjectMocks
@@ -121,4 +121,4 @@ public class OrderBoTest {
             .build();
     }
 }
-}
+
