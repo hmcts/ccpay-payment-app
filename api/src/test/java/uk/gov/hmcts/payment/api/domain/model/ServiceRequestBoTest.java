@@ -30,8 +30,6 @@ public class OrderBoTest {
     String orderReference = "2200-1619524583862";
     @InjectMocks
     private ServiceRequestBo serviceRequestBo;
-
-    private OrderBo orderBo;
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
     @Spy
@@ -43,7 +41,6 @@ public class OrderBoTest {
         String serviceRequestReference = "2200-1619524583862";
 
         ServiceRequestBo serviceRequestBoDomain = getServiceRequestBoDomain(serviceRequestReference);
-        OrderBo orderBoDomain = getOrderBoDomain(orderReference);
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
@@ -59,7 +56,6 @@ public class OrderBoTest {
         String serviceRequestReference = "2200-1619524583862";
 
         ServiceRequestBo serviceRequestBoDomain = getServiceRequestBoDomain(serviceRequestReference);
-        OrderBo orderBoDomain = getOrderBoDomain(orderReference);
 
         when(paymentFeeLinkRepository.save(any())).thenReturn(getPaymentFeeLink());
 
@@ -124,4 +120,5 @@ public class OrderBoTest {
             .volume(2)
             .build();
     }
+}
 }
