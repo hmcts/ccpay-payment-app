@@ -104,10 +104,9 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             }))).thenReturn(responseEntity);
+
         OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"),Optional.empty(), header);
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
-            }))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
+
         assertEquals("VPAA", res.getServiceCode());
     }
 
@@ -123,14 +122,11 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         header.put("Content-Type", Collections.singletonList("application/json"));
 
         ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
-        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
 
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             }))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
-            }))).thenReturn(responseEntity);
+
         OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"),Optional.empty(), header);
     }
 
@@ -145,14 +141,10 @@ public class ReferenceDataServiceTest extends PaymentsDataUtil {
         header.put("ServiceAuthorization", Collections.singletonList("qwertyuio.poiuytrewq.zxfghimbfdw"));
         header.put("Content-Type", Collections.singletonList("application/json"));
 
-        ResponseEntity<List<OrganisationalServiceDto>> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
-
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
             }))).thenReturn(responseEntity);
-        OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail("VPAA", header);
-            eq(new ParameterizedTypeReference<List<OrganisationalServiceDto>>() {
-            }))).thenReturn(responseEntity);
+
         OrganisationalServiceDto res = referenceDataServiceImp.getOrganisationalDetail(Optional.ofNullable("VPAA"), Optional.empty(), header);
     }
 
