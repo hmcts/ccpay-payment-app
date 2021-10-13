@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.shaded.org.apache.commons.lang.math.RandomUtils;
 import uk.gov.hmcts.payment.api.componenttests.PaymentDbBackdoor;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.configuration.LaunchDarklyFeatureToggler;
@@ -28,15 +29,7 @@ import uk.gov.hmcts.payment.api.contract.TelephonyPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.util.CurrencyCode;
 import uk.gov.hmcts.payment.api.dto.OrganisationalServiceDto;
 import uk.gov.hmcts.payment.api.dto.PaymentGroupDto;
-import uk.gov.hmcts.payment.api.model.Payment;
-import uk.gov.hmcts.payment.api.model.PaymentChannel;
-import uk.gov.hmcts.payment.api.model.PaymentFee;
-import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
-import uk.gov.hmcts.payment.api.model.PaymentMethod;
-import uk.gov.hmcts.payment.api.model.PaymentProvider;
-import uk.gov.hmcts.payment.api.model.PaymentStatus;
-import uk.gov.hmcts.payment.api.model.TelephonyCallback;
-import uk.gov.hmcts.payment.api.model.TelephonyRepository;
+import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.service.ReferenceDataService;
 import uk.gov.hmcts.payment.api.servicebus.CallbackServiceImpl;
 import uk.gov.hmcts.payment.api.v1.componenttests.backdoors.ServiceResolverBackdoor;
@@ -53,10 +46,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -68,7 +58,6 @@ import static uk.gov.hmcts.payment.api.model.PaymentFeeLink.paymentFeeLinkWith;
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class TelephonyControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.AUTHENTICATED_USER_ID;
@@ -298,6 +287,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     @Test
     public void updateTelephonyPaymentStatusWithSuccess_Apportionment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -329,7 +320,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")
@@ -367,6 +357,8 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
     @Test
     public void updateTelephonyPaymentStatusWithFailed_Apportionment() throws Exception {
 
+        String ccdCaseNumber = "1111CC12" + RandomUtils.nextInt();
+
         when(featureToggler.getBooleanValue("apportion-feature", false)).thenReturn(true);
 
         PaymentGroupDto request = PaymentGroupDto.paymentGroupDtoWith()
@@ -398,7 +390,6 @@ public class TelephonyControllerTest extends PaymentsDataUtil {
             .build();
 
         when(referenceDataService.getOrganisationalDetail(any(),any(),any())).thenReturn(organisationalServiceDto);
-        when(referenceDataService.getOrganisationalDetail(any(), any())).thenReturn(organisationalServiceDto);
 
         MvcResult result2 = restActions
             .withReturnUrl("https://www.moneyclaims.service.gov.uk")
