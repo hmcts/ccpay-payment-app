@@ -47,7 +47,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentAllocationControllerTest extends PaymentsDataUtil {
 
     private static final String USER_ID = UserResolverBackdoor.CITIZEN_ID;
