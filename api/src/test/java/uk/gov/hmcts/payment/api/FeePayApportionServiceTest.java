@@ -30,7 +30,6 @@ import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class FeePayApportionServiceTest extends TestUtil {
 
     @Autowired
