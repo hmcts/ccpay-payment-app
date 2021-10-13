@@ -42,7 +42,6 @@ import static uk.gov.hmcts.payment.api.model.PaymentFee.feeWith;
 @SpringBootTest(webEnvironment = MOCK)
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class BulkScanningReportControllerTest extends PaymentsDataUtil {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("MM/dd/yyyy");
