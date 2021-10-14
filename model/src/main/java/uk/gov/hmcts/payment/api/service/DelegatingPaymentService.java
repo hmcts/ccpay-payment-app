@@ -13,7 +13,7 @@ public interface DelegatingPaymentService<T, ID> {
 
     T create(PaymentServiceRequest paymentServiceRequest) throws CheckDigitException;
 
-    T create(CreatePaymentRequest createPaymentRequest);
+    T create(CreatePaymentRequest createPaymentRequest, String serviceName);
 
     void cancel(Payment payment, String ccdCaseNumber);
 
