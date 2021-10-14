@@ -56,7 +56,7 @@ public class LoggingPaymentService implements DelegatingPaymentService<PaymentFe
     }
 
     @Override
-    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest) {
+    public PaymentFeeLink create(CreatePaymentRequest createPaymentRequest, String serviceName ) {
         return null;
     }
 
