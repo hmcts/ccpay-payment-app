@@ -32,9 +32,6 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     private final GovPayAuthUtil govPayAuthUtil;
 
     @Autowired
-    private PaymentFeeLinkRepository paymentFeeLinkRepository;
-
-    @Autowired
     public GovPayDelegatingPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil) {
         this.govPayKeyRepository = govPayKeyRepository;
         this.govPayClient = govPayClient;
