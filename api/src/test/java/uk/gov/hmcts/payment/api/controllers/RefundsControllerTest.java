@@ -132,15 +132,16 @@ public class RefundsControllerTest {
 
     @Test
     public void testRemissionAmountUpdateForResubmitRefundJourney() throws Exception {
+        ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
+            .resubmitRefundRemissionRequestWith()
+            .amount(BigDecimal.valueOf(100))
+            .refundReason("RR036")
+            .build();
 
-        when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",BigDecimal.valueOf(100), "RR036"))
+
+        when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",resubmitRefundRemissionRequest))
             .thenReturn(new ResponseEntity(null, HttpStatus.OK));
 
-       ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
-           .resubmitRefundRemissionRequestWith()
-           .amount(BigDecimal.valueOf(100))
-           .refundReason("RR036")
-           .build();
 
         restActions.
             patch(format("/refund/resubmit/RC-1111-2222-5555-2222"), resubmitRefundRemissionRequest)
@@ -152,14 +153,14 @@ public class RefundsControllerTest {
     @Test
     public void testRefundRequestExceptionForResubmitRefundJourney() throws Exception {
 
-        when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",BigDecimal.valueOf(100), "RR036"))
-            .thenThrow(new InvalidRefundRequestException("Amount should not be more than Remission amount"));
-
         ResubmitRefundRemissionRequest resubmitRefundRemissionRequest = ResubmitRefundRemissionRequest
             .resubmitRefundRemissionRequestWith()
             .amount(BigDecimal.valueOf(100))
             .refundReason("RR036")
+            .feeId("100")
             .build();
+        when(paymentRefundsService.updateTheRemissionAmount("RC-1111-2222-5555-2222",resubmitRefundRemissionRequest))
+            .thenThrow(new InvalidRefundRequestException("Amount should not be more than Remission amount"));
 
         MvcResult result = restActions.
             patch(format("/refund/resubmit/RC-1111-2222-5555-2222"), resubmitRefundRemissionRequest)
