@@ -7,11 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
@@ -27,6 +30,9 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
     private final GovPayAuthUtil govPayAuthUtil;
+
+    @Autowired
+    private PaymentFeeLinkRepository paymentFeeLinkRepository;
 
     @Autowired
     public GovPayDelegatingPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil) {
@@ -46,8 +52,8 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
-    public GovPayPayment create(CreatePaymentRequest createPaymentRequest) {
-        String key = keyForService();
+    public GovPayPayment create(CreatePaymentRequest createPaymentRequest, String serviceName) {
+        String key = getServiceKeyWithServiceName(serviceName);
         LOG.info("Language value in GovPayDelegatingPaymentService - CreatePaymentRequest: {}", createPaymentRequest.getLanguage());
         return govPayClient.createPayment(key, createPaymentRequest);
     }
@@ -100,5 +106,9 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     private String keyForService() {
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
+    }
+
+    private String getServiceKeyWithServiceName(String serviceName) {
+        return govPayKeyRepository.getKey(serviceName);
     }
 }

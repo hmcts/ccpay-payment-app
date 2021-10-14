@@ -271,7 +271,7 @@ public class ServiceRequestDomainServiceTest {
                 .paymentId("id")
                     .build();
 
-        when(delegateGovPay.create(any(CreatePaymentRequest.class))).thenReturn(govPayPayment);
+        when(delegateGovPay.create(any(CreatePaymentRequest.class),anyString())).thenReturn(govPayPayment);
 
         Payment payment = Payment.paymentWith()
                 .paymentLink(getPaymentFeeLink())
