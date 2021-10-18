@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.payment.api.contract.CardPaymentRequest;
 import uk.gov.hmcts.payment.api.contract.FeeDto;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import uk.gov.hmcts.payment.api.contract.PaymentsResponse;
@@ -75,7 +74,7 @@ public class TelephonyPaymentFunctionalTest {
     @Test
     public void telephonyPaymentLiberataValidation() throws Exception {
 
-        String ccdCaseNumber = "1111-CC12-" + RandomUtils.nextInt();
+        String ccdCaseNumber = "11112212" + RandomUtils.nextInt();
         FeeDto feeDto = FeeDto.feeDtoWith()
             .calculatedAmount(new BigDecimal("550.00"))
             .ccdCaseNumber(ccdCaseNumber)
@@ -87,11 +86,12 @@ public class TelephonyPaymentFunctionalTest {
         TelephonyPaymentRequest telephonyPaymentRequest = TelephonyPaymentRequest.createTelephonyPaymentRequestDtoWith()
             .amount(new BigDecimal("550"))
             .ccdCaseNumber(ccdCaseNumber)
-            .channel("telephony")
+            .caseReference("ref124586")
             .currency(CurrencyCode.GBP)
-            .description("A test telephony payment")
-            .provider("pci pal")
+            .description("Filing an application for a divorce, nullity or civil partnership dissolution")
             .caseType("DIVORCE")
+            .channel("telephony")
+            .provider("pci pal")
             .build();
 
         PaymentGroupDto groupDto = PaymentGroupDto.paymentGroupDtoWith()

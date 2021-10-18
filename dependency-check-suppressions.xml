@@ -13,7 +13,8 @@
 
     <suppress until="2021-12-07">
         <notes>These CVE's are coming from Dhowden tag library and it impacts only MP3/MP4/OGG/FLAC metadata parsing
-            library. Also it is declared as false positive in (https://github.com/jeremylong/DependencyCheck/issues/3043)
+            library. Also it is declared as false positive in
+            (https://github.com/jeremylong/DependencyCheck/issues/3043)
         </notes>
         <cve>CVE-2020-29242</cve>
         <cve>CVE-2020-29243</cve>
@@ -47,4 +48,6 @@
         <cve>CVE-2020-23171</cve>
     </suppress>
     <!-- Supression Group ends here -->
+
+
 </suppressions>

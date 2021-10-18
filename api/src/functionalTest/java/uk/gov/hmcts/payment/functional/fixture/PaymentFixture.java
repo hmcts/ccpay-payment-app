@@ -62,7 +62,7 @@ public class PaymentFixture {
             .caseReference("telRefNumber")
             .ccdCaseNumber(ccdCaseNumber)
             .service(service)
-            .siteId("string")
+            .siteId("AA07")
             .currency(CurrencyCode.GBP)
             .fees(Lists.newArrayList(
                 FeeDto.feeDtoWith()
