@@ -635,6 +635,7 @@ public class CardPaymentControllerTest extends PaymentsDataUtil {
         assertTrue(paymentDto.getReference().matches(PAYMENT_REFERENCE_REGEX));
     }
 
+
     @Test
     public void creatingCardPaymentWithoutFees() throws Exception {
         String testccdCaseNumber = "1212-2323-3434-5454";
