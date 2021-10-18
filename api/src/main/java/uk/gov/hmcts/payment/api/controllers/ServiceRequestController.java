@@ -139,7 +139,19 @@ public class ServiceRequestController {
         String responseJson;
         try {
             serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestPaymentDto);
-            HttpStatus httpStatus = serviceRequestPaymentBo.getStatus().equalsIgnoreCase(FAILED) ? HttpStatus.PAYMENT_REQUIRED : HttpStatus.CREATED; //402 for failed Payment scenarios
+            HttpStatus httpStatus;
+            if(serviceRequestPaymentBo.getError().getErrorCode() == "CA-E0004") {
+                httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
+            }else if(serviceRequestPaymentBo.getError().getErrorCode() == "CA-E0003"){
+                httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for pba account on hold
+            }else if(serviceRequestPaymentBo.getError().getErrorCode() == "CA-E0001"){
+                httpStatus = HttpStatus.PAYMENT_REQUIRED; //402 for pba insufficient funds
+            }else{
+                httpStatus = HttpStatus.CREATED;
+            }
+
+//            httpStatus = serviceRequestPaymentBo.getStatus().equalsIgnoreCase(FAILED) ? HttpStatus.PAYMENT_REQUIRED : HttpStatus.CREATED; //402 for failed Payment scenarios
+
             responseEntity = new ResponseEntity<>(serviceRequestPaymentBo, httpStatus);
             responseJson = objectMapper.writeValueAsString(serviceRequestPaymentBo);
         } catch (LiberataServiceTimeoutException liberataServiceTimeoutException) {
