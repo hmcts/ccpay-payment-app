@@ -37,6 +37,33 @@ public class AccountServiceImpl implements AccountService<AccountDto, String> {
                 .status(AccountStatus.ACTIVE)
                 .build();
         }
+        if(pbaCode.equalsIgnoreCase("PBAFUNC101")){
+            return AccountDto.accountDtoWith()
+                .accountNumber("PBAFUNC101")
+                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                .creditLimit(BigDecimal.valueOf(28879))
+                .availableBalance(BigDecimal.valueOf(30000))
+                .status(AccountStatus.ON_HOLD)
+                .build();
+        }
+        if(pbaCode.equalsIgnoreCase("PBAFUNC102")){
+            return AccountDto.accountDtoWith()
+                .accountNumber("PBAFUNC102")
+                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                .creditLimit(BigDecimal.valueOf(28879))
+                .availableBalance(BigDecimal.valueOf(30000))
+                .status(AccountStatus.DELETED)
+                .build();
+        }
+        if(pbaCode.equalsIgnoreCase("PBAFUNC103")){
+            return AccountDto.accountDtoWith()
+                .accountNumber("PBAFUNC103")
+                .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL")
+                .creditLimit(BigDecimal.valueOf(20))
+                .availableBalance(BigDecimal.valueOf(30))
+                .status(AccountStatus.ACTIVE)
+                .build();
+        }
         return restTemplate.getForObject(baseUrl + "/" + pbaCode, AccountDto.class);
     }
 
