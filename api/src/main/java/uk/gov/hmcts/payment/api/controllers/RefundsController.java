@@ -66,7 +66,7 @@ public class RefundsController {
         @RequestHeader("Authorization") String authorization,
         @PathVariable("payment-reference") String paymentReference,
         @RequestBody @Valid ResubmitRefundRemissionRequest request) {
-        return paymentRefundsService.updateTheRemissionAmount(paymentReference, request.getAmount(), request.getRefundReason());
+        return paymentRefundsService.updateTheRemissionAmount(paymentReference, request);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
