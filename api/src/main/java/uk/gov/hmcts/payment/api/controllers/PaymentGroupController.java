@@ -255,15 +255,6 @@ public class PaymentGroupController {
         Payment payment = getPayment(paymentLink, paymentServiceRequest.getPaymentReference());
         PaymentDto paymentDto = paymentDtoMapper.toCardPaymentDto(payment, paymentGroupReference);
 
-        if (request.getChannel().equals("telephony") && request.getProvider().equals("pci pal")) {
-            LOG.info("Inside if loop");
-            PciPalPaymentRequest pciPalPaymentRequest = PciPalPaymentRequest.pciPalPaymentRequestWith().orderAmount(request.getAmount().toString()).orderCurrency(request.getCurrency().getCode())
-                .orderReference(paymentDto.getReference()).build();
-            pciPalPaymentRequest.setCustomData2(payment.getCcdCaseNumber());
-            String link = pciPalPaymentService.getPciPalLink(pciPalPaymentRequest, paymentServiceRequest.getServiceType());
-            paymentDto = paymentDtoMapper.toPciPalCardPaymentDto(paymentLink, payment, link);
-        }
-
         // trigger Apportion based on the launch darkly feature flag
         boolean apportionFeature = featureToggler.getBooleanValue(APPORTION_FEATURE, false);
         LOG.info("ApportionFeature Flag Value in CardPaymentController : {}", apportionFeature);
