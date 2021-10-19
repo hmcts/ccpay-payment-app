@@ -55,8 +55,6 @@ public class AccountController {
         } catch (Exception ex) {
             throw new LiberataServiceInaccessibleException("Failed to connect with Liberata. " + ex.getMessage());
         }
-
-        
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
