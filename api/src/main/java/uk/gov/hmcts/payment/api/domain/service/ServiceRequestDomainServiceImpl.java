@@ -364,6 +364,8 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             msg.setProperties(Collections.singletonMap("serviceCallbackUrl",
                 callBackUrl+"/case-payment-orders"));
 
+            LOG.info("Connection String: ", connectionString);
+
             TopicClientProxy topicClientCPO = new TopicClientProxy(connectionString, topic);
             topicClientCPO.send(msg);
             topicClientCPO.close();
