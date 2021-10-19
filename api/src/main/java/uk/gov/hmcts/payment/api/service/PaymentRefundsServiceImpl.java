@@ -17,6 +17,7 @@ import uk.gov.hmcts.payment.api.dto.InternalRefundResponse;
 import uk.gov.hmcts.payment.api.dto.PaymentRefundRequest;
 import uk.gov.hmcts.payment.api.dto.RefundRequestDto;
 import uk.gov.hmcts.payment.api.dto.RefundResponse;
+import uk.gov.hmcts.payment.api.dto.ResubmitRefundRemissionRequest;
 import uk.gov.hmcts.payment.api.exception.InvalidRefundRequestException;
 import uk.gov.hmcts.payment.api.model.*;
 import uk.gov.hmcts.payment.api.util.PaymentMethodType;
@@ -126,27 +127,30 @@ public class PaymentRefundsServiceImpl implements PaymentRefundsService {
     }
 
     @Override
-    public ResponseEntity updateTheRemissionAmount(String paymentReference, BigDecimal requestAmount, String refundReason) {
+    public ResponseEntity updateTheRemissionAmount(String paymentReference, ResubmitRefundRemissionRequest request) {
         //Payment not found exception
         Payment payment = paymentRepository.findByReference(paymentReference).orElseThrow(PaymentNotFoundException::new);
 
-            if (payment.getAmount().compareTo(requestAmount) < 0) {
+            if (payment.getAmount().compareTo(request.getAmount()) < 0) {
                 throw new InvalidRefundRequestException("Refund amount should not be more than Payment amount");
             }
 
             //If refund reason is retro-remission
-            if (refundReason.contains("RR036")) {
-                Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(payment.getId());
+            if (request.getRefundReason().contains("RR036")) {
+                    Integer feeId = Integer.parseInt(request.getFeeId());
+                    updateRemissionAmount(feeId, request.getAmount());
 
-                if (feePayApportion.isPresent()) {
-                    List<FeePayApportion> feePayApportionList = feePayApportion.get();
-                    if (!isEmptyOrNull(feePayApportionList)) {
-                        FeePayApportion feePayApportionElement = feePayApportionList.get(0);
-                        updateRemissionAmount(feePayApportionElement.getFeeId(), requestAmount);
-                    }
-                }else {
-                    throw new PaymentNotFoundException("payment not found for"+payment.getId());
-                }
+//                Optional<List<FeePayApportion>> feePayApportion = feePayApportionRepository.findByPaymentId(payment.getId());
+//
+//                if (feePayApportion.isPresent()) {
+//                    List<FeePayApportion> feePayApportionList = feePayApportion.get();
+//                    if (!isEmptyOrNull(feePayApportionList)) {
+//                        FeePayApportion feePayApportionElement = feePayApportionList.get(0);
+//                        updateRemissionAmount(feePayApportionElement.getFeeId(), request.getAmount());
+//                    }
+//                }else {
+//                    throw new PaymentNotFoundException("payment not found for"+payment.getId());
+//                }
             }
 
 
