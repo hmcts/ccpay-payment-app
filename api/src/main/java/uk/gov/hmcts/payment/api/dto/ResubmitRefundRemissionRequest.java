@@ -26,4 +26,5 @@ public class ResubmitRefundRemissionRequest {
     @Digits(integer = 10, fraction = 2, message = "Payment amount cannot have more than 2 decimal places")
     private BigDecimal amount;
 
+    private String feeId;
 }
