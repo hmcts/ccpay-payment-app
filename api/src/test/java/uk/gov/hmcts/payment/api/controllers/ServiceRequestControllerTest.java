@@ -301,6 +301,9 @@ public class ServiceRequestControllerTest {
             contains("Unable to retrieve account information due to timeout"));
     }
 
+
+
+
     @Test
     public void createPBAPaymentLiberataAccountFirstFailSuccessTest() throws Exception {
         AccountDto accountOnHoldResponse = AccountDto.accountDtoWith()
@@ -530,6 +533,76 @@ public class ServiceRequestControllerTest {
         assertEquals("Your account is deleted", serviceRequestPaymentBo.getError().getErrorMessage());
 
     }
+
+    @Test
+    public void createPBAPaymentWithInsufficientFundsShouldReturn402() throws Exception {
+        AccountDto accountOnHoldResponse = AccountDto.accountDtoWith()
+            .accountNumber("PBA12347")
+            .accountName("CAERPHILLY COUNTY BOROUGH COUNCIL - Insufficient funds")
+            .creditLimit(BigDecimal.valueOf(28879))
+            .availableBalance(BigDecimal.valueOf(30000))
+            .status(AccountStatus.ON_HOLD)
+            .build();
+
+
+        when(accountService.retrieve("PBA12347")).thenReturn(accountOnHoldResponse);
+
+        String serviceRequestReference = getServiceRequestReference();
+
+        //ServiceRequest Payment DTO
+        ServiceRequestPaymentDto serviceRequestPaymentDto = ServiceRequestPaymentDto
+            .paymentDtoWith().accountNumber("PBA12347")
+            .amount(BigDecimal.valueOf(300))
+            .currency("GBP")
+            .customerReference("testCustReference").
+                build();
+
+        Error error = new Error();
+        error.setErrorCode("CA-E0001");
+        error.setErrorMessage("Payment request failed. PBA account have insufficient funds available");
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference").
+            dateCreated("20-09-2021").
+            error(error).
+            status("failed").
+            build();
+
+        ServiceRequestPaymentBo serviceRequestPaymentBo2 = ServiceRequestPaymentBo.serviceRequestPaymentBoWith().
+            paymentReference("RC-reference2").
+            status("success").
+            build();
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.PAYMENT_REQUIRED);
+
+        ResponseEntity<ServiceRequestPaymentBo> responseEntity2 =
+            new ResponseEntity<>(objectMapper.readValue("{\"response_body\":\"response_body\"}", ServiceRequestPaymentBo.class), HttpStatus.CREATED);
+
+        when(serviceRequestDomainService.addPayments(any(),any())).thenReturn(serviceRequestPaymentBo,serviceRequestPaymentBo2);
+
+        when(serviceRequestDomainService.createIdempotencyRecord(any(),any(),any(),any(),any(),any())).thenReturn(responseEntity,responseEntity2);
+
+        //ServiceRequest reference creation
+        String idempotencyKey = UUID.randomUUID().toString();
+
+        MvcResult accountOnHoldResult = restActions
+            .withHeaderIfpresent("idempotency_key", idempotencyKey)
+            .post("/service-request/" + serviceRequestReference + "/pba-payments", serviceRequestPaymentDto)
+            .andExpect(status().isPaymentRequired())
+            .andReturn();
+
+
+        // 1. Account deleted assertions
+        String paymentReference = serviceRequestPaymentBo.getPaymentReference();
+        assertTrue(paymentReference.startsWith("RC-"));
+        assertEquals("failed", serviceRequestPaymentBo.getStatus());
+        assertNotNull(serviceRequestPaymentBo.getDateCreated());
+        assertEquals("CA-E0001", serviceRequestPaymentBo.getError().getErrorCode());
+        assertEquals("Payment request failed. PBA account have insufficient funds available", serviceRequestPaymentBo.getError().getErrorMessage());
+
+    }
+
 
     @Test
     public void createPBALiberataFailureAndAccountNotFoundScenarioTest() throws Exception {
