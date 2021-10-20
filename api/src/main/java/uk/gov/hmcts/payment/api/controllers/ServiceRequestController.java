@@ -140,11 +140,11 @@ public class ServiceRequestController {
         try {
             serviceRequestPaymentBo = serviceRequestDomainService.addPayments(serviceRequest, serviceRequestPaymentDto);
             HttpStatus httpStatus;
-            if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0004")) {
+            if(("CA-E0004").equals(serviceRequestPaymentBo.getError().getErrorCode())) {
                 httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
-            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0003")){
+            }else if(("CA-E0003").equals (serviceRequestPaymentBo.getError().getErrorCode())){
                 httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for pba account on hold
-            }else if(serviceRequestPaymentBo.getError() != null && serviceRequestPaymentBo.getError().getErrorCode().equals("CA-E0001")){
+            }else if(("CA-E0001").equals (serviceRequestPaymentBo.getError().getErrorCode())){
                 httpStatus = HttpStatus.PAYMENT_REQUIRED; //402 for pba insufficient funds
             }else{
                 httpStatus = HttpStatus.CREATED;
