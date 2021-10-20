@@ -142,9 +142,9 @@ public class ServiceRequestController {
             HttpStatus httpStatus;
             if(("CA-E0004").equals(serviceRequestPaymentBo.getError().getErrorCode())) {
                 httpStatus = HttpStatus.GONE; //410 for deleted pba accounts
-            }else if(("CA-E0003").equals (serviceRequestPaymentBo.getError().getErrorCode())){
+            }else if(("CA-E0003").equals(serviceRequestPaymentBo.getError().getErrorCode())){
                 httpStatus = HttpStatus.PRECONDITION_FAILED; //412 for pba account on hold
-            }else if(("CA-E0001").equals (serviceRequestPaymentBo.getError().getErrorCode())){
+            }else if(("CA-E0001").equals(serviceRequestPaymentBo.getError().getErrorCode())){
                 httpStatus = HttpStatus.PAYMENT_REQUIRED; //402 for pba insufficient funds
             }else{
                 httpStatus = HttpStatus.CREATED;
