@@ -7,17 +7,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.PaymentServiceRequest;
+import uk.gov.hmcts.payment.api.exceptions.ServiceRequestReferenceNotFoundException;
 import uk.gov.hmcts.payment.api.external.client.GovPayClient;
 import uk.gov.hmcts.payment.api.external.client.dto.CreatePaymentRequest;
 import uk.gov.hmcts.payment.api.external.client.dto.GovPayPayment;
 import uk.gov.hmcts.payment.api.external.client.dto.Link;
 import uk.gov.hmcts.payment.api.model.Payment;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
+import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.service.DelegatingPaymentService;
 import uk.gov.hmcts.payment.api.v1.model.ServiceIdSupplier;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayAuthUtil;
 import uk.gov.hmcts.payment.api.v1.model.govpay.GovPayKeyRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -27,6 +32,13 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     private final GovPayClient govPayClient;
     private final ServiceIdSupplier serviceIdSupplier;
     private final GovPayAuthUtil govPayAuthUtil;
+    private static final Map<String, String> servicesMap = new HashMap<>();
+
+    static {
+        servicesMap.put("Divorce", "divorce_frontend");
+        servicesMap.put("Probate", "probate_frontend");
+        servicesMap.put("Civil Money Claims", "cmc");
+    }
 
     @Autowired
     public GovPayDelegatingPaymentService(GovPayKeyRepository govPayKeyRepository, GovPayClient govPayClient, ServiceIdSupplier serviceIdSupplier, GovPayAuthUtil govPayAuthUtil) {
@@ -34,6 +46,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
         this.govPayClient = govPayClient;
         this.serviceIdSupplier = serviceIdSupplier;
         this.govPayAuthUtil = govPayAuthUtil;
+
     }
 
     @Override
@@ -46,8 +59,9 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
-    public GovPayPayment create(CreatePaymentRequest createPaymentRequest) {
-        String key = keyForService();
+    public GovPayPayment create(CreatePaymentRequest createPaymentRequest, String serviceName) {
+        String key = getServiceKeyWithServiceName(serviceName);
+        LOG.info("Key value: {}",key);
         LOG.info("Language value in GovPayDelegatingPaymentService - CreatePaymentRequest: {}", createPaymentRequest.getLanguage());
         return govPayClient.createPayment(key, createPaymentRequest);
     }
@@ -100,5 +114,11 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     private String keyForService() {
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
+    }
+
+    private String getServiceKeyWithServiceName(String serviceName) {
+        LOG.info("service name {}",serviceName);
+        LOG.info("servicesMap {}",servicesMap.get(serviceName));
+        return govPayKeyRepository.getKey(servicesMap.get(serviceName));
     }
 }

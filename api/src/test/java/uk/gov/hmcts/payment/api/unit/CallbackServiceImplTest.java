@@ -3,11 +3,13 @@ package uk.gov.hmcts.payment.api.unit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.servicebus.IMessage;
 import org.ff4j.FF4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.componenttests.CardPaymentComponentTest;
 import uk.gov.hmcts.payment.api.componenttests.util.PaymentsDataUtil;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
@@ -22,19 +24,20 @@ import java.util.Arrays;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class CallbackServiceImplTest {
 
+    PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
+        .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
+        .fees(PaymentsDataUtil.getFeesData())
+        .build();
     @Mock
     private TopicClientProxy topicClient;
-
     @Mock
     private FF4j ff4j;
-
     private CallbackService callbackService;
-
     @Mock
     private PaymentDtoMapper paymentDtoMapper;
-
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
@@ -43,13 +46,13 @@ public class CallbackServiceImplTest {
         when(ff4j.check(CallbackService.FEATURE)).thenReturn(true);
     }
 
+    @After
+    public void tearDown() {
+        callbackService = null;
+    }
+
     @Test
     public void testThatWhenCallbackUriIsProvidedServiceBusIsCalled() throws Exception {
-
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
-            .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
-            .fees(PaymentsDataUtil.getFeesData())
-            .build();
 
         when(paymentDtoMapper.toResponseDto(paymentFeeLink, paymentFeeLink.getPayments().get(0))).thenReturn(new PaymentDto());
 
@@ -61,11 +64,6 @@ public class CallbackServiceImplTest {
 
     @Test
     public void testThatWhenNoCallbackUrlIsProvidedBusIsNotCalled() {
-
-        PaymentFeeLink paymentFeeLink = PaymentFeeLink.paymentFeeLinkWith().paymentReference("00000005")
-            .payments(Arrays.asList(CardPaymentComponentTest.getPaymentsData().get(2)))
-            .fees(PaymentsDataUtil.getFeesData())
-            .build();
 
         paymentFeeLink.getPayments().get(0).setServiceCallbackUrl(null);
 
