@@ -5,14 +5,17 @@ import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.payment.api.dto.RemissionServiceRequest;
+import uk.gov.hmcts.payment.api.dto.RetroRemissionServiceRequest;
 import uk.gov.hmcts.payment.api.model.PaymentFee;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLink;
 import uk.gov.hmcts.payment.api.model.PaymentFeeLinkRepository;
 import uk.gov.hmcts.payment.api.model.Remission;
-import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.util.ReferenceUtil;
+import uk.gov.hmcts.payment.api.util.ServiceRequestCaseUtil;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.InvalidPaymentGroupReferenceException;
 import uk.gov.hmcts.payment.api.v1.model.exceptions.PaymentFeeNotFoundException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionAlreadyExistException;
+import uk.gov.hmcts.payment.api.v1.model.exceptions.RemissionNotFoundException;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
@@ -87,6 +90,48 @@ public class RemissionServiceImpl implements RemissionService {
         remission.setFee(fee);
 
         return paymentFeeLink;
+    }
+
+    @Override
+    @Transactional
+    public Remission createRetrospectiveRemissionForPayment(RetroRemissionServiceRequest remissionServiceRequest, String paymentGroupReference, Integer feeId) throws CheckDigitException {
+        PaymentFeeLink paymentFeeLink = populatePaymentFeeLink(paymentGroupReference);
+        PaymentFee fee = populatePaymentFee(feeId, paymentFeeLink, remissionServiceRequest);
+        return buildRemissionForPayment(paymentFeeLink, fee, remissionServiceRequest);
+    }
+
+    private PaymentFeeLink populatePaymentFeeLink(String paymentGroupReference) {
+        return paymentFeeLinkRepository.findByPaymentReference(paymentGroupReference)
+            .orElseThrow(() -> new InvalidPaymentGroupReferenceException("Payment group " + paymentGroupReference + " does not exists."));
+    }
+
+    private PaymentFee populatePaymentFee(Integer feeId, PaymentFeeLink paymentFeeLink, RetroRemissionServiceRequest remissionServiceRequest) {
+        // Get particular fee from paymentFeeLink using feeId
+        PaymentFee fee = paymentFeeLink.getFees().stream().filter(f -> f.getId().equals(feeId))
+            .findAny()
+            .orElseThrow(() -> new PaymentFeeNotFoundException("Fee with id " + feeId + " does not exists."));
+        if (!fee.getRemissions().isEmpty()) {
+            throw new RemissionAlreadyExistException("Remission is already exist for FeeId " + feeId);
+        } else if (fee.getCalculatedAmount().compareTo(remissionServiceRequest.getHwfAmount()) < 0) {
+            throw new RemissionNotFoundException("Hwf Amount should not be more than Fee amount");
+        }
+        return fee;
+    }
+
+    private Remission buildRemissionForPayment(PaymentFeeLink paymentFeeLink, PaymentFee fee, RetroRemissionServiceRequest remissionServiceRequest) throws CheckDigitException {
+        // Apply retro remission using all data from paymentFeeLink,fee,feePayApportion,remissionServiceRequest
+        Remission remission = Remission.remissionWith()
+            .hwfReference(remissionServiceRequest.getHwfReference())
+            .hwfAmount(remissionServiceRequest.getHwfAmount())
+            .remissionReference(referenceUtil.getNext("RM"))
+            .siteId(paymentFeeLink.getOrgId())
+            .ccdCaseNumber(fee.getCcdCaseNumber())
+            .caseReference(paymentFeeLink.getCaseReference())
+            .build();
+
+        fee.setRemissions(Lists.newArrayList(remission));
+        paymentFeeLink.setRemissions(Lists.newArrayList(remission));
+        return remission;
     }
 
     private Remission buildRemission(RemissionServiceRequest remissionServiceRequest) {

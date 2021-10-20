@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.payment.api.domain.mapper.ServiceRequestDomainDataEntityMapper;
 import uk.gov.hmcts.payment.api.dto.ServiceRequestResponseDto;
@@ -22,14 +23,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class ServiceRequestBoTest {
 
+
+    String orderReference = "2200-1619524583862";
     @InjectMocks
     private ServiceRequestBo serviceRequestBo;
-
     @Mock
     private PaymentFeeLinkRepository paymentFeeLinkRepository;
-
     @Spy
     private ServiceRequestDomainDataEntityMapper serviceRequestDomainDataEntityMapper;
 
@@ -119,3 +121,4 @@ public class ServiceRequestBoTest {
             .build();
     }
 }
+

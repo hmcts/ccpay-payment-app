@@ -1,11 +1,13 @@
 package uk.gov.hmcts.payment.api.scheduler;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.payment.api.dto.PaymentSearchCriteria;
 import uk.gov.hmcts.payment.api.dto.mapper.PaymentDtoMapper;
 import uk.gov.hmcts.payment.api.email.Email;
@@ -24,6 +26,7 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
+@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
 public class PaymentsReportServiceTest {
 
     @InjectMocks
@@ -42,11 +45,16 @@ public class PaymentsReportServiceTest {
 
     @Before
     public void setUp() {
-        paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String []{"toEmail"}, "emailSubject", "emailMessage", true);
+        paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String[]{"toEmail"}, "emailSubject", "emailMessage", true);
+    }
+
+    @After
+    public void tearDown() {
+        paymentReportConfig = null;
     }
 
     @Test
-    public void shouldDelegateToCardSearch()  {
+    public void shouldDelegateToCardSearch() {
         // given
         Date startDate = new Date();
         Date endDate = new Date();
@@ -66,7 +74,7 @@ public class PaymentsReportServiceTest {
     }
 
     @Test
-    public void shouldDelegateToPbaSearch()  {
+    public void shouldDelegateToPbaSearch() {
         // given
         Date startDate = new Date();
         Date endDate = new Date();
@@ -87,11 +95,11 @@ public class PaymentsReportServiceTest {
     }
 
     @Test
-    public void shouldDelegateToEmailService()  {
+    public void shouldDelegateToEmailService() {
         // given
-        paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String []{"toEmail"}, "emailSubject", "emailMessage", true);
+        paymentReportConfig = new CardPaymentReportConfig("fromEmail", new String[]{"toEmail"}, "emailSubject", "emailMessage", true);
 
-         // when
+        // when
         paymentsReportService.generateCsvAndSendEmail(new Date(), new Date(), PaymentMethodType.CARD, null, paymentReportConfig);
 
         // then
