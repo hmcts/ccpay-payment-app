@@ -102,6 +102,9 @@ public class GovPayClient {
 
     private HttpPost postRequestFor(String authorizationKey, String url, HttpEntity entity) throws JsonProcessingException {
         LOG.info("Inside postRequestFor in GovPayClient");
+        LOG.info("authorizationKey {} ",authorizationKey);
+        LOG.info("url {} ",url);
+        LOG.info("entity {} ",objectMapper.writeValueAsString(entity));
         HttpPost request = new HttpPost(url);
         request.setEntity(entity);
         request.addHeader(authorizationHeader(authorizationKey));
