@@ -98,6 +98,7 @@ public class GovPayClient {
     }
 
     private HttpPost postRequestFor(String authorizationKey, String url, Object entity) throws JsonProcessingException {
+        LOG.info("new StringEntity(objectMapper.writeValueAsString(entity) {}",objectMapper.writeValueAsString(entity));
         return postRequestFor(authorizationKey, url, new StringEntity(objectMapper.writeValueAsString(entity), APPLICATION_JSON));
     }
 
@@ -105,7 +106,12 @@ public class GovPayClient {
         LOG.info("Inside postRequestFor in GovPayClient");
         LOG.info("authorizationKey {} ",authorizationKey);
         LOG.info("url {} ",url);
-        LOG.info("entity {} ",objectMapper.writeValueAsString(entity));
+        try{
+            LOG.info("entity {}", entity.getContent().toString());
+        }catch (Exception e){
+            LOG.info(e.getMessage());
+        }
+
         HttpPost request = new HttpPost(url);
         request.setEntity(entity);
         request.addHeader(authorizationHeader(authorizationKey));
