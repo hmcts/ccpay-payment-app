@@ -23,6 +23,7 @@ java:
     "ccpay":
       resourceGroup: ccpay
       secrets:
+        - ccpay-payment-status-connection-string
         - gov-pay-keys-cmc
         - launch-darkly-sdk-key
         - payment-s2s-secret
