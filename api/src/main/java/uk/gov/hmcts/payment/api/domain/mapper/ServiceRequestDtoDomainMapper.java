@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.api.domain.mapper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -79,6 +80,9 @@ public class ServiceRequestDtoDomainMapper {
     public CreatePaymentRequest createGovPayRequest(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo) {
         return new CreatePaymentRequest(requestOnlinePaymentBo.getAmount().movePointRight(2).intValue(),
             requestOnlinePaymentBo.getPaymentReference(), requestOnlinePaymentBo.getDescription(),
-            requestOnlinePaymentBo.getReturnUrl(), requestOnlinePaymentBo.getLanguage());
+            requestOnlinePaymentBo.getReturnUrl(),
+        (StringUtils.isBlank(requestOnlinePaymentBo.getLanguage()) || requestOnlinePaymentBo.getLanguage() != null
+            && requestOnlinePaymentBo.getLanguage().equalsIgnoreCase("string")) ? null : StringUtils.lowerCase(requestOnlinePaymentBo.getLanguage())
+        );
     }
 }
