@@ -38,6 +38,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
         servicesMap.put("Divorce", "divorce_frontend");
         servicesMap.put("Probate", "probate_frontend");
         servicesMap.put("Civil Money Claims", "cmc");
+        servicesMap.put("Specified Money Claims", "cmc");
     }
 
     @Autowired
