@@ -2,6 +2,8 @@ package uk.gov.hmcts.payment.api.domain.mapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.CheckDigitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.api.controllers.PaymentReference;
@@ -30,6 +32,8 @@ public class ServiceRequestDtoDomainMapper {
     private UserIdSupplier userIdSupplier;
     @Autowired
     private ServiceIdSupplier serviceIdSupplier;
+
+    private static final Logger LOG = LoggerFactory.getLogger(ServiceRequestDtoDomainMapper.class);
 
     public ServiceRequestBo toDomain(ServiceRequestDto serviceRequestDto, OrganisationalServiceDto organisationalServiceDto) {
 
@@ -78,11 +82,11 @@ public class ServiceRequestDtoDomainMapper {
     }
 
     public CreatePaymentRequest createGovPayRequest(ServiceRequestOnlinePaymentBo requestOnlinePaymentBo) {
+        LOG.info("requestOnlinePaymentBo.getLanguage() {}",requestOnlinePaymentBo.getLanguage());
         return new CreatePaymentRequest(requestOnlinePaymentBo.getAmount().movePointRight(2).intValue(),
             requestOnlinePaymentBo.getPaymentReference(), requestOnlinePaymentBo.getDescription(),
             requestOnlinePaymentBo.getReturnUrl(),
-        (StringUtils.isBlank(requestOnlinePaymentBo.getLanguage()) || requestOnlinePaymentBo.getLanguage() != null
-            && requestOnlinePaymentBo.getLanguage().equalsIgnoreCase("string")) ? null : StringUtils.lowerCase(requestOnlinePaymentBo.getLanguage())
-        );
+         requestOnlinePaymentBo.getLanguage().equalsIgnoreCase("string") ? null : StringUtils.lowerCase(requestOnlinePaymentBo.getLanguage()
+        ));
     }
 }
