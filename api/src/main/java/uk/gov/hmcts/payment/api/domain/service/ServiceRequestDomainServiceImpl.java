@@ -309,7 +309,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
             .findFirst();
 
         if (!existedPayment.isEmpty()) {
-            delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber());
+            delegatingPaymentService.cancel(existedPayment.get(), paymentFeeLink.getCcdCaseNumber(),paymentFeeLink.getEnterpriseServiceName());
         }
     }
 
