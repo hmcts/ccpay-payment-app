@@ -74,6 +74,10 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     @Override
+    public void cancel(Payment payment, String ccdCaseNumber, String serviceName) {
+    }
+
+    @Override
     public GovPayPayment update(PaymentServiceRequest paymentServiceRequest) {
         return null;
     }
@@ -96,6 +100,12 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     @Override
     public void cancel(String cancelUrl) {
         govPayClient.cancelPayment(keyForService(), cancelUrl);
+    }
+
+    @Override
+    public void cancel(String cancelUrl, String serviceName) {
+        LOG.info("NEW cancel in gov pay delegating service");
+        govPayClient.cancelPayment(getServiceKeyWithServiceName(serviceName), cancelUrl);
     }
 
     @Override
