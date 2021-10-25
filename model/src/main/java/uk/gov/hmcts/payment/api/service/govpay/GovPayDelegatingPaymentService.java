@@ -61,6 +61,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     @Override
     public GovPayPayment create(CreatePaymentRequest createPaymentRequest, String serviceName) {
+        LOG.info("Gov Pay Delegating service ---");
         LOG.info("Gov Pay Delegating service ---"+serviceName);
         String key = getServiceKeyWithServiceName(serviceName);
         LOG.info("Key value: {}",key);
@@ -116,7 +117,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     private String keyForService() {
-        LOG.info("");
+        LOG.info("keyForService ----");
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 
