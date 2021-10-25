@@ -57,7 +57,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
     @Value("${case-payment-orders.api.url}")
     private  String callBackUrl;
 
-    @Value("${sb-cpo-primary-connection-string}")
+    @Value("${azure.servicebus.connection-string}")
     private String connectionString;
 
     private static final String topic = "ccpay-cpo-topic";
