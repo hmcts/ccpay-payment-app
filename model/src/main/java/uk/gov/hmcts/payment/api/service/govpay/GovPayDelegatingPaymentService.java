@@ -61,6 +61,7 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
 
     @Override
     public GovPayPayment create(CreatePaymentRequest createPaymentRequest, String serviceName) {
+        LOG.info("Gov Pay Delegating service ---"+serviceName);
         String key = getServiceKeyWithServiceName(serviceName);
         LOG.info("Key value: {}",key);
         LOG.info("Language value in GovPayDelegatingPaymentService - CreatePaymentRequest: {}", createPaymentRequest.getLanguage());
@@ -110,10 +111,12 @@ public class GovPayDelegatingPaymentService implements DelegatingPaymentService<
     }
 
     private String keyForService(String service) {
+        LOG.info("KEY FOR SERVICE: "+service);
         return govPayAuthUtil.getServiceToken(service);
     }
 
     private String keyForService() {
+        LOG.info("");
         return govPayKeyRepository.getKey(serviceIdSupplier.get());
     }
 
