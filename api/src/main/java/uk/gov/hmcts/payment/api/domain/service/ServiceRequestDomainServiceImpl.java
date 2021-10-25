@@ -154,6 +154,7 @@ public class ServiceRequestDomainServiceImpl implements ServiceRequestDomainServ
 
         // GovPay - Request and creation
         CreatePaymentRequest createGovPayRequest = serviceRequestDtoDomainMapper.createGovPayRequest(requestOnlinePaymentBo);
+        LOG.info("Reaching card payment");
         GovPayPayment govPayPayment = delegateGovPay.create(createGovPayRequest, serviceRequest.getEnterpriseServiceName());
 
         //Payment - Entity creation
