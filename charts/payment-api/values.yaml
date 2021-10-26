@@ -91,6 +91,7 @@ java:
         - sb-primary-connection-string
         - sb-cpo-primary-connection-string
         - ccpay-payment-status-connection-string
+        - cpo-topic-primary-send-listen-shared-access-key
         - pci-pal-account-id-cmc
         - pci-pal-account-id-probate
         - pci-pal-account-id-divorce
